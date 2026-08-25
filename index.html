@@ -220,6 +220,72 @@
   .cert-note{font-size:13px; color:var(--text-faint); margin-top:16px; line-height:1.6; max-width:640px;}
   @media (max-width:700px){ .cert-row{grid-template-columns:1fr;} }
 
+  /* EXPERIENCIA — timeline + highlights combinados */
+  .timeline{margin-top:52px; position:relative;}
+  .timeline::before{
+    content:''; position:absolute; left:17px; top:6px; bottom:6px; width:1.5px;
+    background:linear-gradient(180deg, var(--blue-dim), var(--line) 90%);
+  }
+  .tl-item{position:relative; padding-left:52px; margin-bottom:38px;}
+  .tl-item:last-child{margin-bottom:0;}
+  .tl-dot{
+    position:absolute; left:9px; top:3px; width:17px; height:17px; border-radius:50%;
+    background:var(--panel); border:2px solid var(--blue-bright); box-shadow:0 0 0 4px var(--bg), 0 0 10px var(--blue-soft);
+    display:flex; align-items:center; justify-content:center; z-index:1;
+  }
+  .tl-dot.cert{background:var(--blue-bright);}
+  .tl-dot svg{width:8px; height:8px; color:var(--bg);}
+  .tl-era{font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); letter-spacing:.4px; margin-bottom:6px;}
+  .tl-head{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px;}
+  .tl-title{font-family:var(--display); font-weight:600; font-size:18px;}
+  .tl-badge{
+    font-family:var(--mono); font-size:10px; color:var(--blue-bright); background:var(--blue-soft);
+    border:1px solid var(--blue-dim); padding:2px 8px; border-radius:10px; letter-spacing:.3px;
+  }
+  .tl-text{font-size:14px; color:var(--text-dim); line-height:1.7; max-width:600px; margin-bottom:12px;}
+  .tl-highlight{
+    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text);
+    background:var(--panel); border:1px solid var(--line); padding:8px 14px; border-radius:6px;
+  }
+  .tl-highlight svg{width:14px; height:14px; color:var(--blue-bright); flex:none;}
+
+  /* CLIENTES */
+  .clients-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:48px;}
+  .client-tile{
+    aspect-ratio:2.2/1; border:1px dashed var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; background:var(--panel);
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); text-align:center; padding:10px;
+    transition:border-color .2s, color .2s;
+  }
+  .client-tile:hover{border-color:var(--blue-dim); color:var(--text-dim);}
+  .clients-note{margin-top:20px; font-size:13px; color:var(--text-faint); max-width:640px; line-height:1.6;}
+  @media (max-width:760px){ .clients-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* CURSOS — vista rápida por herramienta, color de marca de cada producto */
+  .courses-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:48px;}
+  .course-card{
+    display:block;
+    position:relative; border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    padding:26px 22px 22px; overflow:hidden; transition:transform .2s, border-color .2s;
+    opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease, border-color .2s, transform .2s;
+  }
+  .course-card.in-view{ opacity:1; transform:translateY(0); }
+  .course-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c);}
+  .course-card:hover{border-color:var(--c); transform:translateY(-3px);}
+  .course-card.excel{--c:#22c55e;}
+  .course-card.pbi{--c:#f2c94c;}
+  .course-card.apps{--c:#c026d3;}
+  .course-card.automate{--c:#06b6d4;}
+  .course-card.ia{--c:#a78bfa;}
+  .course-icon{width:30px; height:30px; color:var(--c); margin-bottom:16px;}
+  .course-icon svg{width:100%; height:100%;}
+  .course-title{font-family:var(--display); font-weight:600; font-size:16.5px; margin-bottom:8px;}
+  .course-text{font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-bottom:18px;}
+  .course-tag{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.3px;
+    color:var(--c); border:1px solid var(--c); padding:4px 10px; border-radius:12px;
+  }
+
   /* DIFERENCIADOR cards */
   .diff-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:44px;}
   .diff-card{border:1px solid var(--line); border-radius:8px; padding:26px; background:var(--panel); transition:border-color .2s, transform .2s;}
@@ -289,8 +355,9 @@
       <span><b>AP</b> · alfredopina.ai</span>
     </div>
     <div class="nav-links">
-      <a href="#semblanza">Semblanza</a>
-      <a href="#diferenciador">Enfoque</a>
+      <a href="#acerca">Acerca</a>
+      <a href="#experiencia">Experiencia</a>
+      <a href="cursos.html">Cursos</a>
       <a href="#servicios">Servicios</a>
     </div>
     <a href="#contacto" class="nav-cta">Contactar →</a>
@@ -329,8 +396,8 @@
   </div>
 </section>
 
-<section id="semblanza" class="wrap">
-  <div class="eyebrow">SEMBLANZA</div>
+<section id="acerca" class="wrap">
+  <div class="eyebrow">ACERCA DE MÍ</div>
   <h2 class="section-title">De consultor de calidad a especialista en datos, automatización e IA.</h2>
   <p class="section-sub">Ingeniero Industrial y Administrador, formado de manera autodidacta. 15+ años acompañando a personas y organizaciones de México y Latinoamérica a decidir con datos.</p>
 
@@ -410,6 +477,60 @@
   <p class="cert-note">* Excel y Power BI son sus certificaciones oficiales vigentes verificadas. Power Apps, Power Automate y Power Platform son áreas de especialidad práctica — dime si tienes constancias oficiales de esas y las agrego aquí también con el mismo formato.</p>
 </section>
 
+<section id="experiencia" class="wrap">
+  <div class="eyebrow">EXPERIENCIA</div>
+  <h2 class="section-title">15+ años de trayectoria, de la planta a los datos y la IA.</h2>
+  <p class="section-sub">Un recorrido por los momentos que marcaron el camino — de consultor de calidad a instructor certificado, y de ahí a marca personal.</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-era">INICIOS</div>
+      <div class="tl-head"><div class="tl-title">Consultoría en calidad e Ingeniería Industrial</div></div>
+      <p class="tl-text">Primeros proyectos como consultor en calidad y herramientas de Ingeniería Industrial, antes de migrar a la capacitación de esos mismos temas.</p>
+      <div class="tl-highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Primeras generaciones formadas en planta</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot cert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tl-era">2016</div>
+      <div class="tl-head"><div class="tl-title">Certificación Microsoft Office Specialist: Excel</div><span class="tl-badge">CERTIFICACIÓN OFICIAL</span></div>
+      <p class="tl-text">Formaliza su especialización en Excel con la certificación oficial de Microsoft, tras años de dominarlo de forma autodidacta.</p>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-era">EXPANSIÓN</div>
+      <div class="tl-head"><div class="tl-title">Power BI, DAX y Power Platform</div></div>
+      <p class="tl-text">Amplía su especialidad a Power BI, DAX, Power Apps y Power Automate — pasando de reportes estáticos a dashboards y automatización real.</p>
+      <div class="tl-highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Cientos de dashboards y flujos construidos con clientes</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot cert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tl-era">2022</div>
+      <div class="tl-head"><div class="tl-title">Microsoft Certified: Power BI Data Analyst Associate</div><span class="tl-badge">CERTIFICACIÓN OFICIAL</span></div>
+      <p class="tl-text">Certificación oficial de Microsoft que valida su nivel avanzado en análisis y modelado de datos con Power BI.</p>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-era">LIFEZEN TRAINING</div>
+      <div class="tl-head"><div class="tl-title">Construcción de una comunidad masiva</div></div>
+      <p class="tl-text">Bajo la marca LifeZen Training, construye una de las comunidades de capacitación en Excel más grandes de habla hispana en redes sociales.</p>
+      <div class="tl-highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-linecap="round" stroke-linejoin="round"/></svg>+3,000,000 de seguidores alcanzados</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-era">2025 — HOY</div>
+      <div class="tl-head"><div class="tl-title">Marca personal & Director en LifeZen Consultores</div></div>
+      <p class="tl-text">Da el salto a operar bajo su propio nombre, sin dejar la dirección de LifeZen Consultores — hoy con foco en IA aplicada y productividad, más allá de Excel.</p>
+      <div class="tl-highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Instructor, consultor y director — enfoque en IA</div>
+    </div>
+  </div>
+</section>
+
 <section id="diferenciador" class="wrap">
   <div class="eyebrow">¿QUÉ ME DIFERENCIA?</div>
   <h2 class="section-title">Explico lo complejo con ejemplos aterrizados al negocio.</h2>
@@ -431,6 +552,65 @@
       <div class="diff-title">Historias de éxito</div>
       <div class="diff-text">Más allá de la herramienta: equipos que recuperan horas a la semana y líderes que por fin ven sus KPIs claros para decidir con datos.</div>
     </div>
+  </div>
+</section>
+
+<section id="clientes" class="wrap">
+  <div class="eyebrow">CLIENTES</div>
+  <h2 class="section-title">Empresas, gobierno y universidades que ya confiaron en esta formación.</h2>
+  <div class="clients-grid">
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+    <div class="client-tile">LOGO CLIENTE</div>
+  </div>
+  <p class="clients-note">* Placeholders por ahora — mándame los logos (PNG con fondo transparente o SVG, idealmente) de los clientes que quieras mostrar y los acomodo aquí en escala de grises, con color al hacer hover.</p>
+</section>
+
+<section id="cursos" class="wrap">
+  <div class="eyebrow">CURSOS</div>
+  <h2 class="section-title">Formación práctica, por herramienta.</h2>
+  <p class="section-sub">El catálogo completo con temarios, sesiones y niveles vive en su propia sección del sitio. Aquí, la vista rápida.</p>
+
+  <div class="courses-grid">
+    <a href="cursos.html#excel" class="course-card excel">
+      <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></div>
+      <div class="course-title">Excel</div>
+      <div class="course-text">De fórmulas y tablas dinámicas a VBA y Copilot — dos niveles, 100% práctico.</div>
+      <div class="course-tag">2 cursos disponibles</div>
+    </a>
+
+    <a href="cursos.html#powerbi" class="course-card pbi">
+      <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="course-title">Power BI</div>
+      <div class="course-text">Dashboards conectados a datos reales, modelado de datos y DAX.</div>
+      <div class="course-tag">Próximamente</div>
+    </a>
+
+    <a href="cursos.html#powerapps" class="course-card apps">
+      <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="course-title">Power Apps</div>
+      <div class="course-text">Apps propias que sustituyen formatos en papel y correos perdidos.</div>
+      <div class="course-tag">Próximamente</div>
+    </a>
+
+    <a href="cursos.html#powerautomate" class="course-card automate">
+      <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="course-title">Power Automate</div>
+      <div class="course-text">Flujos que automatizan tareas y aprobaciones sin escribir código.</div>
+      <div class="course-tag">Próximamente</div>
+    </a>
+
+    <a href="cursos.html#ia" class="course-card ia">
+      <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="course-title">IA Aplicada</div>
+      <div class="course-text">Copilot y M365 para escribir, analizar y decidir más rápido.</div>
+      <div class="course-tag">Próximamente</div>
+    </a>
   </div>
 </section>
 
@@ -492,10 +672,11 @@
   const targets = [
     { el: document.querySelector('h1.name'), label: 'A1' },
     { el: document.querySelectorAll('.stats-grid .cell')[1], label: 'B4' },
-    { el: document.querySelector('#semblanza .section-title'), label: 'C2' },
+    { el: document.querySelector('#acerca .section-title'), label: 'C2' },
     { el: document.querySelectorAll('.insight-card')[2], label: 'D6' },
-    { el: document.querySelector('.cert-row'), label: 'E1' },
-    { el: document.querySelector('#diferenciador .section-title'), label: 'F3' },
+    { el: document.querySelectorAll('.tl-item')[2], label: 'E5' },
+    { el: document.querySelector('.courses-grid'), label: 'F1' },
+    { el: document.querySelector('.clients-grid'), label: 'G3' },
   ].filter(t => t.el);
 
   const box = document.createElement('div');
@@ -553,6 +734,12 @@
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: .35 });
   document.querySelectorAll('.insight-card').forEach(c => cardObs.observe(c));
+
+  // cursos — fade-in on scroll
+  const courseObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: .2 });
+  document.querySelectorAll('.course-card').forEach(c => courseObs.observe(c));
 </script>
 
 </body>

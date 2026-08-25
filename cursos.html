@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursos — Alfredo Piña</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0d12;
+    --panel: #10141b;
+    --panel-2: #141a23;
+    --line: #1d2530;
+    --line-soft: #161c26;
+    --blue: #3d7fff;
+    --blue-bright: #6b9fff;
+    --blue-soft: rgba(61,127,255,.14);
+    --blue-dim: #16233f;
+    --text: #edf0f4;
+    --text-dim: #8991a1;
+    --text-faint: #4c5462;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--body);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  ::selection{background:var(--blue);color:#fff;}
+
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+    opacity:.6;
+  }
+
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 32px;position:relative;z-index:1;}
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(10px);
+    background:rgba(10,13,18,.7);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;}
+  .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px;}
+  .nav-mark b{color:var(--blue-bright);font-weight:500;}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--text-dim);}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{
+    font-family:var(--mono); font-size:12px; letter-spacing:.3px;
+    border:1px solid var(--line); padding:8px 16px; border-radius:3px;
+    color:var(--text); transition:border-color .2s, background .2s;
+  }
+  .nav-cta:hover{border-color:var(--blue); background:var(--blue-soft);}
+
+  /* HERO — immersive photo background */
+  .hero{
+    position:relative; min-height:86vh; display:flex; align-items:center;
+    padding:90px 0 70px; overflow:hidden;
+  }
+  .hero-photo-bg{position:absolute; top:0; right:0; height:100%; width:62%; z-index:0;}
+  .hero-photo-bg img{width:100%; height:100%; object-fit:cover; object-position:70% top; display:block;}
+  .hero-photo-fade{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, var(--bg) 0%, rgba(10,13,18,.82) 22%, rgba(10,13,18,.35) 50%, rgba(10,13,18,.05) 75%, transparent 100%),
+      linear-gradient(180deg, rgba(10,13,18,.55) 0%, transparent 22%, transparent 78%, rgba(10,13,18,.75) 100%);
+  }
+  .hero-photo-bg::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(160deg, rgba(61,127,255,.10), transparent 45%);
+    mix-blend-mode:screen;
+  }
+
+  .hero-inner{position:relative; z-index:2; width:100%;}
+  .hero-text{max-width:600px;}
+
+  h1.name{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(40px, 6vw, 76px); line-height:1.0; letter-spacing:-.02em;
+    color:var(--text);
+  }
+  h1.name .accent{color:var(--blue-bright);}
+  .role-line{
+    font-family:var(--mono); font-size:clamp(12px,1.4vw,14.5px); color:var(--text-dim);
+    margin-top:22px; letter-spacing:.2px; max-width:560px; line-height:1.8;
+  }
+  .role-line .sep{color:var(--text-faint); margin:0 8px;}
+  .hero-desc{
+    margin-top:24px; font-size:16.5px; line-height:1.75; color:var(--text-dim);
+    max-width:540px; font-weight:400;
+  }
+  .hero-actions{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap;}
+  .btn{
+    font-family:var(--body); font-weight:600; font-size:14px;
+    padding:14px 26px; border-radius:4px; display:inline-flex; align-items:center; gap:10px;
+    transition:transform .15s ease, background .2s, border-color .2s;
+    cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:hover{background:var(--blue-bright); transform:translateY(-1px);}
+  .btn-ghost{border:1px solid var(--line); color:var(--text); backdrop-filter:blur(6px); background:rgba(10,13,18,.3);}
+  .btn-ghost:hover{border-color:var(--blue); background:var(--blue-soft); transform:translateY(-1px);}
+
+  .float-chip{
+    position:absolute; background:rgba(16,20,27,.85); backdrop-filter:blur(8px); border:1px solid var(--line);
+    border-radius:6px; padding:10px 14px; font-family:var(--mono); font-size:11.5px;
+    color:var(--text-dim); box-shadow:0 12px 30px rgba(0,0,0,.4);
+    display:flex; align-items:center; gap:8px; z-index:3;
+    animation:float 5s ease-in-out infinite;
+  }
+  .float-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--blue-bright);box-shadow:0 0 6px var(--blue-bright);}
+  .float-chip b{color:var(--text); font-weight:500;}
+  .chip-a{top:16%; right:6%; animation-delay:0s;}
+  .chip-b{bottom:20%; right:4%; animation-delay:1.6s;}
+  @keyframes float{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
+
+  @media (max-width:860px){
+    .hero{min-height:auto; padding:56px 0 50px;}
+    .hero-photo-bg{width:100%; opacity:.28;}
+    .hero-photo-fade{background:linear-gradient(180deg, rgba(10,13,18,.55) 0%, rgba(10,13,18,.85) 55%, var(--bg) 100%);}
+    .float-chip{display:none;}
+  }
+
+  /* selection box signature element */
+  .selector-box{
+    position:absolute; border:1.5px solid var(--blue-bright); border-radius:2px;
+    pointer-events:none; z-index:2;
+    box-shadow: 0 0 0 3px var(--blue-soft);
+    transition: all 1.1s cubic-bezier(.65,0,.35,1);
+  }
+  .selector-box::after{
+    content:''; position:absolute; width:7px; height:7px; background:var(--blue-bright);
+    right:-4px; bottom:-4px; border-radius:1px; box-shadow:0 0 6px var(--blue-bright);
+  }
+  .selector-label{
+    position:absolute; top:-22px; left:-1px; font-family:var(--mono); font-size:10px;
+    color:var(--blue-bright); background:var(--bg); padding:1px 4px; letter-spacing:.5px;
+  }
+
+  /* STATS */
+  .stats{padding:60px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); position:relative; z-index:1; background:var(--bg);}
+  .stats-grid{display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  .cell{padding:26px 22px; border-right:1px solid var(--line); position:relative; background:var(--panel); transition:background .25s;}
+  .cell:last-child{border-right:none;}
+  .cell:hover{background:var(--panel-2);}
+  .cell-ref{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-bottom:12px; letter-spacing:.5px;}
+  .cell-num{font-family:var(--display); font-size:32px; font-weight:600; color:var(--text);}
+  .cell-num .u{color:var(--blue-bright);}
+  .cell-label{font-size:12.5px; color:var(--text-dim); margin-top:7px; line-height:1.5;}
+
+  @media (max-width:760px){
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .cell:nth-child(2){border-right:none;}
+  }
+
+  /* SECTION SHARED */
+  section{padding:96px 0; position:relative; z-index:1;}
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; color:var(--blue-bright);
+    letter-spacing:.5px; margin-bottom:16px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:'';width:20px;height:1px;background:var(--blue-bright);}
+  h2.section-title{
+    font-family:var(--display); font-weight:600; font-size:clamp(26px,3.6vw,40px);
+    letter-spacing:-.01em; max-width:700px; line-height:1.18;
+  }
+  .section-sub{font-size:16px; color:var(--text-dim); max-width:620px; margin-top:16px; line-height:1.7;}
+
+  /* SEMBLANZA — insight cards */
+  .insight-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px;}
+  .insight-card{
+    border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:24px;
+    transition:border-color .2s, transform .2s;
+  }
+  .insight-card:hover{border-color:var(--blue-dim); transform:translateY(-3px);}
+  .insight-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;}
+  .insight-icon{width:30px; height:30px; color:var(--blue-bright);}
+  .insight-icon svg{width:100%; height:100%;}
+  .spark{display:flex; align-items:flex-end; gap:3px; height:22px;}
+  .spark i{display:block; width:4px; background:linear-gradient(180deg, var(--blue-bright), var(--blue)); border-radius:1px;
+    transform-origin:bottom; transform:scaleY(0); transition:transform .7s cubic-bezier(.22,1,.36,1);}
+  .insight-card.in-view .spark i{transform:scaleY(1);}
+  .spark i:nth-child(1){height:40%; transition-delay:.02s;}
+  .spark i:nth-child(2){height:70%; transition-delay:.09s;}
+  .spark i:nth-child(3){height:55%; transition-delay:.16s;}
+  .spark i:nth-child(4){height:95%; transition-delay:.23s;}
+  .spark i:nth-child(5){height:75%; transition-delay:.30s;}
+  .insight-title{font-family:var(--display); font-weight:600; font-size:16.5px; margin-bottom:9px;}
+  .insight-text{font-size:13.5px; color:var(--text-dim); line-height:1.65;}
+
+  @media (max-width:860px){ .insight-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:600px){ .insight-grid{grid-template-columns:1fr;} }
+
+  /* CERTIFICATIONS */
+  .cert-row{margin-top:20px; display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .cert-card{
+    display:flex; gap:16px; align-items:center; border:1px solid var(--line); border-radius:10px;
+    background:var(--panel); padding:20px;
+  }
+  .cert-badge{
+    width:46px; height:46px; flex:none; border-radius:8px; background:var(--blue-soft);
+    border:1px solid var(--blue-dim); display:flex; align-items:center; justify-content:center; color:var(--blue-bright);
+  }
+  .cert-badge svg{width:24px; height:24px;}
+  .cert-name{font-family:var(--display); font-weight:600; font-size:14.5px; margin-bottom:3px;}
+  .cert-meta{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+  .cert-note{font-size:13px; color:var(--text-faint); margin-top:16px; line-height:1.6; max-width:640px;}
+  @media (max-width:700px){ .cert-row{grid-template-columns:1fr;} }
+
+  /* EXPERIENCIA — timeline + highlights combinados */
+  .timeline{margin-top:52px; position:relative;}
+  .timeline::before{
+    content:''; position:absolute; left:17px; top:6px; bottom:6px; width:1.5px;
+    background:linear-gradient(180deg, var(--blue-dim), var(--line) 90%);
+  }
+  .tl-item{position:relative; padding-left:52px; margin-bottom:38px;}
+  .tl-item:last-child{margin-bottom:0;}
+  .tl-dot{
+    position:absolute; left:9px; top:3px; width:17px; height:17px; border-radius:50%;
+    background:var(--panel); border:2px solid var(--blue-bright); box-shadow:0 0 0 4px var(--bg), 0 0 10px var(--blue-soft);
+    display:flex; align-items:center; justify-content:center; z-index:1;
+  }
+  .tl-dot.cert{background:var(--blue-bright);}
+  .tl-dot svg{width:8px; height:8px; color:var(--bg);}
+  .tl-era{font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); letter-spacing:.4px; margin-bottom:6px;}
+  .tl-head{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px;}
+  .tl-title{font-family:var(--display); font-weight:600; font-size:18px;}
+  .tl-badge{
+    font-family:var(--mono); font-size:10px; color:var(--blue-bright); background:var(--blue-soft);
+    border:1px solid var(--blue-dim); padding:2px 8px; border-radius:10px; letter-spacing:.3px;
+  }
+  .tl-text{font-size:14px; color:var(--text-dim); line-height:1.7; max-width:600px; margin-bottom:12px;}
+  .tl-highlight{
+    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text);
+    background:var(--panel); border:1px solid var(--line); padding:8px 14px; border-radius:6px;
+  }
+  .tl-highlight svg{width:14px; height:14px; color:var(--blue-bright); flex:none;}
+
+  /* CLIENTES */
+  .clients-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:48px;}
+  .client-tile{
+    aspect-ratio:2.2/1; border:1px dashed var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; background:var(--panel);
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); text-align:center; padding:10px;
+    transition:border-color .2s, color .2s;
+  }
+  .client-tile:hover{border-color:var(--blue-dim); color:var(--text-dim);}
+  .clients-note{margin-top:20px; font-size:13px; color:var(--text-faint); max-width:640px; line-height:1.6;}
+  @media (max-width:760px){ .clients-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* CURSOS — vista rápida por herramienta, color de marca de cada producto */
+  .courses-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:48px;}
+  .course-card{
+    display:block;
+    position:relative; border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    padding:26px 22px 22px; overflow:hidden; transition:transform .2s, border-color .2s;
+    opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease, border-color .2s, transform .2s;
+  }
+  .course-card.in-view{ opacity:1; transform:translateY(0); }
+  .course-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c);}
+  .course-card:hover{border-color:var(--c); transform:translateY(-3px);}
+  .course-card.excel{--c:#22c55e;}
+  .course-card.pbi{--c:#f2c94c;}
+  .course-card.apps{--c:#c026d3;}
+  .course-card.automate{--c:#06b6d4;}
+  .course-card.ia{--c:#a78bfa;}
+  .course-icon{width:30px; height:30px; color:var(--c); margin-bottom:16px;}
+  .course-icon svg{width:100%; height:100%;}
+  .course-title{font-family:var(--display); font-weight:600; font-size:16.5px; margin-bottom:8px;}
+  .course-text{font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-bottom:18px;}
+  .course-tag{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.3px;
+    color:var(--c); border:1px solid var(--c); padding:4px 10px; border-radius:12px;
+  }
+
+  /* DIFERENCIADOR cards */
+  .diff-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:44px;}
+  .diff-card{border:1px solid var(--line); border-radius:8px; padding:26px; background:var(--panel); transition:border-color .2s, transform .2s;}
+  .diff-card:hover{border-color:var(--blue-dim); transform:translateY(-3px);}
+  .diff-icon{width:34px; height:34px; margin-bottom:18px;}
+  .diff-icon svg{width:100%; height:100%;}
+  .diff-title{font-family:var(--display); font-weight:600; font-size:17px; margin-bottom:10px;}
+  .diff-text{font-size:14px; color:var(--text-dim); line-height:1.65;}
+  @media (max-width:760px){ .diff-grid{grid-template-columns:1fr;} }
+
+  /* EXPERTISE / SERVICES */
+  .chip-group{margin-top:36px;}
+  .chip-group-label{font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px; margin-bottom:14px;}
+  .chips{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px;}
+  .chip{
+    font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    border:1px solid var(--line); padding:9px 16px; border-radius:20px;
+    transition:all .2s;
+  }
+  .chip:hover{border-color:var(--blue); color:var(--text); background:var(--blue-soft);}
+  .chip.hi{border-color:var(--blue-dim); background:var(--blue-soft); color:var(--blue-bright);}
+
+  /* FOOTER / CONTACT */
+  footer{border-top:1px solid var(--line); padding:80px 0 40px;}
+  .contact-title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.6vw,50px);
+    line-height:1.08; max-width:640px;
+  }
+  .contact-title .accent{color:var(--blue-bright);}
+  .contact-links{display:flex; gap:16px; margin-top:34px; flex-wrap:wrap;}
+  .contact-meta{
+    display:flex; gap:40px; margin-top:60px; padding-top:26px; border-top:1px solid var(--line-soft);
+    flex-wrap:wrap; align-items:center; font-size:13px; color:var(--text-faint); font-family:var(--mono);
+  }
+  .contact-meta a{color:var(--text-dim);}
+  .contact-meta a:hover{color:var(--blue-bright);}
+
+  @media (max-width:600px){
+    .wrap{padding:0 20px;}
+    .nav-links{display:none;}
+    .stats-grid{grid-template-columns:1fr;}
+    .cell{border-right:none; border-bottom:1px solid var(--line);}
+  }
+
+  /* CURSOS — catálogo completo */
+  .breadcrumb{
+    font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-bottom:18px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .breadcrumb a{color:var(--text-dim);}
+  .breadcrumb a:hover{color:var(--blue-bright);}
+
+  .curso-tabs{
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:40px; margin-bottom:40px;
+  }
+  .curso-tab{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.3px;
+    color:var(--text-dim); background:var(--panel); border:1px solid var(--line);
+    padding:10px 18px; border-radius:24px; cursor:pointer; transition:all .2s;
+  }
+  .curso-tab:hover{ border-color:var(--blue-dim); color:var(--text); }
+  .curso-tab.active{
+    background:var(--blue-soft); border-color:var(--blue); color:var(--blue-bright);
+  }
+
+  .curso-panel{ display:none; }
+  .curso-panel.active{ display:block; }
+
+  .curso-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+  @media (max-width:860px){ .curso-grid{ grid-template-columns:1fr; } }
+
+  .curso-card{
+    border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    padding:26px; transition:border-color .2s, transform .2s;
+    opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease, border-color .2s;
+  }
+  .curso-card.in-view{ opacity:1; transform:translateY(0); }
+  .curso-card:hover{ border-color:var(--blue-dim); }
+
+  .curso-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .curso-level{
+    font-family:var(--mono); font-size:11px; color:var(--blue-bright);
+    background:var(--blue-soft); border:1px solid var(--blue-dim);
+    padding:4px 10px; border-radius:12px; letter-spacing:.3px;
+  }
+  .curso-hours{
+    font-family:var(--mono); font-size:11.5px; color:var(--text-faint);
+    display:flex; align-items:center; gap:5px;
+  }
+  .curso-hours svg{ width:13px; height:13px; }
+
+  .curso-title{
+    font-family:var(--display); font-weight:600; font-size:19px; margin-bottom:10px; line-height:1.3;
+  }
+  .curso-title span{ color:var(--text-faint); font-weight:400; font-size:14px; }
+
+  .curso-desc{ font-size:13.5px; color:var(--text-dim); line-height:1.65; margin-bottom:16px; }
+
+  .curso-tags{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
+  .curso-tags .chip{ padding:5px 12px; font-size:11px; }
+
+  .curso-toggle{
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    background:transparent; border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:13px; font-weight:600;
+    padding:11px 16px; border-radius:6px; cursor:pointer; transition:all .2s;
+  }
+  .curso-toggle:hover{ border-color:var(--blue); background:var(--blue-soft); }
+  .curso-toggle svg{ width:15px; height:15px; transition:transform .3s; }
+  .curso-toggle.open svg{ transform:rotate(180deg); }
+
+  .curso-sessions{
+    max-height:0; overflow:hidden; transition:max-height .4s ease;
+  }
+  .curso-sessions.open{ max-height:900px; }
+  .session{
+    display:flex; gap:14px; padding:16px 2px; border-top:1px solid var(--line-soft);
+  }
+  .session-num{
+    font-family:var(--mono); font-size:11px; color:var(--blue-bright);
+    background:var(--blue-dim); width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px;
+  }
+  .session-body{ flex:1; }
+  .session-body b{ font-family:var(--display); font-weight:600; font-size:13.5px; display:block; margin-bottom:4px; }
+  .session-body p{ font-size:12.5px; color:var(--text-dim); line-height:1.6; }
+  .session-hr{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); flex:none; margin-top:2px; }
+
+  .curso-foot{
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--line-soft);
+    font-size:12px; color:var(--text-faint); line-height:1.6;
+  }
+  .curso-foot b{ color:var(--text-dim); font-weight:500; }
+
+  .curso-card.soon{
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    min-height:200px; text-align:left; border-style:dashed;
+  }
+  .curso-card.soon .soon-icon{
+    width:38px; height:38px; color:var(--text-faint); margin-bottom:16px;
+  }
+  .curso-card.soon .soon-title{
+    font-family:var(--display); font-weight:600; font-size:17px; margin-bottom:8px;
+  }
+  .curso-card.soon .soon-text{ font-size:13px; color:var(--text-dim); line-height:1.6; margin-bottom:18px; }
+  .curso-card.soon .curso-badge-soon{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint);
+    border:1px solid var(--line); padding:5px 12px; border-radius:12px;
+  }
+</style>
+
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="pineappleMark" viewBox="0 0 80 110">
+      <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="32" y1="40" x2="18" y2="8"/>
+        <line x1="40" y1="36" x2="40" y2="2"/>
+        <line x1="48" y1="40" x2="62" y2="8"/>
+        <ellipse cx="40" cy="70" rx="19" ry="33" fill="currentColor" fill-opacity="0.10"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="grid-bg"></div>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html" class="nav-mark" style="text-decoration:none;">
+      <svg width="16" height="22" viewBox="0 0 80 110" style="color:var(--blue-bright)"><use href="#pineappleMark"/></svg>
+      <span><b>AP</b> · alfredopina.ai</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#acerca">Acerca</a>
+      <a href="index.html#experiencia">Experiencia</a>
+      <a href="cursos.html">Cursos</a>
+      <a href="index.html#servicios">Servicios</a>
+    </div>
+    <a href="index.html#contacto" class="nav-cta">Contactar →</a>
+  </div>
+</nav>
+
+<header style="padding:70px 0 20px;">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Inicio</a> / Cursos</div>
+    <div class="eyebrow">CATÁLOGO</div>
+    <h2 class="section-title">Aprende con casos reales, no con ejercicios de práctica.</h2>
+    <p class="section-sub">Talleres 100% prácticos organizados por herramienta. Cada sesión termina en un caso construido con datos reales — no en una diapositiva más.</p>
+  </div>
+</header>
+
+<section class="wrap" style="padding-top:0;">
+
+  <div class="curso-tabs">
+    <button class="curso-tab active" data-cat="excel">Excel</button>
+    <button class="curso-tab" data-cat="powerbi">Power BI</button>
+    <button class="curso-tab" data-cat="powerapps">Power Apps</button>
+    <button class="curso-tab" data-cat="powerautomate">Power Automate</button>
+    <button class="curso-tab" data-cat="ia">IA Aplicada</button>
+  </div>
+
+  <!-- EXCEL -->
+  <div class="curso-panel active" data-panel="excel">
+    <div class="curso-grid">
+
+      <!-- Excel Básico - Intermedio -->
+      <div class="curso-card">
+        <div class="curso-top">
+          <div class="curso-level">BÁSICO · INTERMEDIO</div>
+          <div class="curso-hours">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
+            20 hr
+          </div>
+        </div>
+        <h3 class="curso-title">Excel Básico – Intermedio <span>V365</span></h3>
+        <p class="curso-desc">Domina Excel como herramienta para el manejo efectivo de información — de atajos y fórmulas de búsqueda hasta tu primer dashboard con tablas dinámicas.</p>
+        <div class="curso-tags">
+          <span class="chip">Fórmulas & Funciones</span>
+          <span class="chip">Power Query</span>
+          <span class="chip">Tablas Dinámicas</span>
+          <span class="chip">Dashboards</span>
+        </div>
+        <button class="curso-toggle" onclick="toggleCurso(this)">
+          Ver temario completo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="curso-sessions">
+          <div class="session">
+            <div class="session-num">1</div>
+            <div class="session-body">
+              <b>Atajos, datos y formato</b>
+              <p>Atajos de movimiento y accesos rápidos, tipos de datos y errores, formato de celdas y condicional, validaciones de datos.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">2</div>
+            <div class="session-body">
+              <b>Funciones de texto, fecha y búsqueda</b>
+              <p>Funciones de texto y fecha, funciones lógicas y de búsqueda (BuscarV, BuscarX). Caso práctico: Reporte Formulado.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">3</div>
+            <div class="session-body">
+              <b>Gráficos y Power Query</b>
+              <p>Gráficos clásicos y nuevos (Pareto, cascada, embudo, mapas 3D), importación y limpieza de datos con Power Query.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">4</div>
+            <div class="session-body">
+              <b>Bases de datos y tablas</b>
+              <p>Principios de normalización, listas desplegables, tablas de Excel, filtros avanzados y fila de totales.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">5</div>
+            <div class="session-body">
+              <b>Tablas dinámicas y dashboard</b>
+              <p>Tablas y gráficos dinámicos, top 7 de reportes dinámicos, diseño de dashboard de 5 elementos.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+        </div>
+        <div class="curso-foot">
+          <b>Dirigido a:</b> personal operativo, profesionistas, analistas y personal administrativo que interactúa con Excel para almacenaje, análisis, consultas y automatización básica.
+        </div>
+      </div>
+
+      <!-- Excel Intermedio - Avanzado -->
+      <div class="curso-card">
+        <div class="curso-top">
+          <div class="curso-level">INTERMEDIO · AVANZADO</div>
+          <div class="curso-hours">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
+            20 hr
+          </div>
+        </div>
+        <h3 class="curso-title">Excel Intermedio – Avanzado <span>V365</span></h3>
+        <p class="curso-desc">El siguiente nivel: normaliza bases de datos, conecta fuentes externas con Power Query, arma dashboards con modelo de datos y automatiza con macros + Copilot.</p>
+        <div class="curso-tags">
+          <span class="chip">Power Query</span>
+          <span class="chip">Modelo de Datos</span>
+          <span class="chip">Dashboards</span>
+          <span class="chip">Macros & VBA</span>
+          <span class="chip">Copilot</span>
+        </div>
+        <button class="curso-toggle" onclick="toggleCurso(this)">
+          Ver temario completo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="curso-sessions">
+          <div class="session">
+            <div class="session-num">1</div>
+            <div class="session-body">
+              <b>Fórmulas y gráficos</b>
+              <p>Atajos avanzados, funciones de texto y matriciales, funciones de fecha y hora, gráficos avanzados (radar, cajas y bigotes, Pareto, mapas 3D).</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">2</div>
+            <div class="session-body">
+              <b>Normalización de bases de datos</b>
+              <p>Principios de bases de datos, listas desplegables, tablas, filtros avanzados, seguridad y protección. Caso práctico: Normalización de BD.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">3</div>
+            <div class="session-body">
+              <b>Importación de bases de datos</b>
+              <p>Conexiones a Excel, Web y SharePoint, Query Editor, transformar y combinar columnas, pasos aplicados.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">4</div>
+            <div class="session-body">
+              <b>Tablas dinámicas y dashboard</b>
+              <p>Agrupaciones y campos calculados, múltiples orígenes y modelo de datos, gráficos dinámicos. Caso práctico: Dashboard de KPI.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+          <div class="session">
+            <div class="session-num">5</div>
+            <div class="session-body">
+              <b>Macros con Copilot</b>
+              <p>Macros relativas y absolutas, introducción a VBE, automatización de procesos con IA Copilot: descarga, impresión, correo, adjuntos y voz.</p>
+            </div>
+            <div class="session-hr">4 hr</div>
+          </div>
+        </div>
+        <div class="curso-foot">
+          <b>Dirigido a:</b> profesionistas, analistas, coordinadores de área y gerentes que interactúan con la plataforma para automatización y optimización de sistemas de información.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POWER BI (próximamente) -->
+  <div class="curso-panel" data-panel="powerbi">
+    <div class="curso-grid">
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="soon-title">Power BI — Fundamentos & DAX</div>
+        <div class="soon-text">De la conexión de datos al dashboard publicado: modelado, DAX y storytelling con datos.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="soon-title">Power BI — Modelado Avanzado</div>
+        <div class="soon-text">Relaciones complejas, medidas avanzadas y optimización de rendimiento.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- POWER APPS (próximamente) -->
+  <div class="curso-panel" data-panel="powerapps">
+    <div class="curso-grid">
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <div class="soon-title">Power Apps — Apps sin código</div>
+        <div class="soon-text">Sustituye formatos en papel y correos perdidos con una app conectada a tus datos.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- POWER AUTOMATE (próximamente) -->
+  <div class="curso-panel" data-panel="powerautomate">
+    <div class="curso-grid">
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="soon-title">Power Automate — Flujos y Aprobaciones</div>
+        <div class="soon-text">Automatiza tareas repetitivas y aprobaciones entre sistemas sin escribir una línea de código.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- IA APLICADA (próximamente) -->
+  <div class="curso-panel" data-panel="ia">
+    <div class="curso-grid">
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="soon-title">Copilot & M365 — Productividad con IA</div>
+        <div class="soon-text">Copilot aplicado a Excel, Word y Outlook para escribir, analizar y decidir más rápido.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<footer id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">CONTACTO</div>
+    <h2 class="contact-title">¿Tu equipo necesita <span class="accent">ganar tiempo?</span><br>Hablemos.</h2>
+    <div class="contact-links">
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" class="btn btn-primary">LinkedIn ↗</a>
+      <a href="mailto:alfredo.pina@lifezen.com.mx" class="btn btn-ghost">Enviar correo</a>
+    </div>
+    <div class="contact-meta">
+      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
+      <span>(+52) 811 725 5937</span>
+      <span style="display:inline-flex;align-items:center;gap:7px;">
+        <svg width="11" height="15" viewBox="0 0 80 110" style="color:var(--text-faint)"><use href="#pineappleMark"/></svg>
+        © 2026 Alfredo Piña
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // toggle temario (acordeón)
+  function toggleCurso(btn){
+    btn.classList.toggle('open');
+    const panel = btn.nextElementSibling;
+    panel.classList.toggle('open');
+  }
+
+  // tabs de categoría
+  const tabMap = { excel:'excel', powerbi:'powerbi', powerapps:'powerapps', powerautomate:'powerautomate', ia:'ia' };
+
+  function activateTab(cat){
+    if(!tabMap[cat]) return;
+    document.querySelectorAll('.curso-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    document.querySelectorAll('.curso-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === cat));
+  }
+
+  document.querySelectorAll('.curso-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      activateTab(tab.dataset.cat);
+      history.replaceState(null, '', '#' + tab.dataset.cat);
+    });
+  });
+
+  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría
+  window.addEventListener('load', () => {
+    const hash = window.location.hash.replace('#', '');
+    if(hash && tabMap[hash]) activateTab(hash);
+  });
+
+  // fade-in on scroll
+  const cursoObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: .2 });
+  document.querySelectorAll('.curso-card').forEach(c => cursoObs.observe(c));
+</script>
+
+</body>
+</html>

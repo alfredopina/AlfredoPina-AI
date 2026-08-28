@@ -54,15 +54,39 @@
     border-bottom:1px solid var(--line);
   }
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;}
-  .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px;}
+  .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px; text-decoration:none;}
   .nav-mark b{color:var(--blue-bright);font-weight:500;}
-  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--text-dim);}
+  .nav-name{font-family:var(--display); font-weight:600; font-size:14.5px; color:var(--text); letter-spacing:-.01em;}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--text-dim); align-items:center;}
   .nav-links a:hover{color:var(--text);}
+  .nav-dropdown{position:relative;}
+  .nav-dd-trigger{
+    font-family:var(--body); font-size:14px; color:var(--text-dim); background:none; border:none;
+    display:flex; align-items:center; gap:6px; cursor:pointer; padding:0; transition:color .2s;
+  }
+  .nav-dd-trigger:hover{color:var(--text);}
+  .nav-dd-caret{width:13px; height:13px; transition:transform .25s ease;}
+  .nav-dropdown.open .nav-dd-caret{transform:rotate(180deg);}
+  .nav-dd-menu{
+    position:absolute; top:calc(100% + 16px); left:50%; transform:translateX(-50%) translateY(-8px);
+    background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px;
+    min-width:190px; display:flex; flex-direction:column; gap:2px;
+    opacity:0; visibility:hidden; transition:opacity .2s ease, transform .2s ease, visibility .2s;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,.5); z-index:50;
+  }
+  .nav-dropdown.open .nav-dd-menu{opacity:1; visibility:visible; transform:translateX(-50%) translateY(0);}
+  .nav-dd-menu a{
+    font-size:13.5px; color:var(--text-dim); padding:9px 12px; border-radius:5px;
+    transition:background .15s, color .15s;
+  }
+  .nav-dd-menu a:hover{background:var(--blue-soft); color:var(--text);}
   .nav-cta{
     font-family:var(--mono); font-size:12px; letter-spacing:.3px;
     border:1px solid var(--line); padding:8px 16px; border-radius:3px;
     color:var(--text); transition:border-color .2s, background .2s;
+    display:inline-flex; align-items:center; gap:8px;
   }
+  .nav-cta svg{ color:var(--blue-bright); flex:none; }
   .nav-cta:hover{border-color:var(--blue); background:var(--blue-soft);}
 
   /* HERO — immersive photo background */
@@ -178,6 +202,13 @@
     letter-spacing:-.01em; max-width:700px; line-height:1.18;
   }
   .section-sub{font-size:16px; color:var(--text-dim); max-width:620px; margin-top:16px; line-height:1.7;}
+  .scope-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  .scope-chip{
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px;
+    color:var(--text-dim); background:var(--panel); border:1px solid var(--line);
+    padding:6px 12px; border-radius:14px;
+  }
+  .scope-chip svg{ width:12px; height:12px; color:var(--text-faint); flex:none; }
 
   /* SEMBLANZA — insight cards */
   .insight-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px;}
@@ -308,20 +339,53 @@
   .chip:hover{border-color:var(--blue); color:var(--text); background:var(--blue-soft);}
   .chip.hi{border-color:var(--blue-dim); background:var(--blue-soft); color:var(--blue-bright);}
 
-  /* FOOTER / CONTACT */
-  footer{border-top:1px solid var(--line); padding:80px 0 40px;}
+  /* FOOTER / CONTACT — idéntico a index.html */
+  footer{border-top:1px solid var(--line); padding:160px 0 60px; margin-top:20px;}
   .contact-title{
-    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.6vw,50px);
-    line-height:1.08; max-width:640px;
+    font-family:var(--display); font-weight:700; font-size:clamp(32px,5.4vw,50px);
+    line-height:1.15; max-width:680px; margin-top:28px;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
   }
   .contact-title .accent{color:var(--blue-bright);}
-  .contact-links{display:flex; gap:16px; margin-top:34px; flex-wrap:wrap;}
+  .cafe-icon{width:0.85em; height:0.85em; color:var(--blue-bright); flex:none;}
+
+  .formula-bar-big{
+    display:flex; align-items:stretch; margin-top:56px; border:1px solid var(--blue-dim);
+    border-radius:6px; background:var(--panel); overflow-x:auto; max-width:100%; width:fit-content;
+  }
+  .formula-fx-big{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:15px; color:var(--blue-bright);
+    background:var(--blue-soft); padding:20px; border-right:1px solid var(--blue-dim); flex:none;
+    display:flex; align-items:center;
+  }
+  .formula-reveal{overflow:hidden; white-space:nowrap; width:0; transition:width 2.1s steps(52,end); flex:none;}
+  .formula-bar-big.in-view .formula-reveal{width:52ch;}
+  .formula-inner{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:15px; color:var(--text);
+    padding:20px 22px; white-space:nowrap;
+  }
+  .formula-inner::after{
+    content:''; display:inline-block; width:2px; height:15px; background:var(--blue-bright);
+    margin-left:4px; opacity:0;
+  }
+  .formula-bar-big.in-view .formula-inner::after{opacity:1; animation:blink-cursor 1s step-end infinite; animation-delay:2.1s;}
+  .formula-arg{color:var(--blue-bright); text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--blue-dim); transition:color .2s, text-decoration-color .2s;}
+  .formula-arg:hover{color:#fff; text-decoration-color:#fff;}
+  .contact-cafe{font-family:var(--mono); font-size:13px; color:var(--text-faint); margin-top:16px;}
+
+  @media (max-width:600px){
+    .formula-reveal{width:auto !important; white-space:normal; transition:none;}
+    .formula-inner{white-space:normal; padding:16px 18px;}
+    .formula-inner::after{display:none;}
+  }
+
   .contact-meta{
-    display:flex; gap:40px; margin-top:60px; padding-top:26px; border-top:1px solid var(--line-soft);
+    display:flex; gap:14px; margin-top:56px; padding-top:26px; border-top:1px solid var(--line-soft);
     flex-wrap:wrap; align-items:center; font-size:13px; color:var(--text-faint); font-family:var(--mono);
   }
   .contact-meta a{color:var(--text-dim);}
   .contact-meta a:hover{color:var(--blue-bright);}
+  .contact-meta > *:not(:last-child)::after{content:'·'; margin-left:14px; color:var(--line);}
 
   @media (max-width:600px){
     .wrap{padding:0 20px;}
@@ -350,6 +414,183 @@
   .curso-tab.active{
     background:var(--blue-soft); border-color:var(--blue); color:var(--blue-bright);
   }
+
+  /* NAV DE CATEGORÍAS — barra sticky debajo del nav principal */
+  .cat-nav-wrap{
+    position:sticky; top:68px; z-index:40;
+    background:rgba(10,13,18,.88); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line); padding:12px 0;
+  }
+  .cat-nav{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:8px;
+  }
+  .cat-cell{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    gap:8px; padding:11px 8px; border:1px solid var(--line); border-radius:7px;
+    background:var(--panel); cursor:pointer; transition:all .2s; text-align:center;
+    font-family:inherit;
+  }
+  .cat-cell-ref{
+    position:absolute; top:4px; right:7px; font-family:var(--mono); font-size:8px;
+    color:var(--text-faint); letter-spacing:.3px;
+  }
+  .cat-cell-icon{ width:15px; height:15px; color:var(--text-dim); transition:color .2s; flex:none; }
+  .cat-cell-icon svg{ width:100%; height:100%; }
+  .cat-cell-label{ font-family:var(--display); font-weight:600; font-size:12.5px; color:var(--text-dim); transition:color .2s; line-height:1.3; }
+  .cat-cell:hover{ border-color:var(--c, var(--blue-dim)); }
+  .cat-cell:hover .cat-cell-icon, .cat-cell:hover .cat-cell-label{ color:var(--text); }
+  .cat-cell.active{ border-color:var(--c); background:var(--panel-2); }
+  .cat-cell.active::before{ content:''; position:absolute; top:-1px; left:-1px; right:-1px; height:2px; background:var(--c); border-radius:7px 7px 0 0; }
+  .cat-cell.active .cat-cell-icon, .cat-cell.active .cat-cell-label{ color:var(--c); }
+  @media (max-width:860px){ .cat-nav{ grid-template-columns:repeat(3,1fr); } .cat-cell-label{ font-size:11.5px; } }
+  @media (max-width:480px){ .cat-nav{ grid-template-columns:repeat(2,1fr); } .cat-nav-wrap{ top:0; } }
+
+  /* EXCEL — sub-nav de modo (constructor vs plantillas) */
+  .excel-modes{ display:flex; gap:10px; margin-bottom:40px; flex-wrap:wrap; }
+  .excel-mode-btn{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.3px;
+    padding:11px 20px; border-radius:24px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text-dim); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:9px;
+  }
+  .excel-mode-btn svg{ width:14px; height:14px; }
+  .excel-mode-btn:hover{ border-color:#22c55e88; color:var(--text); }
+  .excel-mode-btn.active{ background:rgba(34,197,94,.12); border-color:#22c55e; color:#4ade80; }
+  .excel-view{ display:none; }
+  .excel-view.active{ display:block; }
+
+  .builder-title{ font-family:var(--display); font-weight:600; font-size:clamp(22px,3vw,28px); margin-bottom:10px; }
+  .builder-sub{ font-size:14.5px; color:var(--text-dim); max-width:600px; line-height:1.65; margin-bottom:34px; }
+
+  /* barra de fórmula del constructor */
+  .formula-builder-bar{
+    display:flex; align-items:stretch; border:1px solid #22c55e55; border-radius:6px;
+    background:var(--panel); overflow-x:auto; margin-bottom:16px; transition:border-color .3s;
+  }
+  .formula-builder-fx{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:#4ade80;
+    background:rgba(34,197,94,.10); padding:18px 16px; border-right:1px solid #22c55e55; flex:none;
+    display:flex; align-items:center;
+  }
+  .formula-builder-body{
+    font-family:var(--mono); font-size:14px; color:var(--text); padding:18px 20px;
+    white-space:nowrap; display:flex; align-items:center; flex:1; min-height:20px;
+  }
+  .formula-builder-body .placeholder{ color:var(--text-faint); }
+  .formula-builder-body .fterm{ color:#4ade80; }
+  .formula-builder-body .fop{ color:var(--text-faint); margin:0 5px; }
+  .formula-cursor{ display:inline-block; width:2px; height:15px; background:#4ade80; margin-left:5px; animation:blink-cursor 1s step-end infinite; vertical-align:middle; }
+  @keyframes blink-cursor{0%,100%{opacity:1;} 50%{opacity:0;}}
+
+  .builder-meta{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:6px; min-height:22px; }
+  .builder-total{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
+  .builder-total b{ color:#4ade80; }
+  .builder-warning{ font-size:12.5px; color:#f2c94c; display:none; align-items:center; gap:7px; }
+  .builder-warning.show{ display:flex; }
+  .builder-warning svg{ flex:none; }
+
+  .builder-bonuses{ display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 4px; min-height:0; }
+  .bonus-pill{
+    font-family:var(--mono); font-size:11px; color:#4ade80; background:rgba(34,197,94,.1);
+    border:1px solid #22c55e55; padding:6px 13px; border-radius:12px; display:flex; align-items:center; gap:7px;
+  }
+  .bonus-pill svg{ width:11px; height:11px; flex:none; }
+
+  .topics-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:34px 0 30px; }
+  @media (max-width:860px){ .topics-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px){ .topics-grid{ grid-template-columns:1fr; } }
+
+  .topic-card{
+    position:relative; text-align:left; border:1px solid var(--line); border-radius:8px; background:var(--panel);
+    padding:14px 14px 12px; cursor:pointer; transition:all .2s; font-family:inherit;
+  }
+  .topic-card:hover{ border-color:#22c55e88; }
+  .topic-card.selected{ border-color:#22c55e; background:rgba(34,197,94,.06); }
+  .topic-cell-ref{ position:absolute; top:8px; right:10px; font-family:var(--mono); font-size:9px; color:var(--text-faint); }
+  .topic-head{ display:flex; align-items:flex-start; gap:8px; padding-right:22px; margin-bottom:6px; }
+  .topic-check{
+    flex:none; width:14px; height:14px; margin-top:2px; border-radius:3px; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; transition:all .2s; background:var(--panel-2);
+  }
+  .topic-check svg{ width:9px; height:9px; color:#0a0d12; opacity:0; transition:opacity .15s; }
+  .topic-card.selected .topic-check{ background:#22c55e; border-color:#22c55e; }
+  .topic-card.selected .topic-check svg{ opacity:1; }
+  .topic-name{ font-family:var(--display); font-weight:600; font-size:13.5px; color:var(--text); line-height:1.32; }
+  .topic-meta{ font-family:var(--mono); font-size:10px; letter-spacing:.3px; color:var(--text-faint); margin-bottom:8px; }
+  .topic-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.55; }
+
+  .builder-cta-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:6px; }
+  .builder-cta{
+    font-family:var(--body); font-weight:600; font-size:14px; padding:14px 26px; border-radius:4px;
+    background:#22c55e; color:#0a0d12; border:1px solid transparent; cursor:pointer; transition:all .15s;
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .builder-cta:hover:not(:disabled){ background:#4ade80; transform:translateY(-1px); }
+  .builder-cta:disabled{ background:var(--panel-2); color:var(--text-faint); border:1px solid var(--line); cursor:not-allowed; }
+  .builder-cta-hint{ font-size:12px; color:var(--text-faint); }
+
+  /* mini formulario (sutil) */
+  .lead-form{
+    display:none; margin-top:22px; padding:26px; border:1px solid var(--line); border-radius:8px; background:var(--panel-2);
+    max-width:640px;
+  }
+  .lead-form.show{ display:block; }
+  .lead-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
+  .lead-field.full{ grid-column:1 / -1; }
+  @media (max-width:520px){ .lead-grid{ grid-template-columns:1fr; } }
+  .lead-form label{ display:block; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-bottom:7px; letter-spacing:.3px; }
+  .lead-form input, .lead-form textarea{
+    width:100%; background:var(--panel); border:1px solid var(--line); border-radius:5px; color:var(--text);
+    font-family:var(--body); font-size:13.5px; padding:10px 12px; transition:border-color .2s;
+  }
+  .lead-form textarea{ font-size:13px; resize:vertical; min-height:64px; }
+  .lead-form input:focus, .lead-form textarea:focus{ outline:none; border-color:#22c55e; }
+  .pill-group{ display:flex; flex-wrap:wrap; gap:7px; }
+  .pill-opt{
+    font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel);
+    border:1px solid var(--line); padding:7px 12px; border-radius:16px; cursor:pointer; transition:all .2s;
+  }
+  .pill-opt:hover{ border-color:#22c55e88; color:var(--text); }
+  .pill-opt.active{ background:rgba(34,197,94,.14); border-color:#22c55e; color:#4ade80; }
+  .lead-form-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+  .lead-btn{
+    font-family:var(--body); font-weight:600; font-size:13px; padding:11px 18px; border-radius:4px;
+    border:1px solid var(--line); color:var(--text); cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+    background:transparent; transition:all .2s;
+  }
+  .lead-btn svg{ width:15px; height:15px; }
+  .lead-btn.wa:hover{ border-color:#25D366; background:rgba(37,211,102,.1); color:#25D366; }
+  .lead-btn.mail:hover{ border-color:#22c55e; background:rgba(34,197,94,.1); color:#4ade80; }
+
+  /* nota de precios — lista con viñetas */
+  .pricing-note{ margin-top:18px; max-width:640px; }
+  .pricing-note ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .pricing-note li{
+    display:flex; gap:9px; align-items:flex-start; font-size:11.5px; color:var(--text-faint); line-height:1.6;
+  }
+  .pricing-note li svg{ width:11px; height:11px; color:#22c55e88; flex:none; margin-top:3px; }
+
+  /* EXCEL — plantillas estándar: encabezados estilo función */
+  .programs-list{ display:flex; flex-direction:column; gap:14px; margin-top:6px; }
+  .program-fn{
+    border:1px solid var(--line); border-radius:8px; background:var(--panel); overflow:hidden; transition:border-color .2s;
+  }
+  .program-fn.open{ border-color:#22c55e55; }
+  .program-fn-head{
+    display:flex; align-items:center; justify-content:space-between; padding:22px; cursor:pointer; gap:14px; flex-wrap:wrap;
+  }
+  .program-fn-name{ font-family:var(--mono); font-size:15px; }
+  .program-fn-name .fn-kw{ color:#4ade80; }
+  .program-fn-name .fn-args{ color:var(--text-faint); }
+  .program-fn-hours{ font-family:var(--mono); font-size:12px; color:var(--text-faint); display:flex; align-items:center; gap:10px; }
+  .program-fn-chevron{ width:16px; height:16px; color:var(--text-faint); transition:transform .3s; flex:none; }
+  .program-fn.open .program-fn-chevron{ transform:rotate(180deg); }
+  .program-fn-body{ max-height:0; overflow:hidden; transition:max-height .5s ease; }
+  .program-fn.open .program-fn-body{ max-height:1600px; }
+  .program-fn-inner{ padding:0 22px 26px; }
+  .program-fn-obj{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; padding-top:20px; border-top:1px solid var(--line-soft); }
+  @media (max-width:700px){ .program-fn-obj{ grid-template-columns:1fr; } }
+  .program-fn-obj h4{ font-family:var(--mono); font-size:10.5px; color:#4ade80; letter-spacing:.4px; margin-bottom:8px; }
+  .program-fn-obj p{ font-size:13px; color:var(--text-dim); line-height:1.65; }
 
   .curso-panel{ display:none; }
   .curso-panel.active{ display:block; }
@@ -457,43 +698,130 @@
 <nav>
   <div class="wrap">
     <a href="index.html" class="nav-mark" style="text-decoration:none;">
-      <svg width="16" height="22" viewBox="0 0 80 110" style="color:var(--blue-bright)"><use href="#pineappleMark"/></svg>
-      <span><b>AP</b> · alfredopina.ai</span>
+      <img src="data:image/png;base64,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" alt="Firma Alfredo Piña" style="height:34px; width:auto; display:block;">
+      <span class="nav-name">Alfredo Piña</span>
     </a>
     <div class="nav-links">
-      <a href="index.html#acerca">Acerca</a>
-      <a href="index.html#experiencia">Experiencia</a>
-      <a href="cursos.html">Cursos</a>
-      <a href="index.html#servicios">Servicios</a>
+      <a href="index.html#experiencia" class="nav-dd-trigger" style="text-decoration:none; cursor:pointer;">Conóceme</a>
+      <a href="#categorias" class="nav-dd-trigger" style="text-decoration:none; cursor:pointer;">Cursos</a>
     </div>
-    <a href="index.html#contacto" class="nav-cta">Contactar →</a>
+    <a href="index.html#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
 
-<header style="padding:70px 0 20px;">
+<div class="cat-nav-wrap" id="categorias">
   <div class="wrap">
-    <div class="breadcrumb"><a href="index.html">Inicio</a> / Cursos</div>
-    <div class="eyebrow">CATÁLOGO</div>
-    <h2 class="section-title">Aprende con casos reales, no con ejercicios de práctica.</h2>
-    <p class="section-sub">Talleres 100% prácticos organizados por herramienta. Cada sesión termina en un caso construido con datos reales — no en una diapositiva más.</p>
+    <div class="cat-nav">
+      <button class="cat-cell active" data-cat="excel" style="--c:#22c55e">
+        <span class="cat-cell-ref">A1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></span>
+        <span class="cat-cell-label">Excel</span>
+      </button>
+      <button class="cat-cell" data-cat="powerbi" style="--c:#f2c94c">
+        <span class="cat-cell-ref">B1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-label">Power BI</span>
+      </button>
+      <button class="cat-cell" data-cat="powerapps" style="--c:#c026d3">
+        <span class="cat-cell-ref">C1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="cat-cell-label">Power Apps</span>
+      </button>
+      <button class="cat-cell" data-cat="powerautomate" style="--c:#06b6d4">
+        <span class="cat-cell-ref">D1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-label">Power Automate</span>
+      </button>
+      <button class="cat-cell" data-cat="ia" style="--c:#a78bfa">
+        <span class="cat-cell-ref">E1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-label">IA Aplicada</span>
+      </button>
+      <button class="cat-cell" data-cat="ofimatica" style="--c:#f97316">
+        <span class="cat-cell-ref">F1</span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></span>
+        <span class="cat-cell-label">Ofimática</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<header style="padding:56px 0 20px;">
+  <div class="wrap">
+    <h2 class="section-title" id="catTitle">Excel</h2>
+    <p class="section-sub" id="catSubtitle">Deja de perder horas copiando y pegando: aprende a capturar, analizar y automatizar tu información como un profesional.</p>
+    <div class="scope-chips" id="scopeChips"></div>
   </div>
 </header>
 
 <section class="wrap" style="padding-top:0;">
 
-  <div class="curso-tabs">
-    <button class="curso-tab active" data-cat="excel">Excel</button>
-    <button class="curso-tab" data-cat="powerbi">Power BI</button>
-    <button class="curso-tab" data-cat="powerapps">Power Apps</button>
-    <button class="curso-tab" data-cat="powerautomate">Power Automate</button>
-    <button class="curso-tab" data-cat="ia">IA Aplicada</button>
-  </div>
-
   <!-- EXCEL -->
   <div class="curso-panel active" data-panel="excel">
+
+    <div class="excel-modes">
+      <button class="excel-mode-btn active" data-mode="standard" onclick="setExcelMode('standard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11" stroke-linecap="round"/></svg>
+        Temarios Estándar
+      </button>
+      <button class="excel-mode-btn" data-mode="builder" onclick="setExcelMode('builder')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10" stroke-linecap="round"/></svg>
+        Personalizar Temario
+      </button>
+    </div>
+
+    <!-- VISTA: PLANTILLAS ESTÁNDAR -->
+    <div class="excel-view active" data-view="standard">
+      <div class="builder-title">Nuestros programas más pedidos</div>
+      <p class="builder-sub">Dos rutas ya armadas — la mayoría de nuestros clientes empieza aquí.</p>
+
+      <div class="programs-list" id="programsList"></div>
+    </div>
+
+    <!-- VISTA: CONSTRUCTOR PERSONALIZADO -->
+    <div class="excel-view" data-view="builder">
+      <div class="builder-title">Construye tu temario a tu necesidad</div>
+      <p class="builder-sub">Elige los temas que tu equipo necesita. La fórmula se arma sola — y tu cotización también.</p>
+
+      <div class="formula-builder-bar">
+        <span class="formula-builder-fx">fx</span>
+        <span class="formula-builder-body" id="builderBarBody">
+          <span class="placeholder">=EXCEL( elige tus temas… )</span>
+        </span>
+      </div>
+
+      <div class="builder-meta">
+        <div class="builder-total" id="builderTotal"><b>0 hr</b> · 0 temas seleccionados</div>
+        <div class="builder-warning" id="builderWarning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Te recomendamos incluir fundamentos antes de temas avanzados.</span>
+        </div>
+      </div>
+
+      <div class="builder-bonuses" id="builderBonuses"></div>
+
+      <div class="topics-grid" id="topicsGrid"></div>
+
+      <div class="builder-cta-row">
+        <button class="builder-cta" id="builderCtaBtn" disabled onclick="openLeadForm('builder')">
+          Solicitar cotización
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="builder-cta-hint" id="builderCtaHint">Selecciona al menos 12 hr (3 temas) para cotizar.</span>
+      </div>
+
+      <div class="pricing-note" id="pricingNoteBuilder"></div>
+
+      <div id="leadFormSlot-builder"></div>
+    </div>
+
+  </div>
+
+  <!-- POWER BI -->
+  <div class="curso-panel" data-panel="powerbi">
     <div class="curso-grid">
 
-      <!-- Excel Básico - Intermedio -->
+      <!-- Power BI Básico - Intermedio -->
       <div class="curso-card">
         <div class="curso-top">
           <div class="curso-level">BÁSICO · INTERMEDIO</div>
@@ -502,12 +830,12 @@
             20 hr
           </div>
         </div>
-        <h3 class="curso-title">Excel Básico – Intermedio <span>V365</span></h3>
-        <p class="curso-desc">Domina Excel como herramienta para el manejo efectivo de información — de atajos y fórmulas de búsqueda hasta tu primer dashboard con tablas dinámicas.</p>
+        <h3 class="curso-title">Power BI Básico – Intermedio</h3>
+        <p class="curso-desc">Gestiona informes con gráficos disruptivos, modelos relacionados y transformaciones en Power Query — más gráficos de IA para la toma de decisiones y publicación en la nube.</p>
         <div class="curso-tags">
-          <span class="chip">Fórmulas & Funciones</span>
           <span class="chip">Power Query</span>
-          <span class="chip">Tablas Dinámicas</span>
+          <span class="chip">Modelo de Datos</span>
+          <span class="chip">DAX</span>
           <span class="chip">Dashboards</span>
         </div>
         <button class="curso-toggle" onclick="toggleCurso(this)">
@@ -518,50 +846,50 @@
           <div class="session">
             <div class="session-num">1</div>
             <div class="session-body">
-              <b>Atajos, datos y formato</b>
-              <p>Atajos de movimiento y accesos rápidos, tipos de datos y errores, formato de celdas y condicional, validaciones de datos.</p>
+              <b>Introducción y obtención de datos</b>
+              <p>Qué es Power BI, flujos de información y roles. Conexión a Excel, CSV/TXT, web y carpetas. Caso práctico: Transformación de datos e informes cruzados.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">2</div>
             <div class="session-body">
-              <b>Funciones de texto, fecha y búsqueda</b>
-              <p>Funciones de texto y fecha, funciones lógicas y de búsqueda (BuscarV, BuscarX). Caso práctico: Reporte Formulado.</p>
+              <b>Power Query y transformación avanzada</b>
+              <p>Editor de consultas, transformaciones de texto, fecha, hora y número, agregar y combinar consultas. Caso práctico: Agregar y combinar consultas (Txt/Csv).</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">3</div>
             <div class="session-body">
-              <b>Gráficos y Power Query</b>
-              <p>Gráficos clásicos y nuevos (Pareto, cascada, embudo, mapas 3D), importación y limpieza de datos con Power Query.</p>
+              <b>Anexar datos y modelo relacional</b>
+              <p>Anexar desde carpetas, relaciones 1:1 / 1:* / *:*, buenas prácticas de modelado. Caso práctico: reportes híbridos y modelos de datos con relaciones.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">4</div>
             <div class="session-body">
-              <b>Bases de datos y tablas</b>
-              <p>Principios de normalización, listas desplegables, tablas de Excel, filtros avanzados y fila de totales.</p>
+              <b>DAX y medidas calculadas</b>
+              <p>Tablas y campos calculados, tablas calendario, funciones DAX de texto, fecha, agregación y búsqueda. Caso práctico: repaso general con medidas de agregación.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">5</div>
             <div class="session-body">
-              <b>Tablas dinámicas y dashboard</b>
-              <p>Tablas y gráficos dinámicos, top 7 de reportes dinámicos, diseño de dashboard de 5 elementos.</p>
+              <b>Visualizaciones, KPI y publicación</b>
+              <p>Gráficos de IA, KPI y medidores, formatos condicionales, mini gráficos. Publicar y compartir en el servicio web. Caso práctico: modelado DAX & KPI con gráficos analíticos.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
         </div>
         <div class="curso-foot">
-          <b>Dirigido a:</b> personal operativo, profesionistas, analistas y personal administrativo que interactúa con Excel para almacenaje, análisis, consultas y automatización básica.
+          <b>Dirigido a:</b> profesionistas, analistas, personal administrativo, coordinadores de área y gerentes que interactúan con la plataforma o buscan generar informes de valor.
         </div>
       </div>
 
-      <!-- Excel Intermedio - Avanzado -->
+      <!-- Power BI Intermedio - Avanzado -->
       <div class="curso-card">
         <div class="curso-top">
           <div class="curso-level">INTERMEDIO · AVANZADO</div>
@@ -570,14 +898,13 @@
             20 hr
           </div>
         </div>
-        <h3 class="curso-title">Excel Intermedio – Avanzado <span>V365</span></h3>
-        <p class="curso-desc">El siguiente nivel: normaliza bases de datos, conecta fuentes externas con Power Query, arma dashboards con modelo de datos y automatiza con macros + Copilot.</p>
+        <h3 class="curso-title">Power BI Intermedio – Avanzado</h3>
+        <p class="curso-desc">Cálculos DAX avanzados, conexiones a fuentes empresariales y gestión de datasets — más configuraciones especiales de seguridad y actualización para informes a nivel producción.</p>
         <div class="curso-tags">
-          <span class="chip">Power Query</span>
-          <span class="chip">Modelo de Datos</span>
-          <span class="chip">Dashboards</span>
-          <span class="chip">Macros & VBA</span>
-          <span class="chip">Copilot</span>
+          <span class="chip">DAX Avanzado</span>
+          <span class="chip">SQL Server</span>
+          <span class="chip">Seguridad RLS</span>
+          <span class="chip">Automatización</span>
         </div>
         <button class="curso-toggle" onclick="toggleCurso(this)">
           Ver temario completo
@@ -587,67 +914,49 @@
           <div class="session">
             <div class="session-num">1</div>
             <div class="session-body">
-              <b>Fórmulas y gráficos</b>
-              <p>Atajos avanzados, funciones de texto y matriciales, funciones de fecha y hora, gráficos avanzados (radar, cajas y bigotes, Pareto, mapas 3D).</p>
+              <b>DAX avanzado y buenas prácticas</b>
+              <p>Funciones DAX de fecha, texto, agregación, filtro y relaciones. Uso de CALCULATE y optimización de fórmulas. Caso práctico: buenas prácticas DAX & gráficos de AppSource.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">2</div>
             <div class="session-body">
-              <b>Normalización de bases de datos</b>
-              <p>Principios de bases de datos, listas desplegables, tablas, filtros avanzados, seguridad y protección. Caso práctico: Normalización de BD.</p>
+              <b>Visualizaciones avanzadas y personalización</b>
+              <p>Tooltips, múltiplos pequeños, pronósticos y detección de anomalías, gráficos estadísticos y nuevos gráficos. Caso práctico: Pivot, clúster y marcadores avanzados.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">3</div>
             <div class="session-body">
-              <b>Importación de bases de datos</b>
-              <p>Conexiones a Excel, Web y SharePoint, Query Editor, transformar y combinar columnas, pasos aplicados.</p>
+              <b>Conexiones avanzadas a fuentes de datos</b>
+              <p>Conexión a SharePoint, Access y SQL Server; Import vs. DirectQuery, actualización incremental. Caso práctico: conexión a carpeta de SharePoint y Access.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">4</div>
             <div class="session-body">
-              <b>Tablas dinámicas y dashboard</b>
-              <p>Agrupaciones y campos calculados, múltiples orígenes y modelo de datos, gráficos dinámicos. Caso práctico: Dashboard de KPI.</p>
+              <b>Seguridad y gestión de datasets</b>
+              <p>Roles y seguridad a nivel de fila (RLS), gestión de datasets y workspaces, configuraciones especiales de actualización. Caso práctico: SQL, seguridad y Web Service.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
           <div class="session">
             <div class="session-num">5</div>
             <div class="session-body">
-              <b>Macros con Copilot</b>
-              <p>Macros relativas y absolutas, introducción a VBE, automatización de procesos con IA Copilot: descarga, impresión, correo, adjuntos y voz.</p>
+              <b>Publicación, marcadores y proyecto final</b>
+              <p>Marcadores avanzados, obtención de detalles, paneles y alertas, actualización programada. Proyecto final: informe integral de los procesos del participante.</p>
             </div>
             <div class="session-hr">4 hr</div>
           </div>
         </div>
         <div class="curso-foot">
-          <b>Dirigido a:</b> profesionistas, analistas, coordinadores de área y gerentes que interactúan con la plataforma para automatización y optimización de sistemas de información.
+          <b>Dirigido a:</b> analistas y profesionistas con experiencia previa en Power BI que buscan profundizar en DAX, conexiones empresariales y gobierno de datos.
         </div>
       </div>
 
-    </div>
-  </div>
-
-  <!-- POWER BI (próximamente) -->
-  <div class="curso-panel" data-panel="powerbi">
-    <div class="curso-grid">
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="soon-title">Power BI — Fundamentos & DAX</div>
-        <div class="soon-text">De la conexión de datos al dashboard publicado: modelado, DAX y storytelling con datos.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="soon-title">Power BI — Modelado Avanzado</div>
-        <div class="soon-text">Relaciones complejas, medidas avanzadas y optimización de rendimiento.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
     </div>
   </div>
 
@@ -687,21 +996,36 @@
     </div>
   </div>
 
+  <!-- OFIMÁTICA BÁSICA (próximamente) -->
+  <div class="curso-panel" data-panel="ofimatica">
+    <div class="curso-grid">
+      <div class="curso-card soon">
+        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+        <div class="soon-title">MS Ofimática — Word, PowerPoint & Outlook</div>
+        <div class="soon-text">Documentos, presentaciones y correos profesionales — la base de la comunicación efectiva en cualquier empresa.</div>
+        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+      </div>
+    </div>
+  </div>
+
 </section>
 
 <footer id="contacto">
   <div class="wrap">
-    <div class="eyebrow">CONTACTO</div>
-    <h2 class="contact-title">¿Tu equipo necesita <span class="accent">ganar tiempo?</span><br>Hablemos.</h2>
-    <div class="contact-links">
-      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" class="btn btn-primary">LinkedIn ↗</a>
-      <a href="mailto:alfredo.pina@lifezen.com.mx" class="btn btn-ghost">Enviar correo</a>
+    <div class="eyebrow">HABLEMOS</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+
+    <div class="formula-bar-big" id="formulaBar">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
     </div>
+
     <div class="contact-meta">
       <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
       <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
       <span style="display:inline-flex;align-items:center;gap:7px;">
-        <svg width="11" height="15" viewBox="0 0 80 110" style="color:var(--text-faint)"><use href="#pineappleMark"/></svg>
+        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:16px; width:auto; display:block; opacity:.6;">
         © 2026 Alfredo Piña
       </span>
     </div>
@@ -716,26 +1040,70 @@
     panel.classList.toggle('open');
   }
 
-  // tabs de categoría
-  const tabMap = { excel:'excel', powerbi:'powerbi', powerapps:'powerapps', powerautomate:'powerautomate', ia:'ia' };
+  // nav de categorías (celdas) + título/subtítulo comercial dinámico
+  const tabMap = { excel:'excel', powerbi:'powerbi', powerapps:'powerapps', powerautomate:'powerautomate', ia:'ia', ofimatica:'ofimatica' };
+
+  const CAT_META = {
+    excel: {
+      title: 'Excel',
+      subtitle: 'Deja de perder horas armando reportes a mano. Aprende a capturar, analizar y automatizar tu información en Excel — y recupera tiempo para decidir, no para teclear.',
+      scope: ['Español · Inglés', 'Office 365 · Versiones anteriores', 'También en WPS y Google Sheets']
+    },
+    powerbi: {
+      title: 'Power BI',
+      subtitle: 'Aprende a transformar datos en decisiones — desde conectar y modelar información, hasta construir dashboards que se actualizan solos.',
+      scope: ['Español · Inglés', 'Power BI Desktop y Service']
+    },
+    powerapps: {
+      title: 'Power Apps',
+      subtitle: 'Aprende a crear tus propias aplicaciones sin código, para dejar atrás los formatos en papel y los procesos manuales.',
+      scope: ['Español']
+    },
+    powerautomate: {
+      title: 'Power Automate',
+      subtitle: 'Aprende a automatizar flujos de trabajo y aprobaciones entre sistemas, sin escribir una línea de código.',
+      scope: ['Español']
+    },
+    ia: {
+      title: 'IA Aplicada',
+      subtitle: 'Aprende a usar Copilot en tu día a día para escribir, analizar y decidir más rápido.',
+      scope: ['Español', 'Copilot para Microsoft 365']
+    },
+    ofimatica: {
+      title: 'Ofimática Básica',
+      subtitle: 'Aprende a crear documentos, presentaciones y correos con nivel profesional — la base de la comunicación efectiva en cualquier empresa.',
+      scope: ['Español', 'Word · PowerPoint · Outlook']
+    },
+  };
+
+  function checkDot(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
 
   function activateTab(cat){
     if(!tabMap[cat]) return;
-    document.querySelectorAll('.curso-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    document.querySelectorAll('.cat-cell').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
     document.querySelectorAll('.curso-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === cat));
+    const meta = CAT_META[cat];
+    if(meta){
+      document.getElementById('catTitle').textContent = meta.title;
+      document.getElementById('catSubtitle').textContent = meta.subtitle;
+      document.getElementById('scopeChips').innerHTML = (meta.scope || [])
+        .map(s => `<span class="scope-chip">${checkDot()}${s}</span>`).join('');
+    }
   }
 
-  document.querySelectorAll('.curso-tab').forEach(tab => {
+  document.querySelectorAll('.cat-cell').forEach(tab => {
     tab.addEventListener('click', () => {
       activateTab(tab.dataset.cat);
       history.replaceState(null, '', '#' + tab.dataset.cat);
     });
   });
 
-  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría
+  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría; si no, deja Excel por default
   window.addEventListener('load', () => {
     const hash = window.location.hash.replace('#', '');
-    if(hash && tabMap[hash]) activateTab(hash);
+    activateTab(hash && tabMap[hash] ? hash : 'excel');
   });
 
   // fade-in on scroll
@@ -743,6 +1111,334 @@
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: .2 });
   document.querySelectorAll('.curso-card').forEach(c => cursoObs.observe(c));
+
+  // ============================================================
+  // EXCEL — CONSTRUCTOR DE TEMARIO ("Arma tu Fórmula")
+  // ============================================================
+  const EXCEL_TOPICS = [
+    { id:'vocabulario',    ref:'B2', nombre:'Vocabulario & Atajos',           nivel:1, horas:4,
+      desc:'La gramática de Excel: referencias, tipos de datos y atajos que te ahorran horas cada semana.' },
+    { id:'formatos',       ref:'B3', nombre:'Formatos & Validaciones',        nivel:1, horas:4,
+      desc:'Formato condicional, formatos personalizados y validación de datos para blindar tus archivos.' },
+    { id:'formulas',       ref:'B4', nombre:'Fórmulas Básicas y Nuevas',      nivel:1, horas:4,
+      desc:'Funciones de texto, fecha, lógicas y de búsqueda — de BuscarV a BuscarX.',
+      cierre:'Reporte Formulado' },
+    { id:'graficos',       ref:'B5', nombre:'Interpretación de Gráficos',     nivel:1, horas:4,
+      desc:'Gráficos clásicos y nuevos — Pareto, cascada, embudo y mapas — para contar historias con datos.' },
+    { id:'normalizacion',  ref:'C2', nombre:'Normalización de Bases de Datos',nivel:2, horas:4,
+      desc:'Estructura tus datos correctamente antes de analizarlos: tablas, listas y buenas prácticas.' },
+    { id:'powerquery',     ref:'C3', nombre:'Power Query',                    nivel:2, horas:4,
+      desc:'Conecta, limpia y transforma datos de múltiples fuentes sin tocar una fórmula.' },
+    { id:'dinamicas',      ref:'C4', nombre:'Tablas Dinámicas',               nivel:2, horas:4,
+      desc:'De datos crudos a reportes ejecutivos, con tablas y gráficos dinámicos.',
+      cierre:'Dashboard' },
+    { id:'analisis',       ref:'D2', nombre:'Herramientas de Análisis',       nivel:3, horas:4,
+      desc:'Modelo de datos y análisis avanzado para decisiones basadas en datos, no en corazonadas.' },
+    { id:'macros',         ref:'D3', nombre:'Macros con Copilot',             nivel:3, horas:4,
+      desc:'Automatiza tareas repetitivas con macros — potenciadas con IA Copilot.',
+      cierre:'Reporte Automatizado' },
+  ];
+
+  const EXCEL_PROGRAMS = [
+    {
+      id:'basico-intermedio', nombre:'Excel_Básico_Intermedio', horas:20,
+      topics:['vocabulario','formatos','formulas','graficos','normalizacion'],
+      objetivo:'El participante utilizará Excel como herramienta para el manejo efectivo de información, desde fórmulas de búsqueda hasta su primer dashboard con tablas dinámicas.',
+      dirigido:'Personal operativo, profesionistas, analistas y personal administrativo que interactúa con Excel para almacenaje, análisis y automatización básica.'
+    },
+    {
+      id:'intermedio-avanzado', nombre:'Excel_Intermedio_Avanzado', horas:20,
+      topics:['normalizacion','powerquery','dinamicas','analisis','macros'],
+      objetivo:'El participante conectará fuentes externas con Power Query, construirá dashboards con modelo de datos y automatizará procesos con macros + Copilot.',
+      dirigido:'Profesionistas, analistas, coordinadores de área y gerentes que buscan automatizar y optimizar sistemas de información.'
+    }
+  ];
+
+  const MIN_HOURS = 12;
+  const selectedTopics = new Set();
+  const dotIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const PRICING_NOTE_ITEMS = [
+    'Los temas y objetivos están planteados para grupos estándar de 10 a 15 participantes.',
+    'La duración por tema se puede ajustar previa nota al cotizar y ajuste del objetivo.',
+    'Duración mínima por sesión: 4 hr presenciales o 2 hr virtuales.',
+    'Incluye una evaluación práctica según el nivel solicitado, sin costo adicional.',
+    'La cotización se entrega en un máximo de 24 hr.',
+    'Se entrega diploma de Participación o Aprobación, según sea el caso, al finalizar el curso.',
+    'Si requieres, puedes solicitar un diagnóstico previo de nivel para ajustar el temario a las necesidades reales del grupo.',
+    'El grupo se confirma en calendario con la orden de compra o el anticipo acordado.',
+    'Una vez confirmada la cotización, agendamos fechas y gestionamos alta de proveedor / OC.',
+    '¿Necesitas sesión de Kick Off o grabación de las sesiones? Indícalo en comentarios.',
+    'Los cursos en línea se imparten por Teams, Zoom o Google Meet — o la plataforma que tu equipo ya use.',
+    'Esta cotización tiene una vigencia de 15 días hábiles a partir de su emisión.',
+  ];
+  const PRICING_NOTE = '<ul>' + PRICING_NOTE_ITEMS.map(t => `<li>${dotIcon}<span>${t}</span></li>`).join('') + '</ul>';
+
+  function setExcelMode(mode){
+    document.querySelectorAll('.excel-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    document.querySelectorAll('.excel-view').forEach(v => v.classList.toggle('active', v.dataset.view === mode));
+  }
+
+  function checkIcon(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function renderTopics(){
+    const grid = document.getElementById('topicsGrid');
+    if(!grid) return;
+    grid.innerHTML = EXCEL_TOPICS.map(t => `
+      <button type="button" class="topic-card" data-id="${t.id}" onclick="toggleTopic('${t.id}')">
+        <span class="topic-cell-ref">${t.ref}</span>
+        <div class="topic-head">
+          <span class="topic-check">${checkIcon()}</span>
+          <span class="topic-name">${t.nombre}</span>
+        </div>
+        <div class="topic-meta">${['','Básico','Intermedio','Avanzado'][t.nivel]} · ${t.horas} hr</div>
+        <div class="topic-desc">${t.desc}</div>
+      </button>
+    `).join('');
+  }
+
+  function toggleTopic(id){
+    if(selectedTopics.has(id)) selectedTopics.delete(id);
+    else selectedTopics.add(id);
+    renderBuilderState();
+  }
+
+  function renderBuilderState(){
+    document.querySelectorAll('.topic-card').forEach(c => {
+      c.classList.toggle('selected', selectedTopics.has(c.dataset.id));
+    });
+
+    const chosen = EXCEL_TOPICS.filter(t => selectedTopics.has(t.id));
+    const totalHours = chosen.reduce((s,t) => s + t.horas, 0);
+
+    // barra de fórmula
+    const body = document.getElementById('builderBarBody');
+    if(chosen.length === 0){
+      body.innerHTML = '<span class="placeholder">=EXCEL( elige tus temas… )</span>';
+    } else {
+      const terms = chosen.map(t => `<span class="fterm">${t.nombre.replace(/ /g,'_')}</span>`).join('<span class="fop">+</span>');
+      body.innerHTML = `=EXCEL( ${terms} )<span class="fop">=</span><b style="color:#4ade80">${totalHours} hr</b><span class="formula-cursor"></span>`;
+    }
+
+    // total + meta
+    document.getElementById('builderTotal').innerHTML =
+      `<b>${totalHours} hr</b> · ${chosen.length} tema${chosen.length===1?'':'s'} seleccionado${chosen.length===1?'':'s'}`;
+
+    // advertencia sutil: avanzado sin fundamentos
+    const hasBasico = chosen.some(t => t.nivel === 1);
+    const hasAvanzado = chosen.some(t => t.nivel === 3);
+    document.getElementById('builderWarning').classList.toggle('show', hasAvanzado && !hasBasico);
+
+    // casos de cierre automáticos (solo al llegar al mínimo)
+    const bonuses = document.getElementById('builderBonuses');
+    if(totalHours >= MIN_HOURS){
+      const casos = chosen.filter(t => t.cierre).map(t => t.cierre);
+      bonuses.innerHTML = casos.map(c => `
+        <span class="bonus-pill">${checkIcon()} Incluye caso práctico: ${c}</span>
+      `).join('');
+    } else {
+      bonuses.innerHTML = '';
+    }
+
+    // CTA
+    const cta = document.getElementById('builderCtaBtn');
+    const hint = document.getElementById('builderCtaHint');
+    if(totalHours >= MIN_HOURS){
+      cta.disabled = false;
+      hint.textContent = '';
+    } else {
+      cta.disabled = true;
+      hint.textContent = `Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar. Llevas ${totalHours} hr.`;
+      document.getElementById('leadForm-builder')?.classList.remove('show');
+    }
+  }
+
+  // ---- formulario compartido (builder y programas estándar) ----
+  const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.85 9.85 0 0 0 4.62 1.15h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Zm5.8 14.06c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.1.11-1.78-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.15-1.53-1.15-2.92s.72-2.06.98-2.35c.24-.27.54-.34.72-.34h.5c.16 0 .38-.03.58.44.24.57.8 1.98.87 2.12.07.14.11.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.24 2.21 1.38.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.55.73 1.82.86.27.14.44.2.51.31.07.11.07.62-.17 1.3Z"/></svg>';
+  const mailIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 6 8 7 8-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function leadFormHTML(id){
+    return `
+      <div class="lead-form" id="leadForm-${id}">
+        <div class="lead-grid">
+          <div class="lead-field">
+            <label for="leadName-${id}">Tu nombre</label>
+            <input type="text" id="leadName-${id}" placeholder="¿Cómo te llamas?">
+          </div>
+          <div class="lead-field">
+            <label for="leadCo-${id}">Empresa (opcional)</label>
+            <input type="text" id="leadCo-${id}" placeholder="Nombre de tu empresa">
+          </div>
+          <div class="lead-field">
+            <label for="leadDate-${id}">Fecha tentativa de inicio</label>
+            <input type="text" id="leadDate-${id}" placeholder="Ej. últimas dos semanas de septiembre">
+          </div>
+          <div class="lead-field">
+            <label for="leadCity-${id}">Ciudad / sede (si es presencial)</label>
+            <input type="text" id="leadCity-${id}" placeholder="Ej. Monterrey, oficinas del cliente">
+          </div>
+          <div class="lead-field full">
+            <label>Participantes</label>
+            <div class="pill-group" data-group="participantes-${id}">
+              <button type="button" class="pill-opt" data-value="Solo yo">Solo yo</button>
+              <button type="button" class="pill-opt" data-value="5 a 10">5 a 10</button>
+              <button type="button" class="pill-opt" data-value="10 a 15">10 a 15</button>
+              <button type="button" class="pill-opt" data-value="Más de 15">Más de 15</button>
+            </div>
+          </div>
+          <div class="lead-field full">
+            <label>Modalidad</label>
+            <div class="pill-group" data-group="modalidad-${id}">
+              <button type="button" class="pill-opt" data-value="Online">Online</button>
+              <button type="button" class="pill-opt" data-value="Presencial">Presencial</button>
+              <button type="button" class="pill-opt" data-value="Híbrido">Híbrido</button>
+            </div>
+          </div>
+          <div class="lead-field full">
+            <label for="leadComments-${id}">Comentarios (opcional)</label>
+            <textarea id="leadComments-${id}" rows="3" placeholder="Kick off, grabación de sesiones, otras necesidades..."></textarea>
+          </div>
+        </div>
+        <div class="lead-form-actions">
+          <button type="button" class="lead-btn wa" onclick="sendLead('${id}','whatsapp')">${waIcon} WhatsApp</button>
+          <button type="button" class="lead-btn mail" onclick="sendLead('${id}','mail')">${mailIcon} Correo</button>
+        </div>
+      </div>`;
+  }
+
+  // click delegado para los pills de participantes/modalidad (single-select por grupo)
+  document.addEventListener('click', (e) => {
+    const opt = e.target.closest('.pill-opt');
+    if(!opt) return;
+    const group = opt.closest('.pill-group');
+    group.querySelectorAll('.pill-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+
+  function getPillValue(groupId){
+    return document.querySelector(`[data-group="${groupId}"] .pill-opt.active`)?.dataset.value || '';
+  }
+
+  function renderPrograms(){
+    const list = document.getElementById('programsList');
+    if(!list) return;
+    list.innerHTML = EXCEL_PROGRAMS.map(p => {
+      const topics = p.topics.map(id => EXCEL_TOPICS.find(t => t.id === id));
+      const sessionsHtml = topics.map((t,i) => `
+        <div class="session">
+          <div class="session-num">${i+1}</div>
+          <div class="session-body">
+            <b>${t.nombre}${t.cierre ? ' · Caso práctico: ' + t.cierre : ''}</b>
+            <p>${t.desc}</p>
+          </div>
+          <div class="session-hr">${t.horas} hr</div>
+        </div>`).join('');
+      return `
+        <div class="program-fn" id="programFn-${p.id}">
+          <div class="program-fn-head" onclick="toggleProgram('${p.id}')">
+            <div class="program-fn-name"><span class="fn-kw">${p.nombre}</span><span class="fn-args">()</span></div>
+            <div class="program-fn-hours">
+              ${p.horas} hr
+              <svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="program-fn-body">
+            <div class="program-fn-inner">
+              <div class="program-fn-obj">
+                <div><h4>OBJETIVO</h4><p>${p.objetivo}</p></div>
+                <div><h4>DIRIGIDO A</h4><p>${p.dirigido}</p></div>
+              </div>
+              <div class="curso-sessions open" style="max-height:none;">${sessionsHtml}</div>
+              <div class="builder-cta-row" style="margin-top:22px;">
+                <button type="button" class="builder-cta" onclick="event.stopPropagation(); openLeadForm('${p.id}')">
+                  Solicitar cotización
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <div class="pricing-note">${PRICING_NOTE}</div>
+              <div onclick="event.stopPropagation()">${leadFormHTML(p.id)}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleProgram(id){
+    document.getElementById('programFn-' + id).classList.toggle('open');
+  }
+
+  function openLeadForm(id){
+    document.getElementById('leadForm-' + id)?.classList.toggle('show');
+  }
+
+  function buildMessage(id){
+    let msg;
+    if(id === 'builder'){
+      const chosen = EXCEL_TOPICS.filter(t => selectedTopics.has(t.id));
+      const totalHours = chosen.reduce((s,t) => s + t.horas, 0);
+      const casos = chosen.filter(t => t.cierre).map(t => t.cierre);
+      msg = 'Quiero cotizar un temario personalizado de Excel:\n\n';
+      msg += chosen.map(t => `• ${t.nombre} (${t.horas} hr)`).join('\n');
+      msg += `\n\nTotal: ${totalHours} hr`;
+      if(casos.length) msg += `\nIncluye: ${casos.join(', ')}`;
+    } else {
+      const p = EXCEL_PROGRAMS.find(x => x.id === id);
+      msg = `Quiero cotizar el programa "${p.nombre.replace(/_/g,' ')}" (${p.horas} hr).`;
+    }
+
+    const participantes = getPillValue(`participantes-${id}`);
+    const modalidad = getPillValue(`modalidad-${id}`);
+    const fecha = (document.getElementById('leadDate-' + id)?.value || '').trim();
+    const ciudad = (document.getElementById('leadCity-' + id)?.value || '').trim();
+    const comentarios = (document.getElementById('leadComments-' + id)?.value || '').trim();
+
+    if(participantes) msg += `\nParticipantes: ${participantes}`;
+    if(modalidad) msg += `\nModalidad: ${modalidad}`;
+    if(fecha) msg += `\nFecha tentativa: ${fecha}`;
+    if(ciudad) msg += `\nCiudad / sede: ${ciudad}`;
+    if(comentarios) msg += `\nComentarios: ${comentarios}`;
+
+    return msg;
+  }
+
+  function sendLead(id, channel){
+    const name = (document.getElementById('leadName-' + id)?.value || '').trim();
+    const co   = (document.getElementById('leadCo-' + id)?.value || '').trim();
+
+    let msg = `Hola Alfredo, soy ${name || 'un/a interesado/a'}${co ? ' de ' + co : ''}.\n\n` + buildMessage(id);
+
+    if(channel === 'whatsapp'){
+      window.open(`https://wa.me/528117255937?text=${encodeURIComponent(msg)}`, '_blank');
+    } else {
+      window.location.href = `mailto:alfredo.pina@lifezen.com.mx?subject=${encodeURIComponent('Cotización de curso Excel')}&body=${encodeURIComponent(msg)}`;
+    }
+  }
+
+  renderTopics();
+  renderPrograms();
+  renderBuilderState();
+  const builderSlot = document.getElementById('leadFormSlot-builder');
+  if(builderSlot) builderSlot.innerHTML = leadFormHTML('builder');
+  const builderNote = document.getElementById('pricingNoteBuilder');
+  if(builderNote) builderNote.innerHTML = PRICING_NOTE;
+
+  // ============================================================
+  // CONTACTO — efecto de escritura en la fórmula al entrar a la sección
+  // ============================================================
+  const contactFooter = document.querySelector('#contacto');
+  if(contactFooter){
+    let contactAnimated = false;
+    const contactObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if(e.isIntersecting && !contactAnimated){
+          contactAnimated = true;
+          document.getElementById('formulaBar')?.classList.add('in-view');
+        }
+      });
+    }, { threshold: .35 });
+    contactObs.observe(contactFooter);
+  }
 </script>
 
 </body>

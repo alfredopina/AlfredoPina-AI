@@ -1,0 +1,46 @@
+{
+  "_comment": "Reglas de horario/disponibilidad del módulo Calendario. Alfredo puede editar estos valores sin tocar el código de la Function. Ver contexto-proyecto-alfredo-pina-v4-calendario.md secciones 8 y 9.",
+
+  "timezone": "America/Monterrey",
+  "utcOffsetHours": -6,
+  "_utcOffsetNota": "Monterrey/Nuevo León no aplica horario de verano desde 2022, así que el offset es fijo todo el año. Si esto cambia algún día, ajustar aquí.",
+
+  "workingHours": { "start": "07:00", "end": "19:00" },
+  "slotMinutes": 60,
+  "_slotMinutesNota": "Bloques de 1 hora (antes 30 min) — decisión de Alfredo del 2026-08-31 para que el grid se lea más simple. El buffer de 45 min de 'Presencial' sigue funcionando igual (se calcula en minutos reales, no en slots), solo que ahora 'redondea' al bloque de hora que toque.",
+
+  "closedWeekdays": [0, 6],
+  "_closedWeekdaysNota": "0=domingo, 6=sábado (estándar JS Date.getDay()).",
+
+  "fridayRestriction": {
+    "enabled": true,
+    "weekday": 5,
+    "onlyLabel": "Disponible: Reunión / Administrativo",
+    "onlyTag": "REUNION_ONLY",
+    "_nota": "Viernes se muestra disponible solo para Reunión/Administrativo, nunca para Curso — aunque el .ics real diga que está libre para cualquier cosa. Esta regla vive únicamente aquí, el calendario de Outlook no la conoce."
+  },
+
+  "presencialBuffer": {
+    "categoryName": "Presencial",
+    "minutesBefore": 45,
+    "minutesAfter": 45,
+    "_nota": "Categoría de Outlook (no la etiqueta entre corchetes) que Alfredo asigna a eventos que implican traslado."
+  },
+
+  "icsFetchWindowDays": 60,
+
+  "defaultBusyLabel": "Ocupado",
+  "defaultBusyColor": "#4c5462",
+
+  "categories": {
+    "EXCEL":          { "label": "Excel",                          "color": "#22c55e" },
+    "POWERBI":         { "label": "Power BI",                       "color": "#f2c94c" },
+    "POWERAPPS":       { "label": "Power Apps",                     "color": "#c026d3" },
+    "POWERAUTOMATE":   { "label": "Power Automate",                 "color": "#06b6d4" },
+    "IA":              { "label": "IA Aplicada",                    "color": "#a78bfa" },
+    "OFIMATICA":       { "label": "Ofimática",                      "color": "#f97316" },
+    "REUNION":         { "label": "Reunión / Administrativo",       "color": "#3d7fff" },
+    "PERSONAL":        { "label": "Personal",                       "color": "#4c5462" }
+  },
+  "_categoriesNota": "Lista blanca. La Function solo reconoce estas etiquetas entre corchetes al inicio del título del evento en Outlook (ej. '[EXCEL] Cliente ABC'). Cualquier título sin etiqueta reconocida cae a Ocupado genérico — nunca se expone texto libre del evento real."
+}

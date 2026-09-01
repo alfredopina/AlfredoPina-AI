@@ -74,11 +74,6 @@
   .nav-hidden-note svg{ width:12px; height:12px; flex:none; }
 
   section{padding:64px 0; position:relative; z-index:1;}
-  .eyebrow{
-    font-family:var(--mono); font-size:12px; color:var(--blue-bright);
-    letter-spacing:.5px; margin-bottom:16px; display:flex; align-items:center; gap:10px;
-  }
-  .eyebrow::before{content:'';width:20px;height:1px;background:var(--blue-bright);}
   h2.section-title{
     font-family:var(--display); font-weight:600; font-size:clamp(26px,3.6vw,40px);
     letter-spacing:-.01em; max-width:700px; line-height:1.18;
@@ -109,16 +104,7 @@
     font-family:var(--display); font-weight:700; font-size:20px; color:var(--text);
   }
   .agenda-kpi-label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); line-height:1.5; }
-
-  /* ---- LEYENDA DE CATEGORÍAS ---- */
-  .cat-legend{ display:flex; flex-wrap:wrap; gap:9px; margin-top:28px; }
-  .cat-legend-item{
-    display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px;
-    color:var(--text-dim); background:var(--panel); border:1px solid var(--line);
-    padding:6px 12px; border-radius:14px;
-  }
-  .cat-legend-dot{ width:9px; height:9px; border-radius:2px; flex:none; }
-  .cat-legend-item svg{ width:11px; height:11px; flex:none; opacity:.85; }
+  .kpi-period{ display:block; margin-top:5px; color:var(--text-faint); font-size:10px; }
 
   /* ---- TOGGLE DE VISTA (Semana / Mes) ---- */
   .view-toggle{ display:inline-flex; gap:4px; border:1px solid var(--line); border-radius:8px; padding:3px; background:var(--panel); }
@@ -148,6 +134,13 @@
   .week-nav-btn svg{ width:15px; height:15px; }
   .week-nav-btn:hover:not(:disabled){ border-color:var(--blue); color:var(--text); background:var(--blue-soft); }
   .week-nav-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .today-btn{
+    font-family:var(--mono); font-size:11.5px; color:var(--text-dim);
+    border:1px solid var(--line); background:var(--panel); padding:0 14px; height:36px;
+    border-radius:6px; cursor:pointer; transition:all .2s;
+  }
+  .today-btn:hover:not(:disabled){ border-color:var(--blue); color:var(--text); background:var(--blue-soft); }
+  .today-btn:disabled{ opacity:.35; cursor:not-allowed; }
 
   /* ---- VISTA MENSUAL ---- */
   .month-grid-wrap{ border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel); }
@@ -166,12 +159,10 @@
   .month-day.empty{ cursor:default; background:repeating-linear-gradient(135deg, var(--line-soft), var(--line-soft) 4px, transparent 4px, transparent 9px); }
   .month-day.empty:hover{ background:repeating-linear-gradient(135deg, var(--line-soft), var(--line-soft) 4px, transparent 4px, transparent 9px); }
   .month-day-num{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); }
-  .month-day.friday .month-day-num{ color:var(--blue-bright); }
   .month-day-occ{ display:flex; align-items:center; gap:6px; margin-top:auto; }
   .month-day-occbar{ flex:1; height:5px; border-radius:3px; background:var(--line-soft); overflow:hidden; }
-  .month-day-occfill{ height:100%; border-radius:3px; }
+  .month-day-occfill{ height:100%; border-radius:3px; background:var(--blue-bright); }
   .month-day-occpct{ font-family:var(--mono); font-size:9.5px; color:var(--text-faint); }
-  .month-day-catdot{ width:6px; height:6px; border-radius:2px; }
 
   /* ---- GRID TIPO HOJA DE CÁLCULO ---- */
   .agenda-grid-wrap{ border:1px solid var(--line); border-radius:10px; overflow:auto; background:var(--panel); }
@@ -190,13 +181,14 @@
   .agenda-grid-head .dow{ text-transform:uppercase; letter-spacing:.4px; color:var(--text); }
   .agenda-grid-head .ddate{ font-family:var(--mono); font-weight:400; font-size:10px; color:var(--text-faint); margin-top:3px; }
   .agenda-grid-head.corner{ background:var(--panel); }
-  .agenda-grid-head.friday{ background:rgba(61,127,255,.09); }
+  .agenda-grid-head.crosshair{ background:var(--blue-dim); color:var(--text); transition:background .15s; }
 
   .agenda-grid-time{
     font-family:var(--mono); font-size:10px; color:var(--text-faint); text-align:right;
     padding:0 8px; display:flex; align-items:center; justify-content:flex-end; min-height:30px;
-    background:var(--panel-2);
+    background:var(--panel-2); transition:background .15s, color .15s;
   }
+  .agenda-grid-time.crosshair{ background:var(--blue-dim); color:var(--text); }
 
   .agenda-slot{
     min-height:30px; position:relative; cursor:default;
@@ -205,33 +197,34 @@
   .agenda-slot.closed{ background:repeating-linear-gradient(135deg, var(--line-soft), var(--line-soft) 4px, transparent 4px, transparent 9px); }
 
   .agenda-slot.free{
-    cursor:pointer; border:1.5px dashed var(--line);
+    cursor:pointer; border:1.5px dashed var(--line); position:relative;
     margin:1px; border-radius:2px; transition:all .15s;
     background:transparent; appearance:none; -webkit-appearance:none;
     font:inherit; color:inherit; outline:none; padding:0;
   }
+  .agenda-slot.free::before{
+    content:'+'; color:var(--text-faint); font-size:13px; line-height:1; opacity:0; transition:opacity .15s;
+  }
+  .agenda-slot.free:hover::before{ opacity:1; }
   .agenda-slot.free:hover{ border-color:var(--blue-bright); background:var(--blue-soft); }
-  .agenda-slot.free.friday-only{ border-color:var(--blue-dim); }
+  .agenda-slot.free:active{ transform:scale(.96); }
   .agenda-slot.free.selected{
     border:1.5px solid var(--blue-bright); background:var(--blue-soft);
     box-shadow:0 0 0 2px var(--blue-soft);
   }
+  .agenda-slot.free.selected::before{ content:'✓'; opacity:1; color:var(--blue-bright); font-weight:700; font-size:14px; }
   .agenda-slot.free.previewing{
     border:1.5px dashed var(--blue-bright); background:rgba(107,159,255,.22);
   }
   .agenda-grid{ user-select:none; -webkit-user-select:none; }
-  .agenda-slot.free .slot-mark{ width:6px; height:6px; border-radius:50%; background:var(--text-faint); opacity:.5; }
-  .agenda-slot.free.selected .slot-mark{ background:var(--blue-bright); opacity:1; }
-  .agenda-slot.free.friday-only .slot-mark{ background:var(--blue-dim); }
 
   .agenda-slot.busy{
-    margin:1px; border-radius:2px; color:#0a0d12;
-    text-shadow: 0 0 4px rgba(255,255,255,.5), 0 0 1px rgba(255,255,255,.5);
+    margin:1px; border-radius:2px; background:#4c5462; color:#e7eaef;
     display:flex; align-items:center; justify-content:center; gap:3px;
     font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:.2px;
     padding:2px;
   }
-  .agenda-slot.busy svg{ width:9px; height:9px; flex:none; }
+  .agenda-slot.busy svg{ width:9px; height:9px; flex:none; opacity:.9; }
   .agenda-slot.busy .busy-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .agenda-slot.loading{ background:var(--panel-2); }
@@ -251,7 +244,13 @@
     white-space:nowrap; display:flex; align-items:center; flex:1; min-height:20px;
   }
   .agenda-formula-body .placeholder{ color:var(--text-faint); }
-  .agenda-formula-body .fterm{ color:var(--blue-bright); }
+  @keyframes ftermIn{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:translateY(0); } }
+  .agenda-formula-body .fterm{ color:var(--blue-bright); display:inline-block; animation:ftermIn .3s ease-out backwards; }
+  .agenda-formula-body .fterm:nth-of-type(2){ animation-delay:60ms; }
+  .agenda-formula-body .fterm:nth-of-type(3){ animation-delay:120ms; }
+  .agenda-formula-body .fterm:nth-of-type(4){ animation-delay:180ms; }
+  .agenda-formula-body .fterm:nth-of-type(5){ animation-delay:240ms; }
+  .agenda-formula-body .fterm:nth-of-type(6){ animation-delay:300ms; }
   .agenda-formula-body .fop{ color:var(--text-faint); margin:0 5px; }
 
   .agenda-meta{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:24px; }
@@ -380,8 +379,8 @@
       <a href="index.html#experiencia" style="text-decoration:none; cursor:pointer;">Conóceme</a>
       <a href="cursos.html" style="text-decoration:none; cursor:pointer;">Cursos</a>
       <span class="nav-hidden-note" title="Página pública pero sin liga en el menú — no indexada por buscadores.">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        vista privada
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Agenda
       </span>
     </div>
     <a href="#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
@@ -389,11 +388,10 @@
 </nav>
 
 <header class="wrap" style="padding-top:56px;">
-  <div class="eyebrow">AGENDA</div>
-  <div class="agenda-header-grid">
+  <div class="agenda-header-grid" style="margin-top:0;">
     <div>
-      <h2 class="section-title">Mi disponibilidad, en vivo.</h2>
-      <p class="section-sub">Este es mi calendario real — se actualiza solo. Elige los huecos que te acomoden y mándame la solicitud; yo la confirmo y ahí sí queda agendada.</p>
+      <h2 class="section-title">Mi Agenda</h2>
+      <p class="section-sub">En este calendario puedes revisar mi disponibilidad al momento para agendar capacitaciones, sesiones de proyectos o reuniones generales.</p>
     </div>
     <div class="agenda-kpi-card">
       <div class="agenda-kpi-ringwrap">
@@ -406,8 +404,6 @@
       <div class="agenda-kpi-label" id="kpiLabel">calculando<br>disponibilidad…</div>
     </div>
   </div>
-
-  <div class="cat-legend" id="catLegend"></div>
 
   <div class="last-updated" id="lastUpdated">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
@@ -434,6 +430,7 @@
       </div>
     </div>
     <div class="week-nav-btns">
+      <button type="button" class="today-btn" id="todayBtn" onclick="goToToday()">Hoy</button>
       <button class="week-nav-btn" id="prevWeekBtn" aria-label="Anterior">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -510,17 +507,6 @@
    CONFIG visual (debe reflejar api/config/agenda-config.json —
    si cambias colores/etiquetas allá, cámbialos aquí también)
    ============================================================ */
-const CATEGORIES = {
-  EXCEL:         { label: 'Excel',                    color: '#22c55e' },
-  POWERBI:       { label: 'Power BI',                 color: '#f2c94c' },
-  POWERAPPS:     { label: 'Power Apps',                color: '#c026d3' },
-  POWERAUTOMATE: { label: 'Power Automate',            color: '#06b6d4' },
-  IA:            { label: 'IA Aplicada',               color: '#a78bfa' },
-  OFIMATICA:     { label: 'Ofimática',                 color: '#f97316' },
-  REUNION:       { label: 'Reunión / Administrativo',  color: '#3d7fff' },
-  PERSONAL:      { label: 'Personal',                  color: '#4c5462' },
-};
-const DEFAULT_BUSY_COLOR = '#4c5462';
 const SLOT_MINUTES = 60;
 const WORK_START = '07:00';
 const WORK_END = '19:00';
@@ -538,7 +524,6 @@ function buildDemoData() {
     const d = new Date(now); d.setDate(d.getDate() + i);
     const weekday = d.getDay();
     if (weekday === 0 || weekday === 6) continue;
-    const isFriday = weekday === 5;
     const slots = [];
     const [sh] = WORK_START.split(':').map(Number);
     const [eh] = WORK_END.split(':').map(Number);
@@ -546,21 +531,14 @@ function buildDemoData() {
       const hh = Math.floor(m / 60), mm = m % 60;
       const slotStart = new Date(d); slotStart.setHours(hh, mm, 0, 0);
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
-      let status = 'free', tag = null, label = 'Disponible', color = null;
       // patrón de ejemplo: ocupa algunos bloques para que se vea "vivo"
       const seed = (d.getDate() * 7 + m) % 11;
-      if (!isFriday && seed < 4) {
-        const tags = ['EXCEL','POWERBI','POWERAPPS','POWERAUTOMATE','IA'];
-        tag = tags[seed % tags.length];
-        status = 'busy'; label = CATEGORIES[tag].label; color = CATEGORIES[tag].color;
-      } else if (isFriday) {
-        tag = 'REUNION_ONLY'; label = 'Disponible: Reunión/Administrativo';
-      }
-      slots.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), status, tag, label, color });
+      const status = seed < 4 ? 'busy' : 'free';
+      slots.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), status });
     }
-    days.push({ date: d.toISOString().slice(0,10), weekday, isFriday, slots });
+    days.push({ date: d.toISOString().slice(0,10), weekday, slots });
   }
-  return { days, categories: CATEGORIES, slotMinutes: SLOT_MINUTES, workingHours: { start: WORK_START, end: WORK_END }, generatedAt: new Date().toISOString() };
+  return { days, slotMinutes: SLOT_MINUTES, workingHours: { start: WORK_START, end: WORK_END }, generatedAt: new Date().toISOString() };
 }
 
 /* ============================================================
@@ -587,21 +565,8 @@ async function loadAvailability() {
     IS_DEMO = true;
   }
   document.getElementById('demoNote').classList.toggle('show', IS_DEMO);
-  renderLegend();
   renderLastUpdated();
   render();
-}
-
-function renderLegend() {
-  const cats = (AVAILABILITY && AVAILABILITY.categories) || CATEGORIES;
-  const legend = document.getElementById('catLegend');
-  const items = Object.keys(cats).map(key => {
-    const c = cats[key];
-    return `<span class="cat-legend-item"><span class="cat-legend-dot" style="background:${c.color}"></span>${c.label}</span>`;
-  });
-  items.push(`<span class="cat-legend-item"><span class="cat-legend-dot" style="background:${DEFAULT_BUSY_COLOR}"></span>Ocupado</span>`);
-  items.push(`<span class="cat-legend-item" style="border-style:dashed;"><span class="cat-legend-dot" style="background:transparent;border:1.5px dashed var(--text-faint);"></span>Disponible</span>`);
-  legend.innerHTML = items.join('');
 }
 
 function localPartsFromUTC(isoOrDate) {
@@ -676,6 +641,20 @@ function fmtMonthLabel(key) {
   return `${MONTH_NAMES[m-1]} ${y}`;
 }
 
+/* Número de semana ISO-8601 a partir de un YYYY-MM-DD — funciona igual aunque
+   la semana mostrada empiece en martes u otro día (no dependemos del lunes). */
+function isoWeekNumber(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const dayNum = (date.getUTCDay() + 6) % 7; // lunes=0 ... domingo=6
+  date.setUTCDate(date.getUTCDate() - dayNum + 3); // jueves de esa semana
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+  return 1 + Math.round((date - firstThursday) / (7 * 86400000));
+}
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
 /* ============================================================
    TOGGLE DE VISTA
    ============================================================ */
@@ -707,8 +686,10 @@ function renderWeek() {
   document.getElementById('nextWeekBtn').disabled = weekOffset >= weeks.length - 1;
 
   const first = week[0], last = week[week.length - 1];
+  const weekNum = isoWeekNumber(first.date);
+  const monthName = capitalize(MONTH_NAMES[Number(first.date.slice(5,7)) - 1]);
   document.getElementById('weekLabel').textContent = `${fmtDateLabel(first.date)} — ${fmtDateLabel(last.date)}`;
-  document.getElementById('weekSub').textContent = `Lunes a viernes · ${(AVAILABILITY.workingHours||{start:WORK_START}).start}–${(AVAILABILITY.workingHours||{end:WORK_END}).end}`;
+  document.getElementById('weekSub').textContent = `Semana ${weekNum} · Lunes a viernes · ${(AVAILABILITY.workingHours||{start:WORK_START}).start}–${(AVAILABILITY.workingHours||{end:WORK_END}).end}`;
 
   // filas de horario: tomamos las horas del primer día con slots como referencia de tiempo local mostrado
   const timeRows = week[0].slots.map(s => s.start); // ya vienen en orden
@@ -721,22 +702,23 @@ function renderWeek() {
   // columna vacía/fantasma a la derecha con las horas mal alineadas.
   grid.style.gridTemplateColumns = `68px repeat(${week.length}, minmax(120px,1fr))`;
   let html = `<div class="agenda-grid-head corner"></div>`;
-  week.forEach(day => {
-    html += `<div class="agenda-grid-head${day.isFriday ? ' friday' : ''}"><div class="dow">${DOW_LABELS[day.weekday]}</div><div class="ddate">${fmtDateLabel(day.date)}</div></div>`;
+  week.forEach((day, colIdx) => {
+    html += `<div class="agenda-grid-head" data-col="${colIdx}"><div class="dow">${DOW_LABELS[day.weekday]}</div><div class="ddate">${fmtDateLabel(day.date)}</div></div>`;
   });
 
   timeRows.forEach((_, rowIdx) => {
-    html += `<div class="agenda-grid-time">${localTimeOfRow(rowIdx)}</div>`;
-    week.forEach(day => {
+    html += `<div class="agenda-grid-time" data-row="${rowIdx}">${localTimeOfRow(rowIdx)}</div>`;
+    week.forEach((day, colIdx) => {
       const slot = day.slots[rowIdx];
-      if (!slot) { html += `<div class="agenda-slot closed"></div>`; return; }
-      html += renderSlotCell(day, slot, rowIdx);
+      if (!slot) { html += `<div class="agenda-slot closed" data-row="${rowIdx}" data-col="${colIdx}"></div>`; return; }
+      html += renderSlotCell(day, slot, rowIdx, colIdx);
     });
   });
 
   grid.innerHTML = html;
   attachSlotHandlers();
-  updateKpi(week, 'week');
+  updateKpi(week, 'week', `Semana ${weekNum} · ${monthName}`);
+  document.getElementById('todayBtn').disabled = weekOffset === 0;
 }
 
 /* Como los slots vienen en UTC pero representan horas locales fijas (offset fijo del backend),
@@ -751,24 +733,18 @@ function localTimeOfRow(rowIdx) {
   return `${hh}:${mm}`;
 }
 
-function renderSlotCell(day, slot, rowIdx) {
+function renderSlotCell(day, slot, rowIdx, colIdx) {
   const key = day.date + '|' + slot.start;
   if (slot.status === 'busy') {
-    const color = slot.color || DEFAULT_BUSY_COLOR;
-    return `<div class="agenda-slot busy" style="background:${color}" title="${slot.label}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-      <span class="busy-label">${abbrev(slot.label)}</span>
+    return `<div class="agenda-slot busy" data-row="${rowIdx}" data-col="${colIdx}" title="Ocupado">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="busy-label">Ocupado</span>
     </div>`;
   }
-  const isFridayOnly = slot.tag === 'REUNION_ONLY';
   const selected = selectedSlots.has(key);
-  return `<button type="button" class="agenda-slot free${isFridayOnly ? ' friday-only' : ''}${selected ? ' selected' : ''}"
-    data-key="${key}" data-date="${day.date}" data-start="${slot.start}" data-end="${slot.end}" data-dow="${day.weekday}" data-rowidx="${rowIdx}"
-    title="${slot.label}"><span class="slot-mark"></span></button>`;
-}
-
-function abbrev(label) {
-  return label.length > 10 ? label.slice(0,9) + '…' : label;
+  return `<button type="button" class="agenda-slot free${selected ? ' selected' : ''}"
+    data-key="${key}" data-date="${day.date}" data-start="${slot.start}" data-end="${slot.end}" data-dow="${day.weekday}" data-rowidx="${rowIdx}" data-row="${rowIdx}" data-col="${colIdx}"
+    title="Disponible"></button>`;
 }
 
 /* ---- selección: click simple alterna un slot; arrastrar selecciona un rango
@@ -850,10 +826,9 @@ document.addEventListener('pointerup', () => {
   renderFormulaBar();
 });
 
-function updateKpi(items, mode) {
+function updateKpi(items, mode, periodLabel) {
   let total = 0, busy = 0;
-  const days = mode === 'week' ? items : items; // ambos son arrays de días
-  days.forEach(day => day.slots.forEach(s => { total++; if (s.status === 'busy') busy++; }));
+  items.forEach(day => day.slots.forEach(s => { total++; if (s.status === 'busy') busy++; }));
   const pct = total ? Math.round((busy / total) * 100) : 0;
   const ring = document.getElementById('kpiRing');
   const circumference = 2 * Math.PI * 40;
@@ -862,9 +837,10 @@ function updateKpi(items, mode) {
     ring.style.strokeDashoffset = circumference * (1 - pct / 100);
   });
   document.getElementById('kpiPct').textContent = pct + '%';
-  document.getElementById('kpiLabel').innerHTML = mode === 'week'
-    ? 'Ocupación<br>Semanal'
-    : 'Ocupación<br>Mensual';
+  const baseLabel = mode === 'week' ? 'Ocupación<br>Semanal' : 'Ocupación<br>Mensual';
+  document.getElementById('kpiLabel').innerHTML = periodLabel
+    ? `${baseLabel}<span class="kpi-period">${periodLabel}</span>`
+    : baseLabel;
 }
 
 /* ============================================================
@@ -880,8 +856,10 @@ function renderMonth() {
 
   document.getElementById('prevWeekBtn').disabled = monthOffset <= 0;
   document.getElementById('nextWeekBtn').disabled = monthOffset >= months.length - 1;
+  document.getElementById('todayBtn').disabled = false;
 
-  document.getElementById('weekLabel').textContent = fmtMonthLabel(month.key).replace(/^./, c => c.toUpperCase());
+  const monthLabel = fmtMonthLabel(month.key).replace(/^./, c => c.toUpperCase());
+  document.getElementById('weekLabel').textContent = monthLabel;
   document.getElementById('weekSub').textContent = 'Lunes a viernes · click en un día para ver el detalle por hora';
 
   const [y, m] = month.key.split('-').map(Number);
@@ -905,34 +883,57 @@ function renderMonth() {
     if (!dayData) { html += `<div class="month-day empty"><div class="month-day-num">${day}</div></div>`; continue; }
 
     let busy = 0, total = 0;
-    const tagCounts = {};
-    dayData.slots.forEach(s => {
-      total++;
-      if (s.status === 'busy') {
-        busy++;
-        const t = s.tag || '__generic';
-        tagCounts[t] = (tagCounts[t] || 0) + 1;
-      }
-    });
+    dayData.slots.forEach(s => { total++; if (s.status === 'busy') busy++; });
     const pct = total ? Math.round((busy / total) * 100) : 0;
-    let topTag = null, topCount = 0;
-    Object.keys(tagCounts).forEach(t => { if (tagCounts[t] > topCount) { topTag = t; topCount = tagCounts[t]; } });
-    const cats = (AVAILABILITY && AVAILABILITY.categories) || CATEGORIES;
-    const topColor = topTag && topTag !== '__generic' && cats[topTag] ? cats[topTag].color : DEFAULT_BUSY_COLOR;
 
-    html += `<button type="button" class="month-day${dayData.isFriday ? ' friday' : ''}" data-date="${dateStr}" onclick="goToDayWeek('${dateStr}')">
+    html += `<button type="button" class="month-day" data-date="${dateStr}" onclick="goToDayWeek('${dateStr}')">
       <div class="month-day-num">${day}</div>
       <div class="month-day-occ">
-        ${topTag ? `<span class="month-day-catdot" style="background:${topColor}"></span>` : ''}
-        <div class="month-day-occbar"><div class="month-day-occfill" style="width:${pct}%; background:${pct ? topColor : 'transparent'}"></div></div>
+        <div class="month-day-occbar"><div class="month-day-occfill" style="width:${pct}%"></div></div>
         <span class="month-day-occpct">${pct}%</span>
       </div>
     </button>`;
   }
 
   grid.innerHTML = html;
-  updateKpi(month.days, 'month');
+  updateKpi(month.days, 'month', monthLabel);
 }
+
+/* ---- botón "Hoy": salta a la primera semana disponible (siempre incluye
+   el día de hoy, ya que el backend solo manda días desde "hoy" en adelante). ---- */
+function goToToday() {
+  weekOffset = 0;
+  if (viewMode !== 'week') {
+    viewMode = 'week';
+    document.getElementById('viewWeekBtn').classList.add('active');
+    document.getElementById('viewMonthBtn').classList.remove('active');
+    document.getElementById('weekGridWrap').style.display = '';
+    document.getElementById('monthGridWrap').style.display = 'none';
+    document.getElementById('dragHint').style.display = '';
+  }
+  renderWeek();
+}
+
+/* ---- efecto "hoja de cálculo": al pasar el mouse sobre una celda de la
+   semana, resalta también su columna (día) y su fila (hora) — se delega
+   sobre el contenedor porque el grid se regenera en cada render. ---- */
+function crosshairEls(cell) {
+  const row = cell.dataset.row, col = cell.dataset.col;
+  if (row == null || col == null) return [];
+  const head = document.querySelector(`.agenda-grid-head[data-col="${col}"]`);
+  const time = document.querySelector(`.agenda-grid-time[data-row="${row}"]`);
+  return [head, time].filter(Boolean);
+}
+document.getElementById('agendaGrid').addEventListener('mouseover', (e) => {
+  const cell = e.target.closest('.agenda-slot');
+  if (!cell) return;
+  crosshairEls(cell).forEach(el => el.classList.add('crosshair'));
+});
+document.getElementById('agendaGrid').addEventListener('mouseout', (e) => {
+  const cell = e.target.closest('.agenda-slot');
+  if (!cell) return;
+  crosshairEls(cell).forEach(el => el.classList.remove('crosshair'));
+});
 
 function goToDayWeek(dateStr) {
   const weeks = getWeeks();
@@ -1021,6 +1022,14 @@ function leadFormHTML() {
           <input type="text" id="leadCo" placeholder="Nombre de tu empresa">
         </div>
         <div class="lead-field full">
+          <label>Tipo de sesión</label>
+          <div class="pill-group" data-group="tipo-agenda">
+            <button type="button" class="pill-opt" data-value="Capacitación">Capacitación</button>
+            <button type="button" class="pill-opt" data-value="Sesión de proyecto">Sesión de proyecto</button>
+            <button type="button" class="pill-opt" data-value="Reunión general">Reunión general</button>
+          </div>
+        </div>
+        <div class="lead-field full">
           <label>Modalidad</label>
           <div class="pill-group" data-group="modalidad-agenda">
             <button type="button" class="pill-opt" data-value="Online">Online</button>
@@ -1060,8 +1069,10 @@ function buildAgendaMessage() {
   const ranges = groupSelection();
   let msg = 'Quiero solicitar los siguientes horarios de tu agenda:\n\n';
   msg += ranges.map(r => `• ${DOW_LABELS[r.dow]} ${fmtDateLabel(r.date)}, ${timeLabel(r.startISO)}–${timeLabel(r.endISO)}`).join('\n');
+  const tipo = getPillValue('tipo-agenda');
   const modalidad = getPillValue('modalidad-agenda');
   const motivo = (document.getElementById('leadMotivo')?.value || '').trim();
+  if (tipo) msg += `\nTipo de sesión: ${tipo}`;
   if (modalidad) msg += `\nModalidad: ${modalidad}`;
   if (motivo) msg += `\nMotivo: ${motivo}`;
   return msg;

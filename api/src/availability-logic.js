@@ -84,8 +84,9 @@ function toDateStr(d) {
 /**
  * Arma el grid de slots (duración = config.slotMinutes, por defecto 1 hora) entre
  * startDate y endDate (inclusive de startDate,
- * exclusive de endDate), aplicando: días cerrados, regla de viernes, y los intervalos
- * ocupados ya sanitizados (con tag/color, nunca texto libre).
+ * exclusive de endDate), aplicando: días cerrados y los intervalos
+ * ocupados ya sanitizados (con tag/color, nunca texto libre). Ya no hay una
+ * regla especial de viernes — Alfredo lo bloquea directo desde Outlook.
  *
  * Nota de timezone: se asume que "startDate"/"endDate" y las horas de trabajo del
  * config están en la misma zona (America/Monterrey, offset fijo, ver config). Los
@@ -112,7 +113,6 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals) {
     const weekday = calendarDate.getUTCDay();
 
     if (!config.closedWeekdays.includes(weekday)) {
-      const isFriday = config.fridayRestriction.enabled && weekday === config.fridayRestriction.weekday;
       const dayStartMin = toMinutesOfDay(config.workingHours.start);
       const dayEndMin = toMinutesOfDay(config.workingHours.end);
       const slots = [];
@@ -138,13 +138,8 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals) {
           }
         } else {
           status = "free";
-          if (isFriday) {
-            tag = config.fridayRestriction.onlyTag;
-            label = config.fridayRestriction.onlyLabel;
-          } else {
-            tag = null;
-            label = "Disponible";
-          }
+          tag = null;
+          label = "Disponible";
           color = null;
         }
 
@@ -158,7 +153,7 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals) {
         });
       }
 
-      days.push({ date: toDateStr(calendarDate), weekday, isFriday, slots });
+      days.push({ date: toDateStr(calendarDate), weekday, slots });
     }
 
     d += 1;

@@ -7,7 +7,8 @@
 //   1. Solo se exponen etiquetas de la lista blanca (config.categories).
 //   2. Un evento sin etiqueta reconocida cae a "Ocupado" genérico (nunca texto libre).
 //   3. El buffer de 45 min se aplica correctamente alrededor de eventos "Presencial".
-//   4. La regla de viernes (solo Reunión/Administrativo) se aplica encima del .ics real.
+//   4. El viernes se genera igual que cualquier otro día (ya no hay regla especial de sitio —
+//      Alfredo lo bloquea directo desde Outlook cuando lo necesita).
 //   5. Los eventos recurrentes semanales se expanden y las EXDATE se respetan.
 
 const ical = require("node-ical");
@@ -63,9 +64,8 @@ const ev4End = localToUTC(thuOffset, 8, 30);
 const ev4ExDate = new Date(ev4Start.getTime() + 7 * 24 * 60 * 60 * 1000); // salta la 2a ocurrencia
 
 // Evento 5 (control): viernes, libre en el .ics real (no se agenda nada) -> el sitio
-// de todas formas debe mostrarlo como "Disponible: Reunión/Administrativo" por la regla
-// de configuración, no porque el .ics lo diga. No se necesita evento en el ICS para esto,
-// solo verificamos que los slots libres del viernes traigan la etiqueta correcta.
+// debe mostrarlo como un día libre normal, igual que cualquier otro (ya no hay regla
+// especial de viernes). No se necesita evento en el ICS para esto.
 void friOffset;
 
 const icsContent = `BEGIN:VCALENDAR
@@ -200,8 +200,7 @@ const dayFri = findDay(friOffset);
 check("Viernes existe en el grid (no está en closedWeekdays)", !!dayFri);
 if (dayFri) {
   const anyFriSlot = dayFri.slots[0];
-  check("Un slot libre de viernes trae la etiqueta REUNION_ONLY", anyFriSlot && anyFriSlot.status === "free" && anyFriSlot.tag === "REUNION_ONLY");
-  check("...con el label correcto de la config", anyFriSlot && anyFriSlot.label === config.fridayRestriction.onlyLabel);
+  check("Un slot libre de viernes es 'Disponible' normal (ya no hay regla especial)", anyFriSlot && anyFriSlot.status === "free" && anyFriSlot.tag === null && anyFriSlot.label === "Disponible");
 }
 
 const daySat = days.find((d) => d.weekday === 6);

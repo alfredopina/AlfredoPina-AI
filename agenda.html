@@ -714,6 +714,12 @@ function renderWeek() {
   const timeRows = week[0].slots.map(s => s.start); // ya vienen en orden
 
   const grid = document.getElementById('agendaGrid');
+  // La rejilla se ajusta al número real de días de esta semana (puede ser
+  // menos de 5 en la primera semana mostrada, ya que el backend solo manda
+  // días desde "hoy" en adelante — si hoy no es lunes, esos días ya pasaron
+  // y no vienen en el payload). Sin esto, el CSS fijo de 5 columnas deja una
+  // columna vacía/fantasma a la derecha con las horas mal alineadas.
+  grid.style.gridTemplateColumns = `68px repeat(${week.length}, minmax(120px,1fr))`;
   let html = `<div class="agenda-grid-head corner"></div>`;
   week.forEach(day => {
     html += `<div class="agenda-grid-head${day.isFriday ? ' friday' : ''}"><div class="dow">${DOW_LABELS[day.weekday]}</div><div class="ddate">${fmtDateLabel(day.date)}</div></div>`;

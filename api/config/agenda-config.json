@@ -10,15 +10,7 @@
   "_slotMinutesNota": "Bloques de 1 hora (antes 30 min) — decisión de Alfredo del 2026-08-31 para que el grid se lea más simple. El buffer de 45 min de 'Presencial' sigue funcionando igual (se calcula en minutos reales, no en slots), solo que ahora 'redondea' al bloque de hora que toque.",
 
   "closedWeekdays": [0, 6],
-  "_closedWeekdaysNota": "0=domingo, 6=sábado (estándar JS Date.getDay()).",
-
-  "fridayRestriction": {
-    "enabled": true,
-    "weekday": 5,
-    "onlyLabel": "Disponible: Reunión / Administrativo",
-    "onlyTag": "REUNION_ONLY",
-    "_nota": "Viernes se muestra disponible solo para Reunión/Administrativo, nunca para Curso — aunque el .ics real diga que está libre para cualquier cosa. Esta regla vive únicamente aquí, el calendario de Outlook no la conoce."
-  },
+  "_closedWeekdaysNota": "0=domingo, 6=sábado (estándar JS Date.getDay()). El viernes ya NO tiene una regla especial aquí (ver nota más abajo) — Alfredo lo bloquea directo desde Outlook cuando lo necesita para sus propias reuniones, así que el sitio simplemente refleja lo que diga el calendario real ese día, igual que cualquier otro día de la semana.",
 
   "presencialBuffer": {
     "categoryName": "Presencial",

@@ -66,10 +66,6 @@ module.exports = async function (context, req) {
         slotMinutes: config.slotMinutes,
         workingHours: config.workingHours,
         categories: config.categories,
-        fridayRestriction: {
-          onlyTag: config.fridayRestriction.onlyTag,
-          onlyLabel: config.fridayRestriction.onlyLabel,
-        },
         days,
       },
     };

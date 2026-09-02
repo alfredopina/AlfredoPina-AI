@@ -52,6 +52,22 @@ function utcToLocalParts(utcDate, offsetHours) {
 }
 
 /**
+ * Medianoche local (instante UTC) del LUNES de la semana que contiene refDate.
+ * Se usa para anclar la generación del grid semanal siempre al inicio de la
+ * semana en curso — antes se anclaba a "ahora", así que en cuanto pasaba la
+ * medianoche el día que ya había transcurrido (ej. martes) desaparecía por
+ * completo de la vista semanal en vez de quedarse marcado como "ya pasó".
+ * Como utcOffsetHours es fijo todo el año (sin horario de verano en Zona
+ * Centro), restar días en milisegundos sobre la medianoche local es válido.
+ */
+function mondayOfWeekUTC(refDate, offsetHours) {
+  const parts = utcToLocalParts(refDate, offsetHours);
+  const localMidnightUTC = localToUTC(parts.year, parts.month, parts.day, 0, 0, offsetHours);
+  const daysSinceMonday = (parts.weekday + 6) % 7; // lunes=0 ... domingo=6
+  return new Date(localMidnightUTC.getTime() - daysSinceMonday * 86400000);
+}
+
+/**
  * Convierte una lista de "eventos" ya resueltos a instancias concretas
  * ({ start: Date, end: Date, summary, categories }) en intervalos ocupados
  * sanitizados: { start, end, tag, isPresencial }. Aplica el buffer de 45 min
@@ -92,8 +108,15 @@ function toDateStr(d) {
  * config están en la misma zona (America/Monterrey, offset fijo, ver config). Los
  * intervalos ocupados (busyIntervals) deben venir como instantes UTC absolutos
  * (Date), igual que devuelve node-ical al parsear el .ics.
+ *
+ * nowDate (opcional): si se pasa, cada slot lleva un campo "isPast" (true si
+ * su hora de inicio ya quedó atrás respecto a nowDate). No cambia qué días o
+ * slots se generan — startDate ya puede ser anterior a "ahora" (típicamente
+ * el lunes de la semana en curso, ver mondayOfWeekUTC) para que los días ya
+ * transcurridos de esta semana se sigan mostrando, solo marcados como no
+ * reservables en vez de desaparecer del grid.
  */
-function buildSlotGrid(startDate, endDate, config, busyIntervals) {
+function buildSlotGrid(startDate, endDate, config, busyIntervals, nowDate) {
   const days = [];
   const offset = config.utcOffsetHours;
   const startParts = utcToLocalParts(startDate, offset);
@@ -150,6 +173,7 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals) {
           tag,
           label,
           color,
+          isPast: nowDate ? slotStart < nowDate : false,
         });
       }
 
@@ -163,9 +187,9 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals) {
 }
 
 /** Punto de entrada de la lógica pura: eventInstances ya resueltos -> grid de días. */
-function computeAvailability(eventInstances, config, startDate, endDate) {
+function computeAvailability(eventInstances, config, startDate, endDate, nowDate) {
   const busyIntervals = buildBusyIntervals(eventInstances, config);
-  return buildSlotGrid(startDate, endDate, config, busyIntervals);
+  return buildSlotGrid(startDate, endDate, config, busyIntervals, nowDate);
 }
 
 module.exports = {
@@ -174,4 +198,5 @@ module.exports = {
   buildBusyIntervals,
   buildSlotGrid,
   computeAvailability,
+  mondayOfWeekUTC,
 };

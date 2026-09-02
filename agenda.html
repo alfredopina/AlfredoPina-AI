@@ -78,7 +78,7 @@
     font-family:var(--display); font-weight:600; font-size:clamp(26px,3.6vw,40px);
     letter-spacing:-.01em; max-width:700px; line-height:1.18;
   }
-  .section-sub{font-size:15.5px; color:var(--text-dim); max-width:640px; margin-top:16px; line-height:1.7;}
+  .section-sub{font-size:15.5px; color:var(--text-dim); max-width:640px; margin-top:13px; line-height:1.7;}
 
   .chip{
     font-family:var(--mono); font-size:13px; color:var(--text-dim);
@@ -92,7 +92,7 @@
 
   .agenda-kpi-card{
     border:1px solid var(--line); border-radius:12px; background:var(--panel);
-    padding:24px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+    padding:20px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center;
   }
   .agenda-kpi-ringwrap{ position:relative; width:96px; height:96px; }
   .agenda-kpi-ringwrap svg{ width:96px; height:96px; transform:rotate(-90deg); }
@@ -117,16 +117,36 @@
 
   .last-updated{
     font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
-    display:flex; align-items:center; gap:6px; margin-top:10px;
+    display:flex; align-items:center; gap:6px; margin-top:8px;
   }
   .last-updated svg{ width:11px; height:11px; flex:none; }
 
-  /* ---- NAVEGADOR DE SEMANA / MES ---- */
-  .week-nav{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin:44px 0 20px; flex-wrap:wrap; }
-  .week-nav-left{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .tz-picker{
+    display:flex; align-items:center; gap:8px; margin-top:8px;
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  }
+  .tz-picker svg{ width:12px; height:12px; flex:none; }
+  .tz-picker select{
+    font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    background:var(--panel); border:1px solid var(--line); border-radius:5px;
+    padding:6px 10px; cursor:pointer; outline:none; transition:border-color .2s, color .2s;
+  }
+  .tz-picker select:hover, .tz-picker select:focus{ border-color:var(--blue); color:var(--text); }
+
+  /* ---- NAVEGADOR DE SEMANA / MES ----
+     Un solo renglón, centrado: toggle Semana/Mes a la izquierda, fecha +
+     número de semana como protagonista al centro, Hoy/‹/› a la derecha —
+     mismo patrón que Outlook/Google Calendar, para que no se sienta
+     saturado. ---- */
+  .week-nav{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin:40px 0 20px; flex-wrap:wrap; }
+  .week-nav-center{ text-align:center; flex:1; min-width:140px; }
   .week-nav-label{ font-family:var(--display); font-weight:600; font-size:17px; }
   .week-nav-sub{ font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-top:3px; }
   .week-nav-btns{ display:flex; gap:8px; }
+  @media (max-width:640px){
+    .week-nav{ justify-content:center; }
+    .week-nav-center{ order:-1; flex:0 0 100%; margin-bottom:4px; }
+  }
   .week-nav-btn{
     width:36px; height:36px; border-radius:6px; border:1px solid var(--line); background:var(--panel);
     color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s;
@@ -182,6 +202,19 @@
   .agenda-grid-head .ddate{ font-family:var(--mono); font-weight:400; font-size:10px; color:var(--text-faint); margin-top:3px; }
   .agenda-grid-head.corner{ background:var(--panel); }
   .agenda-grid-head.crosshair{ background:var(--blue-dim); color:var(--text); transition:background .15s; }
+  /* "Hoy" resaltado en el encabezado, estilo formato condicional de Excel —
+     sutil pero notorio: borde inferior azul + fondo tenue + texto del día
+     en color. */
+  .agenda-grid-head.today{ background:var(--blue-dim); border-bottom:2px solid var(--blue-bright); }
+  .agenda-grid-head.today .dow{ color:var(--blue-bright); }
+  /* Columnas angostas de sábado/domingo — puramente visuales (el backend
+     nunca genera datos para estos días, no son agendables), solo para que
+     la semana se sienta completa en vez de cortar de golpe en viernes. */
+  .agenda-grid-head.weekend{ color:var(--text-faint); padding:12px 2px; }
+  .agenda-grid-head.weekend .dow{
+    font-size:9.5px; writing-mode:vertical-rl; text-orientation:mixed;
+    letter-spacing:0; color:var(--text-faint); display:inline-block; padding:2px 0;
+  }
 
   .agenda-grid-time{
     font-family:var(--mono); font-size:10px; color:var(--text-faint); text-align:right;
@@ -195,6 +228,11 @@
     display:flex; align-items:center; justify-content:center;
   }
   .agenda-slot.closed{ background:repeating-linear-gradient(135deg, var(--line-soft), var(--line-soft) 4px, transparent 4px, transparent 9px); }
+
+  /* Horario que ya pasó — el día se sigue mostrando (ya no desaparece de la
+     vista semanal), pero el slot queda inerte: gris neutro, sin candado ni
+     "+", no clickeable. */
+  .agenda-slot.past{ background:var(--panel-2); opacity:.45; cursor:default; }
 
   .agenda-slot.free{
     cursor:pointer; border:1.5px dashed var(--line); position:relative;
@@ -357,6 +395,21 @@
     .wrap{padding:0 20px;}
     .nav-links{display:none;}
   }
+
+  /* ---- CELULAR: barra fx + CTA fijas al fondo una vez que hay selección,
+     y objetivos de toque más grandes en la rejilla y los controles ---- */
+  @media (max-width:640px){
+    .agenda-sticky-mobile.active{
+      position:sticky; bottom:0; z-index:40; background:var(--bg);
+      padding-top:12px; padding-bottom:14px; border-top:1px solid var(--line);
+    }
+    .agenda-slot{ min-height:42px; }
+    .agenda-grid-time{ min-height:42px; }
+    .agenda-slot.free::before{ font-size:16px; }
+    .week-nav-btn{ width:40px; height:40px; }
+    .today-btn{ height:40px; padding:0 16px; }
+    .view-toggle-btn{ padding:10px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -387,7 +440,7 @@
   </div>
 </nav>
 
-<header class="wrap" style="padding-top:56px;">
+<header class="wrap" style="padding-top:44px;">
   <div class="agenda-header-grid" style="margin-top:0;">
     <div>
       <h2 class="section-title">Mi Agenda</h2>
@@ -410,6 +463,12 @@
     <span id="lastUpdatedText">calculando…</span>
   </div>
 
+  <div class="tz-picker" id="tzPicker">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9s1.3-6.3 3.8-9Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <label for="tzSelect">Ver horario en:</label>
+    <select id="tzSelect" onchange="changeTimezone(this.value)"></select>
+  </div>
+
   <div class="agenda-demo-note" id="demoNote">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span>Estás viendo datos de ejemplo — el calendario real de Outlook todavía no está conectado (falta configurar <code>OUTLOOK_ICS_URL</code>).</span>
@@ -419,15 +478,13 @@
 <section class="wrap" style="padding-top:12px;">
 
   <div class="week-nav">
-    <div class="week-nav-left">
-      <div class="view-toggle">
-        <button type="button" class="view-toggle-btn active" id="viewWeekBtn" onclick="setViewMode('week')">Semana</button>
-        <button type="button" class="view-toggle-btn" id="viewMonthBtn" onclick="setViewMode('month')">Mes</button>
-      </div>
-      <div>
-        <div class="week-nav-label" id="weekLabel">Cargando…</div>
-        <div class="week-nav-sub" id="weekSub">Lunes a viernes · 7:00–19:00</div>
-      </div>
+    <div class="view-toggle">
+      <button type="button" class="view-toggle-btn active" id="viewWeekBtn" onclick="setViewMode('week')">Semana</button>
+      <button type="button" class="view-toggle-btn" id="viewMonthBtn" onclick="setViewMode('month')">Mes</button>
+    </div>
+    <div class="week-nav-center">
+      <div class="week-nav-label" id="weekLabel">Cargando…</div>
+      <div class="week-nav-sub" id="weekSub"></div>
     </div>
     <div class="week-nav-btns">
       <button type="button" class="today-btn" id="todayBtn" onclick="goToToday()">Hoy</button>
@@ -454,24 +511,26 @@
 
   <p style="font-size:11.5px; color:var(--text-faint); margin-top:14px;" id="dragHint">Tip: puedes arrastrar el mouse sobre varios huecos libres seguidos para seleccionarlos de una vez.</p>
 
-  <div class="agenda-formula-bar" id="formulaBarWrap">
-    <span class="agenda-formula-fx">fx</span>
-    <span class="agenda-formula-body" id="formulaBody">
-      <span class="placeholder">=AGENDAR( elige tus horarios en el calendario… )</span>
-    </span>
-  </div>
+  <div class="agenda-sticky-mobile" id="agendaStickyMobile">
+    <div class="agenda-formula-bar" id="formulaBarWrap">
+      <span class="agenda-formula-fx">fx</span>
+      <span class="agenda-formula-body" id="formulaBody">
+        <span class="placeholder">=AGENDAR( elige tus horarios en el calendario… )</span>
+      </span>
+    </div>
 
-  <div class="agenda-meta">
-    <div class="agenda-total" id="agendaTotal"><b>0 min</b> · 0 horarios seleccionados</div>
-    <button class="agenda-clear-btn" id="clearBtn" style="display:none;" onclick="clearSelection()">limpiar selección</button>
-  </div>
+    <div class="agenda-meta">
+      <div class="agenda-total" id="agendaTotal"><b>0 min</b> · 0 horarios seleccionados</div>
+      <button class="agenda-clear-btn" id="clearBtn" style="display:none;" onclick="clearSelection()">limpiar selección</button>
+    </div>
 
-  <div class="agenda-cta-row">
-    <button class="agenda-cta" id="agendaCtaBtn" disabled onclick="openLeadForm()">
-      Solicitar estos horarios
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <span class="agenda-cta-hint" id="agendaCtaHint">Selecciona al menos un horario libre en el calendario.</span>
+    <div class="agenda-cta-row">
+      <button class="agenda-cta" id="agendaCtaBtn" disabled onclick="openLeadForm()">
+        Solicitar estos horarios
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="agenda-cta-hint" id="agendaCtaHint">Selecciona al menos un horario libre en el calendario.</span>
+    </div>
   </div>
 
   <div id="leadFormSlot"></div>
@@ -511,32 +570,103 @@ const SLOT_MINUTES = 60;
 const WORK_START = '07:00';
 const WORK_END = '19:00';
 const DOW_LABELS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const UTC_OFFSET_HOURS = -6; // debe coincidir con api/config/agenda-config.json -> utcOffsetHours (solo para mostrar "Actualizado:")
+
+/* ============================================================
+   ZONAS HORARIAS — para que un cliente fuera de Monterrey vea los
+   horarios ya convertidos a su región. Desde la reforma de 2022,
+   México ya NO tiene horario de verano en la mayor parte del país
+   (Monterrey/Zona Centro incluida — offset fijo todo el año). La
+   única zona que SIGUE cambiando de hora es la franja fronteriza
+   norte, sincronizada con EE.UU. (2do domingo de marzo -> 1er
+   domingo de noviembre) — de ahí que Matamoros, por ejemplo, esté
+   igualado con Monterrey en invierno pero 1 hora adelante en verano.
+   ============================================================ */
+const TIMEZONES = [
+  { key: 'MTY', zoneName: 'Zona Centro', places: 'Monterrey, CDMX, Guadalajara', offset: -6, dst: false },
+  { key: 'MAT', zoneName: 'Frontera NE', places: 'Matamoros, Reynosa, Nuevo Laredo', offset: -6, dst: true },
+  { key: 'CJS', zoneName: 'Frontera Chihuahua', places: 'Ciudad Juárez', offset: -7, dst: true },
+  { key: 'TIJ', zoneName: 'Zona Noroeste', places: 'Tijuana, Mexicali', offset: -8, dst: true },
+  { key: 'PAC', zoneName: 'Zona Pacífico', places: 'Hermosillo, Culiacán, La Paz', offset: -7, dst: false },
+  { key: 'CUN', zoneName: 'Zona Sureste', places: 'Cancún, Quintana Roo', offset: -5, dst: false },
+];
+let SELECTED_TZ = TIMEZONES[0]; // Monterrey por default — es donde vive Alfredo
+
+function nthSundayUTC(year, monthIdx, n) {
+  const first = new Date(Date.UTC(year, monthIdx, 1));
+  const firstSunday = 1 + ((7 - first.getUTCDay()) % 7);
+  return firstSunday + (n - 1) * 7;
+}
+/* Igual que la regla de EE.UU. (la franja fronteriza la sigue por diseño):
+   2do domingo de marzo 02:00 hora estándar -> 03:00; 1er domingo de
+   noviembre 02:00 hora de verano -> 01:00 estándar. */
+function dstBoundsUTC(year, standardOffset) {
+  const marDay = nthSundayUTC(year, 2, 2);
+  const springForwardUTC = new Date(Date.UTC(year, 2, marDay, 2 - standardOffset, 0, 0));
+  const novDay = nthSundayUTC(year, 10, 1);
+  const fallBackUTC = new Date(Date.UTC(year, 10, novDay, 2 - (standardOffset + 1), 0, 0));
+  return { springForwardUTC, fallBackUTC };
+}
+function zoneOffsetHours(tz, dateUTC) {
+  if (!tz.dst) return tz.offset;
+  const { springForwardUTC, fallBackUTC } = dstBoundsUTC(dateUTC.getUTCFullYear(), tz.offset);
+  return (dateUTC >= springForwardUTC && dateUTC < fallBackUTC) ? tz.offset + 1 : tz.offset;
+}
+/* Etiqueta del selector: nombre oficial del huso + lugares + offset UTC en
+   vivo (para las zonas de frontera con horario de verano, el número mismo
+   cambia según la fecha — de ahí el "ahora" — mientras que las zonas sin
+   horario de verano muestran un UTC fijo, sin calificarlo). */
+function tzOptionLabel(tz) {
+  const off = zoneOffsetHours(tz, new Date());
+  const offTxt = tz.dst ? `UTC${off} ahora` : `UTC${off}`;
+  return `${tz.zoneName} — ${tz.places} (${offTxt})`;
+}
+
+function changeTimezone(key) {
+  SELECTED_TZ = TIMEZONES.find(t => t.key === key) || TIMEZONES[0];
+  renderLastUpdated();
+  render();
+  renderFormulaBar();
+}
 
 /* ============================================================
    DATOS DE EJEMPLO — se usan solo si /api/availability falla
    (típicamente porque OUTLOOK_ICS_URL aún no está configurado)
    ============================================================ */
 function buildDemoData() {
+  // Ojo: las horas se construyen en UTC a partir del offset fijo de Monterrey
+  // (igual que hace el backend real), NUNCA con Date.setHours() del navegador
+  // — setHours() usa la zona horaria de la máquina que abre la página, que
+  // puede no ser Monterrey, y eso desalinearía los datos de ejemplo apenas
+  // se leen con la zona horaria seleccionada.
+  const MTY_OFFSET = TIMEZONES[0].offset; // -6
   const now = new Date();
+  // Ancla el día 0 al lunes de la semana actual (calendario del navegador,
+  // suficiente para datos de ejemplo) para que la demo también muestre toda
+  // la semana en curso — igual que el backend real — en vez de arrancar
+  // siempre en "hoy" y perder los días ya pasados de esta semana.
+  const daysSinceMonday = (now.getDay() + 6) % 7;
+  const monday = new Date(now); monday.setDate(monday.getDate() - daysSinceMonday);
   const days = [];
   for (let i = 0; i < 60; i++) {
-    const d = new Date(now); d.setDate(d.getDate() + i);
+    const d = new Date(monday); d.setDate(d.getDate() + i);
     const weekday = d.getDay();
     if (weekday === 0 || weekday === 6) continue;
+    const y = d.getFullYear(), mo = d.getMonth(), day = d.getDate();
+    const dateStr = `${y}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const slots = [];
     const [sh] = WORK_START.split(':').map(Number);
     const [eh] = WORK_END.split(':').map(Number);
     for (let m = sh * 60; m < eh * 60; m += SLOT_MINUTES) {
       const hh = Math.floor(m / 60), mm = m % 60;
-      const slotStart = new Date(d); slotStart.setHours(hh, mm, 0, 0);
+      const slotStart = new Date(Date.UTC(y, mo, day, hh, mm, 0) - MTY_OFFSET * 3600000);
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
       // patrón de ejemplo: ocupa algunos bloques para que se vea "vivo"
-      const seed = (d.getDate() * 7 + m) % 11;
+      const seed = (day * 7 + m) % 11;
       const status = seed < 4 ? 'busy' : 'free';
-      slots.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), status });
+      const isPast = slotStart < now;
+      slots.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), status, isPast });
     }
-    days.push({ date: d.toISOString().slice(0,10), weekday, slots });
+    days.push({ date: dateStr, weekday, slots });
   }
   return { days, slotMinutes: SLOT_MINUTES, workingHours: { start: WORK_START, end: WORK_END }, generatedAt: new Date().toISOString() };
 }
@@ -571,7 +701,8 @@ async function loadAvailability() {
 
 function localPartsFromUTC(isoOrDate) {
   const utc = new Date(isoOrDate);
-  const shifted = new Date(utc.getTime() + UTC_OFFSET_HOURS * 3600000);
+  const off = zoneOffsetHours(SELECTED_TZ, utc);
+  const shifted = new Date(utc.getTime() + off * 3600000);
   return {
     dd: String(shifted.getUTCDate()).padStart(2,'0'),
     mm: String(shifted.getUTCMonth() + 1).padStart(2,'0'),
@@ -625,9 +756,18 @@ function getMonths() {
   return months;
 }
 
+/* Convierte un instante UTC absoluto (lo que manda el backend por slot) a la
+   hora de pared de la zona que el visitante haya elegido (SELECTED_TZ, por
+   default Monterrey). Antes esta función regresaba la hora UTC tal cual —
+   ese era el bug: el horario que salía en la barra fx y en el mensaje
+   enviado no era el que se veía/seleccionaba en la rejilla. */
 function timeLabel(iso) {
-  const d = new Date(iso);
-  return d.toISOString().slice(11,16); // HH:MM en UTC — el backend ya regresa instantes UTC correctos por slot
+  const utc = new Date(iso);
+  const off = zoneOffsetHours(SELECTED_TZ, utc);
+  const shifted = new Date(utc.getTime() + off * 3600000);
+  const hh = String(shifted.getUTCHours()).padStart(2,'0');
+  const mm = String(shifted.getUTCMinutes()).padStart(2,'0');
+  return `${hh}:${mm}`;
 }
 
 function fmtDateLabel(dateStr) {
@@ -654,6 +794,29 @@ function isoWeekNumber(dateStr) {
   return 1 + Math.round((date - firstThursday) / (7 * 86400000));
 }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* "Hoy" para el resaltado del encabezado es el día calendario de Alfredo
+   (zona Monterrey, fija todo el año) — no cambia con el selector de zona
+   horaria del visitante, que solo afecta cómo se leen las HORAS. */
+function todayDateStrMTY() {
+  const off = TIMEZONES[0].offset;
+  const shifted = new Date(Date.now() + off * 3600000);
+  const y = shifted.getUTCFullYear();
+  const m = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(shifted.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/* Suma/resta días calendario a un YYYY-MM-DD sin depender de zona horaria
+   del navegador — se usa para calcular las fechas de sábado/domingo a
+   partir del lunes de la semana que se está mostrando. */
+function addDaysToDateStr(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  const yy = dt.getUTCFullYear(), mm = String(dt.getUTCMonth() + 1).padStart(2, '0'), dd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
 
 /* ============================================================
    TOGGLE DE VISTA
@@ -687,54 +850,57 @@ function renderWeek() {
 
   const first = week[0], last = week[week.length - 1];
   const weekNum = isoWeekNumber(first.date);
-  const monthName = capitalize(MONTH_NAMES[Number(first.date.slice(5,7)) - 1]);
+  const today = todayDateStrMTY();
   document.getElementById('weekLabel').textContent = `${fmtDateLabel(first.date)} — ${fmtDateLabel(last.date)}`;
-  document.getElementById('weekSub').textContent = `Semana ${weekNum} · Lunes a viernes · ${(AVAILABILITY.workingHours||{start:WORK_START}).start}–${(AVAILABILITY.workingHours||{end:WORK_END}).end}`;
+  document.getElementById('weekSub').textContent = `Semana ${weekNum}`;
 
   // filas de horario: tomamos las horas del primer día con slots como referencia de tiempo local mostrado
   const timeRows = week[0].slots.map(s => s.start); // ya vienen en orden
 
+  // sábado/domingo: columnas angostas puramente visuales (el backend nunca
+  // genera datos para estos días) para que la semana se sienta completa en
+  // vez de cortar de golpe en viernes.
+  const satDate = addDaysToDateStr(first.date, 5);
+  const sunDate = addDaysToDateStr(first.date, 6);
+
   const grid = document.getElementById('agendaGrid');
-  // La rejilla se ajusta al número real de días de esta semana (puede ser
-  // menos de 5 en la primera semana mostrada, ya que el backend solo manda
-  // días desde "hoy" en adelante — si hoy no es lunes, esos días ya pasaron
-  // y no vienen en el payload). Sin esto, el CSS fijo de 5 columnas deja una
-  // columna vacía/fantasma a la derecha con las horas mal alineadas.
-  grid.style.gridTemplateColumns = `68px repeat(${week.length}, minmax(120px,1fr))`;
+  // La rejilla se ajusta al número real de días entre semana de esta semana
+  // (puede ser menos de 5 si el backend aún no manda todos), más las 2
+  // columnas angostas fijas de fin de semana.
+  grid.style.gridTemplateColumns = `68px repeat(${week.length}, minmax(120px,1fr)) 28px 28px`;
   let html = `<div class="agenda-grid-head corner"></div>`;
   week.forEach((day, colIdx) => {
-    html += `<div class="agenda-grid-head" data-col="${colIdx}"><div class="dow">${DOW_LABELS[day.weekday]}</div><div class="ddate">${fmtDateLabel(day.date)}</div></div>`;
+    const isToday = day.date === today;
+    html += `<div class="agenda-grid-head${isToday ? ' today' : ''}" data-col="${colIdx}"><div class="dow">${DOW_LABELS[day.weekday]}</div><div class="ddate">${fmtDateLabel(day.date)}</div></div>`;
   });
+  html += `<div class="agenda-grid-head weekend" title="Sábado ${fmtDateLabel(satDate)} · cerrado"><div class="dow">SÁB</div></div>`;
+  html += `<div class="agenda-grid-head weekend" title="Domingo ${fmtDateLabel(sunDate)} · cerrado"><div class="dow">DOM</div></div>`;
 
   timeRows.forEach((_, rowIdx) => {
-    html += `<div class="agenda-grid-time" data-row="${rowIdx}">${localTimeOfRow(rowIdx)}</div>`;
+    html += `<div class="agenda-grid-time" data-row="${rowIdx}">${timeLabel(timeRows[rowIdx])}</div>`;
     week.forEach((day, colIdx) => {
       const slot = day.slots[rowIdx];
       if (!slot) { html += `<div class="agenda-slot closed" data-row="${rowIdx}" data-col="${colIdx}"></div>`; return; }
       html += renderSlotCell(day, slot, rowIdx, colIdx);
     });
+    html += `<div class="agenda-slot closed weekend" data-row="${rowIdx}"></div>`;
+    html += `<div class="agenda-slot closed weekend" data-row="${rowIdx}"></div>`;
   });
 
   grid.innerHTML = html;
   attachSlotHandlers();
-  updateKpi(week, 'week', `Semana ${weekNum} · ${monthName}`);
+  updateKpi(week, 'week', `Semana ${weekNum}`);
   document.getElementById('todayBtn').disabled = weekOffset === 0;
-}
-
-/* Como los slots vienen en UTC pero representan horas locales fijas (offset fijo del backend),
-   mostramos la hora tal cual la vuelve legible: se reconstruye leyendo el offset implícito en
-   el propio payload (primer slot = workingHours.start). */
-function localTimeOfRow(rowIdx) {
-  const startHour = (AVAILABILITY.workingHours && AVAILABILITY.workingHours.start) || WORK_START;
-  const [sh, sm] = startHour.split(':').map(Number);
-  const totalMin = sh * 60 + sm + rowIdx * (AVAILABILITY.slotMinutes || SLOT_MINUTES);
-  const hh = String(Math.floor(totalMin / 60)).padStart(2,'0');
-  const mm = String(totalMin % 60).padStart(2,'0');
-  return `${hh}:${mm}`;
 }
 
 function renderSlotCell(day, slot, rowIdx, colIdx) {
   const key = day.date + '|' + slot.start;
+  if (slot.isPast) {
+    // El día se sigue mostrando (ya no desaparece de la vista semanal),
+    // pero un horario que ya pasó no es reservable — se ve inerte, sin
+    // importar si estaba libre u ocupado.
+    return `<div class="agenda-slot past" data-row="${rowIdx}" data-col="${colIdx}" title="Horario ya pasado"></div>`;
+  }
   if (slot.status === 'busy') {
     return `<div class="agenda-slot busy" data-row="${rowIdx}" data-col="${colIdx}" title="Ocupado">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -837,7 +1003,7 @@ function updateKpi(items, mode, periodLabel) {
     ring.style.strokeDashoffset = circumference * (1 - pct / 100);
   });
   document.getElementById('kpiPct').textContent = pct + '%';
-  const baseLabel = mode === 'week' ? 'Ocupación<br>Semanal' : 'Ocupación<br>Mensual';
+  const baseLabel = mode === 'week' ? '% Ocupación<br>Semanal' : '% Ocupación<br>Mensual';
   document.getElementById('kpiLabel').innerHTML = periodLabel
     ? `${baseLabel}<span class="kpi-period">${periodLabel}</span>`
     : baseLabel;
@@ -860,7 +1026,7 @@ function renderMonth() {
 
   const monthLabel = fmtMonthLabel(month.key).replace(/^./, c => c.toUpperCase());
   document.getElementById('weekLabel').textContent = monthLabel;
-  document.getElementById('weekSub').textContent = 'Lunes a viernes · click en un día para ver el detalle por hora';
+  document.getElementById('weekSub').textContent = 'Click en un día para ver el detalle por hora';
 
   const [y, m] = month.key.split('-').map(Number);
   const numDays = new Date(y, m, 0).getDate();
@@ -979,6 +1145,10 @@ function renderFormulaBar() {
   const cta = document.getElementById('agendaCtaBtn');
   const hint = document.getElementById('agendaCtaHint');
   const clearBtn = document.getElementById('clearBtn');
+  // En celular, una vez que hay al menos un horario seleccionado, la barra
+  // fx + botón "Solicitar" se quedan fijos al fondo de la pantalla (menos
+  // scroll para confirmar) — no hace nada en escritorio (ver media query).
+  document.getElementById('agendaStickyMobile').classList.toggle('active', ranges.length > 0);
 
   if (!ranges.length) {
     body.innerHTML = '<span class="placeholder">=AGENDAR( elige tus horarios en el calendario… )</span>';
@@ -1094,6 +1264,8 @@ function sendLead(channel) {
    INIT
    ============================================================ */
 document.getElementById('leadFormSlot').innerHTML = leadFormHTML();
+
+document.getElementById('tzSelect').innerHTML = TIMEZONES.map(t => `<option value="${t.key}">${tzOptionLabel(t)}</option>`).join('');
 
 loadAvailability();
 </script>

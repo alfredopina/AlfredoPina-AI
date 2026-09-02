@@ -19,7 +19,7 @@
 const ical = require("node-ical");
 const config = require("../config/agenda-config.json");
 const { expandAllEvents } = require("../src/ical-expand");
-const { computeAvailability } = require("../src/availability-logic");
+const { computeAvailability, mondayOfWeekUTC } = require("../src/availability-logic");
 
 module.exports = async function (context, req) {
   const icsUrl = process.env.OUTLOOK_ICS_URL;
@@ -35,6 +35,13 @@ module.exports = async function (context, req) {
   }
 
   const now = new Date();
+  // La ventana de generación arranca en el LUNES de la semana en curso (no en
+  // "ahora") para que la vista semanal siempre muestre la semana completa,
+  // incluyendo días que ya transcurrieron — antes, en cuanto pasaba la
+  // medianoche, el día anterior desaparecía por completo del payload. "now"
+  // se sigue pasando aparte para marcar cada slot ya pasado como isPast
+  // (no reservable) sin ocultar el día.
+  const windowStart = mondayOfWeekUTC(now, config.utcOffsetHours);
   const windowEnd = new Date(now.getTime() + config.icsFetchWindowDays * 24 * 60 * 60 * 1000);
 
   let data;
@@ -51,8 +58,8 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const eventInstances = expandAllEvents(data, now, windowEnd);
-    const days = computeAvailability(eventInstances, config, now, windowEnd);
+    const eventInstances = expandAllEvents(data, windowStart, windowEnd);
+    const days = computeAvailability(eventInstances, config, windowStart, windowEnd, now);
 
     context.res = {
       status: 200,

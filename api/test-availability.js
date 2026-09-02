@@ -14,7 +14,7 @@
 const ical = require("node-ical");
 const config = require("./config/agenda-config.json");
 const { expandAllEvents } = require("./src/ical-expand");
-const { computeAvailability, extractWhitelistedTag } = require("./src/availability-logic");
+const { computeAvailability, extractWhitelistedTag, buildSlotGrid, mondayOfWeekUTC } = require("./src/availability-logic");
 
 function fmtUTC(d) {
   return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -108,10 +108,14 @@ END:VCALENDAR
 const data = ical.sync.parseICS(icsContent);
 
 const now = new Date();
+// Igual que getAvailability/index.js: la ventana arranca en el lunes de la
+// semana en curso, no en "ahora", para que la semana completa se genere
+// aunque algunos de sus días ya hayan pasado (ver mondayOfWeekUTC).
+const windowStart = mondayOfWeekUTC(now, config.utcOffsetHours);
 const windowEnd = new Date(now.getTime() + config.icsFetchWindowDays * 24 * 60 * 60 * 1000);
 
-const instances = expandAllEvents(data, now, windowEnd);
-const days = computeAvailability(instances, config, now, windowEnd);
+const instances = expandAllEvents(data, windowStart, windowEnd);
+const days = computeAvailability(instances, config, windowStart, windowEnd, now);
 
 // ---------------- Verificaciones ----------------
 let failures = 0;
@@ -207,6 +211,33 @@ const daySat = days.find((d) => d.weekday === 6);
 const daySun = days.find((d) => d.weekday === 0);
 check("Sábado NUNCA aparece en el grid (cerrado)", !daySat);
 check("Domingo NUNCA aparece en el grid (cerrado)", !daySun);
+
+// ---- Fix "el día que desaparece": la ventana siempre arranca en lunes ----
+check("El primer día generado es siempre lunes (ventana anclada al lunes de la semana en curso, no a 'ahora')", days.length > 0 && days[0].weekday === 1);
+check("Todos los slots del lunes traen el campo isPast (boolean)", days[0] && days[0].slots.length > 0 && days[0].slots.every((s) => typeof s.isPast === "boolean"));
+
+// ---- isPast: prueba aislada con un "ahora" fijo (lunes 12:00 hora Monterrey),
+// para no depender de la hora real a la que se corra este script.
+const fixedMonday = mondayOfWeekUTC(new Date(), config.utcOffsetHours);
+const fixedNoon = new Date(fixedMonday.getTime() + 12 * 60 * 60 * 1000); // lunes 12:00 local
+const fixedWeekEnd = new Date(fixedMonday.getTime() + 7 * 24 * 60 * 60 * 1000);
+const isPastDays = buildSlotGrid(fixedMonday, fixedWeekEnd, config, [], fixedNoon);
+const isPastMonday = isPastDays.find((d) => d.weekday === 1);
+function isPastSlotAt(day, hh) {
+  return day.slots.find((s) => {
+    const utc = new Date(s.start);
+    const localMs = utc.getTime() + config.utcOffsetHours * 3600000;
+    return new Date(localMs).getUTCHours() === hh;
+  });
+}
+if (isPastMonday) {
+  const before = isPastSlotAt(isPastMonday, 9);  // 09:00, antes del "ahora" fijo (12:00)
+  const after = isPastSlotAt(isPastMonday, 14);  // 14:00, después del "ahora" fijo
+  check("Slot de las 09:00 (antes del 'ahora' fijo de las 12:00) queda isPast=true", before && before.isPast === true);
+  check("Slot de las 14:00 (después del 'ahora' fijo de las 12:00) queda isPast=false", after && after.isPast === false);
+} else {
+  check("Se pudo generar el lunes en la prueba aislada de isPast", false);
+}
 
 console.log("\n" + (failures === 0 ? `TODO OK (${days.length} días generados)` : `${failures} verificación(es) fallida(s)`));
 process.exit(failures === 0 ? 0 : 1);

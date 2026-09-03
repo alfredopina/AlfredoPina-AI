@@ -1,0 +1,21 @@
+# Azure Functions (api/) — local config, puede contener secretos
+api/local.settings.json
+api/bin/
+api/obj/
+api/.azure/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Static Web Apps CLI
+.swa/
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.*

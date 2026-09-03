@@ -62,6 +62,18 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 - Símbolo SVG fantasma de piña (`pineappleMark`, nunca usado) — eliminado de `index.html` y `cursos.html`
 - Bug de scroll: los links del menú aterrizaban con el título tapado por las barras sticky (nav + barra "Conóceme") — corregido con `scroll-margin-top` por breakpoint en `style.css`
 
+## Historial de sesiones
+
+Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-03 alfredo.pina: Limpieza, favicon y bug
+- Clonado el repo por primera vez en el equipo de Alfredo y agregado este `CLAUDE.md` al repo
+- Eliminado el símbolo SVG fantasma `pineappleMark` (definido pero nunca usado) de `index.html` y `cursos.html`
+- Agregado favicon (ícono "fx", mismo motivo visual del sitio) en 16x16, 32x32 y apple-touch-icon, enlazado en `index.html`, `cursos.html` y `agenda.html`
+- Agregadas meta tags Open Graph básicas (`og:title`, `og:description`, `og:image`, `og:url`, `og:type`) en `index.html` y `cursos.html`
+- Creado `.gitignore` (protege sobre todo `api/local.settings.json`, que puede tener secretos)
+- Corregido bug de scroll: los links del menú aterrizaban con el título de la sección tapado por las barras sticky (nav + barra "Conóceme" debajo) — ajustado `scroll-margin-top` con un valor distinto por breakpoint en `style.css`
+
 ## Reglas de trabajo con Alfredo
 
 - Está aprendiendo Azure/GitHub/Claude Code activamente — explica brevemente el "por qué" de decisiones técnicas no triviales, no solo el "qué".

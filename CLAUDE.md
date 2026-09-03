@@ -53,8 +53,14 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 - Módulo de Recursos/Descargas (Azure Blob Storage, link + código corto)
 - Backoffice unificado (cotizaciones, ver solicitudes de temario, reportes cruzados)
 - Replicar el constructor de temario de Excel para Power BI, Power Apps, Power Automate, IA Aplicada, Ofimática (hoy son placeholders "Próximamente" en `cursos.html`)
-- Favicon, meta tags Open Graph, `.gitignore` — pendientes antes de conectar el dominio final
 - Separar CSS/JS que sigue inline en `cursos.html` hacia `/assets/`
+- Falta una imagen social dedicada (1200x630) para `og:image` — hoy usa `firma-ap.png` como placeholder
+- `og:url` / `og:image` en `index.html` y `cursos.html` apuntan a `alfredopina.ai` — actualizar si se sigue sirviendo desde el dominio viejo de LifeZen al momento de publicar
+
+**Ya resueltos** (no reabrir salvo pedido explícito):
+- Favicon (ícono "fx" en 16x16/32x32/apple-touch-icon), meta tags Open Graph básicas y `.gitignore` — listos
+- Símbolo SVG fantasma de piña (`pineappleMark`, nunca usado) — eliminado de `index.html` y `cursos.html`
+- Bug de scroll: los links del menú aterrizaban con el título tapado por las barras sticky (nav + barra "Conóceme") — corregido con `scroll-margin-top` por breakpoint en `style.css`
 
 ## Reglas de trabajo con Alfredo
 

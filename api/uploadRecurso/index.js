@@ -69,6 +69,7 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, rowKey, url: blockBlobClient.url } };
   } catch (err) {
     context.log.error("Error subiendo el recurso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo subir el archivo." } };
+    const diag = `tipo=${typeof req.body} esBuffer=${Buffer.isBuffer(req.body)}`;
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: `No se pudo subir el archivo: ${err.message} (${diag})` } };
   }
 };

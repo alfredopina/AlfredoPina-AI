@@ -16,11 +16,18 @@
   :root{
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
     --blue: #3d7fff; --blue-bright: #6b9fff; --blue-soft: rgba(61,127,255,.14); --blue-dim: #16233f;
-    --text: #edf0f4; --text-dim: #8991a1; --text-faint: #4c5462;
+    --text: #edf0f4; --text-dim: #a4acb9; --text-faint: #79828f;
+    --good: #4ade80; --bad: #ef4444;
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
   }
+  :root[data-theme="light"]{
+    --bg: #f4f5f7; --panel: #ffffff; --panel-2: #eef0f3; --line: #d7dbe1; --line-soft: #e4e7eb;
+    --blue: #2f6fe0; --blue-bright: #1d5fd6; --blue-soft: rgba(47,111,224,.10); --blue-dim: #dde8fb;
+    --text: #14181f; --text-dim: #4a5261; --text-faint: #6b7280;
+    --good: #16a34a; --bad: #dc2626;
+  }
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;}
+  body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased; transition:background .15s, color .15s;}
   a{color:inherit;}
 
   .admin-shell{ display:flex; min-height:100vh; }
@@ -72,6 +79,12 @@
   .admin-user-email{ color:var(--text); }
   .admin-logout{ color:var(--text-faint); text-decoration:none; }
   .admin-logout:hover{ color:var(--text-dim); }
+  .admin-theme-toggle{
+    width:28px; height:28px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:6px; border:1px solid var(--line); background:none; color:var(--text-dim); cursor:pointer;
+  }
+  .admin-theme-toggle:hover{ color:var(--text); border-color:var(--text-dim); }
+  .admin-theme-toggle svg{ width:15px; height:15px; }
 
   .admin-content{ flex:1; padding:32px 28px; }
   .admin-panel{ display:none; }
@@ -97,8 +110,8 @@
     font-family:var(--mono); font-size:12.5px; padding:10px 14px; border-radius:6px;
     margin-bottom:18px; border:1px solid var(--line);
   }
-  .radm-toast.ok{ color:#4ade80; border-color:#4ade80; background:rgba(74,222,128,.08); }
-  .radm-toast.err{ color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
+  .radm-toast.ok{ color:var(--good); border-color:var(--good); background:color-mix(in srgb, var(--good) 10%, var(--panel)); }
+  .radm-toast.err{ color:var(--bad); border-color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, var(--panel)); }
 
   .radm-tools-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; }
   .radm-tool-card{
@@ -134,7 +147,7 @@
   .radm-tab-drag svg{ width:100%; height:100%; }
   .radm-status-dot{ width:9px; height:9px; flex:none; }
   .radm-status-dot svg{ width:100%; height:100%; }
-  .radm-status-dot.pub{ color:#4ade80; }
+  .radm-status-dot.pub{ color:var(--good); }
   .radm-status-dot.draft{ color:var(--text-faint); }
   .radm-tab-new{
     display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12.5px;
@@ -171,8 +184,8 @@
     content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%;
     background:var(--text); transition:transform .15s;
   }
-  .radm-switch input:checked ~ .radm-switch-track{ background:#4ade80; }
-  .radm-switch input:checked ~ .radm-switch-track::before{ transform:translateX(17px); background:#0a0d12; }
+  .radm-switch input:checked ~ .radm-switch-track{ background:var(--good); }
+  .radm-switch input:checked ~ .radm-switch-track::before{ transform:translateX(17px); background:var(--panel); }
   .radm-switch-label{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
 
   .radm-actions{ display:flex; align-items:center; gap:10px; margin-top:6px; }
@@ -183,8 +196,8 @@
   .radm-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
   .radm-btn:disabled{ opacity:.5; cursor:default; }
   .radm-btn-ghost{ border-color:var(--line); color:var(--text-dim); }
-  .radm-btn-danger{ border-color:#ef4444; color:#ef4444; margin-left:auto; }
-  .radm-btn-danger:hover{ background:rgba(239,68,68,.12); }
+  .radm-btn-danger{ border-color:var(--bad); color:var(--bad); margin-left:auto; }
+  .radm-btn-danger:hover{ background:color-mix(in srgb, var(--bad) 12%, transparent); }
   .radm-btn-add{
     font-family:var(--mono); font-size:11px; color:var(--c); background:none; border:1px solid var(--c);
     border-radius:6px; padding:6px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
@@ -212,7 +225,7 @@
   }
   .radm-icon-btn svg{ width:13px; height:13px; }
   .radm-icon-btn:hover{ color:var(--text); border-color:var(--text-dim); }
-  .radm-icon-danger:hover{ color:#ef4444; border-color:#ef4444; }
+  .radm-icon-danger:hover{ color:var(--bad); border-color:var(--bad); }
 
   .radm-inline-form{
     border:1px solid var(--c); border-radius:8px; padding:16px; margin-bottom:10px; background:var(--panel-2);
@@ -294,6 +307,7 @@
     <div class="admin-topbar">
       <div class="admin-topbar-title" id="topbarTitle">Dashboard</div>
       <div class="admin-user">
+        <button type="button" class="admin-theme-toggle" id="themeToggle" title="Cambiar tema"></button>
         <span class="admin-user-email" id="userEmail">Verificando sesión…</span>
         <a href="/.auth/logout?post_logout_redirect_uri=/" class="admin-logout">Cerrar sesión</a>
       </div>
@@ -338,6 +352,26 @@
 </div>
 
 <script>
+  // tema claro/oscuro — se recuerda por navegador (localStorage), default oscuro
+  (function(){
+    const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>';
+    const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const btn = document.getElementById('themeToggle');
+    let theme = 'dark';
+    try { theme = localStorage.getItem('admin-theme') || 'dark'; } catch(e){}
+    function apply(t){
+      document.documentElement.setAttribute('data-theme', t);
+      btn.innerHTML = t === 'light' ? ICON_MOON : ICON_SUN;
+      btn.title = t === 'light' ? 'Cambiar a oscuro' : 'Cambiar a claro';
+    }
+    apply(theme);
+    btn.addEventListener('click', () => {
+      theme = theme === 'light' ? 'dark' : 'light';
+      apply(theme);
+      try { localStorage.setItem('admin-theme', theme); } catch(e){}
+    });
+  })();
+
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', recursos: 'Recursos', encuestas: 'Encuestas', diplomas: 'Diplomas',

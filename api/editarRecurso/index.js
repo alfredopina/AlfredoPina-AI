@@ -50,6 +50,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, rowKey } };
   } catch (err) {
     context.log.error("Error guardando el recurso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el recurso." } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el recurso: " + err.message } };
   }
 };

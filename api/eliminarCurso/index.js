@@ -36,6 +36,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
     context.log.error("Error eliminando el curso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el curso." } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el curso: " + err.message } };
   }
 };

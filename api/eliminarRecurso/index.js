@@ -38,6 +38,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
     context.log.error("Error eliminando el recurso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el recurso." } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el recurso: " + err.message } };
   }
 };

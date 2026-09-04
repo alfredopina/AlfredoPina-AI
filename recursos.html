@@ -353,10 +353,11 @@
 
 <script>
   // ─────────────────────────────────────────────────────────────
-  // DATOS DE PRUEBA — placeholder para probar la UX de Recursos.
-  // Fase 1 (esta sesión): todo vive aquí, hardcodeado, sin backend.
-  // Fase 2: esto se reemplaza por Azure Table Storage + Blob Storage
-  // (ver api/getRecursos) y los códigos se validan server-side.
+  // El contenido de cada curso (manual, casos, plantillas, skills,
+  // contenido complementario) y la validación del código de acceso
+  // viven en Azure Table Storage, detrás de /api/getRecursos — ver
+  // ese archivo. Aquí solo vive la estructura de navegación (qué
+  // herramientas/cursos existen) y el manejo de la UI.
   // ─────────────────────────────────────────────────────────────
   const ICONS = {
     excel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>',
@@ -368,6 +369,7 @@
     plantilla:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12" stroke-linecap="round"/></svg>',
     skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     powerapps:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
     powerautomate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     ia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -390,95 +392,17 @@
     ofimatica:     { nombre:'Ofimática Básica',  icon:ICONS.ofimatica },
   };
 
+  // Solo id + nombre para armar las pestañas — el contenido real (manual, casos,
+  // plantillas, skills, contenido complementario) y el código de acceso viven en
+  // Azure Table Storage y se piden a /api/getRecursos al momento de desbloquear.
   const CURSOS = {
     excel: [
-      {
-        id:'excel-bi', nombre:'Básico-Intermedio', codigo:'EXCEL2026',
-        manuales:[
-          { titulo:'Manual del curso — Excel Básico-Intermedio', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
-        ],
-        casos:[
-          { titulo:'Caso 1 — Control de gastos', texto:'Arma un control de gastos con fórmulas de búsqueda y validación de datos.', url:'#' },
-          { titulo:'Caso 2 — Reporte de ventas', texto:'De datos crudos a un reporte con tablas dinámicas.', url:'#' },
-          { titulo:'Caso 3 — Dashboard básico', texto:'Un dashboard con gráficos e indicadores clave.', url:'#' },
-        ],
-        plantillas:[
-          { titulo:'Plantilla de control de gastos', texto:'Formato base en blanco, listo para llenar con tus datos. (Opcional)', url:'#' },
-        ],
-        skills:[
-          { titulo:'Prompt — Limpieza de datos con IA', texto:'Texto para pedirle a un asistente de IA que te ayude a limpiar una tabla desordenada.', url:'#' },
-        ],
-        extra:[
-          { titulo:'Repaso de fórmulas de búsqueda', url:'#' },
-          { titulo:'Formato condicional paso a paso', url:'#' },
-        ],
-      },
-      {
-        id:'excel-ia', nombre:'Intermedio-Avanzado', codigo:'EXCELPRO',
-        manuales:[
-          { titulo:'Manual del curso — Excel Intermedio-Avanzado', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'assets/recursos/excel/intermedio-avanzado/manual.pdf' },
-        ],
-        casos:[
-          { titulo:'Caso 1 — Modelo financiero', texto:'Construye un modelo con supuestos y escenarios.', url:'#' },
-          { titulo:'Caso 2 — Power Query', texto:'Limpieza y transformación de datos de varias fuentes.', url:'#' },
-          { titulo:'Caso 3 — Macros básicas', texto:'Automatiza tareas repetitivas con grabadora de macros.', url:'#' },
-          { titulo:'Caso 4 — Dashboard avanzado', texto:'Dashboard interactivo con segmentadores.', url:'#' },
-        ],
-        plantillas:[
-          { titulo:'Plantilla de modelo financiero', texto:'Estructura base con supuestos y escenarios. (Opcional)', url:'#' },
-        ],
-        skills:[
-          { titulo:'Prompt — Documentar una macro', texto:'Texto para pedirle a un asistente de IA que documente y explique una macro paso a paso.', url:'#' },
-        ],
-        extra:[
-          { titulo:'Introducción a Power Query', url:'#' },
-          { titulo:'Tablas dinámicas avanzadas', url:'#' },
-        ],
-      },
+      { id:'excel-bi', nombre:'Básico-Intermedio' },
+      { id:'excel-ia', nombre:'Intermedio-Avanzado' },
     ],
     powerbi: [
-      {
-        id:'pbi-bi', nombre:'Básico-Intermedio', codigo:'POWERBI2026',
-        manuales:[
-          { titulo:'Manual del curso — Power BI Básico-Intermedio', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
-        ],
-        casos:[
-          { titulo:'Caso 1 — Modelo de datos', texto:'Carga y relaciona tablas para tu primer modelo.', url:'#' },
-          { titulo:'Caso 2 — Medidas DAX', texto:'Medidas de agregación y comparación de periodos.', url:'#' },
-          { titulo:'Caso 3 — Reporte ejecutivo', texto:'Un reporte listo para publicar y compartir.', url:'#' },
-        ],
-        plantillas:[
-          { titulo:'Plantilla de reporte ejecutivo', texto:'Estructura base de páginas y visuales. (Opcional)', url:'#' },
-        ],
-        skills:[
-          { titulo:'Prompt — Redactar medidas DAX', texto:'Texto para pedirle a un asistente de IA que te proponga una medida DAX a partir de una descripción.', url:'#' },
-        ],
-        extra:[
-          { titulo:'Repaso de funciones DAX', url:'#' },
-          { titulo:'Publicar y compartir reportes', url:'#' },
-        ],
-      },
-      {
-        id:'pbi-ia', nombre:'Intermedio-Avanzado', codigo:'POWERBIPRO',
-        manuales:[
-          { titulo:'Manual del curso — Power BI Intermedio-Avanzado', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
-        ],
-        casos:[
-          { titulo:'Caso 1 — Modelo con calendario', texto:'Tabla calendario y funciones de inteligencia de tiempo.', url:'#' },
-          { titulo:'Caso 2 — Seguridad a nivel de fila', texto:'Restringe qué ve cada usuario en el reporte.', url:'#' },
-          { titulo:'Caso 3 — Automatización de datos', texto:'Actualización programada del modelo.', url:'#' },
-        ],
-        plantillas:[
-          { titulo:'Plantilla de tabla calendario', texto:'Script DAX base para generar tu tabla calendario. (Opcional)', url:'#' },
-        ],
-        skills:[
-          { titulo:'Prompt — Explicar seguridad RLS', texto:'Texto para pedirle a un asistente de IA que te explique una regla de RLS en español simple.', url:'#' },
-        ],
-        extra:[
-          { titulo:'Inteligencia de tiempo en DAX', url:'#' },
-          { titulo:'Seguridad a nivel de fila (RLS)', url:'#' },
-        ],
-      },
+      { id:'pbi-bi', nombre:'Básico-Intermedio' },
+      { id:'pbi-ia', nombre:'Intermedio-Avanzado' },
     ],
   };
 
@@ -501,15 +425,16 @@
   let currentToolId = null;
   let currentCursoId = null;
 
-  function unlockedSet(){
-    try{ return new Set(JSON.parse(sessionStorage.getItem('recursos_unlocked') || '[]')); }
-    catch(e){ return new Set(); }
+  // Los recursos ya descargados de la API se guardan aquí por curso — así no hay
+  // que volver a pedir el código para reabrir un curso ya desbloqueado en esta pestaña.
+  function getCache(cursoId){
+    try{ return JSON.parse(sessionStorage.getItem('recursos_data_' + cursoId) || 'null'); }
+    catch(e){ return null; }
   }
-  function markUnlocked(cursoId){
-    const s = unlockedSet(); s.add(cursoId);
-    sessionStorage.setItem('recursos_unlocked', JSON.stringify([...s]));
+  function setCache(cursoId, data){
+    sessionStorage.setItem('recursos_data_' + cursoId, JSON.stringify(data));
   }
-  function isUnlocked(cursoId){ return unlockedSet().has(cursoId); }
+  function isUnlocked(cursoId){ return getCache(cursoId) !== null; }
 
   function renderBreadcrumb(){
     if(!currentToolId){
@@ -590,58 +515,99 @@
   }
 
   function intentarDesbloquear(){
-    const curso = CURSOS[currentToolId].find(c => c.id === currentCursoId);
-    const val = unlockInput.value.trim().toUpperCase();
+    const cursoId = currentCursoId;
+    const herramientaId = currentToolId;
+    const val = unlockInput.value.trim();
     unlockBar.classList.remove('error', 'shake');
     unlockError.innerHTML = '';
     unlockInput.disabled = true;
     setUnlockBtnState('loading');
 
+    const start = Date.now();
+    const MIN_MS = 450; // así la animación de "Validando…" siempre se alcanza a ver
+    const url = `/api/getRecursos?herramienta=${encodeURIComponent(herramientaId)}&curso=${encodeURIComponent(cursoId)}&codigo=${encodeURIComponent(val)}`;
+
+    fetch(url)
+      .then(res => res.json().then(body => ({ ok: res.ok, status: res.status, body })))
+      .catch(() => ({ ok:false, status:0, body:{} }))
+      .then(({ ok, status, body }) => {
+        const falta = MIN_MS - (Date.now() - start);
+        setTimeout(() => manejarRespuestaDesbloqueo(cursoId, ok, status, body), Math.max(0, falta));
+      });
+  }
+
+  function manejarRespuestaDesbloqueo(cursoId, ok, status, body){
+    if(cursoId !== currentCursoId) return; // el usuario ya se movió a otra pestaña
+
+    if(status === 401){
+      wrongAttempts[cursoId] = (wrongAttempts[cursoId] || 0) + 1;
+      unlockInput.disabled = false;
+      setUnlockBtnState('idle');
+      unlockBar.classList.add('error', 'shake');
+      setTimeout(() => unlockBar.classList.remove('shake'), 450);
+      unlockError.innerHTML = 'Código incorrecto. Introduce el código correcto o este sitio se autodestruirá en <span class="countdown"><b>3</b>… <b>2</b>… <b>1</b>…</span>';
+      return;
+    }
+    if(!ok){
+      unlockInput.disabled = false;
+      setUnlockBtnState('idle');
+      unlockBar.classList.add('error');
+      unlockError.textContent = status === 404
+        ? 'Ese curso todavía no está disponible — avísale a Alfredo.'
+        : 'No se pudo validar el código ahora mismo. Intenta de nuevo en un momento.';
+      return;
+    }
+
+    wrongAttempts[cursoId] = 0;
+    setCache(cursoId, body);
+    setUnlockBtnState('success');
     setTimeout(() => {
-      if(val === curso.codigo){
-        wrongAttempts[curso.id] = 0;
-        markUnlocked(curso.id);
-        setUnlockBtnState('success');
-        setTimeout(() => {
-          gateWrap.classList.add('gate-out');
-          setTimeout(() => {
-            gateWrap.style.display = 'none';
-            panelRecursos.style.display = 'block';
-            showRecursos(curso.id);
-            requestAnimationFrame(() => panelRecursos.classList.add('panel-in'));
-          }, 350);
-        }, 450);
-      } else {
-        wrongAttempts[curso.id] = (wrongAttempts[curso.id] || 0) + 1;
-        unlockInput.disabled = false;
-        setUnlockBtnState('idle');
-        unlockBar.classList.add('error', 'shake');
-        setTimeout(() => unlockBar.classList.remove('shake'), 450);
-        unlockError.innerHTML = 'Código incorrecto. Introduce el código correcto o este sitio se autodestruirá en <span class="countdown"><b>3</b>… <b>2</b>… <b>1</b>…</span>';
-      }
-    }, 500);
+      gateWrap.classList.add('gate-out');
+      setTimeout(() => {
+        gateWrap.style.display = 'none';
+        panelRecursos.style.display = 'block';
+        showRecursos(cursoId);
+        requestAnimationFrame(() => panelRecursos.classList.add('panel-in'));
+      }, 350);
+    }, 450);
   }
   unlockInput.addEventListener('keydown', e => { if(e.key === 'Enter') intentarDesbloquear(); });
   document.getElementById('unlockSubmit').addEventListener('click', intentarDesbloquear);
 
-  // tarjeta genérica reutilizada por Casos Prácticos, Plantillas y Skills
-  function renderResGrid(containerId, items, iconSvg){
-    document.getElementById(containerId).innerHTML = items.map(item => `
-      <div class="res-card">
-        <div class="res-icon">${iconSvg}</div>
-        <div class="res-title">${item.titulo}</div>
-        <div class="res-text">${item.texto}</div>
-        <a href="${item.url}" class="res-btn"${item.url !== '#' ? ' download' : ''}>${ICONS.download} Descargar</a>
-      </div>
-    `).join('');
+  // tarjeta genérica reutilizada por Casos Prácticos, Plantillas y Skills.
+  // kind 'copy' (Skills) copia el texto al portapapeles en vez de descargar un archivo.
+  function renderResGrid(containerId, items, iconSvg, kind){
+    document.getElementById(containerId).innerHTML = items.map(item => {
+      const boton = kind === 'copy'
+        ? `<button type="button" class="res-btn" onclick="copiarPrompt(this)">${ICONS.copy} Copiar</button>`
+        : `<a href="${item.url}" class="res-btn"${item.url !== '#' ? ' download' : ''}>${ICONS.download} Descargar</a>`;
+      return `
+        <div class="res-card">
+          <div class="res-icon">${iconSvg}</div>
+          <div class="res-title">${item.titulo}</div>
+          <div class="res-text">${item.texto}</div>
+          ${boton}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function copiarPrompt(btn){
+    const texto = btn.closest('.res-card').querySelector('.res-text').textContent;
+    navigator.clipboard.writeText(texto).then(() => {
+      const original = btn.innerHTML;
+      btn.innerHTML = `${ICONS.check} Copiado`;
+      setTimeout(() => { btn.innerHTML = original; }, 1500);
+    });
   }
 
   function showRecursos(cursoId){
-    const curso = CURSOS[currentToolId].find(c => c.id === cursoId);
+    const data = getCache(cursoId);
+    if(!data) return;
     gateWrap.style.display = 'none';
     panelRecursos.style.display = 'block';
 
-    document.getElementById('manualGrid').innerHTML = curso.manuales.map(m => `
+    document.getElementById('manualGrid').innerHTML = data.manuales.map(m => `
       <div class="manual-card">
         <div class="manual-icon">${ICONS.manual}</div>
         <div class="manual-body">
@@ -652,11 +618,11 @@
       </div>
     `).join('');
 
-    renderResGrid('casosGrid', curso.casos, ICONS.caso);
-    renderResGrid('plantillasGrid', curso.plantillas, ICONS.plantilla);
-    renderResGrid('skillsGrid', curso.skills, ICONS.skill);
+    renderResGrid('casosGrid', data.casos, ICONS.caso);
+    renderResGrid('plantillasGrid', data.plantillas, ICONS.plantilla);
+    renderResGrid('skillsGrid', data.skills, ICONS.skill, 'copy');
 
-    document.getElementById('extraGrid').innerHTML = curso.extra.map(e => `
+    document.getElementById('extraGrid').innerHTML = data.extra.map(e => `
       <a href="${e.url}" class="extra-card" target="_blank" rel="noopener">
         <div class="extra-icon">${ICONS.play}</div>
         <div>

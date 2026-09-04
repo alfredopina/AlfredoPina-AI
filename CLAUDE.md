@@ -9,7 +9,7 @@ Al responder o construir, prioriza legibilidad y mantenibilidad sobre cleverness
 ## Stack técnico
 
 - **Front-end:** HTML/CSS/JS puro (sin frameworks, sin build step). No usar Power Pages ni Power Platform de bajo nivel para el front — decisión intencional de no depender solo del ecosistema Microsoft para el sitio.
-- **Hosting:** Azure Static Web Apps (tier **Free**), recurso `Web-AlfredoPina`, grupo de recursos `GR_AlfredoPina`, región Central US.
+- **Hosting:** Azure Static Web Apps (tier **Free**), recurso `Web-AlfredoPina`, grupo de recursos `GR_AlfredoPina`, región Central US. **URL real de producción:** `https://icy-smoke-071e3ec10.7.azurestaticapps.net/` (ojo con el `.7.` antes de `azurestaticapps.net` — el nombre del workflow de GitHub Actions no lo incluye, es fácil adivinar mal la URL a partir de él, ya pasó una vez).
 - **Deploy:** GitHub → GitHub Actions → Azure Static Web Apps, automático al hacer push a `main`. No tocar el workflow YAML autogenerado salvo que se sepa exactamente qué se está cambiando.
 - **Backend:** Azure Functions (carpeta `api/`), modelo **v3 clásico** (carpeta + `function.json`), NO modelo v4 (`app.http(...)`) — el v4 falla en Static Web Apps managed functions por una feature flag no configurable en ese hosting. Ya hubo que corregir esto una vez, no repetir el error.
 - **Base de datos:** Azure Table Storage para módulos aislados (ej. Calendario). Para el futuro backoffice (que cruza Diagnóstico + Cotizaciones + Recursos), evaluar Azure SQL Database (tier serverless barato) en vez de Table Storage, porque los reportes van a necesitar cruzar datos entre módulos.
@@ -61,6 +61,15 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 - **Cómo se le da el rol `admin` a Alfredo — IMPORTANTE, no repetir el error:** se intentó primero con una Azure Function (`api/GetRoles`, `rolesSource` en `staticwebapp.config.json`) que asignaba el rol automáticamente por correo. **Esa función requiere el plan Standard (de paga) de Azure Static Web Apps y tumbó todo el sitio en producción** al desplegarse en el plan Free que se usa aquí (error: `The 'auth' configuration in staticwebapp.config.json is only supported on the Standard SKU`). Se revirtió y se borró `api/GetRoles/`. La alternativa que sí funciona en Free es manual: Alfredo genera una **liga de invitación** desde el portal de Azure (recurso `Web-AlfredoPina` → "Role management" → "Invite"), eligiendo proveedor "Azure Active Directory" y rol `admin`, y la abre una vez iniciando sesión con su cuenta de M365 — eso asocia su cuenta con el rol de forma permanente, sin tocar código. Si en el futuro se necesitan más admins o roles dinámicos por correo, ahí sí se justificaría subir a Standard.
 - **Importante — esto NO se puede probar completo en local:** el candado real (`staticwebapp.config.json` + login de Microsoft + rol asignado por invitación) solo lo aplica el runtime de Azure Static Web Apps una vez desplegado. Local solo sirve para revisar que el shell visual funcione; la prueba real es entrar a `/admin` ya en producción, y solo funciona después de que Alfredo haya aceptado la invitación de rol una vez.
 
+**En construcción — Recursos, backend real (Fase 2 del módulo, camino de lectura primero):**
+- Primer módulo del sitio que necesita una **Storage Account de Azure de verdad** — no existía ninguna (Agenda usa un link .ics, no Storage). Recurso nuevo: cuenta `apcwebrecursos` (o variante si el nombre está tomado) en el grupo `GR_AlfredoPina`, región Central US, redundancia LRS. Contenedor Blob `recursos` (acceso público a nivel Blob, no a nivel contenedor — así los archivos se descargan directo sin pasar por una Function). Dos tablas: `Cursos` (metadatos + código de cada curso) y `Recursos` (metadatos de cada recurso: herramienta, curso, tipo, título, texto, url/contenido, orden). La cadena de conexión vive en la Application Setting `RECURSOS_STORAGE_CONNECTION` del Static Web App — nunca en el repo, mismo patrón que `OUTLOOK_ICS_URL`.
+- Decisiones tomadas con Alfredo para esta fase:
+  - **Skills (prompts) son texto directo**, no archivo — se capturan como campo de texto en el admin y en `recursos.html` el botón es "Copiar" (al portapapeles), no "Descargar". El resto (Manual, Casos Prácticos, Plantillas) sí son archivos reales en Blob Storage.
+  - **Códigos de curso los escribe Alfredo a mano** al crear/rotar un curso (no autogenerados) — se comparten de viva voz en clase, prefiere que sean memorables.
+  - **Rotar un código de curso NO saca a nadie que ya desbloqueó ese curso en su navegador** — solo bloquea intentos nuevos con el código viejo. Es intencional (el propósito de rotar es cortar la propagación, no invalidar sesiones activas).
+  - **TODO — sin confirmar:** el límite real de tamaño de archivo que aceptan las Functions "administradas" de Static Web Apps no está confirmado (la documentación de Azure es ambigua aquí). El archivo más pesado que Alfredo espera subir por ahora es ~15MB. Falta probarlo en vivo con un archivo real en cuanto exista el endpoint de subida — si falla, la alternativa es subir a Blob directo con un SAS token en vez de pasar el archivo por la Function.
+- Orden de construcción acordado: primero `getRecursos` (lectura pública, reemplaza los datos hardcodeados de `recursos.html`) y confirmarlo funcionando en producción; después la parte de administración (subir archivos, crear curso, reordenar, rotar código) en `admin/index.html` → sección Recursos.
+
 **Pendiente / roadmap (ver documentos `Memoria_...` en el Project de claude.ai para detalle completo de cada uno):**
 - Módulo de Diagnóstico (con backend desde el inicio, código por empresa autogestionable, panel de reportes con login Entra ID)
 - Backend + admin de Recursos (ver arriba)
@@ -78,6 +87,15 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 ## Historial de sesiones
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-04 alfredo.pina: Recursos — backend real, camino de lectura
+- Creada la Function `api/getRecursos` (v3 clásico, pública): recibe herramienta + curso + código, valida el código contra la tabla `Cursos` de Azure Table Storage y, si coincide, regresa los recursos de la tabla `Recursos` agrupados por tipo (manuales, casos, plantillas, skills, extra)
+- Creado `api/src/recursos-tables.js` — cliente compartido de Table Storage (reutilizable por las Functions de administración que faltan)
+- `recursos.html` reescrito para pedir los datos a `/api/getRecursos` en vez de usar el objeto `CURSOS` hardcodeado — ya no expone el código ni el contenido en el código fuente. Los datos ya desbloqueados se cachean en `sessionStorage` por curso (para no repetir la llamada al cambiar de pestaña)
+- Skills ahora usa botón "Copiar" (al portapapeles) en vez de "Descargar", según lo acordado con Alfredo
+- Agregado `RECURSOS_STORAGE_CONNECTION` a `api/local.settings.json.example`
+- Requiere que Alfredo termine de crear el Storage Account + tablas + la Application Setting en el portal de Azure (ver sección de arriba) — sin eso, el candado de `recursos.html` va a mostrar "no se pudo validar el código" en vez de funcionar de verdad. Todavía no probado en producción por eso.
+- Pendiente para la siguiente sesión: la parte de administración (subir archivos, crear curso, reordenar, rotar código) en `admin/index.html` → sección Recursos, más las Functions `uploadRecurso`, `crearCurso`, `updateOrden`, `gestionarCodigo`
 
 ### 2026-09-04 alfredo.pina: Backoffice — base de login con Entra ID (arranque Fase 2)
 - Creado `staticwebapp.config.json` protegiendo `/admin` y `/admin/*` con el rol `admin` (redirige a login de Microsoft si no hay sesión)

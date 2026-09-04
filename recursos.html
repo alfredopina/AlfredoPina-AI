@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recursos — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alfredopina.ai/recursos.html">
+<meta property="og:title" content="Recursos — Alfredo Piña">
+<meta property="og:description" content="Manuales, casos de uso y material complementario de tus cursos de Excel, Power BI y más.">
+<meta property="og:image" content="https://alfredopina.ai/assets/img/firma-ap.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* RECURSOS — específico de esta página */
+
+  .breadcrumb{
+    font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-top:16px; margin-bottom:18px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .breadcrumb button{
+    font-family:var(--mono); font-size:12px; color:var(--text-dim); background:none; border:none;
+    cursor:pointer; padding:0;
+  }
+  .breadcrumb button:hover{color:var(--blue-bright);}
+  .breadcrumb .current{color:var(--text);}
+
+  .rec-view{display:none;}
+  .rec-view.active{display:block;}
+
+  /* nivel 1 — tarjeta "próximamente" (mismo patrón que cursos.html) */
+  .course-card.locked{cursor:default;}
+  .course-card.locked:hover{border-color:var(--line); transform:none;}
+  .course-badge-soon{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:10px; letter-spacing:.5px;
+    color:var(--text-faint); border:1px solid var(--line); padding:4px 10px; border-radius:12px;
+  }
+
+  /* wrapper con el color de la herramienta activa */
+  .tool-scope{ margin-top:8px; }
+  .tool-scope-head{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .tool-scope-icon{ width:26px; height:26px; color:var(--c); flex:none; }
+  .tool-scope-icon svg{ width:100%; height:100%; }
+  .tool-scope-title{ font-family:var(--display); font-weight:600; font-size:22px; }
+
+  /* pestañas estilo "hoja de Excel" */
+  .excel-tabs{
+    display:flex; align-items:flex-end; gap:3px; margin-top:32px;
+    border-bottom:2px solid var(--c);
+  }
+  .excel-tab{
+    position:relative; top:2px; font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    background:var(--panel); border:1px solid var(--line); border-bottom:none;
+    border-radius:6px 6px 0 0; padding:10px 20px; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; gap:8px;
+  }
+  .excel-tab::before{
+    content:''; width:10px; height:10px; border-radius:2px; flex:none;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:5px 5px; border:1px solid var(--line);
+  }
+  .excel-tab:hover{color:var(--text);}
+  .excel-tab.active{
+    background:var(--panel-2); color:var(--c); border-color:var(--c); font-weight:600;
+  }
+  .excel-tab.active::before{ border-color:var(--c); }
+
+  /* candado de acceso */
+  .gate-wrap{ margin-top:36px; max-width:520px; transition:opacity .35s ease, transform .35s ease; }
+  .gate-wrap.gate-out{ opacity:0; transform:translateY(-8px); pointer-events:none; }
+  .gate-line{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .gate-icon-inline{ width:19px; height:19px; color:var(--c); flex:none; }
+  .gate-icon-inline svg{ width:100%; height:100%; }
+  .gate-text-inline{ font-size:14px; color:var(--text-dim); line-height:1.6; }
+  .unlock-bar{
+    display:flex; align-items:stretch; border:1px solid var(--line); border-radius:6px;
+    background:var(--panel); overflow:hidden; transition:border-color .2s;
+  }
+  .unlock-bar.error{ border-color:#ef4444; }
+  @keyframes shake-x{
+    0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);} 80%{transform:translateX(4px);}
+  }
+  .unlock-bar.shake{ animation:shake-x .45s ease; }
+  .unlock-fx{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:13px; color:var(--c);
+    background:color-mix(in srgb, var(--c) 14%, var(--panel)); padding:14px 16px;
+    border-right:1px solid var(--line); display:flex; align-items:center; flex:none;
+  }
+  .unlock-input{
+    flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text);
+    font-family:var(--mono); font-size:14px; padding:14px 16px; letter-spacing:.5px;
+  }
+  .unlock-input:disabled{ opacity:.6; }
+  .unlock-input::placeholder{ color:var(--text-faint); }
+  .unlock-submit{
+    font-family:var(--mono); font-size:12px; color:var(--text); background:var(--panel-2);
+    border:none; border-left:1px solid var(--line); padding:0 20px; cursor:pointer; transition:background .2s, color .2s;
+    display:flex; align-items:center; justify-content:center; white-space:nowrap;
+  }
+  .unlock-submit:hover{ background:color-mix(in srgb, var(--c) 20%, var(--panel-2)); }
+  .unlock-submit:disabled{ cursor:default; }
+  .unlock-submit.success{ background:color-mix(in srgb, var(--c) 30%, var(--panel-2)); color:var(--c); }
+  .btn-spinner{
+    display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:7px;
+    border:2px solid rgba(255,255,255,.28); border-top-color:currentColor;
+    animation:spin .7s linear infinite; flex:none;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .unlock-error-msg{
+    font-family:var(--mono); font-size:11.5px; color:#ef4444; margin-top:10px; min-height:1em; line-height:1.6;
+  }
+  .countdown b{
+    display:inline-block; color:#ef4444; font-weight:700; opacity:0; transform:scale(1.6);
+    animation:countdown-pop .35s ease forwards;
+  }
+  .countdown b:nth-child(1){animation-delay:.05s;}
+  .countdown b:nth-child(2){animation-delay:.35s;}
+  .countdown b:nth-child(3){animation-delay:.65s;}
+  @keyframes countdown-pop{ 0%{opacity:0; transform:scale(1.6);} 60%{opacity:1; transform:scale(1);} 100%{opacity:1; transform:scale(1);} }
+
+  /* nivel 3 — recursos */
+  #panelRecursos{ opacity:0; transform:translateY(8px); transition:opacity .4s ease, transform .4s ease; }
+  #panelRecursos.panel-in{ opacity:1; transform:translateY(0); }
+
+  .manual-card{
+    display:flex; align-items:center; gap:20px; border:1px solid var(--c); border-radius:10px;
+    background:color-mix(in srgb, var(--c) 8%, var(--panel)); padding:26px;
+  }
+  .manual-card + .manual-card{ margin-top:14px; }
+  .manual-icon{ width:38px; height:38px; color:var(--c); flex:none; }
+  .manual-icon svg{ width:100%; height:100%; }
+  .manual-body{ flex:1; min-width:0; }
+  .manual-title{ font-family:var(--display); font-weight:600; font-size:17px; margin-bottom:6px; }
+  .manual-text{ font-size:13px; color:var(--text-dim); line-height:1.6; }
+  .manual-btn{
+    font-family:var(--mono); font-size:12px; color:var(--c); border:1px solid var(--c);
+    padding:10px 18px; border-radius:6px; display:inline-flex; align-items:center; gap:8px;
+    flex:none; transition:background .2s;
+  }
+  .manual-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
+  .manual-btn svg{ width:14px; height:14px; }
+
+  .rec-subhead{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px;
+    margin-top:44px; margin-bottom:16px;
+  }
+
+  /* componente genérico de tarjeta — Casos Prácticos, Plantillas, Skills */
+  .res-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; }
+  .res-card{
+    display:flex; flex-direction:column; border:1px solid var(--line); border-radius:8px;
+    background:var(--panel); padding:18px; transition:border-color .2s;
+  }
+  .res-card:hover{ border-color:var(--c); }
+  .res-icon{ width:22px; height:22px; color:var(--c); margin-bottom:12px; flex:none; }
+  .res-icon svg{ width:100%; height:100%; }
+  .res-title{ font-family:var(--display); font-weight:600; font-size:14px; margin-bottom:6px; }
+  .res-text{ font-size:12.5px; color:var(--text-dim); line-height:1.6; flex:1; margin-bottom:14px; }
+  .res-btn{
+    font-family:var(--mono); font-size:11px; color:var(--c); border:1px solid var(--c);
+    padding:8px 14px; border-radius:6px; display:inline-flex; align-items:center; gap:7px;
+    align-self:flex-start; transition:background .2s;
+  }
+  .res-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
+  .res-btn svg{ width:12px; height:12px; }
+
+  .extra-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; }
+  .extra-card{
+    display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:8px;
+    background:var(--panel); padding:16px 18px; transition:border-color .2s;
+  }
+  .extra-card:hover{ border-color:#ef4444; }
+  .extra-icon{
+    width:30px; height:30px; flex:none; color:#ef4444; display:flex; align-items:center; justify-content:center;
+  }
+  .extra-icon svg{ width:100%; height:100%; }
+  .extra-title{ font-family:var(--display); font-weight:600; font-size:13px; }
+  .extra-tag{ font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:3px; }
+
+  .explora-strip{
+    margin-top:64px; padding-top:36px; border-top:1px solid var(--line);
+  }
+  .explora-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-top:20px; }
+  .explora-card{
+    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:8px;
+    background:var(--panel); padding:13px 15px; transition:all .2s;
+  }
+  .explora-card:hover{ border-color:var(--c); transform:translateY(-2px); }
+  .explora-icon{ width:18px; height:18px; color:var(--c); flex:none; }
+  .explora-icon svg{ width:100%; height:100%; }
+  .explora-label{ font-family:var(--display); font-weight:600; font-size:13px; }
+
+  @media (max-width:600px){
+    .manual-card{ flex-direction:column; align-items:flex-start; }
+    .unlock-bar{ flex-direction:column; }
+    .unlock-fx{ border-right:none; border-bottom:1px solid var(--line); }
+    .unlock-submit{ border-left:none; border-top:1px solid var(--line); padding:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html" class="nav-mark" style="text-decoration:none;">
+      <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:34px; width:auto; display:block;">
+      <span class="nav-name">Alfredo Piña</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#experiencia" style="text-decoration:none;">Conóceme</a>
+      <a href="cursos.html" style="text-decoration:none;">Cursos</a>
+      <a href="recursos.html" style="text-decoration:none; color:var(--text);">Recursos</a>
+    </div>
+    <a href="index.html#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
+  </div>
+</nav>
+
+<section style="padding:56px 0 20px;">
+  <div class="wrap">
+    <h2 class="section-title">Descarga los recursos habilitados para tu próximo curso.</h2>
+
+    <div class="breadcrumb" id="breadcrumb"></div>
+
+    <!-- NIVEL 1 — HERRAMIENTAS -->
+    <div class="rec-view active" id="view-herramientas">
+      <div class="courses-grid">
+        <a href="#" class="course-card excel" data-tool="excel">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></div>
+          <div class="course-title">Excel</div>
+          <div class="course-text">Manuales, casos prácticos y video de tus cursos de Excel.</div>
+          <div class="course-tag">Ver recursos →</div>
+        </a>
+
+        <a href="#" class="course-card pbi" data-tool="powerbi">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="course-title">Power BI</div>
+          <div class="course-text">Manuales, casos prácticos y video de tus cursos de Power BI.</div>
+          <div class="course-tag">Ver recursos →</div>
+        </a>
+
+        <div class="course-card apps locked">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+          <div class="course-title">Power Apps</div>
+          <div class="course-text">Recursos de tus cursos de Power Apps.</div>
+          <span class="course-badge-soon">PRÓXIMAMENTE</span>
+        </div>
+
+        <div class="course-card automate locked">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="course-title">Power Automate</div>
+          <div class="course-text">Recursos de tus cursos de Power Automate.</div>
+          <span class="course-badge-soon">PRÓXIMAMENTE</span>
+        </div>
+
+        <div class="course-card ia locked">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="course-title">IA Aplicada</div>
+          <div class="course-text">Recursos de tus cursos de IA Aplicada.</div>
+          <span class="course-badge-soon">PRÓXIMAMENTE</span>
+        </div>
+
+        <div class="course-card ofimatica locked">
+          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></div>
+          <div class="course-title">Ofimática Básica</div>
+          <div class="course-text">Recursos de tus cursos de Ofimática.</div>
+          <span class="course-badge-soon">PRÓXIMAMENTE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NIVEL 2/3 — CURSO + RECURSOS -->
+    <div class="rec-view" id="view-tool">
+      <div class="tool-scope" id="toolScope">
+        <div class="tool-scope-head">
+          <div class="tool-scope-icon" id="toolScopeIcon"></div>
+          <div class="tool-scope-title" id="toolScopeTitle"></div>
+        </div>
+
+        <div class="excel-tabs" id="cursoTabs"></div>
+
+        <!-- candado -->
+        <div class="gate-wrap" id="gateWrap">
+          <div class="gate-line">
+            <span class="gate-icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg></span>
+            <span class="gate-text-inline">Este curso tiene acceso restringido. Introduce tu código y descarga los recursos disponibles.</span>
+          </div>
+          <div class="unlock-bar" id="unlockBar">
+            <span class="unlock-fx">fx</span>
+            <input type="text" class="unlock-input" id="unlockInput" placeholder='=DESBLOQUEAR("código")' autocomplete="off">
+            <button class="unlock-submit" id="unlockSubmit">Desbloquear</button>
+          </div>
+          <div class="unlock-error-msg" id="unlockError"></div>
+        </div>
+
+        <!-- recursos desbloqueados -->
+        <div id="panelRecursos" style="display:none;">
+          <div class="rec-subhead" style="margin-top:0;">MANUAL</div>
+          <div id="manualGrid"></div>
+
+          <div class="rec-subhead">CASOS PRÁCTICOS</div>
+          <div class="res-grid" id="casosGrid"></div>
+
+          <div class="rec-subhead">PLANTILLAS</div>
+          <div class="res-grid" id="plantillasGrid"></div>
+
+          <div class="rec-subhead">SKILLS</div>
+          <div class="res-grid" id="skillsGrid"></div>
+
+          <div class="rec-subhead">CONTENIDO COMPLEMENTARIO</div>
+          <div class="extra-grid" id="extraGrid"></div>
+
+          <div class="explora-strip">
+            <div class="rec-subhead" style="margin-top:0;">EXPLORA MÁS CURSOS</div>
+            <div class="explora-grid" id="exploraGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">HABLEMOS</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+
+    <div class="formula-bar-big in-view" id="formulaBar">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal" style="width:52ch;"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+    </div>
+
+    <div class="contact-meta">
+      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
+      <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
+      <!-- TODO: reemplazar con el link real del canal de YouTube en cuanto exista -->
+      <a href="#" target="_blank">YouTube ↗</a>
+      <span style="display:inline-flex;align-items:center;gap:7px;">
+        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:16px; width:auto; display:block; opacity:.6;">
+        © 2026 Alfredo Piña
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  // DATOS DE PRUEBA — placeholder para probar la UX de Recursos.
+  // Fase 1 (esta sesión): todo vive aquí, hardcodeado, sin backend.
+  // Fase 2: esto se reemplaza por Azure Table Storage + Blob Storage
+  // (ver api/getRecursos) y los códigos se validan server-side.
+  // ─────────────────────────────────────────────────────────────
+  const ICONS = {
+    excel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>',
+    powerbi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    manual:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>',
+    download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>',
+    play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" stroke="none"/></svg>',
+    caso:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    plantilla:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12" stroke-linecap="round"/></svg>',
+    skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    powerapps:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    powerautomate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    ia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    ofimatica:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>',
+  };
+
+  // herramientas con recursos funcionales en esta fase
+  const TOOLS = {
+    excel:   { nombre:'Excel',    color:'#22c55e', icon:ICONS.excel },
+    powerbi: { nombre:'Power BI', color:'#f2c94c', icon:ICONS.powerbi },
+  };
+
+  // las 6 herramientas del catálogo (para la franja "Explora más cursos")
+  const ALL_TOOLS = {
+    excel:         { nombre:'Excel',            icon:ICONS.excel },
+    powerbi:       { nombre:'Power BI',          icon:ICONS.powerbi },
+    powerapps:     { nombre:'Power Apps',        icon:ICONS.powerapps },
+    powerautomate: { nombre:'Power Automate',    icon:ICONS.powerautomate },
+    ia:            { nombre:'IA Aplicada',       icon:ICONS.ia },
+    ofimatica:     { nombre:'Ofimática Básica',  icon:ICONS.ofimatica },
+  };
+
+  const CURSOS = {
+    excel: [
+      {
+        id:'excel-bi', nombre:'Básico-Intermedio', codigo:'EXCEL2026',
+        manuales:[
+          { titulo:'Manual del curso — Excel Básico-Intermedio', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
+        ],
+        casos:[
+          { titulo:'Caso 1 — Control de gastos', texto:'Arma un control de gastos con fórmulas de búsqueda y validación de datos.', url:'#' },
+          { titulo:'Caso 2 — Reporte de ventas', texto:'De datos crudos a un reporte con tablas dinámicas.', url:'#' },
+          { titulo:'Caso 3 — Dashboard básico', texto:'Un dashboard con gráficos e indicadores clave.', url:'#' },
+        ],
+        plantillas:[
+          { titulo:'Plantilla de control de gastos', texto:'Formato base en blanco, listo para llenar con tus datos. (Opcional)', url:'#' },
+        ],
+        skills:[
+          { titulo:'Prompt — Limpieza de datos con IA', texto:'Texto para pedirle a un asistente de IA que te ayude a limpiar una tabla desordenada.', url:'#' },
+        ],
+        extra:[
+          { titulo:'Repaso de fórmulas de búsqueda', url:'#' },
+          { titulo:'Formato condicional paso a paso', url:'#' },
+        ],
+      },
+      {
+        id:'excel-ia', nombre:'Intermedio-Avanzado', codigo:'EXCELPRO',
+        manuales:[
+          { titulo:'Manual del curso — Excel Intermedio-Avanzado', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'assets/recursos/excel/intermedio-avanzado/manual.pdf' },
+        ],
+        casos:[
+          { titulo:'Caso 1 — Modelo financiero', texto:'Construye un modelo con supuestos y escenarios.', url:'#' },
+          { titulo:'Caso 2 — Power Query', texto:'Limpieza y transformación de datos de varias fuentes.', url:'#' },
+          { titulo:'Caso 3 — Macros básicas', texto:'Automatiza tareas repetitivas con grabadora de macros.', url:'#' },
+          { titulo:'Caso 4 — Dashboard avanzado', texto:'Dashboard interactivo con segmentadores.', url:'#' },
+        ],
+        plantillas:[
+          { titulo:'Plantilla de modelo financiero', texto:'Estructura base con supuestos y escenarios. (Opcional)', url:'#' },
+        ],
+        skills:[
+          { titulo:'Prompt — Documentar una macro', texto:'Texto para pedirle a un asistente de IA que documente y explique una macro paso a paso.', url:'#' },
+        ],
+        extra:[
+          { titulo:'Introducción a Power Query', url:'#' },
+          { titulo:'Tablas dinámicas avanzadas', url:'#' },
+        ],
+      },
+    ],
+    powerbi: [
+      {
+        id:'pbi-bi', nombre:'Básico-Intermedio', codigo:'POWERBI2026',
+        manuales:[
+          { titulo:'Manual del curso — Power BI Básico-Intermedio', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
+        ],
+        casos:[
+          { titulo:'Caso 1 — Modelo de datos', texto:'Carga y relaciona tablas para tu primer modelo.', url:'#' },
+          { titulo:'Caso 2 — Medidas DAX', texto:'Medidas de agregación y comparación de periodos.', url:'#' },
+          { titulo:'Caso 3 — Reporte ejecutivo', texto:'Un reporte listo para publicar y compartir.', url:'#' },
+        ],
+        plantillas:[
+          { titulo:'Plantilla de reporte ejecutivo', texto:'Estructura base de páginas y visuales. (Opcional)', url:'#' },
+        ],
+        skills:[
+          { titulo:'Prompt — Redactar medidas DAX', texto:'Texto para pedirle a un asistente de IA que te proponga una medida DAX a partir de una descripción.', url:'#' },
+        ],
+        extra:[
+          { titulo:'Repaso de funciones DAX', url:'#' },
+          { titulo:'Publicar y compartir reportes', url:'#' },
+        ],
+      },
+      {
+        id:'pbi-ia', nombre:'Intermedio-Avanzado', codigo:'POWERBIPRO',
+        manuales:[
+          { titulo:'Manual del curso — Power BI Intermedio-Avanzado', texto:'Guía completa con el temario, atajos y ejercicios del curso.', url:'#' },
+        ],
+        casos:[
+          { titulo:'Caso 1 — Modelo con calendario', texto:'Tabla calendario y funciones de inteligencia de tiempo.', url:'#' },
+          { titulo:'Caso 2 — Seguridad a nivel de fila', texto:'Restringe qué ve cada usuario en el reporte.', url:'#' },
+          { titulo:'Caso 3 — Automatización de datos', texto:'Actualización programada del modelo.', url:'#' },
+        ],
+        plantillas:[
+          { titulo:'Plantilla de tabla calendario', texto:'Script DAX base para generar tu tabla calendario. (Opcional)', url:'#' },
+        ],
+        skills:[
+          { titulo:'Prompt — Explicar seguridad RLS', texto:'Texto para pedirle a un asistente de IA que te explique una regla de RLS en español simple.', url:'#' },
+        ],
+        extra:[
+          { titulo:'Inteligencia de tiempo en DAX', url:'#' },
+          { titulo:'Seguridad a nivel de fila (RLS)', url:'#' },
+        ],
+      },
+    ],
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // NAVEGACIÓN — 3 niveles: herramientas → curso (tabs) → recursos
+  // ─────────────────────────────────────────────────────────────
+  const viewHerramientas = document.getElementById('view-herramientas');
+  const viewTool = document.getElementById('view-tool');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const toolScope = document.getElementById('toolScope');
+  const toolScopeIcon = document.getElementById('toolScopeIcon');
+  const toolScopeTitle = document.getElementById('toolScopeTitle');
+  const cursoTabs = document.getElementById('cursoTabs');
+  const gateWrap = document.getElementById('gateWrap');
+  const panelRecursos = document.getElementById('panelRecursos');
+  const unlockBar = document.getElementById('unlockBar');
+  const unlockInput = document.getElementById('unlockInput');
+  const unlockError = document.getElementById('unlockError');
+
+  let currentToolId = null;
+  let currentCursoId = null;
+
+  function unlockedSet(){
+    try{ return new Set(JSON.parse(sessionStorage.getItem('recursos_unlocked') || '[]')); }
+    catch(e){ return new Set(); }
+  }
+  function markUnlocked(cursoId){
+    const s = unlockedSet(); s.add(cursoId);
+    sessionStorage.setItem('recursos_unlocked', JSON.stringify([...s]));
+  }
+  function isUnlocked(cursoId){ return unlockedSet().has(cursoId); }
+
+  function renderBreadcrumb(){
+    if(!currentToolId){
+      breadcrumb.innerHTML = `<span>Manual, Casos prácticos, plantillas, prompts, contenidos complementarios y más.</span>`;
+      return;
+    }
+    const parts = [`<button onclick="goHerramientas()">Herramientas</button>`];
+    parts.push(`<span>›</span><button onclick="goTool('${currentToolId}')">${TOOLS[currentToolId].nombre}</button>`);
+    if(currentCursoId){
+      const curso = CURSOS[currentToolId].find(c => c.id === currentCursoId);
+      parts.push(`<span>›</span><span class="current">${curso.nombre}</span>`);
+    }
+    breadcrumb.innerHTML = parts.join(' ');
+  }
+
+  function goHerramientas(){
+    currentToolId = null; currentCursoId = null;
+    viewHerramientas.classList.add('active');
+    viewTool.classList.remove('active');
+    renderBreadcrumb();
+  }
+
+  function goTool(toolId){
+    currentToolId = toolId; currentCursoId = null;
+    const tool = TOOLS[toolId];
+    viewHerramientas.classList.remove('active');
+    viewTool.classList.add('active');
+    toolScope.style.setProperty('--c', tool.color);
+    toolScopeIcon.innerHTML = tool.icon;
+    toolScopeTitle.textContent = tool.nombre;
+
+    cursoTabs.innerHTML = CURSOS[toolId].map(c =>
+      `<button class="excel-tab" data-curso="${c.id}" onclick="goCurso('${c.id}')">${c.nombre}</button>`
+    ).join('');
+
+    goCurso(CURSOS[toolId][0].id);
+  }
+
+  function goCurso(cursoId){
+    currentCursoId = cursoId;
+    cursoTabs.querySelectorAll('.excel-tab').forEach(t => t.classList.toggle('active', t.dataset.curso === cursoId));
+    unlockInput.value = ''; unlockInput.disabled = false;
+    unlockError.textContent = ''; unlockBar.classList.remove('error');
+    setUnlockBtnState('idle');
+    gateWrap.classList.remove('gate-out');
+    panelRecursos.classList.remove('panel-in');
+    renderBreadcrumb();
+
+    if(isUnlocked(cursoId)){
+      gateWrap.style.display = 'none';
+      panelRecursos.style.display = 'block';
+      showRecursos(cursoId);
+      requestAnimationFrame(() => panelRecursos.classList.add('panel-in'));
+    } else {
+      gateWrap.style.display = 'block';
+      panelRecursos.style.display = 'none';
+    }
+  }
+
+  // contador de intentos fallidos, solo en memoria (no se guarda ni se envía a ningún lado) —
+  // úsalo si en el futuro quieres escalar el chiste o el mensaje de error
+  const wrongAttempts = {};
+
+  function setUnlockBtnState(state){
+    const btn = document.getElementById('unlockSubmit');
+    btn.classList.remove('loading', 'success');
+    if(state === 'loading'){
+      btn.classList.add('loading');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="btn-spinner"></span>Validando…`;
+    } else if(state === 'success'){
+      btn.classList.add('success');
+      btn.innerHTML = `${ICONS.check} Acceso concedido`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Desbloquear';
+    }
+  }
+
+  function intentarDesbloquear(){
+    const curso = CURSOS[currentToolId].find(c => c.id === currentCursoId);
+    const val = unlockInput.value.trim().toUpperCase();
+    unlockBar.classList.remove('error', 'shake');
+    unlockError.innerHTML = '';
+    unlockInput.disabled = true;
+    setUnlockBtnState('loading');
+
+    setTimeout(() => {
+      if(val === curso.codigo){
+        wrongAttempts[curso.id] = 0;
+        markUnlocked(curso.id);
+        setUnlockBtnState('success');
+        setTimeout(() => {
+          gateWrap.classList.add('gate-out');
+          setTimeout(() => {
+            gateWrap.style.display = 'none';
+            panelRecursos.style.display = 'block';
+            showRecursos(curso.id);
+            requestAnimationFrame(() => panelRecursos.classList.add('panel-in'));
+          }, 350);
+        }, 450);
+      } else {
+        wrongAttempts[curso.id] = (wrongAttempts[curso.id] || 0) + 1;
+        unlockInput.disabled = false;
+        setUnlockBtnState('idle');
+        unlockBar.classList.add('error', 'shake');
+        setTimeout(() => unlockBar.classList.remove('shake'), 450);
+        unlockError.innerHTML = 'Código incorrecto. Introduce el código correcto o este sitio se autodestruirá en <span class="countdown"><b>3</b>… <b>2</b>… <b>1</b>…</span>';
+      }
+    }, 500);
+  }
+  unlockInput.addEventListener('keydown', e => { if(e.key === 'Enter') intentarDesbloquear(); });
+  document.getElementById('unlockSubmit').addEventListener('click', intentarDesbloquear);
+
+  // tarjeta genérica reutilizada por Casos Prácticos, Plantillas y Skills
+  function renderResGrid(containerId, items, iconSvg){
+    document.getElementById(containerId).innerHTML = items.map(item => `
+      <div class="res-card">
+        <div class="res-icon">${iconSvg}</div>
+        <div class="res-title">${item.titulo}</div>
+        <div class="res-text">${item.texto}</div>
+        <a href="${item.url}" class="res-btn"${item.url !== '#' ? ' download' : ''}>${ICONS.download} Descargar</a>
+      </div>
+    `).join('');
+  }
+
+  function showRecursos(cursoId){
+    const curso = CURSOS[currentToolId].find(c => c.id === cursoId);
+    gateWrap.style.display = 'none';
+    panelRecursos.style.display = 'block';
+
+    document.getElementById('manualGrid').innerHTML = curso.manuales.map(m => `
+      <div class="manual-card">
+        <div class="manual-icon">${ICONS.manual}</div>
+        <div class="manual-body">
+          <div class="manual-title">${m.titulo}</div>
+          <div class="manual-text">${m.texto}</div>
+        </div>
+        <a href="${m.url}" class="manual-btn"${m.url !== '#' ? ' download' : ''}>${ICONS.download} Descargar</a>
+      </div>
+    `).join('');
+
+    renderResGrid('casosGrid', curso.casos, ICONS.caso);
+    renderResGrid('plantillasGrid', curso.plantillas, ICONS.plantilla);
+    renderResGrid('skillsGrid', curso.skills, ICONS.skill);
+
+    document.getElementById('extraGrid').innerHTML = curso.extra.map(e => `
+      <a href="${e.url}" class="extra-card" target="_blank" rel="noopener">
+        <div class="extra-icon">${ICONS.play}</div>
+        <div>
+          <div class="extra-title">${e.titulo}</div>
+          <div class="extra-tag">YouTube ↗</div>
+        </div>
+      </a>
+    `).join('');
+
+    const otras = Object.keys(ALL_TOOLS).filter(id => id !== currentToolId).map(id => {
+      const t = ALL_TOOLS[id];
+      return `<a href="cursos.html#${id}" class="explora-card"><span class="explora-icon">${t.icon}</span><span class="explora-label">${t.nombre}</span></a>`;
+    });
+    document.getElementById('exploraGrid').innerHTML = otras.join('');
+  }
+
+  // tarjetas de nivel 1 (Excel / Power BI)
+  document.querySelectorAll('.course-card[data-tool]').forEach(card => {
+    card.addEventListener('click', e => { e.preventDefault(); goTool(card.dataset.tool); });
+  });
+
+  // fade-in de las tarjetas, mismo patrón que index.html/cursos.html
+  const courseObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: .15 });
+  document.querySelectorAll('.course-card').forEach(c => courseObs.observe(c));
+
+  renderBreadcrumb();
+</script>
+
+</body>
+</html>

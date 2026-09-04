@@ -48,9 +48,16 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 - `cursos.html` — constructor de temario interactivo por categoría, con la barra de fórmula animada, código de color por herramienta
 - `agenda.html` + `api/getAvailability/` — calendario de disponibilidad conectado a Outlook real vía Microsoft Graph, funcionando en producción
 
+**En construcción — Fase 1 (frontend de prueba, sin backend):**
+- `recursos.html` — biblioteca de descargas por herramienta/curso. Alcance de prueba: Excel y Power BI, 2 cursos cada uno (Básico-Intermedio / Intermedio-Avanzado). Navegación en 3 niveles (Herramientas → Curso con pestañas estilo hoja de Excel → Recursos) con breadcrumb (que en el nivel raíz se convierte en una línea descriptiva). Cada curso muestra: Manual, Casos Prácticos, Plantillas, Skills (prompts de IA) y Contenido Complementario (links de YouTube) — las primeras 4 usan un componente de tarjeta compartido (`renderResGrid` en el script) con ícono + título + subtítulo + botón de descarga. Enlazada desde el nav de `index.html` y `cursos.html` (visible, no oculta — el sitio aún no se comparte y vive en dominio de prueba).
+  - **Todo el contenido y los códigos de acceso están hardcodeados en el `<script>` del archivo** (objeto `CURSOS`, ver comentario al inicio del script) — es contenido placeholder, no real, y el candado por curso valida en el cliente contra `curso.codigo` (visible en el código fuente, persiste en `sessionStorage` — se borra al cerrar la pestaña, decisión de Alfredo). El desbloqueo tiene una animación de "Validando…" + éxito antes de revelar los recursos, y el error de código incorrecto tiene un guiño sarcástico ("se autodestruirá en 3…2…1") con shake — hay un contador de intentos fallidos en memoria (`wrongAttempts`) sin persistir a ningún lado, listo por si se quiere escalar el chiste más adelante.
+  - **Manual real de prueba:** el curso Excel Intermedio-Avanzado (`excel-ia`) descarga un PDF real (5.5MB) desde `assets/recursos/excel/intermedio-avanzado/manual.pdf` — se agregó directo al repo para probar la descarga end-to-end. **Ojo:** este archivo pesado no debería quedarse en git a largo plazo — en Fase 2 se mueve a Blob Storage junto con el resto de los recursos reales.
+  - **Pendiente Fase 2** (no construida todavía): Azure Blob Storage + Table Storage para los recursos reales, Azure Functions (`getRecursos`, `uploadRecurso`, `updateOrden`, `crearCurso`, `gestionarCodigo`) que reemplacen los datos hardcodeados y validen el código server-side, y el panel de administrador (`/admin`) con login Entra ID — shell de menú lateral (Dashboard, Solicitudes, Cotizaciones, Diagnósticos, Recursos, Encuestas, Diplomas) pensado para que los módulos futuros solo agreguen una sección. Ver `prompt-code-recursos-y-backoffice.md` (fuera del repo, en Downloads de Alfredo) para el alcance completo original de estas dos partes.
+  - Link de YouTube en el footer (todas las páginas) es **placeholder** (`href="#"`, marcado con comentario `TODO`) — falta el link real del canal.
+
 **Pendiente / roadmap (ver documentos `Memoria_...` en el Project de claude.ai para detalle completo de cada uno):**
 - Módulo de Diagnóstico (con backend desde el inicio, código por empresa autogestionable, panel de reportes con login Entra ID)
-- Módulo de Recursos/Descargas (Azure Blob Storage, link + código corto)
+- Backend + admin de Recursos (ver arriba)
 - Backoffice unificado (cotizaciones, ver solicitudes de temario, reportes cruzados)
 - Replicar el constructor de temario de Excel para Power BI, Power Apps, Power Automate, IA Aplicada, Ofimática (hoy son placeholders "Próximamente" en `cursos.html`)
 - Separar CSS/JS que sigue inline en `cursos.html` hacia `/assets/`
@@ -65,6 +72,23 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 ## Historial de sesiones
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-04 alfredo.pina: Recursos — ajustes de UX tras primera revisión
+- Quitado el eyebrow "RECURSOS" del título (alineado con `agenda.html`/`cursos.html`, que van directo al `h2`), título cambiado a "Descarga los recursos habilitados para tu próximo curso.", y el breadcrumb ahora muestra una línea descriptiva en el nivel raíz y se vuelve funcional al entrar a una herramienta
+- Candado: ícono en línea con el texto (antes apilado), animación real al desbloquear (botón "Validando…" con spinner → "Acceso concedido" → transición con fade/slide a los recursos) y mensaje de error con guiño sarcástico + shake + cuenta regresiva animada "3…2…1"
+- Reestructurados los recursos por curso: Manual (ahora arreglo, por si algún día hay más de uno), Casos Prácticos (ícono en vez de pill numerado, con botón de descarga), y dos secciones nuevas — Plantillas y Skills (prompts de IA) — todas comparten un mismo componente de tarjeta (`renderResGrid`) para no duplicar código
+- Contenido Complementario (antes "Recursos Extra") ahora aparece junto con el footer real del sitio en vez de un botón aislado de YouTube — se agregó el link de YouTube (placeholder) al `contact-meta` del footer en las 4 páginas que lo tienen (`index.html`, `cursos.html`, `agenda.html`, `recursos.html`)
+- Agregado un manual real de prueba (PDF de Excel Intermedio-Avanzado, proporcionado por Alfredo) en `assets/recursos/excel/intermedio-avanzado/manual.pdf`, conectado al botón de descarga de ese curso — verificado que descarga correctamente (200, tamaño exacto)
+- `sessionStorage` para el desbloqueo se dejó igual (Alfredo confirmó que el comportamiento actual le parece bien)
+- Corregido bug de espaciado: el breadcrumb quedaba pegado al título (`h2.section-title` sin margen + `.breadcrumb` sin `margin-top`) en las 3 vistas de `recursos.html` — agregado `margin-top:16px` al breadcrumb, mismo valor que usa `.section-sub` en el resto del sitio
+
+### 2026-09-04 alfredo.pina: Recursos — frontend de prueba (Fase 1)
+- Creado `recursos.html`: biblioteca de descargas con navegación en 3 niveles (Herramientas → Curso → Recursos), reutilizando el componente `.course-card`/`.courses-grid` de `index.html` para el nivel 1, y una nueva pestaña estilo "hoja de Excel" (`.excel-tabs`) para elegir entre los 2 cursos de cada herramienta
+- Alcance de prueba: solo Excel y Power BI funcionales; Power Apps, Power Automate, IA Aplicada y Ofimática muestran el mismo patrón "PRÓXIMAMENTE" que ya existe en `cursos.html`
+- Candado de acceso por curso con la barra `fx =DESBLOQUEAR("código")` (mismo lenguaje visual que `agenda.html`) — código hardcodeado en el JS de la página, sin backend todavía (decisión explícita para esta fase, ver nota en Estado del proyecto)
+- Agregada la liga "Recursos" al `nav-links` de `index.html` y `cursos.html` (visible, sin ocultar — decisión de Alfredo: el sitio todavía no se comparte y corre en dominio de prueba)
+- Backend (Blob/Table Storage, Azure Functions) y panel `/admin` quedaron fuera de esta sesión a propósito — ver `prompt-code-recursos-y-backoffice.md` para el alcance completo cuando se retome
+- Probado el flujo completo en navegador (desbloqueo correcto, código incorrecto, cambio de pestaña, tarjetas bloqueadas) sirviendo el repo con un servidor estático local temporal (no se agregó al proyecto)
 
 ### 2026-09-03 alfredo.pina: Limpieza, favicon y bug
 - Clonado el repo por primera vez en el equipo de Alfredo y agregado este `CLAUDE.md` al repo

@@ -7,6 +7,38 @@
     {
       "route": "/admin/*",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/adminListCursos",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/adminGetRecursos",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearCurso",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarCurso",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/uploadRecurso",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarRecurso",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarRecurso",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/updateOrden",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <style>
   :root{
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
@@ -88,6 +89,137 @@
   .admin-welcome{ font-size:13.5px; color:var(--text-dim); line-height:1.7; max-width:520px; }
   .admin-welcome b{ color:var(--text); }
 
+  /* ───────────────────────── PANEL RECURSOS ───────────────────────── */
+  .radm-view{ display:none; }
+  .radm-view.active{ display:block; }
+
+  .radm-toast{
+    font-family:var(--mono); font-size:12.5px; padding:10px 14px; border-radius:6px;
+    margin-bottom:18px; border:1px solid var(--line);
+  }
+  .radm-toast.ok{ color:#4ade80; border-color:#4ade80; background:rgba(74,222,128,.08); }
+  .radm-toast.err{ color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
+
+  .radm-tools-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; }
+  .radm-tool-card{
+    display:flex; flex-direction:column; gap:10px; border:1px solid var(--line); border-radius:10px;
+    background:var(--panel); padding:18px; cursor:pointer; transition:border-color .15s; text-align:left;
+  }
+  .radm-tool-card:hover{ border-color:var(--c); }
+  .radm-tool-icon{ width:22px; height:22px; color:var(--c); }
+  .radm-tool-icon svg{ width:100%; height:100%; }
+  .radm-tool-name{ font-family:var(--display); font-weight:600; font-size:14px; }
+
+  .radm-back{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
+    color:var(--text-faint); background:none; border:none; cursor:pointer; padding:0; margin-bottom:18px;
+  }
+  .radm-back:hover{ color:var(--text-dim); }
+  .radm-back svg{ width:13px; height:13px; }
+
+  .radm-head{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .radm-head-icon{ width:22px; height:22px; color:var(--c); }
+  .radm-head-icon svg{ width:100%; height:100%; }
+  .radm-head-title{ font-family:var(--display); font-weight:600; font-size:17px; }
+
+  .radm-tabs{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:24px; }
+  .radm-tab{
+    display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px;
+    color:var(--text-dim); background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:8px 12px; cursor:pointer; transition:all .15s;
+  }
+  .radm-tab:hover{ color:var(--text); }
+  .radm-tab.active{ border-color:var(--c); color:var(--text); background:var(--panel-2); }
+  .radm-tab-drag{ width:11px; height:11px; color:var(--text-faint); cursor:grab; flex:none; }
+  .radm-tab-drag svg{ width:100%; height:100%; }
+  .radm-status-dot{ width:9px; height:9px; flex:none; }
+  .radm-status-dot svg{ width:100%; height:100%; }
+  .radm-status-dot.pub{ color:#4ade80; }
+  .radm-status-dot.draft{ color:var(--text-faint); }
+  .radm-tab-new{
+    display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12.5px;
+    color:var(--c); background:none; border:1px dashed var(--line); border-radius:6px;
+    padding:8px 12px; cursor:pointer;
+  }
+  .radm-tab-new svg{ width:11px; height:11px; }
+
+  .radm-newcurso{
+    border:1px solid var(--line); border-radius:8px; padding:18px; margin-bottom:24px;
+    background:var(--panel); max-width:460px;
+  }
+
+  .radm-form{ border:1px solid var(--line); border-radius:8px; padding:20px; background:var(--panel); margin-bottom:32px; }
+  .radm-form-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .radm-field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
+  .radm-field label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; }
+  .radm-field input[type=text], .radm-field input[type=url], .radm-field textarea{
+    font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:6px; padding:9px 11px; outline:none;
+  }
+  .radm-field input:focus, .radm-field textarea:focus{ border-color:var(--c); }
+  .radm-field input[readonly]{ color:var(--text-faint); }
+  .radm-field textarea{ resize:vertical; min-height:70px; font-family:var(--mono); }
+  .radm-mono{ font-family:var(--mono); }
+
+  .radm-switch-row{ display:flex; align-items:center; gap:10px; }
+  .radm-switch{ position:relative; width:38px; height:21px; flex:none; }
+  .radm-switch input{ opacity:0; width:100%; height:100%; margin:0; cursor:pointer; position:absolute; z-index:1; }
+  .radm-switch-track{
+    position:absolute; inset:0; background:var(--line); border-radius:11px; transition:background .15s;
+  }
+  .radm-switch-track::before{
+    content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%;
+    background:var(--text); transition:transform .15s;
+  }
+  .radm-switch input:checked ~ .radm-switch-track{ background:#4ade80; }
+  .radm-switch input:checked ~ .radm-switch-track::before{ transform:translateX(17px); background:#0a0d12; }
+  .radm-switch-label{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+
+  .radm-actions{ display:flex; align-items:center; gap:10px; margin-top:6px; }
+  .radm-btn{
+    font-family:var(--mono); font-size:12px; border-radius:6px; padding:9px 16px; cursor:pointer;
+    border:1px solid var(--c); color:var(--c); background:none; transition:background .15s;
+  }
+  .radm-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
+  .radm-btn:disabled{ opacity:.5; cursor:default; }
+  .radm-btn-ghost{ border-color:var(--line); color:var(--text-dim); }
+  .radm-btn-danger{ border-color:#ef4444; color:#ef4444; margin-left:auto; }
+  .radm-btn-danger:hover{ background:rgba(239,68,68,.12); }
+  .radm-btn-add{
+    font-family:var(--mono); font-size:11px; color:var(--c); background:none; border:1px solid var(--c);
+    border-radius:6px; padding:6px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .radm-btn-add svg{ width:11px; height:11px; }
+
+  .radm-section{ margin-bottom:30px; }
+  .radm-section-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .radm-section-title{ font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px; }
+
+  .radm-list{ display:flex; flex-direction:column; gap:6px; }
+  .radm-empty-row{ font-size:12.5px; color:var(--text-faint); padding:10px 2px; }
+  .radm-row{
+    display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:7px;
+    background:var(--panel); padding:10px 12px;
+  }
+  .radm-drag{ width:14px; height:14px; color:var(--text-faint); cursor:grab; flex:none; }
+  .radm-drag svg{ width:100%; height:100%; }
+  .radm-row-body{ flex:1; min-width:0; }
+  .radm-row-title{ font-size:13px; font-weight:500; }
+  .radm-row-sub{ font-size:11.5px; color:var(--text-faint); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .radm-icon-btn{
+    width:26px; height:26px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:5px; border:1px solid var(--line); background:none; color:var(--text-dim); cursor:pointer;
+  }
+  .radm-icon-btn svg{ width:13px; height:13px; }
+  .radm-icon-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+  .radm-icon-danger:hover{ color:#ef4444; border-color:#ef4444; }
+
+  .radm-inline-form{
+    border:1px solid var(--c); border-radius:8px; padding:16px; margin-bottom:10px; background:var(--panel-2);
+  }
+  .radm-file-current{ font-size:11.5px; color:var(--text-faint); margin-bottom:6px; }
+  .radm-hint{ font-size:11px; color:var(--text-faint); margin-top:4px; }
+
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
     .admin-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
@@ -137,7 +269,6 @@
       <button class="admin-nav-item" data-panel="recursos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
         Recursos
-        <span class="admin-nav-soon">PRONTO</span>
       </button>
       <button class="admin-nav-item" data-panel="encuestas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
@@ -180,7 +311,26 @@
       <div class="admin-panel" id="panel-solicitudes"></div>
       <div class="admin-panel" id="panel-cotizaciones"></div>
       <div class="admin-panel" id="panel-diagnosticos"></div>
-      <div class="admin-panel" id="panel-recursos"></div>
+
+      <div class="admin-panel" id="panel-recursos">
+        <div id="radmToast" class="radm-toast" hidden></div>
+
+        <div class="radm-view active" id="radmView-tools">
+          <div class="radm-tools-grid" id="radmToolsGrid"></div>
+        </div>
+
+        <div class="radm-view" id="radmView-tool">
+          <button class="radm-back" id="radmBack">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Herramientas
+          </button>
+          <div class="radm-head" id="radmToolHead"></div>
+          <div class="radm-tabs" id="radmTabs"></div>
+          <div id="radmNewCursoArea"></div>
+          <div id="radmCursoArea"></div>
+        </div>
+      </div>
+
       <div class="admin-panel" id="panel-encuestas"></div>
       <div class="admin-panel" id="panel-diplomas"></div>
     </div>
@@ -196,7 +346,7 @@
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'recursos', 'encuestas', 'diplomas'].forEach(key => {
+  ['solicitudes', 'cotizaciones', 'diagnosticos', 'encuestas', 'diplomas'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -226,6 +376,459 @@
     .catch(() => {
       document.getElementById('userEmail').textContent = '/.auth/me no disponible (normal en local)';
     });
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL RECURSOS — administra herramientas → cursos → recursos.
+  // Todas las llamadas van a Functions protegidas con allowedRoles:["admin"]
+  // (ver staticwebapp.config.json) — el navegador ya trae la sesión de Entra ID.
+  // ═══════════════════════════════════════════════════════════════
+  (function(){
+    const TOOL_META = {
+      excel:         { nombre:'Excel',            color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
+      powerbi:       { nombre:'Power BI',          color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      powerapps:     { nombre:'Power Apps',        color:'#c026d3', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+      powerautomate: { nombre:'Power Automate',    color:'#06b6d4', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      ia:            { nombre:'IA Aplicada',       color:'#a78bfa', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>' },
+    };
+
+    // manual/caso/plantilla llevan archivo; skill es texto puro (el prompt);
+    // extra es solo un link — mismo modelo que consume recursos.html
+    const TIPOS_CONFIG = {
+      manual:    { plural:'Manual',                   hasFile:true,  field:'texto', fieldLabel:'Descripción corta' },
+      caso:      { plural:'Casos Prácticos',           hasFile:true,  field:'texto', fieldLabel:'Descripción corta' },
+      plantilla: { plural:'Plantillas',                hasFile:true,  field:'texto', fieldLabel:'Descripción corta' },
+      skill:     { plural:'Skills (prompts de IA)',    hasFile:false, field:'texto', fieldLabel:'Prompt' },
+      extra:     { plural:'Contenido Complementario',  hasFile:false, field:'url',   fieldLabel:'URL (YouTube u otro link)' },
+    };
+
+    const ICO = {
+      plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>',
+      drag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>',
+      edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      dotFull:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></svg>',
+      dotEmpty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+    };
+
+    function escapeHtml(s){
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function toast(msg, ok){
+      const el = document.getElementById('radmToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiUploadFile(url, file){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type': file.type || 'application/octet-stream'}, body:file });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+
+    // ── estado ──
+    let radmTool = null;
+    let radmCursos = [];
+    let radmCursoId = null;
+    let radmRecursos = [];
+
+    // ── nivel 1 — herramientas ──
+    function renderToolsGrid(){
+      const grid = document.getElementById('radmToolsGrid');
+      grid.innerHTML = Object.keys(TOOL_META).map(id => {
+        const t = TOOL_META[id];
+        return `
+          <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
+            <span class="radm-tool-icon">${t.icon}</span>
+            <span class="radm-tool-name">${t.nombre}</span>
+          </button>`;
+      }).join('');
+      grid.querySelectorAll('.radm-tool-card').forEach(card => {
+        card.addEventListener('click', () => goTool(card.dataset.tool));
+      });
+    }
+
+    function goTools(){
+      radmTool = null; radmCursoId = null;
+      document.getElementById('radmView-tools').classList.add('active');
+      document.getElementById('radmView-tool').classList.remove('active');
+    }
+    document.getElementById('radmBack').addEventListener('click', goTools);
+
+    // ── nivel 2 — cursos de la herramienta ──
+    async function goTool(toolId){
+      radmTool = toolId; radmCursoId = null;
+      const t = TOOL_META[toolId];
+      document.getElementById('radmView-tools').classList.remove('active');
+      document.getElementById('radmView-tool').classList.add('active');
+      document.getElementById('radmToolHead').innerHTML = `
+        <span class="radm-head-icon" style="--c:${t.color}">${t.icon}</span>
+        <span class="radm-head-title">${t.nombre}</span>`;
+      document.getElementById('radmNewCursoArea').innerHTML = '';
+      document.getElementById('radmCursoArea').innerHTML = '';
+      document.getElementById('radmTabs').innerHTML = '<span class="radm-hint">Cargando…</span>';
+
+      try {
+        const data = await apiGet(`/api/adminListCursos?herramienta=${encodeURIComponent(toolId)}`);
+        radmCursos = data.cursos || [];
+        renderTabs();
+        if(radmCursos.length) selectCurso(radmCursos[0].id);
+        else abrirFormNuevoCurso();
+      } catch(e){
+        document.getElementById('radmTabs').innerHTML = '';
+        toast('No se pudieron cargar los cursos: ' + e.message, false);
+      }
+    }
+
+    function renderTabs(){
+      const wrap = document.getElementById('radmTabs');
+      wrap.innerHTML = radmCursos.map(c => `
+        <div class="radm-tab ${c.id === radmCursoId ? 'active' : ''}" data-curso="${c.id}">
+          <span class="radm-tab-drag">${ICO.drag}</span>
+          <span class="radm-status-dot ${c.estado === 'publicado' ? 'pub' : 'draft'}">${c.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
+          <span>${escapeHtml(c.nombre)}</span>
+        </div>
+      `).join('') + `<button type="button" class="radm-tab-new" id="radmBtnNuevoCurso">${ICO.plus} Nuevo curso</button>`;
+
+      wrap.querySelectorAll('.radm-tab').forEach(tab => {
+        tab.addEventListener('click', () => selectCurso(tab.dataset.curso));
+      });
+      document.getElementById('radmBtnNuevoCurso').addEventListener('click', abrirFormNuevoCurso);
+
+      if(window.Sortable){
+        Sortable.create(wrap, {
+          handle: '.radm-tab-drag', animation:150, filter: '.radm-tab-new',
+          onEnd: async () => {
+            const items = Array.from(wrap.querySelectorAll('.radm-tab')).map((el, i) => ({
+              partitionKey: radmTool, rowKey: el.dataset.curso, orden: i * 10,
+            }));
+            try { await apiPostJson('/api/updateOrden', { tabla:'Cursos', items }); }
+            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+          },
+        });
+      }
+    }
+
+    function abrirFormNuevoCurso(){
+      document.getElementById('radmCursoArea').innerHTML = '';
+      document.getElementById('radmNewCursoArea').innerHTML = `
+        <div class="radm-newcurso">
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>ID DEL CURSO (minúsculas, sin espacios)</label>
+              <input type="text" id="radmNewId" class="radm-mono" placeholder="excel-bi">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>NOMBRE</label>
+              <input type="text" id="radmNewNombre" placeholder="Básico-Intermedio">
+            </div>
+            <div class="radm-field">
+              <label>CÓDIGO DE ACCESO</label>
+              <input type="text" id="radmNewCodigo" class="radm-mono" placeholder="EXCEL2026">
+            </div>
+          </div>
+          <div class="radm-actions">
+            <button type="button" class="radm-btn" id="radmBtnCrearCurso">Crear curso</button>
+            <button type="button" class="radm-btn radm-btn-ghost" id="radmBtnCancelarCurso">Cancelar</button>
+          </div>
+          <div class="radm-hint">Nace en borrador — nadie puede desbloquearlo hasta que lo publiques.</div>
+        </div>`;
+
+      document.getElementById('radmBtnCancelarCurso').addEventListener('click', () => {
+        document.getElementById('radmNewCursoArea').innerHTML = '';
+        if(radmCursoId) selectCurso(radmCursoId);
+      });
+      document.getElementById('radmBtnCrearCurso').addEventListener('click', async () => {
+        const id = document.getElementById('radmNewId').value.trim().toLowerCase();
+        const nombre = document.getElementById('radmNewNombre').value.trim();
+        const codigo = document.getElementById('radmNewCodigo').value.trim();
+        if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)){
+          toast('El id solo puede tener minúsculas, números y guiones (ej. excel-bi).', false); return;
+        }
+        if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
+        try {
+          await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:id, nombre, codigo, estado:'borrador', orden:Date.now() });
+          toast('Curso creado.', true);
+          document.getElementById('radmNewCursoArea').innerHTML = '';
+          const data = await apiGet(`/api/adminListCursos?herramienta=${encodeURIComponent(radmTool)}`);
+          radmCursos = data.cursos || [];
+          selectCurso(id);
+        } catch(e){ toast('No se pudo crear el curso: ' + e.message, false); }
+      });
+    }
+
+    // ── nivel 2b — formulario del curso seleccionado ──
+    async function selectCurso(cursoId){
+      radmCursoId = cursoId;
+      document.getElementById('radmNewCursoArea').innerHTML = '';
+      renderTabs();
+      renderCursoForm();
+      const seccionesArea = document.getElementById('radmSeccionesArea');
+      if(seccionesArea) seccionesArea.innerHTML = '<div class="radm-hint">Cargando recursos…</div>';
+
+      try {
+        const data = await apiGet(`/api/adminGetRecursos?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(cursoId)}`);
+        radmRecursos = data.recursos || [];
+        renderSecciones();
+      } catch(e){
+        toast('No se pudieron cargar los recursos: ' + e.message, false);
+      }
+    }
+
+    function renderCursoForm(){
+      const curso = radmCursos.find(c => c.id === radmCursoId);
+      if(!curso) return;
+      const area = document.getElementById('radmCursoArea');
+      area.innerHTML = `
+        <div class="radm-form">
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>ID DEL CURSO</label>
+              <input type="text" class="radm-mono" value="${escapeHtml(curso.id)}" readonly>
+            </div>
+            <div class="radm-field">
+              <label>NOMBRE</label>
+              <input type="text" id="radmCursoNombre" value="${escapeHtml(curso.nombre)}">
+            </div>
+            <div class="radm-field">
+              <label>CÓDIGO DE ACCESO</label>
+              <input type="text" id="radmCursoCodigo" class="radm-mono" value="${escapeHtml(curso.codigo)}">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-switch-row">
+              <label class="radm-switch">
+                <input type="checkbox" id="radmCursoEstado" ${curso.estado === 'publicado' ? 'checked' : ''}>
+                <span class="radm-switch-track"></span>
+              </label>
+              <span class="radm-switch-label" id="radmEstadoLabel">${curso.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
+            </div>
+          </div>
+          <div class="radm-actions">
+            <button type="button" class="radm-btn" id="radmBtnGuardarCurso">Guardar cambios</button>
+            <button type="button" class="radm-btn radm-btn-danger" id="radmBtnEliminarCurso">Eliminar curso</button>
+          </div>
+          <div class="radm-hint">Rotar el código no cierra la sesión de quien ya lo desbloqueó en su navegador — solo bloquea intentos nuevos con el código viejo.</div>
+        </div>
+        <div id="radmSeccionesArea"></div>`;
+
+      document.getElementById('radmCursoEstado').addEventListener('change', e => {
+        document.getElementById('radmEstadoLabel').textContent = e.target.checked ? 'Publicado' : 'Borrador';
+      });
+
+      document.getElementById('radmBtnGuardarCurso').addEventListener('click', async () => {
+        const nombre = document.getElementById('radmCursoNombre').value.trim();
+        const codigo = document.getElementById('radmCursoCodigo').value.trim();
+        const estado = document.getElementById('radmCursoEstado').checked ? 'publicado' : 'borrador';
+        if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
+        try {
+          await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:curso.id, nombre, codigo, estado, orden:curso.orden });
+          curso.nombre = nombre; curso.codigo = codigo; curso.estado = estado;
+          renderTabs();
+          toast('Curso guardado.', true);
+        } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+      });
+
+      document.getElementById('radmBtnEliminarCurso').addEventListener('click', async () => {
+        if(!confirm(`¿Eliminar el curso "${curso.nombre}" y todos sus recursos? Esto no se puede deshacer.`)) return;
+        try {
+          await apiPostJson('/api/eliminarCurso', { herramienta:radmTool, curso:curso.id });
+          toast('Curso eliminado.', true);
+          radmCursos = radmCursos.filter(c => c.id !== curso.id);
+          radmCursoId = null;
+          renderTabs();
+          document.getElementById('radmCursoArea').innerHTML = '';
+          if(radmCursos.length) selectCurso(radmCursos[0].id); else abrirFormNuevoCurso();
+        } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+      });
+    }
+
+    // ── nivel 3 — recursos del curso ──
+    function renderSecciones(){
+      const area = document.getElementById('radmSeccionesArea');
+      if(!area) return;
+      area.innerHTML = Object.keys(TIPOS_CONFIG).map(tipo => {
+        const cfg = TIPOS_CONFIG[tipo];
+        return `
+          <div class="radm-section">
+            <div class="radm-section-head">
+              <span class="radm-section-title">${cfg.plural.toUpperCase()}</span>
+              <button type="button" class="radm-btn-add" data-tipo="${tipo}">${ICO.plus} Agregar</button>
+            </div>
+            <div class="radm-list" id="radmLista-${tipo}"></div>
+          </div>`;
+      }).join('');
+
+      area.querySelectorAll('.radm-btn-add').forEach(btn => {
+        btn.addEventListener('click', () => abrirFormRecurso(btn.dataset.tipo, null));
+      });
+
+      Object.keys(TIPOS_CONFIG).forEach(renderLista);
+    }
+
+    function renderLista(tipo){
+      const cfg = TIPOS_CONFIG[tipo];
+      const cont = document.getElementById('radmLista-' + tipo);
+      if(!cont) return;
+      const items = radmRecursos.filter(r => r.tipo === tipo);
+
+      if(!items.length){
+        cont.innerHTML = `<div class="radm-empty-row">Sin ${cfg.plural.toLowerCase()} todavía.</div>`;
+        return;
+      }
+
+      cont.innerHTML = items.map(item => `
+        <div class="radm-row" data-rowkey="${escapeHtml(item.rowKey)}">
+          <span class="radm-drag">${ICO.drag}</span>
+          <div class="radm-row-body">
+            <div class="radm-row-title">${escapeHtml(item.titulo)}</div>
+            <div class="radm-row-sub">${escapeHtml(cfg.field === 'url' ? item.url : item.texto)}</div>
+          </div>
+          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
+        </div>
+      `).join('');
+
+      cont.querySelectorAll('[data-action="edit"]').forEach(b => {
+        b.addEventListener('click', () => {
+          const rowKey = b.closest('.radm-row').dataset.rowkey;
+          abrirFormRecurso(tipo, radmRecursos.find(r => r.rowKey === rowKey));
+        });
+      });
+      cont.querySelectorAll('[data-action="del"]').forEach(b => {
+        b.addEventListener('click', () => {
+          const rowKey = b.closest('.radm-row').dataset.rowkey;
+          eliminarRecurso(rowKey);
+        });
+      });
+
+      if(window.Sortable){
+        Sortable.create(cont, {
+          handle: '.radm-drag', animation:150,
+          onEnd: async () => {
+            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
+              partitionKey: `${radmTool}_${radmCursoId}`, rowKey: el.dataset.rowkey, orden: i * 10,
+            }));
+            try { await apiPostJson('/api/updateOrden', { tabla:'Recursos', items:items2 }); }
+            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+          },
+        });
+      }
+    }
+
+    function abrirFormRecurso(tipo, item){
+      const cfg = TIPOS_CONFIG[tipo];
+      const cont = document.getElementById('radmLista-' + tipo);
+      const existing = cont.querySelector('.radm-inline-form');
+      if(existing) existing.remove();
+
+      const form = document.createElement('div');
+      form.className = 'radm-inline-form';
+      form.innerHTML = `
+        <div class="radm-form-row">
+          <div class="radm-field">
+            <label>TÍTULO</label>
+            <input type="text" class="radm-f-titulo" value="${item ? escapeHtml(item.titulo) : ''}">
+          </div>
+        </div>
+        <div class="radm-form-row">
+          <div class="radm-field">
+            <label>${cfg.fieldLabel.toUpperCase()}</label>
+            ${cfg.field === 'url'
+              ? `<input type="url" class="radm-f-valor" value="${item ? escapeHtml(item.url) : ''}" placeholder="https://youtube.com/...">`
+              : `<textarea class="radm-f-valor">${item ? escapeHtml(item.texto) : ''}</textarea>`}
+          </div>
+        </div>
+        ${cfg.hasFile ? `
+        <div class="radm-form-row">
+          <div class="radm-field">
+            <label>ARCHIVO${item ? ' (deja vacío para conservar el actual)' : ''}</label>
+            ${item ? `<div class="radm-file-current">Actual: <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.url.split('/').pop())}</a></div>` : ''}
+            <input type="file" class="radm-f-archivo">
+          </div>
+        </div>` : ''}
+        <div class="radm-actions">
+          <button type="button" class="radm-btn radm-f-guardar">Guardar</button>
+          <button type="button" class="radm-btn radm-btn-ghost radm-f-cancelar">Cancelar</button>
+        </div>`;
+      cont.appendChild(form);
+
+      form.querySelector('.radm-f-cancelar').addEventListener('click', () => form.remove());
+      form.querySelector('.radm-f-guardar').addEventListener('click', async () => {
+        const titulo = form.querySelector('.radm-f-titulo').value.trim();
+        const valor = form.querySelector('.radm-f-valor').value.trim();
+        const archivoInput = cfg.hasFile ? form.querySelector('.radm-f-archivo') : null;
+        const archivo = archivoInput && archivoInput.files[0];
+
+        if(!titulo){ toast('Falta el título.', false); return; }
+        if(cfg.field === 'url' && !valor){ toast('Falta la URL.', false); return; }
+        if(cfg.field === 'texto' && !cfg.hasFile && !valor){ toast('Falta el texto del prompt.', false); return; }
+        if(cfg.hasFile && !item && !archivo){ toast('Falta el archivo.', false); return; }
+
+        const btn = form.querySelector('.radm-f-guardar');
+        btn.disabled = true; btn.textContent = archivo ? 'Subiendo…' : 'Guardando…';
+
+        try {
+          if(archivo){
+            const params = new URLSearchParams({
+              herramienta: radmTool, curso: radmCursoId, tipo, titulo,
+              texto: cfg.field === 'texto' ? valor : '',
+              filename: archivo.name, rowKey: item ? item.rowKey : '',
+              orden: item ? item.orden : Date.now(),
+            });
+            await apiUploadFile('/api/uploadRecurso?' + params.toString(), archivo);
+          } else {
+            await apiPostJson('/api/editarRecurso', {
+              herramienta: radmTool, curso: radmCursoId, tipo, titulo,
+              texto: cfg.field === 'texto' ? valor : '',
+              url: cfg.field === 'url' ? valor : '',
+              rowKey: item ? item.rowKey : undefined,
+              orden: item ? item.orden : Date.now(),
+            });
+          }
+          toast('Recurso guardado.', true);
+          const data = await apiGet(`/api/adminGetRecursos?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(radmCursoId)}`);
+          radmRecursos = data.recursos || [];
+          form.remove();
+          renderLista(tipo);
+        } catch(e){
+          toast('No se pudo guardar: ' + e.message, false);
+          btn.disabled = false; btn.textContent = 'Guardar';
+        }
+      });
+    }
+
+    async function eliminarRecurso(rowKey){
+      if(!confirm('¿Eliminar este recurso? Esto no se puede deshacer.')) return;
+      try {
+        await apiPostJson('/api/eliminarRecurso', { herramienta:radmTool, curso:radmCursoId, rowKey });
+        radmRecursos = radmRecursos.filter(r => r.rowKey !== rowKey);
+        renderSecciones();
+        toast('Recurso eliminado.', true);
+      } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    }
+
+    renderToolsGrid();
+  })();
 </script>
 
 </body>

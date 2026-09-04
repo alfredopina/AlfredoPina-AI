@@ -9,6 +9,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "node-ical": "^0.27.1",
-    "@azure/data-tables": "^13.2.2"
+    "@azure/data-tables": "^13.2.2",
+    "@azure/storage-blob": "^12.24.0"
   }
 }

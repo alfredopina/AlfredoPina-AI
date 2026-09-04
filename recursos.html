@@ -229,51 +229,9 @@
 
     <div class="breadcrumb" id="breadcrumb"></div>
 
-    <!-- NIVEL 1 — HERRAMIENTAS -->
+    <!-- NIVEL 1 — HERRAMIENTAS (armado por JS desde /api/getCatalogoRecursos) -->
     <div class="rec-view active" id="view-herramientas">
-      <div class="courses-grid">
-        <a href="#" class="course-card excel" data-tool="excel">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></div>
-          <div class="course-title">Excel</div>
-          <div class="course-text">Manuales, casos prácticos y video de tus cursos de Excel.</div>
-          <div class="course-tag">Ver recursos →</div>
-        </a>
-
-        <a href="#" class="course-card pbi" data-tool="powerbi">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div class="course-title">Power BI</div>
-          <div class="course-text">Manuales, casos prácticos y video de tus cursos de Power BI.</div>
-          <div class="course-tag">Ver recursos →</div>
-        </a>
-
-        <div class="course-card apps locked">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-          <div class="course-title">Power Apps</div>
-          <div class="course-text">Recursos de tus cursos de Power Apps.</div>
-          <span class="course-badge-soon">PRÓXIMAMENTE</span>
-        </div>
-
-        <div class="course-card automate locked">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div class="course-title">Power Automate</div>
-          <div class="course-text">Recursos de tus cursos de Power Automate.</div>
-          <span class="course-badge-soon">PRÓXIMAMENTE</span>
-        </div>
-
-        <div class="course-card ia locked">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div class="course-title">IA Aplicada</div>
-          <div class="course-text">Recursos de tus cursos de IA Aplicada.</div>
-          <span class="course-badge-soon">PRÓXIMAMENTE</span>
-        </div>
-
-        <div class="course-card ofimatica locked">
-          <div class="course-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></div>
-          <div class="course-title">Ofimática Básica</div>
-          <div class="course-text">Recursos de tus cursos de Ofimática.</div>
-          <span class="course-badge-soon">PRÓXIMAMENTE</span>
-        </div>
-      </div>
+      <div class="courses-grid" id="herramientasGrid"></div>
     </div>
 
     <!-- NIVEL 2/3 — CURSO + RECURSOS -->
@@ -376,35 +334,26 @@
     ofimatica:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>',
   };
 
-  // herramientas con recursos funcionales en esta fase
-  const TOOLS = {
-    excel:   { nombre:'Excel',    color:'#22c55e', icon:ICONS.excel },
-    powerbi: { nombre:'Power BI', color:'#f2c94c', icon:ICONS.powerbi },
+  // metadatos fijos de las 6 herramientas del catálogo — nombre, color de marca,
+  // ícono y clase CSS (course-card ya trae el color por clase, ver style.css).
+  // Cuáles ya tienen cursos publicados (y por lo tanto dejan de ser "Próximamente")
+  // se calcula en tiempo real desde /api/getCatalogoRecursos, no aquí.
+  const TOOL_META = {
+    excel:         { nombre:'Excel',            cssClass:'excel',    color:'#22c55e', icon:ICONS.excel,         text:'Manuales, casos prácticos y video de tus cursos de Excel.' },
+    powerbi:       { nombre:'Power BI',          cssClass:'pbi',      color:'#f2c94c', icon:ICONS.powerbi,       text:'Manuales, casos prácticos y video de tus cursos de Power BI.' },
+    powerapps:     { nombre:'Power Apps',        cssClass:'apps',     color:'#c026d3', icon:ICONS.powerapps,     text:'Recursos de tus cursos de Power Apps.' },
+    powerautomate: { nombre:'Power Automate',    cssClass:'automate', color:'#06b6d4', icon:ICONS.powerautomate, text:'Recursos de tus cursos de Power Automate.' },
+    ia:            { nombre:'IA Aplicada',       cssClass:'ia',       color:'#a78bfa', icon:ICONS.ia,             text:'Recursos de tus cursos de IA Aplicada.' },
+    ofimatica:     { nombre:'Ofimática Básica',  cssClass:'ofimatica',color:'#f97316', icon:ICONS.ofimatica,     text:'Recursos de tus cursos de Ofimática.' },
   };
 
-  // las 6 herramientas del catálogo (para la franja "Explora más cursos")
-  const ALL_TOOLS = {
-    excel:         { nombre:'Excel',            icon:ICONS.excel },
-    powerbi:       { nombre:'Power BI',          icon:ICONS.powerbi },
-    powerapps:     { nombre:'Power Apps',        icon:ICONS.powerapps },
-    powerautomate: { nombre:'Power Automate',    icon:ICONS.powerautomate },
-    ia:            { nombre:'IA Aplicada',       icon:ICONS.ia },
-    ofimatica:     { nombre:'Ofimática Básica',  icon:ICONS.ofimatica },
-  };
-
-  // Solo id + nombre para armar las pestañas — el contenido real (manual, casos,
-  // plantillas, skills, contenido complementario) y el código de acceso viven en
-  // Azure Table Storage y se piden a /api/getRecursos al momento de desbloquear.
-  const CURSOS = {
-    excel: [
-      { id:'excel-bi', nombre:'Básico-Intermedio' },
-      { id:'excel-ia', nombre:'Intermedio-Avanzado' },
-    ],
-    powerbi: [
-      { id:'pbi-bi', nombre:'Básico-Intermedio' },
-      { id:'pbi-ia', nombre:'Intermedio-Avanzado' },
-    ],
-  };
+  // TOOLS = solo las herramientas con al menos un curso publicado (se llenan tras
+  // cargar el catálogo). CURSOS = id + nombre por herramienta, para armar las
+  // pestañas — el contenido real (manual, casos, plantillas, skills, contenido
+  // complementario) y el código de acceso viven en Azure Table Storage y se piden
+  // a /api/getRecursos al momento de desbloquear.
+  let TOOLS = {};
+  let CURSOS = {};
 
   // ─────────────────────────────────────────────────────────────
   // NAVEGACIÓN — 3 niveles: herramientas → curso (tabs) → recursos
@@ -632,23 +581,69 @@
       </a>
     `).join('');
 
-    const otras = Object.keys(ALL_TOOLS).filter(id => id !== currentToolId).map(id => {
-      const t = ALL_TOOLS[id];
+    const otras = Object.keys(TOOL_META).filter(id => id !== currentToolId).map(id => {
+      const t = TOOL_META[id];
       return `<a href="cursos.html#${id}" class="explora-card"><span class="explora-icon">${t.icon}</span><span class="explora-label">${t.nombre}</span></a>`;
     });
     document.getElementById('exploraGrid').innerHTML = otras.join('');
   }
 
-  // tarjetas de nivel 1 (Excel / Power BI)
-  document.querySelectorAll('.course-card[data-tool]').forEach(card => {
-    card.addEventListener('click', e => { e.preventDefault(); goTool(card.dataset.tool); });
-  });
-
   // fade-in de las tarjetas, mismo patrón que index.html/cursos.html
   const courseObs = new IntersectionObserver((entries) => {
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: .15 });
-  document.querySelectorAll('.course-card').forEach(c => courseObs.observe(c));
+
+  // nivel 1 — arma las 6 tarjetas de herramienta; las que no tienen ningún curso
+  // publicado quedan bloqueadas con la insignia "Próximamente" (igual que antes,
+  // solo que ahora la decisión sale del catálogo real en vez de estar hardcodeada)
+  function renderHerramientasGrid(){
+    const grid = document.getElementById('herramientasGrid');
+    grid.innerHTML = Object.keys(TOOL_META).map(id => {
+      const t = TOOL_META[id];
+      const disponible = (CURSOS[id] || []).length > 0;
+      if(disponible){
+        return `
+          <a href="#" class="course-card ${t.cssClass}" data-tool="${id}">
+            <div class="course-icon">${t.icon}</div>
+            <div class="course-title">${t.nombre}</div>
+            <div class="course-text">${t.text}</div>
+            <div class="course-tag">Ver recursos →</div>
+          </a>`;
+      }
+      return `
+        <div class="course-card ${t.cssClass} locked">
+          <div class="course-icon">${t.icon}</div>
+          <div class="course-title">${t.nombre}</div>
+          <div class="course-text">${t.text}</div>
+          <span class="course-badge-soon">PRÓXIMAMENTE</span>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.course-card[data-tool]').forEach(card => {
+      card.addEventListener('click', e => { e.preventDefault(); goTool(card.dataset.tool); });
+    });
+    grid.querySelectorAll('.course-card').forEach(c => courseObs.observe(c));
+  }
+
+  // pide el catálogo real (qué herramientas/cursos ya están publicados) y arma
+  // el nivel 1 con eso — antes de esto TOOLS/CURSOS están vacíos a propósito
+  fetch('/api/getCatalogoRecursos')
+    .then(res => res.json())
+    .then(catalogo => {
+      CURSOS = catalogo;
+      TOOLS = {};
+      Object.keys(catalogo).forEach(id => {
+        if(catalogo[id].length > 0){
+          const t = TOOL_META[id];
+          TOOLS[id] = { nombre:t.nombre, color:t.color, icon:t.icon };
+        }
+      });
+      renderHerramientasGrid();
+    })
+    .catch(() => {
+      document.getElementById('herramientasGrid').innerHTML =
+        '<p style="color:var(--text-dim);font-size:13px;">No se pudo cargar el catálogo de recursos. Intenta de nuevo en un momento.</p>';
+    });
 
   renderBreadcrumb();
 </script>

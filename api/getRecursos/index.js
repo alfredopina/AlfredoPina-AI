@@ -33,6 +33,11 @@ module.exports = async function (context, req) {
     return;
   }
 
+  if (cursoEntity.estado !== "publicado") {
+    context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese curso no existe." } };
+    return;
+  }
+
   if ((cursoEntity.codigo || "").trim().toUpperCase() !== codigo) {
     context.res = { status: 401, headers: JSON_HEADERS, body: { error: "Código incorrecto." } };
     return;

@@ -7,6 +7,7 @@ const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
 
 const TIPOS = ["manual", "caso", "plantilla", "skill", "extra"];
 const PLURAL = { manual: "manuales", caso: "casos", plantilla: "plantillas", skill: "skills", extra: "extra" };
+const JSON_HEADERS = { "Content-Type": "application/json" };
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -14,7 +15,7 @@ module.exports = async function (context, req) {
   const codigo = (req.query.codigo || "").trim().toUpperCase();
 
   if (!herramienta || !curso || !codigo) {
-    context.res = { status: 400, jsonBody: { error: "Faltan datos (herramienta, curso o código)." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos (herramienta, curso o código)." } };
     return;
   }
 
@@ -24,16 +25,16 @@ module.exports = async function (context, req) {
     cursoEntity = await cursosTable.getEntity(herramienta, curso);
   } catch (err) {
     if (err.statusCode === 404) {
-      context.res = { status: 404, jsonBody: { error: "Ese curso no existe." } };
+      context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese curso no existe." } };
       return;
     }
     context.log.error("Error consultando la tabla Cursos:", err.message);
-    context.res = { status: 500, jsonBody: { error: "No se pudo validar el curso. Intenta de nuevo en un momento." } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo validar el curso. Intenta de nuevo en un momento." } };
     return;
   }
 
   if ((cursoEntity.codigo || "").trim().toUpperCase() !== codigo) {
-    context.res = { status: 401, jsonBody: { error: "Código incorrecto." } };
+    context.res = { status: 401, headers: JSON_HEADERS, body: { error: "Código incorrecto." } };
     return;
   }
 
@@ -58,12 +59,13 @@ module.exports = async function (context, req) {
     }
   } catch (err) {
     context.log.error("Error consultando la tabla Recursos:", err.message);
-    context.res = { status: 500, jsonBody: { error: "No se pudieron cargar los recursos. Intenta de nuevo en un momento." } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar los recursos. Intenta de nuevo en un momento." } };
     return;
   }
 
   context.res = {
     status: 200,
-    jsonBody: { nombre: cursoEntity.nombre || curso, ...agrupado },
+    headers: JSON_HEADERS,
+    body: { nombre: cursoEntity.nombre || curso, ...agrupado },
   };
 };

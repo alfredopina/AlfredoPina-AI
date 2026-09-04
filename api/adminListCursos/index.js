@@ -4,7 +4,7 @@
 // a diferencia de getRecursos/getCatalogoRecursos, que son públicas.
 const { getCursosTable } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();

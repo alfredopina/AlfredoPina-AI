@@ -3,7 +3,7 @@
 // todas sus filas en Recursos, y los archivos que esas filas tengan en Blob.
 const { getCursosTable, getRecursosTable, getRecursosContainer } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
 module.exports = async function (context, req) {
   const body = req.body || {};

@@ -4,7 +4,7 @@
 // el código es simplemente volver a guardar el curso con un código distinto.
 const { getCursosTable } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 module.exports = async function (context, req) {

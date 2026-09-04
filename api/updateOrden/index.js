@@ -4,7 +4,7 @@
 // dentro de un tipo (tabla "Recursos") — solo cambia qué tabla y qué PartitionKey
 // se manda desde el admin.
 const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
 module.exports = async function (context, req) {
   const body = req.body || {};

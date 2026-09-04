@@ -7,7 +7,7 @@ const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
 
 const TIPOS = ["manual", "caso", "plantilla", "skill", "extra"];
 const PLURAL = { manual: "manuales", caso: "casos", plantilla: "plantillas", skill: "skills", extra: "extra" };
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();

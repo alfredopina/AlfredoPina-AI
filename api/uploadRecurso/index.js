@@ -8,7 +8,7 @@
 const crypto = require("crypto");
 const { getRecursosTable, getRecursosContainer } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 const TIPOS_ARCHIVO = ["manual", "caso", "plantilla"];
 
 function sanitizeFilename(name) {

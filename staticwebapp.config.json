@@ -9,11 +9,11 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/adminListCursos",
+      "route": "/api/listCursosAdmin",
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/adminGetRecursos",
+      "route": "/api/getRecursosAdmin",
       "allowedRoles": ["admin"]
     },
     {

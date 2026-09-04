@@ -486,7 +486,7 @@
       document.getElementById('radmTabs').innerHTML = '<span class="radm-hint">Cargando…</span>';
 
       try {
-        const data = await apiGet(`/api/adminListCursos?herramienta=${encodeURIComponent(toolId)}`);
+        const data = await apiGet(`/api/listCursosAdmin?herramienta=${encodeURIComponent(toolId)}`);
         radmCursos = data.cursos || [];
         renderTabs();
         if(radmCursos.length) selectCurso(radmCursos[0].id);
@@ -569,7 +569,7 @@
           await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:id, nombre, codigo, estado:'borrador', orden:Date.now() });
           toast('Curso creado.', true);
           document.getElementById('radmNewCursoArea').innerHTML = '';
-          const data = await apiGet(`/api/adminListCursos?herramienta=${encodeURIComponent(radmTool)}`);
+          const data = await apiGet(`/api/listCursosAdmin?herramienta=${encodeURIComponent(radmTool)}`);
           radmCursos = data.cursos || [];
           selectCurso(id);
         } catch(e){ toast('No se pudo crear el curso: ' + e.message, false); }
@@ -586,7 +586,7 @@
       if(seccionesArea) seccionesArea.innerHTML = '<div class="radm-hint">Cargando recursos…</div>';
 
       try {
-        const data = await apiGet(`/api/adminGetRecursos?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(cursoId)}`);
+        const data = await apiGet(`/api/getRecursosAdmin?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(cursoId)}`);
         radmRecursos = data.recursos || [];
         renderSecciones();
       } catch(e){
@@ -806,7 +806,7 @@
             });
           }
           toast('Recurso guardado.', true);
-          const data = await apiGet(`/api/adminGetRecursos?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(radmCursoId)}`);
+          const data = await apiGet(`/api/getRecursosAdmin?herramienta=${encodeURIComponent(radmTool)}&curso=${encodeURIComponent(radmCursoId)}`);
           radmRecursos = data.recursos || [];
           form.remove();
           renderLista(tipo);

@@ -55,6 +55,13 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
   - **Pendiente Fase 2** (no construida todavía): Azure Blob Storage + Table Storage para los recursos reales, Azure Functions (`getRecursos`, `uploadRecurso`, `updateOrden`, `crearCurso`, `gestionarCodigo`) que reemplacen los datos hardcodeados y validen el código server-side, y el panel de administrador (`/admin`) con login Entra ID — shell de menú lateral (Dashboard, Solicitudes, Cotizaciones, Diagnósticos, Recursos, Encuestas, Diplomas) pensado para que los módulos futuros solo agreguen una sección. Ver `prompt-code-recursos-y-backoffice.md` (fuera del repo, en Downloads de Alfredo) para el alcance completo original de estas dos partes.
   - Link de YouTube en el footer (todas las páginas) es **placeholder** (`href="#"`, marcado con comentario `TODO`) — falta el link real del canal.
 
+**En construcción — Backoffice, base de autenticación (arranque de Fase 2):**
+- `staticwebapp.config.json` (nuevo, raíz del repo) — protege `/admin` y `/admin/*` exigiendo el rol `admin`. Si alguien sin ese rol entra, Azure lo manda a `/.auth/login/aad` (login de Microsoft) automáticamente.
+- `api/GetRoles/` (nueva Function, mismo patrón v3 clásico que `getAvailability`) — Azure la llama justo después de cualquier login y le pasa el correo de quien inició sesión. Si ese correo está en la lista `ADMIN_EMAILS` (arriba del archivo `index.js`), le da el rol `admin`; si no, no le da nada. **Hoy solo tiene `alfredo.pina@lifezen.com.mx`** — para agregar o quitar a alguien (ej. un asistente), se edita ese arreglo y se hace push, no requiere tocar nada más.
+- `admin/index.html` — shell del panel: menú lateral con los 7 módulos (Dashboard, Solicitudes, Cotizaciones, Diagnósticos, Recursos, Encuestas, Diplomas), todos "Próximamente" salvo Dashboard (mensaje de bienvenida). Muestra el correo de quien inició sesión (vía `/.auth/me`) y una liga para cerrar sesión. Visualmente más simple/utilitario que el sitio público, como marca este documento. Un módulo nuevo se agrega como una sección más del mismo shell, no rediseñando nada.
+- **Importante — esto NO se puede probar completo en local:** el candado real (`staticwebapp.config.json` + login de Microsoft) solo lo aplica el runtime de Azure Static Web Apps una vez desplegado. Local solo sirve para revisar que el shell visual funcione; la prueba real del login es entrar a `/admin` ya en producción.
+- Si el correo en `ADMIN_EMAILS` no es exactamente el que usa Alfredo para iniciar sesión en Microsoft 365, el login "funciona" (Azure lo deja entrar) pero `GetRoles` no le da el rol `admin` y ve un error de acceso — si eso pasa, hay que confirmar el correo/UPN exacto y corregir la lista.
+
 **Pendiente / roadmap (ver documentos `Memoria_...` en el Project de claude.ai para detalle completo de cada uno):**
 - Módulo de Diagnóstico (con backend desde el inicio, código por empresa autogestionable, panel de reportes con login Entra ID)
 - Backend + admin de Recursos (ver arriba)
@@ -72,6 +79,13 @@ Excepción: el módulo de Diagnóstico y el futuro backoffice SÍ necesitan back
 ## Historial de sesiones
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-04 alfredo.pina: Backoffice — base de login con Entra ID (arranque Fase 2)
+- Creado `staticwebapp.config.json` protegiendo `/admin` y `/admin/*` con el rol `admin` (redirige a login de Microsoft si no hay sesión)
+- Creada la Function `api/GetRoles` (v3 clásico) que le da el rol `admin` solo a los correos en `ADMIN_EMAILS` — hoy solo `alfredo.pina@lifezen.com.mx`, fácil de ampliar después
+- Construido el shell de `admin/index.html`: menú lateral con los 7 módulos del backoffice (Dashboard funcional con bienvenida, el resto "Próximamente"), correo de sesión + cerrar sesión en la barra superior
+- Corregido un bug de overlap en el topbar del admin en pantallas angostas (le faltaba `flex-wrap` y truncar el texto largo de depuración de `/.auth/me`)
+- Pendiente de probar en producción (el login real de Microsoft no se puede simular en local) — falta confirmar con Alfredo que el correo en `ADMIN_EMAILS` es exactamente el que usa para iniciar sesión en M365, si no se queda fuera de su propio panel
 
 ### 2026-09-04 alfredo.pina: Recursos — ajustes de UX tras primera revisión
 - Quitado el eyebrow "RECURSOS" del título (alineado con `agenda.html`/`cursos.html`, que van directo al `h2`), título cambiado a "Descarga los recursos habilitados para tu próximo curso.", y el breadcrumb ahora muestra una línea descriptiva en el nivel raíz y se vuelve funcional al entrar a una herramienta

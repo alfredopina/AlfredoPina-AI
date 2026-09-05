@@ -104,6 +104,41 @@
   .admin-empty-title{ font-family:var(--display); font-weight:600; font-size:16px; margin-bottom:8px; }
   .admin-empty-text{ font-size:13px; color:var(--text-dim); line-height:1.6; }
 
+  /* ───────────────────────── PANEL DASHBOARD ───────────────────────── */
+  .dash-tabs{ display:flex; gap:6px; border-bottom:1px solid var(--line); margin-bottom:28px; }
+  .dash-tab{
+    font-family:var(--display); font-weight:600; font-size:15px; color:var(--text-dim);
+    background:none; border:none; padding:11px 16px 13px; cursor:pointer; position:relative;
+    transition:color .15s;
+  }
+  .dash-tab:hover{ color:var(--text); }
+  .dash-tab.active{ color:var(--text); }
+  .dash-tab.active::after{
+    content:''; position:absolute; left:12px; right:12px; bottom:-1px; height:2px;
+    background:var(--blue-bright); border-radius:2px 2px 0 0;
+  }
+  .dash-tabpanel{ display:none; }
+  .dash-tabpanel.active{ display:block; }
+
+  .dprod-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  @media (max-width:900px){ .dprod-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:560px){ .dprod-grid{ grid-template-columns:1fr; } }
+  .dprod-card{
+    border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:20px;
+    display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;
+  }
+  .dprod-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c); }
+  .dprod-card-icon{ width:24px; height:24px; color:var(--c); }
+  .dprod-card-icon svg{ width:100%; height:100%; }
+  .dprod-card-value{
+    font-family:var(--display); font-weight:700; font-size:32px; color:var(--text); line-height:1;
+    display:flex; align-items:baseline; gap:5px;
+  }
+  .dprod-card-value-sub{ font-family:var(--mono); font-size:14px; color:var(--text-faint); font-weight:500; }
+  .dprod-card-label{ font-family:var(--body); font-size:12.5px; color:var(--text-dim); }
+  .dprod-card-bar{ height:5px; border-radius:3px; background:var(--line-soft); overflow:hidden; margin-top:2px; }
+  .dprod-card-bar-fill{ height:100%; background:var(--c); border-radius:3px; transition:width .5s ease; }
+
   .admin-welcome{ font-size:13.5px; color:var(--text-dim); line-height:1.7; max-width:520px; }
   .admin-welcome b{ color:var(--text); }
 
@@ -307,20 +342,15 @@
         <span class="admin-nav-soon">PRONTO</span>
       </button>
 
-      <div class="admin-nav-group">PRODUCTO</div>
-      <button class="admin-nav-item" data-panel="cursos">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
-        Cursos
-      </button>
-      <button class="admin-nav-item" data-panel="recursos">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
-        Recursos
-      </button>
-
       <div class="admin-nav-group">OPERACIÓN</div>
       <button class="admin-nav-item" data-panel="clientes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h1M8 12h1M8 16h1" stroke-linecap="round"/></svg></span>
         Clientes
+        <span class="admin-nav-soon">PRONTO</span>
+      </button>
+      <button class="admin-nav-item" data-panel="tracking">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="10" width="5" height="10" rx="1"/><rect x="9.5" y="5" width="5" height="15" rx="1"/><rect x="16" y="13" width="5" height="7" rx="1"/></svg></span>
+        Tracking
         <span class="admin-nav-soon">PRONTO</span>
       </button>
 
@@ -334,6 +364,16 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diplomas
         <span class="admin-nav-soon">PRONTO</span>
+      </button>
+
+      <div class="admin-nav-group">PRODUCTO</div>
+      <button class="admin-nav-item" data-panel="cursos">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+        Cursos
+      </button>
+      <button class="admin-nav-item" data-panel="recursos">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
+        Recursos
       </button>
     </nav>
 
@@ -357,37 +397,41 @@
 
     <div class="admin-content">
       <div class="admin-panel active" id="panel-dashboard">
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">COMERCIAL</span>
-            <span class="admin-nav-soon">PRONTO</span>
-          </div>
-          <div class="radm-empty-row">Sin métricas todavía — este pilar (Solicitudes, Cotizaciones, Diagnósticos) entra en construcción a partir de la Fase 1.</div>
+        <div class="dash-tabs" id="dashTabs">
+          <button type="button" class="dash-tab active" data-dashtab="comercial">Comercial</button>
+          <button type="button" class="dash-tab" data-dashtab="operacion">Operación</button>
+          <button type="button" class="dash-tab" data-dashtab="cierre">Cierre</button>
+          <button type="button" class="dash-tab" data-dashtab="producto">Producto</button>
         </div>
 
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">PRODUCTO</span>
+        <div class="dash-tabpanel active" id="dashTab-comercial">
+          <div class="admin-empty">
+            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+            <div class="admin-empty-title">Comercial — próximamente</div>
+            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Solicitudes, Cotizaciones, Diagnósticos) entra en construcción a partir de la Fase 1.</div>
           </div>
-          <div class="radm-list" id="dashProductoMetrics">
+        </div>
+
+        <div class="dash-tabpanel" id="dashTab-operacion">
+          <div class="admin-empty">
+            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+            <div class="admin-empty-title">Operación — próximamente</div>
+            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Clientes, Tracking) entra en construcción en la Fase 2.</div>
+          </div>
+        </div>
+
+        <div class="dash-tabpanel" id="dashTab-cierre">
+          <div class="admin-empty">
+            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+            <div class="admin-empty-title">Cierre — próximamente</div>
+            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Encuestas, Diplomas) entra en construcción en la Fase 3.</div>
+          </div>
+        </div>
+
+        <div class="dash-tabpanel" id="dashTab-producto">
+          <div class="dprod-grid" id="dashProductoMetrics">
             <div class="radm-empty-row">Cargando métricas…</div>
           </div>
-        </div>
-
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">OPERACIÓN</span>
-            <span class="admin-nav-soon">PRONTO</span>
-          </div>
-          <div class="radm-empty-row">Sin métricas todavía — este pilar (Clientes) entra en construcción más adelante en el roadmap.</div>
-        </div>
-
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">CIERRE</span>
-            <span class="admin-nav-soon">PRONTO</span>
-          </div>
-          <div class="radm-empty-row">Sin métricas todavía — este pilar (Encuestas, Diplomas) entra en construcción en la Fase 4.</div>
         </div>
       </div>
 
@@ -433,6 +477,7 @@
       </div>
 
       <div class="admin-panel" id="panel-clientes"></div>
+      <div class="admin-panel" id="panel-tracking"></div>
       <div class="admin-panel" id="panel-encuestas"></div>
       <div class="admin-panel" id="panel-diplomas"></div>
     </div>
@@ -463,13 +508,13 @@
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
-    encuestas: 'Encuestas', diplomas: 'Diplomas',
+    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas',
   };
 
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'encuestas', 'diplomas'].forEach(key => {
+  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'tracking', 'encuestas', 'diplomas'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -501,20 +546,43 @@
     });
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL DASHBOARD — tarjetas de Producto: una llamada a getCatalogoCursosAdmin
+  // PANEL DASHBOARD — pestañas Comercial/Operación/Cierre/Producto.
+  // Producto trae tarjetas reales: una llamada a getCatalogoCursosAdmin
   // (temas/temarios/proyectos, módulo Cursos) + una a getResumenProductosAdmin
   // (cursos con código de descarga, módulo Recursos), sumadas en el cliente.
-  // Comercial y Operación son placeholder hasta sus fases del roadmap.
+  // Las demás pestañas son placeholder hasta su fase del roadmap.
   // ═══════════════════════════════════════════════════════════════
+  (function(){
+    document.getElementById('dashTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-tab');
+      if(!btn) return;
+      const key = btn.dataset.dashtab;
+      document.querySelectorAll('.dash-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
+    });
+  })();
+
   (function(){
     const HERRAMIENTAS_TOTAL = 6;
     const el = document.getElementById('dashProductoMetrics');
 
-    function fila(titulo, sub){
-      return `<div class="radm-row"><div class="radm-row-body">
-        <div class="radm-row-title">${titulo}</div>
-        <div class="radm-row-sub">${sub}</div>
-      </div></div>`;
+    const DICO = {
+      layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5Z" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke-linejoin="round"/></svg>',
+      book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+      clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3V2h6v1M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg>',
+      rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 2 5 6 5 10 0 2-1 4-1 4H8s-1-2-1-4c0-4 2-8 5-10Z" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-2M15 16l2 5-3-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>',
+      folderCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="m9 13 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+
+    function tarjeta(color, icon, valor, valorSub, label, pct){
+      const pctSeguro = Number.isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0;
+      return `<div class="dprod-card" style="--c:${color}">
+        <span class="dprod-card-icon">${icon}</span>
+        <div class="dprod-card-value">${valor}<span class="dprod-card-value-sub">/${valorSub}</span></div>
+        <div class="dprod-card-label">${label}</div>
+        <div class="dprod-card-bar"><div class="dprod-card-bar-fill" style="width:${pctSeguro}%"></div></div>
+      </div>`;
     }
 
     async function cargarMetricasProducto(){
@@ -549,12 +617,12 @@
         });
 
         el.innerHTML = [
-          fila('Herramientas activas', `${activas} de ${HERRAMIENTAS_TOTAL}`),
-          fila('Temas en banco', `${temasTotal} totales · ${temasPub} publicados`),
-          fila('Temarios Estándar', `${temariosTotal} totales · ${temariosPub} publicados`),
-          fila('Proyectos', `${proyectosTotal} totales · ${proyectosPub} publicados`),
-          fila('Cursos con código de descarga', `${cursosTotal} totales · ${cursosPub} publicados`),
-          fila('Cursos con recursos ya cargados', `${conRecursos} de ${cursosTotal}`),
+          tarjeta('#3d7fff', DICO.layers, activas, HERRAMIENTAS_TOTAL, 'Herramientas activas', activas / HERRAMIENTAS_TOTAL * 100),
+          tarjeta('#22c55e', DICO.book, temasPub, temasTotal, 'Temas en banco publicados', temasPub / temasTotal * 100),
+          tarjeta('#f2c94c', DICO.clipboard, temariosPub, temariosTotal, 'Temarios Estándar publicados', temariosPub / temariosTotal * 100),
+          tarjeta('#a78bfa', DICO.rocket, proyectosPub, proyectosTotal, 'Proyectos publicados', proyectosPub / proyectosTotal * 100),
+          tarjeta('#c026d3', DICO.download, cursosPub, cursosTotal, 'Cursos con código publicados', cursosPub / cursosTotal * 100),
+          tarjeta('#f97316', DICO.folderCheck, conRecursos, cursosTotal, 'Cursos con recursos cargados', conRecursos / cursosTotal * 100),
         ].join('');
       } catch(e){
         el.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;

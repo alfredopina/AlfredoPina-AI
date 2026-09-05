@@ -39,6 +39,50 @@
     {
       "route": "/api/updateOrden",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getCatalogoCursosAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listTemasAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearTema",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarTema",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listTemariosAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearTemario",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarTemario",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listProyectosAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearProyecto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarProyecto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/updateOrdenCursos",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

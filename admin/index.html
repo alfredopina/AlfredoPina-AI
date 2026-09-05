@@ -113,15 +113,26 @@
   .radm-toast.ok{ color:var(--good); border-color:var(--good); background:color-mix(in srgb, var(--good) 10%, var(--panel)); }
   .radm-toast.err{ color:var(--bad); border-color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, var(--panel)); }
 
-  .radm-tools-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; }
+  .radm-tools-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
   .radm-tool-card{
     display:flex; flex-direction:column; gap:10px; border:1px solid var(--line); border-radius:10px;
     background:var(--panel); padding:18px; cursor:pointer; transition:border-color .15s; text-align:left;
+    color:var(--text); font:inherit;
   }
   .radm-tool-card:hover{ border-color:var(--c); }
   .radm-tool-icon{ width:22px; height:22px; color:var(--c); }
   .radm-tool-icon svg{ width:100%; height:100%; }
-  .radm-tool-name{ font-family:var(--display); font-weight:600; font-size:14px; }
+  .radm-tool-name{ font-family:var(--display); font-weight:600; font-size:14px; color:var(--text); }
+  .radm-tool-cursos{ display:flex; flex-direction:column; gap:4px; margin-top:2px; }
+  .radm-tool-curso-item{
+    font-family:var(--mono); font-size:11px; color:var(--text-dim); padding-left:14px; position:relative;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .radm-tool-curso-item::before{ content:'—'; position:absolute; left:0; color:var(--c); }
+  .radm-tool-empty{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+
+  @media (max-width:1100px){ .radm-tools-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:520px){ .radm-tools-grid{ grid-template-columns:1fr; } }
 
   .radm-back{
     display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
@@ -161,7 +172,11 @@
     background:var(--panel); max-width:460px;
   }
 
-  .radm-form{ border:1px solid var(--line); border-radius:8px; padding:20px; background:var(--panel); margin-bottom:32px; }
+  .radm-form{
+    border:2px solid var(--c); border-radius:10px; padding:22px; margin-bottom:32px;
+    background:color-mix(in srgb, var(--c) 6%, var(--panel));
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--c) 8%, transparent);
+  }
   .radm-form-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
   .radm-field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
   .radm-field label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; }
@@ -175,6 +190,7 @@
   .radm-mono{ font-family:var(--mono); }
 
   .radm-switch-row{ display:flex; align-items:center; gap:10px; }
+  .radm-actions-buttons{ display:flex; align-items:center; gap:10px; }
   .radm-switch{ position:relative; width:38px; height:21px; flex:none; }
   .radm-switch input{ opacity:0; width:100%; height:100%; margin:0; cursor:pointer; position:absolute; z-index:1; }
   .radm-switch-track{
@@ -188,15 +204,19 @@
   .radm-switch input:checked ~ .radm-switch-track::before{ transform:translateX(17px); background:var(--panel); }
   .radm-switch-label{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
 
-  .radm-actions{ display:flex; align-items:center; gap:10px; margin-top:6px; }
+  .radm-actions{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-top:18px;
+    padding-top:18px; border-top:1px solid color-mix(in srgb, var(--c) 25%, var(--line));
+  }
   .radm-btn{
-    font-family:var(--mono); font-size:12px; border-radius:6px; padding:9px 16px; cursor:pointer;
-    border:1px solid var(--c); color:var(--c); background:none; transition:background .15s;
+    font-family:var(--mono); font-size:12px; font-weight:600; border-radius:6px; padding:10px 18px; cursor:pointer;
+    border:1px solid var(--c); color:var(--c); background:none; transition:background .15s; min-width:130px;
+    text-align:center;
   }
   .radm-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
   .radm-btn:disabled{ opacity:.5; cursor:default; }
   .radm-btn-ghost{ border-color:var(--line); color:var(--text-dim); }
-  .radm-btn-danger{ border-color:var(--bad); color:var(--bad); margin-left:auto; }
+  .radm-btn-danger{ border-color:var(--bad); color:var(--bad); }
   .radm-btn-danger:hover{ background:color-mix(in srgb, var(--bad) 12%, transparent); }
   .radm-btn-add{
     font-family:var(--mono); font-size:11px; color:var(--c); background:none; border:1px solid var(--c);
@@ -504,14 +524,19 @@
     let radmRecursos = [];
 
     // ── nivel 1 — herramientas ──
-    function renderToolsGrid(){
+    function renderToolsGrid(catalogo){
       const grid = document.getElementById('radmToolsGrid');
       grid.innerHTML = Object.keys(TOOL_META).map(id => {
         const t = TOOL_META[id];
+        const cursos = (catalogo && catalogo[id]) || [];
+        const listaCursos = cursos.length
+          ? `<div class="radm-tool-cursos">${cursos.map(c => `<span class="radm-tool-curso-item">${escapeHtml(c.nombre)}</span>`).join('')}</div>`
+          : `<span class="radm-tool-empty">Sin cursos publicados</span>`;
         return `
           <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
             <span class="radm-tool-icon">${t.icon}</span>
             <span class="radm-tool-name">${t.nombre}</span>
+            ${listaCursos}
           </button>`;
       }).join('');
       grid.querySelectorAll('.radm-tool-card').forEach(card => {
@@ -519,10 +544,22 @@
       });
     }
 
+    // el catálogo público (solo cursos publicados) alcanza para pintar las viñetas del nivel 1 —
+    // no hace falta pedir los 6 listCursosAdmin por separado
+    async function cargarToolsGrid(){
+      try {
+        const catalogo = await apiGet('/api/getCatalogoRecursos');
+        renderToolsGrid(catalogo);
+      } catch(e){
+        renderToolsGrid(null);
+      }
+    }
+
     function goTools(){
       radmTool = null; radmCursoId = null;
       document.getElementById('radmView-tools').classList.add('active');
       document.getElementById('radmView-tool').classList.remove('active');
+      cargarToolsGrid(); // por si se publicó/despublicó algo, refresca las viñetas
     }
     document.getElementById('radmBack').addEventListener('click', goTools);
 
@@ -532,8 +569,9 @@
       const t = TOOL_META[toolId];
       document.getElementById('radmView-tools').classList.remove('active');
       document.getElementById('radmView-tool').classList.add('active');
+      document.getElementById('radmView-tool').style.setProperty('--c', t.color);
       document.getElementById('radmToolHead').innerHTML = `
-        <span class="radm-head-icon" style="--c:${t.color}">${t.icon}</span>
+        <span class="radm-head-icon">${t.icon}</span>
         <span class="radm-head-title">${t.nombre}</span>`;
       document.getElementById('radmNewCursoArea').innerHTML = '';
       document.getElementById('radmCursoArea').innerHTML = '';
@@ -600,7 +638,7 @@
               <input type="text" id="radmNewCodigo" class="radm-mono" placeholder="EXCEL2026">
             </div>
           </div>
-          <div class="radm-actions">
+          <div class="radm-actions-buttons">
             <button type="button" class="radm-btn" id="radmBtnCrearCurso">Crear curso</button>
             <button type="button" class="radm-btn radm-btn-ghost" id="radmBtnCancelarCurso">Cancelar</button>
           </div>
@@ -668,7 +706,7 @@
               <input type="text" id="radmCursoCodigo" class="radm-mono" value="${escapeHtml(curso.codigo)}">
             </div>
           </div>
-          <div class="radm-form-row">
+          <div class="radm-actions">
             <div class="radm-switch-row">
               <label class="radm-switch">
                 <input type="checkbox" id="radmCursoEstado" ${curso.estado === 'publicado' ? 'checked' : ''}>
@@ -676,10 +714,10 @@
               </label>
               <span class="radm-switch-label" id="radmEstadoLabel">${curso.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
             </div>
-          </div>
-          <div class="radm-actions">
-            <button type="button" class="radm-btn" id="radmBtnGuardarCurso">Guardar cambios</button>
-            <button type="button" class="radm-btn radm-btn-danger" id="radmBtnEliminarCurso">Eliminar curso</button>
+            <div class="radm-actions-buttons">
+              <button type="button" class="radm-btn" id="radmBtnGuardarCurso">Guardar cambios</button>
+              <button type="button" class="radm-btn radm-btn-danger" id="radmBtnEliminarCurso">Eliminar curso</button>
+            </div>
           </div>
           <div class="radm-hint">Rotar el código no cierra la sesión de quien ya lo desbloqueó en su navegador — solo bloquea intentos nuevos con el código viejo.</div>
         </div>
@@ -820,7 +858,7 @@
             <input type="file" class="radm-f-archivo">
           </div>
         </div>` : ''}
-        <div class="radm-actions">
+        <div class="radm-actions-buttons">
           <button type="button" class="radm-btn radm-f-guardar">Guardar</button>
           <button type="button" class="radm-btn radm-btn-ghost radm-f-cancelar">Cancelar</button>
         </div>`;
@@ -880,7 +918,7 @@
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
 
-    renderToolsGrid();
+    cargarToolsGrid();
   })();
 </script>
 

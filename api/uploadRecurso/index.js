@@ -26,6 +26,7 @@ module.exports = async function (context, req) {
   const tipo = (body.tipo || "").trim().toLowerCase();
   const titulo = (body.titulo || "").trim();
   const texto = (body.texto || "").trim();
+  const nombreOriginal = (body.filename || "archivo").trim();
   const filename = sanitizeFilename(body.filename);
   const contentType = body.contentType || "application/octet-stream";
   const rowKey = (body.rowKey || "").trim() || crypto.randomUUID();
@@ -60,8 +61,17 @@ module.exports = async function (context, req) {
       oldBlobPath = existente.blobPath || null;
     } catch (e) { /* no existía, es un recurso nuevo */ }
 
+    // el blob vive con un nombre "seguro" (blobPath) para que la URL nunca tenga problemas,
+    // pero Content-Disposition le dice al navegador con qué nombre real guardar la descarga —
+    // sin esto, al ser un dominio distinto (blob.core.windows.net), el atributo download="..."
+    // del link se ignora y el navegador usa el nombre del blob tal cual.
+    const dispoAscii = filename.replace(/"/g, "");
+    const contentDisposition = `attachment; filename="${dispoAscii}"; filename*=UTF-8''${encodeURIComponent(nombreOriginal)}`;
+
     const blockBlobClient = container.getBlockBlobClient(blobPath);
-    await blockBlobClient.uploadData(buffer, { blobHTTPHeaders: { blobContentType: contentType } });
+    await blockBlobClient.uploadData(buffer, {
+      blobHTTPHeaders: { blobContentType: contentType, blobContentDisposition: contentDisposition },
+    });
 
     await recursosTable.upsertEntity(
       { partitionKey, rowKey, tipo, titulo, texto, url: blockBlobClient.url, blobPath, orden },

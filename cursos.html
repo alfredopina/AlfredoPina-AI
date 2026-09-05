@@ -29,6 +29,7 @@
     --text: #edf0f4;
     --text-dim: #8991a1;
     --text-faint: #4c5462;
+    --c: #22c55e; --c-bright: color-mix(in srgb, var(--c) 82%, white);
     --mono: 'JetBrains Mono', monospace;
     --display: 'Space Grotesk', sans-serif;
     --body: 'Inter', sans-serif;
@@ -453,7 +454,7 @@
   @media (max-width:860px){ .cat-nav{ grid-template-columns:repeat(3,1fr); } .cat-cell-label{ font-size:11.5px; } }
   @media (max-width:480px){ .cat-nav{ grid-template-columns:repeat(2,1fr); } .cat-nav-wrap{ top:0; } }
 
-  /* EXCEL — sub-nav de modo (constructor vs plantillas) */
+  /* TOOL MODES — sub-nav de modo (constructor vs plantillas), color por herramienta vía --c */
   .excel-modes{ display:flex; gap:10px; margin-bottom:40px; flex-wrap:wrap; }
   .excel-mode-btn{
     font-family:var(--mono); font-size:12.5px; letter-spacing:.3px;
@@ -461,8 +462,8 @@
     color:var(--text-dim); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:9px;
   }
   .excel-mode-btn svg{ width:14px; height:14px; }
-  .excel-mode-btn:hover{ border-color:#22c55e88; color:var(--text); }
-  .excel-mode-btn.active{ background:rgba(34,197,94,.12); border-color:#22c55e; color:#4ade80; }
+  .excel-mode-btn:hover{ border-color:var(--c); color:var(--text); }
+  .excel-mode-btn.active{ background:color-mix(in srgb, var(--c) 12%, transparent); border-color:var(--c); color:var(--c-bright); }
   .excel-view{ display:none; }
   .excel-view.active{ display:block; }
 
@@ -471,12 +472,12 @@
 
   /* barra de fórmula del constructor */
   .formula-builder-bar{
-    display:flex; align-items:stretch; border:1px solid #22c55e55; border-radius:6px;
+    display:flex; align-items:stretch; border:1px solid color-mix(in srgb, var(--c) 35%, transparent); border-radius:6px;
     background:var(--panel); overflow-x:auto; margin-bottom:16px; transition:border-color .3s;
   }
   .formula-builder-fx{
-    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:#4ade80;
-    background:rgba(34,197,94,.10); padding:18px 16px; border-right:1px solid #22c55e55; flex:none;
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--c-bright);
+    background:color-mix(in srgb, var(--c) 10%, transparent); padding:18px 16px; border-right:1px solid color-mix(in srgb, var(--c) 35%, transparent); flex:none;
     display:flex; align-items:center;
   }
   .formula-builder-body{
@@ -484,22 +485,22 @@
     white-space:nowrap; display:flex; align-items:center; flex:1; min-height:20px;
   }
   .formula-builder-body .placeholder{ color:var(--text-faint); }
-  .formula-builder-body .fterm{ color:#4ade80; }
+  .formula-builder-body .fterm{ color:var(--c-bright); }
   .formula-builder-body .fop{ color:var(--text-faint); margin:0 5px; }
-  .formula-cursor{ display:inline-block; width:2px; height:15px; background:#4ade80; margin-left:5px; animation:blink-cursor 1s step-end infinite; vertical-align:middle; }
+  .formula-cursor{ display:inline-block; width:2px; height:15px; background:var(--c-bright); margin-left:5px; animation:blink-cursor 1s step-end infinite; vertical-align:middle; }
   @keyframes blink-cursor{0%,100%{opacity:1;} 50%{opacity:0;}}
 
   .builder-meta{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:6px; min-height:22px; }
   .builder-total{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
-  .builder-total b{ color:#4ade80; }
+  .builder-total b{ color:var(--c-bright); }
   .builder-warning{ font-size:12.5px; color:#f2c94c; display:none; align-items:center; gap:7px; }
   .builder-warning.show{ display:flex; }
   .builder-warning svg{ flex:none; }
 
   .builder-bonuses{ display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 4px; min-height:0; }
   .bonus-pill{
-    font-family:var(--mono); font-size:11px; color:#4ade80; background:rgba(34,197,94,.1);
-    border:1px solid #22c55e55; padding:6px 13px; border-radius:12px; display:flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:11px; color:var(--c-bright); background:color-mix(in srgb, var(--c) 10%, transparent);
+    border:1px solid color-mix(in srgb, var(--c) 35%, transparent); padding:6px 13px; border-radius:12px; display:flex; align-items:center; gap:7px;
   }
   .bonus-pill svg{ width:11px; height:11px; flex:none; }
 
@@ -511,8 +512,8 @@
     position:relative; text-align:left; border:1px solid var(--line); border-radius:8px; background:var(--panel);
     padding:14px 14px 12px; cursor:pointer; transition:all .2s; font-family:inherit;
   }
-  .topic-card:hover{ border-color:#22c55e88; }
-  .topic-card.selected{ border-color:#22c55e; background:rgba(34,197,94,.06); }
+  .topic-card:hover{ border-color:var(--c); }
+  .topic-card.selected{ border-color:var(--c); background:color-mix(in srgb, var(--c) 6%, transparent); }
   .topic-cell-ref{ position:absolute; top:8px; right:10px; font-family:var(--mono); font-size:9px; color:var(--text-faint); }
   .topic-head{ display:flex; align-items:flex-start; gap:8px; padding-right:22px; margin-bottom:6px; }
   .topic-check{
@@ -520,7 +521,7 @@
     display:flex; align-items:center; justify-content:center; transition:all .2s; background:var(--panel-2);
   }
   .topic-check svg{ width:9px; height:9px; color:#0a0d12; opacity:0; transition:opacity .15s; }
-  .topic-card.selected .topic-check{ background:#22c55e; border-color:#22c55e; }
+  .topic-card.selected .topic-check{ background:var(--c); border-color:var(--c); }
   .topic-card.selected .topic-check svg{ opacity:1; }
   .topic-name{ font-family:var(--display); font-weight:600; font-size:13.5px; color:var(--text); line-height:1.32; }
   .topic-meta{ font-family:var(--mono); font-size:10px; letter-spacing:.3px; color:var(--text-faint); margin-bottom:8px; }
@@ -529,10 +530,10 @@
   .builder-cta-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:6px; }
   .builder-cta{
     font-family:var(--body); font-weight:600; font-size:14px; padding:14px 26px; border-radius:4px;
-    background:#22c55e; color:#0a0d12; border:1px solid transparent; cursor:pointer; transition:all .15s;
+    background:var(--c); color:#0a0d12; border:1px solid transparent; cursor:pointer; transition:all .15s;
     display:inline-flex; align-items:center; gap:10px;
   }
-  .builder-cta:hover:not(:disabled){ background:#4ade80; transform:translateY(-1px); }
+  .builder-cta:hover:not(:disabled){ background:var(--c-bright); transform:translateY(-1px); }
   .builder-cta:disabled{ background:var(--panel-2); color:var(--text-faint); border:1px solid var(--line); cursor:not-allowed; }
   .builder-cta-hint{ font-size:12px; color:var(--text-faint); }
 
@@ -551,14 +552,14 @@
     font-family:var(--body); font-size:13.5px; padding:10px 12px; transition:border-color .2s;
   }
   .lead-form textarea{ font-size:13px; resize:vertical; min-height:64px; }
-  .lead-form input:focus, .lead-form textarea:focus{ outline:none; border-color:#22c55e; }
+  .lead-form input:focus, .lead-form textarea:focus{ outline:none; border-color:var(--c); }
   .pill-group{ display:flex; flex-wrap:wrap; gap:7px; }
   .pill-opt{
     font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel);
     border:1px solid var(--line); padding:7px 12px; border-radius:16px; cursor:pointer; transition:all .2s;
   }
-  .pill-opt:hover{ border-color:#22c55e88; color:var(--text); }
-  .pill-opt.active{ background:rgba(34,197,94,.14); border-color:#22c55e; color:#4ade80; }
+  .pill-opt:hover{ border-color:var(--c); color:var(--text); }
+  .pill-opt.active{ background:color-mix(in srgb, var(--c) 14%, transparent); border-color:var(--c); color:var(--c-bright); }
   .lead-form-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
   .lead-btn{
     font-family:var(--body); font-weight:600; font-size:13px; padding:11px 18px; border-radius:4px;
@@ -567,7 +568,7 @@
   }
   .lead-btn svg{ width:15px; height:15px; }
   .lead-btn.wa:hover{ border-color:#25D366; background:rgba(37,211,102,.1); color:#25D366; }
-  .lead-btn.mail:hover{ border-color:#22c55e; background:rgba(34,197,94,.1); color:#4ade80; }
+  .lead-btn.mail:hover{ border-color:var(--c); background:color-mix(in srgb, var(--c) 10%, transparent); color:var(--c-bright); }
 
   /* nota de precios — lista con viñetas */
   .pricing-note{ margin-top:18px; max-width:640px; }
@@ -575,19 +576,19 @@
   .pricing-note li{
     display:flex; gap:9px; align-items:flex-start; font-size:11.5px; color:var(--text-faint); line-height:1.6;
   }
-  .pricing-note li svg{ width:11px; height:11px; color:#22c55e88; flex:none; margin-top:3px; }
+  .pricing-note li svg{ width:11px; height:11px; color:var(--c); flex:none; margin-top:3px; }
 
   /* EXCEL — plantillas estándar: encabezados estilo función */
   .programs-list{ display:flex; flex-direction:column; gap:14px; margin-top:6px; }
   .program-fn{
     border:1px solid var(--line); border-radius:8px; background:var(--panel); overflow:hidden; transition:border-color .2s;
   }
-  .program-fn.open{ border-color:#22c55e55; }
+  .program-fn.open{ border-color:color-mix(in srgb, var(--c) 35%, transparent); }
   .program-fn-head{
     display:flex; align-items:center; justify-content:space-between; padding:22px; cursor:pointer; gap:14px; flex-wrap:wrap;
   }
   .program-fn-name{ font-family:var(--mono); font-size:15px; }
-  .program-fn-name .fn-kw{ color:#4ade80; }
+  .program-fn-name .fn-kw{ color:var(--c-bright); }
   .program-fn-name .fn-args{ color:var(--text-faint); }
   .program-fn-hours{ font-family:var(--mono); font-size:12px; color:var(--text-faint); display:flex; align-items:center; gap:10px; }
   .program-fn-chevron{ width:16px; height:16px; color:var(--text-faint); transition:transform .3s; flex:none; }
@@ -597,7 +598,7 @@
   .program-fn-inner{ padding:0 22px 26px; }
   .program-fn-obj{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; padding-top:20px; border-top:1px solid var(--line-soft); }
   @media (max-width:700px){ .program-fn-obj{ grid-template-columns:1fr; } }
-  .program-fn-obj h4{ font-family:var(--mono); font-size:10.5px; color:#4ade80; letter-spacing:.4px; margin-bottom:8px; }
+  .program-fn-obj h4{ font-family:var(--mono); font-size:10.5px; color:var(--c-bright); letter-spacing:.4px; margin-bottom:8px; }
   .program-fn-obj p{ font-size:13px; color:var(--text-dim); line-height:1.65; }
 
   .curso-panel{ display:none; }
@@ -751,259 +752,7 @@
 </header>
 
 <section class="wrap" style="padding-top:0;">
-
-  <!-- EXCEL -->
-  <div class="curso-panel active" data-panel="excel">
-
-    <div class="excel-modes">
-      <button class="excel-mode-btn active" data-mode="standard" onclick="setExcelMode('standard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11" stroke-linecap="round"/></svg>
-        Temarios Estándar
-      </button>
-      <button class="excel-mode-btn" data-mode="builder" onclick="setExcelMode('builder')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10" stroke-linecap="round"/></svg>
-        Personalizar Temario
-      </button>
-    </div>
-
-    <!-- VISTA: PLANTILLAS ESTÁNDAR -->
-    <div class="excel-view active" data-view="standard">
-      <div class="builder-title">Nuestros programas más pedidos</div>
-      <p class="builder-sub">Dos rutas ya armadas — la mayoría de nuestros clientes empieza aquí.</p>
-
-      <div class="programs-list" id="programsList"></div>
-    </div>
-
-    <!-- VISTA: CONSTRUCTOR PERSONALIZADO -->
-    <div class="excel-view" data-view="builder">
-      <div class="builder-title">Construye tu temario a tu necesidad</div>
-      <p class="builder-sub">Elige los temas que tu equipo necesita. La fórmula se arma sola — y tu cotización también.</p>
-
-      <div class="formula-builder-bar">
-        <span class="formula-builder-fx">fx</span>
-        <span class="formula-builder-body" id="builderBarBody">
-          <span class="placeholder">=EXCEL( elige tus temas… )</span>
-        </span>
-      </div>
-
-      <div class="builder-meta">
-        <div class="builder-total" id="builderTotal"><b>0 hr</b> · 0 temas seleccionados</div>
-        <div class="builder-warning" id="builderWarning">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Te recomendamos incluir fundamentos antes de temas avanzados.</span>
-        </div>
-      </div>
-
-      <div class="builder-bonuses" id="builderBonuses"></div>
-
-      <div class="topics-grid" id="topicsGrid"></div>
-
-      <div class="builder-cta-row">
-        <button class="builder-cta" id="builderCtaBtn" disabled onclick="openLeadForm('builder')">
-          Solicitar cotización
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <span class="builder-cta-hint" id="builderCtaHint">Selecciona al menos 12 hr (3 temas) para cotizar.</span>
-      </div>
-
-      <div class="pricing-note" id="pricingNoteBuilder"></div>
-
-      <div id="leadFormSlot-builder"></div>
-    </div>
-
-  </div>
-
-  <!-- POWER BI -->
-  <div class="curso-panel" data-panel="powerbi">
-    <div class="curso-grid">
-
-      <!-- Power BI Básico - Intermedio -->
-      <div class="curso-card">
-        <div class="curso-top">
-          <div class="curso-level">BÁSICO · INTERMEDIO</div>
-          <div class="curso-hours">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
-            20 hr
-          </div>
-        </div>
-        <h3 class="curso-title">Power BI Básico – Intermedio</h3>
-        <p class="curso-desc">Gestiona informes con gráficos disruptivos, modelos relacionados y transformaciones en Power Query — más gráficos de IA para la toma de decisiones y publicación en la nube.</p>
-        <div class="curso-tags">
-          <span class="chip">Power Query</span>
-          <span class="chip">Modelo de Datos</span>
-          <span class="chip">DAX</span>
-          <span class="chip">Dashboards</span>
-        </div>
-        <button class="curso-toggle" onclick="toggleCurso(this)">
-          Ver temario completo
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="curso-sessions">
-          <div class="session">
-            <div class="session-num">1</div>
-            <div class="session-body">
-              <b>Introducción y obtención de datos</b>
-              <p>Qué es Power BI, flujos de información y roles. Conexión a Excel, CSV/TXT, web y carpetas. Caso práctico: Transformación de datos e informes cruzados.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">2</div>
-            <div class="session-body">
-              <b>Power Query y transformación avanzada</b>
-              <p>Editor de consultas, transformaciones de texto, fecha, hora y número, agregar y combinar consultas. Caso práctico: Agregar y combinar consultas (Txt/Csv).</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">3</div>
-            <div class="session-body">
-              <b>Anexar datos y modelo relacional</b>
-              <p>Anexar desde carpetas, relaciones 1:1 / 1:* / *:*, buenas prácticas de modelado. Caso práctico: reportes híbridos y modelos de datos con relaciones.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">4</div>
-            <div class="session-body">
-              <b>DAX y medidas calculadas</b>
-              <p>Tablas y campos calculados, tablas calendario, funciones DAX de texto, fecha, agregación y búsqueda. Caso práctico: repaso general con medidas de agregación.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">5</div>
-            <div class="session-body">
-              <b>Visualizaciones, KPI y publicación</b>
-              <p>Gráficos de IA, KPI y medidores, formatos condicionales, mini gráficos. Publicar y compartir en el servicio web. Caso práctico: modelado DAX & KPI con gráficos analíticos.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-        </div>
-        <div class="curso-foot">
-          <b>Dirigido a:</b> profesionistas, analistas, personal administrativo, coordinadores de área y gerentes que interactúan con la plataforma o buscan generar informes de valor.
-        </div>
-      </div>
-
-      <!-- Power BI Intermedio - Avanzado -->
-      <div class="curso-card">
-        <div class="curso-top">
-          <div class="curso-level">INTERMEDIO · AVANZADO</div>
-          <div class="curso-hours">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
-            20 hr
-          </div>
-        </div>
-        <h3 class="curso-title">Power BI Intermedio – Avanzado</h3>
-        <p class="curso-desc">Cálculos DAX avanzados, conexiones a fuentes empresariales y gestión de datasets — más configuraciones especiales de seguridad y actualización para informes a nivel producción.</p>
-        <div class="curso-tags">
-          <span class="chip">DAX Avanzado</span>
-          <span class="chip">SQL Server</span>
-          <span class="chip">Seguridad RLS</span>
-          <span class="chip">Automatización</span>
-        </div>
-        <button class="curso-toggle" onclick="toggleCurso(this)">
-          Ver temario completo
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="curso-sessions">
-          <div class="session">
-            <div class="session-num">1</div>
-            <div class="session-body">
-              <b>DAX avanzado y buenas prácticas</b>
-              <p>Funciones DAX de fecha, texto, agregación, filtro y relaciones. Uso de CALCULATE y optimización de fórmulas. Caso práctico: buenas prácticas DAX & gráficos de AppSource.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">2</div>
-            <div class="session-body">
-              <b>Visualizaciones avanzadas y personalización</b>
-              <p>Tooltips, múltiplos pequeños, pronósticos y detección de anomalías, gráficos estadísticos y nuevos gráficos. Caso práctico: Pivot, clúster y marcadores avanzados.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">3</div>
-            <div class="session-body">
-              <b>Conexiones avanzadas a fuentes de datos</b>
-              <p>Conexión a SharePoint, Access y SQL Server; Import vs. DirectQuery, actualización incremental. Caso práctico: conexión a carpeta de SharePoint y Access.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">4</div>
-            <div class="session-body">
-              <b>Seguridad y gestión de datasets</b>
-              <p>Roles y seguridad a nivel de fila (RLS), gestión de datasets y workspaces, configuraciones especiales de actualización. Caso práctico: SQL, seguridad y Web Service.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-          <div class="session">
-            <div class="session-num">5</div>
-            <div class="session-body">
-              <b>Publicación, marcadores y proyecto final</b>
-              <p>Marcadores avanzados, obtención de detalles, paneles y alertas, actualización programada. Proyecto final: informe integral de los procesos del participante.</p>
-            </div>
-            <div class="session-hr">4 hr</div>
-          </div>
-        </div>
-        <div class="curso-foot">
-          <b>Dirigido a:</b> analistas y profesionistas con experiencia previa en Power BI que buscan profundizar en DAX, conexiones empresariales y gobierno de datos.
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- POWER APPS (próximamente) -->
-  <div class="curso-panel" data-panel="powerapps">
-    <div class="curso-grid">
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        <div class="soon-title">Power Apps — Apps sin código</div>
-        <div class="soon-text">Sustituye formatos en papel y correos perdidos con una app conectada a tus datos.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- POWER AUTOMATE (próximamente) -->
-  <div class="curso-panel" data-panel="powerautomate">
-    <div class="curso-grid">
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="soon-title">Power Automate — Flujos y Aprobaciones</div>
-        <div class="soon-text">Automatiza tareas repetitivas y aprobaciones entre sistemas sin escribir una línea de código.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- IA APLICADA (próximamente) -->
-  <div class="curso-panel" data-panel="ia">
-    <div class="curso-grid">
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="soon-title">Copilot & M365 — Productividad con IA</div>
-        <div class="soon-text">Copilot aplicado a Excel, Word y Outlook para escribir, analizar y decidir más rápido.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- OFIMÁTICA BÁSICA (próximamente) -->
-  <div class="curso-panel" data-panel="ofimatica">
-    <div class="curso-grid">
-      <div class="curso-card soon">
-        <svg class="soon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
-        <div class="soon-title">MS Ofimática — Word, PowerPoint & Outlook</div>
-        <div class="soon-text">Documentos, presentaciones y correos profesionales — la base de la comunicación efectiva en cualquier empresa.</div>
-        <span class="curso-badge-soon">PRÓXIMAMENTE</span>
-      </div>
-    </div>
-  </div>
-
+  <div class="curso-panel active" id="cursoPanel"></div>
 </section>
 
 <footer id="contacto">
@@ -1031,15 +780,10 @@
 </footer>
 
 <script>
-  // toggle temario (acordeón)
-  function toggleCurso(btn){
-    btn.classList.toggle('open');
-    const panel = btn.nextElementSibling;
-    panel.classList.toggle('open');
-  }
-
-  // nav de categorías (celdas) + título/subtítulo comercial dinámico
+  // nav de categorías (celdas) + título/subtítulo comercial dinámico + catálogo por herramienta
   const tabMap = { excel:'excel', powerbi:'powerbi', powerapps:'powerapps', powerautomate:'powerautomate', ia:'ia', ofimatica:'ofimatica' };
+  const TOOL_LABEL = { excel:'EXCEL', powerbi:'POWERBI', powerapps:'POWERAPPS', powerautomate:'POWERAUTOMATE', ia:'IA', ofimatica:'OFIMATICA' };
+  const NIVEL_LABEL = ['', 'Básico', 'Intermedio', 'Avanzado'];
 
   const CAT_META = {
     excel: {
@@ -1077,83 +821,20 @@
   function checkDot(){
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
-
-  function activateTab(cat){
-    if(!tabMap[cat]) return;
-    document.querySelectorAll('.cat-cell').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-    document.querySelectorAll('.curso-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === cat));
-    const meta = CAT_META[cat];
-    if(meta){
-      document.getElementById('catTitle').textContent = meta.title;
-      document.getElementById('catSubtitle').textContent = meta.subtitle;
-      document.getElementById('scopeChips').innerHTML = (meta.scope || [])
-        .map(s => `<span class="scope-chip">${checkDot()}${s}</span>`).join('');
-    }
+  function checkIcon(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
-
-  document.querySelectorAll('.cat-cell').forEach(tab => {
-    tab.addEventListener('click', () => {
-      activateTab(tab.dataset.cat);
-      history.replaceState(null, '', '#' + tab.dataset.cat);
-    });
-  });
-
-  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría; si no, deja Excel por default
-  window.addEventListener('load', () => {
-    const hash = window.location.hash.replace('#', '');
-    activateTab(hash && tabMap[hash] ? hash : 'excel');
-  });
-
-  // fade-in on scroll
-  const cursoObs = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
-  }, { threshold: .2 });
-  document.querySelectorAll('.curso-card').forEach(c => cursoObs.observe(c));
-
-  // ============================================================
-  // EXCEL — CONSTRUCTOR DE TEMARIO ("Arma tu Fórmula")
-  // ============================================================
-  const EXCEL_TOPICS = [
-    { id:'vocabulario',    ref:'B2', nombre:'Vocabulario & Atajos',           nivel:1, horas:4,
-      desc:'La gramática de Excel: referencias, tipos de datos y atajos que te ahorran horas cada semana.' },
-    { id:'formatos',       ref:'B3', nombre:'Formatos & Validaciones',        nivel:1, horas:4,
-      desc:'Formato condicional, formatos personalizados y validación de datos para blindar tus archivos.' },
-    { id:'formulas',       ref:'B4', nombre:'Fórmulas Básicas y Nuevas',      nivel:1, horas:4,
-      desc:'Funciones de texto, fecha, lógicas y de búsqueda — de BuscarV a BuscarX.',
-      cierre:'Reporte Formulado' },
-    { id:'graficos',       ref:'B5', nombre:'Interpretación de Gráficos',     nivel:1, horas:4,
-      desc:'Gráficos clásicos y nuevos — Pareto, cascada, embudo y mapas — para contar historias con datos.' },
-    { id:'normalizacion',  ref:'C2', nombre:'Normalización de Bases de Datos',nivel:2, horas:4,
-      desc:'Estructura tus datos correctamente antes de analizarlos: tablas, listas y buenas prácticas.' },
-    { id:'powerquery',     ref:'C3', nombre:'Power Query',                    nivel:2, horas:4,
-      desc:'Conecta, limpia y transforma datos de múltiples fuentes sin tocar una fórmula.' },
-    { id:'dinamicas',      ref:'C4', nombre:'Tablas Dinámicas',               nivel:2, horas:4,
-      desc:'De datos crudos a reportes ejecutivos, con tablas y gráficos dinámicos.',
-      cierre:'Dashboard' },
-    { id:'analisis',       ref:'D2', nombre:'Herramientas de Análisis',       nivel:3, horas:4,
-      desc:'Modelo de datos y análisis avanzado para decisiones basadas en datos, no en corazonadas.' },
-    { id:'macros',         ref:'D3', nombre:'Macros con Copilot',             nivel:3, horas:4,
-      desc:'Automatiza tareas repetitivas con macros — potenciadas con IA Copilot.',
-      cierre:'Reporte Automatizado' },
-  ];
-
-  const EXCEL_PROGRAMS = [
-    {
-      id:'basico-intermedio', nombre:'Excel_Básico_Intermedio', horas:20,
-      topics:['vocabulario','formatos','formulas','graficos','normalizacion'],
-      objetivo:'El participante utilizará Excel como herramienta para el manejo efectivo de información, desde fórmulas de búsqueda hasta su primer dashboard con tablas dinámicas.',
-      dirigido:'Personal operativo, profesionistas, analistas y personal administrativo que interactúa con Excel para almacenaje, análisis y automatización básica.'
-    },
-    {
-      id:'intermedio-avanzado', nombre:'Excel_Intermedio_Avanzado', horas:20,
-      topics:['normalizacion','powerquery','dinamicas','analisis','macros'],
-      objetivo:'El participante conectará fuentes externas con Power Query, construirá dashboards con modelo de datos y automatizará procesos con macros + Copilot.',
-      dirigido:'Profesionistas, analistas, coordinadores de área y gerentes que buscan automatizar y optimizar sistemas de información.'
-    }
-  ];
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
 
   const MIN_HOURS = 12;
   const selectedTopics = new Set();
+  const catalogoCache = {};
+  let currentCat = 'excel';
+  let currentCatalogo = null;
+  let currentMode = 'estandar';
+
   const dotIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const PRICING_NOTE_ITEMS = [
     'Los temas y objetivos están planteados para grupos estándar de 10 a 15 participantes.',
@@ -1171,27 +852,233 @@
   ];
   const PRICING_NOTE = '<ul>' + PRICING_NOTE_ITEMS.map(t => `<li>${dotIcon}<span>${t}</span></li>`).join('') + '</ul>';
 
-  function setExcelMode(mode){
-    document.querySelectorAll('.excel-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-    document.querySelectorAll('.excel-view').forEach(v => v.classList.toggle('active', v.dataset.view === mode));
+  // ============================================================
+  // CARGA Y RENDER DEL CATÁLOGO — un solo mount point (#cursoPanel)
+  // reusado por las 6 herramientas, con cache en memoria por herramienta.
+  // ============================================================
+  async function activateTab(cat){
+    if(!tabMap[cat]) return;
+    currentCat = cat;
+    currentMode = 'estandar';
+    selectedTopics.clear();
+
+    document.querySelectorAll('.cat-cell').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    const meta = CAT_META[cat];
+    if(meta){
+      document.getElementById('catTitle').textContent = meta.title;
+      document.getElementById('catSubtitle').textContent = meta.subtitle;
+      document.getElementById('scopeChips').innerHTML = (meta.scope || [])
+        .map(s => `<span class="scope-chip">${checkDot()}${s}</span>`).join('');
+    }
+
+    const cell = document.querySelector(`.cat-cell[data-cat="${cat}"]`);
+    const color = (cell && cell.style.getPropertyValue('--c').trim()) || '#22c55e';
+    document.querySelector('section.wrap').style.setProperty('--c', color);
+
+    const panel = document.getElementById('cursoPanel');
+    if(!catalogoCache[cat]){
+      panel.innerHTML = '<p class="section-sub">Cargando…</p>';
+      try {
+        const res = await fetch(`/api/getCatalogoCursos?herramienta=${encodeURIComponent(cat)}`);
+        const data = await res.json().catch(() => ({}));
+        if(!res.ok) throw new Error(data.error || 'Error de red');
+        catalogoCache[cat] = data;
+      } catch(e){
+        catalogoCache[cat] = { temas: [], estandar: [], proyectos: [] };
+      }
+    }
+    currentCatalogo = catalogoCache[cat];
+    if(!(currentCatalogo.estandar && currentCatalogo.estandar.length) && (currentCatalogo.temas && currentCatalogo.temas.length)){
+      currentMode = 'builder';
+    }
+    renderCursoPanel();
   }
 
-  function checkIcon(){
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function toolIconSvg(cat){
+    const el = document.querySelector(`.cat-cell[data-cat="${cat}"] .cat-cell-icon svg`);
+    return el ? el.outerHTML.replace('<svg ', '<svg class="soon-icon" ') : '';
   }
 
-  function renderTopics(){
+  function renderCursoPanel(){
+    const panel = document.getElementById('cursoPanel');
+    const data = currentCatalogo || { temas: [], estandar: [], proyectos: [] };
+    const hasEstandar = !!(data.estandar && data.estandar.length);
+    const hasBuilder = !!(data.temas && data.temas.length);
+
+    if(!hasEstandar && !hasBuilder){
+      const meta = CAT_META[currentCat] || {};
+      panel.innerHTML = `
+        <div class="curso-grid">
+          <div class="curso-card soon in-view">
+            ${toolIconSvg(currentCat)}
+            <div class="soon-title">${escapeHtml(meta.title)} — en construcción</div>
+            <div class="soon-text">${escapeHtml(meta.subtitle)}</div>
+            <span class="curso-badge-soon">PRÓXIMAMENTE</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+    if(hasEstandar && hasBuilder){
+      html += `
+        <div class="excel-modes">
+          <button type="button" class="excel-mode-btn ${currentMode === 'estandar' ? 'active' : ''}" data-mode="estandar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11" stroke-linecap="round"/></svg>
+            Temarios Estándar
+          </button>
+          <button type="button" class="excel-mode-btn ${currentMode === 'builder' ? 'active' : ''}" data-mode="builder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10" stroke-linecap="round"/></svg>
+            Personalizar Temario
+          </button>
+        </div>`;
+    }
+
+    const showEstandar = hasEstandar && (currentMode === 'estandar' || !hasBuilder);
+    const showBuilder = hasBuilder && (currentMode === 'builder' || !hasEstandar);
+
+    if(showEstandar) html += estandarHtml(data.estandar);
+    if(showBuilder) html += builderHtml();
+
+    panel.innerHTML = html;
+
+    panel.querySelectorAll('.excel-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if(currentMode === btn.dataset.mode) return;
+        currentMode = btn.dataset.mode;
+        renderCursoPanel();
+      });
+    });
+
+    if(showBuilder){
+      renderTopics(data.temas);
+      renderBuilderState();
+      const builderSlot = document.getElementById('leadFormSlot-builder');
+      if(builderSlot) builderSlot.innerHTML = leadFormHTML('builder');
+    }
+  }
+
+  // ============================================================
+  // TEMARIOS ESTÁNDAR — un "program-fn" (acordeón estilo función) por temario
+  // ============================================================
+  function estandarHtml(estandar){
+    return `
+      <div class="builder-title">Nuestros programas más pedidos</div>
+      <p class="builder-sub">Programas ya armados — la mayoría de nuestros clientes empieza aquí.</p>
+      <div class="programs-list" id="programsList">${estandar.map(programFnHtml).join('')}</div>`;
+  }
+
+  function programFnHtml(p){
+    const sessionsHtml = (p.temas || []).map((t, i) => `
+      <div class="session">
+        <div class="session-num">${i + 1}</div>
+        <div class="session-body">
+          <b>${escapeHtml(t.nombre)}</b>
+          <p>${escapeHtml(t.descripcion)}</p>
+        </div>
+        <div class="session-hr">${t.horas} hr</div>
+      </div>`).join('');
+    const tagsHtml = (p.tags && p.tags.length)
+      ? `<div class="curso-tags">${p.tags.map(tg => `<span class="chip">${escapeHtml(tg)}</span>`).join('')}</div>` : '';
+    const proyectosHtml = (p.proyectos && p.proyectos.length)
+      ? `<div class="builder-bonuses">${p.proyectos.map(nm => `<span class="bonus-pill">${checkIcon()} Incluye Proyecto: ${escapeHtml(nm)}</span>`).join('')}</div>` : '';
+
+    return `
+      <div class="program-fn" id="programFn-${p.id}">
+        <div class="program-fn-head" onclick="toggleProgram('${p.id}')">
+          <div class="program-fn-name"><span class="fn-kw">${escapeHtml(p.nombre.replace(/\s+/g, '_'))}</span><span class="fn-args">()</span></div>
+          <div class="program-fn-hours">
+            ${p.horas} hr${p.nivelLabel ? ' · ' + escapeHtml(p.nivelLabel) : ''}
+            <svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="program-fn-body">
+          <div class="program-fn-inner">
+            <div class="program-fn-obj">
+              <div><h4>OBJETIVO</h4><p>${escapeHtml(p.objetivo)}</p></div>
+              <div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>
+            </div>
+            ${tagsHtml}
+            <div class="curso-sessions open" style="max-height:none;">${sessionsHtml}</div>
+            ${proyectosHtml}
+            <div class="builder-cta-row" style="margin-top:22px;">
+              <button type="button" class="builder-cta" onclick="event.stopPropagation(); openLeadForm('${p.id}')">
+                Solicitar cotización
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="pricing-note">${PRICING_NOTE}</div>
+            <div onclick="event.stopPropagation()">${leadFormHTML(p.id)}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function toggleProgram(id){
+    document.getElementById('programFn-' + id).classList.toggle('open');
+  }
+
+  // ============================================================
+  // PERSONALIZAR TEMARIO — constructor ("Arma tu Fórmula")
+  // ============================================================
+  function builderHtml(){
+    return `
+      <div class="builder-title">Construye tu temario a tu necesidad</div>
+      <p class="builder-sub">Elige los temas que tu equipo necesita. La fórmula se arma sola — y tu cotización también.</p>
+
+      <div class="formula-builder-bar">
+        <span class="formula-builder-fx">fx</span>
+        <span class="formula-builder-body" id="builderBarBody">
+          <span class="placeholder">=${TOOL_LABEL[currentCat]}( elige tus temas… )</span>
+        </span>
+      </div>
+
+      <div class="builder-meta">
+        <div class="builder-total" id="builderTotal"><b>0 hr</b> · 0 temas seleccionados</div>
+        <div class="builder-warning" id="builderWarning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Te recomendamos incluir fundamentos antes de temas avanzados.</span>
+        </div>
+      </div>
+
+      <div class="builder-bonuses" id="builderBonuses"></div>
+
+      <div class="topics-grid" id="topicsGrid"></div>
+
+      <div class="builder-cta-row">
+        <button class="builder-cta" id="builderCtaBtn" disabled onclick="openLeadForm('builder')">
+          Solicitar cotización
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="builder-cta-hint" id="builderCtaHint">Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar.</span>
+      </div>
+
+      <div class="pricing-note" id="pricingNoteBuilder">${PRICING_NOTE}</div>
+
+      <div id="leadFormSlot-builder"></div>`;
+  }
+
+  // ref decorativo tipo celda de Excel (B2, C3...) — cosmético, se calcula aquí
+  // agrupando por nivel (1=Básico→B, 2=Intermedio→C, 3=Avanzado→D) y usando la
+  // posición dentro de su propio nivel (+2, para empezar en fila 2).
+  function topicRef(t, temas){
+    const sameLevel = temas.filter(x => x.nivel === t.nivel);
+    const idx = sameLevel.findIndex(x => x.id === t.id);
+    return `${String.fromCharCode(65 + (t.nivel || 1))}${idx + 2}`;
+  }
+
+  function renderTopics(temas){
     const grid = document.getElementById('topicsGrid');
     if(!grid) return;
-    grid.innerHTML = EXCEL_TOPICS.map(t => `
-      <button type="button" class="topic-card" data-id="${t.id}" onclick="toggleTopic('${t.id}')">
-        <span class="topic-cell-ref">${t.ref}</span>
+    grid.innerHTML = temas.map(t => `
+      <button type="button" class="topic-card ${selectedTopics.has(t.id) ? 'selected' : ''}" data-id="${t.id}" onclick="toggleTopic('${t.id}')">
+        <span class="topic-cell-ref">${topicRef(t, temas)}</span>
         <div class="topic-head">
           <span class="topic-check">${checkIcon()}</span>
-          <span class="topic-name">${t.nombre}</span>
+          <span class="topic-name">${escapeHtml(t.nombre)}</span>
         </div>
-        <div class="topic-meta">${['','Básico','Intermedio','Avanzado'][t.nivel]} · ${t.horas} hr</div>
-        <div class="topic-desc">${t.desc}</div>
+        <div class="topic-meta">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</div>
+        <div class="topic-desc">${escapeHtml(t.descripcion)}</div>
       </button>
     `).join('');
   }
@@ -1199,56 +1086,56 @@
   function toggleTopic(id){
     if(selectedTopics.has(id)) selectedTopics.delete(id);
     else selectedTopics.add(id);
+    document.querySelectorAll('#topicsGrid .topic-card').forEach(c => c.classList.toggle('selected', selectedTopics.has(c.dataset.id)));
     renderBuilderState();
   }
 
   function renderBuilderState(){
-    document.querySelectorAll('.topic-card').forEach(c => {
-      c.classList.toggle('selected', selectedTopics.has(c.dataset.id));
-    });
+    const temas = (currentCatalogo && currentCatalogo.temas) || [];
+    const proyectos = (currentCatalogo && currentCatalogo.proyectos) || [];
+    const chosen = temas.filter(t => selectedTopics.has(t.id));
+    const totalHours = chosen.reduce((s, t) => s + t.horas, 0);
 
-    const chosen = EXCEL_TOPICS.filter(t => selectedTopics.has(t.id));
-    const totalHours = chosen.reduce((s,t) => s + t.horas, 0);
-
-    // barra de fórmula
     const body = document.getElementById('builderBarBody');
-    if(chosen.length === 0){
-      body.innerHTML = '<span class="placeholder">=EXCEL( elige tus temas… )</span>';
-    } else {
-      const terms = chosen.map(t => `<span class="fterm">${t.nombre.replace(/ /g,'_')}</span>`).join('<span class="fop">+</span>');
-      body.innerHTML = `=EXCEL( ${terms} )<span class="fop">=</span><b style="color:#4ade80">${totalHours} hr</b><span class="formula-cursor"></span>`;
+    if(body){
+      if(chosen.length === 0){
+        body.innerHTML = `<span class="placeholder">=${TOOL_LABEL[currentCat]}( elige tus temas… )</span>`;
+      } else {
+        const terms = chosen.map(t => `<span class="fterm">${escapeHtml(t.nombre.replace(/\s+/g, '_'))}</span>`).join('<span class="fop">+</span>');
+        body.innerHTML = `=${TOOL_LABEL[currentCat]}( ${terms} )<span class="fop">=</span><b style="color:var(--c-bright)">${totalHours} hr</b><span class="formula-cursor"></span>`;
+      }
     }
 
-    // total + meta
-    document.getElementById('builderTotal').innerHTML =
-      `<b>${totalHours} hr</b> · ${chosen.length} tema${chosen.length===1?'':'s'} seleccionado${chosen.length===1?'':'s'}`;
+    const totalEl = document.getElementById('builderTotal');
+    if(totalEl) totalEl.innerHTML = `<b>${totalHours} hr</b> · ${chosen.length} tema${chosen.length === 1 ? '' : 's'} seleccionado${chosen.length === 1 ? '' : 's'}`;
 
-    // advertencia sutil: avanzado sin fundamentos
     const hasBasico = chosen.some(t => t.nivel === 1);
     const hasAvanzado = chosen.some(t => t.nivel === 3);
-    document.getElementById('builderWarning').classList.toggle('show', hasAvanzado && !hasBasico);
+    const warnEl = document.getElementById('builderWarning');
+    if(warnEl) warnEl.classList.toggle('show', hasAvanzado && !hasBasico);
 
-    // casos de cierre automáticos (solo al llegar al mínimo)
     const bonuses = document.getElementById('builderBonuses');
-    if(totalHours >= MIN_HOURS){
-      const casos = chosen.filter(t => t.cierre).map(t => t.cierre);
-      bonuses.innerHTML = casos.map(c => `
-        <span class="bonus-pill">${checkIcon()} Incluye caso práctico: ${c}</span>
-      `).join('');
-    } else {
-      bonuses.innerHTML = '';
+    if(bonuses){
+      if(totalHours >= MIN_HOURS){
+        const chosenIds = new Set(chosen.map(t => t.id));
+        const activos = proyectos.filter(p => p.temaIds && p.temaIds.length && p.temaIds.every(id => chosenIds.has(id)));
+        bonuses.innerHTML = activos.map(p => `<span class="bonus-pill">${checkIcon()} Incluye Proyecto: ${escapeHtml(p.nombre)}</span>`).join('');
+      } else {
+        bonuses.innerHTML = '';
+      }
     }
 
-    // CTA
     const cta = document.getElementById('builderCtaBtn');
     const hint = document.getElementById('builderCtaHint');
-    if(totalHours >= MIN_HOURS){
-      cta.disabled = false;
-      hint.textContent = '';
-    } else {
-      cta.disabled = true;
-      hint.textContent = `Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar. Llevas ${totalHours} hr.`;
-      document.getElementById('leadForm-builder')?.classList.remove('show');
+    if(cta && hint){
+      if(totalHours >= MIN_HOURS){
+        cta.disabled = false;
+        hint.textContent = '';
+      } else {
+        cta.disabled = true;
+        hint.textContent = `Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar. Llevas ${totalHours} hr.`;
+        document.getElementById('leadForm-builder')?.classList.remove('show');
+      }
     }
   }
 
@@ -1318,71 +1205,27 @@
     return document.querySelector(`[data-group="${groupId}"] .pill-opt.active`)?.dataset.value || '';
   }
 
-  function renderPrograms(){
-    const list = document.getElementById('programsList');
-    if(!list) return;
-    list.innerHTML = EXCEL_PROGRAMS.map(p => {
-      const topics = p.topics.map(id => EXCEL_TOPICS.find(t => t.id === id));
-      const sessionsHtml = topics.map((t,i) => `
-        <div class="session">
-          <div class="session-num">${i+1}</div>
-          <div class="session-body">
-            <b>${t.nombre}${t.cierre ? ' · Caso práctico: ' + t.cierre : ''}</b>
-            <p>${t.desc}</p>
-          </div>
-          <div class="session-hr">${t.horas} hr</div>
-        </div>`).join('');
-      return `
-        <div class="program-fn" id="programFn-${p.id}">
-          <div class="program-fn-head" onclick="toggleProgram('${p.id}')">
-            <div class="program-fn-name"><span class="fn-kw">${p.nombre}</span><span class="fn-args">()</span></div>
-            <div class="program-fn-hours">
-              ${p.horas} hr
-              <svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
-          <div class="program-fn-body">
-            <div class="program-fn-inner">
-              <div class="program-fn-obj">
-                <div><h4>OBJETIVO</h4><p>${p.objetivo}</p></div>
-                <div><h4>DIRIGIDO A</h4><p>${p.dirigido}</p></div>
-              </div>
-              <div class="curso-sessions open" style="max-height:none;">${sessionsHtml}</div>
-              <div class="builder-cta-row" style="margin-top:22px;">
-                <button type="button" class="builder-cta" onclick="event.stopPropagation(); openLeadForm('${p.id}')">
-                  Solicitar cotización
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
-              <div class="pricing-note">${PRICING_NOTE}</div>
-              <div onclick="event.stopPropagation()">${leadFormHTML(p.id)}</div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function toggleProgram(id){
-    document.getElementById('programFn-' + id).classList.toggle('open');
-  }
-
   function openLeadForm(id){
     document.getElementById('leadForm-' + id)?.classList.toggle('show');
   }
 
   function buildMessage(id){
     let msg;
+    const toolTitle = (CAT_META[currentCat] || {}).title || '';
     if(id === 'builder'){
-      const chosen = EXCEL_TOPICS.filter(t => selectedTopics.has(t.id));
-      const totalHours = chosen.reduce((s,t) => s + t.horas, 0);
-      const casos = chosen.filter(t => t.cierre).map(t => t.cierre);
-      msg = 'Quiero cotizar un temario personalizado de Excel:\n\n';
+      const temas = (currentCatalogo && currentCatalogo.temas) || [];
+      const proyectos = (currentCatalogo && currentCatalogo.proyectos) || [];
+      const chosen = temas.filter(t => selectedTopics.has(t.id));
+      const totalHours = chosen.reduce((s, t) => s + t.horas, 0);
+      const chosenIds = new Set(chosen.map(t => t.id));
+      const activos = proyectos.filter(p => p.temaIds && p.temaIds.length && p.temaIds.every(pid => chosenIds.has(pid)));
+      msg = `Quiero cotizar un temario personalizado de ${toolTitle}:\n\n`;
       msg += chosen.map(t => `• ${t.nombre} (${t.horas} hr)`).join('\n');
       msg += `\n\nTotal: ${totalHours} hr`;
-      if(casos.length) msg += `\nIncluye: ${casos.join(', ')}`;
+      if(activos.length) msg += `\nIncluye: ${activos.map(p => p.nombre).join(', ')}`;
     } else {
-      const p = EXCEL_PROGRAMS.find(x => x.id === id);
-      msg = `Quiero cotizar el programa "${p.nombre.replace(/_/g,' ')}" (${p.horas} hr).`;
+      const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
+      msg = p ? `Quiero cotizar el programa "${p.nombre}" (${p.horas} hr) de ${toolTitle}.` : `Quiero cotizar un curso de ${toolTitle}.`;
     }
 
     const participantes = getPillValue(`participantes-${id}`);
@@ -1403,23 +1246,29 @@
   function sendLead(id, channel){
     const name = (document.getElementById('leadName-' + id)?.value || '').trim();
     const co   = (document.getElementById('leadCo-' + id)?.value || '').trim();
+    const toolTitle = (CAT_META[currentCat] || {}).title || '';
 
     let msg = `Hola Alfredo, soy ${name || 'un/a interesado/a'}${co ? ' de ' + co : ''}.\n\n` + buildMessage(id);
 
     if(channel === 'whatsapp'){
       window.open(`https://wa.me/528117255937?text=${encodeURIComponent(msg)}`, '_blank');
     } else {
-      window.location.href = `mailto:alfredo.pina@lifezen.com.mx?subject=${encodeURIComponent('Cotización de curso Excel')}&body=${encodeURIComponent(msg)}`;
+      window.location.href = `mailto:alfredo.pina@lifezen.com.mx?subject=${encodeURIComponent('Cotización de curso ' + toolTitle)}&body=${encodeURIComponent(msg)}`;
     }
   }
 
-  renderTopics();
-  renderPrograms();
-  renderBuilderState();
-  const builderSlot = document.getElementById('leadFormSlot-builder');
-  if(builderSlot) builderSlot.innerHTML = leadFormHTML('builder');
-  const builderNote = document.getElementById('pricingNoteBuilder');
-  if(builderNote) builderNote.innerHTML = PRICING_NOTE;
+  document.querySelectorAll('.cat-cell').forEach(tab => {
+    tab.addEventListener('click', () => {
+      activateTab(tab.dataset.cat);
+      history.replaceState(null, '', '#' + tab.dataset.cat);
+    });
+  });
+
+  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría; si no, deja Excel por default
+  window.addEventListener('load', () => {
+    const hash = window.location.hash.replace('#', '');
+    activateTab(hash && tabMap[hash] ? hash : 'excel');
+  });
 
   // ============================================================
   // CONTACTO — efecto de escritura en la fórmula al entrar a la sección

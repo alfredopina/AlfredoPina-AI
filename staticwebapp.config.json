@@ -83,6 +83,10 @@
     {
       "route": "/api/updateOrdenCursos",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getResumenProductosAdmin",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

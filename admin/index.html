@@ -59,6 +59,11 @@
     margin-left:auto; font-family:var(--mono); font-size:8.5px; color:var(--text-faint);
     border:1px solid var(--line); padding:1px 6px; border-radius:8px; letter-spacing:.3px;
   }
+  .admin-nav-group{
+    font-family:var(--mono); font-size:9.5px; color:var(--text-faint); letter-spacing:.6px;
+    padding:14px 12px 4px; font-weight:500;
+  }
+  .admin-nav-group:first-of-type{ padding-top:6px; }
 
   .admin-sidebar-footer{ border-top:1px solid var(--line-soft); padding-top:14px; margin-top:14px; }
   .admin-back{
@@ -260,6 +265,7 @@
     .admin-nav{ flex-direction:row; }
     .admin-nav-item{ white-space:nowrap; }
     .admin-nav-soon{ display:none; }
+    .admin-nav-group{ display:none; }
 
     .admin-topbar{ flex-wrap:wrap; gap:8px 14px; padding:14px 18px; }
     .admin-user{ font-size:11px; gap:10px; }
@@ -284,6 +290,7 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
         Dashboard
       </button>
+      <div class="admin-nav-group">COMERCIAL</div>
       <button class="admin-nav-item" data-panel="solicitudes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6L18 5H6L4 12Z" stroke-linejoin="round"/></svg></span>
         Solicitudes
@@ -299,6 +306,8 @@
         Diagnósticos
         <span class="admin-nav-soon">PRONTO</span>
       </button>
+
+      <div class="admin-nav-group">PRODUCTO</div>
       <button class="admin-nav-item" data-panel="cursos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
         Cursos
@@ -307,6 +316,15 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
         Recursos
       </button>
+
+      <div class="admin-nav-group">OPERACIÓN</div>
+      <button class="admin-nav-item" data-panel="clientes">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h1M8 12h1M8 16h1" stroke-linecap="round"/></svg></span>
+        Clientes
+        <span class="admin-nav-soon">PRONTO</span>
+      </button>
+
+      <div class="admin-nav-group">CIERRE</div>
       <button class="admin-nav-item" data-panel="encuestas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Encuestas
@@ -339,11 +357,38 @@
 
     <div class="admin-content">
       <div class="admin-panel active" id="panel-dashboard">
-        <p class="admin-welcome">
-          Bienvenido al panel de administrador. Este es el punto de entrada para todo lo que va detrás del candado:
-          <b>Solicitudes</b>, <b>Cotizaciones</b>, <b>Diagnósticos</b>, <b>Recursos</b>, <b>Encuestas</b> y <b>Diplomas</b>.
-          Por ahora solo existe este menú — cada módulo se activa cuando le toque su turno de construcción.
-        </p>
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">COMERCIAL</span>
+            <span class="admin-nav-soon">PRONTO</span>
+          </div>
+          <div class="radm-empty-row">Sin métricas todavía — este pilar (Solicitudes, Cotizaciones, Diagnósticos) entra en construcción a partir de la Fase 1.</div>
+        </div>
+
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">PRODUCTO</span>
+          </div>
+          <div class="radm-list" id="dashProductoMetrics">
+            <div class="radm-empty-row">Cargando métricas…</div>
+          </div>
+        </div>
+
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">OPERACIÓN</span>
+            <span class="admin-nav-soon">PRONTO</span>
+          </div>
+          <div class="radm-empty-row">Sin métricas todavía — este pilar (Clientes) entra en construcción más adelante en el roadmap.</div>
+        </div>
+
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">CIERRE</span>
+            <span class="admin-nav-soon">PRONTO</span>
+          </div>
+          <div class="radm-empty-row">Sin métricas todavía — este pilar (Encuestas, Diplomas) entra en construcción en la Fase 4.</div>
+        </div>
       </div>
 
       <div class="admin-panel" id="panel-solicitudes"></div>
@@ -387,6 +432,7 @@
         </div>
       </div>
 
+      <div class="admin-panel" id="panel-clientes"></div>
       <div class="admin-panel" id="panel-encuestas"></div>
       <div class="admin-panel" id="panel-diplomas"></div>
     </div>
@@ -416,13 +462,14 @@
 
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
-    diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', encuestas: 'Encuestas', diplomas: 'Diplomas',
+    diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
+    encuestas: 'Encuestas', diplomas: 'Diplomas',
   };
 
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'encuestas', 'diplomas'].forEach(key => {
+  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'encuestas', 'diplomas'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -452,6 +499,70 @@
     .catch(() => {
       document.getElementById('userEmail').textContent = '/.auth/me no disponible (normal en local)';
     });
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL DASHBOARD — tarjetas de Producto: una llamada a getCatalogoCursosAdmin
+  // (temas/temarios/proyectos, módulo Cursos) + una a getResumenProductosAdmin
+  // (cursos con código de descarga, módulo Recursos), sumadas en el cliente.
+  // Comercial y Operación son placeholder hasta sus fases del roadmap.
+  // ═══════════════════════════════════════════════════════════════
+  (function(){
+    const HERRAMIENTAS_TOTAL = 6;
+    const el = document.getElementById('dashProductoMetrics');
+
+    function fila(titulo, sub){
+      return `<div class="radm-row"><div class="radm-row-body">
+        <div class="radm-row-title">${titulo}</div>
+        <div class="radm-row-sub">${sub}</div>
+      </div></div>`;
+    }
+
+    async function cargarMetricasProducto(){
+      try {
+        const [catalogo, resumenProd] = await Promise.all([
+          fetch('/api/getCatalogoCursosAdmin').then(r => r.json()),
+          fetch('/api/getResumenProductosAdmin').then(r => r.json()),
+        ]);
+
+        let activas = 0;
+        let temasTotal = 0, temasPub = 0;
+        let temariosTotal = 0, temariosPub = 0;
+        let proyectosTotal = 0, proyectosPub = 0;
+        let cursosTotal = 0, cursosPub = 0;
+        let conRecursos = 0;
+
+        Object.keys(catalogo).forEach(h => {
+          const c = catalogo[h] || {};
+          const p = resumenProd[h] || {};
+          const t = c.temas || { total:0, publicados:0 };
+          const te = c.temarios || { total:0, publicados:0 };
+          const pr = c.proyectos || { total:0, publicados:0 };
+          const cu = p.cursos || { total:0, publicados:0 };
+          const cr = p.cursosConRecursos || 0;
+
+          if(t.total > 0 || te.total > 0 || pr.total > 0 || cu.total > 0) activas++;
+          temasTotal += t.total; temasPub += t.publicados;
+          temariosTotal += te.total; temariosPub += te.publicados;
+          proyectosTotal += pr.total; proyectosPub += pr.publicados;
+          cursosTotal += cu.total; cursosPub += cu.publicados;
+          conRecursos += cr;
+        });
+
+        el.innerHTML = [
+          fila('Herramientas activas', `${activas} de ${HERRAMIENTAS_TOTAL}`),
+          fila('Temas en banco', `${temasTotal} totales · ${temasPub} publicados`),
+          fila('Temarios Estándar', `${temariosTotal} totales · ${temariosPub} publicados`),
+          fila('Proyectos', `${proyectosTotal} totales · ${proyectosPub} publicados`),
+          fila('Cursos con código de descarga', `${cursosTotal} totales · ${cursosPub} publicados`),
+          fila('Cursos con recursos ya cargados', `${conRecursos} de ${cursosTotal}`),
+        ].join('');
+      } catch(e){
+        el.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
+      }
+    }
+
+    cargarMetricasProducto();
+  })();
 
   // ═══════════════════════════════════════════════════════════════
   // PANEL CURSOS — administra herramientas → Temarios Estándar / Personalizar

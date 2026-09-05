@@ -1,8 +1,12 @@
 // uploadRecurso/index.js
 // Function protegida (rol "admin"): sube un archivo (Manual, Caso Práctico o
 // Plantilla) al Blob Storage y crea o reemplaza su fila en la tabla Recursos.
-// El archivo viaja como cuerpo binario crudo (no multipart) — el navegador lo
-// manda con fetch(url, {body: file}) y los metadatos van en la query string.
+// El archivo viaja como base64 dentro de un JSON normal (no binario crudo) —
+// se intentó mandar el cuerpo binario directo con "dataType":"binary" en
+// function.json, pero en el runtime de las "managed functions" de Static Web
+// Apps req.body llegaba como string en vez de Buffer (mismo tipo de sorpresa
+// que ya dio context.res.jsonBody). Base64+JSON usa el mismo camino que ya
+// funciona para el resto de las Functions, a costa de ~33% más tamaño.
 // Si se manda "rowKey" de un recurso existente, se sube el archivo nuevo y se
 // borra el blob viejo (reemplazo), conservando el mismo renglón.
 const crypto = require("crypto");
@@ -16,15 +20,17 @@ function sanitizeFilename(name) {
 }
 
 module.exports = async function (context, req) {
-  const q = req.query || {};
-  const herramienta = (q.herramienta || "").trim().toLowerCase();
-  const curso = (q.curso || "").trim().toLowerCase();
-  const tipo = (q.tipo || "").trim().toLowerCase();
-  const titulo = (q.titulo || "").trim();
-  const texto = (q.texto || "").trim();
-  const filename = sanitizeFilename(q.filename);
-  const rowKey = (q.rowKey || "").trim() || crypto.randomUUID();
-  const orden = q.orden !== undefined ? Number(q.orden) : Date.now();
+  const body = req.body || {};
+  const herramienta = (body.herramienta || "").trim().toLowerCase();
+  const curso = (body.curso || "").trim().toLowerCase();
+  const tipo = (body.tipo || "").trim().toLowerCase();
+  const titulo = (body.titulo || "").trim();
+  const texto = (body.texto || "").trim();
+  const filename = sanitizeFilename(body.filename);
+  const contentType = body.contentType || "application/octet-stream";
+  const rowKey = (body.rowKey || "").trim() || crypto.randomUUID();
+  const orden = body.orden !== undefined ? Number(body.orden) : Date.now();
+  const fileBase64 = body.fileBase64 || "";
 
   if (!HERRAMIENTAS.includes(herramienta) || !curso || !TIPOS_ARCHIVO.includes(tipo)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos (herramienta, curso o tipo inválido)." } };
@@ -34,13 +40,13 @@ module.exports = async function (context, req) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el título del recurso." } };
     return;
   }
-  if (!req.body || !req.body.length) {
+  if (!fileBase64) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "No llegó ningún archivo." } };
     return;
   }
 
+  const buffer = Buffer.from(fileBase64, "base64");
   const partitionKey = `${herramienta}_${curso}`;
-  const contentType = req.headers["content-type"] || "application/octet-stream";
   const blobPath = `${herramienta}/${curso}/${tipo}/${rowKey}-${filename}`;
 
   try {
@@ -55,7 +61,7 @@ module.exports = async function (context, req) {
     } catch (e) { /* no existía, es un recurso nuevo */ }
 
     const blockBlobClient = container.getBlockBlobClient(blobPath);
-    await blockBlobClient.uploadData(req.body, { blobHTTPHeaders: { blobContentType: contentType } });
+    await blockBlobClient.uploadData(buffer, { blobHTTPHeaders: { blobContentType: contentType } });
 
     await recursosTable.upsertEntity(
       { partitionKey, rowKey, tipo, titulo, texto, url: blockBlobClient.url, blobPath, orden },
@@ -69,7 +75,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, rowKey, url: blockBlobClient.url } };
   } catch (err) {
     context.log.error("Error subiendo el recurso:", err.message);
-    const diag = `tipo=${typeof req.body} esBuffer=${Buffer.isBuffer(req.body)}`;
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: `No se pudo subir el archivo: ${err.message} (${diag})` } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo subir el archivo: " + err.message } };
   }
 };

@@ -6,8 +6,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["post"],
-      "route": "uploadRecurso",
-      "dataType": "binary"
+      "route": "uploadRecurso"
     },
     {
       "type": "http",

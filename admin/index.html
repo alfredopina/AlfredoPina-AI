@@ -21,7 +21,7 @@
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
   }
   :root[data-theme="light"]{
-    --bg: #f4f5f7; --panel: #ffffff; --panel-2: #eef0f3; --line: #d7dbe1; --line-soft: #e4e7eb;
+    --bg: #eef1f8; --panel: #ffffff; --panel-2: #e6ebf5; --line: #d2d9e6; --line-soft: #e0e5f0;
     --blue: #2f6fe0; --blue-bright: #1d5fd6; --blue-soft: rgba(47,111,224,.10); --blue-dim: #dde8fb;
     --text: #14181f; --text-dim: #4a5261; --text-faint: #6b7280;
     --good: #16a34a; --bad: #dc2626;
@@ -79,17 +79,45 @@
     display:flex; align-items:center; justify-content:space-between; padding:16px 28px;
     border-bottom:1px solid var(--line); background:var(--panel);
   }
-  .admin-topbar-title{ font-family:var(--display); font-weight:600; font-size:16px; }
-  .admin-user{ display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:12px; color:var(--text-dim); }
-  .admin-user-email{ color:var(--text); }
-  .admin-logout{ color:var(--text-faint); text-decoration:none; }
-  .admin-logout:hover{ color:var(--text-dim); }
-  .admin-theme-toggle{
-    width:28px; height:28px; flex:none; display:flex; align-items:center; justify-content:center;
-    border-radius:6px; border:1px solid var(--line); background:none; color:var(--text-dim); cursor:pointer;
+  .admin-topbar-title{ font-family:var(--display); font-weight:600; font-size:20px; }
+  .admin-user{ display:flex; align-items:center; gap:10px; }
+
+  .admin-icon-btn{
+    width:32px; height:32px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:7px; border:1px solid var(--line); background:none; color:var(--text-dim); cursor:pointer;
+    text-decoration:none; transition:color .15s, border-color .15s;
   }
-  .admin-theme-toggle:hover{ color:var(--text); border-color:var(--text-dim); }
-  .admin-theme-toggle svg{ width:15px; height:15px; }
+  .admin-icon-btn svg{ width:16px; height:16px; }
+  .admin-icon-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+
+  .admin-user-sep{ width:1px; height:26px; background:var(--line); flex:none; margin:0 2px; }
+
+  .admin-user-avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--blue-bright); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:var(--display);
+    font-weight:700; font-size:13px; flex:none;
+  }
+  .admin-user-info{ display:flex; flex-direction:column; line-height:1.3; }
+  .admin-user-name{ font-family:var(--body); font-weight:600; font-size:12.5px; color:var(--text); }
+  .admin-user-email{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
+    max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  .admin-theme-switch{
+    position:relative; width:52px; height:27px; flex:none; border-radius:14px;
+    border:1px solid var(--line); background:var(--panel-2); cursor:pointer; padding:0;
+  }
+  .admin-theme-switch-icons{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between;
+    padding:0 6px; color:var(--text-faint); pointer-events:none;
+  }
+  .admin-theme-switch-icons svg{ width:13px; height:13px; }
+  .admin-theme-switch-thumb{
+    position:absolute; top:2px; left:2px; width:21px; height:21px; border-radius:50%;
+    background:var(--blue-bright); transition:transform .2s ease; box-shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] .admin-theme-switch-thumb{ transform:translateX(25px); }
 
   .admin-content{ flex:1; padding:32px 28px; }
   .admin-panel{ display:none; }
@@ -105,39 +133,52 @@
   .admin-empty-text{ font-size:13px; color:var(--text-dim); line-height:1.6; }
 
   /* ───────────────────────── PANEL DASHBOARD ───────────────────────── */
-  .dash-tabs{ display:flex; gap:6px; border-bottom:1px solid var(--line); margin-bottom:28px; }
-  .dash-tab{
-    font-family:var(--display); font-weight:600; font-size:15px; color:var(--text-dim);
-    background:none; border:none; padding:11px 16px 13px; cursor:pointer; position:relative;
-    transition:color .15s;
+  .dash-etabs{ display:flex; align-items:flex-end; gap:3px; margin-bottom:28px; border-bottom:2px solid var(--blue-bright); }
+  .dash-etab{
+    position:relative; top:2px; font-family:var(--display); font-weight:600; font-size:14px;
+    color:var(--text-dim); background:var(--panel); border:1px solid var(--line); border-bottom:none;
+    border-radius:8px 8px 0 0; padding:11px 22px; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; gap:9px;
   }
-  .dash-tab:hover{ color:var(--text); }
-  .dash-tab.active{ color:var(--text); }
-  .dash-tab.active::after{
-    content:''; position:absolute; left:12px; right:12px; bottom:-1px; height:2px;
-    background:var(--blue-bright); border-radius:2px 2px 0 0;
+  .dash-etab::before{
+    content:''; width:11px; height:11px; border-radius:2px; flex:none;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:5px 5px; border:1px solid var(--line);
   }
+  .dash-etab:hover{ color:var(--text); }
+  .dash-etab.active{
+    background:var(--panel-2); color:var(--blue-bright); border-color:var(--blue-bright); font-weight:700;
+  }
+  .dash-etab.active::before{ border-color:var(--blue-bright); }
   .dash-tabpanel{ display:none; }
   .dash-tabpanel.active{ display:block; }
 
-  .dprod-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
-  @media (max-width:900px){ .dprod-grid{ grid-template-columns:repeat(2, 1fr); } }
-  @media (max-width:560px){ .dprod-grid{ grid-template-columns:1fr; } }
-  .dprod-card{
+  .dkpi-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:32px; }
+  @media (max-width:900px){ .dkpi-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:520px){ .dkpi-grid{ grid-template-columns:1fr; } }
+  .dkpi-card{
     border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:20px;
-    display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; gap:8px; position:relative; overflow:hidden;
   }
-  .dprod-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c); }
-  .dprod-card-icon{ width:24px; height:24px; color:var(--c); }
-  .dprod-card-icon svg{ width:100%; height:100%; }
-  .dprod-card-value{
-    font-family:var(--display); font-weight:700; font-size:32px; color:var(--text); line-height:1;
-    display:flex; align-items:baseline; gap:5px;
+  .dkpi-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c); }
+  .dkpi-icon{ width:24px; height:24px; color:var(--c); }
+  .dkpi-icon svg{ width:100%; height:100%; }
+  .dkpi-value{ font-family:var(--display); font-weight:700; font-size:34px; color:var(--text); line-height:1; }
+  .dkpi-label{ font-family:var(--body); font-size:12.5px; color:var(--text-dim); }
+
+  .dbar-title{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px;
+    text-transform:uppercase; margin-bottom:16px;
   }
-  .dprod-card-value-sub{ font-family:var(--mono); font-size:14px; color:var(--text-faint); font-weight:500; }
-  .dprod-card-label{ font-family:var(--body); font-size:12.5px; color:var(--text-dim); }
-  .dprod-card-bar{ height:5px; border-radius:3px; background:var(--line-soft); overflow:hidden; margin-top:2px; }
-  .dprod-card-bar-fill{ height:100%; background:var(--c); border-radius:3px; transition:width .5s ease; }
+  .dbar-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .dbar-icon{ width:20px; height:20px; flex:none; color:var(--c); }
+  .dbar-icon svg{ width:100%; height:100%; }
+  .dbar-label{ width:140px; flex:none; font-size:13px; color:var(--text); font-weight:500; }
+  .dbar-track{ flex:1; max-width:420px; height:14px; border-radius:7px; background:var(--line-soft); overflow:hidden; }
+  .dbar-fill{ height:100%; border-radius:7px; background:var(--c); width:0; transition:width 1s cubic-bezier(.22,1,.36,1); }
+  .dbar-count{ width:28px; flex:none; text-align:right; font-family:var(--mono); font-size:13px; color:var(--text-dim); }
+
+  .cfg-note{ font-size:13px; color:var(--text-dim); line-height:1.6; margin-top:2px; }
 
   .admin-welcome{ font-size:13.5px; color:var(--text-dim); line-height:1.7; max-width:520px; }
   .admin-welcome b{ color:var(--text); }
@@ -303,8 +344,9 @@
     .admin-nav-group{ display:none; }
 
     .admin-topbar{ flex-wrap:wrap; gap:8px 14px; padding:14px 18px; }
-    .admin-user{ font-size:11px; gap:10px; }
-    .admin-user-email{ max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .admin-user{ gap:8px; }
+    .admin-user-name{ display:none; }
+    .admin-user-email{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   }
 </style>
 </head>
@@ -389,19 +431,38 @@
     <div class="admin-topbar">
       <div class="admin-topbar-title" id="topbarTitle">Dashboard</div>
       <div class="admin-user">
-        <button type="button" class="admin-theme-toggle" id="themeToggle" title="Cambiar tema"></button>
-        <span class="admin-user-email" id="userEmail">Verificando sesión…</span>
-        <a href="/.auth/logout?post_logout_redirect_uri=/" class="admin-logout">Cerrar sesión</a>
+        <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Notificaciones (próximamente)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="admin-icon-btn" id="btnConfig" title="Configuración">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="admin-theme-switch" id="themeToggle" title="Cambiar tema">
+          <span class="admin-theme-switch-icons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
+          </span>
+          <span class="admin-theme-switch-thumb"></span>
+        </button>
+        <span class="admin-user-sep"></span>
+        <div class="admin-user-avatar">AP</div>
+        <div class="admin-user-info">
+          <div class="admin-user-name">Alfredo Piña</div>
+          <div class="admin-user-email" id="userEmail">Verificando sesión…</div>
+        </div>
+        <a href="/.auth/logout?post_logout_redirect_uri=/" class="admin-icon-btn" title="Cerrar sesión">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 17l5-5-5-5M15 12H3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
     </div>
 
     <div class="admin-content">
       <div class="admin-panel active" id="panel-dashboard">
-        <div class="dash-tabs" id="dashTabs">
-          <button type="button" class="dash-tab active" data-dashtab="comercial">Comercial</button>
-          <button type="button" class="dash-tab" data-dashtab="operacion">Operación</button>
-          <button type="button" class="dash-tab" data-dashtab="cierre">Cierre</button>
-          <button type="button" class="dash-tab" data-dashtab="producto">Producto</button>
+        <div class="dash-etabs" id="dashTabs">
+          <button type="button" class="dash-etab active" data-dashtab="comercial">Comercial</button>
+          <button type="button" class="dash-etab" data-dashtab="operacion">Operación</button>
+          <button type="button" class="dash-etab" data-dashtab="cierre">Cierre</button>
+          <button type="button" class="dash-etab" data-dashtab="productos">Productos</button>
         </div>
 
         <div class="dash-tabpanel active" id="dashTab-comercial">
@@ -428,10 +489,31 @@
           </div>
         </div>
 
-        <div class="dash-tabpanel" id="dashTab-producto">
-          <div class="dprod-grid" id="dashProductoMetrics">
+        <div class="dash-tabpanel" id="dashTab-productos">
+          <div class="dkpi-grid" id="dashKpis">
             <div class="radm-empty-row">Cargando métricas…</div>
           </div>
+          <div class="dbar-title">Cursos publicados por herramienta</div>
+          <div id="dashBarChart"></div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-config">
+        <div class="radm-section">
+          <div class="radm-section-head"><span class="radm-section-title">PERFIL</span><span class="admin-nav-soon">PRONTO</span></div>
+          <div class="cfg-note">Datos de tu marca y firma para documentos (cotizaciones, diplomas). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+        </div>
+        <div class="radm-section">
+          <div class="radm-section-head"><span class="radm-section-title">NOTIFICACIONES</span><span class="admin-nav-soon">PRONTO</span></div>
+          <div class="cfg-note">Qué eventos te avisan y por dónde (correo, campana del panel). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+        </div>
+        <div class="radm-section">
+          <div class="radm-section-head"><span class="radm-section-title">ACCESOS</span><span class="admin-nav-soon">PRONTO</span></div>
+          <div class="cfg-note">Roles y permisos para más de un administrador (tú y Viridiana). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+        </div>
+        <div class="radm-section">
+          <div class="radm-section-head"><span class="radm-section-title">PLANTILLAS</span><span class="admin-nav-soon">PRONTO</span></div>
+          <div class="cfg-note">Diseño base de los documentos generados (cotización, diploma). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
         </div>
       </div>
 
@@ -485,16 +567,15 @@
 </div>
 
 <script>
-  // tema claro/oscuro — se recuerda por navegador (localStorage), default oscuro
+  // tema claro/oscuro — se recuerda por navegador (localStorage), default oscuro.
+  // El switch es un pill con sol/luna fijos y un thumb que se desliza por CSS
+  // ([data-theme="light"]), no hace falta tocar el DOM del botón en JS.
   (function(){
-    const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>';
-    const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const btn = document.getElementById('themeToggle');
     let theme = 'dark';
     try { theme = localStorage.getItem('admin-theme') || 'dark'; } catch(e){}
     function apply(t){
       document.documentElement.setAttribute('data-theme', t);
-      btn.innerHTML = t === 'light' ? ICON_MOON : ICON_SUN;
       btn.title = t === 'light' ? 'Cambiar a oscuro' : 'Cambiar a claro';
     }
     apply(theme);
@@ -508,7 +589,7 @@
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
-    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas',
+    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas', config: 'Configuración',
   };
 
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
@@ -524,15 +605,22 @@
     `;
   });
 
+  // activarPanel es la única puerta para cambiar de sección — la usan tanto el
+  // sidebar como el ícono de engrane del topbar (Configuración no vive en el
+  // sidebar, solo se llega ahí desde el engrane).
+  function activarPanel(key){
+    document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+    document.getElementById('topbarTitle').textContent = TITLES[key] || key;
+  }
+
   document.getElementById('adminNav').addEventListener('click', e => {
     const btn = e.target.closest('.admin-nav-item');
     if(!btn) return;
-    const key = btn.dataset.panel;
-    document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b === btn));
-    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + key).classList.add('active');
-    document.getElementById('topbarTitle').textContent = TITLES[key];
+    activarPanel(btn.dataset.panel);
   });
+
+  document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
 
   // quién inició sesión — solo funciona una vez desplegado en Azure (no en local)
   fetch('/.auth/me')
@@ -546,90 +634,102 @@
     });
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL DASHBOARD — pestañas Comercial/Operación/Cierre/Producto.
-  // Producto trae tarjetas reales: una llamada a getCatalogoCursosAdmin
-  // (temas/temarios/proyectos, módulo Cursos) + una a getResumenProductosAdmin
-  // (cursos con código de descarga, módulo Recursos), sumadas en el cliente.
-  // Las demás pestañas son placeholder hasta su fase del roadmap.
+  // PANEL DASHBOARD — pestañas estilo Excel: Comercial/Operación/Cierre/Productos.
+  // Productos trae los 4 KPI reales (getCatalogoCursosAdmin, módulo Cursos) y el
+  // gráfico de barras por herramienta, con carga perezosa: los datos y la
+  // animación de entrada solo corren la primera vez que se abre la pestaña.
+  // Las demás pestañas son placeholder hasta su fase del roadmap. La relación
+  // Cursos↔Recursos (para el % de "curso completo" por herramienta) queda
+  // pendiente — se resuelve en una siguiente pasada, ver CLAUDE.md.
   // ═══════════════════════════════════════════════════════════════
   (function(){
-    document.getElementById('dashTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.dash-tab');
-      if(!btn) return;
-      const key = btn.dataset.dashtab;
-      document.querySelectorAll('.dash-tab').forEach(b => b.classList.toggle('active', b === btn));
-      document.querySelectorAll('.dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
-    });
-  })();
-
-  (function(){
-    const HERRAMIENTAS_TOTAL = 6;
-    const el = document.getElementById('dashProductoMetrics');
-
-    const DICO = {
-      layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5Z" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke-linejoin="round"/></svg>',
-      book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
-      clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3V2h6v1M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg>',
-      rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 2 5 6 5 10 0 2-1 4-1 4H8s-1-2-1-4c0-4 2-8 5-10Z" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-2M15 16l2 5-3-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>',
-      folderCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="m9 13 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    const TOOL_META = {
+      excel:         { nombre:'Excel',            color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
+      powerbi:       { nombre:'Power BI',          color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      powerapps:     { nombre:'Power Apps',        color:'#c026d3', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+      powerautomate: { nombre:'Power Automate',    color:'#06b6d4', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      ia:            { nombre:'IA Aplicada',       color:'#a78bfa', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>' },
     };
 
-    function tarjeta(color, icon, valor, valorSub, label, pct){
-      const pctSeguro = Number.isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0;
-      return `<div class="dprod-card" style="--c:${color}">
-        <span class="dprod-card-icon">${icon}</span>
-        <div class="dprod-card-value">${valor}<span class="dprod-card-value-sub">/${valorSub}</span></div>
-        <div class="dprod-card-label">${label}</div>
-        <div class="dprod-card-bar"><div class="dprod-card-bar-fill" style="width:${pctSeguro}%"></div></div>
+    const ICO = {
+      layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5Z" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke-linejoin="round"/></svg>',
+      book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+      list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>',
+      rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 2 5 6 5 10 0 2-1 4-1 4H8s-1-2-1-4c0-4 2-8 5-10Z" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-2M15 16l2 5-3-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+
+    const kpisEl = document.getElementById('dashKpis');
+    const barEl = document.getElementById('dashBarChart');
+    let datos = null; // cache — no se vuelve a pedir al API en visitas siguientes
+
+    function kpiCard(color, icon, valor, label, tooltip){
+      return `<div class="dkpi-card" style="--c:${color}" title="${tooltip}">
+        <span class="dkpi-icon">${icon}</span>
+        <div class="dkpi-value">${valor}</div>
+        <div class="dkpi-label">${label}</div>
       </div>`;
     }
 
-    async function cargarMetricasProducto(){
-      try {
-        const [catalogo, resumenProd] = await Promise.all([
-          fetch('/api/getCatalogoCursosAdmin').then(r => r.json()),
-          fetch('/api/getResumenProductosAdmin').then(r => r.json()),
-        ]);
+    async function cargarDatos(){
+      if(datos) return datos;
+      const catalogo = await fetch('/api/getCatalogoCursosAdmin').then(r => r.json());
+      let temasPub = 0, temariosPub = 0, proyectosPub = 0;
+      const barras = Object.keys(TOOL_META).map(id => {
+        const c = catalogo[id] || {};
+        const t = c.temas || { publicados:0 };
+        const te = c.temarios || { publicados:0 };
+        const pr = c.proyectos || { publicados:0 };
+        temasPub += t.publicados; temariosPub += te.publicados; proyectosPub += pr.publicados;
+        return { id, nombre: TOOL_META[id].nombre, color: TOOL_META[id].color, icon: TOOL_META[id].icon, cursos: te.publicados };
+      }).sort((a, b) => b.cursos - a.cursos);
+      datos = { temasPub, temariosPub, proyectosPub, barras };
+      return datos;
+    }
 
-        let activas = 0;
-        let temasTotal = 0, temasPub = 0;
-        let temariosTotal = 0, temariosPub = 0;
-        let proyectosTotal = 0, proyectosPub = 0;
-        let cursosTotal = 0, cursosPub = 0;
-        let conRecursos = 0;
-
-        Object.keys(catalogo).forEach(h => {
-          const c = catalogo[h] || {};
-          const p = resumenProd[h] || {};
-          const t = c.temas || { total:0, publicados:0 };
-          const te = c.temarios || { total:0, publicados:0 };
-          const pr = c.proyectos || { total:0, publicados:0 };
-          const cu = p.cursos || { total:0, publicados:0 };
-          const cr = p.cursosConRecursos || 0;
-
-          if(t.total > 0 || te.total > 0 || pr.total > 0 || cu.total > 0) activas++;
-          temasTotal += t.total; temasPub += t.publicados;
-          temariosTotal += te.total; temariosPub += te.publicados;
-          proyectosTotal += pr.total; proyectosPub += pr.publicados;
-          cursosTotal += cu.total; cursosPub += cu.publicados;
-          conRecursos += cr;
+    function renderBarras(barras){
+      const max = Math.max(1, ...barras.map(b => b.cursos));
+      barEl.innerHTML = barras.map(b => `
+        <div class="dbar-row">
+          <span class="dbar-icon" style="color:${b.color}">${b.icon}</span>
+          <span class="dbar-label">${b.nombre}</span>
+          <div class="dbar-track"><div class="dbar-fill" data-pct="${b.cursos / max * 100}" style="background:${b.color}"></div></div>
+          <span class="dbar-count">${b.cursos}</span>
+        </div>
+      `).join('');
+      // arranca en 0 y anima al ancho real en el siguiente frame — así se ve
+      // "correr" la barra cada vez que se entra a la pestaña, no solo la primera vez
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          barEl.querySelectorAll('.dbar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
         });
+      });
+    }
 
-        el.innerHTML = [
-          tarjeta('#3d7fff', DICO.layers, activas, HERRAMIENTAS_TOTAL, 'Herramientas activas', activas / HERRAMIENTAS_TOTAL * 100),
-          tarjeta('#22c55e', DICO.book, temasPub, temasTotal, 'Temas en banco publicados', temasPub / temasTotal * 100),
-          tarjeta('#f2c94c', DICO.clipboard, temariosPub, temariosTotal, 'Temarios Estándar publicados', temariosPub / temariosTotal * 100),
-          tarjeta('#a78bfa', DICO.rocket, proyectosPub, proyectosTotal, 'Proyectos publicados', proyectosPub / proyectosTotal * 100),
-          tarjeta('#c026d3', DICO.download, cursosPub, cursosTotal, 'Cursos con código publicados', cursosPub / cursosTotal * 100),
-          tarjeta('#f97316', DICO.folderCheck, conRecursos, cursosTotal, 'Cursos con recursos cargados', conRecursos / cursosTotal * 100),
+    async function renderProductos(){
+      try {
+        const d = await cargarDatos();
+        kpisEl.innerHTML = [
+          kpiCard('#3d7fff', ICO.layers, 6, 'Herramientas', 'Cantidad de herramientas del catálogo (fijo).'),
+          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Cursos', 'Total de temarios estándar publicados en todas las herramientas.'),
+          kpiCard('#f2c94c', ICO.list, d.temasPub, 'Temas', 'Total de temas publicados en todas las herramientas.'),
+          kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Total de proyectos publicados en todas las herramientas.'),
         ].join('');
+        renderBarras(d.barras);
       } catch(e){
-        el.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
+        kpisEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
+        barEl.innerHTML = '';
       }
     }
 
-    cargarMetricasProducto();
+    document.getElementById('dashTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.dashtab;
+      document.querySelectorAll('.dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
+      if(key === 'productos') renderProductos();
+    });
   })();
 
   // ═══════════════════════════════════════════════════════════════

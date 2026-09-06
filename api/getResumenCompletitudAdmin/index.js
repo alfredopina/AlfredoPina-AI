@@ -4,12 +4,11 @@
 // `temarioId` que ahora guarda el Curso de Recursos, para calcular por
 // herramienta qué % de sus cursos publicados están "completos".
 //
-// Un curso (= Temario Estándar vinculado) se considera completo si:
-//   - su temario tiene al menos 3 temas
-//   - desbloquea al menos 1 Proyecto de la herramienta
-//   - tiene al menos 1 recurso cargado en cada una de las 5 categorías
-//     (manual, caso, plantilla, skill, extra = Contenido Complementario)
-// Un curso sin `temarioId` vinculado no se puede evaluar y cuenta como no completo.
+// Un curso se considera completo si tiene al menos 1 recurso tipo "manual"
+// cargado (en la práctica un curso solo lleva un manual, así que esto
+// equivale a "¿ya le subiste el manual?"). Temas y proyectos desbloqueados
+// se siguen calculando y regresando para el detalle del drill-down, pero
+// ya no forman parte de la regla de completitud.
 const { getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
 const { parseTemaIds, proyectoCubierto } = require("../src/cursos-calc");
@@ -72,8 +71,7 @@ module.exports = async function (context, req) {
         const conteo = conteoPorCurso[`${h}_${curso.id}`] || {};
         const recursos = {};
         TIPOS.forEach((tipo) => { recursos[tipo] = conteo[tipo] || 0; });
-        const categoriasCubiertas = TIPOS.filter((tipo) => recursos[tipo] > 0).length;
-        const completo = temaIds.length >= 3 && proyectos.length >= 1 && categoriasCubiertas === TIPOS.length;
+        const completo = recursos.manual >= 1;
 
         return { id: curso.id, nombre: curso.nombre, temarioId: curso.temarioId, temas: temaIds.length, proyectos, recursos, completo };
       });

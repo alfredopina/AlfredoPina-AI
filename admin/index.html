@@ -842,10 +842,10 @@
       } else {
         listEl.innerHTML = r.cursos.map(c => {
           const proyectosTxt = c.proyectos.length ? c.proyectos.map(escapeHtmlDash).join(', ') : 'Sin proyecto desbloqueado';
-          const categoriasCargadas = Object.values(c.recursos).filter(n => n > 0).length;
+          const manualTxt = c.recursos.manual >= 1 ? 'Manual cargado' : 'Falta el manual';
           const sub = c.temarioId
-            ? `${c.temas} temas · ${proyectosTxt} · ${categoriasCargadas}/5 categorías de recursos`
-            : 'Sin vincular a un Temario Estándar — no se puede evaluar (edítalo en Recursos)';
+            ? `${c.temas} temas · ${proyectosTxt} · ${manualTxt}`
+            : `Sin vincular a un Temario Estándar (temas/proyecto no disponibles) · ${manualTxt}`;
           return `<div class="radm-row">
             <div class="radm-row-body">
               <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#4ade80;">${ICO.check}</span>` : ''}</div>

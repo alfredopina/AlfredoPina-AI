@@ -87,6 +87,10 @@
     {
       "route": "/api/getResumenProductosAdmin",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getResumenCompletitudAdmin",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

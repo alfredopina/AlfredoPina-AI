@@ -15,6 +15,7 @@ module.exports = async function (context, req) {
   const codigo = (body.codigo || "").trim().toUpperCase();
   const estado = body.estado === "publicado" ? "publicado" : "borrador";
   const orden = Number.isFinite(body.orden) ? body.orden : 0;
+  const temarioId = (body.temarioId || "").trim().toLowerCase();
 
   if (!HERRAMIENTAS.includes(herramienta)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Herramienta inválida." } };
@@ -32,7 +33,7 @@ module.exports = async function (context, req) {
   try {
     const cursosTable = getCursosTable();
     await cursosTable.upsertEntity(
-      { partitionKey: herramienta, rowKey: curso, nombre, codigo, estado, orden },
+      { partitionKey: herramienta, rowKey: curso, nombre, codigo, estado, orden, temarioId },
       "Replace"
     );
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };

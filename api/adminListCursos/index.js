@@ -28,6 +28,7 @@ module.exports = async function (context, req) {
         codigo: c.codigo || "",
         estado: c.estado || "borrador",
         orden: c.orden || 0,
+        temarioId: c.temarioId || "",
       });
     }
     cursos.sort((a, b) => a.orden - b.orden);

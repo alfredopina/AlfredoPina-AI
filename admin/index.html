@@ -110,9 +110,13 @@
   }
   .admin-theme-switch-icons{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between;
-    padding:0 6px; color:var(--text-faint); pointer-events:none;
+    padding:0 6px; pointer-events:none;
   }
-  .admin-theme-switch-icons svg{ width:13px; height:13px; }
+  .admin-theme-switch-icons svg{ width:13px; height:13px; color:var(--text-dim); transition:color .2s; }
+  /* el ícono del lado activo resalta más que el otro, nunca solo por el thumb */
+  .admin-theme-switch .icon-moon{ color:var(--text); }
+  :root[data-theme="light"] .admin-theme-switch .icon-moon{ color:var(--text-dim); }
+  :root[data-theme="light"] .admin-theme-switch .icon-sun{ color:#f5a623; }
   .admin-theme-switch-thumb{
     position:absolute; top:2px; left:2px; width:21px; height:21px; border-radius:50%;
     background:var(--blue-bright); transition:transform .2s ease; box-shadow:0 1px 3px rgba(0,0,0,.35);
@@ -179,6 +183,34 @@
   .dbar-count{ width:28px; flex:none; text-align:right; font-family:var(--mono); font-size:13px; color:var(--text-dim); }
 
   .cfg-note{ font-size:13px; color:var(--text-dim); line-height:1.6; margin-top:2px; }
+
+  .dring-hint{ font-size:12px; color:var(--text-faint); margin-bottom:16px; }
+  .dring-grid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:14px; }
+  @media (max-width:1100px){ .dring-grid{ grid-template-columns:repeat(3, 1fr); } }
+  @media (max-width:640px){ .dring-grid{ grid-template-columns:repeat(2, 1fr); } }
+  .dring-card{
+    border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:16px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .dring-card:hover{ border-color:var(--blue-bright); }
+  .dring-card.active{ border-color:var(--blue-bright); background:var(--panel-2); }
+  .dring-head{ display:flex; align-items:center; gap:6px; min-width:0; }
+  .dring-icon{ width:15px; height:15px; flex:none; }
+  .dring-icon svg{ width:100%; height:100%; }
+  .dring-name{ font-size:11.5px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dring-ring-wrap{ position:relative; width:76px; height:76px; }
+  .dring-svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .dring-track{ fill:none; stroke:var(--line-soft); stroke-width:7; }
+  .dring-fill{ fill:none; stroke-width:7; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1); }
+  .dring-value{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:16px; color:var(--text);
+  }
+  .dring-caption{ font-size:10.5px; color:var(--text-faint); text-align:center; }
+
+  .ddrill{ border:1px solid var(--blue-bright); border-radius:10px; background:var(--panel); padding:18px; margin-top:20px; }
+  .ddrill-head{ font-family:var(--display); font-weight:600; font-size:14px; color:var(--text); margin-bottom:12px; }
 
   .admin-welcome{ font-size:13.5px; color:var(--text-dim); line-height:1.7; max-width:520px; }
   .admin-welcome b{ color:var(--text); }
@@ -261,11 +293,11 @@
   .radm-form-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
   .radm-field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
   .radm-field label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; }
-  .radm-field input[type=text], .radm-field input[type=url], .radm-field textarea{
+  .radm-field input[type=text], .radm-field input[type=url], .radm-field textarea, .radm-field select{
     font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2);
     border:1px solid var(--line); border-radius:6px; padding:9px 11px; outline:none;
   }
-  .radm-field input:focus, .radm-field textarea:focus{ border-color:var(--c); }
+  .radm-field input:focus, .radm-field textarea:focus, .radm-field select:focus{ border-color:var(--c); }
   .radm-field input[readonly]{ color:var(--text-faint); }
   .radm-field textarea{ resize:vertical; min-height:70px; font-family:var(--mono); }
   .radm-mono{ font-family:var(--mono); }
@@ -439,8 +471,8 @@
         </button>
         <button type="button" class="admin-theme-switch" id="themeToggle" title="Cambiar tema">
           <span class="admin-theme-switch-icons">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
           </span>
           <span class="admin-theme-switch-thumb"></span>
         </button>
@@ -495,10 +527,22 @@
           </div>
           <div class="dbar-title">Cursos publicados por herramienta</div>
           <div id="dashBarChart"></div>
+
+          <div class="dbar-title" style="margin-top:32px;">% de cursos completos por herramienta</div>
+          <div class="dring-hint">Clic en una herramienta para ver el detalle de sus cursos — clic de nuevo para cerrarlo.</div>
+          <div class="dring-grid" id="dashRings"></div>
+          <div class="ddrill" id="dashDrilldown" hidden>
+            <div class="ddrill-head" id="ddrillHead"></div>
+            <div class="radm-list" id="ddrillList"></div>
+          </div>
         </div>
       </div>
 
       <div class="admin-panel" id="panel-config">
+        <button class="radm-back" id="configBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Volver
+        </button>
         <div class="radm-section">
           <div class="radm-section-head"><span class="radm-section-title">PERFIL</span><span class="admin-nav-soon">PRONTO</span></div>
           <div class="cfg-note">Datos de tu marca y firma para documentos (cotizaciones, diplomas). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
@@ -514,6 +558,18 @@
         <div class="radm-section">
           <div class="radm-section-head"><span class="radm-section-title">PLANTILLAS</span><span class="admin-nav-soon">PRONTO</span></div>
           <div class="cfg-note">Diseño base de los documentos generados (cotización, diploma). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-notificaciones">
+        <button class="radm-back" id="notifBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Volver
+        </button>
+        <div class="admin-empty">
+          <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+          <div class="admin-empty-title">Notificaciones — próximamente</div>
+          <div class="admin-empty-text">Aquí van a llegar tus solicitudes, diagnósticos y demás avisos en cuanto esos módulos existan.</div>
         </div>
       </div>
 
@@ -589,7 +645,8 @@
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
-    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas', config: 'Configuración',
+    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas',
+    config: 'Configuración', notificaciones: 'Notificaciones',
   };
 
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
@@ -605,10 +662,13 @@
     `;
   });
 
-  // activarPanel es la única puerta para cambiar de sección — la usan tanto el
-  // sidebar como el ícono de engrane del topbar (Configuración no vive en el
-  // sidebar, solo se llega ahí desde el engrane).
+  // activarPanel es la única puerta para cambiar de sección — la usan el sidebar
+  // y los íconos de campana/engrane del topbar (Configuración y Notificaciones no
+  // viven en el sidebar). Se recuerda el último panel "de verdad" (no config ni
+  // notificaciones) para que el botón "Volver" de esos dos sepa a dónde regresar.
+  let ultimoPanel = 'dashboard';
   function activarPanel(key){
+    if(key !== 'config' && key !== 'notificaciones') ultimoPanel = key;
     document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
     document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
     document.getElementById('topbarTitle').textContent = TITLES[key] || key;
@@ -621,6 +681,9 @@
   });
 
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
+  document.getElementById('btnNotificaciones').addEventListener('click', () => activarPanel('notificaciones'));
+  document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
+  document.getElementById('notifBack').addEventListener('click', () => activarPanel(ultimoPanel));
 
   // quién inició sesión — solo funciona una vez desplegado en Azure (no en local)
   fetch('/.auth/me')
@@ -657,11 +720,24 @@
       book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
       list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>',
       rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 2 5 6 5 10 0 2-1 4-1 4H8s-1-2-1-4c0-4 2-8 5-10Z" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-2M15 16l2 5-3-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-left:4px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
 
     const kpisEl = document.getElementById('dashKpis');
     const barEl = document.getElementById('dashBarChart');
+    const ringsEl = document.getElementById('dashRings');
+    const drillEl = document.getElementById('dashDrilldown');
     let datos = null; // cache — no se vuelve a pedir al API en visitas siguientes
+    let toolActivo = null; // qué anillo tiene el drill-down abierto ahora mismo
+
+    // colores del anillo elegidos por Alfredo por su deuteranomalía — siempre
+    // acompañados del número en el centro, nunca solo el color (ver CLAUDE.md)
+    function colorCompletitud(pct, totalCursos){
+      if(!totalCursos) return 'var(--line)';
+      if(pct >= 100) return '#4ade80';
+      if(pct >= 50) return '#facc15';
+      return '#b91c1c';
+    }
 
     function kpiCard(color, icon, valor, label, tooltip){
       return `<div class="dkpi-card" style="--c:${color}" title="${tooltip}">
@@ -673,7 +749,10 @@
 
     async function cargarDatos(){
       if(datos) return datos;
-      const catalogo = await fetch('/api/getCatalogoCursosAdmin').then(r => r.json());
+      const [catalogo, completitud] = await Promise.all([
+        fetch('/api/getCatalogoCursosAdmin').then(r => r.json()),
+        fetch('/api/getResumenCompletitudAdmin').then(r => r.json()),
+      ]);
       let temasPub = 0, temariosPub = 0, proyectosPub = 0;
       const barras = Object.keys(TOOL_META).map(id => {
         const c = catalogo[id] || {};
@@ -683,14 +762,14 @@
         temasPub += t.publicados; temariosPub += te.publicados; proyectosPub += pr.publicados;
         return { id, nombre: TOOL_META[id].nombre, color: TOOL_META[id].color, icon: TOOL_META[id].icon, cursos: te.publicados };
       }).sort((a, b) => b.cursos - a.cursos);
-      datos = { temasPub, temariosPub, proyectosPub, barras };
+      datos = { temasPub, temariosPub, proyectosPub, barras, completitud };
       return datos;
     }
 
     function renderBarras(barras){
       const max = Math.max(1, ...barras.map(b => b.cursos));
       barEl.innerHTML = barras.map(b => `
-        <div class="dbar-row">
+        <div class="dbar-row" data-tool="${b.id}" style="cursor:pointer;">
           <span class="dbar-icon" style="color:${b.color}">${b.icon}</span>
           <span class="dbar-label">${b.nombre}</span>
           <div class="dbar-track"><div class="dbar-fill" data-pct="${b.cursos / max * 100}" style="background:${b.color}"></div></div>
@@ -706,6 +785,87 @@
       });
     }
 
+    // circunferencia de un círculo r=34 (ver .dring-svg) — se usa para el
+    // stroke-dasharray/offset del anillo de progreso
+    const RING_CIRC = 2 * Math.PI * 34;
+
+    function renderAnillos(barras, completitud){
+      ringsEl.innerHTML = barras.map(b => {
+        const r = completitud[b.id] || { pctCompleto:0, cursosCompletos:0, cursosPublicados:0 };
+        const color = colorCompletitud(r.pctCompleto, r.cursosPublicados);
+        const valorTexto = r.cursosPublicados ? `${r.pctCompleto}%` : '—';
+        return `
+        <div class="dring-card" data-tool="${b.id}">
+          <div class="dring-head">
+            <span class="dring-icon" style="color:${b.color}">${b.icon}</span>
+            <span class="dring-name">${b.nombre}</span>
+          </div>
+          <div class="dring-ring-wrap">
+            <svg viewBox="0 0 80 80" class="dring-svg">
+              <circle cx="40" cy="40" r="34" class="dring-track"></circle>
+              <circle cx="40" cy="40" r="34" class="dring-fill" stroke="${color}"
+                stroke-dasharray="${RING_CIRC}" data-offset="${RING_CIRC * (1 - r.pctCompleto / 100)}" stroke-dashoffset="${RING_CIRC}"></circle>
+            </svg>
+            <div class="dring-value">${valorTexto}</div>
+          </div>
+          <div class="dring-caption">${r.cursosCompletos} de ${r.cursosPublicados} completos</div>
+        </div>`;
+      }).join('');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          ringsEl.querySelectorAll('.dring-fill').forEach(el => { el.style.strokeDashoffset = el.dataset.offset; });
+        });
+      });
+    }
+
+    function escapeHtmlDash(s){
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function toggleDrilldown(toolId){
+      const abrirOtro = toolActivo !== toolId;
+      toolActivo = abrirOtro ? toolId : null;
+
+      document.querySelectorAll('.dring-card, .dbar-row').forEach(el => {
+        el.classList.toggle('active', abrirOtro && el.dataset.tool === toolId);
+      });
+
+      if(!abrirOtro){ drillEl.hidden = true; return; }
+
+      const info = TOOL_META[toolId];
+      const r = (datos && datos.completitud[toolId]) || { cursos: [] };
+      document.getElementById('ddrillHead').textContent = `${info.nombre} — detalle de cursos`;
+      const listEl = document.getElementById('ddrillList');
+
+      if(!r.cursos.length){
+        listEl.innerHTML = '<div class="radm-empty-row">Sin cursos publicados en esta herramienta todavía.</div>';
+      } else {
+        listEl.innerHTML = r.cursos.map(c => {
+          const proyectosTxt = c.proyectos.length ? c.proyectos.map(escapeHtmlDash).join(', ') : 'Sin proyecto desbloqueado';
+          const categoriasCargadas = Object.values(c.recursos).filter(n => n > 0).length;
+          const sub = c.temarioId
+            ? `${c.temas} temas · ${proyectosTxt} · ${categoriasCargadas}/5 categorías de recursos`
+            : 'Sin vincular a un Temario Estándar — no se puede evaluar (edítalo en Recursos)';
+          return `<div class="radm-row">
+            <div class="radm-row-body">
+              <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#4ade80;">${ICO.check}</span>` : ''}</div>
+              <div class="radm-row-sub">${sub}</div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      drillEl.hidden = false;
+    }
+
+    barEl.addEventListener('click', e => {
+      const row = e.target.closest('.dbar-row');
+      if(row) toggleDrilldown(row.dataset.tool);
+    });
+    ringsEl.addEventListener('click', e => {
+      const card = e.target.closest('.dring-card');
+      if(card) toggleDrilldown(card.dataset.tool);
+    });
+
     async function renderProductos(){
       try {
         const d = await cargarDatos();
@@ -716,9 +876,13 @@
           kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Total de proyectos publicados en todas las herramientas.'),
         ].join('');
         renderBarras(d.barras);
+        renderAnillos(d.barras, d.completitud);
+        toolActivo = null;
+        drillEl.hidden = true;
       } catch(e){
         kpisEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
         barEl.innerHTML = '';
+        ringsEl.innerHTML = '';
       }
     }
 
@@ -1449,6 +1613,7 @@
     let radmCursos = [];
     let radmCursoId = null;
     let radmRecursos = [];
+    let radmTemarios = []; // Temarios Estándar publicados del módulo Cursos, para vincular por temarioId
 
     // ── nivel 1 — herramientas ──
     function renderToolsGrid(catalogo){
@@ -1505,8 +1670,12 @@
       document.getElementById('radmTabs').innerHTML = '<span class="radm-hint">Cargando…</span>';
 
       try {
-        const data = await apiGet(`/api/listCursosAdmin?herramienta=${encodeURIComponent(toolId)}`);
-        radmCursos = data.cursos || [];
+        const [cursosData, temariosData] = await Promise.all([
+          apiGet(`/api/listCursosAdmin?herramienta=${encodeURIComponent(toolId)}`),
+          apiGet(`/api/listTemariosAdmin?herramienta=${encodeURIComponent(toolId)}`),
+        ]);
+        radmCursos = cursosData.cursos || [];
+        radmTemarios = (temariosData.temarios || []).filter(t => t.estado === 'publicado');
         renderTabs();
         if(radmCursos.length) selectCurso(radmCursos[0].id);
         else abrirFormNuevoCurso();
@@ -1633,6 +1802,15 @@
               <input type="text" id="radmCursoCodigo" class="radm-mono" value="${escapeHtml(curso.codigo)}">
             </div>
           </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>VINCULAR CON TEMARIO ESTÁNDAR (para el % de completitud del Dashboard)</label>
+              <select id="radmCursoTemario">
+                <option value="">— Sin vincular —</option>
+                ${radmTemarios.map(t => `<option value="${escapeHtml(t.id)}" ${t.id === curso.temarioId ? 'selected' : ''}>${escapeHtml(t.nombre)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
           <div class="radm-actions">
             <div class="radm-switch-row">
               <label class="radm-switch">
@@ -1658,10 +1836,11 @@
         const nombre = document.getElementById('radmCursoNombre').value.trim();
         const codigo = document.getElementById('radmCursoCodigo').value.trim();
         const estado = document.getElementById('radmCursoEstado').checked ? 'publicado' : 'borrador';
+        const temarioId = document.getElementById('radmCursoTemario').value;
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
         try {
-          await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:curso.id, nombre, codigo, estado, orden:curso.orden });
-          curso.nombre = nombre; curso.codigo = codigo; curso.estado = estado;
+          await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:curso.id, nombre, codigo, estado, orden:curso.orden, temarioId });
+          curso.nombre = nombre; curso.codigo = codigo; curso.estado = estado; curso.temarioId = temarioId;
           renderTabs();
           toast('Curso guardado.', true);
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }

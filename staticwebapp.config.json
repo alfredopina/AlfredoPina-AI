@@ -91,6 +91,26 @@
     {
       "route": "/api/getResumenCompletitudAdmin",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/buscarClientes",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/generarDiplomas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getDiplomaPdf",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listDiplomas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/anularDiploma",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

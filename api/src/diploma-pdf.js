@@ -1,22 +1,25 @@
 // Genera el PDF de un diploma con pdf-lib — NO Puppeteer ni nada basado en
 // navegador headless, no es confiable en managed functions de Static Web Apps.
 //
-// Plantilla de PRUEBA (diseño azul de Alfredo, exportado a 1437x1078px)
-// mientras define el diseño definitivo — ver api/assets/diploma-fondo-prueba.png.
+// Plantilla de PRUEBA (diseño azul de Alfredo, 1437x1078px) mientras define
+// el diseño definitivo. El fondo y la firma del instructor YA NO son
+// archivos fijos del repo — viven en Blob Storage (ver plantillas-storage.js)
+// y Alfredo los administra desde el panel "Plantillas" del admin, así que
+// esta función los recibe como buffers ya descargados (fondoBuffer,
+// firmaBuffer — este último puede ser null si ese instructor no tiene firma
+// cargada todavía, en cuyo caso el diploma sale igual, solo sin firma).
 // La página del PDF se crea del mismo tamaño en puntos que la imagen en
 // píxeles (1437x1078pt) para poder usar las coordenadas del PNG directo, sin
 // conversiones. El texto dinámico se dibuja con Inter (api/assets/fonts/,
 // misma tipografía de body que ya usa el sitio) en vez de la fuente estándar
-// de PDF, para que no se note distinta a la del fondo.
-// Cuando llegue la plantilla final, solo cambia el archivo de fondo y estas
-// coordenadas — el resto del flujo no se toca.
+// de PDF, para que no se note distinta a la del fondo. Las fuentes sí siguen
+// siendo archivos del repo — a diferencia del fondo/firma, no se espera que
+// cambien nunca desde el admin.
 const fs = require("fs");
 const path = require("path");
 const { PDFDocument, rgb } = require("pdf-lib");
 const fontkit = require("@pdf-lib/fontkit");
 
-const FONDO_PATH = path.join(__dirname, "..", "assets", "diploma-fondo-prueba.png");
-const FIRMA_PATH = path.join(__dirname, "..", "assets", "firma-alfredo.png");
 const FONT_REGULAR_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Regular.ttf");
 const FONT_BOLD_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Bold.ttf");
 
@@ -39,18 +42,20 @@ const TEXTO_RESULTADO = {
   "Participó": "participación",
 };
 
-async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaFin, horas, instructor, folio }) {
+async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaFin, horas, instructor, folio, fondoBuffer, firmaBuffer }) {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([1437, 1078]);
 
-  const fondoImg = await pdfDoc.embedPng(fs.readFileSync(FONDO_PATH));
+  const fondoImg = await pdfDoc.embedPng(fondoBuffer);
   page.drawImage(fondoImg, { x: 0, y: 0, width: 1437, height: 1078 });
 
-  const firmaImg = await pdfDoc.embedPng(fs.readFileSync(FIRMA_PATH));
-  const firmaAncho = 135;
-  const firmaAlto = firmaAncho * (firmaImg.height / firmaImg.width);
-  page.drawImage(firmaImg, { x: CENTRO_X - firmaAncho / 2, y: 206, width: firmaAncho, height: firmaAlto });
+  if (firmaBuffer) {
+    const firmaImg = await pdfDoc.embedPng(firmaBuffer);
+    const firmaAncho = 135;
+    const firmaAlto = firmaAncho * (firmaImg.height / firmaImg.width);
+    page.drawImage(firmaImg, { x: CENTRO_X - firmaAncho / 2, y: 206, width: firmaAncho, height: firmaAlto });
+  }
 
   const fontBold = await pdfDoc.embedFont(fs.readFileSync(FONT_BOLD_PATH));
   const font = await pdfDoc.embedFont(fs.readFileSync(FONT_REGULAR_PATH));

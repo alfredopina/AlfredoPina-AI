@@ -111,6 +111,18 @@
     {
       "route": "/api/anularDiploma",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getPlantillaAsset",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/subirPlantillaAsset",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/generarDiplomaPrueba",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

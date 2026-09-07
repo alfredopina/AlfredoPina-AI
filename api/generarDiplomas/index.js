@@ -6,6 +6,7 @@
 // resultado, igual que cuando "No Aprobado" consume folio pero no genera PDF.
 const { getPool, sql } = require("../src/backoffice-db");
 const { getDiplomasContainer } = require("../src/diplomas-storage");
+const { getFondoBuffer, getFirmaBuffer, slugify } = require("../src/plantillas-storage");
 const { generarDiplomaPdf } = require("../src/diploma-pdf");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
@@ -121,6 +122,17 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // el fondo y la firma no cambian entre alumnos de un mismo lote — se piden
+  // una sola vez en vez de una vez por alumno
+  let fondoBuffer, firmaBuffer;
+  try {
+    [fondoBuffer, firmaBuffer] = await Promise.all([getFondoBuffer(), getFirmaBuffer(slugify(instructor))]);
+  } catch (err) {
+    context.log.error("Error cargando la plantilla:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: err.message } };
+    return;
+  }
+
   const container = getDiplomasContainer();
   const resultados = [];
 
@@ -157,6 +169,8 @@ module.exports = async function (context, req) {
           horas,
           instructor,
           folio,
+          fondoBuffer,
+          firmaBuffer,
         });
         blobPath = `${folio}.pdf`;
         await container.getBlockBlobClient(blobPath).uploadData(pdfBuffer, {

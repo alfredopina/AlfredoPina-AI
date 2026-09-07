@@ -66,4 +66,41 @@ async function uploadFirma(instructorSlug, buffer, contentType) {
   });
 }
 
-module.exports = { getPlantillasContainer, slugify, getFondoBuffer, getFirmaBuffer, uploadFondo, uploadFirma };
+// Lista de instructores — vive en instructores.json dentro del mismo
+// contenedor (no hay todavía una entidad Instructor real, ver roadmap Fase
+// 2.1 "atribución simple"). Si el archivo no existe aún, regresa esta
+// semilla en vez de tronar — así no hace falta un paso manual de setup.
+const INSTRUCTORES_SEMILLA = ["Ing. Alfredo Piña", "Lic. Sergio Moreno"];
+
+async function getInstructores() {
+  const container = getPlantillasContainer();
+  try {
+    const buffer = await container.getBlockBlobClient("instructores.json").downloadToBuffer();
+    const lista = JSON.parse(buffer.toString("utf8"));
+    return Array.isArray(lista) && lista.length ? lista : INSTRUCTORES_SEMILLA;
+  } catch (err) {
+    if (err.statusCode === 404) return INSTRUCTORES_SEMILLA;
+    throw err;
+  }
+}
+
+async function agregarInstructor(nombre) {
+  const lista = await getInstructores();
+  if (!lista.includes(nombre)) lista.push(nombre);
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("instructores.json").uploadData(Buffer.from(JSON.stringify(lista)), {
+    blobHTTPHeaders: { blobContentType: "application/json" },
+  });
+  return lista;
+}
+
+module.exports = {
+  getPlantillasContainer,
+  slugify,
+  getFondoBuffer,
+  getFirmaBuffer,
+  uploadFondo,
+  uploadFirma,
+  getInstructores,
+  agregarInstructor,
+};

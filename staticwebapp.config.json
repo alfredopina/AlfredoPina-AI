@@ -123,6 +123,18 @@
     {
       "route": "/api/generarDiplomaPrueba",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getGuiaCoordenadas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getInstructores",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/agregarInstructor",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

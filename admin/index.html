@@ -439,6 +439,22 @@
   .dip-firma-preview img{ max-height:60px; max-width:100%; }
   .dip-firma-archivo{ font-size:11.5px; color:var(--text-dim); margin-bottom:8px; display:block; width:100%; }
 
+  .dip-paso{ border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:20px; background:var(--panel); }
+  .dip-paso-head{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .dip-paso-num{
+    width:26px; height:26px; border-radius:50%; background:var(--blue-soft); color:var(--blue-bright);
+    display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; font-size:12px; flex:none;
+  }
+  .dip-paso-title{ font-family:var(--display); font-weight:600; font-size:15px; }
+
+  .dip-firma-add{
+    border:1px dashed var(--line); border-radius:8px; padding:14px; background:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    color:var(--text-faint); cursor:pointer; min-height:150px; text-align:center; font-size:12.5px;
+  }
+  .dip-firma-add:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
+  .dip-firma-add svg{ color:inherit; }
+
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
     .admin-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
@@ -695,7 +711,7 @@
         <div class="dash-etabs" id="dipTabs">
           <button type="button" class="dash-etab active" data-diptab="crear">Crear Diplomas</button>
           <button type="button" class="dash-etab" data-diptab="consultar">Consultar Diplomas</button>
-          <button type="button" class="dash-etab" data-diptab="plantillas">Plantillas</button>
+          <button type="button" class="dash-etab" data-diptab="plantillas">Plantilla</button>
         </div>
 
         <div class="dip-tabpanel active" id="dipTab-crear">
@@ -710,8 +726,6 @@
                 <label>INSTRUCTOR <span class="dip-req">*</span></label>
                 <select id="dipInstructor">
                   <option value="">Selecciona...</option>
-                  <option value="Ing. Alfredo Piña">Ing. Alfredo Piña</option>
-                  <option value="Lic. Sergio Moreno">Lic. Sergio Moreno</option>
                 </select>
               </div>
               <div class="radm-field">
@@ -902,11 +916,17 @@
         </div>
 
         <div class="dip-tabpanel" id="dipTab-plantillas">
-          <div class="radm-section">
-            <div class="radm-section-head"><span class="radm-section-title">PLANTILLA DE FONDO</span></div>
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-num">1</span>
+              <span class="dip-paso-title">Plantilla de fondo</span>
+            </div>
             <div class="dip-plantilla-preview">
               <img id="dipFondoPreview" alt="Plantilla de fondo" src="/api/getPlantillaAsset?tipo=fondo">
               <span class="radm-hint" id="dipFondoVacio" hidden>Sin plantilla todavía.</span>
+            </div>
+            <div class="radm-hint" style="margin-top:12px; max-width:600px">
+              <b>Formato requerido:</b> PNG horizontal, 1437 × 1078 px exactos (otra medida se estira para llenar ese tamaño). Sin texto de datos (nombre, curso, fechas, folio, instructor) — eso se dibuja encima en cada PDF. Lo que sí puede ir horneado en la imagen: decoración, logo, textos fijos que nunca cambian (ej. "REG STPS").
             </div>
             <div class="radm-form-row" style="margin-top:14px">
               <div class="radm-field">
@@ -917,22 +937,32 @@
                 <button type="button" class="radm-btn" id="dipFondoSubir" style="min-width:auto">Subir plantilla</button>
               </div>
             </div>
+            <div class="dip-grid-actions" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line)">
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="dipDescargarGuia" title="PDF con la plantilla actual y un recuadro punteado en cada lugar donde se dibuja un dato">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Descargar guía de coordenadas
+              </button>
+              <span class="radm-hint">Marca dónde cae cada dato sobre tu plantilla actual — úsala de referencia al diseñar una plantilla nueva, para no tapar esos espacios.</span>
+            </div>
           </div>
 
-          <div class="radm-section">
-            <div class="radm-section-head"><span class="radm-section-title">FIRMAS POR INSTRUCTOR</span></div>
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-num">2</span>
+              <span class="dip-paso-title">Firmas por instructor</span>
+            </div>
             <div class="dip-firmas-grid" id="dipFirmasGrid"></div>
           </div>
 
-          <div class="radm-section">
-            <div class="radm-section-head"><span class="radm-section-title">PROBAR PLANTILLA</span></div>
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-num">3</span>
+              <span class="dip-paso-title">Probar</span>
+            </div>
             <div class="radm-form-row">
               <div class="radm-field">
                 <label>INSTRUCTOR PARA LA PRUEBA</label>
-                <select id="dipPruebaInstructor">
-                  <option value="Ing. Alfredo Piña">Ing. Alfredo Piña</option>
-                  <option value="Lic. Sergio Moreno">Lic. Sergio Moreno</option>
-                </select>
+                <select id="dipPruebaInstructor"></select>
               </div>
               <div class="radm-field" style="flex:none; justify-content:flex-end">
                 <button type="button" class="radm-btn" id="dipGenerarPrueba" style="min-width:auto">Generar PDF de prueba</button>
@@ -2751,7 +2781,27 @@
     });
 
     // ── plantillas (fondo, firmas por instructor, PDF de prueba) ──
-    const INSTRUCTORES_LISTA = ['Ing. Alfredo Piña', 'Lic. Sergio Moreno'];
+    // la lista de instructores ya no está hardcodeada — se carga de
+    // getInstructores y alimenta los 2 selectores (Crear Diplomas y esta
+    // pestaña) más la cuadrícula de firmas, todo desde un solo lugar
+    let dipInstructores = [];
+
+    function actualizarSelectsInstructor(){
+      const opciones = dipInstructores.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      document.getElementById('dipInstructor').innerHTML = '<option value="">Selecciona...</option>' + opciones;
+      document.getElementById('dipPruebaInstructor').innerHTML = opciones;
+    }
+
+    async function cargarInstructores(){
+      try {
+        const data = await apiGet('/api/getInstructores');
+        dipInstructores = data.instructores || [];
+      } catch(e){
+        dipInstructores = [];
+      }
+      actualizarSelectsInstructor();
+      renderFirmasGrid();
+    }
 
     function fileToBase64(file){
       return new Promise((resolve, reject) => {
@@ -2773,7 +2823,7 @@
 
     function renderFirmasGrid(){
       const cont = document.getElementById('dipFirmasGrid');
-      cont.innerHTML = INSTRUCTORES_LISTA.map(nombre => `
+      cont.innerHTML = dipInstructores.map(nombre => `
         <div class="dip-firma-card">
           <div class="dip-firma-nombre">${escapeHtml(nombre)}</div>
           <div class="dip-firma-preview">
@@ -2783,12 +2833,54 @@
           <input type="file" accept="image/png" class="dip-firma-archivo" data-instructor="${escapeHtml(nombre)}">
           <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto; width:100%">Subir firma</button>
         </div>
-      `).join('');
+      `).join('') + `
+        <div class="dip-firma-add" id="dipFirmaAddCard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:22px; height:22px"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+          <span>Agregar instructor</span>
+        </div>
+      `;
       cont.querySelectorAll('.dip-firma-preview').forEach(wrap => {
         wireImgFallback(wrap.querySelector('.dip-firma-img'), wrap.querySelector('.dip-firma-vacio'));
       });
     }
-    renderFirmasGrid();
+
+    function mostrarFormAgregarInstructor(){
+      const card = document.getElementById('dipFirmaAddCard');
+      card.outerHTML = `
+        <div class="dip-firma-card" id="dipFirmaAddForm">
+          <div class="dip-firma-nombre">Nuevo instructor</div>
+          <input type="text" id="dipNuevoInstructorNombre" placeholder="Ej. Ing. Fulano Pérez"
+                 style="width:100%; margin-bottom:8px; font-family:var(--body); font-size:12.5px; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:5px; padding:8px 10px; box-sizing:border-box;">
+          <input type="file" accept="image/png" id="dipNuevoInstructorArchivo" class="dip-firma-archivo">
+          <div style="display:flex; gap:6px; margin-top:4px">
+            <button type="button" class="radm-btn" id="dipNuevoInstructorGuardar" style="min-width:auto; flex:1">Guardar</button>
+            <button type="button" class="radm-btn radm-btn-ghost" id="dipNuevoInstructorCancelar" style="min-width:auto">Cancelar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function guardarNuevoInstructor(){
+      const nombre = document.getElementById('dipNuevoInstructorNombre').value.trim();
+      if(!nombre){ toast('Escribe el nombre del instructor.', false); return; }
+      const file = document.getElementById('dipNuevoInstructorArchivo').files[0];
+      const btn = document.getElementById('dipNuevoInstructorGuardar');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      try {
+        const payload = { nombre };
+        if(file){ payload.fileBase64 = await fileToBase64(file); payload.contentType = file.type || 'image/png'; }
+        const data = await apiPostJson('/api/agregarInstructor', payload);
+        dipInstructores = data.instructores || dipInstructores;
+        actualizarSelectsInstructor();
+        renderFirmasGrid();
+        toast('Instructor agregado.', true);
+      } catch(e){
+        toast('No se pudo agregar: ' + e.message, false);
+        btn.disabled = false; btn.textContent = 'Guardar';
+      }
+    }
+
+    cargarInstructores();
 
     document.getElementById('dipFondoSubir').addEventListener('click', async () => {
       const input = document.getElementById('dipFondoArchivo');
@@ -2807,6 +2899,10 @@
     });
 
     document.getElementById('dipFirmasGrid').addEventListener('click', async e => {
+      if(e.target.closest('#dipFirmaAddCard')){ mostrarFormAgregarInstructor(); return; }
+      if(e.target.closest('#dipNuevoInstructorCancelar')){ renderFirmasGrid(); return; }
+      if(e.target.closest('#dipNuevoInstructorGuardar')){ await guardarNuevoInstructor(); return; }
+
       const btn = e.target.closest('.dip-firma-subir');
       if(!btn) return;
       const instructor = btn.dataset.instructor;
@@ -2826,6 +2922,10 @@
     document.getElementById('dipGenerarPrueba').addEventListener('click', () => {
       const instructor = document.getElementById('dipPruebaInstructor').value;
       window.open('/api/generarDiplomaPrueba?instructor=' + encodeURIComponent(instructor), '_blank');
+    });
+
+    document.getElementById('dipDescargarGuia').addEventListener('click', () => {
+      window.open('/api/getGuiaCoordenadas', '_blank');
     });
   })();
 </script>

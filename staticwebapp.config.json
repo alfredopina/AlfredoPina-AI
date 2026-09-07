@@ -135,6 +135,14 @@
     {
       "route": "/api/agregarInstructor",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarInstructor",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarFirma",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

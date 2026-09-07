@@ -434,7 +434,13 @@
   .dip-plantilla-preview img{ max-width:100%; width:520px; display:block; border-radius:4px; }
   .dip-firmas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px; }
   .dip-firma-card{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--panel); }
-  .dip-firma-nombre{ font-family:var(--display); font-weight:600; font-size:13px; margin-bottom:10px; }
+  .dip-firma-nombre{
+    font-family:var(--display); font-weight:600; font-size:13px; margin-bottom:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .dip-firma-nombre span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dip-firma-botones{ display:flex; gap:6px; margin-top:8px; }
+  .dip-firma-botones .dip-firma-subir{ flex:1; }
   .dip-firma-preview{ height:70px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; background:var(--panel-2); border-radius:6px; }
   .dip-firma-preview img{ max-height:60px; max-width:100%; }
   .dip-firma-archivo{ font-size:11.5px; color:var(--text-dim); margin-bottom:8px; display:block; width:100%; }
@@ -2825,13 +2831,19 @@
       const cont = document.getElementById('dipFirmasGrid');
       cont.innerHTML = dipInstructores.map(nombre => `
         <div class="dip-firma-card">
-          <div class="dip-firma-nombre">${escapeHtml(nombre)}</div>
+          <div class="dip-firma-nombre">
+            <span>${escapeHtml(nombre)}</span>
+            <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-instructor" data-instructor="${escapeHtml(nombre)}" title="Eliminar este instructor de la lista (su firma también se borra; los diplomas ya generados no cambian)">${ICO_TRASH}</button>
+          </div>
           <div class="dip-firma-preview">
             <img class="dip-firma-img" src="/api/getPlantillaAsset?tipo=firma&instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}">
             <span class="radm-hint dip-firma-vacio" hidden>Sin firma todavía.</span>
           </div>
           <input type="file" accept="image/png" class="dip-firma-archivo" data-instructor="${escapeHtml(nombre)}">
-          <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto; width:100%">Subir firma</button>
+          <div class="dip-firma-botones">
+            <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Subir firma</button>
+            <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-firma" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la firma (el instructor se queda en la lista)">${ICO_TRASH}</button>
+          </div>
         </div>
       `).join('') + `
         <div class="dip-firma-add" id="dipFirmaAddCard">
@@ -2902,6 +2914,32 @@
       if(e.target.closest('#dipFirmaAddCard')){ mostrarFormAgregarInstructor(); return; }
       if(e.target.closest('#dipNuevoInstructorCancelar')){ renderFirmasGrid(); return; }
       if(e.target.closest('#dipNuevoInstructorGuardar')){ await guardarNuevoInstructor(); return; }
+
+      const btnElimInstructor = e.target.closest('.dip-firma-eliminar-instructor');
+      if(btnElimInstructor){
+        const nombre = btnElimInstructor.dataset.instructor;
+        if(!confirm(`¿Eliminar a "${nombre}" de la lista de instructores? Su firma también se borra. Los diplomas ya generados con su nombre no cambian.`)) return;
+        try {
+          const data = await apiPostJson('/api/eliminarInstructor', { nombre });
+          dipInstructores = data.instructores || dipInstructores;
+          actualizarSelectsInstructor();
+          renderFirmasGrid();
+          toast('Instructor eliminado.', true);
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+        return;
+      }
+
+      const btnElimFirma = e.target.closest('.dip-firma-eliminar-firma');
+      if(btnElimFirma){
+        const instructor = btnElimFirma.dataset.instructor;
+        if(!confirm(`¿Eliminar la firma de "${instructor}"? El instructor se queda en la lista, sus próximos diplomas salen sin firma hasta que subas una nueva.`)) return;
+        try {
+          await apiPostJson('/api/eliminarFirma', { instructor });
+          renderFirmasGrid();
+          toast('Firma eliminada.', true);
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+        return;
+      }
 
       const btn = e.target.closest('.dip-firma-subir');
       if(!btn) return;

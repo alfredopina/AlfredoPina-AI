@@ -94,6 +94,26 @@ async function agregarInstructor(nombre) {
   return lista;
 }
 
+// Quita al instructor de la lista y borra su firma (si tenía) — los
+// diplomas que ya se generaron con su nombre no se tocan, solo deja de
+// aparecer en los selectores hacia adelante.
+async function eliminarInstructor(nombre) {
+  const lista = (await getInstructores()).filter((n) => n !== nombre);
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("instructores.json").uploadData(Buffer.from(JSON.stringify(lista)), {
+    blobHTTPHeaders: { blobContentType: "application/json" },
+  });
+  await container.getBlockBlobClient(`firmas/${slugify(nombre)}.png`).deleteIfExists();
+  return lista;
+}
+
+// Borra solo la firma — el instructor se queda en la lista, sus próximos
+// diplomas salen sin firma hasta que suba una nueva.
+async function eliminarFirma(instructorSlug) {
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient(`firmas/${instructorSlug}.png`).deleteIfExists();
+}
+
 module.exports = {
   getPlantillasContainer,
   slugify,
@@ -103,4 +123,6 @@ module.exports = {
   uploadFirma,
   getInstructores,
   agregarInstructor,
+  eliminarInstructor,
+  eliminarFirma,
 };

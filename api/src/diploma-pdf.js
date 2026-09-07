@@ -112,6 +112,7 @@ async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaF
 // Canva/PowerPoint al diseñar una plantilla nueva, sin tapar esos espacios.
 async function generarGuiaCoordenadas({ fondoBuffer }) {
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
   const fondoImg = await pdfDoc.embedPng(fondoBuffer);

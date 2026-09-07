@@ -93,10 +93,6 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/buscarClientes",
-      "allowedRoles": ["admin"]
-    },
-    {
       "route": "/api/generarDiplomas",
       "allowedRoles": ["admin"]
     },
@@ -129,10 +125,6 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/getInstructores",
-      "allowedRoles": ["admin"]
-    },
-    {
       "route": "/api/agregarInstructor",
       "allowedRoles": ["admin"]
     },
@@ -142,6 +134,30 @@
     },
     {
       "route": "/api/eliminarFirma",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listPreguntasAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearPregunta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarPregunta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/reordenarPreguntas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listRespuestasEncuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getContadorRespuestas",
       "allowedRoles": ["admin"]
     }
   ],

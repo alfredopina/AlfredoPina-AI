@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Encuesta de Cierre — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0d12;
+    --panel: #10141b;
+    --panel-2: #141a23;
+    --line: #1d2530;
+    --line-soft: #161c26;
+    --blue: #3d7fff;
+    --blue-bright: #6b9fff;
+    --blue-soft: rgba(61,127,255,.14);
+    --blue-dim: #16233f;
+    --text: #edf0f4;
+    --text-dim: #8991a1;
+    --text-faint: #4c5462;
+    --good: #4ade80;
+    --bad: #ef4444;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--body);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  ::selection{background:var(--blue);color:#fff;}
+  a{color:inherit;text-decoration:none;}
+
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+    opacity:.6;
+  }
+
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+  nav{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(10px);
+    background:rgba(10,13,18,.7);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:720px;}
+  .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px;}
+  .nav-name{font-family:var(--display); font-weight:600; font-size:14.5px; color:var(--text); letter-spacing:-.01em;}
+  .nav-hidden-note{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
+    display:flex; align-items:center; gap:6px;
+  }
+  .nav-hidden-note svg{ width:12px; height:12px; flex:none; }
+
+  header.enc-header{ padding:44px 0 8px; position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--blue-bright); margin-bottom:14px;
+  }
+  .eyebrow::before{ content:""; width:6px; height:6px; background:var(--blue-bright); border-radius:1px; }
+  h2.section-title{
+    font-family:var(--display); font-weight:600; font-size:clamp(26px,5.5vw,36px);
+    letter-spacing:-.01em; line-height:1.18; max-width:520px;
+  }
+
+  section{ padding:24px 0 80px; position:relative; z-index:1; }
+
+  .enc-loading{ font-family:var(--mono); font-size:13px; color:var(--text-faint); padding:40px 0; }
+
+  .enc-error{
+    border:1px solid var(--bad); border-radius:8px; background:rgba(239,68,68,.08);
+    color:var(--bad); font-size:13px; padding:14px 16px; margin:16px 0;
+  }
+
+  .enc-block{ margin-bottom:36px; }
+  .enc-block-title{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
+  }
+
+  .enc-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .enc-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
+  .enc-req{ color:var(--bad); }
+  .enc-field input[type=text], .enc-field input[type=date], .enc-field select, .enc-field textarea{
+    font-family:var(--body); font-size:14.5px; color:var(--text); background:var(--panel);
+    border:1px solid var(--line); border-radius:7px; padding:12px 14px; outline:none;
+    transition:border-color .2s; width:100%;
+  }
+  .enc-field input:focus, .enc-field select:focus, .enc-field textarea:focus{ border-color:var(--blue-bright); }
+  .enc-field textarea{ resize:vertical; min-height:90px; font-family:var(--body); }
+  .enc-field input[readonly]{ color:var(--text-faint); }
+  .enc-field select{ appearance:none; -webkit-appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238991a1' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; background-size:16px; padding-right:38px;
+  }
+  .enc-row{ display:flex; gap:14px; flex-wrap:wrap; }
+  .enc-row .enc-field{ flex:1; min-width:180px; }
+  .enc-hint{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+
+  .enc-autocomplete-wrap{ position:relative; }
+  .enc-autocomplete-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    max-height:220px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.4);
+  }
+  .enc-autocomplete-item{ padding:10px 14px; font-size:13.5px; cursor:pointer; }
+  .enc-autocomplete-item:hover{ background:var(--panel); }
+  .enc-autocomplete-item b{ color:var(--text); }
+  .enc-autocomplete-item span{ color:var(--text-faint); font-family:var(--mono); font-size:11px; margin-left:6px; }
+
+  /* ---- control de escala: celda con formato condicional, mismo lenguaje
+     visual que la barra de fórmula fx de Excel del resto del sitio ---- */
+  .enc-question{ margin-bottom:28px; }
+  .enc-question-text{ font-size:14.5px; color:var(--text); margin-bottom:10px; line-height:1.4; }
+  .xcell{
+    position:relative; height:56px; border:1px solid var(--line);
+    background:var(--panel-2); border-radius:5px; overflow:hidden;
+  }
+  .xcell-ref{
+    position:absolute; top:5px; left:8px; font-family:var(--mono);
+    font-size:10px; color:var(--text-faint); z-index:3; letter-spacing:.02em;
+  }
+  .xcell-grid{ position:absolute; inset:0; display:flex; z-index:1; }
+  .xcell-grid span{ flex:1; border-right:1px solid var(--line-soft); }
+  .xcell-grid span:last-child{ border-right:none; }
+  .xcell-fill{
+    position:absolute; top:0; left:0; bottom:0; width:0%; z-index:2;
+    background:linear-gradient(90deg, rgba(61,127,255,.32), rgba(107,159,255,.62));
+    border-right:2px solid var(--blue-bright);
+    transition:width .2s ease;
+  }
+  .xcell-value{
+    position:absolute; top:0; right:10px; bottom:0; z-index:3;
+    display:flex; align-items:center; font-family:var(--mono);
+    font-weight:700; font-size:17px; color:var(--text);
+  }
+  .xcell-hits{ position:absolute; inset:0; display:flex; z-index:4; }
+  .xcell-hits button{ flex:1; background:transparent; border:none; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; }
+  .enc-readout{
+    margin-top:8px; font-family:var(--mono); font-size:12.5px;
+    color:var(--text-dim); display:flex; align-items:center; gap:6px;
+  }
+  .enc-readout b{ color:var(--text); font-weight:600; }
+
+  .enc-privacy{
+    font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
+    padding-top:18px; margin:8px 0 20px; line-height:1.6;
+  }
+
+  .enc-submit{
+    width:100%; font-family:var(--display); font-weight:600; font-size:15px;
+    color:#fff; background:var(--blue); border:none; border-radius:8px;
+    padding:16px; cursor:pointer; transition:background .2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .enc-submit:hover:not(:disabled){ background:var(--blue-bright); }
+  .enc-submit:disabled{ opacity:.5; cursor:default; }
+
+  .enc-thanks{
+    text-align:center; padding:80px 0; display:none;
+  }
+  .enc-thanks-icon{ width:56px; height:56px; color:var(--good); margin:0 auto 20px; }
+  .enc-thanks h2{ font-family:var(--display); font-weight:600; font-size:26px; margin-bottom:10px; }
+  .enc-thanks p{ color:var(--text-dim); font-size:14px; }
+
+  footer{border-top:1px solid var(--line); padding:60px 0 40px; margin-top:20px;}
+  .contact-meta{
+    display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12.5px;
+    color:var(--text-faint); font-family:var(--mono);
+  }
+  .contact-meta a{color:var(--text-dim);}
+  .contact-meta a:hover{color:var(--blue-bright);}
+  .contact-meta > *:not(:last-child)::after{content:'·'; margin-left:14px; color:var(--line);}
+
+  @media (max-width:480px){
+    .wrap{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html#top" class="nav-mark">
+      <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:30px; width:auto; display:block;">
+      <span class="nav-name">Alfredo Piña</span>
+    </a>
+    <span class="nav-hidden-note" title="Página pública pero sin liga en el menú — no indexada por buscadores.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Encuesta
+    </span>
+  </div>
+</nav>
+
+<header class="wrap enc-header">
+  <div class="eyebrow">ENCUESTA DE CIERRE</div>
+  <h2 class="section-title">Cuéntame cómo estuvo el curso.</h2>
+</header>
+
+<section class="wrap">
+  <div class="enc-loading" id="encLoading">Cargando encuesta…</div>
+  <div class="enc-error" id="encError" hidden></div>
+
+  <form id="encForm" hidden>
+    <div class="enc-block">
+      <div class="enc-block-title">Sobre ti</div>
+      <div class="enc-field">
+        <label>NOMBRE <span style="color:var(--text-faint)">(opcional)</span></label>
+        <input type="text" id="encNombre" placeholder="Tu nombre">
+      </div>
+      <div class="enc-row">
+        <div class="enc-field enc-autocomplete-wrap">
+          <label>EMPRESA <span class="enc-req">*</span></label>
+          <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
+          <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
+        </div>
+        <div class="enc-field">
+          <label>CÓDIGO <span style="color:var(--text-faint)">(si es empresa nueva)</span></label>
+          <input type="text" id="encEmpresaCodigo" placeholder="ACME">
+        </div>
+      </div>
+      <div class="enc-row">
+        <div class="enc-field">
+          <label>CURSO <span class="enc-req">*</span></label>
+          <input type="text" id="encCurso" placeholder="Ej. Excel Core Tools">
+        </div>
+        <div class="enc-field">
+          <label>FECHA <span class="enc-req">*</span></label>
+          <input type="date" id="encFecha">
+        </div>
+      </div>
+      <div class="enc-field">
+        <label>INSTRUCTOR <span class="enc-req">*</span></label>
+        <select id="encInstructor">
+          <option value="">Selecciona...</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="encPreguntasArea"></div>
+
+    <div id="encComentariosArea"></div>
+
+    <p class="enc-privacy">Tus respuestas se usan solo para mejorar la calidad del servicio, no se comparten con terceros.</p>
+
+    <button type="submit" class="enc-submit" id="encSubmit">Enviar encuesta</button>
+  </form>
+
+  <div class="enc-thanks" id="encThanks">
+    <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h2>¡Gracias por tu tiempo!</h2>
+    <p>Tu respuesta ya quedó registrada.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="contact-meta">
+      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
+      <span>(+52) 811 725 5937</span>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const LABELS = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function apiGet(url){
+    const res = await fetch(url);
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || 'Error de red');
+    return body;
+  }
+  async function apiPostJson(url, data){
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || 'Error de red');
+    return body;
+  }
+
+  // ── autocompletado de Empresa — mismo patrón que crearAutocomplete del
+  // admin (Diplomas), duplicado aquí a propósito: esta página no carga nada
+  // del admin, vive completamente sola. ──
+  function crearAutocomplete({ inputId, listId, codigoId }){
+    const input = document.getElementById(inputId);
+    const lista = document.getElementById(listId);
+    let seleccionado = null;
+    let timer = null;
+
+    input.addEventListener('input', () => {
+      seleccionado = null;
+      const c = document.getElementById(codigoId);
+      c.value = ''; c.readOnly = false;
+      const q = input.value.trim();
+      clearTimeout(timer);
+      if(!q){ lista.hidden = true; return; }
+      timer = setTimeout(async () => {
+        try {
+          const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+          if(!clientes.length){ lista.hidden = true; return; }
+          lista.innerHTML = clientes.map(c =>
+            `<div class="enc-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+          ).join('');
+          lista.hidden = false;
+        } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+      }, 250);
+    });
+
+    lista.addEventListener('click', e => {
+      const item = e.target.closest('.enc-autocomplete-item');
+      if(!item) return;
+      seleccionado = { id:Number(item.dataset.id), nombre:item.dataset.nombre, codigo:item.dataset.codigo };
+      input.value = item.dataset.nombre;
+      const c = document.getElementById(codigoId);
+      c.value = item.dataset.codigo;
+      c.readOnly = true;
+      lista.hidden = true;
+    });
+
+    document.addEventListener('click', e => {
+      if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+    });
+
+    return { getSeleccionado: () => seleccionado };
+  }
+
+  const empresaAuto = crearAutocomplete({ inputId:'encEmpresaNombre', listId:'encEmpresaLista', codigoId:'encEmpresaCodigo' });
+
+  document.getElementById('encFecha').value = new Date().toISOString().slice(0, 10);
+
+  // ── celda de escala (data-bar de Excel) ──
+  function renderXcell(pregunta, ref){
+    const wrap = document.createElement('div');
+    wrap.className = 'enc-question';
+    wrap.dataset.preguntaId = pregunta.id;
+    wrap.innerHTML = `
+      <div class="enc-question-text">${escapeHtml(pregunta.texto)}</div>
+      <div class="xcell" data-value="0">
+        <span class="xcell-ref">${ref}</span>
+        <div class="xcell-grid"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="xcell-fill"></div>
+        <div class="xcell-value">–</div>
+        <div class="xcell-hits"></div>
+      </div>
+      <div class="enc-readout">Calificación: <b>Sin responder</b></div>
+    `;
+    const hits = wrap.querySelector('.xcell-hits');
+    for(let v = 1; v <= 5; v++){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Calificar ' + v);
+      b.addEventListener('click', () => {
+        wrap.querySelector('.xcell').dataset.value = v;
+        wrap.querySelector('.xcell-fill').style.width = (v / 5 * 100) + '%';
+        wrap.querySelector('.xcell-value').textContent = v;
+        wrap.querySelector('.enc-readout b').textContent = v + ' · ' + LABELS[v - 1];
+      });
+      hits.appendChild(b);
+    }
+    return wrap;
+  }
+
+  async function cargarEncuesta(){
+    try {
+      const [preguntas, instructoresData] = await Promise.all([
+        apiGet('/api/getPreguntasEncuesta'),
+        apiGet('/api/getInstructores'),
+      ]);
+
+      const selInstructor = document.getElementById('encInstructor');
+      (instructoresData.instructores || []).forEach(nombre => {
+        const opt = document.createElement('option');
+        opt.value = nombre; opt.textContent = nombre;
+        selInstructor.appendChild(opt);
+      });
+
+      // agrupa por sección respetando el orden en que aparecen (ya vienen
+      // ordenadas por "orden" desde el backend); la pregunta tipo "texto" se
+      // guarda aparte para pintarla al final, fuera de cualquier sección.
+      const secciones = [];
+      let comentarios = null;
+      let refRow = 4;
+      preguntas.forEach(p => {
+        if(p.tipo === 'texto'){ comentarios = p; return; }
+        let sec = secciones.find(s => s.nombre === p.seccion);
+        if(!sec){ sec = { nombre:p.seccion, preguntas:[] }; secciones.push(sec); }
+        sec.preguntas.push(p);
+      });
+
+      const preguntasArea = document.getElementById('encPreguntasArea');
+      secciones.forEach(sec => {
+        const bloque = document.createElement('div');
+        bloque.className = 'enc-block';
+        const titulo = document.createElement('div');
+        titulo.className = 'enc-block-title';
+        titulo.textContent = sec.nombre;
+        bloque.appendChild(titulo);
+        sec.preguntas.forEach(p => {
+          bloque.appendChild(renderXcell(p, 'B' + refRow));
+          refRow++;
+        });
+        preguntasArea.appendChild(bloque);
+      });
+
+      if(comentarios){
+        const bloque = document.createElement('div');
+        bloque.className = 'enc-block';
+        bloque.innerHTML = `
+          <div class="enc-block-title">${escapeHtml(comentarios.seccion)}</div>
+          <div class="enc-field">
+            <label>${escapeHtml(comentarios.texto)} <span style="color:var(--text-faint)">(opcional)</span></label>
+            <textarea id="encComentarios" data-pregunta-id="${comentarios.id}"></textarea>
+          </div>
+        `;
+        document.getElementById('encComentariosArea').appendChild(bloque);
+      }
+
+      document.getElementById('encLoading').hidden = true;
+      document.getElementById('encError').hidden = true;
+      document.getElementById('encForm').hidden = false;
+    } catch(e){
+      document.getElementById('encLoading').hidden = true;
+      const err = document.getElementById('encError');
+      err.textContent = 'No se pudo cargar la encuesta: ' + e.message;
+      err.hidden = false;
+    }
+  }
+  cargarEncuesta();
+
+  document.getElementById('encForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const curso = document.getElementById('encCurso').value.trim();
+    const instructor = document.getElementById('encInstructor').value;
+    const fecha = document.getElementById('encFecha').value;
+    if(!curso || !instructor || !fecha){
+      alert('Completa curso, instructor y fecha antes de enviar.');
+      return;
+    }
+
+    const seleccionado = empresaAuto.getSeleccionado();
+    const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
+    const empresaCodigo = document.getElementById('encEmpresaCodigo').value.trim();
+    let empresa;
+    if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
+    else if(empresaNombre && empresaCodigo){ empresa = { nombre:empresaNombre, codigo:empresaCodigo }; }
+    else { alert('Selecciona tu empresa de la lista o captura nombre + código si es nueva.'); return; }
+
+    const sinResponder = Array.from(document.querySelectorAll('.xcell')).filter(x => Number(x.dataset.value) === 0);
+    if(sinResponder.length){
+      alert('Te falta calificar ' + sinResponder.length + ' pregunta(s).');
+      sinResponder[0].scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+
+    const respuestas = Array.from(document.querySelectorAll('.enc-question')).map(el => ({
+      preguntaId: Number(el.dataset.preguntaId),
+      valor: el.querySelector('.xcell').dataset.value,
+    }));
+    const comentariosEl = document.getElementById('encComentarios');
+    if(comentariosEl && comentariosEl.value.trim()){
+      respuestas.push({ preguntaId:Number(comentariosEl.dataset.preguntaId), valor:comentariosEl.value.trim() });
+    }
+
+    const btn = document.getElementById('encSubmit');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      await apiPostJson('/api/enviarRespuesta', {
+        nombre: document.getElementById('encNombre').value.trim(),
+        empresa, curso, instructor, fecha, respuestas,
+      });
+      document.getElementById('encForm').hidden = true;
+      document.getElementById('encThanks').style.display = 'block';
+    } catch(err){
+      alert('No se pudo enviar tu respuesta: ' + err.message);
+      btn.disabled = false; btn.textContent = 'Enviar encuesta';
+    }
+  });
+</script>
+
+</body>
+</html>

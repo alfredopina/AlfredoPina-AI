@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
 <style>
   :root{
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
@@ -461,6 +462,19 @@
   .dip-firma-add:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .dip-firma-add svg{ color:inherit; }
 
+  /* ---- PANEL ENCUESTAS — pestaña QR / Link ---- */
+  .enc-qr-layout{ display:grid; grid-template-columns:1fr 300px; gap:40px; align-items:start; }
+  @media (max-width:820px){ .enc-qr-layout{ grid-template-columns:1fr; } }
+  .enc-link-row{ display:flex; gap:8px; }
+  .enc-link-row input{ flex:1; }
+  .enc-qr-actions{ display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:18px; }
+  .enc-qr-preview-col{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .enc-qr-card{
+    background:#f7f8fb; border:1px solid #dfe3ec; border-radius:10px; padding:20px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .enc-qr-card #encQr svg, .enc-qr-card #encQr canvas{ display:block; }
+
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
     .admin-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
@@ -527,7 +541,6 @@
       <button class="admin-nav-item" data-panel="encuestas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Encuestas
-        <span class="admin-nav-soon">PRONTO</span>
       </button>
       <button class="admin-nav-item" data-panel="diplomas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -710,7 +723,111 @@
 
       <div class="admin-panel" id="panel-clientes"></div>
       <div class="admin-panel" id="panel-tracking"></div>
-      <div class="admin-panel" id="panel-encuestas"></div>
+      <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
+        <div id="encToast" class="radm-toast" hidden></div>
+
+        <div class="dash-etabs" id="encTabs">
+          <button type="button" class="dash-etab active" data-enctab="preguntas">Preguntas</button>
+          <button type="button" class="dash-etab" data-enctab="qr">QR / Link</button>
+          <button type="button" class="dash-etab" data-enctab="resultados">Resultados</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="encTab-preguntas">
+          <div class="radm-section">
+            <div class="radm-section-head">
+              <span class="radm-section-title">INSTRUCTOR</span>
+              <button type="button" class="radm-btn-add" id="encBtnAddInstructor">+ Agregar</button>
+            </div>
+            <div class="radm-list" id="encListaInstructor"></div>
+          </div>
+          <div class="radm-section">
+            <div class="radm-section-head">
+              <span class="radm-section-title">CURSO Y MATERIALES</span>
+              <button type="button" class="radm-btn-add" id="encBtnAddCurso">+ Agregar</button>
+            </div>
+            <div class="radm-list" id="encListaCurso"></div>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="encTab-qr">
+          <div class="enc-qr-layout">
+            <div class="enc-qr-col">
+              <div class="radm-field">
+                <label>LINK DE LA ENCUESTA</label>
+                <div class="enc-link-row">
+                  <input type="text" id="encLinkInput" readonly>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="encBtnCopiar" style="min-width:auto">Copiar link</button>
+                </div>
+              </div>
+              <div class="enc-qr-actions">
+                <button type="button" class="radm-btn" id="encBtnVer" style="min-width:auto">Ver encuesta</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="encBtnDescargarQr" style="min-width:auto">Descargar QR (PNG)</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="encBtnDescargarTarjeta" style="min-width:auto">Descargar tarjeta para imprimir</button>
+              </div>
+              <div class="dkpi-card" style="margin-top:24px; max-width:220px;" title="Total de respuestas recibidas hasta ahora">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></div>
+                <div class="dkpi-value" id="encContador">—</div>
+                <div class="dkpi-label">Respuestas recibidas</div>
+              </div>
+            </div>
+            <div class="enc-qr-col enc-qr-preview-col">
+              <div class="enc-qr-card">
+                <div id="encQr"></div>
+              </div>
+              <span class="radm-hint">Escanéalo para probar el flujo completo tú mismo antes de mostrarlo en clase.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="encTab-resultados">
+          <div class="dip-filters">
+            <div class="radm-field dip-autocomplete-wrap" style="min-width:200px;">
+              <label>EMPRESA</label>
+              <input type="text" id="encFEmpresaNombre">
+              <div class="dip-autocomplete-list" id="encFEmpresaLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>CURSO</label>
+              <input type="text" id="encFCurso">
+            </div>
+            <div class="radm-field">
+              <label>INSTRUCTOR</label>
+              <select id="encFInstructor">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="encFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="encFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="encBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="encLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="encVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las respuestas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
+          </div>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table" id="encResultadosTable">
+              <thead id="encResultadosHead"></thead>
+              <tbody id="encResultadosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       <div class="admin-panel" id="panel-diplomas" style="--c:var(--blue-bright)">
         <div id="dipToast" class="radm-toast" hidden></div>
 
@@ -1012,7 +1129,7 @@
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'tracking', 'encuestas'].forEach(key => {
+  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'tracking'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -2385,6 +2502,510 @@
     }
 
     cargarToolsGrid();
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL ENCUESTAS — 3 pestañas: "Preguntas" (banco por sección, drag & drop
+  // de orden, activar/desactivar, borrado real con confirmación explícita),
+  // "QR / Link" (link fijo + QR + tarjeta imprimible + contador en vivo,
+  // cargados perezosamente la primera vez que se entra a la pestaña) y
+  // "Resultados" (filtros + tabla con una columna por cada pregunta distinta
+  // que aparezca en el resultado). Helpers duplicados a propósito — mismo
+  // criterio que el resto del admin: cada sección vive encapsulada en su
+  // propio IIFE, sin acoplarse a Diplomas ni a Cursos/Recursos.
+  (function(){
+    const SECCIONES = { Instructor: 'encListaInstructor', 'Curso y Materiales': 'encListaCurso' };
+    const BASE_ORDEN = { Instructor: 0, 'Curso y Materiales': 1000 };
+    const ICO = {
+      drag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      dotFull: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>',
+      dotEmpty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/></svg>',
+    };
+
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function toast(msg, ok){
+      const el = document.getElementById('encToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
+    }
+
+    // ── pestañas — QR y Resultados se cargan perezosos, solo la primera vez ──
+    let encQrCargado = false, encResultadosCargados = false;
+    document.getElementById('encTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.enctab;
+      document.querySelectorAll('#encTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#panel-encuestas .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'encTab-' + key));
+      if(key === 'qr' && !encQrCargado){ encQrCargado = true; cargarQr(); }
+      if(key === 'resultados' && !encResultadosCargados){ encResultadosCargados = true; cargarInstructoresFiltro(); buscarResultados(); }
+    });
+
+    // ══ PREGUNTAS ══
+    let encPreguntas = [];
+
+    // Deshabilita "+ Agregar" mientras carga — la base SQL serverless puede
+    // tardar hasta 60s en despertar tras el auto-pause (ver backoffice-db.js);
+    // sin este candado, agregar una pregunta antes de que termine el fetch
+    // inicial calcula su "orden" contra un encPreguntas todavía vacío.
+    async function cargarPreguntas(){
+      document.getElementById('encBtnAddInstructor').disabled = true;
+      document.getElementById('encBtnAddCurso').disabled = true;
+      try {
+        encPreguntas = await apiGet('/api/listPreguntasAdmin');
+      } catch(e){
+        encPreguntas = [];
+        toast('No se pudieron cargar las preguntas: ' + e.message, false);
+      }
+      renderListaPreguntas('Instructor');
+      renderListaPreguntas('Curso y Materiales');
+      document.getElementById('encBtnAddInstructor').disabled = false;
+      document.getElementById('encBtnAddCurso').disabled = false;
+    }
+
+    function renderListaPreguntas(seccion){
+      const cont = document.getElementById(SECCIONES[seccion]);
+      const items = encPreguntas.filter(p => p.seccion === seccion).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      if(!items.length){ cont.innerHTML = '<div class="radm-empty-row">Sin preguntas todavía.</div>'; return; }
+
+      cont.innerHTML = items.map(p => `
+        <div class="radm-row" data-id="${p.id}">
+          <span class="radm-drag">${ICO.drag}</span>
+          <span class="radm-status-dot ${p.activa ? 'pub' : 'draft'}" title="${p.activa ? 'Activa — aparece en la encuesta pública' : 'Inactiva — no aparece en la encuesta pública'}">${p.activa ? ICO.dotFull : ICO.dotEmpty}</span>
+          <div class="radm-row-body">
+            <div class="radm-row-title">${escapeHtml(p.texto)}</div>
+            <div class="radm-row-sub">${p.tipo === 'escala' ? 'Escala 1-5' : 'Texto libre'} · ${p.activa ? 'Activa' : 'Inactiva'}</div>
+          </div>
+          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
+        </div>
+      `).join('');
+
+      cont.querySelectorAll('[data-action="edit"]').forEach(b => {
+        b.addEventListener('click', () => abrirFormPregunta(seccion, encPreguntas.find(p => p.id === Number(b.closest('.radm-row').dataset.id))));
+      });
+      cont.querySelectorAll('[data-action="del"]').forEach(b => {
+        b.addEventListener('click', () => eliminarPregunta(Number(b.closest('.radm-row').dataset.id)));
+      });
+
+      if(window.Sortable){
+        Sortable.create(cont, {
+          handle: '.radm-drag', animation:150,
+          onEnd: async () => {
+            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
+              id: Number(el.dataset.id), orden: BASE_ORDEN[seccion] + i * 10,
+            }));
+            try { await apiPostJson('/api/reordenarPreguntas', { items: items2 }); await cargarPreguntas(); }
+            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+          },
+        });
+      }
+    }
+
+    function abrirFormPregunta(seccionFija, item){
+      const cont = document.getElementById(SECCIONES[seccionFija]);
+      const existing = cont.querySelector('.radm-inline-form');
+      if(existing) existing.remove();
+
+      const form = document.createElement('div');
+      form.className = 'radm-inline-form';
+      form.innerHTML = `
+        <div class="radm-form-row">
+          <div class="radm-field" style="flex:2">
+            <label>TEXTO DE LA PREGUNTA</label>
+            <input type="text" class="enc-f-texto" value="${item ? escapeHtml(item.texto) : ''}">
+          </div>
+          <div class="radm-field" style="max-width:160px;">
+            <label>TIPO</label>
+            <select class="enc-f-tipo">
+              <option value="escala" ${item && item.tipo === 'escala' ? 'selected' : ''}>Escala 1-5</option>
+              <option value="texto" ${item && item.tipo === 'texto' ? 'selected' : ''}>Texto libre</option>
+            </select>
+          </div>
+        </div>
+        <div class="radm-actions">
+          <div class="radm-switch-row">
+            <label class="radm-switch">
+              <input type="checkbox" class="enc-f-activa" ${!item || item.activa ? 'checked' : ''}>
+              <span class="radm-switch-track"></span>
+            </label>
+            <span class="radm-switch-label enc-f-activa-label">${!item || item.activa ? 'Activa' : 'Inactiva'}</span>
+          </div>
+          <div class="radm-actions-buttons">
+            <button type="button" class="radm-btn enc-f-guardar">Guardar</button>
+            <button type="button" class="radm-btn radm-btn-ghost enc-f-cancelar">Cancelar</button>
+          </div>
+        </div>`;
+      cont.appendChild(form);
+
+      form.querySelector('.enc-f-activa').addEventListener('change', e => {
+        form.querySelector('.enc-f-activa-label').textContent = e.target.checked ? 'Activa' : 'Inactiva';
+      });
+      form.querySelector('.enc-f-cancelar').addEventListener('click', () => form.remove());
+      form.querySelector('.enc-f-guardar').addEventListener('click', async () => {
+        const texto = form.querySelector('.enc-f-texto').value.trim();
+        const tipo = form.querySelector('.enc-f-tipo').value;
+        const activa = form.querySelector('.enc-f-activa').checked;
+        if(!texto){ toast('Falta el texto de la pregunta.', false); return; }
+
+        const itemsSeccion = encPreguntas.filter(p => p.seccion === seccionFija);
+        const orden = item ? item.orden : BASE_ORDEN[seccionFija] + itemsSeccion.length * 10;
+
+        try {
+          await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion:seccionFija, texto, tipo, orden, activa });
+          toast('Pregunta guardada.', true);
+          await cargarPreguntas();
+        } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+      });
+    }
+
+    document.getElementById('encBtnAddInstructor').addEventListener('click', () => abrirFormPregunta('Instructor', null));
+    document.getElementById('encBtnAddCurso').addEventListener('click', () => abrirFormPregunta('Curso y Materiales', null));
+
+    async function eliminarPregunta(id){
+      const p = encPreguntas.find(x => x.id === id);
+      if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial, solo dejan de mostrar su texto en Resultados. Si solo quieres que deje de aparecer en la encuesta, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
+      try {
+        await apiPostJson('/api/eliminarPregunta', { id });
+        toast('Pregunta eliminada.', true);
+        await cargarPreguntas();
+      } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    }
+
+    cargarPreguntas();
+
+    // ══ QR / LINK ══
+    let encQrInstance = null;
+
+    function cargarQr(){
+      const link = new URL('encuesta.html', location.origin + '/').href;
+      document.getElementById('encLinkInput').value = link;
+
+      encQrInstance = new QRCodeStyling({
+        width: 220, height: 220, type: 'svg', data: link, margin: 0,
+        qrOptions: { errorCorrectionLevel: 'M' },
+        backgroundOptions: { color: '#ffffff' },
+        dotsOptions: { type: 'extra-rounded', gradient: { type:'linear', rotation:45, colorStops:[{offset:0,color:'#3d7fff'},{offset:1,color:'#6b9fff'}] } },
+        cornersSquareOptions: { type: 'extra-rounded', color: '#2f66d1' },
+        cornersDotOptions: { type: 'dot', color: '#3d7fff' },
+      });
+      document.getElementById('encQr').innerHTML = '';
+      encQrInstance.append(document.getElementById('encQr'));
+
+      cargarContador();
+    }
+
+    async function cargarContador(){
+      try {
+        const data = await apiGet('/api/getContadorRespuestas');
+        document.getElementById('encContador').textContent = data.total;
+      } catch(e){ document.getElementById('encContador').textContent = '—'; }
+    }
+
+    document.getElementById('encBtnCopiar').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById('encLinkInput').value);
+        toast('Link copiado.', true);
+      } catch(e){ toast('No se pudo copiar — cópialo manualmente.', false); }
+    });
+
+    document.getElementById('encBtnVer').addEventListener('click', () => {
+      window.open(document.getElementById('encLinkInput').value, '_blank');
+    });
+
+    function descargarBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('encBtnDescargarQr').addEventListener('click', async () => {
+      if(!encQrInstance) return;
+      try {
+        const blob = await encQrInstance.getRawData('png');
+        descargarBlob(blob, 'qr-encuesta.png');
+      } catch(e){ toast('No se pudo descargar el QR: ' + e.message, false); }
+    });
+
+    function drawRoundedRect(ctx, x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // Tarjeta imprimible — replica del mockup aprobado (fondo tipo hoja de
+    // cuadrícula, barra fx, título, chiste, QR centrado, pie de página) pero
+    // dibujada con Canvas 2D en vez de HTML, para poder exportarla como un
+    // solo PNG descargable. Reusa el mismo QR ya generado arriba (getRawData)
+    // en vez de crear una instancia aparte.
+    document.getElementById('encBtnDescargarTarjeta').addEventListener('click', async () => {
+      if(!encQrInstance) return;
+      const btn = document.getElementById('encBtnDescargarTarjeta');
+      btn.disabled = true; btn.textContent = 'Generando...';
+      try {
+        await document.fonts.ready;
+        const qrBlob = await encQrInstance.getRawData('png');
+        const qrUrl = URL.createObjectURL(qrBlob);
+        const qrImg = new Image();
+        await new Promise((res, rej) => { qrImg.onload = res; qrImg.onerror = rej; qrImg.src = qrUrl; });
+        URL.revokeObjectURL(qrUrl);
+
+        const W = 840, H = 1060;
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#dde2ea';
+        ctx.fillRect(0, 0, W, H);
+
+        const cardX = 40, cardY = 40, cardW = W - 80, cardH = H - 80, cardR = 12;
+        drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
+        ctx.save();
+        ctx.clip();
+        ctx.fillStyle = '#f7f8fb';
+        ctx.fillRect(cardX, cardY, cardW, cardH);
+        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+        for(let gy = cardY + 92; gy < cardY + cardH; gy += 44){
+          ctx.beginPath(); ctx.moveTo(cardX, gy); ctx.lineTo(cardX + cardW, gy); ctx.stroke();
+        }
+        for(let gx = cardX; gx < cardX + cardW; gx += 40){
+          ctx.beginPath(); ctx.moveTo(gx, cardY); ctx.lineTo(gx, cardY + cardH); ctx.stroke();
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+        drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
+        ctx.stroke();
+
+        const padX = cardX + 52;
+        let curY = cardY + 60;
+
+        ctx.font = '18px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#8b93a3';
+        ctx.textAlign = 'center';
+        const letras = ['A','B','C','D','E','F','G','H','I'];
+        const colW = cardW / letras.length;
+        letras.forEach((l, i) => ctx.fillText(l, cardX + colW * (i + 0.5), curY));
+        curY += 20;
+        ctx.strokeStyle = '#dfe3ec';
+        ctx.beginPath(); ctx.moveTo(cardX, curY); ctx.lineTo(cardX + cardW, curY); ctx.stroke();
+        curY += 46;
+
+        ctx.textAlign = 'left';
+        ctx.font = 'italic bold 20px "JetBrains Mono", monospace';
+        const fxW = ctx.measureText('fx').width + 24;
+        ctx.fillStyle = 'rgba(61,127,255,.10)';
+        drawRoundedRect(ctx, padX, curY - 22, fxW, 32, 4);
+        ctx.fill();
+        ctx.fillStyle = '#3d7fff';
+        ctx.fillText('fx', padX + 12, curY);
+        ctx.font = '19px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#5b6472';
+        ctx.fillText('=', padX + fxW + 12, curY);
+        const eqW = ctx.measureText('=').width;
+        ctx.fillStyle = '#3d7fff';
+        ctx.fillText('CALIFICAR_INSTRUCTOR', padX + fxW + 12 + eqW, curY);
+        const fnW = ctx.measureText('CALIFICAR_INSTRUCTOR').width;
+        ctx.fillStyle = '#5b6472';
+        ctx.fillText('()', padX + fxW + 12 + eqW + fnW, curY);
+        curY += 60;
+
+        ctx.font = '700 48px "Space Grotesk", sans-serif';
+        ctx.fillStyle = '#1c2430';
+        ctx.fillText('Califica el curso', padX, curY);
+        curY += 50;
+
+        ctx.font = '24px "Inter", sans-serif';
+        ctx.fillStyle = '#5b6472';
+        ctx.fillText('Ni una celda combinada. Lo prometemos.', padX, curY);
+        curY += 48;
+
+        const qrSize = 352;
+        const qrX = cardX + (cardW - qrSize) / 2 - 32;
+        drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#3d7fff'; ctx.lineWidth = 3;
+        drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
+        ctx.stroke();
+        ctx.drawImage(qrImg, qrX + 32, curY + 32, qrSize, qrSize);
+        ctx.fillStyle = '#f7f8fb';
+        ctx.fillRect(qrX + 16, curY - 10, 34, 20);
+        ctx.font = '17px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#8b93a3';
+        ctx.fillText('A1', qrX + 18, curY + 5);
+        curY += qrSize + 64 + 36;
+
+        ctx.textAlign = 'center';
+        ctx.font = '22px "Inter", sans-serif';
+        ctx.fillStyle = '#5b6472';
+        ctx.fillText('Escanea con tu cámara y cuéntanos qué tal estuvo.', cardX + cardW / 2, curY);
+        curY += 40;
+
+        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padX, curY); ctx.lineTo(cardX + cardW - 52, curY); ctx.stroke();
+        curY += 34;
+
+        ctx.textAlign = 'left';
+        ctx.font = '18px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#8b93a3';
+        ctx.fillText('alfredopina.ai', padX, curY);
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 18px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#5b6472';
+        ctx.fillText('2 min', cardX + cardW - 52, curY);
+
+        canvas.toBlob(blob => { descargarBlob(blob, 'Tarjeta_Encuesta.png'); }, 'image/png');
+      } catch(e){
+        toast('No se pudo generar la tarjeta: ' + e.message, false);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Descargar tarjeta para imprimir';
+      }
+    });
+
+    // ══ RESULTADOS ══
+    function crearAutocompleteFiltro({ inputId, listId }){
+      const input = document.getElementById(inputId);
+      const lista = document.getElementById(listId);
+      let seleccionado = null;
+      let timer = null;
+
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+        }, 250);
+      });
+
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre };
+        input.value = item.dataset.nombre;
+        lista.hidden = true;
+      });
+
+      document.addEventListener('click', e => {
+        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+      });
+
+      return {
+        getSeleccionado: () => seleccionado,
+        reset: () => { seleccionado = null; input.value = ''; lista.hidden = true; },
+      };
+    }
+
+    const encFEmpresaAuto = crearAutocompleteFiltro({ inputId:'encFEmpresaNombre', listId:'encFEmpresaLista' });
+
+    async function cargarInstructoresFiltro(){
+      try {
+        const data = await apiGet('/api/getInstructores');
+        const sel = document.getElementById('encFInstructor');
+        (data.instructores || []).forEach(nombre => {
+          const opt = document.createElement('option');
+          opt.value = nombre; opt.textContent = nombre;
+          sel.appendChild(opt);
+        });
+      } catch(e){ /* silencioso — el filtro sigue funcionando sin la lista */ }
+    }
+
+    function construirColumnas(lista){
+      const mapa = new Map();
+      lista.forEach(r => (r.respuestas || []).forEach(x => { if(!mapa.has(x.texto)) mapa.set(x.texto, x.tipo); }));
+      return Array.from(mapa.keys());
+    }
+
+    async function buscarResultados(){
+      const params = new URLSearchParams();
+      const curso = document.getElementById('encFCurso').value.trim();
+      const instructor = document.getElementById('encFInstructor').value;
+      const desde = document.getElementById('encFDesde').value;
+      const hasta = document.getElementById('encFHasta').value;
+      const seleccionado = encFEmpresaAuto.getSeleccionado();
+
+      if(curso) params.set('curso', curso);
+      if(instructor) params.set('instructor', instructor);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+
+      const head = document.getElementById('encResultadosHead');
+      const body = document.getElementById('encResultadosBody');
+      head.innerHTML = '';
+      body.innerHTML = `<tr><td class="radm-empty-row">Buscando...</td></tr>`;
+
+      try {
+        const lista = await apiGet('/api/listRespuestasEncuesta?' + params.toString());
+        if(!lista.length){ body.innerHTML = `<tr><td class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+
+        const columnas = construirColumnas(lista);
+        head.innerHTML = `<tr><th>Fecha</th><th>Nombre</th><th>Empresa</th><th>Curso</th><th>Instructor</th>${columnas.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
+        body.innerHTML = lista.map(r => {
+          const porTexto = new Map((r.respuestas || []).map(x => [x.texto, x.valor]));
+          return `
+            <tr>
+              <td>${fmtFecha(r.fecha)}</td>
+              <td>${escapeHtml(r.nombre || '—')}</td>
+              <td>${escapeHtml(r.cliente)}</td>
+              <td>${escapeHtml(r.curso)}</td>
+              <td>${escapeHtml(r.instructor)}</td>
+              ${columnas.map(c => `<td>${escapeHtml(porTexto.has(c) ? porTexto.get(c) : '—')}</td>`).join('')}
+            </tr>
+          `;
+        }).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('encBuscar').addEventListener('click', buscarResultados);
+
+    function limpiarFiltrosResultados(){
+      document.getElementById('encFCurso').value = '';
+      document.getElementById('encFInstructor').value = '';
+      document.getElementById('encFDesde').value = '';
+      document.getElementById('encFHasta').value = '';
+      encFEmpresaAuto.reset();
+    }
+    document.getElementById('encLimpiarFiltros').addEventListener('click', limpiarFiltrosResultados);
+    document.getElementById('encVerTodos').addEventListener('click', () => { limpiarFiltrosResultados(); buscarResultados(); });
   })();
 
   // ═══════════════════════════════════════════════════════════════

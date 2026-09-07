@@ -1,7 +1,10 @@
 // buscarClientes/index.js
-// Function protegida (rol "admin"): autocompletado de Cliente para el
-// formulario de lote de Diplomas — recibe texto parcial (?q=), regresa
-// coincidencias por nombre o código.
+// Autocompletado de Cliente — recibe texto parcial (?q=), regresa coincidencias
+// por nombre o código. Nació protegida (rol "admin") para el formulario de
+// lote de Diplomas; se volvió pública en staticwebapp.config.json cuando
+// Encuestas la reusó para encuesta.html (página sin login) — nombre y código
+// de cliente no son datos sensibles, y bloquearla ahí habría roto el flujo
+// público de la encuesta.
 const { getPool, sql } = require("../src/backoffice-db");
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 

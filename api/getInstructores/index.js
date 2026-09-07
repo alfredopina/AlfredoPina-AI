@@ -1,8 +1,11 @@
 // getInstructores/index.js
-// Function protegida (rol "admin"): lista de instructores para los
-// selectores de Crear Diplomas / Plantilla — vive en un JSON dentro del
-// contenedor "plantillas" (ver plantillas-storage.js), con una semilla de
-// 2 nombres si todavía no se ha guardado nada.
+// Lista de instructores — vive en un JSON dentro del contenedor "plantillas"
+// (ver plantillas-storage.js), con una semilla de 2 nombres si todavía no se
+// ha guardado nada. Nació protegida (rol "admin") para Crear Diplomas /
+// Plantilla; se volvió pública en staticwebapp.config.json cuando Encuestas
+// la reusó para el dropdown de Instructor en encuesta.html (página sin
+// login) — son los mismos nombres que ya aparecen impresos en cada diploma,
+// no es información nueva que se esté exponiendo.
 const { getInstructores } = require("../src/plantillas-storage");
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 

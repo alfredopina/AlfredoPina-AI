@@ -1,10 +1,10 @@
 // Genera el PDF de un diploma con pdf-lib — NO Puppeteer ni nada basado en
 // navegador headless, no es confiable en managed functions de Static Web Apps.
 //
-// Plantilla de PRUEBA (diseño azul de Alfredo, exportado a 1440x1078px)
+// Plantilla de PRUEBA (diseño azul de Alfredo, exportado a 1437x1078px)
 // mientras define el diseño definitivo — ver api/assets/diploma-fondo-prueba.png.
 // La página del PDF se crea del mismo tamaño en puntos que la imagen en
-// píxeles (1440x1078pt) para poder usar las coordenadas del PNG directo, sin
+// píxeles (1437x1078pt) para poder usar las coordenadas del PNG directo, sin
 // conversiones. El texto dinámico se dibuja con Inter (api/assets/fonts/,
 // misma tipografía de body que ya usa el sitio) en vez de la fuente estándar
 // de PDF, para que no se note distinta a la del fondo.
@@ -42,10 +42,10 @@ const TEXTO_RESULTADO = {
 async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaFin, horas, instructor, folio }) {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
-  const page = pdfDoc.addPage([1440, 1078]);
+  const page = pdfDoc.addPage([1437, 1078]);
 
   const fondoImg = await pdfDoc.embedPng(fs.readFileSync(FONDO_PATH));
-  page.drawImage(fondoImg, { x: 0, y: 0, width: 1440, height: 1078 });
+  page.drawImage(fondoImg, { x: 0, y: 0, width: 1437, height: 1078 });
 
   const firmaImg = await pdfDoc.embedPng(fs.readFileSync(FIRMA_PATH));
   const firmaAncho = 135;

@@ -6,7 +6,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
 module.exports = async function (context, req) {
-  const { alumno, clienteId, herramienta, desde, hasta, resultado, estatus } = req.query;
+  const { alumno, clienteId, herramienta, curso, desde, hasta, resultado, estatus } = req.query;
 
   try {
     const pool = await getPool();
@@ -24,6 +24,10 @@ module.exports = async function (context, req) {
     if (herramienta) {
       condiciones.push("d.herramienta = @herramienta");
       request.input("herramienta", sql.NVarChar, herramienta);
+    }
+    if (curso) {
+      condiciones.push("d.curso LIKE @curso");
+      request.input("curso", sql.NVarChar, `%${curso}%`);
     }
     if (desde) {
       condiciones.push("d.fecha_inicio >= @desde");

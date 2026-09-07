@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
@@ -156,6 +157,8 @@
   .dash-etab.active::before{ border-color:var(--blue-bright); }
   .dash-tabpanel{ display:none; }
   .dash-tabpanel.active{ display:block; }
+  .dip-tabpanel{ display:none; }
+  .dip-tabpanel.active{ display:block; }
 
   .dkpi-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:32px; }
   @media (max-width:900px){ .dkpi-grid{ grid-template-columns:repeat(2, 1fr); } }
@@ -366,6 +369,56 @@
   .radm-file-current{ font-size:11.5px; color:var(--text-faint); margin-bottom:6px; }
   .radm-hint{ font-size:11px; color:var(--text-faint); margin-top:4px; }
 
+  /* ───────────────────────── PANEL DIPLOMAS ───────────────────────── */
+  .radm-field input[type=date], .radm-field input[type=number]{
+    font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:6px; padding:9px 11px; outline:none;
+  }
+  .radm-field input[type=date]:focus, .radm-field input[type=number]:focus{ border-color:var(--c); }
+
+  .dip-autocomplete-wrap{ position:relative; }
+  .dip-autocomplete-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:5;
+    background:var(--panel); border:1px solid var(--line); border-radius:7px; overflow:hidden;
+    box-shadow:0 8px 20px rgba(0,0,0,.25); max-height:220px; overflow-y:auto;
+  }
+  .dip-autocomplete-item{ padding:9px 12px; font-size:12.5px; cursor:pointer; }
+  .dip-autocomplete-item:hover{ background:var(--panel-2); }
+  .dip-autocomplete-item b{ color:var(--text); }
+  .dip-autocomplete-item span{ color:var(--text-faint); font-family:var(--mono); font-size:11px; margin-left:6px; }
+  .dip-autocomplete-new{ padding:9px 12px; font-size:11.5px; color:var(--text-faint); border-top:1px solid var(--line); }
+
+  .dip-table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:8px; }
+  .dip-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .dip-table th{
+    text-align:left; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px;
+    padding:10px 10px; background:var(--panel-2); border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  .dip-table td{ padding:6px 8px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  .dip-table tr:last-child td{ border-bottom:none; }
+  .dip-table input{
+    width:100%; font-family:var(--body); font-size:12.5px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:5px; padding:7px 9px; outline:none;
+  }
+  .dip-table input:focus{ border-color:var(--c); }
+  .dip-table input.dip-invalid{ border-color:var(--bad); background:color-mix(in srgb, var(--bad) 12%, var(--panel-2)); }
+  .dip-table td.dip-col-nombre input{ min-width:180px; }
+  .dip-table td.dip-col-num input{ width:80px; }
+  .dip-table td.dip-col-resultado input{ min-width:130px; }
+
+  .dip-grid-actions{ display:flex; align-items:center; gap:10px; margin:12px 0 24px; }
+
+  .dip-status{ display:inline-flex; align-items:center; gap:6px; font-size:12px; }
+  .dip-status-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+  .dip-status.vigente .dip-status-dot{ background:var(--good); }
+  .dip-status.anulado .dip-status-dot{ background:var(--bad); }
+
+  .dip-filters{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; align-items:flex-end; }
+  .dip-filters .radm-field{ min-width:140px; flex:none; }
+  .dip-filters .radm-field.dip-empresa-field{ min-width:200px; }
+
+  .dip-results-actions{ display:flex; align-items:center; justify-content:space-between; margin:16px 0; flex-wrap:wrap; gap:10px; }
+
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
     .admin-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
@@ -437,7 +490,6 @@
       <button class="admin-nav-item" data-panel="diplomas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diplomas
-        <span class="admin-nav-soon">PRONTO</span>
       </button>
 
       <div class="admin-nav-group">PRODUCTO</div>
@@ -617,7 +669,185 @@
       <div class="admin-panel" id="panel-clientes"></div>
       <div class="admin-panel" id="panel-tracking"></div>
       <div class="admin-panel" id="panel-encuestas"></div>
-      <div class="admin-panel" id="panel-diplomas"></div>
+      <div class="admin-panel" id="panel-diplomas" style="--c:var(--blue-bright)">
+        <div id="dipToast" class="radm-toast" hidden></div>
+
+        <div class="dash-etabs" id="dipTabs">
+          <button type="button" class="dash-etab active" data-diptab="crear">Crear Diplomas</button>
+          <button type="button" class="dash-etab" data-diptab="consultar">Consultar Diplomas</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="dipTab-crear">
+          <div class="radm-form">
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>INSTRUCTOR</label>
+                <input type="text" id="dipInstructor" placeholder="Ing. Alfredo Piña">
+              </div>
+              <div class="radm-field">
+                <label>HERRAMIENTA</label>
+                <select id="dipHerramienta">
+                  <option value="">Selecciona...</option>
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                  <option value="powerapps">Power Apps</option>
+                  <option value="powerautomate">Power Automate</option>
+                  <option value="ia">IA Aplicada</option>
+                  <option value="ofimatica">Ofimática Básica</option>
+                </select>
+              </div>
+              <div class="radm-field">
+                <label>GRUPO</label>
+                <input type="text" id="dipGrupo" placeholder="Grupo 1">
+              </div>
+            </div>
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>CURSO</label>
+                <input type="text" id="dipCurso" placeholder="Power BI">
+              </div>
+              <div class="radm-field">
+                <label>NIVEL</label>
+                <input type="text" id="dipNivel" placeholder="Intermedio">
+              </div>
+              <div class="radm-field">
+                <label>HORAS</label>
+                <input type="number" id="dipHoras" placeholder="20">
+              </div>
+            </div>
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>FECHA INICIO</label>
+                <input type="date" id="dipFechaInicio">
+              </div>
+              <div class="radm-field">
+                <label>FECHA FIN</label>
+                <input type="date" id="dipFechaFin">
+              </div>
+            </div>
+            <div class="radm-form-row">
+              <div class="radm-field dip-autocomplete-wrap">
+                <label>EMPRESA</label>
+                <input type="text" id="dipEmpresaNombre" placeholder="Escribe para buscar o crear...">
+                <div class="dip-autocomplete-list" id="dipEmpresaLista" hidden></div>
+              </div>
+              <div class="radm-field">
+                <label>CÓDIGO (solo si es empresa nueva)</label>
+                <input type="text" id="dipEmpresaCodigo" placeholder="ACME">
+              </div>
+            </div>
+          </div>
+
+          <div class="radm-section">
+            <div class="radm-section-head">
+              <span class="radm-section-title">ALUMNOS — PEGA DIRECTO DESDE EXCEL (Nombre, Participación, Asistencia, Proyecto, Resultado)</span>
+            </div>
+            <div class="dip-table-wrap">
+              <table class="dip-table">
+                <thead>
+                  <tr>
+                    <th>Nombre completo</th>
+                    <th>Participación %</th>
+                    <th>Asistencia %</th>
+                    <th>Proyecto %</th>
+                    <th>Resultado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="dipGridBody"></tbody>
+              </table>
+            </div>
+            <div class="dip-grid-actions">
+              <button type="button" class="radm-btn-add" id="dipAgregarFila">+ Agregar fila</button>
+              <span class="radm-hint">Resultado debe ser exactamente: Aprobado, Participó o No Aprobado — si no coincide se marca en rojo.</span>
+            </div>
+          </div>
+
+          <div class="radm-actions">
+            <button type="button" class="radm-btn" id="dipGenerar">Generar diplomas</button>
+          </div>
+
+          <div class="radm-section" id="dipResultadosSection" hidden>
+            <div class="radm-section-head"><span class="radm-section-title">RESULTADOS DEL LOTE</span></div>
+            <div class="dip-table-wrap">
+              <table class="dip-table">
+                <thead>
+                  <tr><th>Folio</th><th>Nombre</th><th>Resultado</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="dipResultadosBody"></tbody>
+              </table>
+            </div>
+            <div class="dip-results-actions">
+              <button type="button" class="radm-btn radm-btn-ghost" id="dipDescargarZip">Descargar todo (.zip)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="dipTab-consultar">
+          <div class="dip-filters">
+            <div class="radm-field">
+              <label>ALUMNO</label>
+              <input type="text" id="dipFAlumno">
+            </div>
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>EMPRESA</label>
+              <input type="text" id="dipFEmpresaNombre">
+              <div class="dip-autocomplete-list" id="dipFEmpresaLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>HERRAMIENTA</label>
+              <select id="dipFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>CURSO</label>
+              <input type="text" id="dipFCurso">
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="dipFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="dipFHasta">
+            </div>
+            <div class="radm-field">
+              <label>RESULTADO</label>
+              <select id="dipFResultado">
+                <option value="">Todos</option>
+                <option value="Aprobado">Aprobado</option>
+                <option value="Participó">Participó</option>
+                <option value="No Aprobado">No Aprobado</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS</label>
+              <select id="dipFEstatus">
+                <option value="">Todos</option>
+                <option value="vigente">Vigente</option>
+                <option value="anulado">Anulado</option>
+              </select>
+            </div>
+            <button type="button" class="radm-btn" id="dipBuscar" style="min-width:auto">Buscar</button>
+          </div>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table">
+              <thead>
+                <tr><th>Folio</th><th>Alumno</th><th>Empresa</th><th>Herramienta</th><th>Curso</th><th>Resultado</th><th>Fechas</th><th>Estatus</th><th></th></tr>
+              </thead>
+              <tbody id="dipListaBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -652,7 +882,7 @@
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'tracking', 'encuestas', 'diplomas'].forEach(key => {
+  ['solicitudes', 'cotizaciones', 'diagnosticos', 'clientes', 'tracking', 'encuestas'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -2025,6 +2255,350 @@
     }
 
     cargarToolsGrid();
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL DIPLOMAS — dos pestañas: "Crear Diplomas" (formulario de lote +
+  // grid pegable desde Excel + generación) y "Consultar Diplomas" (filtros +
+  // listado, ver PDF, anular). El buscador de Empresa es un componente
+  // reutilizado en ambas pestañas (crearAutocomplete) para no aprender dos
+  // interacciones distintas. La lista de "Consultar" se carga perezosa, solo
+  // la primera vez que se entra a esa pestaña, para no despertar la base
+  // serverless si Alfredo solo va a usar "Crear".
+  (function(){
+    const TOOL_NAMES = {
+      excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
+      powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
+    };
+    const RESULTADOS = ['Aprobado', 'Participó', 'No Aprobado'];
+    const COLS = ['nombre', 'participacion', 'asistencia', 'proyecto', 'resultado'];
+    const ICO_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>';
+    const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function escapeHtml(s){
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function toast(msg, ok){
+      const el = document.getElementById('dipToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
+    }
+
+    // ── pestañas ──
+    let dipListaCargada = false;
+    document.getElementById('dipTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.diptab;
+      document.querySelectorAll('#dipTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#panel-diplomas .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dipTab-' + key));
+      if(key === 'consultar' && !dipListaCargada){ dipListaCargada = true; buscarDiplomas(); }
+    });
+
+    // ── autocompletado de Empresa, reutilizado en Crear y Consultar ──
+    function crearAutocomplete({ inputId, listId, codigoId }){
+      const input = document.getElementById(inputId);
+      const lista = document.getElementById(listId);
+      let seleccionado = null;
+      let timer = null;
+
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        if(codigoId){
+          const c = document.getElementById(codigoId);
+          c.value = ''; c.readOnly = false;
+        }
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+        }, 250);
+      });
+
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre, codigo: item.dataset.codigo };
+        input.value = item.dataset.nombre;
+        if(codigoId){
+          const c = document.getElementById(codigoId);
+          c.value = item.dataset.codigo;
+          c.readOnly = true;
+        }
+        lista.hidden = true;
+      });
+
+      document.addEventListener('click', e => {
+        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+      });
+
+      return { getSeleccionado: () => seleccionado };
+    }
+
+    const dipEmpresaAuto = crearAutocomplete({ inputId:'dipEmpresaNombre', listId:'dipEmpresaLista', codigoId:'dipEmpresaCodigo' });
+    const dipFEmpresaAuto = crearAutocomplete({ inputId:'dipFEmpresaNombre', listId:'dipFEmpresaLista' });
+
+    // ── grid de alumnos, pegable desde Excel ──
+    function crearFilaVacia(){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="dip-col-nombre"><input type="text" data-col="nombre"></td>
+        <td class="dip-col-num"><input type="text" data-col="participacion"></td>
+        <td class="dip-col-num"><input type="text" data-col="asistencia"></td>
+        <td class="dip-col-num"><input type="text" data-col="proyecto"></td>
+        <td class="dip-col-resultado"><input type="text" data-col="resultado"></td>
+        <td><button type="button" class="radm-icon-btn radm-icon-danger dip-row-del" title="Quitar fila">${ICO_TRASH}</button></td>
+      `;
+      return tr;
+    }
+
+    const dipGridBody = document.getElementById('dipGridBody');
+    document.getElementById('dipAgregarFila').addEventListener('click', () => dipGridBody.appendChild(crearFilaVacia()));
+    dipGridBody.appendChild(crearFilaVacia()); // arranca con una fila vacía
+
+    dipGridBody.addEventListener('click', e => {
+      const del = e.target.closest('.dip-row-del');
+      if(!del) return;
+      const tr = del.closest('tr');
+      if(dipGridBody.children.length > 1) tr.remove();
+      else tr.querySelectorAll('input').forEach(i => i.value = '');
+    });
+
+    dipGridBody.addEventListener('input', e => {
+      if(e.target.dataset.col === 'resultado'){
+        const v = e.target.value.trim();
+        e.target.classList.toggle('dip-invalid', v !== '' && !RESULTADOS.includes(v));
+      }
+    });
+
+    // pegar tipo hoja de cálculo: reparte filas/columnas sobre la cuadrícula
+    // a partir de la celda donde se hizo Ctrl+V, creando filas nuevas si hacen falta
+    dipGridBody.addEventListener('paste', e => {
+      const input = e.target.closest('input');
+      if(!input) return;
+      e.preventDefault();
+      const texto = (e.clipboardData || window.clipboardData).getData('text');
+      const filas = texto.split(/\r\n|\n|\r/).filter((f, i, arr) => !(i === arr.length - 1 && f === ''));
+      const trInicial = input.closest('tr');
+      const filaInicialIdx = Array.from(dipGridBody.children).indexOf(trInicial);
+      const colInicialIdx = COLS.indexOf(input.dataset.col);
+
+      filas.forEach((filaTexto, i) => {
+        let tr = dipGridBody.children[filaInicialIdx + i];
+        if(!tr){ tr = crearFilaVacia(); dipGridBody.appendChild(tr); }
+        filaTexto.split('\t').forEach((valor, j) => {
+          const colIdx = colInicialIdx + j;
+          if(colIdx >= COLS.length) return;
+          const celda = tr.querySelector(`input[data-col="${COLS[colIdx]}"]`);
+          if(!celda) return;
+          celda.value = valor.trim();
+          if(COLS[colIdx] === 'resultado'){
+            celda.classList.toggle('dip-invalid', valor.trim() !== '' && !RESULTADOS.includes(valor.trim()));
+          }
+        });
+      });
+    });
+
+    // ── generar lote ──
+    let dipUltimosResultados = [];
+
+    document.getElementById('dipGenerar').addEventListener('click', async () => {
+      const instructor = document.getElementById('dipInstructor').value.trim();
+      const herramienta = document.getElementById('dipHerramienta').value;
+      const curso = document.getElementById('dipCurso').value.trim();
+      const nivel = document.getElementById('dipNivel').value.trim();
+      const horas = document.getElementById('dipHoras').value;
+      const grupo = document.getElementById('dipGrupo').value.trim();
+      const fechaInicio = document.getElementById('dipFechaInicio').value;
+      const fechaFin = document.getElementById('dipFechaFin').value;
+
+      if(!instructor || !herramienta || !curso || !nivel || !horas || !grupo || !fechaInicio || !fechaFin){
+        toast('Completa todos los datos del lote.', false);
+        return;
+      }
+
+      const seleccionado = dipEmpresaAuto.getSeleccionado();
+      const empresaNombre = document.getElementById('dipEmpresaNombre').value.trim();
+      const empresaCodigo = document.getElementById('dipEmpresaCodigo').value.trim();
+      let empresa;
+      if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
+      else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
+      else { toast('Selecciona una empresa existente o captura nombre + código para una nueva.', false); return; }
+
+      const filas = Array.from(dipGridBody.querySelectorAll('tr')).map(tr => {
+        const get = col => tr.querySelector(`input[data-col="${col}"]`).value.trim();
+        return { nombreCompleto:get('nombre'), participacion:get('participacion'), asistencia:get('asistencia'), proyecto:get('proyecto'), resultado:get('resultado') };
+      }).filter(f => f.nombreCompleto || f.resultado);
+
+      if(!filas.length){ toast('Agrega al menos un alumno.', false); return; }
+
+      const invalidas = filas.filter(f => !f.nombreCompleto || !RESULTADOS.includes(f.resultado));
+      if(invalidas.length){ toast('Revisa las filas marcadas en rojo (falta nombre o el resultado no coincide exacto).', false); return; }
+
+      const btn = document.getElementById('dipGenerar');
+      btn.disabled = true; btn.textContent = 'Generando...';
+      try {
+        const data = await apiPostJson('/api/generarDiplomas', {
+          instructor, herramienta, curso, nivel, fechaInicio, fechaFin, horas:Number(horas), grupo, empresa,
+          alumnos: filas.map(f => ({
+            nombreCompleto: f.nombreCompleto, resultado: f.resultado,
+            proyecto: f.proyecto ? Number(f.proyecto) : null,
+            asistencia: f.asistencia ? Number(f.asistencia) : null,
+            participacion: f.participacion ? Number(f.participacion) : null,
+          })),
+        });
+        dipUltimosResultados = data.resultados || [];
+        renderResultados();
+        const ok = dipUltimosResultados.filter(r => !r.error).length;
+        toast(`Lote generado: ${ok} de ${dipUltimosResultados.length} diplomas.`, ok === dipUltimosResultados.length);
+      } catch(e){
+        toast('No se pudo generar el lote: ' + e.message, false);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Generar diplomas';
+      }
+    });
+
+    function renderResultados(){
+      const body = document.getElementById('dipResultadosBody');
+      body.innerHTML = dipUltimosResultados.map(r => `
+        <tr>
+          <td class="radm-mono">${escapeHtml(r.folio || '—')}</td>
+          <td>${escapeHtml(r.nombre)}</td>
+          <td>${escapeHtml(r.resultado || '—')}</td>
+          <td>${r.error ? `<span style="color:var(--bad)">${escapeHtml(r.error)}</span>` : (r.pdfGenerado ? 'OK' : 'Sin PDF (No Aprobado)')}</td>
+          <td>${r.pdfGenerado ? `<button type="button" class="radm-icon-btn dip-ver-btn" data-folio="${escapeHtml(r.folio)}" title="Ver PDF">${ICO_EYE}</button>` : ''}</td>
+        </tr>
+      `).join('');
+      document.getElementById('dipResultadosSection').hidden = false;
+    }
+
+    document.getElementById('dipResultadosBody').addEventListener('click', e => {
+      const btn = e.target.closest('.dip-ver-btn');
+      if(!btn) return;
+      window.open('/api/getDiplomaPdf?folio=' + encodeURIComponent(btn.dataset.folio), '_blank');
+    });
+
+    document.getElementById('dipDescargarZip').addEventListener('click', async () => {
+      const generados = dipUltimosResultados.filter(r => r.pdfGenerado);
+      if(!generados.length){ toast('No hay PDFs para descargar en este lote.', false); return; }
+      const btn = document.getElementById('dipDescargarZip');
+      btn.disabled = true; btn.textContent = 'Preparando zip...';
+      try {
+        const zip = new JSZip();
+        for(const r of generados){
+          const resp = await fetch('/api/getDiplomaPdf?folio=' + encodeURIComponent(r.folio));
+          if(!resp.ok) continue;
+          zip.file(r.folio + '.pdf', await resp.blob());
+        }
+        const zipBlob = await zip.generateAsync({ type:'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'diplomas.zip';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      } catch(e){
+        toast('No se pudo armar el zip: ' + e.message, false);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Descargar todo (.zip)';
+      }
+    });
+
+    // ── consultar diplomas ──
+    async function buscarDiplomas(){
+      const params = new URLSearchParams();
+      const alumno = document.getElementById('dipFAlumno').value.trim();
+      const herramienta = document.getElementById('dipFHerramienta').value;
+      const curso = document.getElementById('dipFCurso').value.trim();
+      const desde = document.getElementById('dipFDesde').value;
+      const hasta = document.getElementById('dipFHasta').value;
+      const resultado = document.getElementById('dipFResultado').value;
+      const estatus = document.getElementById('dipFEstatus').value;
+      const seleccionado = dipFEmpresaAuto.getSeleccionado();
+
+      if(alumno) params.set('alumno', alumno);
+      if(herramienta) params.set('herramienta', herramienta);
+      if(curso) params.set('curso', curso);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+      if(resultado) params.set('resultado', resultado);
+      if(estatus) params.set('estatus', estatus);
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+
+      const body = document.getElementById('dipListaBody');
+      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
+      try {
+        const lista = await apiGet('/api/listDiplomas?' + params.toString());
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        body.innerHTML = lista.map(d => `
+          <tr data-folio="${escapeHtml(d.folio)}">
+            <td class="radm-mono">${escapeHtml(d.folio)}</td>
+            <td>${escapeHtml(d.alumno)}</td>
+            <td>${escapeHtml(d.cliente)}</td>
+            <td>${TOOL_NAMES[d.herramienta] || escapeHtml(d.herramienta)}</td>
+            <td>${escapeHtml(d.curso)}</td>
+            <td>${escapeHtml(d.resultado)}</td>
+            <td>${fmtFecha(d.fecha_inicio)} – ${fmtFecha(d.fecha_fin)}</td>
+            <td><span class="dip-status ${d.estatus}"><span class="dip-status-dot"></span>${d.estatus === 'anulado' ? 'Anulado' : 'Vigente'}</span></td>
+            <td>
+              ${d.blob_path ? `<button type="button" class="radm-icon-btn dip-lista-ver" title="Ver PDF">${ICO_EYE}</button>` : ''}
+              ${d.estatus === 'vigente' ? `<button type="button" class="radm-icon-btn radm-icon-danger dip-lista-anular" title="Anular">${ICO_X}</button>` : ''}
+            </td>
+          </tr>
+        `).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('dipBuscar').addEventListener('click', buscarDiplomas);
+
+    document.getElementById('dipListaBody').addEventListener('click', async e => {
+      const tr = e.target.closest('tr');
+      if(!tr) return;
+      const folio = tr.dataset.folio;
+      if(e.target.closest('.dip-lista-ver')){
+        window.open('/api/getDiplomaPdf?folio=' + encodeURIComponent(folio), '_blank');
+      } else if(e.target.closest('.dip-lista-anular')){
+        if(!confirm(`¿Anular el diploma ${folio}? El registro se conserva, solo cambia su estatus.`)) return;
+        try {
+          await apiPostJson('/api/anularDiploma', { folio });
+          toast('Diploma anulado.', true);
+          buscarDiplomas();
+        } catch(err){ toast('No se pudo anular: ' + err.message, false); }
+      }
+    });
   })();
 </script>
 

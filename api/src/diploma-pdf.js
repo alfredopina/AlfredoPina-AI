@@ -5,14 +5,20 @@
 // mientras define el diseño definitivo — ver api/assets/diploma-fondo-prueba.png.
 // La página del PDF se crea del mismo tamaño en puntos que la imagen en
 // píxeles (1440x1078pt) para poder usar las coordenadas del PNG directo, sin
-// conversiones. Cuando llegue la plantilla final, solo cambia el archivo de
-// fondo y estas coordenadas — el resto del flujo no se toca.
+// conversiones. El texto dinámico se dibuja con Inter (api/assets/fonts/,
+// misma tipografía de body que ya usa el sitio) en vez de la fuente estándar
+// de PDF, para que no se note distinta a la del fondo.
+// Cuando llegue la plantilla final, solo cambia el archivo de fondo y estas
+// coordenadas — el resto del flujo no se toca.
 const fs = require("fs");
 const path = require("path");
-const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
+const { PDFDocument, rgb } = require("pdf-lib");
+const fontkit = require("@pdf-lib/fontkit");
 
 const FONDO_PATH = path.join(__dirname, "..", "assets", "diploma-fondo-prueba.png");
 const FIRMA_PATH = path.join(__dirname, "..", "assets", "firma-alfredo.png");
+const FONT_REGULAR_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Regular.ttf");
+const FONT_BOLD_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Bold.ttf");
 
 const AZUL_OSCURO = rgb(0.09, 0.16, 0.42); // mismo tono navy del texto de la plantilla
 const CENTRO_X = 615; // el bloque de texto no está centrado en la página completa —
@@ -35,20 +41,19 @@ const TEXTO_RESULTADO = {
 
 async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaFin, horas, instructor, folio }) {
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([1440, 1078]);
 
-  const fondoBytes = fs.readFileSync(FONDO_PATH);
-  const fondoImg = await pdfDoc.embedPng(fondoBytes);
+  const fondoImg = await pdfDoc.embedPng(fs.readFileSync(FONDO_PATH));
   page.drawImage(fondoImg, { x: 0, y: 0, width: 1440, height: 1078 });
 
-  const firmaBytes = fs.readFileSync(FIRMA_PATH);
-  const firmaImg = await pdfDoc.embedPng(firmaBytes);
+  const firmaImg = await pdfDoc.embedPng(fs.readFileSync(FIRMA_PATH));
   const firmaAncho = 135;
   const firmaAlto = firmaAncho * (firmaImg.height / firmaImg.width);
   page.drawImage(firmaImg, { x: CENTRO_X - firmaAncho / 2, y: 206, width: firmaAncho, height: firmaAlto });
 
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(fs.readFileSync(FONT_BOLD_PATH));
+  const font = await pdfDoc.embedFont(fs.readFileSync(FONT_REGULAR_PATH));
 
   const centrado = (texto, yTop, tamano, fuente) => {
     const ancho = fuente.widthOfTextAtSize(texto, tamano);
@@ -56,15 +61,15 @@ async function generarDiplomaPdf({ alumno, curso, resultado, fechaInicio, fechaF
   };
 
   // Folio, junto a "Constancia No." (que ya viene fijo en el fondo)
-  page.drawText(folio, { x: 222, y: 1078 - 36, size: 20, font: fontBold, color: AZUL_OSCURO });
+  page.drawText(folio, { x: 300, y: 1078 - 34, size: 16, font: fontBold, color: AZUL_OSCURO });
 
   // "OTORGA EL PRESENTE" / "DIPLOMA A" ya vienen fijos en el fondo — solo el nombre es dinámico
-  centrado(alumno, 450, 39, fontBold);
-  centrado(`Por su ${TEXTO_RESULTADO[resultado] || resultado.toLowerCase()} en el curso`, 558, 21, font);
-  centrado(curso, 627, 30, fontBold);
-  centrado(`Del ${formatFechaLarga(fechaInicio)} al ${formatFechaLarga(fechaFin)}`, 693, 18, font);
-  centrado(`Con duración de ${horas} horas`, 741, 18, font);
-  centrado(instructor, 908, 17, fontBold);
+  centrado(alumno, 460, 50, fontBold);
+  centrado(`Por su ${TEXTO_RESULTADO[resultado] || resultado.toLowerCase()} en el curso`, 545, 24, font);
+  centrado(curso, 610, 44, fontBold);
+  centrado(`Del ${formatFechaLarga(fechaInicio)} al ${formatFechaLarga(fechaFin)}`, 685, 24, font);
+  centrado(`Con duración de ${horas} horas`, 730, 22, font);
+  centrado(instructor, 908, 22, fontBold);
 
   return Buffer.from(await pdfDoc.save());
 }

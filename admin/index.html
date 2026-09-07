@@ -905,7 +905,8 @@
           <div class="radm-section">
             <div class="radm-section-head"><span class="radm-section-title">PLANTILLA DE FONDO</span></div>
             <div class="dip-plantilla-preview">
-              <img id="dipFondoPreview" alt="Plantilla de fondo" src="/api/getPlantillaAsset?tipo=fondo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'radm-hint',textContent:'Sin plantilla todavía.'}))">
+              <img id="dipFondoPreview" alt="Plantilla de fondo" src="/api/getPlantillaAsset?tipo=fondo">
+              <span class="radm-hint" id="dipFondoVacio" hidden>Sin plantilla todavía.</span>
             </div>
             <div class="radm-form-row" style="margin-top:14px">
               <div class="radm-field">
@@ -2761,18 +2762,31 @@
       });
     }
 
+    // si la imagen no carga (todavía no hay plantilla/firma), se oculta y se
+    // muestra el texto de al lado — nunca se quita el <img> del DOM, para
+    // poder seguir actualizando su src más adelante (ej. tras subir un archivo)
+    function wireImgFallback(img, fallbackEl){
+      img.addEventListener('error', () => { img.hidden = true; fallbackEl.hidden = false; });
+      img.addEventListener('load', () => { img.hidden = false; fallbackEl.hidden = true; });
+    }
+    wireImgFallback(document.getElementById('dipFondoPreview'), document.getElementById('dipFondoVacio'));
+
     function renderFirmasGrid(){
       const cont = document.getElementById('dipFirmasGrid');
       cont.innerHTML = INSTRUCTORES_LISTA.map(nombre => `
         <div class="dip-firma-card">
           <div class="dip-firma-nombre">${escapeHtml(nombre)}</div>
           <div class="dip-firma-preview">
-            <img src="/api/getPlantillaAsset?tipo=firma&instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'radm-hint',textContent:'Sin firma todavía.'}))">
+            <img class="dip-firma-img" src="/api/getPlantillaAsset?tipo=firma&instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}">
+            <span class="radm-hint dip-firma-vacio" hidden>Sin firma todavía.</span>
           </div>
           <input type="file" accept="image/png" class="dip-firma-archivo" data-instructor="${escapeHtml(nombre)}">
           <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto; width:100%">Subir firma</button>
         </div>
       `).join('');
+      cont.querySelectorAll('.dip-firma-preview').forEach(wrap => {
+        wireImgFallback(wrap.querySelector('.dip-firma-img'), wrap.querySelector('.dip-firma-vacio'));
+      });
     }
     renderFirmasGrid();
 

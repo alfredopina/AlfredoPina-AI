@@ -45,7 +45,7 @@ module.exports = async function (context, req) {
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
       SELECT d.folio, a.nombre_completo AS alumno, c.nombre AS cliente, d.cliente_id, d.herramienta, d.curso, d.nivel,
-             d.resultado, d.fecha_inicio, d.fecha_fin, d.estatus, d.blob_path, d.grupo, d.instructor, d.corrige_a_folio
+             d.resultado, d.fecha_inicio, d.fecha_fin, d.horas, d.estatus, d.blob_path, d.grupo, d.instructor, d.corrige_a_folio
       FROM Diploma d
       JOIN Alumno a ON a.id = d.alumno_id
       JOIN Cliente c ON c.id = d.cliente_id

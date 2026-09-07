@@ -88,11 +88,12 @@ module.exports = async function (context, req) {
   const fechaInicio = (body.fechaInicio || "").trim();
   const fechaFin = (body.fechaFin || "").trim();
   const grupo = (body.grupo || "").trim();
+  const horas = numeroONull(body.horas);
   const empresa = body.empresa || {};
   const alumnos = Array.isArray(body.alumnos) ? body.alumnos : [];
 
-  if (!instructor || !HERRAMIENTAS.includes(herramienta) || !curso || !nivel || !fechaInicio || !fechaFin || !grupo) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos del lote (instructor, herramienta, curso, nivel, fechas o grupo)." } };
+  if (!instructor || !HERRAMIENTAS.includes(herramienta) || !curso || !nivel || !fechaInicio || !fechaFin || !grupo || !horas) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos del lote (instructor, herramienta, curso, nivel, fechas, horas o grupo)." } };
     return;
   }
   if (!alumnos.length) {
@@ -149,12 +150,11 @@ module.exports = async function (context, req) {
       if (resultado !== "No Aprobado") {
         const pdfBuffer = await generarDiplomaPdf({
           alumno: nombreCompleto,
-          empresa: cliente.nombre,
           curso,
-          nivel,
           resultado,
           fechaInicio,
           fechaFin,
+          horas,
           instructor,
           folio,
         });
@@ -177,15 +177,16 @@ module.exports = async function (context, req) {
         .input("resultado", sql.NVarChar, resultado)
         .input("instructor", sql.NVarChar, instructor)
         .input("grupo", sql.NVarChar, grupo)
+        .input("horas", sql.Int, horas)
         .input("proyecto", sql.Int, proyecto)
         .input("asistencia", sql.Int, asistencia)
         .input("participacion", sql.Int, participacion)
         .input("blobPath", sql.NVarChar, blobPath)
         .query(
           `INSERT INTO Diploma
-            (folio, alumno_id, cliente_id, herramienta, curso, nivel, fecha_inicio, fecha_fin, resultado, instructor, grupo, proyecto, asistencia, participacion, blob_path)
+            (folio, alumno_id, cliente_id, herramienta, curso, nivel, fecha_inicio, fecha_fin, resultado, instructor, grupo, horas, proyecto, asistencia, participacion, blob_path)
            VALUES
-            (@folio, @alumnoId, @clienteId, @herramienta, @curso, @nivel, @fechaInicio, @fechaFin, @resultado, @instructor, @grupo, @proyecto, @asistencia, @participacion, @blobPath)`
+            (@folio, @alumnoId, @clienteId, @herramienta, @curso, @nivel, @fechaInicio, @fechaFin, @resultado, @instructor, @grupo, @horas, @proyecto, @asistencia, @participacion, @blobPath)`
         );
 
       resultados.push({ folio, nombre: nombreCompleto, resultado, pdfGenerado: blobPath !== null });

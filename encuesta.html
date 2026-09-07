@@ -52,6 +52,9 @@
 
   .wrap{max-width:720px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
 
+  /* ---- NAV — mismo lenguaje visual que el resto del sitio, para que quien
+     esté contestando pueda saltar a Cursos/Conóceme si quiere seguir
+     explorando ---- */
   nav{
     position:sticky; top:0; z-index:50;
     backdrop-filter:blur(10px);
@@ -61,19 +64,24 @@
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:720px;}
   .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px;}
   .nav-name{font-family:var(--display); font-weight:600; font-size:14.5px; color:var(--text); letter-spacing:-.01em;}
+  .nav-links{display:flex;gap:22px;font-size:13.5px;color:var(--text-dim); align-items:center;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.3px;
+    border:1px solid var(--line); padding:7px 14px; border-radius:3px;
+    color:var(--text); transition:border-color .2s, background .2s;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .nav-cta svg{ color:var(--blue-bright); flex:none; }
+  .nav-cta:hover{border-color:var(--blue); background:var(--blue-soft);}
   .nav-hidden-note{
     font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
     display:flex; align-items:center; gap:6px;
   }
   .nav-hidden-note svg{ width:12px; height:12px; flex:none; }
+  @media (max-width:640px){ .nav-links{ display:none; } }
 
   header.enc-header{ padding:44px 0 8px; position:relative; z-index:1; }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
-    text-transform:uppercase; color:var(--blue-bright); margin-bottom:14px;
-  }
-  .eyebrow::before{ content:""; width:6px; height:6px; background:var(--blue-bright); border-radius:1px; }
   h2.section-title{
     font-family:var(--display); font-weight:600; font-size:clamp(26px,5.5vw,36px);
     letter-spacing:-.01em; line-height:1.18; max-width:520px;
@@ -88,7 +96,7 @@
     color:var(--bad); font-size:13px; padding:14px 16px; margin:16px 0;
   }
 
-  .enc-block{ margin-bottom:36px; }
+  .enc-block{ margin-bottom:40px; }
   .enc-block-title{
     font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
     color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
@@ -109,6 +117,8 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238991a1' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 12px center; background-size:16px; padding-right:38px;
   }
+  /* el ícono nativo del date picker es invisible en fondo oscuro por default */
+  .enc-field input[type=date]::-webkit-calendar-picker-indicator{ filter:invert(1); cursor:pointer; }
   .enc-row{ display:flex; gap:14px; flex-wrap:wrap; }
   .enc-row .enc-field{ flex:1; min-width:180px; }
   .enc-hint{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
@@ -124,65 +134,126 @@
   .enc-autocomplete-item b{ color:var(--text); }
   .enc-autocomplete-item span{ color:var(--text-faint); font-family:var(--mono); font-size:11px; margin-left:6px; }
 
-  /* ---- control de escala: celda con formato condicional, mismo lenguaje
-     visual que la barra de fórmula fx de Excel del resto del sitio ---- */
-  .enc-question{ margin-bottom:28px; }
-  .enc-question-text{ font-size:14.5px; color:var(--text); margin-bottom:10px; line-height:1.4; }
+  /* ---- control de escala: celda con formato condicional (data-bar de
+     Excel), tocable Y deslizable — un solo gesto sirve para ambas cosas ---- */
+  .enc-question{
+    margin-bottom:0; padding:24px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .enc-question:first-child{ padding-top:0; }
+  .enc-question:last-child{ border-bottom:none; padding-bottom:0; }
+  .enc-question-text{ font-size:14.5px; color:var(--text); margin-bottom:12px; line-height:1.4; }
   .xcell{
     position:relative; height:56px; border:1px solid var(--line);
     background:var(--panel-2); border-radius:5px; overflow:hidden;
+    cursor:pointer; touch-action:none; user-select:none; -webkit-user-select:none;
   }
+  .xcell:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:2px; }
   .xcell-ref{
     position:absolute; top:5px; left:8px; font-family:var(--mono);
-    font-size:10px; color:var(--text-faint); z-index:3; letter-spacing:.02em;
+    font-size:10px; color:var(--text-faint); z-index:3; letter-spacing:.02em; pointer-events:none;
   }
-  .xcell-grid{ position:absolute; inset:0; display:flex; z-index:1; }
+  .xcell-grid{ position:absolute; inset:0; display:flex; z-index:1; pointer-events:none; }
   .xcell-grid span{ flex:1; border-right:1px solid var(--line-soft); }
   .xcell-grid span:last-child{ border-right:none; }
   .xcell-fill{
     position:absolute; top:0; left:0; bottom:0; width:0%; z-index:2;
     background:linear-gradient(90deg, rgba(61,127,255,.32), rgba(107,159,255,.62));
-    border-right:2px solid var(--blue-bright);
-    transition:width .2s ease;
+    transition:width .12s ease; pointer-events:none;
+  }
+  .xcell-handle{
+    position:absolute; top:0; bottom:0; width:3px; z-index:3;
+    background:var(--blue-bright); box-shadow:0 0 8px var(--blue-soft);
+    transition:left .12s ease; pointer-events:none;
   }
   .xcell-value{
-    position:absolute; top:0; right:10px; bottom:0; z-index:3;
+    position:absolute; top:0; right:10px; bottom:0; z-index:4;
     display:flex; align-items:center; font-family:var(--mono);
-    font-weight:700; font-size:17px; color:var(--text);
+    font-weight:700; font-size:17px; color:var(--text); pointer-events:none;
   }
-  .xcell-hits{ position:absolute; inset:0; display:flex; z-index:4; }
-  .xcell-hits button{ flex:1; background:transparent; border:none; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; }
   .enc-readout{
     margin-top:8px; font-family:var(--mono); font-size:12.5px;
     color:var(--text-dim); display:flex; align-items:center; gap:6px;
   }
   .enc-readout b{ color:var(--text); font-weight:600; }
+  .enc-slide-hint{ font-size:10.5px; color:var(--text-faint); margin-top:6px; }
 
   .enc-privacy{
     font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
-    padding-top:18px; margin:8px 0 20px; line-height:1.6;
+    padding-top:18px; margin:24px 0 20px; line-height:1.6;
   }
 
-  .enc-submit{
-    width:100%; font-family:var(--display); font-weight:600; font-size:15px;
-    color:#fff; background:var(--blue); border:none; border-radius:8px;
-    padding:16px; cursor:pointer; transition:background .2s;
-    display:flex; align-items:center; justify-content:center; gap:8px;
+  /* ---- botón de envío con la barra fx, mismo lenguaje visual que
+     "=AGENDAR()"/"=CALIFICAR_INSTRUCTOR()" del resto del sitio ---- */
+  .enc-submit-fx{
+    width:100%; display:flex; align-items:stretch; border:1px solid var(--blue-dim);
+    border-radius:6px; background:var(--panel); overflow:hidden; cursor:pointer;
+    transition:border-color .2s, background .2s;
   }
-  .enc-submit:hover:not(:disabled){ background:var(--blue-bright); }
-  .enc-submit:disabled{ opacity:.5; cursor:default; }
+  .enc-submit-fx:hover:not(:disabled){ border-color:var(--blue-bright); background:var(--blue-soft); }
+  .enc-submit-fx:disabled{ opacity:.6; cursor:default; }
+  .enc-submit-fx-tag{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
+    background:var(--blue-soft); padding:18px 16px; border-right:1px solid var(--blue-dim); flex:none;
+    display:flex; align-items:center;
+  }
+  .enc-submit-fx-body{
+    font-family:var(--mono); font-size:14px; color:var(--text); padding:18px 20px;
+    display:flex; align-items:center; flex:1; justify-content:center;
+  }
 
-  .enc-thanks{
-    text-align:center; padding:80px 0; display:none;
-  }
+  .enc-thanks{ display:none; text-align:center; padding:70px 0 40px; }
+  .enc-thanks.show{ display:block; animation:encThanksIn .4s ease forwards; }
+  @keyframes encThanksIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
   .enc-thanks-icon{ width:56px; height:56px; color:var(--good); margin:0 auto 20px; }
+  .enc-thanks-icon path{ stroke-dasharray:1; stroke-dashoffset:1; animation:encCheckDraw .6s .15s ease forwards; }
+  @keyframes encCheckDraw{ to{ stroke-dashoffset:0; } }
   .enc-thanks h2{ font-family:var(--display); font-weight:600; font-size:26px; margin-bottom:10px; }
-  .enc-thanks p{ color:var(--text-dim); font-size:14px; }
+  .enc-thanks p{ color:var(--text-dim); font-size:14px; max-width:420px; margin:0 auto; }
+  .enc-thanks-fx{
+    display:inline-flex; align-items:center; gap:8px; margin-top:24px;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+  .enc-thanks-fx span{
+    font-weight:700; font-style:italic; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:4px; padding:2px 7px;
+  }
 
-  footer{border-top:1px solid var(--line); padding:60px 0 40px; margin-top:20px;}
+  /* ---- FOOTER — mismo footer completo que el resto del sitio (agenda.html,
+     index.html), para que la encuesta no se sienta como una página huérfana ---- */
+  footer{border-top:1px solid var(--line); padding:90px 0 60px; margin-top:20px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--blue-bright); margin-bottom:16px;
+  }
+  .eyebrow::before{ content:""; width:6px; height:6px; background:var(--blue-bright); border-radius:1px; }
+  .contact-title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,5vw,42px);
+    line-height:1.15; max-width:520px; margin-top:10px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .cafe-icon{width:0.85em; height:0.85em; color:var(--blue-bright); flex:none;}
+  .formula-bar-big{
+    display:flex; align-items:stretch; margin-top:44px; border:1px solid var(--blue-dim);
+    border-radius:6px; background:var(--panel); overflow-x:auto; max-width:100%; width:fit-content;
+  }
+  .formula-fx-big{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:15px; color:var(--blue-bright);
+    background:var(--blue-soft); padding:20px; border-right:1px solid var(--blue-dim); flex:none;
+    display:flex; align-items:center;
+  }
+  .formula-reveal{ display:inline-flex; align-items:center; }
+  .formula-inner{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:14px; color:var(--text);
+    padding:18px 20px; white-space:nowrap;
+  }
+  .formula-arg{color:var(--blue-bright); text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--blue-dim); transition:color .2s, text-decoration-color .2s;}
+  .formula-arg:hover{color:#fff; text-decoration-color:#fff;}
+  @media (max-width:600px){ .formula-inner{white-space:normal; padding:16px 18px;} }
   .contact-meta{
     display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12.5px;
     color:var(--text-faint); font-family:var(--mono);
+    margin-top:44px; padding-top:22px; border-top:1px solid var(--line-soft);
   }
   .contact-meta a{color:var(--text-dim);}
   .contact-meta a:hover{color:var(--blue-bright);}
@@ -203,15 +274,19 @@
       <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:30px; width:auto; display:block;">
       <span class="nav-name">Alfredo Piña</span>
     </a>
-    <span class="nav-hidden-note" title="Página pública pero sin liga en el menú — no indexada por buscadores.">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Encuesta
-    </span>
+    <div class="nav-links">
+      <a href="index.html#experiencia">Conóceme</a>
+      <a href="cursos.html">Cursos</a>
+      <span class="nav-hidden-note" title="Página pública pero sin liga en el menú — no indexada por buscadores.">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Encuesta
+      </span>
+    </div>
+    <a href="#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
 
 <header class="wrap enc-header">
-  <div class="eyebrow">ENCUESTA DE CIERRE</div>
   <h2 class="section-title">Cuéntame cómo estuvo el curso.</h2>
 </header>
 
@@ -221,21 +296,15 @@
 
   <form id="encForm" hidden>
     <div class="enc-block">
-      <div class="enc-block-title">Sobre ti</div>
+      <div class="enc-block-title">Acerca de ti</div>
       <div class="enc-field">
-        <label>NOMBRE <span style="color:var(--text-faint)">(opcional)</span></label>
+        <label>NOMBRE</label>
         <input type="text" id="encNombre" placeholder="Tu nombre">
       </div>
-      <div class="enc-row">
-        <div class="enc-field enc-autocomplete-wrap">
-          <label>EMPRESA <span class="enc-req">*</span></label>
-          <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
-          <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
-        </div>
-        <div class="enc-field">
-          <label>CÓDIGO <span style="color:var(--text-faint)">(si es empresa nueva)</span></label>
-          <input type="text" id="encEmpresaCodigo" placeholder="ACME">
-        </div>
+      <div class="enc-field enc-autocomplete-wrap">
+        <label>EMPRESA <span class="enc-req">*</span></label>
+        <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
+        <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
       </div>
       <div class="enc-row">
         <div class="enc-field">
@@ -257,25 +326,38 @@
 
     <div id="encPreguntasArea"></div>
 
-    <div id="encComentariosArea"></div>
-
     <p class="enc-privacy">Tus respuestas se usan solo para mejorar la calidad del servicio, no se comparten con terceros.</p>
 
-    <button type="submit" class="enc-submit" id="encSubmit">Enviar encuesta</button>
+    <button type="submit" class="enc-submit-fx" id="encSubmit">
+      <span class="enc-submit-fx-tag">fx</span>
+      <span class="enc-submit-fx-body" id="encSubmitBody">=ENVIAR_ENCUESTA()</span>
+    </button>
   </form>
 
   <div class="enc-thanks" id="encThanks">
-    <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <h2>¡Gracias por tu tiempo!</h2>
-    <p>Tu respuesta ya quedó registrada.</p>
+    <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
+    <h2>¡Listo, ya quedó registrada!</h2>
+    <p>Gracias por tomarte los 2 minutos — nos ayuda a mejorar el siguiente curso.</p>
+    <div class="enc-thanks-fx"><span>fx</span> =GRACIAS()</div>
   </div>
 </section>
 
-<footer>
+<footer id="contacto">
   <div class="wrap">
+    <div class="eyebrow">HABLEMOS</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+
+    <div class="formula-bar-big">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+    </div>
+
     <div class="contact-meta">
       <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
       <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
+      <!-- TODO: reemplazar con el link real del canal de YouTube en cuanto exista -->
+      <a href="#" target="_blank">YouTube ↗</a>
       <span>© 2026 Alfredo Piña</span>
     </div>
   </div>
@@ -303,8 +385,10 @@
 
   // ── autocompletado de Empresa — mismo patrón que crearAutocomplete del
   // admin (Diplomas), duplicado aquí a propósito: esta página no carga nada
-  // del admin, vive completamente sola. ──
-  function crearAutocomplete({ inputId, listId, codigoId }){
+  // del admin, vive completamente sola. Sin campo de código visible — es un
+  // dato interno; si la empresa no existe todavía, se deriva un código corto
+  // del nombre al enviar (ver codigoDesdeNombre más abajo). ──
+  function crearAutocomplete({ inputId, listId }){
     const input = document.getElementById(inputId);
     const lista = document.getElementById(listId);
     let seleccionado = null;
@@ -312,8 +396,6 @@
 
     input.addEventListener('input', () => {
       seleccionado = null;
-      const c = document.getElementById(codigoId);
-      c.value = ''; c.readOnly = false;
       const q = input.value.trim();
       clearTimeout(timer);
       if(!q){ lista.hidden = true; return; }
@@ -322,7 +404,7 @@
           const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
           if(!clientes.length){ lista.hidden = true; return; }
           lista.innerHTML = clientes.map(c =>
-            `<div class="enc-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            `<div class="enc-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}"><b>${escapeHtml(c.nombre)}</b></div>`
           ).join('');
           lista.hidden = false;
         } catch(e){ /* silencioso, no bloquea seguir capturando */ }
@@ -332,11 +414,8 @@
     lista.addEventListener('click', e => {
       const item = e.target.closest('.enc-autocomplete-item');
       if(!item) return;
-      seleccionado = { id:Number(item.dataset.id), nombre:item.dataset.nombre, codigo:item.dataset.codigo };
+      seleccionado = { id:Number(item.dataset.id), nombre:item.dataset.nombre };
       input.value = item.dataset.nombre;
-      const c = document.getElementById(codigoId);
-      c.value = item.dataset.codigo;
-      c.readOnly = true;
       lista.hidden = true;
     });
 
@@ -347,39 +426,76 @@
     return { getSeleccionado: () => seleccionado };
   }
 
-  const empresaAuto = crearAutocomplete({ inputId:'encEmpresaNombre', listId:'encEmpresaLista', codigoId:'encEmpresaCodigo' });
+  const empresaAuto = crearAutocomplete({ inputId:'encEmpresaNombre', listId:'encEmpresaLista' });
+
+  function codigoDesdeNombre(nombre){
+    return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
+  }
 
   document.getElementById('encFecha').value = new Date().toISOString().slice(0, 10);
 
-  // ── celda de escala (data-bar de Excel) ──
+  // ── celda de escala: data-bar de Excel, tocable y deslizable en un solo
+  // control (pointerdown fija el valor de inmediato, pointermove mientras se
+  // arrastra lo va actualizando) — más natural que 5 botones separados ──
   function renderXcell(pregunta, ref){
     const wrap = document.createElement('div');
     wrap.className = 'enc-question';
     wrap.dataset.preguntaId = pregunta.id;
     wrap.innerHTML = `
       <div class="enc-question-text">${escapeHtml(pregunta.texto)}</div>
-      <div class="xcell" data-value="0">
+      <div class="xcell" data-value="0" tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="5" aria-label="${escapeHtml(pregunta.texto)}">
         <span class="xcell-ref">${ref}</span>
         <div class="xcell-grid"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="xcell-fill"></div>
+        <div class="xcell-handle" hidden></div>
         <div class="xcell-value">–</div>
-        <div class="xcell-hits"></div>
       </div>
       <div class="enc-readout">Calificación: <b>Sin responder</b></div>
     `;
-    const hits = wrap.querySelector('.xcell-hits');
-    for(let v = 1; v <= 5; v++){
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.setAttribute('aria-label', 'Calificar ' + v);
-      b.addEventListener('click', () => {
-        wrap.querySelector('.xcell').dataset.value = v;
-        wrap.querySelector('.xcell-fill').style.width = (v / 5 * 100) + '%';
-        wrap.querySelector('.xcell-value').textContent = v;
-        wrap.querySelector('.enc-readout b').textContent = v + ' · ' + LABELS[v - 1];
-      });
-      hits.appendChild(b);
+    const xcell = wrap.querySelector('.xcell');
+    const fill = wrap.querySelector('.xcell-fill');
+    const handle = wrap.querySelector('.xcell-handle');
+    const valueEl = wrap.querySelector('.xcell-value');
+    const readout = wrap.querySelector('.enc-readout b');
+
+    function setValue(v){
+      v = Math.min(5, Math.max(1, v));
+      xcell.dataset.value = v;
+      xcell.setAttribute('aria-valuenow', v);
+      const pct = v / 5 * 100;
+      fill.style.width = pct + '%';
+      handle.hidden = false;
+      handle.style.left = 'calc(' + pct + '% - 1.5px)';
+      valueEl.textContent = v;
+      readout.textContent = v + ' · ' + LABELS[v - 1];
     }
+
+    function valueFromClientX(clientX){
+      const rect = xcell.getBoundingClientRect();
+      const rel = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+      return Math.ceil((rel / rect.width) * 5) || 1;
+    }
+
+    let dragging = false;
+    xcell.addEventListener('pointerdown', e => {
+      dragging = true;
+      setValue(valueFromClientX(e.clientX));
+      xcell.focus();
+      // sin try/catch aquí, un NotFoundError de setPointerCapture (puede
+      // pasar según el dispositivo) tumbaría el resto del handler y la
+      // calificación ni se registraría — el valor ya quedó fijo arriba, esto
+      // solo mejora el arrastre fuera de los límites de la celda
+      try { xcell.setPointerCapture(e.pointerId); } catch(err) { /* no crítico */ }
+    });
+    xcell.addEventListener('pointermove', e => { if(dragging) setValue(valueFromClientX(e.clientX)); });
+    xcell.addEventListener('pointerup', () => { dragging = false; });
+    xcell.addEventListener('pointercancel', () => { dragging = false; });
+    xcell.addEventListener('keydown', e => {
+      const cur = Number(xcell.dataset.value) || 0;
+      if(e.key === 'ArrowRight' || e.key === 'ArrowUp'){ e.preventDefault(); setValue(cur + 1); }
+      else if(e.key === 'ArrowLeft' || e.key === 'ArrowDown'){ e.preventDefault(); setValue((cur || 1) - 1); }
+    });
+
     return wrap;
   }
 
@@ -397,46 +513,45 @@
         selInstructor.appendChild(opt);
       });
 
-      // agrupa por sección respetando el orden en que aparecen (ya vienen
-      // ordenadas por "orden" desde el backend); la pregunta tipo "texto" se
-      // guarda aparte para pintarla al final, fuera de cualquier sección.
-      const secciones = [];
+      // Curso y Materiales primero, Instructor después, y los comentarios
+      // (tipo "texto") se agregan al final del bloque de Instructor sin
+      // repetir su título — se sienten parte de la misma sección.
+      const ORDEN_SECCIONES = ['Curso y Materiales', 'Instructor'];
+      const porSeccion = {};
       let comentarios = null;
-      let refRow = 4;
       preguntas.forEach(p => {
         if(p.tipo === 'texto'){ comentarios = p; return; }
-        let sec = secciones.find(s => s.nombre === p.seccion);
-        if(!sec){ sec = { nombre:p.seccion, preguntas:[] }; secciones.push(sec); }
-        sec.preguntas.push(p);
+        (porSeccion[p.seccion] = porSeccion[p.seccion] || []).push(p);
       });
 
       const preguntasArea = document.getElementById('encPreguntasArea');
-      secciones.forEach(sec => {
+      preguntasArea.innerHTML = '';
+      let refRow = 4;
+      ORDEN_SECCIONES.forEach(seccion => {
+        const items = porSeccion[seccion];
+        if(!items || !items.length) return;
         const bloque = document.createElement('div');
         bloque.className = 'enc-block';
         const titulo = document.createElement('div');
         titulo.className = 'enc-block-title';
-        titulo.textContent = sec.nombre;
+        titulo.textContent = seccion;
         bloque.appendChild(titulo);
-        sec.preguntas.forEach(p => {
+        items.forEach(p => {
           bloque.appendChild(renderXcell(p, 'B' + refRow));
           refRow++;
         });
+        if(comentarios && comentarios.seccion === seccion){
+          const campo = document.createElement('div');
+          campo.className = 'enc-field';
+          campo.style.marginTop = '20px';
+          campo.innerHTML = `
+            <label>${escapeHtml(comentarios.texto)}</label>
+            <textarea id="encComentarios" data-pregunta-id="${comentarios.id}"></textarea>
+          `;
+          bloque.appendChild(campo);
+        }
         preguntasArea.appendChild(bloque);
       });
-
-      if(comentarios){
-        const bloque = document.createElement('div');
-        bloque.className = 'enc-block';
-        bloque.innerHTML = `
-          <div class="enc-block-title">${escapeHtml(comentarios.seccion)}</div>
-          <div class="enc-field">
-            <label>${escapeHtml(comentarios.texto)} <span style="color:var(--text-faint)">(opcional)</span></label>
-            <textarea id="encComentarios" data-pregunta-id="${comentarios.id}"></textarea>
-          </div>
-        `;
-        document.getElementById('encComentariosArea').appendChild(bloque);
-      }
 
       document.getElementById('encLoading').hidden = true;
       document.getElementById('encError').hidden = true;
@@ -463,11 +578,10 @@
 
     const seleccionado = empresaAuto.getSeleccionado();
     const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
-    const empresaCodigo = document.getElementById('encEmpresaCodigo').value.trim();
     let empresa;
     if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
-    else if(empresaNombre && empresaCodigo){ empresa = { nombre:empresaNombre, codigo:empresaCodigo }; }
-    else { alert('Selecciona tu empresa de la lista o captura nombre + código si es nueva.'); return; }
+    else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
+    else { alert('Escribe el nombre de tu empresa.'); return; }
 
     const sinResponder = Array.from(document.querySelectorAll('.xcell')).filter(x => Number(x.dataset.value) === 0);
     if(sinResponder.length){
@@ -486,17 +600,18 @@
     }
 
     const btn = document.getElementById('encSubmit');
-    btn.disabled = true; btn.textContent = 'Enviando...';
+    const body = document.getElementById('encSubmitBody');
+    btn.disabled = true; body.textContent = '=ENVIANDO...()';
     try {
       await apiPostJson('/api/enviarRespuesta', {
         nombre: document.getElementById('encNombre').value.trim(),
         empresa, curso, instructor, fecha, respuestas,
       });
       document.getElementById('encForm').hidden = true;
-      document.getElementById('encThanks').style.display = 'block';
+      document.getElementById('encThanks').classList.add('show');
     } catch(err){
       alert('No se pudo enviar tu respuesta: ' + err.message);
-      btn.disabled = false; btn.textContent = 'Enviar encuesta';
+      btn.disabled = false; body.textContent = '=ENVIAR_ENCUESTA()';
     }
   });
 </script>

@@ -46,6 +46,12 @@ function getConfig() {
     password,
     options: { encrypt: true, trustServerCertificate: false },
     pool: { max: 5, min: 0, idleTimeoutMillis: 30000 },
+    // La base es serverless (tier gratis) y se auto-pausa tras 1h sin uso —
+    // la primera conexión después de una pausa "despierta" la base, lo cual
+    // puede tardar más que el default de 15s de la librería. 60s le da
+    // margen sin dejar la Function esperando indefinidamente.
+    connectionTimeout: 60000,
+    requestTimeout: 60000,
   };
 }
 

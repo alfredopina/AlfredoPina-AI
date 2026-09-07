@@ -419,6 +419,17 @@
 
   .dip-results-actions{ display:flex; align-items:center; justify-content:space-between; margin:16px 0; flex-wrap:wrap; gap:10px; }
 
+  /* el ícono nativo del date picker es oscuro por default — invisible sobre fondo oscuro */
+  :root:not([data-theme="light"]) input[type=date]::-webkit-calendar-picker-indicator{
+    filter:invert(1) brightness(1.6); cursor:pointer;
+  }
+
+  .dip-req{ color:var(--bad); }
+
+  .dip-filter-actions{ display:flex; align-items:center; gap:8px; }
+  .dip-btn-icon{ display:inline-flex; align-items:center; gap:7px; }
+  .dip-btn-icon svg{ width:13px; height:13px; }
+
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
     .admin-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
@@ -678,14 +689,23 @@
         </div>
 
         <div class="dip-tabpanel active" id="dipTab-crear">
+          <datalist id="dipResultadosList">
+            <option value="Aprobado">
+            <option value="Participó">
+            <option value="No Aprobado">
+          </datalist>
           <div class="radm-form">
             <div class="radm-form-row">
               <div class="radm-field">
-                <label>INSTRUCTOR</label>
-                <input type="text" id="dipInstructor" placeholder="Ing. Alfredo Piña">
+                <label>INSTRUCTOR <span class="dip-req">*</span></label>
+                <select id="dipInstructor">
+                  <option value="">Selecciona...</option>
+                  <option value="Ing. Alfredo Piña">Ing. Alfredo Piña</option>
+                  <option value="Lic. Sergio Moreno">Lic. Sergio Moreno</option>
+                </select>
               </div>
               <div class="radm-field">
-                <label>HERRAMIENTA</label>
+                <label>HERRAMIENTA <span class="dip-req">*</span></label>
                 <select id="dipHerramienta">
                   <option value="">Selecciona...</option>
                   <option value="excel">Excel</option>
@@ -697,43 +717,53 @@
                 </select>
               </div>
               <div class="radm-field">
-                <label>GRUPO</label>
-                <input type="text" id="dipGrupo" placeholder="Grupo 1">
+                <label>GRUPO <span class="dip-req">*</span></label>
+                <input type="text" id="dipGrupo" placeholder="Ej. Grupo1, Grupo2, NA">
               </div>
             </div>
             <div class="radm-form-row">
               <div class="radm-field">
-                <label>CURSO</label>
-                <input type="text" id="dipCurso" placeholder="Power BI">
+                <label>CURSO <span class="dip-req">*</span></label>
+                <input type="text" id="dipCurso" placeholder="Ej. Excel Core Tools">
+                <span class="radm-hint">Nombre comercial del curso — es el que aparece impreso en el diploma.</span>
               </div>
               <div class="radm-field">
-                <label>NIVEL</label>
-                <input type="text" id="dipNivel" placeholder="Intermedio">
+                <label>NIVEL <span class="dip-req">*</span></label>
+                <select id="dipNivel">
+                  <option value="">Selecciona...</option>
+                  <option value="Básico">Básico</option>
+                  <option value="Intermedio">Intermedio</option>
+                  <option value="Avanzado">Avanzado</option>
+                  <option value="Básico-Intermedio">Básico-Intermedio</option>
+                  <option value="Intermedio-Avanzado">Intermedio-Avanzado</option>
+                  <option value="Básico, Intermedio y Avanzado">Básico, Intermedio y Avanzado</option>
+                </select>
               </div>
               <div class="radm-field">
-                <label>HORAS</label>
+                <label>HORAS <span class="dip-req">*</span></label>
                 <input type="number" id="dipHoras" placeholder="20">
               </div>
             </div>
             <div class="radm-form-row">
               <div class="radm-field">
-                <label>FECHA INICIO</label>
+                <label>FECHA INICIO <span class="dip-req">*</span></label>
                 <input type="date" id="dipFechaInicio">
               </div>
               <div class="radm-field">
-                <label>FECHA FIN</label>
+                <label>FECHA FIN <span class="dip-req">*</span></label>
                 <input type="date" id="dipFechaFin">
               </div>
             </div>
             <div class="radm-form-row">
               <div class="radm-field dip-autocomplete-wrap">
-                <label>EMPRESA</label>
+                <label>EMPRESA <span class="dip-req">*</span></label>
                 <input type="text" id="dipEmpresaNombre" placeholder="Escribe para buscar o crear...">
                 <div class="dip-autocomplete-list" id="dipEmpresaLista" hidden></div>
               </div>
               <div class="radm-field">
-                <label>CÓDIGO (solo si es empresa nueva)</label>
+                <label>CÓDIGO <span class="dip-req">* si es empresa nueva</span></label>
                 <input type="text" id="dipEmpresaCodigo" placeholder="ACME">
+                <span class="radm-hint">Alias corto del cliente — con él se arma el folio de cada diploma (ej. AP_EXCEL_ACME_26-1). Se bloquea si ya elegiste una empresa existente.</span>
               </div>
             </div>
           </div>
@@ -746,11 +776,11 @@
               <table class="dip-table">
                 <thead>
                   <tr>
-                    <th>Nombre completo</th>
-                    <th>Participación %</th>
-                    <th>Asistencia %</th>
-                    <th>Proyecto %</th>
-                    <th>Resultado</th>
+                    <th>Nombre completo <span class="dip-req">*</span></th>
+                    <th>Participación % <span class="dip-req">*</span></th>
+                    <th>Asistencia % <span class="dip-req">*</span></th>
+                    <th>Proyecto % <span class="dip-req">*</span></th>
+                    <th>Resultado <span class="dip-req">*</span></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -759,7 +789,7 @@
             </div>
             <div class="dip-grid-actions">
               <button type="button" class="radm-btn-add" id="dipAgregarFila">+ Agregar fila</button>
-              <span class="radm-hint">Resultado debe ser exactamente: Aprobado, Participó o No Aprobado — si no coincide se marca en rojo.</span>
+              <span class="radm-hint">Resultado debe ser exactamente: Aprobado, Participó o No Aprobado — si no coincide se marca en rojo. Enter en cualquier celda baja a la siguiente fila (la crea si no existe).</span>
             </div>
           </div>
 
@@ -829,13 +859,26 @@
             </div>
             <div class="radm-field">
               <label>ESTATUS</label>
-              <select id="dipFEstatus">
+              <select id="dipFEstatus" title="Anulado = diploma con un error, ya no vigente. El registro nunca se borra; la corrección es generar uno nuevo desde 'Crear Diplomas'.">
                 <option value="">Todos</option>
                 <option value="vigente">Vigente</option>
                 <option value="anulado">Anulado</option>
               </select>
             </div>
-            <button type="button" class="radm-btn" id="dipBuscar" style="min-width:auto">Buscar</button>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="dipBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="dipLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="dipVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todos los diplomas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
           </div>
 
           <div class="dip-table-wrap">
@@ -2364,7 +2407,15 @@
         if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
       });
 
-      return { getSeleccionado: () => seleccionado };
+      return {
+        getSeleccionado: () => seleccionado,
+        reset: () => {
+          seleccionado = null;
+          input.value = '';
+          lista.hidden = true;
+          if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+        },
+      };
     }
 
     const dipEmpresaAuto = crearAutocomplete({ inputId:'dipEmpresaNombre', listId:'dipEmpresaLista', codigoId:'dipEmpresaCodigo' });
@@ -2378,7 +2429,7 @@
         <td class="dip-col-num"><input type="text" data-col="participacion"></td>
         <td class="dip-col-num"><input type="text" data-col="asistencia"></td>
         <td class="dip-col-num"><input type="text" data-col="proyecto"></td>
-        <td class="dip-col-resultado"><input type="text" data-col="resultado"></td>
+        <td class="dip-col-resultado"><input type="text" data-col="resultado" list="dipResultadosList"></td>
         <td><button type="button" class="radm-icon-btn radm-icon-danger dip-row-del" title="Quitar fila">${ICO_TRASH}</button></td>
       `;
       return tr;
@@ -2401,6 +2452,21 @@
         const v = e.target.value.trim();
         e.target.classList.toggle('dip-invalid', v !== '' && !RESULTADOS.includes(v));
       }
+    });
+
+    // Enter baja a la misma columna de la siguiente fila (la crea si hace falta) —
+    // para capturar rápido sin usar el mouse, sin depender de pegar desde Excel
+    dipGridBody.addEventListener('keydown', e => {
+      if(e.key !== 'Enter') return;
+      const input = e.target.closest('input');
+      if(!input) return;
+      e.preventDefault();
+      const filas = Array.from(dipGridBody.children);
+      const filaIdx = filas.indexOf(input.closest('tr'));
+      let siguienteTr = filas[filaIdx + 1];
+      if(!siguienteTr){ siguienteTr = crearFilaVacia(); dipGridBody.appendChild(siguienteTr); }
+      const siguienteInput = siguienteTr.querySelector(`input[data-col="${input.dataset.col}"]`);
+      if(siguienteInput) siguienteInput.focus();
     });
 
     // pegar tipo hoja de cálculo: reparte filas/columnas sobre la cuadrícula
@@ -2433,6 +2499,8 @@
 
     // ── generar lote ──
     let dipUltimosResultados = [];
+    let dipUltimoCliente = null;
+    let dipUltimaHerramienta = '';
 
     document.getElementById('dipGenerar').addEventListener('click', async () => {
       const instructor = document.getElementById('dipInstructor').value.trim();
@@ -2464,8 +2532,8 @@
 
       if(!filas.length){ toast('Agrega al menos un alumno.', false); return; }
 
-      const invalidas = filas.filter(f => !f.nombreCompleto || !RESULTADOS.includes(f.resultado));
-      if(invalidas.length){ toast('Revisa las filas marcadas en rojo (falta nombre o el resultado no coincide exacto).', false); return; }
+      const invalidas = filas.filter(f => !f.nombreCompleto || !f.participacion || !f.asistencia || !f.proyecto || !RESULTADOS.includes(f.resultado));
+      if(invalidas.length){ toast('Revisa las filas: faltan datos o el resultado no coincide exacto (Aprobado / Participó / No Aprobado).', false); return; }
 
       const btn = document.getElementById('dipGenerar');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -2480,6 +2548,8 @@
           })),
         });
         dipUltimosResultados = data.resultados || [];
+        dipUltimoCliente = data.cliente || null;
+        dipUltimaHerramienta = herramienta;
         renderResultados();
         const ok = dipUltimosResultados.filter(r => !r.error).length;
         toast(`Lote generado: ${ok} de ${dipUltimosResultados.length} diplomas.`, ok === dipUltimosResultados.length);
@@ -2510,6 +2580,22 @@
       window.open('/api/getDiplomaPdf?folio=' + encodeURIComponent(btn.dataset.folio), '_blank');
     });
 
+    // Diplomas_{codigo cliente}_{herramienta}_{consecutivo min}_{consecutivo max} —
+    // el consecutivo se extrae del propio folio (formato AP_HERRAMIENTA_CODIGO_AA-N),
+    // sobre TODOS los folios del lote (incluye los "No Aprobado" sin PDF, para que el
+    // rango refleje el lote completo aunque el zip no traiga todos los archivos).
+    function nombreZip(){
+      const consecutivos = dipUltimosResultados
+        .map(r => { const m = /-(\d+)$/.exec(r.folio || ''); return m ? Number(m[1]) : null; })
+        .filter(n => n !== null);
+      const min = consecutivos.length ? Math.min(...consecutivos) : '';
+      const max = consecutivos.length ? Math.max(...consecutivos) : '';
+      const codigo = (dipUltimoCliente && dipUltimoCliente.codigo) || 'CLIENTE';
+      const herramienta = (dipUltimaHerramienta || '').toUpperCase() || 'DIPLOMAS';
+      const rango = min === max ? `${min}` : `${min}_${max}`;
+      return `Diplomas_${codigo}_${herramienta}_${rango}.zip`;
+    }
+
     document.getElementById('dipDescargarZip').addEventListener('click', async () => {
       const generados = dipUltimosResultados.filter(r => r.pdfGenerado);
       if(!generados.length){ toast('No hay PDFs para descargar en este lote.', false); return; }
@@ -2525,7 +2611,7 @@
         const zipBlob = await zip.generateAsync({ type:'blob' });
         const url = URL.createObjectURL(zipBlob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'diplomas.zip';
+        a.href = url; a.download = nombreZip();
         document.body.appendChild(a); a.click(); a.remove();
         URL.revokeObjectURL(url);
       } catch(e){
@@ -2573,7 +2659,7 @@
             <td><span class="dip-status ${d.estatus}"><span class="dip-status-dot"></span>${d.estatus === 'anulado' ? 'Anulado' : 'Vigente'}</span></td>
             <td>
               ${d.blob_path ? `<button type="button" class="radm-icon-btn dip-lista-ver" title="Ver PDF">${ICO_EYE}</button>` : ''}
-              ${d.estatus === 'vigente' ? `<button type="button" class="radm-icon-btn radm-icon-danger dip-lista-anular" title="Anular">${ICO_X}</button>` : ''}
+              ${d.estatus === 'vigente' ? `<button type="button" class="radm-icon-btn radm-icon-danger dip-lista-anular" title="Anular: marca el registro como no vigente sin borrarlo. Para corregirlo, genera un diploma nuevo desde 'Crear Diplomas'.">${ICO_X}</button>` : ''}
             </td>
           </tr>
         `).join('');
@@ -2583,6 +2669,19 @@
     }
 
     document.getElementById('dipBuscar').addEventListener('click', buscarDiplomas);
+
+    function limpiarFiltrosForm(){
+      document.getElementById('dipFAlumno').value = '';
+      document.getElementById('dipFHerramienta').value = '';
+      document.getElementById('dipFCurso').value = '';
+      document.getElementById('dipFDesde').value = '';
+      document.getElementById('dipFHasta').value = '';
+      document.getElementById('dipFResultado').value = '';
+      document.getElementById('dipFEstatus').value = '';
+      dipFEmpresaAuto.reset();
+    }
+    document.getElementById('dipLimpiarFiltros').addEventListener('click', limpiarFiltrosForm);
+    document.getElementById('dipVerTodos').addEventListener('click', () => { limpiarFiltrosForm(); buscarDiplomas(); });
 
     document.getElementById('dipListaBody').addEventListener('click', async e => {
       const tr = e.target.closest('tr');

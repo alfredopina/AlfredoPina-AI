@@ -29,7 +29,7 @@ module.exports = async function (context, req) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${folio}.pdf"`,
+        "Content-Disposition": `inline; filename="${folio}.pdf"`,
         "Cache-Control": "no-store",
       },
       body: buffer,

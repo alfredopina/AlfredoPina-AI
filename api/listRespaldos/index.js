@@ -11,7 +11,10 @@ module.exports = async function (context, req) {
     const container = await getRespaldosContainer();
     const items = [];
     for await (const blob of container.listBlobsFlat()) {
-      const m = /_(\w+)\.json$/.exec(blob.name);
+      // Ojo: \w incluye "_", así que /_(\w+)\.json$/ capturaba desde el PRIMER
+      // guion bajo del nombre (ej. "0434_auto" en vez de "auto") — "auto"/"manual"
+      // son los únicos valores posibles, se matchean literal para evitar eso.
+      const m = /_(auto|manual)\.json$/.exec(blob.name);
       const generadoEn = (blob.properties && (blob.properties.createdOn || blob.properties.lastModified)) || null;
       items.push({
         nombre: blob.name,

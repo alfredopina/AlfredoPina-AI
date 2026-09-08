@@ -4,7 +4,8 @@
 // (referencia al banco de Temas) — se guarda como JSON string en la columna.
 const { getTemasTable, getTemariosTable, ensureTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 module.exports = async function (context, req) {
@@ -40,7 +41,7 @@ module.exports = async function (context, req) {
     const temasTable = getTemasTable();
     const existentes = new Set();
     try {
-      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${herramienta}'` } });
+      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
       for await (const t of entidades) existentes.add(t.rowKey);
     } catch (err) {
       if (!isTableNotFound(err)) throw err;

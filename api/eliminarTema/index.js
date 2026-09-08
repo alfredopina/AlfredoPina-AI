@@ -5,12 +5,13 @@
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { parseTemaIds } = require("../src/cursos-calc");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 async function buscarUsos(table, herramienta, temaId) {
   const usos = [];
   try {
-    const entidades = table.listEntities({ queryOptions: { filter: `PartitionKey eq '${herramienta}'` } });
+    const entidades = table.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
     for await (const e of entidades) {
       if (parseTemaIds(e.temaIds).includes(temaId)) usos.push(e.nombre || e.rowKey);
     }

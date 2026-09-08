@@ -2,7 +2,7 @@
 // Function pública: preguntas activas de la encuesta, ordenadas, para pintar
 // el formulario en encuesta.html.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {
@@ -13,6 +13,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
   } catch (err) {
     context.log.error("Error obteniendo preguntas de la encuesta:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar las preguntas: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar las preguntas en este momento." } };
   }
 };

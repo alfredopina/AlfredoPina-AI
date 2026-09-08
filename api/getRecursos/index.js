@@ -3,11 +3,71 @@
 // valida el código contra la tabla "Cursos" y, si coincide, regresa los recursos
 // de ese curso desde la tabla "Recursos" (Azure Table Storage). El navegador
 // nunca ve el código correcto ni los recursos de un curso que no desbloqueó.
-const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
+//
+// Rate limiting (por curso, no por IP — más simple y suficiente para el volumen
+// real): 10 intentos fallidos seguidos en una ventana de 15 min bloquean ese
+// curso por 5 min, sin importar quién los mande. Un código correcto limpia el
+// contador. Si Table Storage falla al leer/escribir el contador, se deja pasar
+// la validación normal (fail-open) — más vale no bloquear el acceso legítimo
+// por un problema del contador, que no es la defensa principal.
+const { getCursosTable, getRecursosTable, getIntentosCodigoTable } = require("../src/recursos-tables");
+const { escaparComillasOData } = require("../src/odata-escape");
 
 const TIPOS = ["manual", "caso", "plantilla", "skill", "extra"];
 const PLURAL = { manual: "manuales", caso: "casos", plantilla: "plantillas", skill: "skills", extra: "extra" };
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
+
+const VENTANA_MS = 15 * 60 * 1000;
+const MAX_INTENTOS = 10;
+const BLOQUEO_MS = 5 * 60 * 1000;
+
+// null si no está bloqueado; si algo falla al leer, regresa null (fail-open).
+async function checarBloqueo(table, partitionKey, context) {
+  try {
+    const entidad = await table.getEntity(partitionKey, "contador");
+    if (entidad.bloqueadoHasta && new Date(entidad.bloqueadoHasta).getTime() > Date.now()) {
+      return entidad.bloqueadoHasta;
+    }
+    return null;
+  } catch (err) {
+    if (err.statusCode !== 404) context.log.error("Error leyendo el contador de intentos:", err.message);
+    return null;
+  }
+}
+
+// Registra un intento fallido y bloquea el curso si se pasó del umbral en la ventana.
+async function registrarIntentoFallido(table, partitionKey, context) {
+  try {
+    const ahora = Date.now();
+    let entidad = null;
+    try {
+      entidad = await table.getEntity(partitionKey, "contador");
+    } catch (err) {
+      if (err.statusCode !== 404) throw err;
+    }
+
+    const ventanaVigente = entidad && ahora - new Date(entidad.ventanaInicio).getTime() < VENTANA_MS;
+    const fallos = (ventanaVigente ? entidad.fallos : 0) + 1;
+    const ventanaInicio = ventanaVigente ? entidad.ventanaInicio : new Date(ahora).toISOString();
+    const bloqueadoHasta = fallos >= MAX_INTENTOS ? new Date(ahora + BLOQUEO_MS).toISOString() : "";
+
+    await table.upsertEntity(
+      { partitionKey, rowKey: "contador", fallos, ventanaInicio, bloqueadoHasta },
+      "Replace"
+    );
+  } catch (err) {
+    context.log.error("Error registrando el intento fallido:", err.message);
+  }
+}
+
+// Código correcto: limpia el contador para no penalizar intentos futuros legítimos.
+async function limpiarIntentos(table, partitionKey, context) {
+  try {
+    await table.deleteEntity(partitionKey, "contador");
+  } catch (err) {
+    if (err.statusCode !== 404) context.log.error("Error limpiando el contador de intentos:", err.message);
+  }
+}
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -38,18 +98,41 @@ module.exports = async function (context, req) {
     return;
   }
 
+  const partitionKey = `${herramienta}_${curso}`;
+
+  let intentosTable = null;
+  try {
+    intentosTable = await getIntentosCodigoTable();
+  } catch (err) {
+    context.log.error("Error preparando la tabla de intentos:", err.message); // fail-open: sigue sin rate limiting
+  }
+
+  if (intentosTable) {
+    const bloqueadoHasta = await checarBloqueo(intentosTable, partitionKey, context);
+    if (bloqueadoHasta) {
+      context.res = {
+        status: 429,
+        headers: JSON_HEADERS,
+        body: { error: "Demasiados intentos con este curso. Intenta de nuevo en unos minutos." },
+      };
+      return;
+    }
+  }
+
   if ((cursoEntity.codigo || "").trim().toUpperCase() !== codigo) {
+    if (intentosTable) await registrarIntentoFallido(intentosTable, partitionKey, context);
     context.res = { status: 401, headers: JSON_HEADERS, body: { error: "Código incorrecto." } };
     return;
   }
+
+  if (intentosTable) await limpiarIntentos(intentosTable, partitionKey, context);
 
   const agrupado = { manuales: [], casos: [], plantillas: [], skills: [], extra: [] };
 
   try {
     const recursosTable = getRecursosTable();
-    const partitionKey = `${herramienta}_${curso}`;
     const entidades = recursosTable.listEntities({
-      queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
+      queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(partitionKey)}'` },
     });
 
     const todas = [];

@@ -19,6 +19,20 @@ jobs:
         with:
           submodules: true
           lfs: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run API tests
+        working-directory: api
+        # Sería mejor "npm ci" (reproducible), pero el package-lock.json actual quedó
+        # desactualizado (solo registra node-ical, de antes de que se agregaran
+        # mssql/pdf-lib/@azure/*) y "npm ci" fallaría por esa desincronía. Con Node a
+        # mano, correr "npm install" una vez para regenerar el lockfile completo y
+        # cambiar este step a "npm ci".
+        run: |
+          npm install
+          npm test
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1

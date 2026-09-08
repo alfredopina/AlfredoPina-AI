@@ -9,7 +9,7 @@
 // de medianoche por la diferencia UTC/hora de México — aceptable para un
 // contador de referencia en vivo, no es un dato que se reporte como oficial.
 const { getPool } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {

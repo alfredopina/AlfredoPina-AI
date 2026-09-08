@@ -5,7 +5,7 @@
 // diseñar una plantilla nueva sin tapar esos espacios.
 const { getFondoBuffer } = require("../src/plantillas-storage");
 const { generarGuiaCoordenadas } = require("../src/diploma-pdf");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {

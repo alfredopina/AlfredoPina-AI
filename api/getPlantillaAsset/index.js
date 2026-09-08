@@ -3,7 +3,7 @@
 // de un instructor desde el contenedor privado "plantillas", para
 // previsualizarlos en el panel Plantillas.
 const { getPlantillasContainer, slugify } = require("../src/plantillas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const tipo = (req.query.tipo || "").trim();

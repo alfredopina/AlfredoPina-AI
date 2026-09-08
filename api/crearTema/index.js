@@ -5,7 +5,7 @@
 // lo incluya.
 const { getTemasTable, ensureTable } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 module.exports = async function (context, req) {

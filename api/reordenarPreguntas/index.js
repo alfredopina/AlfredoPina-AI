@@ -4,7 +4,7 @@
 // vez de Table Storage, e independiente a propósito (mismo criterio que ya se
 // usó al separar ese Function del updateOrden original de Recursos).
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const items = Array.isArray((req.body || {}).items) ? req.body.items : [];

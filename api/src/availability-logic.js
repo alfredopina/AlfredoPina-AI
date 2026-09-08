@@ -138,13 +138,17 @@ function buildSlotGrid(startDate, endDate, config, busyIntervals, nowDate) {
     if (!config.closedWeekdays.includes(weekday)) {
       const dayStartMin = toMinutesOfDay(config.workingHours.start);
       const dayEndMin = toMinutesOfDay(config.workingHours.end);
+      // Si el rango de horario no es múltiplo exacto de slotMinutes (ej. alguien
+      // deja el config en 07:00-19:30 con bloques de 60 min), el último slot del
+      // día se recorta aquí en vez de pasarse de la hora de cierre configurada.
+      const dayEndLocalUTC = localToUTC(y, m, d, Math.floor(dayEndMin / 60), dayEndMin % 60, offset);
       const slots = [];
 
       for (let mins = dayStartMin; mins < dayEndMin; mins += config.slotMinutes) {
         const hh = Math.floor(mins / 60);
         const mm = mins % 60;
         const slotStart = localToUTC(y, m, d, hh, mm, offset);
-        const slotEnd = new Date(slotStart.getTime() + config.slotMinutes * 60000);
+        const slotEnd = new Date(Math.min(slotStart.getTime() + config.slotMinutes * 60000, dayEndLocalUTC.getTime()));
 
         const overlap = busyIntervals.find((iv) => iv.start < slotEnd && iv.end > slotStart);
 

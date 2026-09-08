@@ -5,7 +5,7 @@
 // tiene FK: se vuelve un id huérfano a propósito, y listRespuestasEncuesta lo
 // muestra como "(pregunta eliminada)".
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const id = Number((req.body || {}).id);

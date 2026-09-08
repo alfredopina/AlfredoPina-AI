@@ -5,7 +5,7 @@
 // contenedor de diplomas — es puramente una vista previa desechable.
 const { getFondoBuffer, getFirmaBuffer, slugify } = require("../src/plantillas-storage");
 const { generarDiplomaPdf } = require("../src/diploma-pdf");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const instructor = (req.query.instructor || "Ing. Alfredo Piña").trim();

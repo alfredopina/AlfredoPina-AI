@@ -35,6 +35,14 @@
     --body: 'Inter', sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
+  .skip-link{
+    position:absolute; top:-40px; left:0; z-index:2000;
+    background:var(--panel); color:var(--text);
+    border:1px solid var(--line); border-radius:0 0 8px 0;
+    padding:10px 18px; font-size:14px; text-decoration:none;
+    transition:top .15s ease;
+  }
+  .skip-link:focus{ top:0; outline:2px solid var(--blue, #3d7fff); outline-offset:-2px; }
   html{scroll-behavior:smooth;}
   body{
     background:var(--bg); color:var(--text); font-family:var(--body);
@@ -689,6 +697,8 @@
 
 <body>
 
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+
 <div class="grid-bg"></div>
 
 <nav>
@@ -705,6 +715,8 @@
     <a href="index.html#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
+
+<main id="contenido">
 
 <div class="cat-nav-wrap" id="categorias">
   <div class="wrap">
@@ -754,6 +766,8 @@
 <section class="wrap" style="padding-top:0;">
   <div class="curso-panel active" id="cursoPanel"></div>
 </section>
+
+</main>
 
 <footer id="contacto">
   <div class="wrap">

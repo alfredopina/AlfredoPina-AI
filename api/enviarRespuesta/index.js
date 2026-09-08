@@ -10,10 +10,19 @@
 // comparte de forma controlada (QR en vivo durante la sesión de cierre), no
 // es un link público difundido.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+// Errores "seguros": mensaje pensado para mostrarse tal cual al usuario (nunca
+// texto crudo de mssql). Se marcan con `safe = true` para que el catch de más
+// abajo los distinga de un error inesperado del driver.
+function errorSeguro(mensaje) {
+  const err = new Error(mensaje);
+  err.safe = true;
+  return err;
 }
 
 async function resolverCliente(pool, empresa) {
@@ -21,13 +30,13 @@ async function resolverCliente(pool, empresa) {
 
   if (clienteId) {
     const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
+    if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
     return r.recordset[0];
   }
 
   const nombre = (empresa.nombre || "").trim();
   const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
+  if (!nombre || !codigo) throw errorSeguro("Falta el nombre o el código de la empresa nueva.");
 
   const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
   if (existente.recordset.length) return existente.recordset[0];
@@ -64,7 +73,11 @@ module.exports = async function (context, req) {
     cliente = await resolverCliente(pool, empresa);
   } catch (err) {
     context.log.error("Error resolviendo el cliente:", err.message);
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: err.message } };
+    context.res = {
+      status: 400,
+      headers: JSON_HEADERS,
+      body: { error: err.safe ? err.message : "No se pudo procesar la empresa. Intenta de nuevo." },
+    };
     return;
   }
 
@@ -105,6 +118,6 @@ module.exports = async function (context, req) {
       context.log.error("Error haciendo rollback:", rollbackErr.message);
     }
     context.log.error("Error guardando la respuesta:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar tu respuesta: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar tu respuesta en este momento." } };
   }
 };

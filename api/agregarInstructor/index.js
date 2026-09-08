@@ -4,7 +4,7 @@
 // evita depender de una entidad Instructor formal (ver roadmap Fase 2.1,
 // "atribución simple").
 const { agregarInstructor, uploadFirma, slugify } = require("../src/plantillas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const body = req.body || {};

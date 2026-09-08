@@ -3,7 +3,7 @@
 // para el panel de edición — a diferencia de getPreguntasEncuesta, que solo
 // regresa las activas para el formulario público.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {

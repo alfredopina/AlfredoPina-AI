@@ -4,7 +4,7 @@
 // contra EncuestaPregunta — una pregunta borrada no tumba la consulta, solo
 // aparece como "(pregunta eliminada)", ver sql/003_encuestas.sql).
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const { clienteId, curso, instructor, desde, hasta } = req.query;

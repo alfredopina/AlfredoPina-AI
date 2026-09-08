@@ -14,7 +14,7 @@ const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
 const { parseTemaIds, proyectoCubierto } = require("../src/cursos-calc");
 const { HERRAMIENTAS } = require("../src/herramientas");
 
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 const TIPOS = ["manual", "caso", "plantilla", "skill", "extra"];
 
 module.exports = async function (context, req) {

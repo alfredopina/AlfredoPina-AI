@@ -5,7 +5,8 @@
 const { getTemasTable, getTemariosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { resolverTemario, parseTemaIds } = require("../src/cursos-calc");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -18,7 +19,7 @@ module.exports = async function (context, req) {
     const temasTable = getTemasTable();
     const temasPorId = {};
     try {
-      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${herramienta}'` } });
+      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
       for await (const t of entidades) temasPorId[t.rowKey] = t;
     } catch (err) {
       if (!isTableNotFound(err)) throw err;
@@ -27,7 +28,7 @@ module.exports = async function (context, req) {
     const temariosTable = getTemariosTable();
     const temarios = [];
     try {
-      const entidades = temariosTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${herramienta}'` } });
+      const entidades = temariosTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
       for await (const t of entidades) {
         const { temas, horas, nivelLabel } = resolverTemario(t, temasPorId);
         temarios.push({

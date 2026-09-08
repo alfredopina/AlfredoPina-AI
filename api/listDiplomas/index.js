@@ -3,7 +3,7 @@
 // pestaña "Consultar Diplomas" del admin. Ningún registro se borra ni se
 // oculta — "anulado" es un estatus más, siempre visible.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const { alumno, clienteId, herramienta, curso, desde, hasta, resultado, estatus } = req.query;

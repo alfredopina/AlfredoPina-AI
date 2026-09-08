@@ -3,7 +3,7 @@
 // el instructor se queda en la lista, sus próximos diplomas salen sin firma
 // hasta que suba una nueva.
 const { eliminarFirma, slugify } = require("../src/plantillas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const instructor = ((req.body || {}).instructor || "").trim();

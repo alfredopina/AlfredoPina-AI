@@ -6,7 +6,7 @@
 // de cliente no son datos sensibles, y bloquearla ahí habría roto el flujo
 // público de la encuesta.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const q = (req.query.q || "").trim();
@@ -24,6 +24,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
   } catch (err) {
     context.log.error("Error buscando clientes:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo buscar clientes: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo buscar clientes en este momento." } };
   }
 };

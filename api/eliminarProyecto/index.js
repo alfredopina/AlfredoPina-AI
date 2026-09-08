@@ -3,7 +3,7 @@
 // proyecto, así que es un delete directo.
 const { getProyectosTable } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const body = req.body || {};

@@ -1,10 +1,11 @@
-// adminListCursos/index.js
+// listCursosAdmin/index.js
 // Function protegida (rol "admin" vía staticwebapp.config.json): lista TODOS los
 // cursos de una herramienta, sin importar su estado, incluyendo el código —
 // a diferencia de getRecursos/getCatalogoRecursos, que son públicas.
 const { getCursosTable } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -17,7 +18,7 @@ module.exports = async function (context, req) {
   try {
     const cursosTable = getCursosTable();
     const entidades = cursosTable.listEntities({
-      queryOptions: { filter: `PartitionKey eq '${herramienta}'` },
+      queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` },
     });
 
     const cursos = [];

@@ -4,7 +4,7 @@
 // Copia estructural de api/updateOrden (el de Recursos) pero separada a
 // propósito, para no acoplar los dos módulos ni tocar código que ya funciona.
 const { getTemasTable, getTemariosTable, getProyectosTable } = require("../src/cursos-tables");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 const TABLAS = { Temas: getTemasTable, TemariosEstandar: getTemariosTable, Proyectos: getProyectosTable };
 
 module.exports = async function (context, req) {

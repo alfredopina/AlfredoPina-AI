@@ -9,7 +9,7 @@ const { getDiplomasContainer } = require("../src/diplomas-storage");
 const { getFondoBuffer, getFirmaBuffer, slugify } = require("../src/plantillas-storage");
 const { generarDiplomaPdf } = require("../src/diploma-pdf");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 const RESULTADOS_VALIDOS = ["Aprobado", "Participó", "No Aprobado"];
 
@@ -206,7 +206,17 @@ module.exports = async function (context, req) {
       resultados.push({ folio, nombre: nombreCompleto, resultado, pdfGenerado: blobPath !== null });
     } catch (err) {
       context.log.error(`Error generando el diploma de ${nombreCompleto}:`, err.message);
-      resultados.push({ folio, nombre: nombreCompleto, resultado, error: err.message });
+      // 2627/2601 = violación de PRIMARY KEY / UNIQUE en SQL Server — el folio ya
+      // existe, típicamente porque dos lotes casi simultáneos calcularon el mismo
+      // consecutivo (ver siguienteConsecutivo). No hay locking real (el volumen no
+      // lo justifica), solo un mensaje que no confunda con el error crudo del driver.
+      const folioColisiono = err.number === 2627 || err.number === 2601;
+      resultados.push({
+        folio,
+        nombre: nombreCompleto,
+        resultado,
+        error: folioColisiono ? "Ese folio ya se generó, intenta de nuevo." : err.message,
+      });
     }
   }
 

@@ -4,7 +4,7 @@
 // proyecto se desbloquee en el constructor (deben estar TODOS seleccionados).
 const { getTemasTable, getProyectosTable, ensureTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 module.exports = async function (context, req) {

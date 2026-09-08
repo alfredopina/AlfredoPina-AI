@@ -3,7 +3,8 @@
 // todas sus filas en Recursos, y los archivos que esas filas tengan en Blob.
 const { getCursosTable, getRecursosTable, getRecursosContainer } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -20,7 +21,7 @@ module.exports = async function (context, req) {
     const container = getRecursosContainer();
     const partitionKey = `${herramienta}_${curso}`;
     const entidades = recursosTable.listEntities({
-      queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
+      queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(partitionKey)}'` },
     });
 
     for await (const r of entidades) {

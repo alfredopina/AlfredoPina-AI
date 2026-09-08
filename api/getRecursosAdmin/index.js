@@ -1,11 +1,12 @@
-// adminGetRecursos/index.js
+// getRecursosAdmin/index.js
 // Function protegida (rol "admin"): regresa TODOS los recursos de un curso, sin
 // agrupar y con su rowKey — a diferencia de getRecursos (pública), no exige
 // código ni exige que el curso esté publicado, porque el admin edita cursos
 // en borrador igual que publicados.
 const { getRecursosTable } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -20,7 +21,7 @@ module.exports = async function (context, req) {
     const recursosTable = getRecursosTable();
     const partitionKey = `${herramienta}_${curso}`;
     const entidades = recursosTable.listEntities({
-      queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
+      queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(partitionKey)}'` },
     });
 
     const recursos = [];

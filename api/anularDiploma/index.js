@@ -4,7 +4,7 @@
 // "Crear Diplomas" (aunque sea un lote de 1) y opcionalmente anotar el folio
 // viejo en corrige_a_folio del nuevo registro.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const folio = ((req.body || {}).folio || "").trim();

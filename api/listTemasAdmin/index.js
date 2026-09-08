@@ -4,7 +4,8 @@
 // y solo regresa temas publicados.
 const { getTemasTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { escaparComillasOData } = require("../src/odata-escape");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -17,7 +18,7 @@ module.exports = async function (context, req) {
     const temasTable = getTemasTable();
     const temas = [];
     try {
-      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${herramienta}'` } });
+      const entidades = temasTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
       for await (const t of entidades) {
         temas.push({
           id: t.rowKey,

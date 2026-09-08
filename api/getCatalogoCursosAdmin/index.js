@@ -4,7 +4,7 @@
 // herramientas del panel Cursos sin traer todo el detalle.
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 async function contarPorHerramienta(table) {
   const conteos = {};

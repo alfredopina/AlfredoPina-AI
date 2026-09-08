@@ -2,7 +2,7 @@
 // Function protegida (rol "admin"): upsert de una pregunta — si el body trae
 // id, edita; si no, da de alta una nueva.
 const { getPool, sql } = require("../src/backoffice-db");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 const SECCIONES = ["Instructor", "Curso y Materiales"];
 const TIPOS = ["escala", "texto"];

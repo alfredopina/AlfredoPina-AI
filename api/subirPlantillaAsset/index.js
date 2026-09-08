@@ -3,7 +3,7 @@
 // un instructor a Blob Storage (base64 en JSON, mismo patrón que
 // uploadRecurso — más confiable que binario crudo en managed functions).
 const { uploadFondo, uploadFirma, slugify } = require("../src/plantillas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const body = req.body || {};

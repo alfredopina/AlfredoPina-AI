@@ -8,7 +8,7 @@
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { resolverTemario, proyectoCubierto, parseTemaIds } = require("../src/cursos-calc");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 async function listPartition(table, herramienta) {
   const out = [];

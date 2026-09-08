@@ -4,7 +4,7 @@
 // pasa por aquí (que valida el rol antes de tocar el blob).
 const { getPool, sql } = require("../src/backoffice-db");
 const { getDiplomasContainer } = require("../src/diplomas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const folio = (req.query.folio || "").trim();

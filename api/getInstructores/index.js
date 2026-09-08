@@ -7,7 +7,7 @@
 // login) — son los mismos nombres que ya aparecen impresos en cada diploma,
 // no es información nueva que se esté exponiendo.
 const { getInstructores } = require("../src/plantillas-storage");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {
@@ -15,6 +15,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { instructores } };
   } catch (err) {
     context.log.error("Error obteniendo instructores:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo cargar la lista: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo cargar la lista de instructores en este momento." } };
   }
 };

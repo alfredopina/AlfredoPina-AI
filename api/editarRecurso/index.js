@@ -7,7 +7,7 @@
 const crypto = require("crypto");
 const { getRecursosTable } = require("../src/recursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+const { JSON_HEADERS } = require("../src/http");
 const TIPOS = ["manual", "caso", "plantilla", "skill", "extra"];
 
 module.exports = async function (context, req) {

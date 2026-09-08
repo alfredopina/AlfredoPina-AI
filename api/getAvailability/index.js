@@ -20,6 +20,7 @@ const ical = require("node-ical");
 const config = require("../config/agenda-config.json");
 const { expandAllEvents } = require("../src/ical-expand");
 const { computeAvailability, mondayOfWeekUTC } = require("../src/availability-logic");
+const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const icsUrl = process.env.OUTLOOK_ICS_URL;
@@ -28,7 +29,7 @@ module.exports = async function (context, req) {
     context.log.error("OUTLOOK_ICS_URL no está configurada como Environment variable.");
     context.res = {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: JSON_HEADERS,
       body: { error: "El calendario no está configurado todavía. Intenta más tarde." },
     };
     return;
@@ -51,7 +52,7 @@ module.exports = async function (context, req) {
     context.log.error("Error al leer/parsear el .ics publicado", err);
     context.res = {
       status: 502,
-      headers: { "Content-Type": "application/json" },
+      headers: JSON_HEADERS,
       body: { error: "No se pudo leer el calendario en este momento." },
     };
     return;
@@ -63,10 +64,7 @@ module.exports = async function (context, req) {
 
     context.res = {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=120",
-      },
+      headers: JSON_HEADERS,
       body: {
         generatedAt: now.toISOString(),
         timezone: config.timezone,
@@ -80,7 +78,7 @@ module.exports = async function (context, req) {
     context.log.error("Error al calcular disponibilidad a partir del .ics", err);
     context.res = {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: JSON_HEADERS,
       body: { error: "Ocurrió un problema al calcular la disponibilidad." },
     };
   }

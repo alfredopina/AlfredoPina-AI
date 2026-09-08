@@ -81,8 +81,8 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - [x] Confirmar en producción que el lote de correcciones no rompió nada — Alfredo confirmó frontend/admin bien y probó el bloqueo de `getRecursos` manualmente, funcionó.
 - [x] Respaldo automático: secreto `BACKUP_CRON_SECRET` generado y configurado en Azure + GitHub, workflow corrido a mano con éxito.
 - [x] Confirmado: el respaldo del workflow ya se ve etiquetado "Automático" — módulo de Respaldos cerrado de punta a punta.
-- [ ] Confirmar/activar soft-delete + versionado de blobs en `apcwebrecursos` (portal → Protección de datos).
-- [ ] Confirmar el rango real de PITR en `apcweb-backoffice` (portal → Restaurar).
+- [x] Activados soft-delete de blobs (30 días) + soft-delete de contenedores (7 días) + versionado de blobs (mantener todas las versiones) en `apcwebrecursos`.
+- [x] Confirmado: PITR de `apcweb-backoffice` = 7 días (copia cada 12h) — límite fijo de las bases con oferta gratuita + auto-pausa, no se puede subir sin cambiar de tier.
 - [ ] Dar a Viridiana rol **Lector** en el grupo de recursos `GR_AlfredoPina` (Azure IAM) — cierra la mitad del bus factor de infraestructura.
 - [ ] Configurar una alerta de Cost Management para vCore-segundos de SQL.
 - [ ] Cuando tengas Node a la mano en algún equipo: `npm install` dentro de `api/`, comitear el `package-lock.json` regenerado, y cambiar el workflow de `npm install` a `npm ci`.

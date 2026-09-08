@@ -70,6 +70,32 @@ Alfredo identificó que, sin planearlo, ya está automatizando 3 roles de su neg
   - ~~3.1 Encuestas~~ — **construida el 2026-09-07** (ver "Estado del proyecto" abajo). Cierra Fase 3 en su orden natural del roadmap.
   - ~~3.2 Diplomas~~ — **adelantada y construida el 2026-09-07** (fuera de orden, por el atraso real de 7-8 grupos sin diploma emitido — ver "Estado del proyecto" abajo y el historial de esa fecha). Primer módulo del proyecto en Azure SQL.
 
+## Pendientes de Alfredo — checklist acumulado (fuera de código, no requieren a Claude)
+
+Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los ya resueltos. Es el lugar único para esto — evita que queden dispersos en prosa narrativa por todo el documento.
+
+**Urgente / de esta sesión (auditorías de seguridad/resiliencia/calidad, 2026-09-08):**
+- [ ] Correr `sql/004_encuesta_constraint.sql` en el Query Editor de `apcweb-backoffice`.
+- [ ] Confirmar en producción que el push del lote de correcciones (commit `7d9f389`) no rompió nada — login, Cursos, Recursos, Diplomas, Encuestas — y que `getRecursos` con código incorrecto repetido ahora sí bloquea temporalmente (10 fallos/15min → 5min de bloqueo).
+- [ ] Confirmar/activar soft-delete + versionado de blobs en `apcwebrecursos` (portal → Protección de datos).
+- [ ] Confirmar el rango real de PITR en `apcweb-backoffice` (portal → Restaurar).
+- [ ] Dar a Viridiana rol **Lector** en el grupo de recursos `GR_AlfredoPina` (Azure IAM) — cierra la mitad del bus factor de infraestructura.
+- [ ] Configurar una alerta de Cost Management para vCore-segundos de SQL.
+- [ ] Cuando tengas Node a la mano en algún equipo: `npm install` dentro de `api/`, comitear el `package-lock.json` regenerado, y cambiar el workflow de `npm install` a `npm ci`.
+
+**Contenido:**
+- [ ] Terminar de cargar Power Apps y cargar Power Automate/IA Aplicada/Ofimática desde cero (admin → Cursos).
+- [ ] Reemplazar los 11 textos de pregunta de ejemplo de Encuestas por los definitivos (admin → Encuestas → Preguntas).
+- [ ] Subir la plantilla rediseñada de Diplomas (marca alfredopina.ai, no LifeZen) usando la guía de coordenadas, y procesar el backlog real de 7-8 grupos sin diploma.
+- [ ] Mostrar el QR de Encuestas en la próxima sesión de cierre real para probar el flujo completo.
+
+**Marketing / marca (menor prioridad):**
+- [ ] Imagen social dedicada (1200×630) para `og:image` — hoy usa `firma-ap.png` como placeholder.
+- [ ] Actualizar `og:url`/`og:image` cuando el dominio `alfredopina.ai` quede conectado.
+- [ ] Link real de YouTube en el footer (hoy `href="#"` placeholder).
+
+**Consideración estratégica, sin acción inmediata:** el correo `alfredo.pina@lifezen.com.mx` (dominio de otra empresa) sostiene todo el login de `/admin` — riesgo de bus factor a tener en el radar, no urgente.
+
 ## Estado del proyecto (puede desactualizarse — confirmar contra el repo real)
 
 **Publicado y en producción:**

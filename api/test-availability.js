@@ -128,7 +128,11 @@ function findDay(offsetFromNow) {
   const target = new Date();
   target.setUTCHours(0, 0, 0, 0);
   target.setUTCDate(target.getUTCDate() + offsetFromNow);
-  const y = target.getFullYear(), m = String(target.getMonth() + 1).padStart(2, "0"), d = String(target.getDate()).padStart(2, "0");
+  // Ojo: usar getFullYear()/getMonth()/getDate() (hora LOCAL de la máquina) aquí
+  // después de construir "target" en UTC desalinea la fecha si la máquina no
+  // está en UTC+0 — corre el calendario un día, encuentra el día equivocado sin
+  // avisar. Siempre UTC de punta a punta, igual que toDateStr() en el módulo real.
+  const y = target.getUTCFullYear(), m = String(target.getUTCMonth() + 1).padStart(2, "0"), d = String(target.getUTCDate()).padStart(2, "0");
   const dateStr = `${y}-${m}-${d}`;
   return days.find((dd) => dd.date === dateStr);
 }

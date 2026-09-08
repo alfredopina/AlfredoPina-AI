@@ -25,13 +25,11 @@ jobs:
           node-version: "20"
       - name: Run API tests
         working-directory: api
-        # Sería mejor "npm ci" (reproducible), pero el package-lock.json actual quedó
-        # desactualizado (solo registra node-ical, de antes de que se agregaran
-        # mssql/pdf-lib/@azure/*) y "npm ci" fallaría por esa desincronía. Con Node a
-        # mano, correr "npm install" una vez para regenerar el lockfile completo y
-        # cambiar este step a "npm ci".
+        # package-lock.json ya se regeneró de verdad (Node instalado localmente
+        # 2026-09-08) — npm ci instala exactamente lo que dice el lockfile, más
+        # reproducible que npm install para CI.
         run: |
-          npm install
+          npm ci
           npm test
       - name: Build And Deploy
         id: builddeploy

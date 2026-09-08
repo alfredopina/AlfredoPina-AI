@@ -6,6 +6,8 @@ Sitio de marca personal de Alfredo Piña (Ingeniero Industrial, instructor/consu
 
 Al responder o construir, prioriza legibilidad y mantenibilidad sobre cleverness. Pregunta antes de tomar decisiones de arquitectura grandes que no estén ya cubiertas aquí.
 
+Si algún día hay que reconstruir la infraestructura desde cero (o algo se borró por accidente), ver **`RUNBOOK.md`** — checklist accionable de pasos de portal en orden, no la narrativa de decisiones que vive aquí.
+
 ## Stack técnico
 
 - **Front-end:** HTML/CSS/JS puro (sin frameworks, sin build step). No usar Power Pages ni Power Platform de bajo nivel para el front — decisión intencional de no depender solo del ecosistema Microsoft para el sitio.

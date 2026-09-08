@@ -9,5 +9,13 @@ jobs:
     steps:
       - name: Disparar respaldo automatico
         run: |
-          curl -sf -X POST "https://icy-smoke-071e3ec10.7.azurestaticapps.net/api/respaldoAutomatico" \
-            -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}"
+          respuesta=$(curl -s -w "\n%{http_code}" -X POST "https://icy-smoke-071e3ec10.7.azurestaticapps.net/api/respaldoAutomatico" \
+            -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}")
+          status="${respuesta##*$'\n'}"
+          cuerpo="${respuesta%$'\n'*}"
+          echo "Status: $status"
+          echo "Respuesta: $cuerpo"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error::El respaldo automatico fallo (status $status) — revisa BACKUP_CRON_SECRET en Azure y en GitHub, deben coincidir exacto."
+            exit 1
+          fi

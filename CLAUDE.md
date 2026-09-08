@@ -98,6 +98,9 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - [ ] Actualizar `og:url`/`og:image` cuando el dominio `alfredopina.ai` quede conectado.
 - [ ] Link real de YouTube en el footer (hoy `href="#"` placeholder).
 
+**Deuda técnica (no es tarea tuya en portal — para una sesión constructora cuando quieras invertir en limpieza):**
+- [ ] Separar el CSS/JS que sigue inline en `cursos.html` (~670 líneas de CSS + ~500 de JS de 1,292 totales) hacia `/assets/` — no bloquea nada, mencionado varias veces en auditorías/revisiones sin resolverse.
+
 **Consideración estratégica, sin acción inmediata:** el correo `alfredo.pina@lifezen.com.mx` (dominio de otra empresa) sostiene todo el login de `/admin` — riesgo de bus factor a tener en el radar, no urgente.
 
 ## Estado del proyecto (puede desactualizarse — confirmar contra el repo real)
@@ -195,12 +198,7 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - **3 bugs reales encontrados y corregidos en el rollout, no en el diseño original** (mismo día, ver Historial): (1) `getRespaldosContainer()` creaba el contenedor con `{access:"none"}` — valor inválido para Azure (solo acepta `"container"`/`"blob"`), tronaba toda la familia de Functions de Respaldos; corregido quitando la opción (sin ella, el contenedor ya es privado por default). (2) el `timerTrigger` de la primera versión (ver arriba). (3) `listRespaldos` extraía el "origen" del nombre del archivo con `/_(\w+)\.json$/` — como `\w` incluye `_`, capturaba desde el primer guion bajo (ej. `"0434_auto"`) en vez de solo `"auto"`, así que un respaldo automático nunca comparaba igual a `'auto'` y siempre se mostraba como "Manual"; corregido matcheando el valor literal `(auto|manual)`.
 - **Casi confirmado de punta a punta en producción** (2026-09-08): Alfredo generó el secreto, lo configuró en Azure y GitHub, y corrió el workflow a mano (`workflow_dispatch`) sin esperar al lunes — el respaldo se generó bien, solo faltaba el fix del punto (3) para que se etiquetara "Automático" en vez de "Manual". Pendiente la confirmación final de que ya se ve correcto tras ese último deploy.
 
-**Pendiente / roadmap:** ver la sección "Modelo del negocio y roadmap estratégico" arriba para Diagnóstico, backoffice/CRM y todo el plan de fases — es la versión vigente, reemplaza cualquier plan anterior (incluidos los documentos `Memoria_...` del Project de claude.ai en lo que toque a fases/orden). Pendientes puntuales que no dependen de ese roadmap:
-- Cargar contenido real de Power Apps (falta completar, hoy solo 2 temas de prueba/reales), Power Automate, IA Aplicada y Ofimática desde el admin → Cursos (Excel y Power BI ya migrados, ver sección Cursos) — en progreso por Alfredo durante Fase 0
-- Separar CSS/JS que sigue inline en `cursos.html` hacia `/assets/`
-- Falta una imagen social dedicada (1200x630) para `og:image` — hoy usa `firma-ap.png` como placeholder
-- `og:url` / `og:image` en `index.html` y `cursos.html` apuntan a `alfredopina.ai` — actualizar si se sigue sirviendo desde el dominio viejo de LifeZen al momento de publicar
-- Link de YouTube en el footer (todas las páginas) es **placeholder** (`href="#"`, marcado con comentario `TODO`) — falta el link real del canal
+**Pendiente / roadmap:** ver la sección "Modelo del negocio y roadmap estratégico" arriba para Diagnóstico, backoffice/CRM y todo el plan de fases — es la versión vigente, reemplaza cualquier plan anterior (incluidos los documentos `Memoria_...` del Project de claude.ai en lo que toque a fases/orden). Los pendientes puntuales (contenido, marketing, deuda técnica) viven todos en "Pendientes de Alfredo" al inicio del documento — un solo lugar, no repetido aquí.
 
 **Ya resueltos** (no reabrir salvo pedido explícito):
 - **CSS — un `<button>` no hereda color/fuente del sitio a menos que se le diga explícitamente:** en el admin, `.radm-tool-card` (las tarjetas de herramienta) no traía `color`/`font` propios, así que el navegador usaba su gris de sistema para el texto en vez del blanco del sitio — se veía casi ilegible. Cualquier componente nuevo del admin hecho con `<button>` necesita `color`/`font` explícitos (o `font:inherit;color:inherit;`) si no va a fijar su propio color — no asumir que hereda solo porque un `<div>` sí lo haría.

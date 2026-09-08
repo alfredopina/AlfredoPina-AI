@@ -1,0 +1,13 @@
+name: Respaldo semanal de Table Storage
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar respaldo automatico
+        run: |
+          curl -sf -X POST "https://icy-smoke-071e3ec10.7.azurestaticapps.net/api/respaldoAutomatico" \
+            -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}"

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "API del módulo de Calendario/Agenda de alfredopina.ai — lee el calendario de Outlook publicado y lo sanitiza antes de exponerlo al sitio.",
   "scripts": {
-    "test": "node test-availability.js",
+    "test": "node test-availability.js && node test-backup.js && node test-rate-limit.js",
     "start": "func start"
   },
   "license": "UNLICENSED",

@@ -507,8 +507,13 @@
       unlockInput.disabled = false;
       setUnlockBtnState('idle');
       unlockBar.classList.add('error');
+      // 429 = bloqueado por intentos fallidos (ver api/src/rate-limit.js) — el
+      // mensaje real del backend ya explica el porqué, mostrar el genérico aquí
+      // encima confundiría (parecería que el código está bien pero algo más falló).
       unlockError.textContent = status === 404
         ? 'Ese curso todavía no está disponible — avísale a Alfredo.'
+        : status === 429 && body && body.error
+        ? body.error
         : 'No se pudo validar el código ahora mismo. Intenta de nuevo en un momento.';
       return;
     }

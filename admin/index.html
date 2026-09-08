@@ -668,6 +668,18 @@
           <div class="radm-section-head"><span class="radm-section-title">PLANTILLAS</span><span class="admin-nav-soon">PRONTO</span></div>
           <div class="cfg-note">Diseño base de los documentos generados (cotización, diploma). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
         </div>
+        <div class="radm-section">
+          <div class="radm-section-head"><span class="radm-section-title">RESPALDOS</span></div>
+          <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
+          <button type="button" class="radm-btn" id="bakGenerarBtn" style="margin:12px 0 16px;min-width:auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            Respaldar ahora
+          </button>
+          <div class="radm-list" id="bakLista">
+            <div class="radm-empty-row">Cargando respaldos…</div>
+          </div>
+        </div>
+        <div id="bakToast" class="radm-toast" hidden></div>
       </div>
 
       <div class="admin-panel" id="panel-notificaciones">
@@ -3626,6 +3638,101 @@
 
     document.getElementById('dipDescargarGuia').addEventListener('click', () => {
       window.open('/api/getGuiaCoordenadas', '_blank');
+    });
+  })();
+
+  // ── Respaldos (dentro de Configuración) ──
+  (function(){
+    function escapeHtml(s){
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function toast(msg, ok){
+      const el = document.getElementById('bakToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.hidden = true; }, 3200);
+    }
+
+    const ICO = {
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      click: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>',
+      download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0-4-4m4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+
+    function fmtFechaHora(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    let cargado = false;
+
+    function render(lista){
+      const cont = document.getElementById('bakLista');
+      if(!lista.length){ cont.innerHTML = '<div class="radm-empty-row">Todavía no hay respaldos.</div>'; return; }
+      cont.innerHTML = lista.map(r => `
+        <div class="radm-row" data-nombre="${escapeHtml(r.nombre)}">
+          <span style="width:18px;height:18px;color:var(--text-dim);flex-shrink:0;display:inline-flex;">${r.origen === 'auto' ? ICO.clock : ICO.click}</span>
+          <div class="radm-row-body">
+            <div class="radm-row-title">${fmtFechaHora(r.generadoEn)}</div>
+            <div class="radm-row-sub">${r.origen === 'auto' ? 'Automático (semanal)' : 'Manual'}</div>
+          </div>
+          <button type="button" class="radm-icon-btn" data-action="descargar" title="Descargar">${ICO.download}</button>
+        </div>
+      `).join('');
+
+      cont.querySelectorAll('[data-action="descargar"]').forEach(b => {
+        b.addEventListener('click', () => {
+          const nombre = b.closest('.radm-row').dataset.nombre;
+          window.open('/api/getRespaldo?nombre=' + encodeURIComponent(nombre), '_blank');
+        });
+      });
+    }
+
+    async function cargarLista(){
+      try {
+        const data = await apiGet('/api/listRespaldos');
+        render(data.respaldos || []);
+      } catch(e){
+        document.getElementById('bakLista').innerHTML = `<div class="radm-empty-row">No se pudieron cargar los respaldos: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    document.getElementById('btnConfig').addEventListener('click', () => {
+      if(cargado) return;
+      cargado = true;
+      cargarLista();
+    });
+
+    document.getElementById('bakGenerarBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('bakGenerarBtn');
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = 'Generando...';
+      try {
+        await apiPostJson('/api/respaldarAhora', {});
+        toast('Respaldo generado.', true);
+        await cargarLista();
+      } catch(e){
+        toast('No se pudo generar: ' + e.message, false);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
     });
   })();
 </script>

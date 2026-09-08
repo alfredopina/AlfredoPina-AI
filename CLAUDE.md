@@ -181,6 +181,15 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - **Tip operativo para Alfredo (no requiere a Claude):** la pestaña QR/Link del admin ya dispara una consulta real a la base al abrirla (el contador de "Respuestas en vivo") — abrirla uno o dos minutos antes de proyectar el QR al grupo (o darle clic al ↻ apenas se entra) ya la deja despierta para cuando la gente escanee, sin necesidad de nada adicional.
 - **Pendiente para Alfredo (no requiere a Claude):** reemplazar los 11 textos de pregunta de ejemplo por los definitivos desde el admin → Encuestas → Preguntas, y mostrar el QR en la próxima sesión de cierre para probar el flujo real.
 
+**Publicado y en producción — Respaldos automáticos de Table Storage (2026-09-08, hallazgo Alto de la auditoría de resiliencia):**
+- Cursos/Recursos/Temas/TemariosEstandar/Proyectos no tenían ningún mecanismo de backup — Table Storage no ofrece soft-delete ni point-in-time restore, así que esto es la única red de seguridad real contra un borrado o bug que corrompa el catálogo.
+- `api/src/backup-tables.js` (`generarRespaldo(origen)`) lee las 5 tablas completas y sube un JSON a un contenedor Blob **privado** nuevo `respaldos` (mismo Storage Account `apcwebrecursos`, se crea solo con `createIfNotExists`, sin pasos de portal). Nombre del blob: `{YYYY-MM-DD}_{HHmm}_{origen}.json`, hora de México fija (mismo cálculo de offset -6 que ya usa `availability-logic.js` para Agenda, reutilizado, no reinventado).
+- `respaldoSemanal` (timer trigger, lunes 00:00 hora de México) genera el respaldo automático; `respaldarAhora` (protegida, admin) el manual desde el botón del panel; `listRespaldos`/`getRespaldo` (protegidas) alimentan la lista y la descarga.
+- Admin → Configuración → **Respaldos** (ya no es "PRONTO"): botón "Respaldar ahora" + lista de los últimos 20 (ícono reloj/click según origen — nunca solo color — y botón de descarga por fila).
+- Nuevas pruebas locales sin red (mismo patrón que `test-availability.js`): `api/test-backup.js` (formato del nombre de archivo / hora de México) y `api/test-rate-limit.js` (ver siguiente punto) — ambas conectadas a `npm test`, que ya corre en CI desde el lote de correcciones de este mismo día.
+- **Candado de intentos generalizado**: la lógica de rate limiting que vivía hardcodeada en `getRecursos` se extrajo a `api/src/rate-limit.js` (parametrizada por `table`+`partitionKey`, sin saber nada de "cursos") para que Diagnóstico (Fase 1.4 del roadmap) la reuse cuando le toque construirse, en vez de copiarla a mano. `getRecursos` la consume sin cambios de comportamiento. De paso se corrigió un bug de UX real: `recursos.html` no distinguía un 429 (bloqueado) de cualquier otro error — ya muestra el mensaje real del backend en ese caso.
+- **Pendiente para Alfredo (no requiere a Claude):** confirmar en producción que el timer semanal corre (revisar el primer lunes tras el deploy) y que el botón "Respaldar ahora" genera y lista bien un respaldo real.
+
 **Pendiente / roadmap:** ver la sección "Modelo del negocio y roadmap estratégico" arriba para Diagnóstico, backoffice/CRM y todo el plan de fases — es la versión vigente, reemplaza cualquier plan anterior (incluidos los documentos `Memoria_...` del Project de claude.ai en lo que toque a fases/orden). Pendientes puntuales que no dependen de ese roadmap:
 - Cargar contenido real de Power Apps (falta completar, hoy solo 2 temas de prueba/reales), Power Automate, IA Aplicada y Ofimática desde el admin → Cursos (Excel y Power BI ya migrados, ver sección Cursos) — en progreso por Alfredo durante Fase 0
 - Separar CSS/JS que sigue inline en `cursos.html` hacia `/assets/`
@@ -202,6 +211,15 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 ## Historial de sesiones
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-08 alfredo.pina: Respaldos de Table Storage + candado de intentos generalizado
+
+Dos partes independientes, cada una probada por separado. Detalle técnico completo ya integrado en "Estado del proyecto" arriba.
+
+- **Respaldos**: cierra el hallazgo Alto de la auditoría de resiliencia del mismo día — backend completo (`backup-tables.js` + 4 Functions: timer semanal, manual, listar, descargar) más la sección nueva en admin → Configuración → Respaldos. Blob privado nuevo `respaldos`, autocreado por código.
+- **Candado de intentos generalizado**: `checarBloqueo`/`registrarIntentoFallido`/`limpiarIntentos` salieron de `getRecursos` a `api/src/rate-limit.js`, parametrizados por `table`+`partitionKey`, listos para que Diagnóstico (Fase 1.4) los reuse sin copiarlos a mano — todavía no conectado a nada nuevo, solo reubicado. En el camino se corrigió un bug de UX real que se encontró probando: `recursos.html` no mostraba el mensaje real del backend en un 429 (bloqueado), solo un genérico que confundía.
+- Ambas partes probadas sin Node real (sigue sin estar instalado en esta máquina): 2 pruebas locales nuevas sin red (`test-backup.js`, `test-rate-limit.js` con una tabla falsa en memoria simulando Table Storage — 10 fallos bloquean, código correcto limpia, fail-open si la tabla "truena") verificadas a mano línea por línea; el admin y `recursos.html` sí se probaron de verdad abriendo los HTML en el navegador y disparando los flujos por consola (confirmado: el botón "Respaldar ahora" y la lista fallan con un mensaje claro sin backend real, como se espera; el mensaje de 429 ya se ve correcto en la pantalla de desbloqueo).
+- **Pendiente para Alfredo (no requiere a Claude):** confirmar en producción con datos reales — generar un respaldo manual y revisarlo, y esperar al primer lunes para el automático.
 
 ### 2026-09-08 alfredo.pina: Lote de correcciones — trilogía de auditorías de seguridad/resiliencia/calidad
 

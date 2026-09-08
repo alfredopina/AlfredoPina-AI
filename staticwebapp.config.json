@@ -85,10 +85,6 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/getResumenProductosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
       "route": "/api/getResumenCompletitudAdmin",
       "allowedRoles": ["admin"]
     },
@@ -158,6 +154,18 @@
     },
     {
       "route": "/api/getContadorRespuestas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/respaldarAhora",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listRespaldos",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getRespaldo",
       "allowedRoles": ["admin"]
     }
   ],

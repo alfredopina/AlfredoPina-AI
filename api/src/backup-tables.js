@@ -30,7 +30,9 @@ async function leerTabla(nombre) {
 async function getRespaldosContainer() {
   const serviceClient = BlobServiceClient.fromConnectionString(getConnectionString());
   const container = serviceClient.getContainerClient("respaldos");
-  await container.createIfNotExists({ access: "none" }); // privado — sin pasos manuales de portal
+  // Sin "access" = privado por default. Azure solo acepta "container"/"blob" como
+  // valores válidos de acceso público — "none" no existe y hace fallar la llamada.
+  await container.createIfNotExists();
   return container;
 }
 

@@ -13,6 +13,7 @@ module.exports = async function (context, req) {
   const telefono = (body.telefono || "").trim() || null;
   const tieneWhatsapp = body.tiene_whatsapp ? 1 : 0;
   const area = (body.area || "").trim() || null;
+  const planta = (body.planta || "").trim() || null;
   const esPrincipal = body.es_principal ? 1 : 0;
 
   if (!id || !clienteId || !nombre) {
@@ -39,10 +40,11 @@ module.exports = async function (context, req) {
       .input("telefono", sql.NVarChar, telefono)
       .input("tieneWhatsapp", sql.Bit, tieneWhatsapp)
       .input("area", sql.NVarChar, area)
+      .input("planta", sql.NVarChar, planta)
       .input("esPrincipal", sql.Bit, esPrincipal)
       .query(
         `UPDATE Contacto SET nombre=@nombre, correo=@correo, telefono=@telefono,
-                tiene_whatsapp=@tieneWhatsapp, area=@area, es_principal=@esPrincipal
+                tiene_whatsapp=@tieneWhatsapp, area=@area, planta=@planta, es_principal=@esPrincipal
          WHERE id=@id`
       );
 

@@ -173,6 +173,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/getResumenClientesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/crearCliente",
       "allowedRoles": ["admin"]
     },

@@ -10,14 +10,32 @@ function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
+// undefined = valor inválido (el caller debe rechazar la petición), null = no capturado.
+function anioONull(v) {
+  if (v === undefined || v === null || v === "") return null;
+  const n = Number(v);
+  const anioActual = new Date().getFullYear();
+  if (!Number.isInteger(n) || n < 1990 || n > anioActual) return undefined;
+  return n;
+}
+
 module.exports = async function (context, req) {
   const body = req.body || {};
   const nombre = (body.nombre || "").trim();
   const codigo = limpiarCodigo(body.codigo);
   const notas = (body.notas || "").trim() || null;
+  const clienteDesde = anioONull(body.cliente_desde);
 
   if (!nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre o el código del cliente." } };
+    return;
+  }
+  if (clienteDesde === undefined) {
+    context.res = {
+      status: 400,
+      headers: JSON_HEADERS,
+      body: { error: `"Cliente desde" debe ser un año entre 1990 y ${new Date().getFullYear()}.` },
+    };
     return;
   }
 
@@ -28,7 +46,8 @@ module.exports = async function (context, req) {
       .input("nombre", sql.NVarChar, nombre)
       .input("codigo", sql.NVarChar, codigo)
       .input("notas", sql.NVarChar, notas)
-      .query("INSERT INTO Cliente (nombre, codigo, notas) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas)");
+      .input("clienteDesde", sql.Int, clienteDesde)
+      .query("INSERT INTO Cliente (nombre, codigo, notas, cliente_desde) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde)");
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {
     // 2627/2601 = violación de UNIQUE en SQL Server — ya existe un cliente con ese código.

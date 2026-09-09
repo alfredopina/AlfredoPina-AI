@@ -17,7 +17,7 @@ module.exports = async function (context, req) {
       .request()
       .input("clienteId", sql.Int, clienteId)
       .query(
-        `SELECT id, cliente_id, nombre, correo, telefono, tiene_whatsapp, area, es_principal
+        `SELECT id, cliente_id, nombre, correo, telefono, tiene_whatsapp, area, planta, es_principal
          FROM Contacto WHERE cliente_id = @clienteId ORDER BY es_principal DESC, nombre`
       );
     context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };

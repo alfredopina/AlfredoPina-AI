@@ -478,13 +478,46 @@
   .dip-paso-head #encContadorRefresh{ margin-left:auto; }
 
   /* ---- PANEL CLIENTES ---- */
-  .cli-cliente{ border:1px solid var(--line); border-radius:7px; background:var(--panel); overflow:hidden; }
-  .cli-cliente-head{ display:flex; align-items:center; gap:12px; padding:10px 12px; cursor:pointer; }
-  .cli-cliente-head:hover{ background:var(--panel-2); }
-  .cli-chevron{ width:13px; height:13px; color:var(--text-faint); flex:none; transition:transform .15s; }
-  .cli-chevron svg{ width:100%; height:100%; }
-  .cli-cliente.open .cli-chevron{ transform:rotate(90deg); }
-  .cli-cliente-body{ padding:16px; border-top:1px solid var(--line); background:var(--panel-2); }
+  .cli-kpi-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+  .cli-kpi-row .dkpi-card{ flex:1; min-width:150px; }
+
+  .cli-toolbar{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .cli-buscar-field{ flex:1; min-width:200px; max-width:320px; }
+  .cli-sort-group{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .cli-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
+  .cli-sort-btn{
+    font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel);
+    border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer; transition:all .15s;
+  }
+  .cli-sort-btn:hover{ color:var(--text); }
+  .cli-sort-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
+
+  .cli-layout{ display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
+  @media (max-width:900px){ .cli-layout{ grid-template-columns:1fr; } }
+
+  .cli-list{ display:flex; flex-direction:column; gap:6px; max-height:70vh; overflow-y:auto; padding-right:2px; }
+  .cli-row{
+    border:1px solid var(--line); border-radius:7px; background:var(--panel); padding:10px 12px;
+    cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .cli-row:hover{ border-color:var(--text-dim); }
+  .cli-row.active{ border-color:var(--blue-bright); background:var(--blue-soft); }
+  .cli-row-title{ font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cli-row-sub{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+  .cli-row-meta{ display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
+  .cli-tag{
+    font-family:var(--mono); font-size:9.5px; color:var(--text-dim); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:20px; padding:2px 8px; white-space:nowrap;
+  }
+
+  .cli-detail{ border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:22px; min-height:220px; }
+  .cli-detalle-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .cli-detalle-nombre{ font-family:var(--display); font-weight:600; font-size:17px; }
+  .cli-detalle-sub{ font-size:11.5px; color:var(--text-faint); margin-top:4px; font-family:var(--mono); }
+  .cli-detalle-notas{
+    font-size:12.5px; color:var(--text-dim); font-style:italic; margin-top:14px; line-height:1.5;
+    border-left:2px solid var(--line); padding-left:10px;
+  }
   .cli-notas-preview{
     font-size:11px; color:var(--text-faint); font-style:italic; margin-top:3px;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -497,20 +530,23 @@
   .cli-wa{ display:inline-flex; align-items:center; gap:3px; color:var(--text-dim); }
   .cli-wa svg{ width:11px; height:11px; }
 
-  .cfg-tarifas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:12px; }
+  .cfg-tarifas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; margin-top:12px; }
   .cfg-tarifa-row{
-    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:7px;
-    padding:10px 12px; background:var(--panel);
+    --tc: var(--blue-bright);
+    display:flex; align-items:center; gap:10px; border-radius:7px; padding:10px 12px; background:var(--panel);
+    border:1px solid color-mix(in srgb, var(--tc) 45%, var(--line));
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--tc) 16%, transparent), 0 0 16px -6px var(--tc);
+    flex-wrap:wrap;
   }
-  .cfg-tarifa-icon{ width:18px; height:18px; flex:none; }
+  .cfg-tarifa-icon{ width:18px; height:18px; flex:none; color:var(--tc); }
   .cfg-tarifa-icon svg{ width:100%; height:100%; }
-  .cfg-tarifa-nombre{ flex:1; font-size:12.5px; }
+  .cfg-tarifa-nombre{ flex:1; font-size:12.5px; min-width:80px; }
   .cfg-tarifa-row input{
-    width:90px; font-family:var(--mono); font-size:12.5px; color:var(--text); background:var(--panel-2);
+    width:80px; font-family:var(--mono); font-size:12.5px; color:var(--text); background:var(--panel-2);
     border:1px solid var(--line); border-radius:5px; padding:6px 8px; outline:none; text-align:right;
   }
-  .cfg-tarifa-row input:focus{ border-color:var(--blue-bright); }
-  .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--blue-bright); }
+  .cfg-tarifa-row input:focus{ border-color:var(--tc); }
+  .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
 
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
@@ -699,25 +735,31 @@
           <div class="cfg-note">Roles y permisos para más de un administrador (tú y Viridiana). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
         </div>
         <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">PLANTILLAS</span><span class="admin-nav-soon">PRONTO</span></div>
-          <div class="cfg-note">Diseño base de los documentos generados (cotización, diploma). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
-        </div>
-        <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">TARIFAS POR HORA</span></div>
+          <div class="radm-section-head">
+            <span class="radm-section-title">TARIFAS POR HORA</span>
+            <button type="button" class="radm-btn-add" id="cfgTarifasToggle">Desplegar</button>
+          </div>
           <div class="cfg-note">Precio base por hora de cada herramienta — Cotizaciones (Fase 1.2) los va a usar para calcular el precio sugerido. Cambiar un precio aquí no afecta cotizaciones ya emitidas.</div>
-          <div class="cfg-tarifas-grid" id="cfgTarifasGrid">
-            <div class="radm-empty-row">Cargando tarifas…</div>
+          <div id="cfgTarifasBody" hidden>
+            <div class="cfg-tarifas-grid" id="cfgTarifasGrid">
+              <div class="radm-empty-row">Cargando tarifas…</div>
+            </div>
           </div>
         </div>
         <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">RESPALDOS</span></div>
+          <div class="radm-section-head">
+            <span class="radm-section-title">RESPALDOS</span>
+            <button type="button" class="radm-btn-add" id="cfgRespaldosToggle">Desplegar</button>
+          </div>
           <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
-          <button type="button" class="radm-btn" id="bakGenerarBtn" style="margin:12px 0 16px;min-width:auto;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-            Respaldar ahora
-          </button>
-          <div class="radm-list" id="bakLista">
-            <div class="radm-empty-row">Cargando respaldos…</div>
+          <div id="cfgRespaldosBody" hidden>
+            <button type="button" class="radm-btn" id="bakGenerarBtn" style="margin:12px 0 16px;min-width:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+              Respaldar ahora
+            </button>
+            <div class="radm-list" id="bakLista">
+              <div class="radm-empty-row">Cargando respaldos…</div>
+            </div>
           </div>
         </div>
         <div id="bakToast" class="radm-toast" hidden></div>
@@ -778,17 +820,46 @@
 
       <div class="admin-panel" id="panel-clientes" style="--c:var(--blue-bright)">
         <div id="cliToast" class="radm-toast" hidden></div>
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">CLIENTES</span>
-            <button type="button" class="radm-btn-add" id="cliBtnNuevo">+ Nuevo Cliente</button>
+
+        <div class="cli-kpi-row" id="cliKpis">
+          <div class="dkpi-card">
+            <div class="dkpi-value" id="cliKpiTotal">—</div>
+            <div class="dkpi-label">Clientes</div>
           </div>
-          <div class="radm-field" style="max-width:320px;margin-bottom:16px;">
+          <div class="dkpi-card">
+            <div class="dkpi-value" id="cliKpiContactos">—</div>
+            <div class="dkpi-label">Contactos</div>
+          </div>
+          <div class="dkpi-card" title="Clientes con al menos una cotización creada este año, sobre el total de clientes">
+            <div class="dkpi-value" id="cliKpiActivos">—</div>
+            <div class="dkpi-label">% Clientes activos</div>
+          </div>
+        </div>
+
+        <div class="cli-toolbar">
+          <div class="radm-field cli-buscar-field">
             <label>BUSCAR</label>
-            <input type="text" id="cliBuscar" placeholder="Nombre o código…">
+            <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
           </div>
-          <div class="radm-list" id="cliLista">
+          <div class="cli-sort-group" id="cliSortGroup">
+            <span class="cli-sort-label">ORDENAR</span>
+            <button type="button" class="cli-sort-btn active" data-sort="nombre">Nombre</button>
+            <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización</button>
+            <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad</button>
+          </div>
+          <button type="button" class="radm-btn-add" id="cliBtnNuevo" style="margin-left:auto;">+ Nuevo Cliente</button>
+        </div>
+
+        <div class="cli-layout">
+          <div class="cli-list" id="cliLista">
             <div class="radm-empty-row">Cargando clientes…</div>
+          </div>
+          <div class="cli-detail" id="cliDetalle">
+            <div class="admin-empty">
+              <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+              <div class="admin-empty-title">Selecciona un cliente</div>
+              <div class="admin-empty-text">Elige un cliente de la lista para ver y editar sus contactos, o crea uno nuevo.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -3698,19 +3769,28 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL CLIENTES — Fase 1 del roadmap (bloque Comercial). Lista de Clientes
-  // con búsqueda + alta/edición inline (nombre, código, notas) y, al hacer clic
-  // en un cliente, expande sus Contactos debajo (alta/edición/borrado inline,
-  // con el candado de "un solo principal por cliente" resuelto en el backend).
+  // PANEL CLIENTES — Fase 1 del roadmap (bloque Comercial). Layout tipo
+  // maestro-detalle: lista compacta a la izquierda (buscador que incluye
+  // nombre de contacto, orden por nombre/última cotización/antigüedad) y a la
+  // derecha el detalle del cliente seleccionado (datos + Contactos, con
+  // alta/edición/borrado inline y el candado de "un solo principal por
+  // cliente" resuelto en el backend). Scorecard arriba con KPIs simples.
   // Solicitudes y Cotizaciones se construyen en fases futuras sobre este mismo
-  // Cliente — aquí solo entrega la base.
+  // Cliente — aquí solo entrega la base. "última cotización"/"% activos" ya
+  // están conectados a la tabla Cotizacion (vacía hasta Fase 1.2) — no hace
+  // falta tocar este archivo cuando esa fase empiece a llenarla.
   (function(){
     const ICO = {
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       wa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.1-5.5A8.5 8.5 0 1 1 21 11.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
+    const EMPTY_HTML = `
+      <div class="admin-empty">
+        <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+        <div class="admin-empty-title">Selecciona un cliente</div>
+        <div class="admin-empty-text">Elige un cliente de la lista para ver y editar sus contactos, o crea uno nuevo.</div>
+      </div>`;
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
@@ -3733,13 +3813,39 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
+    function antiguedadTexto(anio){
+      if(!anio) return null;
+      const anios = new Date().getFullYear() - anio;
+      return anios <= 0 ? 'Nuevo este año' : `${anios} año${anios === 1 ? '' : 's'}`;
+    }
+    function fmtUltimaCotizacion(iso){
+      if(!iso) return 'Sin cotizar';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    }
 
     let cliClientes = [];
+    let cliSort = 'nombre';
+    let cliSeleccionado = null;
+
+    async function cargarKpis(){
+      try {
+        const r = await apiGet('/api/getResumenClientesAdmin');
+        document.getElementById('cliKpiTotal').textContent = r.total_clientes;
+        document.getElementById('cliKpiContactos').textContent = r.total_contactos;
+        const pct = r.total_clientes ? Math.round((r.clientes_activos / r.total_clientes) * 100) : 0;
+        document.getElementById('cliKpiActivos').textContent = pct + '%';
+      } catch(e){
+        ['cliKpiTotal', 'cliKpiContactos', 'cliKpiActivos'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
 
     async function cargarClientes(q){
       try {
-        const url = '/api/listClientesAdmin' + (q ? '?q=' + encodeURIComponent(q) : '');
-        cliClientes = await apiGet(url);
+        const params = new URLSearchParams();
+        if(q) params.set('q', q);
+        params.set('sort', cliSort);
+        cliClientes = await apiGet('/api/listClientesAdmin?' + params.toString());
       } catch(e){
         cliClientes = [];
         toast('No se pudieron cargar los clientes: ' + e.message, false);
@@ -3752,83 +3858,68 @@
       if(!cliClientes.length){ cont.innerHTML = '<div class="radm-empty-row">Sin clientes todavía.</div>'; return; }
 
       cont.innerHTML = cliClientes.map(c => `
-        <div class="cli-cliente" data-id="${c.id}">
-          <div class="cli-cliente-head" data-action="toggle">
-            <span class="cli-chevron">${ICO.chevron}</span>
-            <div class="radm-row-body">
-              <div class="radm-row-title">${escapeHtml(c.nombre)}</div>
-              <div class="radm-row-sub">${escapeHtml(c.codigo)} · ${c.num_contactos} contacto${c.num_contactos === 1 ? '' : 's'}</div>
-              ${c.notas ? `<div class="cli-notas-preview">${escapeHtml(c.notas)}</div>` : ''}
-            </div>
-            <button type="button" class="radm-icon-btn" data-action="edit" title="Editar cliente">${ICO.edit}</button>
+        <div class="cli-row ${cliSeleccionado === c.id ? 'active' : ''}" data-id="${c.id}">
+          <div class="cli-row-title">${escapeHtml(c.nombre)}</div>
+          <div class="cli-row-sub">${escapeHtml(c.codigo)} · ${c.num_contactos} contacto${c.num_contactos === 1 ? '' : 's'}</div>
+          <div class="cli-row-meta">
+            ${antiguedadTexto(c.cliente_desde) ? `<span class="cli-tag">${antiguedadTexto(c.cliente_desde)}</span>` : ''}
+            <span class="cli-tag">${fmtUltimaCotizacion(c.ultima_cotizacion)}</span>
           </div>
-          <div class="cli-cliente-body" hidden></div>
         </div>
       `).join('');
 
-      cont.querySelectorAll('.cli-cliente-head').forEach(head => {
-        head.addEventListener('click', e => {
-          if(e.target.closest('[data-action="edit"]')) return;
-          toggleCliente(Number(head.closest('.cli-cliente').dataset.id));
-        });
-      });
-      cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', e => {
-          e.stopPropagation();
-          abrirFormCliente(cliClientes.find(c => c.id === Number(b.closest('.cli-cliente').dataset.id)));
-        });
+      cont.querySelectorAll('.cli-row').forEach(row => {
+        row.addEventListener('click', () => seleccionarCliente(Number(row.dataset.id)));
       });
     }
 
-    function toggleCliente(id){
-      const cont = document.getElementById('cliLista');
-      document.querySelectorAll('.cli-cliente.open').forEach(el => {
-        if(Number(el.dataset.id) !== id){
-          el.classList.remove('open');
-          const b = el.querySelector('.cli-cliente-body');
-          b.hidden = true; b.innerHTML = '';
-        }
-      });
-      const wrap = cont.querySelector(`.cli-cliente[data-id="${id}"]`);
-      if(!wrap) return;
-      const body = wrap.querySelector('.cli-cliente-body');
-      if(wrap.classList.contains('open')){
-        wrap.classList.remove('open');
-        body.hidden = true; body.innerHTML = '';
-      } else {
-        wrap.classList.add('open');
-        body.hidden = false;
-        cargarContactos(id, body);
+    function seleccionarCliente(id){
+      cliSeleccionado = id;
+      document.querySelectorAll('.cli-row').forEach(r => r.classList.toggle('active', Number(r.dataset.id) === id));
+      renderDetalle(id);
+    }
+
+    async function renderDetalle(id){
+      const c = cliClientes.find(x => x.id === id);
+      const det = document.getElementById('cliDetalle');
+      if(!c){ det.innerHTML = EMPTY_HTML; return; }
+
+      det.innerHTML = `
+        <div class="cli-detalle-head">
+          <div>
+            <div class="cli-detalle-nombre">${escapeHtml(c.nombre)}</div>
+            <div class="cli-detalle-sub">${escapeHtml(c.codigo)}${antiguedadTexto(c.cliente_desde) ? ` · Cliente desde ${c.cliente_desde} (${antiguedadTexto(c.cliente_desde)})` : ''}</div>
+          </div>
+          <button type="button" class="radm-icon-btn" data-action="edit-cliente" title="Editar cliente">${ICO.edit}</button>
+        </div>
+        ${c.notas ? `<div class="cli-detalle-notas">${escapeHtml(c.notas)}</div>` : ''}
+        <div class="radm-section-head" style="margin-top:22px;">
+          <span class="radm-section-title">CONTACTOS</span>
+          <button type="button" class="radm-btn-add" data-action="add-contacto">+ Agregar contacto</button>
+        </div>
+        <div class="radm-list" data-lista-contactos>
+          <div class="radm-empty-row">Cargando contactos…</div>
+        </div>`;
+
+      det.querySelector('[data-action="edit-cliente"]').addEventListener('click', () => abrirFormCliente(c));
+      const listaEl = det.querySelector('[data-lista-contactos]');
+      det.querySelector('[data-action="add-contacto"]').addEventListener('click', () => abrirFormContacto(listaEl, id, null));
+
+      try {
+        const contactos = await apiGet('/api/listContactosAdmin?clienteId=' + id);
+        pintarContactos(listaEl, id, contactos);
+      } catch(e){
+        listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`;
       }
     }
 
     // ══ CONTACTOS ══
-    async function cargarContactos(clienteId, wrap){
-      wrap.innerHTML = '<div class="radm-empty-row">Cargando contactos…</div>';
-      let contactos = [];
-      try {
-        contactos = await apiGet('/api/listContactosAdmin?clienteId=' + clienteId);
-      } catch(e){
-        wrap.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`;
-        return;
-      }
-      wrap.innerHTML = `
-        <div class="radm-section-head" style="margin-bottom:10px;">
-          <span class="radm-section-title">CONTACTOS</span>
-          <button type="button" class="radm-btn-add" data-action="add-contacto">+ Agregar contacto</button>
-        </div>
-        <div class="radm-list" data-lista-contactos></div>
-      `;
-      const listaEl = wrap.querySelector('[data-lista-contactos]');
-      pintarContactos(listaEl, clienteId, contactos);
-      wrap.querySelector('[data-action="add-contacto"]').addEventListener('click', () => abrirFormContacto(listaEl, clienteId, null));
-    }
-
     function contactoMeta(ct){
       const partes = [];
+      if(ct.planta) partes.push('Planta ' + escapeHtml(ct.planta));
+      if(ct.area) partes.push(escapeHtml(ct.area));
       if(ct.correo) partes.push(escapeHtml(ct.correo));
       if(ct.telefono) partes.push(escapeHtml(ct.telefono) + (ct.tiene_whatsapp ? ` <span class="cli-wa">${ICO.wa} WhatsApp</span>` : ''));
-      if(ct.area) partes.push(escapeHtml(ct.area));
       return partes.length ? partes.join(' · ') : '—';
     }
 
@@ -3856,8 +3947,8 @@
     function refrescarConteoCliente(clienteId, n){
       const c = cliClientes.find(x => x.id === clienteId);
       if(c) c.num_contactos = n;
-      const sub = document.querySelector(`.cli-cliente[data-id="${clienteId}"] .radm-row-sub`);
-      if(sub) sub.textContent = `${c.codigo} · ${n} contacto${n === 1 ? '' : 's'}`;
+      const sub = document.querySelector(`.cli-row[data-id="${clienteId}"] .cli-row-sub`);
+      if(sub && c) sub.textContent = `${c.codigo} · ${n} contacto${n === 1 ? '' : 's'}`;
     }
 
     function abrirFormContacto(listaEl, clienteId, item){
@@ -3869,10 +3960,13 @@
       form.innerHTML = `
         <div class="radm-form-row">
           <div class="radm-field"><label>NOMBRE</label><input type="text" class="cf-nombre" value="${item ? escapeHtml(item.nombre) : ''}"></div>
-          <div class="radm-field"><label>ÁREA</label><input type="text" class="cf-area" value="${item && item.area ? escapeHtml(item.area) : ''}"></div>
+          <div class="radm-field"><label>PLANTA</label><input type="text" class="cf-planta" placeholder="Ej. Planta Norte" value="${item && item.planta ? escapeHtml(item.planta) : ''}"></div>
         </div>
         <div class="radm-form-row">
+          <div class="radm-field"><label>ÁREA</label><input type="text" class="cf-area" value="${item && item.area ? escapeHtml(item.area) : ''}"></div>
           <div class="radm-field"><label>CORREO</label><input type="text" class="cf-correo" value="${item && item.correo ? escapeHtml(item.correo) : ''}"></div>
+        </div>
+        <div class="radm-form-row">
           <div class="radm-field"><label>TELÉFONO</label><input type="text" class="cf-telefono" value="${item && item.telefono ? escapeHtml(item.telefono) : ''}"></div>
         </div>
         <div class="radm-actions">
@@ -3900,6 +3994,7 @@
         const payload = {
           cliente_id: clienteId,
           nombre,
+          planta: form.querySelector('.cf-planta').value.trim(),
           correo: form.querySelector('.cf-correo').value.trim(),
           telefono: form.querySelector('.cf-telefono').value.trim(),
           tiene_whatsapp: form.querySelector('.cf-whatsapp').checked,
@@ -3914,6 +4009,7 @@
           const contactosNuevos = await apiGet('/api/listContactosAdmin?clienteId=' + clienteId);
           pintarContactos(listaEl, clienteId, contactosNuevos);
           refrescarConteoCliente(clienteId, contactosNuevos.length);
+          cargarKpis();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
@@ -3926,51 +4022,66 @@
         const contactosNuevos = await apiGet('/api/listContactosAdmin?clienteId=' + clienteId);
         pintarContactos(listaEl, clienteId, contactosNuevos);
         refrescarConteoCliente(clienteId, contactosNuevos.length);
+        cargarKpis();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
 
     // ══ CLIENTE (alta/edición) ══
     function abrirFormCliente(item){
-      const cont = document.getElementById('cliLista');
-      const existing = cont.querySelector('.radm-inline-form');
-      if(existing) existing.remove();
-
-      const form = document.createElement('div');
-      form.className = 'radm-inline-form';
-      form.innerHTML = `
-        <div class="radm-form-row">
-          <div class="radm-field"><label>NOMBRE</label><input type="text" class="clf-nombre" value="${item ? escapeHtml(item.nombre) : ''}"></div>
-          <div class="radm-field" style="max-width:160px;"><label>CÓDIGO</label><input type="text" class="clf-codigo radm-mono" style="text-transform:uppercase;" value="${item ? escapeHtml(item.codigo) : ''}"></div>
-        </div>
-        <div class="radm-form-row">
-          <div class="radm-field"><label>NOTAS</label><textarea class="clf-notas">${item && item.notas ? escapeHtml(item.notas) : ''}</textarea></div>
-        </div>
-        <div class="radm-actions">
-          <span class="radm-hint">${item ? 'Los clientes no se eliminan — si ya no aplica, ajusta sus notas.' : 'El código es el alias corto del cliente (ej. "ACME") — se usa también en folios de diplomas.'}</span>
-          <div class="radm-actions-buttons">
-            <button type="button" class="radm-btn clf-guardar">Guardar</button>
-            <button type="button" class="radm-btn radm-btn-ghost clf-cancelar">Cancelar</button>
+      const det = document.getElementById('cliDetalle');
+      const anioActual = new Date().getFullYear();
+      det.innerHTML = `
+        <div class="radm-inline-form" style="margin:0;">
+          <div class="radm-form-row">
+            <div class="radm-field"><label>NOMBRE</label><input type="text" class="clf-nombre" value="${item ? escapeHtml(item.nombre) : ''}"></div>
+            <div class="radm-field" style="max-width:140px;"><label>CÓDIGO</label><input type="text" class="clf-codigo radm-mono" style="text-transform:uppercase;" value="${item ? escapeHtml(item.codigo) : ''}"></div>
+            <div class="radm-field" style="max-width:150px;"><label>CLIENTE DESDE (AÑO)</label><input type="number" class="clf-desde" min="1990" max="${anioActual}" placeholder="${anioActual}" value="${item && item.cliente_desde ? item.cliente_desde : ''}"></div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field"><label>NOTAS</label><textarea class="clf-notas">${item && item.notas ? escapeHtml(item.notas) : ''}</textarea></div>
+          </div>
+          <div class="radm-actions">
+            <span class="radm-hint">${item ? 'Los clientes no se eliminan — si ya no aplica, ajusta sus notas.' : 'El código es el alias corto del cliente (ej. "ACME") — se usa también en folios de diplomas.'}</span>
+            <div class="radm-actions-buttons">
+              <button type="button" class="radm-btn clf-guardar">Guardar</button>
+              <button type="button" class="radm-btn radm-btn-ghost clf-cancelar">Cancelar</button>
+            </div>
           </div>
         </div>`;
-      cont.prepend(form);
-      form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-      form.querySelector('.clf-cancelar').addEventListener('click', () => form.remove());
-      form.querySelector('.clf-guardar').addEventListener('click', async () => {
-        const nombre = form.querySelector('.clf-nombre').value.trim();
-        const codigo = form.querySelector('.clf-codigo').value.trim();
-        const notas = form.querySelector('.clf-notas').value.trim();
+      det.querySelector('.clf-cancelar').addEventListener('click', () => {
+        if(item) renderDetalle(item.id);
+        else if(cliSeleccionado) renderDetalle(cliSeleccionado);
+        else det.innerHTML = EMPTY_HTML;
+      });
+      det.querySelector('.clf-guardar').addEventListener('click', async () => {
+        const nombre = det.querySelector('.clf-nombre').value.trim();
+        const codigo = det.querySelector('.clf-codigo').value.trim();
+        const notas = det.querySelector('.clf-notas').value.trim();
+        const desdeRaw = det.querySelector('.clf-desde').value.trim();
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
+        const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null };
         try {
-          if(item) await apiPostJson('/api/editarCliente', { id: item.id, nombre, codigo, notas });
-          else await apiPostJson('/api/crearCliente', { nombre, codigo, notas });
+          let id;
+          if(item){ await apiPostJson('/api/editarCliente', { id: item.id, ...payload }); id = item.id; }
+          else { const r = await apiPostJson('/api/crearCliente', payload); id = r.id; }
           toast('Cliente guardado.', true);
           await cargarClientes(document.getElementById('cliBuscar').value.trim());
+          cargarKpis();
+          seleccionarCliente(id);
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
     document.getElementById('cliBtnNuevo').addEventListener('click', () => abrirFormCliente(null));
+
+    document.getElementById('cliSortGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.cli-sort-btn');
+      if(!btn) return;
+      cliSort = btn.dataset.sort;
+      document.querySelectorAll('.cli-sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+      cargarClientes(document.getElementById('cliBuscar').value.trim());
+    });
 
     let cliBuscarTimer = null;
     document.getElementById('cliBuscar').addEventListener('input', e => {
@@ -3978,6 +4089,7 @@
       cliBuscarTimer = setTimeout(() => cargarClientes(e.target.value.trim()), 300);
     });
 
+    cargarKpis();
     cargarClientes('');
   })();
 
@@ -4021,6 +4133,15 @@
 
     let cargado = false;
 
+    document.getElementById('cfgRespaldosToggle').addEventListener('click', () => {
+      const body = document.getElementById('cfgRespaldosBody');
+      const toggle = document.getElementById('cfgRespaldosToggle');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      toggle.textContent = expandir ? 'Ocultar' : 'Desplegar';
+      if(expandir && !cargado){ cargado = true; cargarLista(); }
+    });
+
     function render(lista){
       const cont = document.getElementById('bakLista');
       if(!lista.length){ cont.innerHTML = '<div class="radm-empty-row">Todavía no hay respaldos.</div>'; return; }
@@ -4052,12 +4173,6 @@
       }
     }
 
-    document.getElementById('btnConfig').addEventListener('click', () => {
-      if(cargado) return;
-      cargado = true;
-      cargarLista();
-    });
-
     document.getElementById('bakGenerarBtn').addEventListener('click', async () => {
       const btn = document.getElementById('bakGenerarBtn');
       const textoOriginal = btn.innerHTML;
@@ -4077,10 +4192,20 @@
   })();
 
   // ── Tarifas por hora (dentro de Configuración) ──
+  // Guardado deliberado a propósito: Alfredo la toca ~1 vez al año, así que en
+  // vez de autoguardar al perder el foco (riesgo de un cambio accidental) hay
+  // un botón "Actualizar" que solo se habilita si el precio cambió, y una
+  // confirmación explícita con los dos valores antes de escribir en la base.
   (function(){
     const TOOL_NAMES = {
       excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
       powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
+    };
+    // Misma paleta por herramienta que usan Cursos/Recursos/Dashboard (ver CLAUDE.md) —
+    // duplicada aquí a propósito, este IIFE no comparte estado con esos módulos.
+    const TOOL_COLORS = {
+      excel: '#22c55e', powerbi: '#f2c94c', powerapps: '#c026d3',
+      powerautomate: '#06b6d4', ia: '#a78bfa', ofimatica: '#f97316',
     };
     const ICO_TAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.6 12.6 12 4H4v8l8.6 8.6a2 2 0 0 0 2.8 0l5.2-5.2a2 2 0 0 0 0-2.8Z" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>';
 
@@ -4104,16 +4229,7 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
-
-    async function guardarTarifa(herramienta, input){
-      const precio = Number(input.value);
-      if(!Number.isFinite(precio) || precio < 0){ toast('Precio inválido.', false); return; }
-      try {
-        await apiPostJson('/api/actualizarTarifa', { herramienta, precio_hora: precio });
-        input.classList.remove('cfg-tarifa-dirty');
-        toast('Tarifa actualizada.', true);
-      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
-    }
+    function fmtMoney(n){ return '$' + Number(n).toLocaleString('es-MX'); }
 
     async function cargarTarifas(){
       const cont = document.getElementById('cfgTarifasGrid');
@@ -4125,27 +4241,59 @@
         return;
       }
       cont.innerHTML = tarifas.map(t => `
-        <div class="cfg-tarifa-row">
+        <div class="cfg-tarifa-row" style="--tc:${TOOL_COLORS[t.herramienta] || 'var(--blue-bright)'}">
           <span class="cfg-tarifa-icon">${ICO_TAG}</span>
           <span class="cfg-tarifa-nombre">${TOOL_NAMES[t.herramienta] || t.herramienta}</span>
-          <input type="number" min="0" step="50" class="cfg-tarifa-input" data-herramienta="${t.herramienta}" value="${t.precio_hora}">
+          <input type="number" min="0" step="50" class="cfg-tarifa-input" data-herramienta="${t.herramienta}" data-original="${t.precio_hora}" value="${t.precio_hora}">
+          <button type="button" class="radm-btn radm-btn-ghost cfg-tarifa-btn" style="min-width:auto;" disabled>Actualizar</button>
         </div>
       `).join('');
 
       cont.querySelectorAll('.cfg-tarifa-input').forEach(input => {
-        input.addEventListener('input', () => input.classList.add('cfg-tarifa-dirty'));
-        input.addEventListener('blur', () => {
-          if(input.classList.contains('cfg-tarifa-dirty')) guardarTarifa(input.dataset.herramienta, input);
+        input.addEventListener('input', () => {
+          const btn = input.closest('.cfg-tarifa-row').querySelector('.cfg-tarifa-btn');
+          const dirty = input.value !== '' && Number(input.value) !== Number(input.dataset.original);
+          input.classList.toggle('cfg-tarifa-dirty', dirty);
+          btn.disabled = !dirty;
         });
-        input.addEventListener('keydown', e => { if(e.key === 'Enter') input.blur(); });
+      });
+
+      cont.querySelectorAll('.cfg-tarifa-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const row = btn.closest('.cfg-tarifa-row');
+          const input = row.querySelector('.cfg-tarifa-input');
+          const herramienta = input.dataset.herramienta;
+          const nombre = row.querySelector('.cfg-tarifa-nombre').textContent;
+          const anterior = Number(input.dataset.original);
+          const nuevo = Number(input.value);
+          if(!Number.isFinite(nuevo) || nuevo < 0){ toast('Precio inválido.', false); return; }
+          if(!confirm(`¿Cambiar la tarifa de ${nombre} de ${fmtMoney(anterior)} a ${fmtMoney(nuevo)} por hora?`)) return;
+
+          const textoOriginal = btn.textContent;
+          btn.disabled = true; btn.textContent = 'Guardando...';
+          try {
+            await apiPostJson('/api/actualizarTarifa', { herramienta, precio_hora: nuevo });
+            input.dataset.original = nuevo;
+            input.classList.remove('cfg-tarifa-dirty');
+            toast('Tarifa actualizada.', true);
+          } catch(e){
+            toast('No se pudo guardar: ' + e.message, false);
+            btn.disabled = false;
+          } finally {
+            btn.textContent = textoOriginal;
+          }
+        });
       });
     }
 
     let cargado = false;
-    document.getElementById('btnConfig').addEventListener('click', () => {
-      if(cargado) return;
-      cargado = true;
-      cargarTarifas();
+    document.getElementById('cfgTarifasToggle').addEventListener('click', () => {
+      const body = document.getElementById('cfgTarifasBody');
+      const toggle = document.getElementById('cfgTarifasToggle');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      toggle.textContent = expandir ? 'Ocultar' : 'Desplegar';
+      if(expandir && !cargado){ cargado = true; cargarTarifas(); }
     });
   })();
 </script>

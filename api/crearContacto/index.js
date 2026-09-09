@@ -14,6 +14,7 @@ module.exports = async function (context, req) {
   const telefono = (body.telefono || "").trim() || null;
   const tieneWhatsapp = body.tiene_whatsapp ? 1 : 0;
   const area = (body.area || "").trim() || null;
+  const planta = (body.planta || "").trim() || null;
   const esPrincipal = body.es_principal ? 1 : 0;
 
   if (!clienteId || !nombre) {
@@ -39,11 +40,12 @@ module.exports = async function (context, req) {
       .input("telefono", sql.NVarChar, telefono)
       .input("tieneWhatsapp", sql.Bit, tieneWhatsapp)
       .input("area", sql.NVarChar, area)
+      .input("planta", sql.NVarChar, planta)
       .input("esPrincipal", sql.Bit, esPrincipal)
       .query(
-        `INSERT INTO Contacto (cliente_id, nombre, correo, telefono, tiene_whatsapp, area, es_principal)
+        `INSERT INTO Contacto (cliente_id, nombre, correo, telefono, tiene_whatsapp, area, planta, es_principal)
          OUTPUT INSERTED.id
-         VALUES (@clienteId, @nombre, @correo, @telefono, @tieneWhatsapp, @area, @esPrincipal)`
+         VALUES (@clienteId, @nombre, @correo, @telefono, @tieneWhatsapp, @area, @planta, @esPrincipal)`
       );
 
     await transaction.commit();

@@ -115,6 +115,7 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 
 **Deuda técnica (no es tarea tuya en portal — para una sesión constructora cuando quieras invertir en limpieza):**
 - [ ] Separar el CSS/JS que sigue inline en `cursos.html` (~670 líneas de CSS + ~500 de JS de 1,292 totales) hacia `/assets/` — no bloquea nada, mencionado varias veces en auditorías/revisiones sin resolverse.
+- [ ] Extender el reintento con pausas crecientes (`apiGetConReintento`, agregado 2026-09-09 a Clientes/Solicitudes/Tarifas) al resto de secciones del admin que consultan la base SQL — Diplomas y Encuestas todavía no lo tienen — y a páginas públicas nuevas que se conecten a esa misma base a futuro. **No tocar mientras Alfredo esté construyendo Solicitudes activamente** — esperar a que confirme que terminó esa parte para no pisar cambios en curso.
 
 **Consideración estratégica, sin acción inmediata:** el correo `alfredo.pina@lifezen.com.mx` (dominio de otra empresa) sostiene todo el login de `/admin` — riesgo de bus factor a tener en el radar, no urgente.
 

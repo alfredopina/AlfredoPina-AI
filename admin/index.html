@@ -337,11 +337,13 @@
   .radm-btn-danger:hover{ background:color-mix(in srgb, var(--bad) 12%, transparent); }
   .radm-btn-add{
     font-family:var(--mono); font-size:11px; font-weight:600; color:var(--c);
-    background:color-mix(in srgb, var(--c) 12%, transparent); border:1px solid var(--c);
+    background-color:color-mix(in srgb, var(--c) 12%, transparent); border:1px solid var(--c);
     border-radius:6px; padding:6px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
-    transition:background .15s;
+    transition:background-color .15s;
   }
-  .radm-btn-add:hover{ background:color-mix(in srgb, var(--c) 22%, transparent); }
+  .radm-btn-add:hover{ background-color:color-mix(in srgb, var(--c) 22%, transparent); }
+  .radm-btn-add:disabled{ opacity:.4; cursor:default; background-color:transparent; }
+  .radm-btn-add:disabled:hover{ background-color:transparent; }
   .radm-btn-add svg{ width:11px; height:11px; }
 
   .radm-section{ margin-bottom:30px; }
@@ -593,13 +595,39 @@
   .sol-pill:hover{ color:var(--text); }
   .sol-pill.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
 
+  .sol-temario-toggle{
+    display:inline-flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer;
+    font:inherit; color:var(--text); text-align:left; padding:0;
+  }
+  .sol-temario-toggle:hover .sol-temario-nombre{ color:var(--blue-bright); }
+  .sol-temario-nombre{ font-size:12.5px; }
+  .sol-temario-tipo-tag{
+    font-family:var(--mono); font-size:9.5px; color:var(--text-faint); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:20px; padding:1px 7px; white-space:nowrap;
+  }
+  .sol-temario-chevron{ width:11px; height:11px; flex:none; color:var(--text-faint); transition:transform .15s; }
+  .sol-temario-chevron.open{ transform:rotate(180deg); }
+
+  .sol-desglose-row td{ background:var(--panel-2) !important; padding:14px 16px !important; }
+  .sol-desglose{ display:flex; flex-direction:column; gap:10px; }
+  .sol-desglose-item{ border-left:2px solid var(--line); padding-left:10px; }
+  .sol-desglose-nombre{ font-size:12.5px; font-weight:500; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .sol-desglose-horas{ font-family:var(--mono); font-size:11px; color:var(--text-faint); font-weight:400; }
+  .sol-desglose-desc{ font-size:11.5px; color:var(--text-dim); margin-top:3px; line-height:1.5; }
+
   .sol-kpi-row{
     display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; padding-bottom:22px;
     border-bottom:1px solid var(--line);
   }
   .sol-kpi-row .dkpi-card{ flex:1; min-width:150px; }
 
-  .sol-toolbar-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:16px 0 20px; }
+  .sol-toolbar{
+    display:flex; flex-direction:column; gap:14px; background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:16px 18px; margin-bottom:20px;
+  }
+  .sol-toolbar-row-sort{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--line-soft);
+  }
   .sol-sort-group{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .sol-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
   .sol-sort-btn{
@@ -868,55 +896,57 @@
           </div>
         </div>
 
-        <div class="dip-filters">
-          <div class="radm-field">
-            <label>ESTATUS</label>
-            <select id="solFEstatus">
-              <option value="">Todos</option>
-              <option value="Nueva">Nueva</option>
-              <option value="En seguimiento">En seguimiento</option>
-              <option value="Cotizada">Cotizada</option>
-              <option value="Ganada">Ganada</option>
-              <option value="Perdida">Perdida</option>
-            </select>
+        <div class="sol-toolbar">
+          <div class="dip-filters" style="margin-bottom:0;">
+            <div class="radm-field">
+              <label>ESTATUS</label>
+              <select id="solFEstatus">
+                <option value="">Todos</option>
+                <option value="Nueva">Nueva</option>
+                <option value="En seguimiento">En seguimiento</option>
+                <option value="Cotizada">Cotizada</option>
+                <option value="Ganada">Ganada</option>
+                <option value="Perdida">Perdida</option>
+              </select>
+            </div>
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE</label>
+              <input type="text" id="solFClienteNombre" placeholder="Escribe para buscar...">
+              <div class="dip-autocomplete-list" id="solFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="solFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="solFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="solBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las solicitudes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
           </div>
-          <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
-            <label>CLIENTE</label>
-            <input type="text" id="solFClienteNombre" placeholder="Escribe para buscar...">
-            <div class="dip-autocomplete-list" id="solFClienteLista" hidden></div>
-          </div>
-          <div class="radm-field">
-            <label>DESDE</label>
-            <input type="date" id="solFDesde">
-          </div>
-          <div class="radm-field">
-            <label>HASTA</label>
-            <input type="date" id="solFHasta">
-          </div>
-          <div class="dip-filter-actions">
-            <button type="button" class="radm-btn dip-btn-icon" id="solBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-              Buscar
-            </button>
-            <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Limpiar filtros
-            </button>
-            <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las solicitudes">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-              Ver todos
-            </button>
-          </div>
-        </div>
 
-        <div class="sol-toolbar-row">
-          <div class="sol-sort-group" id="solSortGroup">
+          <div class="sol-toolbar-row-sort">
             <span class="sol-sort-label">ORDENAR</span>
-            <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha<span class="sol-sort-ico" hidden></span></button>
-            <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
-            <button type="button" class="sol-sort-btn" data-sort="horas">Horas<span class="sol-sort-ico" hidden></span></button>
+            <div class="sol-sort-group" id="solSortGroup">
+              <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="horas">Horas<span class="sol-sort-ico" hidden></span></button>
+            </div>
+            <button type="button" class="radm-btn-add" id="solBtnNueva" style="margin-left:auto;">+ Nueva Solicitud</button>
           </div>
-          <button type="button" class="radm-btn-add" id="solBtnNueva" style="margin-left:auto;">+ Nueva Solicitud</button>
         </div>
 
         <div id="solFormWrap"></div>
@@ -929,13 +959,14 @@
                 <th>Contacto</th>
                 <th>Herramienta</th>
                 <th>Temario / Temas</th>
+                <th>Horas</th>
                 <th>Canal</th>
                 <th>Estatus</th>
                 <th>Fecha</th>
               </tr>
             </thead>
             <tbody id="solListaBody">
-              <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -4468,13 +4499,31 @@
       buscarSolicitudes();
     });
 
-    function temarioResumen(s){
-      if(s.temario_tipo === 'estandar'){
-        return escapeHtml(s.temario_nombre || '—') + (s.horas_totales ? ` · ${s.horas_totales} hr` : '');
-      }
-      let n = 0;
-      try { n = JSON.parse(s.temas_json || '[]').length; } catch(e){}
-      return `${n} tema${n === 1 ? '' : 's'} · ${s.horas_totales || 0} hr`;
+    // parsea temas_json una vez — ambos modos (estándar y personalizado) lo
+    // guardan con el desglose completo (nombre/descripción/horas/nivel), ver
+    // crearSolicitud.
+    function temasDe(s){
+      try { return JSON.parse(s.temas_json || '[]'); } catch(e){ return []; }
+    }
+
+    function temarioResumenCorto(s){
+      if(s.temario_tipo === 'estandar') return escapeHtml(s.temario_nombre || '—');
+      const temas = temasDe(s);
+      if(!temas.length) return '—';
+      const nombres = temas.map(t => t.nombre);
+      const visibles = nombres.slice(0, 2).join(', ');
+      return escapeHtml(visibles) + (nombres.length > 2 ? ` +${nombres.length - 2} más` : '');
+    }
+
+    function temarioDesgloseHtml(s){
+      const temas = temasDe(s);
+      if(!temas.length) return '<div class="radm-empty-row">Sin desglose disponible.</div>';
+      return temas.map(t => `
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">${NIVEL_LABEL[t.nivel] ? NIVEL_LABEL[t.nivel] + ' · ' : ''}${t.horas} hr</span></div>
+          ${t.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(t.descripcion)}</div>` : ''}
+        </div>
+      `).join('');
     }
 
     async function buscarSolicitudes(){
@@ -4491,25 +4540,44 @@
       params.set('dir', solDir);
 
       const body = document.getElementById('solListaBody');
-      body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const lista = await apiGetConReintento('/api/listSolicitudesAdmin?' + params.toString());
-        if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
         body.innerHTML = lista.map(s => `
           <tr data-id="${s.id}">
             <td>${escapeHtml(s.cliente)}</td>
             <td>${s.contacto ? escapeHtml(s.contacto) : '—'}</td>
             <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
-            <td>${temarioResumen(s)}</td>
+            <td>
+              <button type="button" class="sol-temario-toggle" data-id="${s.id}" title="Ver desglose de temas">
+                <span class="sol-temario-nombre">${temarioResumenCorto(s)}</span>
+                <span class="sol-temario-tipo-tag">${s.temario_tipo === 'estandar' ? 'Estándar' : 'Personalizado'}</span>
+                <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
+            <td class="radm-mono" style="text-align:right;">${s.horas_totales != null ? s.horas_totales : '—'}</td>
             <td><span class="dip-status"><span style="width:13px;height:13px;display:inline-flex;">${s.canal_origen === 'Sitio' ? ICO_SITIO : ICO_MANUAL}</span>${escapeHtml(s.canal_origen)}</span></td>
             <td><select class="sol-estatus-select" data-id="${s.id}">${ESTATUS.map(e => `<option value="${e}" ${e === s.estatus ? 'selected' : ''}>${e}</option>`).join('')}</select></td>
             <td>${fmtFecha(s.fecha_creacion)}</td>
           </tr>
+          <tr class="sol-desglose-row" id="sol-desglose-${s.id}" hidden>
+            <td colspan="8"><div class="sol-desglose">${temarioDesgloseHtml(s)}</div></td>
+          </tr>
         `).join('');
       } catch(e){
-        body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
+
+    document.getElementById('solListaBody').addEventListener('click', e => {
+      const toggle = e.target.closest('.sol-temario-toggle');
+      if(!toggle) return;
+      const fila = document.getElementById('sol-desglose-' + toggle.dataset.id);
+      if(!fila) return;
+      fila.hidden = !fila.hidden;
+      toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+    });
 
     document.getElementById('solBuscar').addEventListener('click', buscarSolicitudes);
 
@@ -4570,7 +4638,7 @@
               </select>
             </div>
             <div class="radm-field" style="flex:none; justify-content:flex-end;">
-              <button type="button" class="radm-btn-add" id="solBtnNuevoContacto" disabled style="margin-bottom:1px;">+ Nuevo contacto</button>
+              <button type="button" class="radm-btn-add" id="solBtnNuevoContacto" disabled style="margin-bottom:1px;" title="Se activa al elegir un cliente EXISTENTE de la lista (clic en la sugerencia, no basta con escribir el nombre). Para un cliente nuevo, agrega su contacto después en Clientes.">+ Nuevo contacto</button>
             </div>
           </div>
           <div id="solContactoFormWrap"></div>

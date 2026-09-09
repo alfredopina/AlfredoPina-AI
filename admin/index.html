@@ -3933,6 +3933,21 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
+    // Reintento con pausas crecientes — la base SQL serverless se autopausa por
+    // inactividad (el retraso exacto lo controla la oferta gratis, no es
+    // configurable) y la primera consulta tras una pausa puede tardar en
+    // "despertarla". Mismo patrón ya probado en encuesta.html.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
     function antiguedadTexto(anio){
       if(!anio) return null;
       const anios = new Date().getFullYear() - anio;
@@ -3965,7 +3980,7 @@
 
     async function cargarKpis(){
       try {
-        const r = await apiGet('/api/getResumenClientesAdmin');
+        const r = await apiGetConReintento('/api/getResumenClientesAdmin');
         document.getElementById('cliKpiTotal').textContent = r.total_clientes;
         document.getElementById('cliKpiContactos').textContent = r.total_contactos;
         const pct = r.total_clientes ? Math.round((r.clientes_activos / r.total_clientes) * 100) : 0;
@@ -3981,7 +3996,7 @@
         if(q) params.set('q', q);
         params.set('sort', cliSort);
         params.set('dir', cliDir);
-        cliClientes = await apiGet('/api/listClientesAdmin?' + params.toString());
+        cliClientes = await apiGetConReintento('/api/listClientesAdmin?' + params.toString());
       } catch(e){
         cliClientes = [];
         toast('No se pudieron cargar los clientes: ' + e.message, false);
@@ -4043,7 +4058,7 @@
       det.querySelector('[data-action="add-contacto"]').addEventListener('click', () => abrirFormContacto(listaEl, id, null));
 
       try {
-        const contactos = await apiGet('/api/listContactosAdmin?clienteId=' + id);
+        const contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id);
         pintarContactos(listaEl, id, contactos);
       } catch(e){
         listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`;
@@ -4143,7 +4158,7 @@
           else await apiPostJson('/api/crearContacto', payload);
           toast('Contacto guardado.', true);
           form.remove();
-          const contactosNuevos = await apiGet('/api/listContactosAdmin?clienteId=' + clienteId);
+          const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
           pintarContactos(listaEl, clienteId, contactosNuevos);
           refrescarConteoCliente(clienteId, contactosNuevos.length);
           cargarKpis();
@@ -4156,7 +4171,7 @@
       try {
         await apiPostJson('/api/eliminarContacto', { id });
         toast('Contacto eliminado.', true);
-        const contactosNuevos = await apiGet('/api/listContactosAdmin?clienteId=' + clienteId);
+        const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
         pintarContactos(listaEl, clienteId, contactosNuevos);
         refrescarConteoCliente(clienteId, contactosNuevos.length);
         cargarKpis();
@@ -4284,6 +4299,21 @@
       const d = new Date(iso);
       return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
     }
+    // Reintento con pausas crecientes — la base SQL serverless se autopausa por
+    // inactividad (retraso fijo de la oferta gratis, no configurable) y la
+    // primera consulta tras una pausa puede tardar en "despertarla". Mismo
+    // patrón ya probado en encuesta.html y en la sección Clientes.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
 
     // ── autocompletado de Cliente (copia propia — el de Diplomas no acepta onChange) ──
     function crearAutocomplete({ inputId, listId, codigoId, onChange }){
@@ -4363,7 +4393,7 @@
       const body = document.getElementById('solListaBody');
       body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGet('/api/listSolicitudesAdmin?' + params.toString());
+        const lista = await apiGetConReintento('/api/listSolicitudesAdmin?' + params.toString());
         if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
         body.innerHTML = lista.map(s => `
           <tr data-id="${s.id}">
@@ -4491,7 +4521,7 @@
         }
         sel.disabled = true;
         sel.innerHTML = '<option value="">Cargando contactos…</option>';
-        try { solContactos = await apiGet('/api/listContactosAdmin?clienteId=' + cliente.id); }
+        try { solContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
         catch(e){ solContactos = []; }
         pintarContactoSelect();
         sel.disabled = false;
@@ -4535,7 +4565,7 @@
             });
             toast('Contacto guardado.', true);
             cfw.innerHTML = '';
-            solContactos = await apiGet('/api/listContactosAdmin?clienteId=' + cliente.id);
+            solContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id);
             pintarContactoSelect();
             document.getElementById('solContactoSelect').value = r.id;
           } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
@@ -4812,12 +4842,26 @@
       return body;
     }
     function fmtMoney(n){ return '$' + Number(n).toLocaleString('es-MX'); }
+    // Reintento con pausas crecientes — misma razón que en Clientes/Solicitudes:
+    // la base SQL serverless se autopausa por inactividad (retraso fijo de la
+    // oferta gratis) y la primera consulta tras una pausa puede tardar.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
 
     async function cargarTarifas(){
       const cont = document.getElementById('cfgTarifasGrid');
       let tarifas = [];
       try {
-        tarifas = await apiGet('/api/listTarifasAdmin');
+        tarifas = await apiGetConReintento('/api/listTarifasAdmin');
       } catch(e){
         cont.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las tarifas: ${e.message}</div>`;
         return;

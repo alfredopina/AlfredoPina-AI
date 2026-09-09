@@ -169,6 +169,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/listSolicitudesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearSolicitud",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/actualizarEstatusSolicitud",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listClientesAdmin",
       "allowedRoles": ["admin"]
     },

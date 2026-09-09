@@ -76,7 +76,10 @@ Alfredo identificó que, sin planearlo, ya está automatizando 3 roles de su neg
 
 Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los ya resueltos. Es el lugar único para esto — evita que queden dispersos en prosa narrativa por todo el documento.
 
-**Siguiente paso acordado del roadmap (2026-09-08):** Clientes/Contactos/Tarifas (base de Fase 1.1/1.2) ya están construidos — ver "Fase 1 — Clientes/Contactos/Tarifas" abajo. Falta correr el script SQL en el portal y confirmar en producción (ver pendientes justo debajo); después de eso, lo que sigue es **Solicitudes** (Fase 1.1 completa — hoy solo existe el esquema de la tabla, sin Functions ni UI) o **Cotizaciones** (Fase 1.2, que ya tiene Cliente/TarifaHerramienta listos para apoyarse), a decidir con Alfredo cuál construir primero.
+**Siguiente paso acordado del roadmap (2026-09-09):** Fase 2 — **Solicitudes** ya está construida (ver "Fase 2 — Solicitudes" abajo) — falta confirmar en producción. Lo que sigue después es **Cotizaciones** (Fase 3 del bloque Comercial, sobre el mismo esquema `Cotizacion` ya creado en `sql/005_comercial.sql`) — ahí es donde nace el botón "Convertir a Cotización" en Solicitudes y el cambio automático a estatus "Cotizada", ninguno de los dos construido todavía a propósito.
+
+**Fase 2 — Solicitudes (sesión 2026-09-09):**
+- [ ] Confirmar en producción: dar de alta una Solicitud con cliente nuevo, otra con cliente existente, una con Temario Estándar y otra Personalizada, agregar un contacto nuevo desde el mini-formulario inline, y cambiar el estatus de una solicitud desde la tabla.
 
 **Fase 1 — Clientes/Contactos/Tarifas (sesión 2026-09-08):**
 - [x] Correr `sql/005_comercial.sql` en el Query Editor de `apcweb-backoffice` (agrega `notas` a `Cliente`, crea `Contacto`/`Solicitud`/`TarifaHerramienta`/`Cotizacion` — Solicitud/Cotizacion quedan sin Functions todavía, es solo esquema adelantado).
@@ -225,6 +228,14 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
   2. Un selector descendiente compuesto (`.padre.activo .hijo{ transform:... }`) tampoco se aplicaba de forma confiable en esta hoja de estilos grande, aunque `querySelector`/`.matches()` confirmaban que sí calzaba y la regla en el CSSOM tenía el valor correcto — pasaba con el chevron de "Desplegar" en Configuración (nunca rotaba). **Corregido evitando el selector compuesto por completo:** la clase de estado (`expanded`) se pone directamente en el elemento que cambia (el ícono), no en un ancestro, y el CSS queda como selector simple `.cfg-toggle-ico.expanded`. Si un componente futuro necesita reaccionar al estado de un ancestro, preferir poner la clase directo en el elemento afectado en vez de depender de un selector `.ancestro.estado .descendiente`.
 - **Pendiente para Alfredo (no requiere a Claude):** correr `sql/006_comercial_ajustes.sql` en el Query Editor; confirmar en producción el flujo completo (cliente con antigüedad, contacto con planta, orden en ambas direcciones, búsqueda por contacto, scorecard, y el nuevo guardado de tarifas con confirmación).
 
+**En construcción — Solicitudes, Fase 2 Comercial (2026-09-09, pendiente confirmar en producción):**
+- Extiende `Solicitud`, tabla que ya existía desde `sql/005_comercial.sql` (Fase 1) sin ninguna Function todavía — esta sesión solo construye encima, sin tocar el esquema. Sin botón "Convertir a Cotización" a propósito (Cotización no existe como Function hasta Fase 3) ni cambio automático a estatus "Cotizada" — por ahora el estatus se cambia a mano desde la tabla.
+- **Selector de temario reusa `GET /api/getCatalogoCursos?herramienta=X`**, la misma Function pública que ya usa `cursos.html` — nada nuevo del lado de Cursos/Recursos. La UI del admin replica la misma lógica del constructor público (herramienta → toggle Estándar/Personalizado si la herramienta tiene ambos → dropdown de temarios o checkboxes de temas con suma de horas en vivo) pero con los componentes visuales del admin (`.radm-tab`, `.sol-tema-item`), no la barra `fx=` ni el mínimo de 12 hr del constructor público — ese umbral es un empujón de marketing para el sitio, no una regla de datos, así que el admin no lo hereda.
+- **3 Functions nuevas** (v3 clásico, protegidas rol admin): `listSolicitudesAdmin` (filtros estatus/cliente/fecha, JOIN a Cliente/Contacto para mostrar nombres), `crearSolicitud` (mismo patrón `resolverCliente` que `generarDiplomas`/`enviarRespuesta`, duplicado a propósito — cliente existente por id o nombre+código nuevo; `temas_json` es una foto de los temas elegidos, no una referencia viva a Table Storage), `actualizarEstatusSolicitud` (valida los 5 estatus válidos en JS, sin CHECK constraint en la tabla — mismo criterio que ya usa `crearPregunta` con sus enums).
+- `admin/index.html` → sección **Solicitudes** (le quita el "PRONTO" al sidebar, ya no hace falta el placeholder automático): filtros (estatus/cliente con autocompletado/fecha) + Buscar/Limpiar filtros/Ver todos, mismo patrón visual que Consultar Diplomas. Formulario de alta (`.radm-form`, no modal): Cliente (copia propia de `crearAutocomplete` — la de Diplomas no acepta callback, así que esta lleva un `onChange` nuevo para disparar la carga de Contactos en cuanto se elige un cliente existente) → Contacto (`<select>`, deshabilitado hasta elegir cliente existente — un cliente nuevo no tiene contactos todavía) con botón "+ Nuevo contacto" que abre un mini-form inline (solo nombre/correo/teléfono, llama a `crearContacto` de Fase 1 — para planta/WhatsApp/principal hay que editarlo después en Clientes) → Herramienta → selector de temario → Notas. Tabla con columna "Temario / Temas" resumida ("3 temas · 12 hr" o el nombre del temario estándar), Canal con ícono+texto (nunca solo color, por la deuteranomalía de Alfredo — hoy siempre "Manual", "Sitio" queda reservado para un futuro form público), y Estatus como `<select>` inline que persiste al cambiarlo sin abrir nada más.
+- Probado de punta a punta en el mismo servidor HTTP local con `fetch` mockeado: solicitud con cliente existente + temario estándar, solicitud con cliente nuevo + temario personalizado (suma de horas en vivo confirmada: 4+6=10 hr), alta de contacto nuevo desde el mini-form con selección automática tras guardar, cambio de estatus persistiendo en la "base", y filtro por estatus mostrando solo lo que corresponde.
+- **Pendiente para Alfredo (no requiere a Claude):** confirmar el mismo flujo en producción.
+
 **Pendiente / roadmap:** ver la sección "Modelo del negocio y roadmap estratégico" arriba para Diagnóstico, backoffice/CRM y todo el plan de fases — es la versión vigente, reemplaza cualquier plan anterior (incluidos los documentos `Memoria_...` del Project de claude.ai en lo que toque a fases/orden). Los pendientes puntuales (contenido, marketing, deuda técnica) viven todos en "Pendientes de Alfredo" al inicio del documento — un solo lugar, no repetido aquí.
 
 **Ya resueltos** (no reabrir salvo pedido explícito):
@@ -246,6 +257,16 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 ## Historial de sesiones
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
+
+### 2026-09-09 alfredo.pina: Solicitudes — Fase 2 Comercial completa
+
+Tercera sesión del día, después de la ronda de pulido de Clientes. Construye Solicitudes completo (backend + admin) sobre la tabla que ya existía desde Fase 1 — detalle técnico completo en "Estado del proyecto" → sección Solicitudes arriba, no repetido aquí.
+
+- 3 Functions nuevas (`listSolicitudesAdmin`, `crearSolicitud`, `actualizarEstatusSolicitud`) + sección Solicitudes en el admin, sin tocar el esquema SQL (la tabla `Solicitud` ya existía).
+- El selector de temario reusa `getCatalogoCursos` (la misma Function pública de `cursos.html`) en vez de inventar una consulta nueva — mismos datos, mismo patrón herramienta→Estándar/Personalizado, solo con estilo de admin en vez del constructor público.
+- A propósito, sin botón "Convertir a Cotización" ni cambio automático de estatus — Cotización no existe todavía (llega en Fase 3), y un botón que no hace nada hubiera confundido más que ayudado.
+- Probado de punta a punta con `fetch` mockeado: cliente nuevo y existente, temario estándar y personalizado (suma de horas en vivo), alta de contacto desde el mini-form inline, y cambio de estatus persistiendo.
+- **Pendiente para Alfredo:** confirmar el flujo completo en producción.
 
 ### 2026-09-09 alfredo.pina: Clientes — ronda de ajustes tras la primera prueba real (layout, planta, antigüedad, orden, scorecard, tarifas con confirmación)
 

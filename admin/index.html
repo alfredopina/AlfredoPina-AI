@@ -397,11 +397,11 @@
   }
   .dip-table td{ padding:6px 8px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
   .dip-table tr:last-child td{ border-bottom:none; }
-  .dip-table input{
+  .dip-table input, .dip-table select{
     width:100%; font-family:var(--body); font-size:12.5px; color:var(--text); background:var(--panel-2);
     border:1px solid var(--line); border-radius:5px; padding:7px 9px; outline:none;
   }
-  .dip-table input:focus{ border-color:var(--c); }
+  .dip-table input:focus, .dip-table select:focus{ border-color:var(--c); }
   .dip-table input.dip-invalid{ border-color:var(--bad); background:color-mix(in srgb, var(--bad) 12%, var(--panel-2)); }
   .dip-table td.dip-col-nombre input{ min-width:180px; }
   .dip-table td.dip-col-num input{ width:80px; }
@@ -566,6 +566,22 @@
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
 
+  /* ---- PANEL SOLICITUDES — selector de temario (estándar/personalizado) ---- */
+  .sol-temas-list{ display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; }
+  .sol-tema-item{
+    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:6px;
+    padding:9px 12px; cursor:pointer; transition:border-color .15s; background:var(--panel);
+  }
+  .sol-tema-item:hover{ border-color:var(--text-dim); }
+  .sol-tema-item input{ flex:none; width:auto; }
+  .sol-tema-nombre{ font-size:12.5px; }
+  .sol-tema-horas{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap; }
+  .sol-temas-total{
+    font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:10px; padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .sol-temas-total b{ color:var(--blue-bright); }
+
   .cfg-toggle-ico{ display:inline-flex; width:10px; height:10px; transition:transform .15s; }
   .cfg-toggle-ico svg{ width:100%; height:100%; }
   .cfg-toggle-ico.expanded{ transform:rotate(180deg); }
@@ -607,7 +623,6 @@
       <button class="admin-nav-item" data-panel="solicitudes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6L18 5H6L4 12Z" stroke-linejoin="round"/></svg></span>
         Solicitudes
-        <span class="admin-nav-soon">PRONTO</span>
       </button>
       <button class="admin-nav-item" data-panel="cotizaciones">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg></span>
@@ -805,7 +820,75 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-solicitudes"></div>
+      <div class="admin-panel" id="panel-solicitudes" style="--c:var(--blue-bright)">
+        <div id="solToast" class="radm-toast" hidden></div>
+
+        <div class="dip-filters">
+          <div class="radm-field">
+            <label>ESTATUS</label>
+            <select id="solFEstatus">
+              <option value="">Todos</option>
+              <option value="Nueva">Nueva</option>
+              <option value="En seguimiento">En seguimiento</option>
+              <option value="Cotizada">Cotizada</option>
+              <option value="Ganada">Ganada</option>
+              <option value="Perdida">Perdida</option>
+            </select>
+          </div>
+          <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+            <label>CLIENTE</label>
+            <input type="text" id="solFClienteNombre" placeholder="Escribe para buscar...">
+            <div class="dip-autocomplete-list" id="solFClienteLista" hidden></div>
+          </div>
+          <div class="radm-field">
+            <label>DESDE</label>
+            <input type="date" id="solFDesde">
+          </div>
+          <div class="radm-field">
+            <label>HASTA</label>
+            <input type="date" id="solFHasta">
+          </div>
+          <div class="dip-filter-actions">
+            <button type="button" class="radm-btn dip-btn-icon" id="solBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+              Buscar
+            </button>
+            <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Limpiar filtros
+            </button>
+            <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las solicitudes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+              Ver todos
+            </button>
+          </div>
+        </div>
+
+        <div class="dip-results-actions">
+          <button type="button" class="radm-btn-add" id="solBtnNueva">+ Nueva Solicitud</button>
+        </div>
+
+        <div id="solFormWrap"></div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th>Herramienta</th>
+                <th>Temario / Temas</th>
+                <th>Canal</th>
+                <th>Estatus</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="solListaBody">
+              <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div class="admin-panel" id="panel-cotizaciones"></div>
       <div class="admin-panel" id="panel-diagnosticos"></div>
 
@@ -1323,7 +1406,7 @@
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['solicitudes', 'cotizaciones', 'diagnosticos', 'tracking'].forEach(key => {
+  ['cotizaciones', 'diagnosticos', 'tracking'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -4152,6 +4235,443 @@
     renderSortButtons();
     cargarKpis();
     cargarClientes('');
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL SOLICITUDES — Fase 2 del roadmap (bloque Comercial). Alta de
+  // Solicitudes reusando el mismo catálogo público (getCatalogoCursos) que ya
+  // usa cursos.html: elegir herramienta → Temario Estándar (dropdown) o
+  // Personalizado (checkboxes con suma de horas en vivo). El cliente se
+  // resuelve con el mismo componente crearAutocomplete que ya usa Diplomas
+  // (copia propia de este IIFE, con un onChange nuevo para cargar los
+  // Contactos del cliente elegido) — mismo criterio de duplicar helpers que
+  // ya usa el proyecto. Sin botón "Convertir a Cotización" todavía —
+  // Cotización no existe como Function hasta Fase 3; el estatus "Cotizada" se
+  // pone a mano por ahora desde el <select> de la tabla.
+  (function(){
+    const TOOL_NAMES = {
+      excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
+      powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
+    };
+    const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
+    const ESTATUS = ['Nueva', 'En seguimiento', 'Cotizada', 'Ganada', 'Perdida'];
+    const ICO_MANUAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>';
+    const ICO_SITIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18" stroke-linecap="round"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg>';
+
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function toast(msg, ok){
+      const el = document.getElementById('solToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+
+    // ── autocompletado de Cliente (copia propia — el de Diplomas no acepta onChange) ──
+    function crearAutocomplete({ inputId, listId, codigoId, onChange }){
+      const input = document.getElementById(inputId);
+      const lista = document.getElementById(listId);
+      let seleccionado = null;
+      let timer = null;
+
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+        if(onChange) onChange(null);
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+        }, 250);
+      });
+
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre, codigo: item.dataset.codigo };
+        input.value = item.dataset.nombre;
+        if(codigoId){ const c = document.getElementById(codigoId); c.value = item.dataset.codigo; c.readOnly = true; }
+        lista.hidden = true;
+        if(onChange) onChange(seleccionado);
+      });
+
+      document.addEventListener('click', e => {
+        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+      });
+
+      return {
+        getSeleccionado: () => seleccionado,
+        reset: () => {
+          seleccionado = null;
+          input.value = '';
+          lista.hidden = true;
+          if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+          if(onChange) onChange(null);
+        },
+      };
+    }
+
+    const solFClienteAuto = crearAutocomplete({ inputId:'solFClienteNombre', listId:'solFClienteLista' });
+
+    // ══ LISTA / FILTROS ══
+    function temarioResumen(s){
+      if(s.temario_tipo === 'estandar'){
+        return escapeHtml(s.temario_nombre || '—') + (s.horas_totales ? ` · ${s.horas_totales} hr` : '');
+      }
+      let n = 0;
+      try { n = JSON.parse(s.temas_json || '[]').length; } catch(e){}
+      return `${n} tema${n === 1 ? '' : 's'} · ${s.horas_totales || 0} hr`;
+    }
+
+    async function buscarSolicitudes(){
+      const params = new URLSearchParams();
+      const estatus = document.getElementById('solFEstatus').value;
+      const desde = document.getElementById('solFDesde').value;
+      const hasta = document.getElementById('solFHasta').value;
+      const seleccionado = solFClienteAuto.getSeleccionado();
+      if(estatus) params.set('estatus', estatus);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+
+      const body = document.getElementById('solListaBody');
+      body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
+      try {
+        const lista = await apiGet('/api/listSolicitudesAdmin?' + params.toString());
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        body.innerHTML = lista.map(s => `
+          <tr data-id="${s.id}">
+            <td>${escapeHtml(s.cliente)}</td>
+            <td>${s.contacto ? escapeHtml(s.contacto) : '—'}</td>
+            <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
+            <td>${temarioResumen(s)}</td>
+            <td><span class="dip-status"><span style="width:13px;height:13px;display:inline-flex;">${s.canal_origen === 'Sitio' ? ICO_SITIO : ICO_MANUAL}</span>${escapeHtml(s.canal_origen)}</span></td>
+            <td><select class="sol-estatus-select" data-id="${s.id}">${ESTATUS.map(e => `<option value="${e}" ${e === s.estatus ? 'selected' : ''}>${e}</option>`).join('')}</select></td>
+            <td>${fmtFecha(s.fecha_creacion)}</td>
+          </tr>
+        `).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('solBuscar').addEventListener('click', buscarSolicitudes);
+
+    function limpiarFiltrosSolicitudes(){
+      document.getElementById('solFEstatus').value = '';
+      document.getElementById('solFDesde').value = '';
+      document.getElementById('solFHasta').value = '';
+      solFClienteAuto.reset();
+    }
+    document.getElementById('solLimpiarFiltros').addEventListener('click', limpiarFiltrosSolicitudes);
+    document.getElementById('solVerTodos').addEventListener('click', () => { limpiarFiltrosSolicitudes(); buscarSolicitudes(); });
+
+    document.getElementById('solListaBody').addEventListener('change', async e => {
+      const sel = e.target.closest('.sol-estatus-select');
+      if(!sel) return;
+      const id = Number(sel.dataset.id);
+      const estatus = sel.value;
+      sel.disabled = true;
+      try {
+        await apiPostJson('/api/actualizarEstatusSolicitud', { id, estatus });
+        toast('Estatus actualizado.', true);
+      } catch(err){
+        toast('No se pudo actualizar: ' + err.message, false);
+        buscarSolicitudes();
+        return;
+      }
+      sel.disabled = false;
+    });
+
+    // ══ ALTA DE SOLICITUD ══
+    let solCatalogoCache = {};
+    let solModo = 'estandar';
+
+    function abrirFormSolicitud(){
+      const wrap = document.getElementById('solFormWrap');
+      if(wrap.querySelector('.radm-form')) return;
+      solModo = 'estandar';
+
+      wrap.innerHTML = `
+        <div class="radm-form">
+          <div class="radm-form-row">
+            <div class="radm-field dip-autocomplete-wrap">
+              <label>CLIENTE <span class="dip-req">*</span></label>
+              <input type="text" id="solEmpresaNombre" placeholder="Escribe para buscar o crear...">
+              <div class="dip-autocomplete-list" id="solEmpresaLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
+              <input type="text" id="solEmpresaCodigo" placeholder="ACME">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>CONTACTO (opcional)</label>
+              <select id="solContactoSelect" disabled>
+                <option value="">Selecciona un cliente existente primero…</option>
+              </select>
+            </div>
+            <div class="radm-field" style="flex:none; justify-content:flex-end;">
+              <button type="button" class="radm-btn-add" id="solBtnNuevoContacto" disabled style="margin-bottom:1px;">+ Nuevo contacto</button>
+            </div>
+          </div>
+          <div id="solContactoFormWrap"></div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>HERRAMIENTA <span class="dip-req">*</span></label>
+              <select id="solHerramienta">
+                <option value="">Selecciona...</option>
+                ${Object.keys(TOOL_NAMES).map(k => `<option value="${k}">${TOOL_NAMES[k]}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div id="solTemarioModoWrap"></div>
+          <div id="solTemarioBody"></div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>NOTAS</label>
+              <textarea id="solNotas"></textarea>
+            </div>
+          </div>
+          <div class="radm-actions">
+            <span class="radm-hint">El cliente y el contacto se dan de alta aquí mismo si todavía no existen.</span>
+            <div class="radm-actions-buttons">
+              <button type="button" class="radm-btn" id="solGuardar">Guardar</button>
+              <button type="button" class="radm-btn radm-btn-ghost" id="solCancelar">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+      wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+      let solContactos = [];
+
+      function pintarContactoSelect(){
+        const sel = document.getElementById('solContactoSelect');
+        const opciones = solContactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
+        sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
+      }
+
+      async function cargarContactosSolicitud(cliente){
+        const sel = document.getElementById('solContactoSelect');
+        const btnNuevo = document.getElementById('solBtnNuevoContacto');
+        document.getElementById('solContactoFormWrap').innerHTML = '';
+        if(!cliente){
+          solContactos = [];
+          sel.disabled = true;
+          sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
+          btnNuevo.disabled = true;
+          return;
+        }
+        sel.disabled = true;
+        sel.innerHTML = '<option value="">Cargando contactos…</option>';
+        try { solContactos = await apiGet('/api/listContactosAdmin?clienteId=' + cliente.id); }
+        catch(e){ solContactos = []; }
+        pintarContactoSelect();
+        sel.disabled = false;
+        btnNuevo.disabled = false;
+      }
+
+      const solEmpresaAuto = crearAutocomplete({
+        inputId: 'solEmpresaNombre', listId: 'solEmpresaLista', codigoId: 'solEmpresaCodigo',
+        onChange: cargarContactosSolicitud,
+      });
+
+      document.getElementById('solBtnNuevoContacto').addEventListener('click', () => {
+        const cliente = solEmpresaAuto.getSeleccionado();
+        if(!cliente) return;
+        const cfw = document.getElementById('solContactoFormWrap');
+        if(cfw.querySelector('.radm-inline-form')) return;
+        cfw.innerHTML = `
+          <div class="radm-inline-form">
+            <div class="radm-form-row">
+              <div class="radm-field"><label>NOMBRE</label><input type="text" class="scf-nombre"></div>
+              <div class="radm-field"><label>CORREO</label><input type="text" class="scf-correo"></div>
+              <div class="radm-field"><label>TELÉFONO</label><input type="text" class="scf-telefono"></div>
+            </div>
+            <div class="radm-actions">
+              <span class="radm-hint">Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.</span>
+              <div class="radm-actions-buttons">
+                <button type="button" class="radm-btn scf-guardar">Guardar</button>
+                <button type="button" class="radm-btn radm-btn-ghost scf-cancelar">Cancelar</button>
+              </div>
+            </div>
+          </div>`;
+        cfw.querySelector('.scf-cancelar').addEventListener('click', () => { cfw.innerHTML = ''; });
+        cfw.querySelector('.scf-guardar').addEventListener('click', async () => {
+          const nombre = cfw.querySelector('.scf-nombre').value.trim();
+          if(!nombre){ toast('Falta el nombre del contacto.', false); return; }
+          try {
+            const r = await apiPostJson('/api/crearContacto', {
+              cliente_id: cliente.id, nombre,
+              correo: cfw.querySelector('.scf-correo').value.trim(),
+              telefono: cfw.querySelector('.scf-telefono').value.trim(),
+            });
+            toast('Contacto guardado.', true);
+            cfw.innerHTML = '';
+            solContactos = await apiGet('/api/listContactosAdmin?clienteId=' + cliente.id);
+            pintarContactoSelect();
+            document.getElementById('solContactoSelect').value = r.id;
+          } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+        });
+      });
+
+      function renderTemarioBody(){
+        const herramienta = document.getElementById('solHerramienta').value;
+        const data = solCatalogoCache[herramienta] || { temas: [], estandar: [] };
+        const body = document.getElementById('solTemarioBody');
+        if(solModo === 'estandar'){
+          if(!data.estandar.length){ body.innerHTML = '<div class="radm-empty-row">Sin temarios estándar publicados para esta herramienta.</div>'; return; }
+          body.innerHTML = `
+            <div class="radm-field">
+              <label>TEMARIO ESTÁNDAR <span class="dip-req">*</span></label>
+              <select id="solTemarioSelect">
+                <option value="">Selecciona...</option>
+                ${data.estandar.map(t => `<option value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-horas="${t.horas}">${escapeHtml(t.nombre)} — ${t.horas} hr${t.nivelLabel ? ' · ' + escapeHtml(t.nivelLabel) : ''}</option>`).join('')}
+              </select>
+            </div>`;
+        } else {
+          if(!data.temas.length){ body.innerHTML = '<div class="radm-empty-row">Sin temas publicados para esta herramienta.</div>'; return; }
+          body.innerHTML = `
+            <div class="radm-field">
+              <label>TEMAS <span class="dip-req">* elige los que apliquen</span></label>
+              <div class="sol-temas-list">
+                ${data.temas.map(t => `
+                  <label class="sol-tema-item">
+                    <input type="checkbox" class="sol-tema-check" value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-horas="${t.horas}" data-nivel="${t.nivel}">
+                    <span class="sol-tema-nombre">${escapeHtml(t.nombre)}</span>
+                    <span class="sol-tema-horas">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</span>
+                  </label>`).join('')}
+              </div>
+              <div class="sol-temas-total" id="solTemasTotal">0 hr · 0 temas seleccionados</div>
+            </div>`;
+          body.querySelectorAll('.sol-tema-check').forEach(chk => chk.addEventListener('change', actualizarTotalTemas));
+          actualizarTotalTemas();
+        }
+      }
+
+      function actualizarTotalTemas(){
+        const total = document.getElementById('solTemasTotal');
+        if(!total) return;
+        const marcados = Array.from(document.querySelectorAll('.sol-tema-check:checked'));
+        const horas = marcados.reduce((s, c) => s + Number(c.dataset.horas || 0), 0);
+        total.innerHTML = `<b>${horas} hr</b> · ${marcados.length} tema${marcados.length === 1 ? '' : 's'} seleccionado${marcados.length === 1 ? '' : 's'}`;
+      }
+
+      async function cargarCatalogoHerramienta(herramienta){
+        const modoWrap = document.getElementById('solTemarioModoWrap');
+        const body = document.getElementById('solTemarioBody');
+        if(!herramienta){ modoWrap.innerHTML = ''; body.innerHTML = ''; return; }
+        body.innerHTML = '<div class="radm-empty-row">Cargando catálogo…</div>';
+        modoWrap.innerHTML = '';
+        if(!solCatalogoCache[herramienta]){
+          try { solCatalogoCache[herramienta] = await apiGet('/api/getCatalogoCursos?herramienta=' + herramienta); }
+          catch(e){ solCatalogoCache[herramienta] = { temas: [], estandar: [], proyectos: [] }; }
+        }
+        const data = solCatalogoCache[herramienta];
+        const hasEstandar = !!(data.estandar && data.estandar.length);
+        const hasBuilder = !!(data.temas && data.temas.length);
+        if(!hasEstandar && !hasBuilder){
+          body.innerHTML = '<div class="radm-empty-row">Esta herramienta todavía no tiene temario publicado.</div>';
+          return;
+        }
+        solModo = hasEstandar ? 'estandar' : 'personalizado';
+        if(hasEstandar && hasBuilder){
+          modoWrap.innerHTML = `
+            <div class="radm-tabs" style="margin-bottom:16px;">
+              <button type="button" class="radm-tab active" data-modo="estandar">Temario Estándar</button>
+              <button type="button" class="radm-tab" data-modo="personalizado">Personalizado</button>
+            </div>`;
+          modoWrap.querySelectorAll('.radm-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+              if(solModo === btn.dataset.modo) return;
+              solModo = btn.dataset.modo;
+              modoWrap.querySelectorAll('.radm-tab').forEach(b => b.classList.toggle('active', b === btn));
+              renderTemarioBody();
+            });
+          });
+        }
+        renderTemarioBody();
+      }
+
+      document.getElementById('solHerramienta').addEventListener('change', e => cargarCatalogoHerramienta(e.target.value));
+
+      document.getElementById('solCancelar').addEventListener('click', () => { wrap.innerHTML = ''; });
+
+      document.getElementById('solGuardar').addEventListener('click', async () => {
+        const seleccionado = solEmpresaAuto.getSeleccionado();
+        const empresaNombre = document.getElementById('solEmpresaNombre').value.trim();
+        const empresaCodigo = document.getElementById('solEmpresaCodigo').value.trim();
+        let empresa;
+        if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
+        else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
+        else { toast('Selecciona un cliente existente o captura nombre + código para uno nuevo.', false); return; }
+
+        const herramienta = document.getElementById('solHerramienta').value;
+        if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
+
+        const contactoSel = document.getElementById('solContactoSelect');
+        const contactoId = contactoSel && contactoSel.value ? Number(contactoSel.value) : null;
+        const notas = document.getElementById('solNotas').value.trim();
+
+        const payload = { empresa, contacto_id: contactoId, herramienta, temario_tipo: solModo, notas };
+
+        if(solModo === 'estandar'){
+          const sel = document.getElementById('solTemarioSelect');
+          if(!sel || !sel.value){ toast('Selecciona un temario estándar.', false); return; }
+          const opt = sel.selectedOptions[0];
+          payload.temario_nombre = opt.dataset.nombre;
+          payload.horas_totales = Number(opt.dataset.horas);
+        } else {
+          const marcados = Array.from(document.querySelectorAll('.sol-tema-check:checked'));
+          if(!marcados.length){ toast('Selecciona al menos un tema.', false); return; }
+          payload.temas = marcados.map(c => ({ temaId: c.value, nombre: c.dataset.nombre, horas: Number(c.dataset.horas), nivel: Number(c.dataset.nivel) }));
+          payload.horas_totales = payload.temas.reduce((s, t) => s + t.horas, 0);
+        }
+
+        const btn = document.getElementById('solGuardar');
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        try {
+          await apiPostJson('/api/crearSolicitud', payload);
+          toast('Solicitud guardada.', true);
+          wrap.innerHTML = '';
+          buscarSolicitudes();
+        } catch(e){
+          toast('No se pudo guardar: ' + e.message, false);
+          btn.disabled = false; btn.textContent = 'Guardar';
+        }
+      });
+    }
+
+    document.getElementById('solBtnNueva').addEventListener('click', abrirFormSolicitud);
+
+    buscarSolicitudes();
   })();
 
   // ── Respaldos (dentro de Configuración) ──

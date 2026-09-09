@@ -76,6 +76,8 @@ Alfredo identificó que, sin planearlo, ya está automatizando 3 roles de su neg
 
 Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los ya resueltos. Es el lugar único para esto — evita que queden dispersos en prosa narrativa por todo el documento.
 
+**Siguiente paso acordado del roadmap (2026-09-08):** una vez que Alfredo avance con los pendientes de arriba, retomar **Fase 1.1 — Solicitudes**, para arrancar el bloque Comercial (ver "Modelo del negocio y roadmap estratégico"). Diplomas/Encuestas (Fase 3, Cierre) ya quedaron completos — esto sería empezar Fase 1 desde cero, todavía sin teorizar a detalle.
+
 **Urgente / de esta sesión (auditorías de seguridad/resiliencia/calidad, 2026-09-08):**
 - [x] Correr `sql/004_encuesta_constraint.sql` en el Query Editor de `apcweb-backoffice`.
 - [x] Confirmar en producción que el lote de correcciones no rompió nada — Alfredo confirmó frontend/admin bien y probó el bloqueo de `getRecursos` manualmente, funcionó.
@@ -83,12 +85,16 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - [x] Confirmado: el respaldo del workflow ya se ve etiquetado "Automático" — módulo de Respaldos cerrado de punta a punta.
 - [x] Activados soft-delete de blobs (30 días) + soft-delete de contenedores (7 días) + versionado de blobs (mantener todas las versiones) en `apcwebrecursos`.
 - [x] Confirmado: PITR de `apcweb-backoffice` = 7 días (copia cada 12h) — límite fijo de las bases con oferta gratuita + auto-pausa, no se puede subir sin cambiar de tier.
-- [ ] Dar a Viridiana rol **Lector** en el grupo de recursos `GR_AlfredoPina` (Azure IAM) — cierra la mitad del bus factor de infraestructura.
+- [ ] **Acceso de Viridiana — 3 pasos, ninguno hecho todavía (corrige una suposición anterior de este documento: no es que ya tenga acceso a medias, hoy no tiene ninguno de los tres):**
+  1. Cuenta M365 propia — no tiene una todavía, es requisito antes de poder invitarla a cualquier rol.
+  2. Rol `admin` en la app web (`/admin`) — invitación desde el portal (Role management → Invite → Azure Active Directory → rol `admin`), mismo mecanismo que ya usó Alfredo.
+  3. Rol **Lector** en `GR_AlfredoPina` (Azure IAM) — el de infraestructura, ya explicado arriba en esta conversación.
 - [x] Alerta de Cost Management configurada (enfocada al recurso SQL, no a todo el grupo de recursos, para que un umbral bajo tenga sentido).
 - [x] Node.js instalado en el equipo de Alfredo (2026-09-08) — `package-lock.json` regenerado de verdad, workflow cambiado a `npm ci`, y las 3 suites de prueba corridas por primera vez en el proyecto (encontraron y corrigieron un bug real de timezone en `test-availability.js`, ver "Ya resueltos"). Desde ahora, cualquier sesión de Claude Code en esta máquina puede correr pruebas reales en vez de solo leer código.
 - [ ] Decidir qué hacer con las 6 vulnerabilidades moderadas que `npm audit` encontró (transitivas, vía `mssql`→`tedious`→`@azure/identity` y vía `@azure/data-tables`→`uuid`) — el fix requiere `mssql@12.7.1` (cambio mayor, riesgo de romper Diplomas/Encuestas). Recomendación pendiente de confirmar contigo, ver el mensaje de esta sesión.
 
 **Contenido:**
+- [ ] Completar el contenido de Recursos (materiales por curso) en las herramientas que aún falten.
 - [ ] Terminar de cargar Power Apps y cargar Power Automate/IA Aplicada/Ofimática desde cero (admin → Cursos).
 - [ ] Reemplazar los 11 textos de pregunta de ejemplo de Encuestas por los definitivos (admin → Encuestas → Preguntas).
 - [ ] Subir la plantilla rediseñada de Diplomas (marca alfredopina.ai, no LifeZen) usando la guía de coordenadas, y procesar el backlog real de 7-8 grupos sin diploma.

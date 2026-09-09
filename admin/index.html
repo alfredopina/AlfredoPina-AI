@@ -478,30 +478,44 @@
   .dip-paso-head #encContadorRefresh{ margin-left:auto; }
 
   /* ---- PANEL CLIENTES ---- */
-  .cli-kpi-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+  .cli-kpi-row{
+    display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; padding-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
   .cli-kpi-row .dkpi-card{ flex:1; min-width:150px; }
 
-  .cli-toolbar{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-  .cli-buscar-field{ flex:1; min-width:200px; max-width:320px; }
+  .cli-toolbar{
+    display:flex; flex-direction:column; gap:14px; background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:16px 18px; margin-bottom:20px;
+  }
+  .cli-toolbar-row{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .cli-toolbar-row-sort{
+    align-items:center; padding-top:14px; border-top:1px solid var(--line-soft); flex-wrap:wrap;
+  }
+  .cli-buscar-field{ flex:1; min-width:200px; max-width:340px; }
+  .cli-btn-nuevo{ margin-left:auto; }
   .cli-sort-group{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .cli-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
   .cli-sort-btn{
-    font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel);
-    border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer; transition:all .15s;
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
+    transition:all .15s;
   }
   .cli-sort-btn:hover{ color:var(--text); }
   .cli-sort-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
+  .cli-sort-ico{ width:10px; height:10px; flex:none; }
+  .cli-sort-ico svg{ width:100%; height:100%; }
 
   .cli-layout{ display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
   @media (max-width:900px){ .cli-layout{ grid-template-columns:1fr; } }
 
   .cli-list{ display:flex; flex-direction:column; gap:6px; max-height:70vh; overflow-y:auto; padding-right:2px; }
   .cli-row{
-    border:1px solid var(--line); border-radius:7px; background:var(--panel); padding:10px 12px;
-    cursor:pointer; transition:border-color .15s, background .15s;
+    border:1px solid var(--line); border-left:3px solid transparent; border-radius:7px; background:var(--panel);
+    padding:10px 12px 10px 10px; cursor:pointer; transition:border-color .15s, background .15s;
   }
-  .cli-row:hover{ border-color:var(--text-dim); }
-  .cli-row.active{ border-color:var(--blue-bright); background:var(--blue-soft); }
+  .cli-row:hover{ border:1px solid var(--text-dim); border-left:3px solid var(--text-dim); }
+  .cli-row.active{ border:1px solid var(--blue-bright); border-left:3px solid var(--blue-bright); background:var(--blue-soft); }
   .cli-row-title{ font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cli-row-sub{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
   .cli-row-meta{ display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
@@ -510,7 +524,11 @@
     border:1px solid var(--line); border-radius:20px; padding:2px 8px; white-space:nowrap;
   }
 
-  .cli-detail{ border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:22px; min-height:220px; }
+  .cli-detail{
+    border:1px solid var(--line); border-left:3px solid transparent; border-radius:10px; background:var(--panel);
+    padding:22px; min-height:220px; transition:border-color .15s;
+  }
+  .cli-detail.seleccionado{ border-left:3px solid var(--blue-bright); }
   .cli-detalle-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
   .cli-detalle-nombre{ font-family:var(--display); font-weight:600; font-size:17px; }
   .cli-detalle-sub{ font-size:11.5px; color:var(--text-faint); margin-top:4px; font-family:var(--mono); }
@@ -547,6 +565,10 @@
   }
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
+
+  .cfg-toggle-ico{ display:inline-flex; width:10px; height:10px; transition:transform .15s; }
+  .cfg-toggle-ico svg{ width:100%; height:100%; }
+  .cfg-toggle-ico.expanded{ transform:rotate(180deg); }
 
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
@@ -717,7 +739,7 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-config">
+      <div class="admin-panel" id="panel-config" style="--c:var(--blue-bright)">
         <button class="radm-back" id="configBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Volver
@@ -737,7 +759,10 @@
         <div class="radm-section">
           <div class="radm-section-head">
             <span class="radm-section-title">TARIFAS POR HORA</span>
-            <button type="button" class="radm-btn-add" id="cfgTarifasToggle">Desplegar</button>
+            <button type="button" class="radm-btn-add cfg-toggle-btn" id="cfgTarifasToggle">
+              <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfg-toggle-label">Desplegar</span>
+            </button>
           </div>
           <div class="cfg-note">Precio base por hora de cada herramienta — Cotizaciones (Fase 1.2) los va a usar para calcular el precio sugerido. Cambiar un precio aquí no afecta cotizaciones ya emitidas.</div>
           <div id="cfgTarifasBody" hidden>
@@ -749,7 +774,10 @@
         <div class="radm-section">
           <div class="radm-section-head">
             <span class="radm-section-title">RESPALDOS</span>
-            <button type="button" class="radm-btn-add" id="cfgRespaldosToggle">Desplegar</button>
+            <button type="button" class="radm-btn-add cfg-toggle-btn" id="cfgRespaldosToggle">
+              <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfg-toggle-label">Desplegar</span>
+            </button>
           </div>
           <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
           <div id="cfgRespaldosBody" hidden>
@@ -837,17 +865,21 @@
         </div>
 
         <div class="cli-toolbar">
-          <div class="radm-field cli-buscar-field">
-            <label>BUSCAR</label>
-            <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
+          <div class="cli-toolbar-row">
+            <div class="radm-field cli-buscar-field">
+              <label>BUSCAR</label>
+              <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
+            </div>
+            <button type="button" class="radm-btn-add cli-btn-nuevo" id="cliBtnNuevo">+ Nuevo Cliente</button>
           </div>
-          <div class="cli-sort-group" id="cliSortGroup">
+          <div class="cli-toolbar-row cli-toolbar-row-sort">
             <span class="cli-sort-label">ORDENAR</span>
-            <button type="button" class="cli-sort-btn active" data-sort="nombre">Nombre</button>
-            <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización</button>
-            <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad</button>
+            <div class="cli-sort-group" id="cliSortGroup">
+              <button type="button" class="cli-sort-btn" data-sort="nombre">Nombre<span class="cli-sort-ico" hidden></span></button>
+              <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización<span class="cli-sort-ico" hidden></span></button>
+              <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad<span class="cli-sort-ico" hidden></span></button>
+            </div>
           </div>
-          <button type="button" class="radm-btn-add" id="cliBtnNuevo" style="margin-left:auto;">+ Nuevo Cliente</button>
         </div>
 
         <div class="cli-layout">
@@ -3784,7 +3816,12 @@
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       wa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.1-5.5A8.5 8.5 0 1 1 21 11.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
+    // dirección con la que arranca cada criterio la primera vez que se activa
+    // (clic sobre uno ya activo alterna asc/desc en vez de repetir el default).
+    const SORT_DEFAULT_DIR = { nombre: 'asc', antiguedad: 'asc', ultima_cotizacion: 'desc' };
     const EMPTY_HTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
@@ -3826,7 +3863,22 @@
 
     let cliClientes = [];
     let cliSort = 'nombre';
+    let cliDir = 'asc';
     let cliSeleccionado = null;
+
+    function renderSortButtons(){
+      document.querySelectorAll('.cli-sort-btn').forEach(b => {
+        const activo = b.dataset.sort === cliSort;
+        b.classList.toggle('active', activo);
+        const ico = b.querySelector('.cli-sort-ico');
+        if(activo){
+          ico.innerHTML = cliDir === 'asc' ? ICO.sortAsc : ICO.sortDesc;
+          ico.hidden = false;
+        } else {
+          ico.hidden = true;
+        }
+      });
+    }
 
     async function cargarKpis(){
       try {
@@ -3845,6 +3897,7 @@
         const params = new URLSearchParams();
         if(q) params.set('q', q);
         params.set('sort', cliSort);
+        params.set('dir', cliDir);
         cliClientes = await apiGet('/api/listClientesAdmin?' + params.toString());
       } catch(e){
         cliClientes = [];
@@ -3882,7 +3935,8 @@
     async function renderDetalle(id){
       const c = cliClientes.find(x => x.id === id);
       const det = document.getElementById('cliDetalle');
-      if(!c){ det.innerHTML = EMPTY_HTML; return; }
+      if(!c){ det.classList.remove('seleccionado'); det.innerHTML = EMPTY_HTML; return; }
+      det.classList.add('seleccionado');
 
       det.innerHTML = `
         <div class="cli-detalle-head">
@@ -4052,7 +4106,7 @@
       det.querySelector('.clf-cancelar').addEventListener('click', () => {
         if(item) renderDetalle(item.id);
         else if(cliSeleccionado) renderDetalle(cliSeleccionado);
-        else det.innerHTML = EMPTY_HTML;
+        else { det.classList.remove('seleccionado'); det.innerHTML = EMPTY_HTML; }
       });
       det.querySelector('.clf-guardar').addEventListener('click', async () => {
         const nombre = det.querySelector('.clf-nombre').value.trim();
@@ -4078,8 +4132,14 @@
     document.getElementById('cliSortGroup').addEventListener('click', e => {
       const btn = e.target.closest('.cli-sort-btn');
       if(!btn) return;
-      cliSort = btn.dataset.sort;
-      document.querySelectorAll('.cli-sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+      const sort = btn.dataset.sort;
+      if(cliSort === sort){
+        cliDir = cliDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        cliSort = sort;
+        cliDir = SORT_DEFAULT_DIR[sort];
+      }
+      renderSortButtons();
       cargarClientes(document.getElementById('cliBuscar').value.trim());
     });
 
@@ -4089,6 +4149,7 @@
       cliBuscarTimer = setTimeout(() => cargarClientes(e.target.value.trim()), 300);
     });
 
+    renderSortButtons();
     cargarKpis();
     cargarClientes('');
   })();
@@ -4138,7 +4199,8 @@
       const toggle = document.getElementById('cfgRespaldosToggle');
       const expandir = body.hidden;
       body.hidden = !expandir;
-      toggle.textContent = expandir ? 'Ocultar' : 'Desplegar';
+      toggle.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      toggle.querySelector('.cfg-toggle-label').textContent = expandir ? 'Ocultar' : 'Desplegar';
       if(expandir && !cargado){ cargado = true; cargarLista(); }
     });
 
@@ -4292,7 +4354,8 @@
       const toggle = document.getElementById('cfgTarifasToggle');
       const expandir = body.hidden;
       body.hidden = !expandir;
-      toggle.textContent = expandir ? 'Ocultar' : 'Desplegar';
+      toggle.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      toggle.querySelector('.cfg-toggle-label').textContent = expandir ? 'Ocultar' : 'Desplegar';
       if(expandir && !cargado){ cargado = true; cargarTarifas(); }
     });
   })();

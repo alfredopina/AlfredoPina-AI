@@ -167,6 +167,42 @@
     {
       "route": "/api/getRespaldo",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listClientesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearCliente",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarCliente",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listContactosAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearContacto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarContacto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarContacto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listTarifasAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/actualizarTarifa",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

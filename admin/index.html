@@ -336,9 +336,12 @@
   .radm-btn-danger{ border-color:var(--bad); color:var(--bad); }
   .radm-btn-danger:hover{ background:color-mix(in srgb, var(--bad) 12%, transparent); }
   .radm-btn-add{
-    font-family:var(--mono); font-size:11px; color:var(--c); background:none; border:1px solid var(--c);
+    font-family:var(--mono); font-size:11px; font-weight:600; color:var(--c);
+    background:color-mix(in srgb, var(--c) 12%, transparent); border:1px solid var(--c);
     border-radius:6px; padding:6px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    transition:background .15s;
   }
+  .radm-btn-add:hover{ background:color-mix(in srgb, var(--c) 22%, transparent); }
   .radm-btn-add svg{ width:11px; height:11px; }
 
   .radm-section{ margin-bottom:30px; }
@@ -582,6 +585,33 @@
   }
   .sol-temas-total b{ color:var(--blue-bright); }
 
+  .sol-pill-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .sol-pill{
+    font-family:var(--mono); font-size:11.5px; color:var(--text-dim); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:20px; padding:7px 14px; cursor:pointer; transition:all .15s;
+  }
+  .sol-pill:hover{ color:var(--text); }
+  .sol-pill.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
+
+  .sol-kpi-row{
+    display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; padding-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  .sol-kpi-row .dkpi-card{ flex:1; min-width:150px; }
+
+  .sol-toolbar-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:16px 0 20px; }
+  .sol-sort-group{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .sol-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
+  .sol-sort-btn{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
+    transition:all .15s;
+  }
+  .sol-sort-btn:hover{ color:var(--text); }
+  .sol-sort-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
+  .sol-sort-ico{ width:10px; height:10px; flex:none; }
+  .sol-sort-ico svg{ width:100%; height:100%; }
+
   .cfg-toggle-ico{ display:inline-flex; width:10px; height:10px; transition:transform .15s; }
   .cfg-toggle-ico svg{ width:100%; height:100%; }
   .cfg-toggle-ico.expanded{ transform:rotate(180deg); }
@@ -823,6 +853,21 @@
       <div class="admin-panel" id="panel-solicitudes" style="--c:var(--blue-bright)">
         <div id="solToast" class="radm-toast" hidden></div>
 
+        <div class="sol-kpi-row" id="solKpis">
+          <div class="dkpi-card">
+            <div class="dkpi-value" id="solKpiManuales">—</div>
+            <div class="dkpi-label">Solicitudes manuales</div>
+          </div>
+          <div class="dkpi-card">
+            <div class="dkpi-value" id="solKpiSitio">—</div>
+            <div class="dkpi-label">Solicitudes del sitio</div>
+          </div>
+          <div class="dkpi-card" title="Solicitudes con cualquier estatus distinto de 'Nueva', sobre el total">
+            <div class="dkpi-value" id="solKpiAtendidas">—</div>
+            <div class="dkpi-label">% Solicitudes atendidas</div>
+          </div>
+        </div>
+
         <div class="dip-filters">
           <div class="radm-field">
             <label>ESTATUS</label>
@@ -864,8 +909,14 @@
           </div>
         </div>
 
-        <div class="dip-results-actions">
-          <button type="button" class="radm-btn-add" id="solBtnNueva">+ Nueva Solicitud</button>
+        <div class="sol-toolbar-row">
+          <div class="sol-sort-group" id="solSortGroup">
+            <span class="sol-sort-label">ORDENAR</span>
+            <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha<span class="sol-sort-ico" hidden></span></button>
+            <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
+            <button type="button" class="sol-sort-btn" data-sort="horas">Horas<span class="sol-sort-ico" hidden></span></button>
+          </div>
+          <button type="button" class="radm-btn-add" id="solBtnNueva" style="margin-left:auto;">+ Nueva Solicitud</button>
         </div>
 
         <div id="solFormWrap"></div>
@@ -4271,6 +4322,9 @@
     const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
     const ESTATUS = ['Nueva', 'En seguimiento', 'Cotizada', 'Ganada', 'Perdida'];
     const ICO_MANUAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', horas: 'desc' };
     const ICO_SITIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18" stroke-linecap="round"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -4369,7 +4423,51 @@
 
     const solFClienteAuto = crearAutocomplete({ inputId:'solFClienteNombre', listId:'solFClienteLista' });
 
-    // ══ LISTA / FILTROS ══
+    // ══ SCORECARD ══
+    async function cargarKpisSolicitudes(){
+      try {
+        const r = await apiGetConReintento('/api/getResumenSolicitudesAdmin');
+        document.getElementById('solKpiManuales').textContent = r.manuales;
+        document.getElementById('solKpiSitio').textContent = r.sitio;
+        const pct = r.total ? Math.round((r.atendidas / r.total) * 100) : 0;
+        document.getElementById('solKpiAtendidas').textContent = pct + '%';
+      } catch(e){
+        ['solKpiManuales', 'solKpiSitio', 'solKpiAtendidas'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    // ══ LISTA / FILTROS / ORDEN ══
+    let solSort = 'fecha';
+    let solDir = 'desc';
+
+    function renderSortButtonsSolicitudes(){
+      document.querySelectorAll('.sol-sort-btn').forEach(b => {
+        const activo = b.dataset.sort === solSort;
+        b.classList.toggle('active', activo);
+        const ico = b.querySelector('.sol-sort-ico');
+        if(activo){
+          ico.innerHTML = solDir === 'asc' ? ICO_SORT_ASC : ICO_SORT_DESC;
+          ico.hidden = false;
+        } else {
+          ico.hidden = true;
+        }
+      });
+    }
+
+    document.getElementById('solSortGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.sol-sort-btn');
+      if(!btn) return;
+      const sort = btn.dataset.sort;
+      if(solSort === sort){
+        solDir = solDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        solSort = sort;
+        solDir = SORT_DEFAULT_DIR[sort];
+      }
+      renderSortButtonsSolicitudes();
+      buscarSolicitudes();
+    });
+
     function temarioResumen(s){
       if(s.temario_tipo === 'estandar'){
         return escapeHtml(s.temario_nombre || '—') + (s.horas_totales ? ` · ${s.horas_totales} hr` : '');
@@ -4389,6 +4487,8 @@
       if(desde) params.set('desde', desde);
       if(hasta) params.set('hasta', hasta);
       if(seleccionado) params.set('clienteId', seleccionado.id);
+      params.set('sort', solSort);
+      params.set('dir', solDir);
 
       const body = document.getElementById('solListaBody');
       body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
@@ -4431,6 +4531,7 @@
       try {
         await apiPostJson('/api/actualizarEstatusSolicitud', { id, estatus });
         toast('Estatus actualizado.', true);
+        cargarKpisSolicitudes();
       } catch(err){
         toast('No se pudo actualizar: ' + err.message, false);
         buscarSolicitudes();
@@ -4486,8 +4587,39 @@
           <div id="solTemarioBody"></div>
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>NOTAS</label>
-              <textarea id="solNotas"></textarea>
+              <label>FECHA TENTATIVA DE INICIO</label>
+              <input type="text" id="solFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
+            </div>
+            <div class="radm-field">
+              <label>CIUDAD / SEDE (si es presencial)</label>
+              <input type="text" id="solCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>PARTICIPANTES</label>
+              <div class="sol-pill-group" data-group="participantes">
+                <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
+                <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
+                <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
+                <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
+              </div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>MODALIDAD</label>
+              <div class="sol-pill-group" data-group="modalidad">
+                <button type="button" class="sol-pill" data-value="Online">Online</button>
+                <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
+                <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
+              </div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>COMENTARIOS</label>
+              <textarea id="solNotas" placeholder="Kick off, grabación de sesiones, otras necesidades..."></textarea>
             </div>
           </div>
           <div class="radm-actions">
@@ -4499,6 +4631,19 @@
           </div>
         </div>`;
       wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+      // pills de Participantes/Modalidad — single-select por grupo, sin librería
+      wrap.querySelectorAll('.sol-pill-group').forEach(group => {
+        group.addEventListener('click', e => {
+          const pill = e.target.closest('.sol-pill');
+          if(!pill) return;
+          group.querySelectorAll('.sol-pill').forEach(p => p.classList.toggle('active', p === pill));
+        });
+      });
+      function valorPill(grupo){
+        const activo = wrap.querySelector(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
+        return activo ? activo.dataset.value : null;
+      }
 
       let solContactos = [];
 
@@ -4594,7 +4739,7 @@
               <div class="sol-temas-list">
                 ${data.temas.map(t => `
                   <label class="sol-tema-item">
-                    <input type="checkbox" class="sol-tema-check" value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-horas="${t.horas}" data-nivel="${t.nivel}">
+                    <input type="checkbox" class="sol-tema-check" value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-descripcion="${escapeHtml(t.descripcion || '')}" data-horas="${t.horas}" data-nivel="${t.nivel}">
                     <span class="sol-tema-nombre">${escapeHtml(t.nombre)}</span>
                     <span class="sol-tema-horas">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</span>
                   </label>`).join('')}
@@ -4669,19 +4814,30 @@
         const contactoSel = document.getElementById('solContactoSelect');
         const contactoId = contactoSel && contactoSel.value ? Number(contactoSel.value) : null;
         const notas = document.getElementById('solNotas').value.trim();
+        const fechaTentativa = document.getElementById('solFechaTentativa').value.trim();
+        const ciudadSede = document.getElementById('solCiudadSede').value.trim();
 
-        const payload = { empresa, contacto_id: contactoId, herramienta, temario_tipo: solModo, notas };
+        const payload = {
+          empresa, contacto_id: contactoId, herramienta, temario_tipo: solModo, notas,
+          fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
+          participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
+        };
 
+        // temas_json siempre lleva el desglose COMPLETO (con descripción) — lo
+        // necesita Alfredo para armar la Cotización después, sin importar si el
+        // temario es estándar o personalizado.
         if(solModo === 'estandar'){
           const sel = document.getElementById('solTemarioSelect');
           if(!sel || !sel.value){ toast('Selecciona un temario estándar.', false); return; }
           const opt = sel.selectedOptions[0];
+          const temarioCat = ((solCatalogoCache[herramienta] || {}).estandar || []).find(t => t.id === sel.value);
           payload.temario_nombre = opt.dataset.nombre;
           payload.horas_totales = Number(opt.dataset.horas);
+          payload.temas = (temarioCat && temarioCat.temas) ? temarioCat.temas.map(t => ({ temaId: t.id, nombre: t.nombre, descripcion: t.descripcion, horas: t.horas, nivel: t.nivel })) : [];
         } else {
           const marcados = Array.from(document.querySelectorAll('.sol-tema-check:checked'));
           if(!marcados.length){ toast('Selecciona al menos un tema.', false); return; }
-          payload.temas = marcados.map(c => ({ temaId: c.value, nombre: c.dataset.nombre, horas: Number(c.dataset.horas), nivel: Number(c.dataset.nivel) }));
+          payload.temas = marcados.map(c => ({ temaId: c.value, nombre: c.dataset.nombre, descripcion: c.dataset.descripcion, horas: Number(c.dataset.horas), nivel: Number(c.dataset.nivel) }));
           payload.horas_totales = payload.temas.reduce((s, t) => s + t.horas, 0);
         }
 
@@ -4692,6 +4848,7 @@
           toast('Solicitud guardada.', true);
           wrap.innerHTML = '';
           buscarSolicitudes();
+          cargarKpisSolicitudes();
         } catch(e){
           toast('No se pudo guardar: ' + e.message, false);
           btn.disabled = false; btn.textContent = 'Guardar';
@@ -4701,6 +4858,8 @@
 
     document.getElementById('solBtnNueva').addEventListener('click', abrirFormSolicitud);
 
+    renderSortButtonsSolicitudes();
+    cargarKpisSolicitudes();
     buscarSolicitudes();
   })();
 

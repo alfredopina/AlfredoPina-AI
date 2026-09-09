@@ -173,6 +173,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/getResumenSolicitudesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/crearSolicitud",
       "allowedRoles": ["admin"]
     },

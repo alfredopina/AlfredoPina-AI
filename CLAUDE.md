@@ -84,7 +84,7 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 - [x] Activados soft-delete de blobs (30 días) + soft-delete de contenedores (7 días) + versionado de blobs (mantener todas las versiones) en `apcwebrecursos`.
 - [x] Confirmado: PITR de `apcweb-backoffice` = 7 días (copia cada 12h) — límite fijo de las bases con oferta gratuita + auto-pausa, no se puede subir sin cambiar de tier.
 - [ ] Dar a Viridiana rol **Lector** en el grupo de recursos `GR_AlfredoPina` (Azure IAM) — cierra la mitad del bus factor de infraestructura.
-- [ ] Configurar una alerta de Cost Management para vCore-segundos de SQL.
+- [x] Alerta de Cost Management configurada (enfocada al recurso SQL, no a todo el grupo de recursos, para que un umbral bajo tenga sentido).
 - [x] Node.js instalado en el equipo de Alfredo (2026-09-08) — `package-lock.json` regenerado de verdad, workflow cambiado a `npm ci`, y las 3 suites de prueba corridas por primera vez en el proyecto (encontraron y corrigieron un bug real de timezone en `test-availability.js`, ver "Ya resueltos"). Desde ahora, cualquier sesión de Claude Code en esta máquina puede correr pruebas reales en vez de solo leer código.
 - [ ] Decidir qué hacer con las 6 vulnerabilidades moderadas que `npm audit` encontró (transitivas, vía `mssql`→`tedious`→`@azure/identity` y vía `@azure/data-tables`→`uuid`) — el fix requiere `mssql@12.7.1` (cambio mayor, riesgo de romper Diplomas/Encuestas). Recomendación pendiente de confirmar contigo, ver el mensaje de esta sesión.
 

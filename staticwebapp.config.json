@@ -223,6 +223,42 @@
     {
       "route": "/api/actualizarTarifa",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/previsualizarCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listCotizacionesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getResumenCotizacionesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/actualizarEstatusCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getCotizacionPdf",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/subirPlantillaCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getPlantillaCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getGuiaCoordenadasCotizacion",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

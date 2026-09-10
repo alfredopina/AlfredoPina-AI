@@ -59,6 +59,28 @@ async function uploadFondo(buffer, contentType) {
   });
 }
 
+// Fondo de Cotización — blob separado del de Diplomas (misma idea, mismo
+// contenedor "plantillas", nombre distinto: cotizacion-fondo.png) porque son
+// dos documentos con formato/tamaño propios, no una variante del mismo.
+async function getCotizacionFondoBuffer() {
+  const container = getPlantillasContainer();
+  try {
+    return await container.getBlockBlobClient("cotizacion-fondo.png").downloadToBuffer();
+  } catch (err) {
+    if (err.statusCode === 404) {
+      throw new Error("No hay una plantilla de fondo configurada todavía — súbela desde Cotizaciones → Plantilla.");
+    }
+    throw err;
+  }
+}
+
+async function uploadCotizacionFondo(buffer, contentType) {
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("cotizacion-fondo.png").uploadData(buffer, {
+    blobHTTPHeaders: { blobContentType: contentType },
+  });
+}
+
 async function uploadFirma(instructorSlug, buffer, contentType) {
   const container = getPlantillasContainer();
   await container.getBlockBlobClient(`firmas/${instructorSlug}.png`).uploadData(buffer, {
@@ -125,4 +147,6 @@ module.exports = {
   agregarInstructor,
   eliminarInstructor,
   eliminarFirma,
+  getCotizacionFondoBuffer,
+  uploadCotizacionFondo,
 };

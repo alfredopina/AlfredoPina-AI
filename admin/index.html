@@ -5366,6 +5366,12 @@
 
     // ── autocompletado de Cliente (copia propia, con setSeleccionado extra
     // para precargar "Nueva versión" sin pasar por una búsqueda real) ──
+    // Usa apiGetConReintento (no apiGet a secas, a diferencia de la copia de
+    // Diplomas/Solicitudes) porque este buscador es lo primero que Alfredo
+    // toca al abrir Cotizaciones — si la base SQL serverless estaba dormida,
+    // la primera búsqueda se caía en silencio (catch vacío) y el dropdown
+    // simplemente nunca aparecía, sin ningún error visible. Encontrado en
+    // producción el 2026-09-09.
     function crearAutocomplete({ inputId, listId, codigoId, onChange }){
       const input = document.getElementById(inputId);
       const lista = document.getElementById(listId);
@@ -5381,13 +5387,13 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
               `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
             ).join('');
             lista.hidden = false;
-          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+          } catch(e){ toast('No se pudo buscar clientes: ' + e.message, false); }
         }, 250);
       });
 

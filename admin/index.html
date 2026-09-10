@@ -1064,7 +1064,6 @@
         <div class="dash-etabs" id="cotTabs">
           <button type="button" class="dash-etab active" data-cottab="seguimiento">Seguimiento</button>
           <button type="button" class="dash-etab" data-cottab="crear">Crear Cotización</button>
-          <button type="button" class="dash-etab" data-cottab="plantilla">Plantilla</button>
         </div>
 
         <div class="dip-tabpanel active" id="cotTab-seguimiento">
@@ -1266,46 +1265,6 @@
           </div>
         </div>
 
-        <div class="dip-tabpanel" id="cotTab-plantilla">
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-num">1</span>
-              <span class="dip-paso-title">Plantilla de fondo</span>
-            </div>
-            <div class="dip-plantilla-preview">
-              <img id="cotFondoPreview" alt="Plantilla de fondo" src="/api/getPlantillaCotizacion">
-              <span class="radm-hint" id="cotFondoVacio" hidden>Sin plantilla todavía.</span>
-            </div>
-            <div class="radm-hint" style="margin-top:12px; max-width:600px">
-              <b>Formato requerido:</b> PNG vertical, 1240 × 1754 px exactos (tamaño A4 a 150dpi — otra medida se estira para llenar ese tamaño). Sin texto de datos (cliente, temario, precio, folio) — eso se dibuja encima en cada PDF. Lo que sí puede ir horneado en la imagen: decoración, logo, tu firma ya dibujada, textos fijos que nunca cambian.
-            </div>
-            <div class="radm-form-row" style="margin-top:14px">
-              <div class="radm-field">
-                <label>ARCHIVO NUEVO (PNG)</label>
-                <input type="file" id="cotFondoArchivo" accept="image/png">
-              </div>
-              <div class="radm-field" style="flex:none; justify-content:flex-end">
-                <button type="button" class="radm-btn" id="cotFondoSubir" style="min-width:auto">Subir plantilla</button>
-              </div>
-            </div>
-            <div class="dip-grid-actions" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line)">
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotDescargarGuia" title="PDF con la plantilla actual y un recuadro punteado en cada lugar donde se dibuja un dato">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Descargar guía de coordenadas
-              </button>
-              <span class="radm-hint">Marca dónde cae cada dato sobre tu plantilla actual — úsala de referencia al diseñar una plantilla nueva, para no tapar esos espacios.</span>
-            </div>
-          </div>
-
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-num">2</span>
-              <span class="dip-paso-title">Probar</span>
-            </div>
-            <button type="button" class="radm-btn" id="cotGenerarPrueba" style="min-width:auto">Generar PDF de prueba</button>
-            <span class="radm-hint" style="display:block; margin-top:10px;">Genera un PDF con datos ficticios usando la plantilla actual — no se guarda en la base de datos ni consume ningún folio.</span>
-          </div>
-        </div>
       </div>
       <div class="admin-panel" id="panel-diagnosticos"></div>
 
@@ -5338,9 +5297,9 @@
   // Cotización reusa el selector de temario compartido (TemarioSelector, ver
   // arriba) y opcionalmente precarga desde una Solicitud abierta del cliente
   // o desde una Cotización existente ("Nueva versión" — la vieja pasa a
-  // Reemplazada al confirmar). Plantilla es el mismo patrón de 3 pasos que
-  // Diplomas, menos el paso de firmas (aquí solo firma Alfredo, ya horneada
-  // en el PNG de fondo si la quiere).
+  // Reemplazada al confirmar). El PDF se genera con pdfmake (api/src/
+  // cotizacion-pdf.js) — sin plantilla de fondo que subir, el diseño vive en
+  // código, por eso ya no hay pestaña Plantilla aquí.
   (function(){
     const TOOL_NAMES = {
       excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
@@ -5757,11 +5716,26 @@
       cargarListaSolicitudesActivas();
     });
 
+    // El PDF muestra un callout "Dirigido a / Objetivo" solo cuando el
+    // temario es Estándar (esos 2 campos viven en TemariosEstandar, ver
+    // Cursos en CLAUDE.md) — Solicitud solo guarda el NOMBRE del temario, así
+    // que hay que resolverlo contra el catálogo cacheado, mismo patrón que ya
+    // usa precargarTemarioEdit para el mismo problema con los temas.
+    async function resolverDirigidoObjetivo(sol){
+      if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return { dirigido_a: null, objetivo: null };
+      try {
+        const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
+        const match = (data.estandar || []).find(t => t.nombre === sol.temario_nombre);
+        return { dirigido_a: (match && match.dirigido) || null, objetivo: (match && match.objetivo) || null };
+      } catch(e){ return { dirigido_a: null, objetivo: null }; }
+    }
+
     document.getElementById('cotVistaPrevia').addEventListener('click', async () => {
       if(!cotSolicitudActual) return;
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal)){ toast('Falta el precio final.', false); return; }
       const sol = cotSolicitudActual;
+      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
       const payload = {
         cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
         herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
@@ -5769,6 +5743,7 @@
         modalidad: sol.modalidad, participantes: sol.participantes,
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
+        dirigido_a, objetivo,
       };
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -5787,6 +5762,7 @@
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal) || precioFinal < 0){ toast('El precio final no es válido.', false); return; }
 
+      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
       const payload = {
         empresa: { clienteId: sol.cliente_id },
         contacto_id: sol.contacto_id || null,
@@ -5800,6 +5776,7 @@
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
+        dirigido_a, objetivo,
       };
 
       const btn = document.getElementById('cotCrear');
@@ -5948,51 +5925,6 @@
         descuentoInicial: c.descuento_pct,
       });
     }
-
-    // ══ PLANTILLA ══
-    wireImgFallback(document.getElementById('cotFondoPreview'), document.getElementById('cotFondoVacio'));
-
-    document.getElementById('cotFondoSubir').addEventListener('click', async () => {
-      const input = document.getElementById('cotFondoArchivo');
-      const file = input.files[0];
-      if(!file){ toast('Elige un archivo primero.', false); return; }
-      const btn = document.getElementById('cotFondoSubir');
-      btn.disabled = true; btn.textContent = 'Subiendo...';
-      try {
-        const fileBase64 = await fileToBase64(file);
-        await apiPostJson('/api/subirPlantillaCotizacion', { fileBase64, contentType: file.type || 'image/png' });
-        toast('Plantilla actualizada.', true);
-        document.getElementById('cotFondoPreview').src = '/api/getPlantillaCotizacion?_=' + Date.now();
-        input.value = '';
-      } catch(e){ toast('No se pudo subir: ' + e.message, false); }
-      btn.disabled = false; btn.textContent = 'Subir plantilla';
-    });
-
-    document.getElementById('cotDescargarGuia').addEventListener('click', () => {
-      window.open('/api/getGuiaCoordenadasCotizacion', '_blank');
-    });
-
-    document.getElementById('cotGenerarPrueba').addEventListener('click', async () => {
-      const btn = document.getElementById('cotGenerarPrueba');
-      btn.disabled = true; btn.textContent = 'Generando...';
-      try {
-        const payload = {
-          cliente_nombre: 'Empresa de Prueba S.A. de C.V.', contacto_nombre: 'Nombre de Prueba',
-          herramienta: 'excel', temario_nombre: 'Excel Intermedio-Avanzado',
-          temas: [
-            { temaId:'t1', nombre:'Tablas dinámicas', descripcion:'Resumen y análisis de datos.', horas:4, nivel:2 },
-            { temaId:'t2', nombre:'Fórmulas avanzadas', descripcion:'BUSCARV, INDICE/COINCIDIR.', horas:4, nivel:2 },
-          ],
-          horas_totales: 8, precio_final: 9600, modalidad: 'Online', participantes: '5 a 10',
-          ciudad_sede: '', fecha_tentativa: 'Próximas semanas',
-        };
-        const res = await fetch('/api/previsualizarCotizacion', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-        if(!res.ok){ const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Error de red'); }
-        const blob = await res.blob();
-        window.open(URL.createObjectURL(blob), '_blank');
-      } catch(e){ toast('No se pudo generar la prueba: ' + e.message, false); }
-      btn.disabled = false; btn.textContent = 'Generar PDF de prueba';
-    });
 
     // ── pestañas ──
     document.getElementById('cotTabs').addEventListener('click', e => {

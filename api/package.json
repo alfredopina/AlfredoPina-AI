@@ -13,6 +13,7 @@
     "@azure/storage-blob": "12.24.0",
     "mssql": "10.0.2",
     "pdf-lib": "1.17.1",
-    "@pdf-lib/fontkit": "1.1.1"
+    "@pdf-lib/fontkit": "1.1.1",
+    "pdfmake": "0.3.11"
   }
 }

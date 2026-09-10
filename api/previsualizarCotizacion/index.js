@@ -6,7 +6,6 @@
 // (generarDiplomaPrueba). Por eso el folio es un placeholder fijo en vez de
 // calcularse (calcularlo implicaría leer Cotizacion) y no resuelve/crea
 // Cliente: usa directo el nombre que ya seleccionó/escribió el front.
-const { getCotizacionFondoBuffer } = require("../src/plantillas-storage");
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -29,10 +28,10 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const fondoBuffer = await getCotizacionFondoBuffer();
     const pdfBuffer = await generarCotizacionPdf({
       cliente: clienteNombre,
       contacto: (body.contacto_nombre || "").trim() || null,
+      herramienta,
       herramientaLabel: TOOL_LABELS[herramienta] || herramienta,
       temarioTitulo: (body.temario_nombre || "").trim() || "Temario personalizado",
       temas,
@@ -44,7 +43,8 @@ module.exports = async function (context, req) {
       fechaTentativa: (body.fecha_tentativa || "").trim() || null,
       fechaVigencia: body.fecha_vigencia ? new Date(body.fecha_vigencia) : new Date(Date.now() + 15 * 24 * 3600 * 1000),
       folio: "VISTA PREVIA — SIN FOLIO",
-      fondoBuffer,
+      dirigidoA: (body.dirigido_a || "").trim() || null,
+      objetivo: (body.objetivo || "").trim() || null,
     });
 
     context.res = {

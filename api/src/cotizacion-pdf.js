@@ -1,58 +1,123 @@
-// Genera el PDF de una Cotización con pdf-lib — mismo enfoque que diploma-pdf.js
-// (NO Puppeteer/navegador headless, no es confiable en managed functions).
+// Genera el PDF de una Cotización con pdfmake — a diferencia de Diplomas
+// (pdf-lib + plantilla de fondo diseñada en Canva/PowerPoint), aquí el diseño
+// completo vive en código: no hay imagen de fondo que Alfredo tenga que subir
+// ni coordenadas x/y que ajustar a mano. Sigue sin usar Puppeteer/navegador —
+// pdfmake no lo necesita, es seguro en managed functions.
 //
-// A diferencia del diploma (certificado horizontal, texto centrado), una
-// Cotización es un documento formal izquierda-alineado con un desglose de
-// temas de largo VARIABLE — por eso, a diferencia de Diplomas, la mayoría de
-// los campos van en CAMPOS (posiciones fijas, para la guía de coordenadas)
-// pero el desglose de temas se dibuja como una lista dinámica que arranca en
-// un punto fijo (temas_inicio) y crece hacia abajo, una línea por tema.
+// 3 páginas: Portada, Temario (con barra de datos por tema, se paginan solas
+// si el temario es largo — pdfmake corta contenido que no cabe sin que haya
+// que calcularlo a mano) y Propuesta/Términos/Contacto.
 //
-// Plantilla de fondo — PLACEHOLDER mientras Alfredo diseña la definitiva
-// (mismo criterio que Diplomas al inicio): página A4 vertical a 150dpi
-// (1240×1754pt) para que sea fácil de diseñar en Canva/PowerPoint con el
-// preset "A4". El fondo y las posiciones se ajustan sobre la marcha una vez
-// que exista un diseño real — ver generarGuiaCoordenadas.
-const fs = require("fs");
+// Réplica del mockup aprobado ("Cotización rediseñada", artifact v4) dentro
+// de lo que pdfmake permite — ver las simplificaciones documentadas junto a
+// cada técnica: sin blur real (glow = óvalo plano de color muy claro), sin
+// conic-gradient (marco de foto = borde sólido), sin textura de cuadrícula.
 const path = require("path");
-const { PDFDocument, rgb } = require("pdf-lib");
-const fontkit = require("@pdf-lib/fontkit");
+const pdfMake = require("pdfmake");
 
-const FONT_REGULAR_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Regular.ttf");
-const FONT_BOLD_PATH = path.join(__dirname, "..", "assets", "fonts", "Inter-Bold.ttf");
+const FONTS_DIR = path.join(__dirname, "..", "assets", "fonts");
+const IMG_DIR = path.join(__dirname, "..", "assets", "img");
+const FIRMA_PATH = path.join(IMG_DIR, "firma-ap.png");
+const FOTO_PATH = path.join(IMG_DIR, "alfredo-work-photo.png");
 
-const AZUL_OSCURO = rgb(0.09, 0.16, 0.42);
-const PAGE_WIDTH = 1240;
-const PAGE_HEIGHT = 1754;
-const MARGEN_IZQ = 80;
-const LINEA_TEMA = 26; // separación vertical entre líneas del desglose de temas
+// registrado una sola vez por proceso — pdfMake es un singleton (mismo
+// require() en cualquier Function de este proceso), no hace falta repetirlo
+// por cada PDF.
+pdfMake.setFonts({
+  Inter: {
+    normal: path.join(FONTS_DIR, "Inter-Regular.ttf"),
+    bold: path.join(FONTS_DIR, "Inter-Bold.ttf"),
+    italics: path.join(FONTS_DIR, "Inter-Regular.ttf"),
+    bolditalics: path.join(FONTS_DIR, "Inter-Bold.ttf"),
+  },
+  SpaceGrotesk: {
+    normal: path.join(FONTS_DIR, "SpaceGrotesk-Medium.ttf"),
+    bold: path.join(FONTS_DIR, "SpaceGrotesk-SemiBold.ttf"),
+    italics: path.join(FONTS_DIR, "SpaceGrotesk-Medium.ttf"),
+    bolditalics: path.join(FONTS_DIR, "SpaceGrotesk-SemiBold.ttf"),
+  },
+  JetBrainsMono: {
+    normal: path.join(FONTS_DIR, "JetBrainsMono-Regular.ttf"),
+    bold: path.join(FONTS_DIR, "JetBrainsMono-Medium.ttf"),
+    italics: path.join(FONTS_DIR, "JetBrainsMono-Regular.ttf"),
+    bolditalics: path.join(FONTS_DIR, "JetBrainsMono-Medium.ttf"),
+  },
+});
+pdfMake.setLocalAccessPolicy(() => true); // solo lee las fuentes/imágenes propias de este proyecto
+pdfMake.setUrlAccessPolicy(() => false); // nunca descarga recursos remotos
 
-// posición (yTop, distancia desde arriba) y tamaño de cada campo — compartido
-// entre generarCotizacionPdf y generarGuiaCoordenadas para que nunca se
-// desalineen. "temas_inicio" no es un campo de texto único: marca dónde
-// arranca la lista dinámica de temas (ver dibujarTemas).
-const CAMPOS = [
-  { id: "folio", yTop: 50, x: 900, size: 13, etiqueta: 'FOLIO — junto a "Cotización No."' },
-  { id: "fecha_emision", yTop: 76, x: 900, size: 10, etiqueta: "FECHA DE EMISIÓN" },
-  { id: "cliente", yTop: 190, x: MARGEN_IZQ, size: 18, etiqueta: "CLIENTE — nombre de la empresa" },
-  { id: "contacto", yTop: 216, x: MARGEN_IZQ, size: 11, etiqueta: "CONTACTO — nombre de la persona (si hay)" },
-  { id: "titulo", yTop: 280, x: MARGEN_IZQ, size: 20, etiqueta: "HERRAMIENTA + TEMARIO — título de la propuesta" },
-  { id: "temas_inicio", yTop: 330, yFinal: 900, x: MARGEN_IZQ, etiqueta: "DESGLOSE DE TEMAS — área que crece hacia abajo, una línea por tema" },
-  { id: "horas_totales", yTop: 900, x: MARGEN_IZQ, size: 13, etiqueta: "HORAS TOTALES" },
-  { id: "modalidad", yTop: 928, x: MARGEN_IZQ, size: 11, etiqueta: "MODALIDAD" },
-  { id: "participantes", yTop: 956, x: MARGEN_IZQ, size: 11, etiqueta: "PARTICIPANTES" },
-  { id: "ciudad_sede", yTop: 984, x: MARGEN_IZQ, size: 11, etiqueta: "CIUDAD / SEDE" },
-  { id: "fecha_tentativa", yTop: 1012, x: MARGEN_IZQ, size: 11, etiqueta: "FECHA TENTATIVA DE INICIO" },
-  { id: "precio_final", yTop: 1090, x: MARGEN_IZQ, size: 30, etiqueta: "PRECIO FINAL — destacado" },
-  { id: "fecha_vigencia", yTop: 1142, x: MARGEN_IZQ, size: 11, etiqueta: "VIGENCIA DE LA COTIZACIÓN" },
+const PAGE_W = 595.28;
+const PAGE_H = 841.89;
+const PAD_X = 40;
+const CONTENT_W = PAGE_W - PAD_X * 2;
+
+// paleta — colores de marca (fills/barras) + su versión "segura para texto"
+// sobre fondo claro (algunos, como el amarillo de Power BI, no tienen
+// contraste suficiente para usarse como texto). Ver CLAUDE.md.
+const TOOL_COLORS = {
+  excel: { fill: "#22c55e", text: "#15803d" },
+  powerbi: { fill: "#f2c94c", text: "#8a6d1a" },
+  powerapps: { fill: "#c026d3", text: "#a21caf" },
+  powerautomate: { fill: "#06b6d4", text: "#0e7490" },
+  ia: { fill: "#a78bfa", text: "#7c3aed" },
+  ofimatica: { fill: "#f97316", text: "#c2410c" },
+};
+const AZUL = "#3d7fff";
+const AZUL_TEXT = "#2657c9";
+const INK = "#181c24";
+const INK_DIM = "#5b6270";
+const INK_FAINT = "#8b93a1";
+const RULE = "#e0e3ea";
+const PAPER_2 = "#eef0f6";
+const PAPER_3 = "#e3e7f0";
+
+const NIVEL_LABEL = { 1: "Básico", 2: "Intermedio", 3: "Avanzado" };
+
+const BIO =
+  "Instructor y consultor en Excel, Power BI, Power Platform e IA Aplicada. 15+ años ayudando a equipos a dejar atrás los reportes manuales y a hablar el idioma de los datos — más de 150 empresas y 10,000 profesionistas capacitados en Monterrey, México y Latinoamérica.";
+const CERTIFICACIONES = ["Power BI Data Analyst Associate", "AI Business Professional", "MOS Excel"];
+const TERMINOS = [
+  "Horario a definir, mínimo 4 horas a la semana en 1 o 2 sesiones.",
+  "Las sesiones en línea se realizan vía Google Meet, Zoom o Teams.",
+  "El precio aplica igual para modalidad presencial o virtual.",
+  "La sesión de proyecto final es virtual, sin costo adicional.",
+  "Cotización realizada como persona física con actividad empresarial — monto antes de impuestos, aplican IVA e ISR y retenciones conforme a la ley.",
+  "Vigencia de 15 días hábiles después de emitida.",
 ];
+const TELEFONO = "(811) 725 5937";
+const CIERRE_MARCA = "Yo invito el café.";
 
-const campo = (id) => CAMPOS.find((c) => c.id === id);
+function getContactEmail() {
+  const email = process.env.COTIZACION_CONTACT_EMAIL;
+  if (!email) throw new Error("Falta configurar la Application Setting COTIZACION_CONTACT_EMAIL.");
+  return email;
+}
 
-const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
+// ── color helpers ──
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+}
+function rgbToHex(r, g, b) {
+  const c = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+// mezcla hex con blanco — usado para los fondos "soft" de pills/badges
+// (equivalente a pintar el color de marca al 12-14% de opacidad sobre blanco)
+function tint(hex, strength) {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(255 * (1 - strength) + r * strength, 255 * (1 - strength) + g * strength, 255 * (1 - strength) + b * strength);
+}
+function lerpColor(hexA, hexB, t) {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  return rgbToHex(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t);
+}
+function toolColors(herramienta) {
+  return TOOL_COLORS[herramienta] || { fill: AZUL, text: AZUL_TEXT };
+}
+
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 function formatFecha(fecha) {
   if (!fecha) return "—";
@@ -60,118 +125,400 @@ function formatFecha(fecha) {
   if (Number.isNaN(d.getTime())) return "—";
   return `${d.getUTCDate()} de ${MESES[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
 }
-
 function formatPrecio(n) {
   return "$" + Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " MXN";
 }
 
+// ── construcciones reusables (tablas de una celda sin bordes reales — la
+// forma idiomática en pdfmake de pintar una "pastilla"/"caja" con fondo de
+// color, ya que un `canvas` no compone bien con texto que fluye encima) ──
+
+// caja sin bordes con fondo de color — pills/badges
+function pill(content, { fillColor, widths = ["auto"], padding = [10, 6, 10, 6] } = {}) {
+  return {
+    table: { widths, body: [[Object.assign({ stack: Array.isArray(content) ? content : [content], margin: padding }, fillColor ? { fillColor } : {})]] },
+    layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
+  };
+}
+
+// caja con borde delgado (chip, cert-pill, tabla del "about")
+function boxBorde(content, { borderColor = RULE, borderWidth = 1, widths = ["auto"], padding = [10, 8, 10, 8] } = {}) {
+  return {
+    table: { widths, body: [[{ stack: Array.isArray(content) ? content : [content], margin: padding }]] },
+    layout: {
+      hLineWidth: () => borderWidth, vLineWidth: () => borderWidth, hLineColor: () => borderColor, vLineColor: () => borderColor,
+      paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0,
+    },
+  };
+}
+
+// caja con franja de color a la izquierda — el callout "Dirigido a/Objetivo"
+function calloutBorde(rows, colorFranja) {
+  return {
+    table: {
+      widths: [3, "*"],
+      body: [[
+        { text: "", fillColor: colorFranja },
+        { stack: rows, fillColor: PAPER_2, margin: [14, 12, 14, 12] },
+      ]],
+    },
+    layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
+  };
+}
+
+// pastilla de 2 tonos, estilo "fx =FUNCION( args )" — mismo motivo visual que
+// ya usa el sitio en Hero/Contacto/Cursos
+function fxPill(expresionRuns, toolText) {
+  return {
+    table: {
+      widths: ["auto", "auto"],
+      body: [[
+        { text: "fx", fillColor: tint(AZUL, 0.13), font: "JetBrainsMono", bold: true, italics: true, fontSize: 10, color: AZUL_TEXT, margin: [10, 7, 10, 7], noWrap: true },
+        { text: expresionRuns, margin: [12, 7, 12, 7], noWrap: true },
+      ]],
+    },
+    layout: { hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => tint(AZUL, 0.35), vLineColor: () => tint(AZUL, 0.35), paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
+  };
+}
+
+// franja de acento degradada (herramienta → azul) — pdfmake no dibuja
+// degradados nativos en canvas, se aproxima con varios rectángulos angostos
+// interpolando el color a mano.
+function franjaAcento(colorHerramienta) {
+  const stops = [colorHerramienta, lerpColor(colorHerramienta, AZUL, 0.5), AZUL];
+  const segW = PAGE_W / stops.length;
+  return {
+    canvas: stops.map((c, i) => ({ type: "rect", x: i * segW, y: 0, w: segW + 1, h: 5, color: c })),
+    absolutePosition: { x: 0, y: 0 },
+  };
+}
+
+// marcas de esquina — 4 ángulos grises, estilo plano técnico (decorativo,
+// barato de dibujar, presente en las 3 páginas del mockup)
+function marcasEsquina() {
+  const m = 16;
+  const len = 12;
+  const seg = (x, y, dx, dy) => [
+    { type: "line", x1: x, y1: y, x2: x + dx * len, y2: y, lineColor: RULE, lineWidth: 1.2 },
+    { type: "line", x1: x, y1: y, x2: x, y2: y + dy * len, lineColor: RULE, lineWidth: 1.2 },
+  ];
+  return {
+    canvas: [
+      ...seg(m, m, 1, 1),
+      ...seg(PAGE_W - m, m, -1, 1),
+      ...seg(m, PAGE_H - m, 1, -1),
+      ...seg(PAGE_W - m, PAGE_H - m, -1, -1),
+    ],
+    absolutePosition: { x: 0, y: 0 },
+  };
+}
+
+// mancha de color plana tras el título — aproximación del "glow" del mockup
+// (sin blur real, pdfmake no lo soporta): un óvalo grande de color muy claro.
+function glow(colorSoft) {
+  return { canvas: [{ type: "ellipse", x: PAGE_W - 130, y: 150, r1: 190, r2: 170, color: colorSoft }], absolutePosition: { x: 0, y: 0 } };
+}
+
+// ── PÁGINA 1 — Portada ──
+function construirPortada(datos) {
+  const { cliente, contacto, herramientaLabel, temarioTitulo, horasTotales, participantes, folio, dirigidoA, objetivo } = datos;
+  const tc = toolColors(datos.herramienta);
+  const soft = tint(tc.fill, 0.13);
+
+  const briefRows = [];
+  if (dirigidoA) briefRows.push({ columns: [{ text: "DIRIGIDO A", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT, width: 72 }, { text: dirigidoA, font: "Inter", fontSize: 10, color: INK_DIM, width: "*" }] });
+  if (objetivo) briefRows.push({ columns: [{ text: "OBJETIVO", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT, width: 72, margin: briefRows.length ? [0, 8, 0, 0] : [0, 0, 0, 0] }, { text: objetivo, font: "Inter", fontSize: 10, color: INK_DIM, width: "*", margin: briefRows.length ? [0, 8, 0, 0] : [0, 0, 0, 0] }] });
+
+  const chipLineas = [{ text: `${horasTotales} hr totales`, font: "JetBrainsMono", fontSize: 8.5, color: INK_DIM, noWrap: true }];
+  if (participantes) chipLineas.push({ text: `Grupo: ${participantes}`, font: "JetBrainsMono", fontSize: 8.5, color: INK_DIM, margin: [0, 4, 0, 0], noWrap: true });
+
+  return [
+    franjaAcento(tc.fill),
+    marcasEsquina(),
+    glow(soft),
+    {
+      stack: [
+        // ── encabezado: logo + folio ──
+        {
+          columns: [
+            { width: "*", columns: [{ image: "firma", width: 20, margin: [0, 2, 8, 0] }, { text: "ALFREDO PIÑA", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT, margin: [0, 7, 0, 0], noWrap: true }] },
+            {
+              width: "auto",
+              stack: [
+                { text: "FOLIO", font: "JetBrainsMono", fontSize: 7.5, color: INK_FAINT, alignment: "right", noWrap: true },
+                { text: folio, font: "JetBrainsMono", fontSize: 11, bold: true, color: AZUL_TEXT, alignment: "right", margin: [0, 3, 0, 0], noWrap: true },
+                { text: formatFecha(new Date()), font: "JetBrainsMono", fontSize: 8, color: INK_FAINT, alignment: "right", margin: [0, 4, 0, 0], noWrap: true },
+              ],
+            },
+          ],
+        },
+        { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 18, 0, 0] },
+
+        // ── bloque de título con chip flotante ──
+        {
+          columns: [
+            {
+              width: "*",
+              stack: [
+                pill({ text: `${herramientaLabel} · ${temarioTitulo}`.toUpperCase(), font: "JetBrainsMono", fontSize: 9, color: tc.text, noWrap: true }, { fillColor: soft, padding: [12, 6, 12, 6] }),
+                { text: temarioTitulo, font: "SpaceGrotesk", bold: true, fontSize: 31, color: INK, margin: [0, 14, 0, 0], lineHeight: 1.08 },
+              ],
+              margin: [0, 34, 0, 0],
+            },
+            { width: "auto", stack: [boxBorde(chipLineas, { padding: [10, 8, 10, 8] })], margin: [10, 36, 0, 0] },
+          ],
+        },
+
+        // ── cliente ──
+        {
+          stack: [
+            { text: "PREPARADO PARA", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT, noWrap: true },
+            { text: cliente, font: "SpaceGrotesk", bold: true, fontSize: 22, color: INK, margin: [0, 4, 0, 0] },
+            contacto ? { text: `Att. ${contacto}`, font: "Inter", fontSize: 10.5, color: INK_DIM, margin: [0, 2, 0, 0] } : null,
+          ].filter(Boolean),
+          margin: [0, 30, 0, 0],
+        },
+
+        briefRows.length ? Object.assign(calloutBorde(briefRows, tc.fill), { margin: [0, 20, 0, 0] }) : null,
+      ].filter(Boolean),
+      margin: [PAD_X, 30, PAD_X, 0],
+    },
+    {
+      stack: [fxPill([
+        { text: "=COTIZAR( ", font: "JetBrainsMono", fontSize: 9.5, color: INK_DIM },
+        { text: cliente, font: "JetBrainsMono", fontSize: 9.5, color: tc.text, bold: true },
+        { text: ", ", font: "JetBrainsMono", fontSize: 9.5, color: INK_DIM },
+        { text: temarioTitulo, font: "JetBrainsMono", fontSize: 9.5, color: tc.text, bold: true },
+        { text: ", ", font: "JetBrainsMono", fontSize: 9.5, color: INK_DIM },
+        { text: `${horasTotales} hr )`, font: "JetBrainsMono", fontSize: 9.5, color: tc.text, bold: true },
+      ], tc.text)],
+      // OJO: pdfmake calcula si una tabla con absolutePosition "cabe" en la
+      // página usando su altura natural + esta y — si y queda a menos de esa
+      // altura del borde inferior, la manda entera a una página nueva en vez
+      // de solo posicionarla ahí (bug real, encontrado probando: y = PAGE_H
+      // - 66 disparaba una página 2 en blanco; con margen de sobra ya no).
+      absolutePosition: { x: PAD_X, y: PAGE_H - 100 },
+    },
+  ];
+}
+
+// ── PÁGINA 2 — Temario ──
+function construirTemario(datos) {
+  const { herramienta, temas, horasTotales } = datos;
+  const tc = toolColors(herramienta);
+
+  const filas = (temas || []).map((t, i) => {
+    const horas = Number(t.horas) || 0;
+    const pct = horasTotales > 0 ? Math.max(0, Math.min(1, horas / horasTotales)) : 0;
+    return {
+      unbreakable: true,
+      margin: [0, i === 0 ? 0 : 16, 0, 0],
+      stack: [
+        {
+          columns: [
+            { text: t.nombre, font: "SpaceGrotesk", bold: true, fontSize: 12.5, color: INK, width: "*" },
+            {
+              text: [
+                { text: `${(NIVEL_LABEL[t.nivel] || "").toUpperCase()}   `, font: "JetBrainsMono", fontSize: 8, color: INK_FAINT },
+                { text: `${horas} hr`, font: "JetBrainsMono", fontSize: 11, bold: true, color: INK },
+              ],
+              width: "auto",
+              alignment: "right",
+              noWrap: true,
+            },
+          ],
+        },
+        t.descripcion ? { text: t.descripcion, font: "Inter", fontSize: 9.7, color: INK_DIM, margin: [0, 5, 0, 0] } : null,
+        {
+          canvas: [
+            { type: "rect", x: 0, y: 0, w: CONTENT_W, h: 4, r: 2, color: PAPER_3 },
+            { type: "rect", x: 0, y: 0, w: Math.max(6, CONTENT_W * pct), h: 4, r: 2, color: tc.fill },
+          ],
+          margin: [0, 9, 0, 0],
+        },
+        i < (temas || []).length - 1 ? { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 15, 0, 0] } : null,
+      ].filter(Boolean),
+    };
+  });
+
+  // el resumen "Horas totales" se agrupa (unbreakable) junto con el ÚLTIMO
+  // tema — si no, cuando el temario llena la página casi exacta, pdfmake
+  // manda solo esta línea de resumen a una página nueva, casi en blanco
+  // (encontrado probando con un temario de 10 temas).
+  if (filas.length) {
+    const ultima = filas[filas.length - 1];
+    ultima.stack.push(
+      { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: INK, lineWidth: 1.5 }], margin: [0, 8, 0, 0] },
+      {
+        columns: [
+          { text: "Horas totales", font: "SpaceGrotesk", bold: true, fontSize: 13, color: INK, width: "*" },
+          { text: `${horasTotales} hr`, font: "JetBrainsMono", fontSize: 15, color: AZUL_TEXT, alignment: "right", width: "auto", noWrap: true },
+        ],
+        margin: [0, 14, 0, 0],
+      }
+    );
+  }
+
+  return [
+    franjaAcento(tc.fill),
+    marcasEsquina(),
+    {
+      stack: [
+        {
+          columns: [
+            { text: "Contenido del programa", font: "SpaceGrotesk", bold: true, fontSize: 17, color: INK, width: "*" },
+            { width: "auto", stack: [pill({ text: `${horasTotales} hr totales`, font: "JetBrainsMono", fontSize: 9, color: tc.text, noWrap: true }, { fillColor: tint(tc.fill, 0.13), padding: [11, 5, 11, 5] })] },
+          ],
+        },
+        { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 14, 0, 0] },
+        ...filas.map((f, i) => (i === 0 ? Object.assign({}, f, { margin: [0, 18, 0, 0] }) : f)),
+      ],
+      margin: [PAD_X, 28, PAD_X, 34],
+      pageBreak: "before",
+    },
+  ];
+}
+
+// ── PÁGINA 3 — Propuesta, términos y contacto ──
+function construirPropuesta(datos) {
+  const {
+    herramienta, temarioTitulo, horasTotales, precioFinal, modalidad, participantes,
+    ciudadSede, fechaVigencia,
+  } = datos;
+  const tc = toolColors(herramienta);
+  const contactEmail = getContactEmail();
+
+  const descripcionServicio = `${temarioTitulo} — ${modalidad || "Presencial o virtual"}, ${horasTotales} hr${participantes ? `, ${participantes.toLowerCase()} participantes` : ""}.`;
+
+  const mitad = Math.ceil(TERMINOS.length / 2);
+  const terminoItem = (t) => ({ text: [{ text: "■  ", font: "Inter", fontSize: 6, color: tc.text }, { text: t, font: "Inter", fontSize: 9.3, color: INK_DIM, lineHeight: 1.15 }], margin: [0, 0, 0, 8] });
+
+  return [
+    franjaAcento(tc.fill),
+    marcasEsquina(),
+    {
+      stack: [
+        { text: "Propuesta económica", font: "SpaceGrotesk", bold: true, fontSize: 17, color: INK },
+        { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 14, 0, 0] },
+
+        {
+          table: {
+            widths: ["20%", "55%", "25%"],
+            body: [
+              [
+                { text: "SERVICIO", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT },
+                { text: "DESCRIPCIÓN", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT },
+                { text: "PRECIO", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT, alignment: "right" },
+              ],
+              [
+                { text: temarioTitulo, font: "Inter", bold: true, fontSize: 10.5, color: INK },
+                { text: descripcionServicio, font: "Inter", fontSize: 9.7, color: INK_DIM },
+                { text: formatPrecio(precioFinal), font: "JetBrainsMono", fontSize: 10.5, color: INK, alignment: "right" },
+              ],
+            ],
+          },
+          layout: { hLineWidth: (i) => (i === 1 || i === 2 ? 1 : 0), vLineWidth: () => 0, hLineColor: () => RULE, paddingTop: () => 6, paddingBottom: () => 6, paddingLeft: () => 0, paddingRight: () => 0 },
+          margin: [0, 18, 0, 0],
+        },
+
+        {
+          columns: [
+            { stack: [{ text: "MODALIDAD", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT }, { text: modalidad || "—", font: "Inter", fontSize: 10, color: INK, margin: [0, 3, 0, 0] }] },
+            { stack: [{ text: "PARTICIPANTES", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT }, { text: participantes || "—", font: "Inter", fontSize: 10, color: INK, margin: [0, 3, 0, 0] }] },
+            { stack: [{ text: "CIUDAD / SEDE", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT }, { text: ciudadSede || "—", font: "Inter", fontSize: 10, color: INK, margin: [0, 3, 0, 0] }] },
+            { stack: [{ text: "VIGENCIA", font: "JetBrainsMono", fontSize: 8, color: INK_FAINT }, { text: `Hasta ${formatFecha(fechaVigencia)}`, font: "Inter", fontSize: 10, color: INK, margin: [0, 3, 0, 0] }] },
+          ],
+          columnGap: 12,
+          margin: [0, 18, 0, 0],
+        },
+
+        Object.assign(
+          pill(
+            { columns: [{ text: "TOTAL", font: "JetBrainsMono", fontSize: 10, bold: true, color: INK_DIM, width: "*" }, { text: formatPrecio(precioFinal), font: "SpaceGrotesk", bold: true, fontSize: 23, color: AZUL_TEXT, alignment: "right", width: "auto" }] },
+            { fillColor: lerpColor(tint(AZUL, 0.13), tint(tc.fill, 0.13), 0.5), padding: [18, 14, 18, 14], widths: ["*"] }
+          ),
+          { margin: [0, 18, 0, 0] }
+        ),
+
+        Object.assign(
+          pill(
+            [
+              { text: "TÉRMINOS Y CONDICIONES", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT, margin: [0, 0, 0, 10] },
+              { columns: [{ stack: TERMINOS.slice(0, mitad).map(terminoItem) }, { stack: TERMINOS.slice(mitad).map(terminoItem) }], columnGap: 18 },
+            ],
+            { fillColor: PAPER_2, padding: [18, 16, 18, 6], widths: ["*"] }
+          ),
+          { margin: [0, 18, 0, 0] }
+        ),
+
+        {
+          columns: [
+            { width: "auto", stack: [boxBorde({ image: "foto", width: 40 }, { borderColor: tc.fill, borderWidth: 2, widths: [40], padding: [0, 0, 0, 0] })] },
+            {
+              width: "*",
+              stack: [
+                { text: "Alfredo Piña", font: "SpaceGrotesk", bold: true, fontSize: 13.5, color: INK },
+                { text: BIO, font: "Inter", fontSize: 9.3, color: INK_DIM, margin: [0, 4, 0, 8], lineHeight: 1.3 },
+                { columns: CERTIFICACIONES.map((c) => boxBorde({ text: c, font: "JetBrainsMono", fontSize: 7.5, color: INK_FAINT, noWrap: true }, { padding: [8, 4, 8, 4], widths: ["auto"] })), columnGap: 6 },
+              ],
+              margin: [16, 0, 0, 0],
+            },
+          ],
+          margin: [0, 20, 0, 0],
+        },
+
+        { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 22, 0, 0] },
+        {
+          columns: [
+            {
+              width: "*",
+              stack: [
+                { text: CIERRE_MARCA, font: "SpaceGrotesk", fontSize: 12.5, color: INK, margin: [0, 0, 0, 8] },
+                fxPill([
+                  { text: "=CONTACTAR( ", font: "JetBrainsMono", fontSize: 9, color: INK_DIM },
+                  { text: contactEmail, font: "JetBrainsMono", fontSize: 9, color: tc.text, bold: true },
+                  { text: ", ", font: "JetBrainsMono", fontSize: 9, color: INK_DIM },
+                  { text: TELEFONO, font: "JetBrainsMono", fontSize: 9, color: tc.text, bold: true },
+                  { text: " )", font: "JetBrainsMono", fontSize: 9, color: INK_DIM },
+                ], tc.text),
+              ],
+            },
+            {
+              width: "auto",
+              stack: [{ image: "firma", width: 46 }, { text: "© 2026 Alfredo Piña · alfredopina.ai", font: "JetBrainsMono", fontSize: 7.5, color: INK_FAINT, margin: [0, 4, 0, 0], noWrap: true }],
+              alignment: "right",
+            },
+          ],
+          margin: [0, 14, 0, 0],
+        },
+      ],
+      margin: [PAD_X, 28, PAD_X, 30],
+      pageBreak: "before",
+    },
+  ];
+}
+
 async function generarCotizacionPdf({
-  cliente, contacto, herramientaLabel, temarioTitulo, temas, horasTotales, precioFinal,
-  modalidad, participantes, ciudadSede, fechaTentativa, fechaVigencia, folio, fondoBuffer,
+  cliente, contacto, herramienta, herramientaLabel, temarioTitulo, temas,
+  horasTotales, precioFinal, modalidad, participantes, ciudadSede,
+  fechaTentativa, fechaVigencia, folio, dirigidoA, objetivo,
 }) {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.registerFontkit(fontkit);
-  const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-
-  const fondoImg = await pdfDoc.embedPng(fondoBuffer);
-  page.drawImage(fondoImg, { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT });
-
-  const fontBold = await pdfDoc.embedFont(fs.readFileSync(FONT_BOLD_PATH));
-  const font = await pdfDoc.embedFont(fs.readFileSync(FONT_REGULAR_PATH));
-
-  const izq = (texto, yTop, tamano, fuente, x) => {
-    page.drawText(texto, { x: x !== undefined ? x : MARGEN_IZQ, y: PAGE_HEIGHT - yTop, size: tamano, font: fuente, color: AZUL_OSCURO });
+  const datos = {
+    cliente, contacto, herramienta, herramientaLabel, temarioTitulo, temas: temas || [],
+    horasTotales: Number(horasTotales) || 0, precioFinal, modalidad, participantes, ciudadSede,
+    fechaTentativa, fechaVigencia, folio, dirigidoA, objetivo,
   };
 
-  const cFolio = campo("folio");
-  izq(folio, cFolio.yTop, cFolio.size, fontBold, cFolio.x);
-  const cFecha = campo("fecha_emision");
-  izq(formatFecha(new Date()), cFecha.yTop, cFecha.size, font, cFecha.x);
+  const docDefinition = {
+    pageSize: "A4",
+    pageMargins: [0, 0, 0, 0],
+    defaultStyle: { font: "Inter", fontSize: 10, color: INK },
+    images: { firma: FIRMA_PATH, foto: FOTO_PATH },
+    content: [...construirPortada(datos), ...construirTemario(datos), ...construirPropuesta(datos)],
+  };
 
-  const cCliente = campo("cliente");
-  izq(cliente, cCliente.yTop, cCliente.size, fontBold, cCliente.x);
-  if (contacto) {
-    const cContacto = campo("contacto");
-    izq(contacto, cContacto.yTop, cContacto.size, font, cContacto.x);
-  }
-
-  const cTitulo = campo("titulo");
-  izq(`${herramientaLabel} — ${temarioTitulo}`, cTitulo.yTop, cTitulo.size, fontBold, cTitulo.x);
-
-  // desglose de temas: lista dinámica, una línea por tema, arrancando en
-  // temas_inicio.yTop — si el temario trae muchos temas y se acerca al límite
-  // de temas_inicio.yFinal, se sigue dibujando igual (no trunca), el diseño
-  // real de Alfredo puede necesitar ajustar el espaciado si eso pasa seguido.
-  const cTemas = campo("temas_inicio");
-  let y = cTemas.yTop;
-  (temas || []).forEach((t) => {
-    page.drawText(`•  ${t.nombre}`, { x: cTemas.x, y: PAGE_HEIGHT - y, size: 12, font, color: AZUL_OSCURO });
-    const horasTxt = `${t.horas} hr`;
-    const anchoHoras = font.widthOfTextAtSize(horasTxt, 12);
-    page.drawText(horasTxt, { x: PAGE_WIDTH - MARGEN_IZQ - anchoHoras, y: PAGE_HEIGHT - y, size: 12, font, color: AZUL_OSCURO });
-    y += LINEA_TEMA;
-  });
-
-  const cHoras = campo("horas_totales");
-  izq(`Horas totales: ${horasTotales} hr`, cHoras.yTop, cHoras.size, fontBold, cHoras.x);
-  if (modalidad) {
-    const cModalidad = campo("modalidad");
-    izq(`Modalidad: ${modalidad}`, cModalidad.yTop, cModalidad.size, font, cModalidad.x);
-  }
-  if (participantes) {
-    const cPart = campo("participantes");
-    izq(`Participantes: ${participantes}`, cPart.yTop, cPart.size, font, cPart.x);
-  }
-  if (ciudadSede) {
-    const cCiudad = campo("ciudad_sede");
-    izq(`Ciudad / sede: ${ciudadSede}`, cCiudad.yTop, cCiudad.size, font, cCiudad.x);
-  }
-  if (fechaTentativa) {
-    const cFechaTent = campo("fecha_tentativa");
-    izq(`Fecha tentativa de inicio: ${fechaTentativa}`, cFechaTent.yTop, cFechaTent.size, font, cFechaTent.x);
-  }
-
-  const cPrecio = campo("precio_final");
-  izq(formatPrecio(precioFinal), cPrecio.yTop, cPrecio.size, fontBold, cPrecio.x);
-  const cVigencia = campo("fecha_vigencia");
-  izq(`Vigente hasta: ${formatFecha(fechaVigencia)}`, cVigencia.yTop, cVigencia.size, font, cVigencia.x);
-
-  return Buffer.from(await pdfDoc.save());
+  const pdfDoc = pdfMake.createPdf(docDefinition);
+  return pdfDoc.getBuffer();
 }
 
-// Genera un PDF de referencia: la plantilla de fondo actual con un recuadro
-// punteado + etiqueta en cada punto/área donde generarCotizacionPdf dibuja un
-// dato — mismo espíritu que la guía de Diplomas.
-async function generarGuiaCoordenadas({ fondoBuffer }) {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.registerFontkit(fontkit);
-  const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-
-  const fondoImg = await pdfDoc.embedPng(fondoBuffer);
-  page.drawImage(fondoImg, { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT });
-
-  const fontBold = await pdfDoc.embedFont(fs.readFileSync(FONT_BOLD_PATH));
-  const guia = rgb(0.93, 0.13, 0.55);
-
-  CAMPOS.forEach((c) => {
-    if (c.id === "temas_inicio") {
-      const yTop = PAGE_HEIGHT - c.yTop;
-      const yFinal = PAGE_HEIGHT - c.yFinal;
-      page.drawRectangle({
-        x: c.x, y: yFinal, width: PAGE_WIDTH - c.x * 2, height: yTop - yFinal,
-        borderColor: guia, borderWidth: 1.5, borderDashArray: [5, 4],
-      });
-      page.drawText(c.etiqueta, { x: c.x, y: yTop + 5, size: 9.5, font: fontBold, color: guia });
-      return;
-    }
-    const y = PAGE_HEIGHT - c.yTop;
-    page.drawLine({ start: { x: 20, y }, end: { x: PAGE_WIDTH - 20, y }, thickness: 0.75, color: guia, dashArray: [6, 4] });
-    page.drawLine({ start: { x: c.x - 9, y }, end: { x: c.x + 9, y }, thickness: 1.5, color: guia });
-    page.drawLine({ start: { x: c.x, y: y - 9 }, end: { x: c.x, y: y + 9 }, thickness: 1.5, color: guia });
-    page.drawText(c.etiqueta, { x: 24, y: y + 5, size: 9.5, font: fontBold, color: guia });
-  });
-
-  return Buffer.from(await pdfDoc.save());
-}
-
-module.exports = { generarCotizacionPdf, generarGuiaCoordenadas, PAGE_WIDTH, PAGE_HEIGHT };
+module.exports = { generarCotizacionPdf };

@@ -10,7 +10,6 @@
 // mismo criterio que anularDiploma). Si viene solicitud_id, esa Solicitud
 // pasa a "Cotizada".
 const { getPool, sql } = require("../src/backoffice-db");
-const { getCotizacionFondoBuffer } = require("../src/plantillas-storage");
 const { subirCotizacionPdf } = require("../src/cotizaciones-storage");
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -86,6 +85,8 @@ module.exports = async function (context, req) {
   const descuentoPctBody = body.descuento_pct != null && body.descuento_pct !== "" ? Number(body.descuento_pct) : null;
   const precioFinalBody = body.precio_final != null && body.precio_final !== "" ? Number(body.precio_final) : null;
   const fechaVigenciaBody = (body.fecha_vigencia || "").trim();
+  const dirigidoA = (body.dirigido_a || "").trim() || null;
+  const objetivo = (body.objetivo || "").trim() || null;
 
   if (!HERRAMIENTAS.includes(herramienta)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Herramienta inválida." } };
@@ -157,10 +158,10 @@ module.exports = async function (context, req) {
 
   let blobPath;
   try {
-    const fondoBuffer = await getCotizacionFondoBuffer();
     const pdfBuffer = await generarCotizacionPdf({
       cliente: cliente.nombre,
       contacto: contactoNombre,
+      herramienta,
       herramientaLabel: TOOL_LABELS[herramienta] || herramienta,
       temarioTitulo: temarioTipo === "estandar" ? temarioNombre : "Temario personalizado",
       temas,
@@ -172,7 +173,8 @@ module.exports = async function (context, req) {
       fechaTentativa,
       fechaVigencia,
       folio,
-      fondoBuffer,
+      dirigidoA,
+      objetivo,
     });
     blobPath = await subirCotizacionPdf(folio, pdfBuffer);
   } catch (err) {

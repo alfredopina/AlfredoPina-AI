@@ -251,18 +251,6 @@
     {
       "route": "/api/getCotizacionPdf",
       "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/subirPlantillaCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getPlantillaCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getGuiaCoordenadasCotizacion",
-      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

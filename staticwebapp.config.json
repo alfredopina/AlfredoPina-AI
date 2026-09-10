@@ -181,6 +181,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/editarSolicitud",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/actualizarEstatusSolicitud",
       "allowedRoles": ["admin"]
     },

@@ -714,6 +714,22 @@
   }
   .cot-precio-calc{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; line-height:1.6; }
   .cot-precio-calc b{ color:var(--text); }
+  #cotPrecioFinalFmt{ display:block; margin-top:4px; }
+
+  .cot-detalle-card{ border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:20px; margin-bottom:20px; }
+  .cot-detalle-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .cot-detalle-cliente{ font-family:var(--display); font-weight:600; font-size:17px; }
+  .cot-detalle-contacto{ font-size:12.5px; color:var(--text-dim); margin-top:2px; }
+  .cot-detalle-editar{
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11.5px;
+    color:var(--blue-bright); background:none; border:1px solid var(--blue-bright); border-radius:6px;
+    padding:7px 12px; cursor:pointer; flex:none;
+  }
+  .cot-detalle-editar svg{ width:12px; height:12px; }
+  .cot-detalle-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px 20px; margin-bottom:18px; }
+  .cot-detalle-item-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; margin-bottom:3px; }
+  .cot-detalle-item-value{ font-size:13px; color:var(--text); }
+  .cot-detalle-temas-title{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; margin-bottom:10px; padding-top:14px; border-top:1px solid var(--line-soft); }
 
   @media (max-width:760px){
     .admin-shell{ flex-direction:column; }
@@ -977,6 +993,7 @@
                 <option value="Cotizada">Cotizada</option>
                 <option value="Ganada">Ganada</option>
                 <option value="Perdida">Perdida</option>
+                <option value="Descartada">Descartada</option>
               </select>
             </div>
             <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
@@ -1111,98 +1128,40 @@
         </div>
 
         <div class="dip-tabpanel" id="cotTab-crear">
-          <div class="radm-form">
-            <div class="radm-form-row">
-              <div class="radm-field dip-autocomplete-wrap">
-                <label>CLIENTE <span class="dip-req">*</span></label>
-                <input type="text" id="cotEmpresaNombre" placeholder="Escribe para buscar o crear...">
-                <div class="dip-autocomplete-list" id="cotEmpresaLista" hidden></div>
-              </div>
-              <div class="radm-field">
-                <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
-                <input type="text" id="cotEmpresaCodigo" placeholder="ACME">
-              </div>
+          <!-- Vista 1 (default): lista de Solicitudes activas para cotizar -->
+          <div id="cotSolicitudesListaVista">
+            <p class="radm-hint" style="margin-bottom:16px;">Toda Cotización nace de una Solicitud. Elige "Cotizar" en la que quieras convertir, "Editar" si algo cambió antes de cotizar, o "Descartar" si ya no aplica (no se borra, solo se marca como descartada).</p>
+            <div class="dip-table-wrap">
+              <table class="dip-table">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Herramienta</th>
+                    <th>Temario / Temas</th>
+                    <th>Horas</th>
+                    <th>Fecha</th>
+                    <th>Estatus</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="cotSolicitudesListaBody">
+                  <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>SOLICITUD DE ORIGEN (opcional)</label>
-                <select id="cotSolicitudSelect" disabled>
-                  <option value="">Selecciona un cliente existente primero…</option>
-                </select>
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>CONTACTO (opcional)</label>
-                <select id="cotContactoSelect" disabled>
-                  <option value="">Selecciona un cliente existente primero…</option>
-                </select>
-              </div>
-              <div class="radm-field" style="flex:none; justify-content:flex-end;">
-                <button type="button" class="radm-btn-add" id="cotBtnNuevoContacto" disabled style="margin-bottom:1px;" title="Se activa al elegir un cliente EXISTENTE de la lista.">+ Nuevo contacto</button>
-              </div>
-            </div>
-            <div id="cotContactoFormWrap"></div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>HERRAMIENTA <span class="dip-req">*</span></label>
-                <select id="cotHerramienta">
-                  <option value="">Selecciona...</option>
-                  <option value="excel">Excel</option>
-                  <option value="powerbi">Power BI</option>
-                  <option value="powerapps">Power Apps</option>
-                  <option value="powerautomate">Power Automate</option>
-                  <option value="ia">IA Aplicada</option>
-                  <option value="ofimatica">Ofimática Básica</option>
-                </select>
-              </div>
-            </div>
-            <div id="cotTemarioModoWrap"></div>
-            <div id="cotTemarioBody"></div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>HORAS <span class="dip-req">*</span></label>
-                <input type="number" id="cotHoras" min="0" step="0.5" placeholder="Sugeridas por el temario, editable">
-              </div>
-              <div class="radm-field">
-                <label>FECHA DE VIGENCIA</label>
-                <input type="date" id="cotFechaVigencia">
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>FECHA TENTATIVA DE INICIO</label>
-                <input type="text" id="cotFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
-              </div>
-              <div class="radm-field">
-                <label>CIUDAD / SEDE (si es presencial)</label>
-                <input type="text" id="cotCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>PARTICIPANTES</label>
-                <div class="sol-pill-group" data-group="participantes">
-                  <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
-                  <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
-                  <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
-                  <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
-                </div>
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>MODALIDAD</label>
-                <div class="sol-pill-group" data-group="modalidad">
-                  <button type="button" class="sol-pill" data-value="Online">Online</button>
-                  <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
-                  <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
-                </div>
-              </div>
-            </div>
+          </div>
+
+          <!-- Vista 2: resumen de solo lectura de la Solicitud elegida + precio editable -->
+          <div id="cotDetalleVista" hidden>
+            <button type="button" class="radm-back" id="cotDetalleVolver">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Volver a la lista
+            </button>
+
+            <div class="cot-detalle-card" id="cotDetalleResumen"></div>
 
             <div class="cot-precio-form">
-              <div class="cot-precio-calc" id="cotPrecioCalc">Elige herramienta y horas para calcular el precio sugerido.</div>
+              <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
               <div class="radm-form-row" style="margin:0;">
                 <div class="radm-field">
                   <label>DESCUENTO %</label>
@@ -1211,6 +1170,11 @@
                 <div class="radm-field">
                   <label>PRECIO FINAL <span class="dip-req">*</span></label>
                   <input type="number" id="cotPrecioFinal" min="0" step="0.01">
+                  <span class="radm-hint" id="cotPrecioFinalFmt"></span>
+                </div>
+                <div class="radm-field">
+                  <label>FECHA DE VIGENCIA</label>
+                  <input type="date" id="cotFechaVigencia">
                 </div>
               </div>
             </div>
@@ -1220,6 +1184,83 @@
               <div class="radm-actions-buttons">
                 <button type="button" class="radm-btn radm-btn-ghost" id="cotVistaPrevia">Vista previa</button>
                 <button type="button" class="radm-btn" id="cotCrear">Crear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista 3: editar los datos de la Solicitud antes de cotizar -->
+          <div id="cotEditarVista" hidden>
+            <button type="button" class="radm-back" id="cotEditarVolver">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Cancelar edición
+            </button>
+            <div class="radm-form">
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>CONTACTO (opcional)</label>
+                  <select id="cotEditContactoSelect">
+                    <option value="">Sin contacto específico</option>
+                  </select>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>HERRAMIENTA <span class="dip-req">*</span></label>
+                  <select id="cotEditHerramienta">
+                    <option value="">Selecciona...</option>
+                    <option value="excel">Excel</option>
+                    <option value="powerbi">Power BI</option>
+                    <option value="powerapps">Power Apps</option>
+                    <option value="powerautomate">Power Automate</option>
+                    <option value="ia">IA Aplicada</option>
+                    <option value="ofimatica">Ofimática Básica</option>
+                  </select>
+                </div>
+              </div>
+              <div id="cotEditTemarioModoWrap"></div>
+              <div id="cotEditTemarioBody"></div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>FECHA TENTATIVA DE INICIO</label>
+                  <input type="text" id="cotEditFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
+                </div>
+                <div class="radm-field">
+                  <label>CIUDAD / SEDE (si es presencial)</label>
+                  <input type="text" id="cotEditCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>PARTICIPANTES</label>
+                  <div class="sol-pill-group" data-group="participantes">
+                    <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
+                    <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
+                    <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
+                    <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
+                  </div>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>MODALIDAD</label>
+                  <div class="sol-pill-group" data-group="modalidad">
+                    <button type="button" class="sol-pill" data-value="Online">Online</button>
+                    <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
+                    <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
+                  </div>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>COMENTARIOS</label>
+                  <textarea id="cotEditNotas"></textarea>
+                </div>
+              </div>
+              <div class="radm-actions">
+                <div class="radm-actions-buttons">
+                  <button type="button" class="radm-btn" id="cotEditGuardar">Guardar cambios</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="cotEditCancelar2">Cancelar</button>
+                </div>
               </div>
             </div>
           </div>
@@ -4796,7 +4837,7 @@
       powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
     };
     const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
-    const ESTATUS = ['Nueva', 'En seguimiento', 'Cotizada', 'Ganada', 'Perdida'];
+    const ESTATUS = ['Nueva', 'En seguimiento', 'Cotizada', 'Ganada', 'Perdida', 'Descartada'];
     const ICO_MANUAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>';
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -5310,6 +5351,7 @@
       Ganada: 'won', Perdida: 'lost', Reemplazada: 'replaced', Expirada: 'expired',
     };
     const GRUPOS_CHICOS = ['Solo yo', '5 a 10'];
+    const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
@@ -5362,71 +5404,6 @@
     function wireImgFallback(img, fallbackEl){
       img.addEventListener('error', () => { img.hidden = true; fallbackEl.hidden = false; });
       img.addEventListener('load', () => { img.hidden = false; fallbackEl.hidden = true; });
-    }
-
-    // ── autocompletado de Cliente (copia propia, con setSeleccionado extra
-    // para precargar "Nueva versión" sin pasar por una búsqueda real) ──
-    // Usa apiGetConReintento (no apiGet a secas, a diferencia de la copia de
-    // Diplomas/Solicitudes) porque este buscador es lo primero que Alfredo
-    // toca al abrir Cotizaciones — si la base SQL serverless estaba dormida,
-    // la primera búsqueda se caía en silencio (catch vacío) y el dropdown
-    // simplemente nunca aparecía, sin ningún error visible. Encontrado en
-    // producción el 2026-09-09.
-    function crearAutocomplete({ inputId, listId, codigoId, onChange }){
-      const input = document.getElementById(inputId);
-      const lista = document.getElementById(listId);
-      let seleccionado = null;
-      let timer = null;
-
-      input.addEventListener('input', () => {
-        seleccionado = null;
-        if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
-        if(onChange) onChange(null);
-        const q = input.value.trim();
-        clearTimeout(timer);
-        if(!q){ lista.hidden = true; return; }
-        timer = setTimeout(async () => {
-          try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
-            if(!clientes.length){ lista.hidden = true; return; }
-            lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
-            ).join('');
-            lista.hidden = false;
-          } catch(e){ toast('No se pudo buscar clientes: ' + e.message, false); }
-        }, 250);
-      });
-
-      lista.addEventListener('click', e => {
-        const item = e.target.closest('.dip-autocomplete-item');
-        if(!item) return;
-        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre, codigo: item.dataset.codigo };
-        input.value = item.dataset.nombre;
-        if(codigoId){ const c = document.getElementById(codigoId); c.value = item.dataset.codigo; c.readOnly = true; }
-        lista.hidden = true;
-        if(onChange) onChange(seleccionado);
-      });
-
-      document.addEventListener('click', e => {
-        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
-      });
-
-      return {
-        getSeleccionado: () => seleccionado,
-        setSeleccionado: (obj) => {
-          seleccionado = obj;
-          input.value = obj.nombre;
-          if(codigoId){ const c = document.getElementById(codigoId); c.value = obj.codigo || ''; c.readOnly = true; }
-          if(onChange) onChange(obj);
-        },
-        reset: () => {
-          seleccionado = null;
-          input.value = '';
-          lista.hidden = true;
-          if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
-          if(onChange) onChange(null);
-        },
-      };
     }
 
     // ══ SCORECARD + ALERTA ══
@@ -5564,48 +5541,176 @@
       else if(seguimientoBtn) accionCorreoSeguimiento(seguimientoBtn.dataset.id);
     });
 
-    // ══ CREAR COTIZACIÓN ══
+    // ══ CREAR COTIZACIÓN — nace de una Solicitud, no de captura libre ══
+    // Cliente/contacto/herramienta/temario/horas/fecha/ciudad/participantes/
+    // modalidad ya están resueltos por Solicitudes — aquí solo se eligen y se
+    // muestran de solo lectura. Lo único que se captura aquí es el precio
+    // (descuento/precio final) y la fecha de vigencia. Si algo de la
+    // Solicitud cambió, "Editar solicitud" abre esos campos antes de cotizar.
+    // Perezoso (se carga la primera vez que se abre "Crear Cotización", no al
+    // entrar al panel Cotizaciones) — igual criterio que Tarifas/Respaldos en
+    // Configuración: no despertar la base SQL serverless sin que Alfredo
+    // vaya a usar esa pestaña.
     let tarifasCache = {};
     let tarifasCargadas = false;
+    let tarifasCargando = false;
     async function cargarTarifasCache(){
+      if(tarifasCargadas || tarifasCargando) return;
+      tarifasCargando = true;
       try {
         const lista = await apiGetConReintento('/api/listTarifasAdmin');
         tarifasCache = Object.fromEntries(lista.map(t => [t.herramienta, Number(t.precio_hora)]));
+        tarifasCargadas = true;
       } catch(e){ tarifasCache = {}; }
+      tarifasCargando = false;
     }
 
-    function valorPill(grupo){
-      const activo = document.querySelector(`#cotTab-crear .sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
+    function valorPill(grupo, scopeEl){
+      const activo = (scopeEl || document).querySelector(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
       return activo ? activo.dataset.value : null;
     }
-    function setPill(grupo, value){
-      document.querySelectorAll(`#cotTab-crear .sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', p.dataset.value === value));
+    function setPill(grupo, value, scopeEl){
+      (scopeEl || document).querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', p.dataset.value === value));
     }
-    document.querySelectorAll('#cotTab-crear .sol-pill-group').forEach(group => {
+    document.querySelectorAll('#cotEditarVista .sol-pill-group').forEach(group => {
       group.addEventListener('click', e => {
         const pill = e.target.closest('.sol-pill');
         if(!pill) return;
         group.querySelectorAll('.sol-pill').forEach(p => p.classList.toggle('active', p === pill));
-        actualizarPrecioSugerido();
       });
     });
 
     function defaultFechaVigencia(){
       return new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString().slice(0, 10);
     }
+    function temasDeCot(obj){
+      try { return JSON.parse(obj.temas_json || '[]'); } catch(e){ return []; }
+    }
+    function horasDe(datos){
+      const h = datos.horas_totales != null ? datos.horas_totales : datos.horas;
+      return Number(h) || 0;
+    }
+
+    function mostrarVistaCrear(vista){
+      document.getElementById('cotSolicitudesListaVista').hidden = vista !== 'lista';
+      document.getElementById('cotDetalleVista').hidden = vista !== 'detalle';
+      document.getElementById('cotEditarVista').hidden = vista !== 'editar';
+    }
+
+    // ── Vista 1: lista de Solicitudes activas para cotizar ──
+    let cotSolicitudesActivas = [];
+    async function cargarListaSolicitudesActivas(){
+      const body = document.getElementById('cotSolicitudesListaBody');
+      body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>`;
+      try {
+        const lista = await apiGetConReintento('/api/listSolicitudesAdmin?sort=fecha&dir=desc');
+        cotSolicitudesActivas = lista.filter(s => !['Ganada', 'Perdida', 'Descartada'].includes(s.estatus));
+        if(!cotSolicitudesActivas.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">No hay solicitudes activas para cotizar.</td></tr>`; return; }
+        body.innerHTML = cotSolicitudesActivas.map(s => `
+          <tr data-id="${s.id}">
+            <td>${escapeHtml(s.cliente)}</td>
+            <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
+            <td>${escapeHtml(s.temario_nombre || (s.temario_tipo === 'personalizado' ? 'Personalizado' : '—'))}</td>
+            <td class="radm-mono" style="text-align:right;">${s.horas_totales != null ? s.horas_totales : '—'}</td>
+            <td>${fmtFecha(s.fecha_creacion)}</td>
+            <td><span class="cot-badge ${s.estatus === 'Cotizada' ? 'sent' : 'draft'}">${escapeHtml(s.estatus)}</span></td>
+            <td>
+              <div class="cot-row-actions">
+                <button type="button" class="cot-icon-btn cot-sol-cotizar" data-id="${s.id}" title="Cotizar esta solicitud">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn cot-sol-editar" data-id="${s.id}" title="Editar la solicitud">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn cot-sol-descartar" data-id="${s.id}" title="Descartar (no se borra, solo cambia de estatus)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>`).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+    function solicitudPorId(id){ return cotSolicitudesActivas.find(s => String(s.id) === String(id)); }
+
+    document.getElementById('cotSolicitudesListaBody').addEventListener('click', e => {
+      const cotizarBtn = e.target.closest('.cot-sol-cotizar');
+      const editarBtn = e.target.closest('.cot-sol-editar');
+      const descartarBtn = e.target.closest('.cot-sol-descartar');
+      if(cotizarBtn) abrirDetalleCotizar(solicitudPorId(cotizarBtn.dataset.id));
+      else if(editarBtn) abrirEditarSolicitud(solicitudPorId(editarBtn.dataset.id));
+      else if(descartarBtn) descartarSolicitud(solicitudPorId(descartarBtn.dataset.id));
+    });
+
+    async function descartarSolicitud(sol){
+      if(!sol) return;
+      if(!confirm(`¿Descartar la solicitud de ${sol.cliente}? No se borra — solo cambia a estatus "Descartada", sigue visible en Solicitudes.`)) return;
+      try {
+        await apiPostJson('/api/actualizarEstatusSolicitud', { id: sol.id, estatus: 'Descartada' });
+        toast('Solicitud descartada.', true);
+        cargarListaSolicitudesActivas();
+      } catch(e){ toast('No se pudo descartar: ' + e.message, false); }
+    }
+
+    // ── Vista 2: resumen de solo lectura de la Solicitud elegida + precio ──
+    let cotSolicitudActual = null;
+    let cotReemplazaFolioActual = null;
+
+    function renderDetalleResumen(datos){
+      const temas = temasDeCot(datos);
+      const temasHtml = temas.length ? temas.map(t => `
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">${NIVEL_LABEL[t.nivel] ? NIVEL_LABEL[t.nivel] + ' · ' : ''}${t.horas} hr</span></div>
+          ${t.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(t.descripcion)}</div>` : ''}
+        </div>`).join('') : '<div class="radm-empty-row">Sin desglose disponible.</div>';
+
+      document.getElementById('cotDetalleResumen').innerHTML = `
+        <div class="cot-detalle-head">
+          <div>
+            <div class="cot-detalle-cliente">${escapeHtml(datos.cliente)}</div>
+            ${datos.contacto ? `<div class="cot-detalle-contacto">${escapeHtml(datos.contacto)}</div>` : ''}
+          </div>
+          <button type="button" class="cot-detalle-editar" id="cotDetalleEditarBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Editar solicitud
+          </button>
+        </div>
+        <div class="cot-detalle-grid">
+          <div><div class="cot-detalle-item-label">Código</div><div class="cot-detalle-item-value">${escapeHtml(datos.cliente_codigo || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Herramienta</div><div class="cot-detalle-item-value">${TOOL_NAMES[datos.herramienta] || escapeHtml(datos.herramienta)}</div></div>
+          <div><div class="cot-detalle-item-label">Horas</div><div class="cot-detalle-item-value">${horasDe(datos)}</div></div>
+          <div><div class="cot-detalle-item-label">Fecha tentativa</div><div class="cot-detalle-item-value">${escapeHtml(datos.fecha_tentativa || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Ciudad / sede</div><div class="cot-detalle-item-value">${escapeHtml(datos.ciudad_sede || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(datos.participantes || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(datos.modalidad || '—')}</div></div>
+        </div>
+        <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || 'Temario personalizado')}</div>
+        <div class="sol-desglose">${temasHtml}</div>
+      `;
+      document.getElementById('cotDetalleEditarBtn').addEventListener('click', () => {
+        if(cotSolicitudActual && cotSolicitudActual.id) abrirEditarSolicitud(cotSolicitudActual);
+        else toast('Esta cotización no tiene una Solicitud ligada para editar.', false);
+      });
+    }
+
+    function actualizarPrecioFinalFmt(){
+      const v = Number(document.getElementById('cotPrecioFinal').value);
+      document.getElementById('cotPrecioFinalFmt').textContent = Number.isFinite(v) && v > 0 ? fmtMoney(v) + ' MXN' : '';
+    }
 
     function actualizarPrecioSugerido(){
-      const herramienta = document.getElementById('cotHerramienta').value;
-      const horas = Number(document.getElementById('cotHoras').value);
+      if(!cotSolicitudActual) return;
+      const herramienta = cotSolicitudActual.herramienta;
+      const horas = horasDe(cotSolicitudActual);
       const calcEl = document.getElementById('cotPrecioCalc');
       if(!herramienta || !horas || !tarifasCache[herramienta]){
-        calcEl.textContent = 'Elige herramienta y horas para calcular el precio sugerido.';
+        calcEl.textContent = 'No se pudo calcular el precio sugerido (falta la tarifa de esta herramienta en Configuración).';
         return;
       }
       const precioHora = tarifasCache[herramienta];
       const precioSugerido = horas * precioHora;
-      const participantes = valorPill('participantes');
-      const descuentoSugerido = GRUPOS_CHICOS.includes(participantes) ? 10 : 0;
+      const descuentoSugerido = GRUPOS_CHICOS.includes(cotSolicitudActual.participantes) ? 10 : 0;
       const descuentoInput = document.getElementById('cotDescuentoPct');
       if(!descuentoInput.dataset.tocado) descuentoInput.value = descuentoSugerido;
       const descuentoPct = Number(descuentoInput.value) || 0;
@@ -5614,225 +5719,57 @@
       if(!precioFinalInput.dataset.tocado) precioFinalInput.value = precioFinal.toFixed(2);
       calcEl.innerHTML = `${horas} hr × ${fmtMoney(precioHora)}/hr = <b>${fmtMoney(precioSugerido)}</b>` +
         (descuentoPct ? ` · descuento ${descuentoPct}% → <b>${fmtMoney(precioFinal)}</b>` : '');
+      actualizarPrecioFinalFmt();
     }
-    document.getElementById('cotHoras').addEventListener('input', actualizarPrecioSugerido);
     document.getElementById('cotDescuentoPct').addEventListener('input', () => {
       document.getElementById('cotDescuentoPct').dataset.tocado = '1';
       actualizarPrecioSugerido();
     });
     document.getElementById('cotPrecioFinal').addEventListener('input', () => {
       document.getElementById('cotPrecioFinal').dataset.tocado = '1';
+      actualizarPrecioFinalFmt();
     });
 
-    const temarioSel = window.TemarioSelector.crear({
-      modoWrapEl: document.getElementById('cotTemarioModoWrap'),
-      bodyEl: document.getElementById('cotTemarioBody'),
-    });
-    document.getElementById('cotHerramienta').addEventListener('change', async e => {
-      await temarioSel.cargarHerramienta(e.target.value);
-      actualizarPrecioSugerido();
-    });
-    document.getElementById('cotTemarioBody').addEventListener('change', () => {
-      const payload = temarioSel.getPayload();
-      if(payload) document.getElementById('cotHoras').value = payload.horas_totales;
-      actualizarPrecioSugerido();
-    });
-
-    // precarga el temario ya guardado de una Solicitud/Cotización existente —
-    // Solicitud/Cotizacion solo guardan el NOMBRE del temario estándar (no su
-    // id), así que hace falta resolverlo contra el catálogo cacheado.
-    async function precargarTemario(herramienta, temarioTipo, temarioNombre, temasJsonStr){
-      if(temarioTipo === 'estandar'){
-        const data = await window.TemarioSelector.cargarCatalogo(herramienta);
-        const match = (data.estandar || []).find(t => t.nombre === temarioNombre);
-        if(match) temarioSel.preseleccionar({ temarioId: match.id });
-      } else {
-        let temas = [];
-        try { temas = JSON.parse(temasJsonStr || '[]'); } catch(e){ /* deja vacío */ }
-        temarioSel.preseleccionar({ temaIds: temas.map(t => t.temaId) });
-      }
-    }
-
-    // ── Contacto del cliente elegido ──
-    async function cargarContactosCotizacion(cliente){
-      const sel = document.getElementById('cotContactoSelect');
-      const btnNuevo = document.getElementById('cotBtnNuevoContacto');
-      document.getElementById('cotContactoFormWrap').innerHTML = '';
-      if(!cliente){
-        sel.disabled = true;
-        sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
-        btnNuevo.disabled = true;
-        return;
-      }
-      sel.disabled = true;
-      sel.innerHTML = '<option value="">Cargando contactos…</option>';
-      let contactos = [];
-      try { contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
-      catch(e){ contactos = []; }
-      const opciones = contactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
-      sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
-      sel.disabled = false;
-      btnNuevo.disabled = false;
-    }
-
-    document.getElementById('cotBtnNuevoContacto').addEventListener('click', () => {
-      const cliente = cotEmpresaAuto.getSeleccionado();
-      if(!cliente) return;
-      const cfw = document.getElementById('cotContactoFormWrap');
-      if(cfw.querySelector('.radm-inline-form')) return;
-      cfw.innerHTML = `
-        <div class="radm-inline-form">
-          <div class="radm-form-row">
-            <div class="radm-field"><label>NOMBRE</label><input type="text" class="ccf-nombre"></div>
-            <div class="radm-field"><label>CORREO</label><input type="text" class="ccf-correo"></div>
-            <div class="radm-field"><label>TELÉFONO</label><input type="text" class="ccf-telefono"></div>
-          </div>
-          <div class="radm-actions">
-            <span class="radm-hint">Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.</span>
-            <div class="radm-actions-buttons">
-              <button type="button" class="radm-btn ccf-guardar">Guardar</button>
-              <button type="button" class="radm-btn radm-btn-ghost ccf-cancelar">Cancelar</button>
-            </div>
-          </div>
-        </div>`;
-      cfw.querySelector('.ccf-cancelar').addEventListener('click', () => { cfw.innerHTML = ''; });
-      cfw.querySelector('.ccf-guardar').addEventListener('click', async () => {
-        const nombre = cfw.querySelector('.ccf-nombre').value.trim();
-        if(!nombre){ toast('Falta el nombre del contacto.', false); return; }
-        try {
-          const r = await apiPostJson('/api/crearContacto', {
-            cliente_id: cliente.id, nombre,
-            correo: cfw.querySelector('.ccf-correo').value.trim(),
-            telefono: cfw.querySelector('.ccf-telefono').value.trim(),
-          });
-          toast('Contacto guardado.', true);
-          cfw.innerHTML = '';
-          await cargarContactosCotizacion(cliente);
-          document.getElementById('cotContactoSelect').value = r.id;
-        } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
-      });
-    });
-
-    // ── Solicitud de origen (opcional) del cliente elegido ──
-    let cotSolicitudesCache = [];
-    async function cargarSolicitudesCliente(cliente){
-      const sel = document.getElementById('cotSolicitudSelect');
-      if(!cliente){
-        sel.disabled = true;
-        sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
-        cotSolicitudesCache = [];
-        return;
-      }
-      sel.disabled = true;
-      sel.innerHTML = '<option value="">Cargando…</option>';
-      try {
-        const lista = await apiGetConReintento('/api/listSolicitudesAdmin?clienteId=' + cliente.id);
-        cotSolicitudesCache = lista.filter(s => s.estatus !== 'Ganada' && s.estatus !== 'Perdida');
-      } catch(e){ cotSolicitudesCache = []; }
-      const opciones = cotSolicitudesCache.map(s => `<option value="${s.id}">${TOOL_NAMES[s.herramienta] || s.herramienta} — ${escapeHtml(s.temario_nombre || 'Personalizado')} (${fmtFecha(s.fecha_creacion)})</option>`).join('');
-      sel.innerHTML = `<option value="">Sin solicitud de origen</option>${opciones}`;
-      sel.disabled = false;
-    }
-
-    document.getElementById('cotSolicitudSelect').addEventListener('change', async e => {
-      const id = e.target.value;
-      if(!id) return;
-      const sol = cotSolicitudesCache.find(s => String(s.id) === id);
+    async function abrirDetalleCotizar(sol, opts){
       if(!sol) return;
-      document.getElementById('cotHerramienta').value = sol.herramienta;
-      await temarioSel.cargarHerramienta(sol.herramienta);
-      await precargarTemario(sol.herramienta, sol.temario_tipo, sol.temario_nombre, sol.temas_json);
-      document.getElementById('cotHoras').value = sol.horas_totales || '';
-      document.getElementById('cotFechaTentativa').value = sol.fecha_tentativa || '';
-      document.getElementById('cotCiudadSede').value = sol.ciudad_sede || '';
-      setPill('participantes', sol.participantes);
-      setPill('modalidad', sol.modalidad);
-      actualizarPrecioSugerido();
-    });
-
-    async function onClienteChange(cliente){
-      await Promise.all([cargarContactosCotizacion(cliente), cargarSolicitudesCliente(cliente)]);
-    }
-    const cotEmpresaAuto = crearAutocomplete({
-      inputId: 'cotEmpresaNombre', listId: 'cotEmpresaLista', codigoId: 'cotEmpresaCodigo',
-      onChange: onClienteChange,
-    });
-
-    let cotReemplazaFolioActual = null;
-
-    function resetFormCotizacion(){
-      cotEmpresaAuto.reset();
-      document.getElementById('cotHerramienta').value = '';
-      temarioSel.cargarHerramienta('');
-      document.getElementById('cotHoras').value = '';
+      opts = opts || {};
+      cotSolicitudActual = sol;
+      cotReemplazaFolioActual = opts.reemplazaAFolio || null;
+      renderDetalleResumen(sol);
       document.getElementById('cotFechaVigencia').value = defaultFechaVigencia();
-      document.getElementById('cotFechaTentativa').value = '';
-      document.getElementById('cotCiudadSede').value = '';
-      document.querySelectorAll('#cotTab-crear .sol-pill').forEach(p => p.classList.remove('active'));
       const descuentoInput = document.getElementById('cotDescuentoPct');
-      descuentoInput.value = ''; delete descuentoInput.dataset.tocado;
       const precioInput = document.getElementById('cotPrecioFinal');
-      precioInput.value = ''; delete precioInput.dataset.tocado;
-      document.getElementById('cotPrecioCalc').textContent = 'Elige herramienta y horas para calcular el precio sugerido.';
-      document.getElementById('cotReemplazaHint').textContent = '';
-      cotReemplazaFolioActual = null;
-    }
-
-    async function precargarFormDesdeCotizacion(c){
-      resetFormCotizacion();
-      cotEmpresaAuto.setSeleccionado({ id: c.cliente_id, nombre: c.cliente, codigo: c.cliente_codigo });
-      await onClienteChange({ id: c.cliente_id });
-      if(c.contacto_id) document.getElementById('cotContactoSelect').value = c.contacto_id;
-      document.getElementById('cotHerramienta').value = c.herramienta;
-      await temarioSel.cargarHerramienta(c.herramienta);
-      await precargarTemario(c.herramienta, c.temario_tipo, c.temario_nombre, c.temas_json);
-      document.getElementById('cotHoras').value = c.horas;
-      document.getElementById('cotFechaTentativa').value = c.fecha_tentativa || '';
-      document.getElementById('cotCiudadSede').value = c.ciudad_sede || '';
-      setPill('participantes', c.participantes);
-      setPill('modalidad', c.modalidad);
-      const descuentoInput = document.getElementById('cotDescuentoPct');
-      descuentoInput.value = c.descuento_pct != null ? c.descuento_pct : '';
-      descuentoInput.dataset.tocado = '1';
-      const precioInput = document.getElementById('cotPrecioFinal');
-      precioInput.value = c.precio_final;
-      precioInput.dataset.tocado = '1';
+      if(opts.descuentoInicial != null){ descuentoInput.value = opts.descuentoInicial; descuentoInput.dataset.tocado = '1'; }
+      else { descuentoInput.value = ''; delete descuentoInput.dataset.tocado; }
+      if(opts.precioFinalInicial != null){ precioInput.value = opts.precioFinalInicial; precioInput.dataset.tocado = '1'; }
+      else { precioInput.value = ''; delete precioInput.dataset.tocado; }
+      document.getElementById('cotReemplazaHint').textContent = cotReemplazaFolioActual
+        ? `Nueva versión de ${cotReemplazaFolioActual} — al crear, esa cotización pasa a "Reemplazada".`
+        : '';
+      mostrarVistaCrear('detalle');
+      document.getElementById('cotPrecioCalc').textContent = 'Calculando precio sugerido…';
+      await cargarTarifasCache();
       actualizarPrecioSugerido();
-      cotReemplazaFolioActual = c.folio;
-      document.getElementById('cotReemplazaHint').textContent = `Nueva versión de ${c.folio} — al crear, esa cotización pasa a "Reemplazada".`;
     }
 
-    function payloadBaseFormulario(){
-      const seleccionado = cotEmpresaAuto.getSeleccionado();
-      const empresaNombre = document.getElementById('cotEmpresaNombre').value.trim();
-      const empresaCodigo = document.getElementById('cotEmpresaCodigo').value.trim();
-      const herramienta = document.getElementById('cotHerramienta').value;
-      const temarioPayload = temarioSel.getPayload();
-      const horas = Number(document.getElementById('cotHoras').value);
-      const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
-      return { seleccionado, empresaNombre, empresaCodigo, herramienta, temarioPayload, horas, precioFinal };
-    }
+    document.getElementById('cotDetalleVolver').addEventListener('click', () => {
+      mostrarVistaCrear('lista');
+      cargarListaSolicitudesActivas();
+    });
 
     document.getElementById('cotVistaPrevia').addEventListener('click', async () => {
-      const { seleccionado, empresaNombre, herramienta, temarioPayload, horas, precioFinal } = payloadBaseFormulario();
-      const clienteNombre = seleccionado ? seleccionado.nombre : empresaNombre;
-      if(!clienteNombre){ toast('Captura o selecciona un cliente primero.', false); return; }
-      if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-      if(!temarioPayload){ toast('Selecciona el temario primero.', false); return; }
+      if(!cotSolicitudActual) return;
+      const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal)){ toast('Falta el precio final.', false); return; }
-      const contactoSel = document.getElementById('cotContactoSelect');
-      const contactoNombre = contactoSel && contactoSel.value ? contactoSel.selectedOptions[0].textContent.replace(' (Principal)', '') : '';
-
+      const sol = cotSolicitudActual;
       const payload = {
-        cliente_nombre: clienteNombre, contacto_nombre: contactoNombre,
-        herramienta, temario_nombre: temarioPayload.temario_nombre, temas: temarioPayload.temas,
-        horas_totales: horas || temarioPayload.horas_totales, precio_final: precioFinal,
-        modalidad: valorPill('modalidad'), participantes: valorPill('participantes'),
-        ciudad_sede: document.getElementById('cotCiudadSede').value.trim(),
-        fecha_tentativa: document.getElementById('cotFechaTentativa').value.trim(),
+        cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
+        herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
+        horas_totales: horasDe(sol), precio_final: precioFinal,
+        modalidad: sol.modalidad, participantes: sol.participantes,
+        ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
       };
-
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
       try {
@@ -5845,32 +5782,24 @@
     });
 
     document.getElementById('cotCrear').addEventListener('click', async () => {
-      const { seleccionado, empresaNombre, empresaCodigo, herramienta, temarioPayload, horas, precioFinal } = payloadBaseFormulario();
-      let empresa;
-      if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
-      else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
-      else { toast('Selecciona un cliente existente o captura nombre + código para uno nuevo.', false); return; }
-      if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-      if(!temarioPayload){ toast(temarioSel.getModo() === 'estandar' ? 'Selecciona un temario estándar.' : 'Selecciona al menos un tema.', false); return; }
-      if(!Number.isFinite(horas) || horas <= 0){ toast('Las horas no son válidas.', false); return; }
+      if(!cotSolicitudActual){ toast('Elige una solicitud primero.', false); return; }
+      const sol = cotSolicitudActual;
+      const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal) || precioFinal < 0){ toast('El precio final no es válido.', false); return; }
 
-      const contactoSel = document.getElementById('cotContactoSelect');
-      const solicitudSel = document.getElementById('cotSolicitudSelect');
       const payload = {
-        empresa,
-        contacto_id: contactoSel && contactoSel.value ? Number(contactoSel.value) : null,
-        solicitud_id: solicitudSel && solicitudSel.value ? Number(solicitudSel.value) : null,
+        empresa: { clienteId: sol.cliente_id },
+        contacto_id: sol.contacto_id || null,
+        solicitud_id: sol.id || null,
         reemplaza_a_folio: cotReemplazaFolioActual,
-        herramienta,
-        temario_tipo: temarioPayload.temario_tipo, temario_nombre: temarioPayload.temario_nombre, temas: temarioPayload.temas,
-        horas_totales: horas,
+        herramienta: sol.herramienta,
+        temario_tipo: sol.temario_tipo, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
+        horas_totales: horasDe(sol),
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
         precio_final: precioFinal,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
-        fecha_tentativa: document.getElementById('cotFechaTentativa').value.trim(),
-        ciudad_sede: document.getElementById('cotCiudadSede').value.trim(),
-        participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
+        fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
+        participantes: sol.participantes, modalidad: sol.modalidad,
       };
 
       const btn = document.getElementById('cotCrear');
@@ -5878,7 +5807,10 @@
       try {
         const r = await apiPostJson('/api/crearCotizacion', payload);
         toast('Cotización creada: ' + r.folio, true);
-        resetFormCotizacion();
+        cotSolicitudActual = null;
+        cotReemplazaFolioActual = null;
+        mostrarVistaCrear('lista');
+        cargarListaSolicitudesActivas();
         cargarKpisCotizaciones();
         document.querySelector('#cotTabs .dash-etab[data-cottab="seguimiento"]').click();
       } catch(e){
@@ -5886,6 +5818,136 @@
       }
       btn.disabled = false; btn.textContent = 'Crear';
     });
+
+    // ── Vista 3: editar los datos de la Solicitud antes de cotizar ──
+    const temarioSelEdit = window.TemarioSelector.crear({
+      modoWrapEl: document.getElementById('cotEditTemarioModoWrap'),
+      bodyEl: document.getElementById('cotEditTemarioBody'),
+    });
+    document.getElementById('cotEditHerramienta').addEventListener('change', e => temarioSelEdit.cargarHerramienta(e.target.value));
+
+    // precarga el temario ya guardado — Solicitud solo guarda el NOMBRE del
+    // temario estándar (no su id), así que hace falta resolverlo contra el
+    // catálogo cacheado antes de poder preseleccionarlo.
+    async function precargarTemarioEdit(herramienta, temarioTipo, temarioNombre, temasJsonStr){
+      if(temarioTipo === 'estandar'){
+        const data = await window.TemarioSelector.cargarCatalogo(herramienta);
+        const match = (data.estandar || []).find(t => t.nombre === temarioNombre);
+        if(match) temarioSelEdit.preseleccionar({ temarioId: match.id });
+      } else {
+        let temas = [];
+        try { temas = JSON.parse(temasJsonStr || '[]'); } catch(e){ /* deja vacío */ }
+        temarioSelEdit.preseleccionar({ temaIds: temas.map(t => t.temaId) });
+      }
+    }
+
+    let cotEditandoSolicitud = null;
+    let cotEditVolverA = 'lista'; // a dónde regresar tras guardar/cancelar: 'lista' | 'detalle'
+
+    async function cargarContactosEdit(clienteId, contactoIdSeleccionado){
+      const sel = document.getElementById('cotEditContactoSelect');
+      sel.innerHTML = '<option value="">Cargando…</option>';
+      let contactos = [];
+      try { contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId); }
+      catch(e){ contactos = []; }
+      const opciones = contactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
+      sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
+      if(contactoIdSeleccionado) sel.value = contactoIdSeleccionado;
+    }
+
+    async function abrirEditarSolicitud(sol){
+      if(!sol) return;
+      cotEditandoSolicitud = sol;
+      cotEditVolverA = document.getElementById('cotDetalleVista').hidden ? 'lista' : 'detalle';
+      await cargarContactosEdit(sol.cliente_id, sol.contacto_id);
+      document.getElementById('cotEditHerramienta').value = sol.herramienta;
+      await temarioSelEdit.cargarHerramienta(sol.herramienta);
+      await precargarTemarioEdit(sol.herramienta, sol.temario_tipo, sol.temario_nombre, sol.temas_json);
+      document.getElementById('cotEditFechaTentativa').value = sol.fecha_tentativa || '';
+      document.getElementById('cotEditCiudadSede').value = sol.ciudad_sede || '';
+      setPill('participantes', sol.participantes, document.getElementById('cotEditarVista'));
+      setPill('modalidad', sol.modalidad, document.getElementById('cotEditarVista'));
+      document.getElementById('cotEditNotas').value = sol.notas || '';
+      mostrarVistaCrear('editar');
+    }
+
+    document.getElementById('cotEditarVolver').addEventListener('click', () => { mostrarVistaCrear(cotEditVolverA); });
+    document.getElementById('cotEditCancelar2').addEventListener('click', () => { mostrarVistaCrear(cotEditVolverA); });
+
+    document.getElementById('cotEditGuardar').addEventListener('click', async () => {
+      if(!cotEditandoSolicitud) return;
+      const herramienta = document.getElementById('cotEditHerramienta').value;
+      if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
+      const temarioPayload = temarioSelEdit.getPayload();
+      if(!temarioPayload){ toast(temarioSelEdit.getModo() === 'estandar' ? 'Selecciona un temario estándar.' : 'Selecciona al menos un tema.', false); return; }
+
+      const contactoSel = document.getElementById('cotEditContactoSelect');
+      const payload = {
+        id: cotEditandoSolicitud.id,
+        contacto_id: contactoSel.value ? Number(contactoSel.value) : null,
+        herramienta,
+        temario_tipo: temarioPayload.temario_tipo, temario_nombre: temarioPayload.temario_nombre, temas: temarioPayload.temas,
+        horas_totales: temarioPayload.horas_totales,
+        fecha_tentativa: document.getElementById('cotEditFechaTentativa').value.trim(),
+        ciudad_sede: document.getElementById('cotEditCiudadSede').value.trim(),
+        participantes: valorPill('participantes', document.getElementById('cotEditarVista')),
+        modalidad: valorPill('modalidad', document.getElementById('cotEditarVista')),
+        notas: document.getElementById('cotEditNotas').value.trim(),
+      };
+
+      const btn = document.getElementById('cotEditGuardar');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      try {
+        await apiPostJson('/api/editarSolicitud', payload);
+        toast('Solicitud actualizada.', true);
+        const contactoNombreOpt = contactoSel.selectedOptions[0];
+        Object.assign(cotEditandoSolicitud, {
+          contacto_id: payload.contacto_id,
+          contacto: payload.contacto_id ? contactoNombreOpt.textContent.replace(' (Principal)', '') : null,
+          herramienta: payload.herramienta,
+          temario_tipo: payload.temario_tipo,
+          temario_nombre: payload.temario_nombre,
+          temas_json: JSON.stringify(payload.temas),
+          horas_totales: payload.horas_totales,
+          fecha_tentativa: payload.fecha_tentativa,
+          ciudad_sede: payload.ciudad_sede,
+          participantes: payload.participantes,
+          modalidad: payload.modalidad,
+          notas: payload.notas,
+        });
+        if(cotEditVolverA === 'detalle'){
+          cotSolicitudActual = cotEditandoSolicitud;
+          renderDetalleResumen(cotSolicitudActual);
+          actualizarPrecioSugerido();
+          mostrarVistaCrear('detalle');
+        } else {
+          mostrarVistaCrear('lista');
+          cargarListaSolicitudesActivas();
+        }
+      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+      btn.disabled = false; btn.textContent = 'Guardar cambios';
+    });
+
+    // ── "Nueva versión" desde Seguimiento — arranca directo en la vista de
+    // detalle/precio con los datos de la cotización elegida, sin pasar por la
+    // lista de Solicitudes (aunque sí liga con su Solicitud de origen si la
+    // tiene, para poder editarla desde ahí) ──
+    function precargarFormDesdeCotizacion(c){
+      const datosComoSolicitud = {
+        id: c.solicitud_id || null,
+        cliente_id: c.cliente_id, cliente: c.cliente, cliente_codigo: c.cliente_codigo,
+        contacto_id: c.contacto_id, contacto: c.contacto,
+        herramienta: c.herramienta, temario_tipo: c.temario_tipo, temario_nombre: c.temario_nombre,
+        temas_json: c.temas_json, horas_totales: c.horas,
+        fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
+        participantes: c.participantes, modalidad: c.modalidad,
+      };
+      abrirDetalleCotizar(datosComoSolicitud, {
+        reemplazaAFolio: c.folio,
+        precioFinalInicial: c.precio_final,
+        descuentoInicial: c.descuento_pct,
+      });
+    }
 
     // ══ PLANTILLA ══
     wireImgFallback(document.getElementById('cotFondoPreview'), document.getElementById('cotFondoVacio'));
@@ -5933,17 +5995,16 @@
     });
 
     // ── pestañas ──
-    let tarifasCargando = false;
     document.getElementById('cotTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
       const key = btn.dataset.cottab;
       document.querySelectorAll('#cotTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('#panel-cotizaciones .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cotTab-' + key));
-      if(key === 'crear' && !tarifasCargadas && !tarifasCargando){ tarifasCargando = true; cargarTarifasCache().then(() => { tarifasCargadas = true; tarifasCargando = false; }); }
+      if(key === 'crear'){ mostrarVistaCrear('lista'); cargarListaSolicitudesActivas(); cargarTarifasCache(); }
     });
 
-    resetFormCotizacion();
+    mostrarVistaCrear('lista');
     cargarKpisCotizaciones();
     buscarCotizaciones();
   })();

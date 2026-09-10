@@ -1,12 +1,15 @@
 // actualizarEstatusSolicitud/index.js
 // Function protegida (rol "admin"): cambia el estatus de una Solicitud desde
-// el <select> inline de la tabla. El paso a "Cotizada" es manual hasta que
-// exista Cotizaciones (Fase 3) — ahí se vuelve automático y este campo deja
-// de tocarse a mano para ese caso puntual.
+// el <select> inline de la tabla. El paso a "Cotizada" ya es automático desde
+// Cotizaciones (Fase 3) cuando se crea una cotización con solicitud_id.
+// "Descartada" (agregado en esa misma fase) es el equivalente a "eliminar"
+// una Solicitud desde el botón de basura en Crear Cotización — mismo
+// criterio que el resto del proyecto (Cliente/Diploma nunca se borran de
+// verdad, solo cambian de estatus, para no perder el historial).
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
-const ESTATUS_VALIDOS = ["Nueva", "En seguimiento", "Cotizada", "Ganada", "Perdida"];
+const ESTATUS_VALIDOS = ["Nueva", "En seguimiento", "Cotizada", "Ganada", "Perdida", "Descartada"];
 
 module.exports = async function (context, req) {
   const body = req.body || {};

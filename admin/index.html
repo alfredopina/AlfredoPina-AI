@@ -907,6 +907,10 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diplomas
       </button>
+      <button class="admin-nav-item" data-panel="grupos">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5"/><path d="M14.5 20v-1a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1" stroke-linecap="round"/></svg></span>
+        Grupos
+      </button>
 
       <div class="admin-nav-group">PRODUCTOS</div>
       <button class="admin-nav-item" data-panel="cursos">
@@ -2105,6 +2109,114 @@
           </div>
         </div>
       </div>
+
+      <div class="admin-panel" id="panel-grupos" style="--c:var(--blue-bright)">
+        <div id="gruToast" class="radm-toast" hidden></div>
+
+        <div class="dash-etabs" id="gruTabs">
+          <button type="button" class="dash-etab active" data-grutab="consultar">Consultar Grupos</button>
+          <button type="button" class="dash-etab" data-grutab="crear">Crear Grupo</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="gruTab-consultar">
+        <div class="sol-toolbar">
+          <div class="dip-filters" style="margin-bottom:0;">
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE</label>
+              <input type="text" id="gruFClienteNombre" placeholder="Escribe para buscar...">
+              <div class="dip-autocomplete-list" id="gruFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>HERRAMIENTA</label>
+              <select id="gruFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS DEL CURSO</label>
+              <select id="gruFEstatusCurso">
+                <option value="">Todos</option>
+                <option value="Por iniciar">Por iniciar</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Terminado">Terminado</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS DE CIERRE</label>
+              <select id="gruFEstatusCierre">
+                <option value="">Todos</option>
+                <option value="Proyecto">Proyecto</option>
+                <option value="Calificaciones">Calificaciones</option>
+                <option value="Diplomas">Diplomas</option>
+                <option value="Cerrado">Cerrado</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="gruFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="gruFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="gruBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="gruLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="gruVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todos los grupos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
+          </div>
+
+          <div class="sol-toolbar-row-sort">
+            <span class="sol-sort-label">ORDENAR</span>
+            <div class="sol-sort-group" id="gruSortGroup">
+              <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha de inicio<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Cliente final</th>
+                <th>Grupo / Código</th>
+                <th>Herramientas</th>
+                <th>Nivel</th>
+                <th>Fechas</th>
+                <th>Instructor</th>
+                <th>Estatus del curso</th>
+                <th>Estatus de cierre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="gruListaBody">
+              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+
+        <div class="dip-tabpanel" id="gruTab-crear">
+          <div id="gruFormWrap"></div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -2133,7 +2245,7 @@
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Tracking Comercial', 'tracking-operacion': 'Tracking Operación',
-    encuestas: 'Encuestas', diplomas: 'Diplomas',
+    encuestas: 'Encuestas', diplomas: 'Diplomas', grupos: 'Grupos',
     config: 'Configuración', notificaciones: 'Notificaciones',
   };
 
@@ -7444,6 +7556,638 @@
       head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
       if(expandir && !cargado){ cargado = true; cargarTarifas(); }
     });
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL GRUPOS — primer módulo de Fase 2 (Operación). Un Grupo es una
+  // instancia real de curso entregada a un Cliente (equivalente operativo del
+  // Excel de control de Alfredo). A diferencia de Solicitudes, aquí Cliente y
+  // Cliente final SÍ son editables en modo edición — un Grupo es control
+  // operativo propio, no hay el mismo riesgo de "cambiar de empresa a una
+  // venta ya cerrada" que justificó el candado de editarSolicitud. Contacto se
+  // resuelve contra el Cliente final si existe, si no contra el Cliente (regla
+  // validada también en el backend, no solo aquí). Sin Tracking Operación
+  // todavía — eso se diseña después de que Alfredo pruebe este módulo con
+  // datos reales (ver CLAUDE.md → Pendientes de Alfredo → Grupos).
+  (function(){
+    const TOOL_META = {
+      excel:         { nombre:'Excel',            color:'#22c55e' },
+      powerbi:       { nombre:'Power BI',          color:'#f2c94c' },
+      powerapps:     { nombre:'Power Apps',        color:'#c026d3' },
+      powerautomate: { nombre:'Power Automate',    color:'#06b6d4' },
+      ia:            { nombre:'IA Aplicada',       color:'#a78bfa' },
+      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316' },
+    };
+    const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
+    const MODALIDADES = ['Online', 'Presencial', 'Híbrido'];
+    const ESTATUS_CURSO = ['Por iniciar', 'En proceso', 'Terminado'];
+    const ESTATUS_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
+    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc' };
+    const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function toast(msg, ok){
+      const el = document.getElementById('gruToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    // Reintento con pausas crecientes — la base SQL serverless se autopausa por
+    // inactividad; misma protección que ya usa el resto del admin contra la
+    // base apcweb-backoffice.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
+    }
+    // <input type=date> espera "YYYY-MM-DD" — las fechas DATE que regresa mssql
+    // llegan como ISO ("2026-09-15T00:00:00.000Z"); recortar los primeros 10
+    // caracteres evita el corrimiento de un día que da new Date(...).toISOString()
+    // al pasar por la zona horaria local del navegador.
+    function fechaInputValue(iso){ return iso ? String(iso).slice(0, 10) : ''; }
+    function herramientasDe(g){ try { return JSON.parse(g.herramientas || '[]'); } catch(e){ return []; } }
+    function nivelesDe(g){ try { return JSON.parse(g.niveles || '[]'); } catch(e){ return []; } }
+
+    // ── autocompletado de Cliente (copia propia, con set() para prellenar en edición) ──
+    function crearAutocomplete({ inputId, listId, codigoId, onChange }){
+      const input = document.getElementById(inputId);
+      const lista = document.getElementById(listId);
+      let seleccionado = null;
+      let timer = null;
+
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+        if(onChange) onChange(null);
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+        }, 250);
+      });
+
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre, codigo: item.dataset.codigo };
+        input.value = item.dataset.nombre;
+        if(codigoId){ const c = document.getElementById(codigoId); c.value = item.dataset.codigo; c.readOnly = true; }
+        lista.hidden = true;
+        if(onChange) onChange(seleccionado);
+      });
+
+      document.addEventListener('click', e => {
+        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+      });
+
+      return {
+        getSeleccionado: () => seleccionado,
+        set: (sel) => {
+          seleccionado = sel;
+          input.value = sel ? sel.nombre : '';
+          if(codigoId){ const c = document.getElementById(codigoId); c.value = sel ? sel.codigo : ''; c.readOnly = !!sel; }
+        },
+        reset: () => {
+          seleccionado = null;
+          input.value = '';
+          lista.hidden = true;
+          if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+          if(onChange) onChange(null);
+        },
+      };
+    }
+
+    const gruFClienteAuto = crearAutocomplete({ inputId:'gruFClienteNombre', listId:'gruFClienteLista' });
+
+    // ══ CONSULTAR GRUPOS — filtros / orden / tabla ══
+    let gruSort = 'fecha';
+    let gruDir = 'desc';
+    let gruListaCache = [];
+
+    function renderSortButtonsGrupos(){
+      document.querySelectorAll('#gruSortGroup .sol-sort-btn').forEach(b => {
+        const activo = b.dataset.sort === gruSort;
+        b.classList.toggle('active', activo);
+        const ico = b.querySelector('.sol-sort-ico');
+        if(activo){ ico.innerHTML = gruDir === 'asc' ? ICO_SORT_ASC : ICO_SORT_DESC; ico.hidden = false; }
+        else { ico.hidden = true; }
+      });
+    }
+    document.getElementById('gruSortGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.sol-sort-btn');
+      if(!btn) return;
+      const sort = btn.dataset.sort;
+      if(gruSort === sort){ gruDir = gruDir === 'asc' ? 'desc' : 'asc'; }
+      else { gruSort = sort; gruDir = SORT_DEFAULT_DIR[sort]; }
+      renderSortButtonsGrupos();
+      buscarGrupos();
+    });
+
+    function badgeHerramientas(g){
+      const lista = herramientasDe(g);
+      if(!lista.length) return '—';
+      return lista.map(h => {
+        const meta = TOOL_META[h] || { nombre: h, color: 'var(--text-dim)' };
+        return `<span class="dip-status" style="margin-right:8px;"><span class="dip-status-dot" style="background:${meta.color}"></span>${escapeHtml(meta.nombre)}</span>`;
+      }).join('');
+    }
+
+    function checkTexto(valor, etiqueta){
+      return `<span class="dip-status">${valor ? ICO_CHECK : ICO_CROSS}<span style="color:${valor ? 'var(--good)' : 'var(--text-faint)'}">${etiqueta}</span></span>`;
+    }
+
+    function grupoDetalleHtml(g){
+      return `
+        <div class="cot-detalle-grid" style="margin-bottom:14px;">
+          <div><div class="cot-detalle-item-label">Fotos RS / Correos ML / Pagado</div><div class="cot-detalle-item-value" style="display:flex; gap:14px; flex-wrap:wrap;">${checkTexto(g.fotos_rs, 'Fotos RS')} ${checkTexto(g.correos_ml, 'Correos ML')} ${checkTexto(g.pagado, 'Pagado')}</div></div>
+          <div><div class="cot-detalle-item-label">Cotización de origen</div><div class="cot-detalle-item-value">${g.cotizacion_folio ? `<a href="/api/getCotizacionPdf?folio=${encodeURIComponent(g.cotizacion_folio)}" target="_blank" style="color:var(--blue-bright)">${escapeHtml(g.cotizacion_folio)}</a>` : 'Sin ligar'}</div></div>
+          <div><div class="cot-detalle-item-label">Nombre del curso</div><div class="cot-detalle-item-value">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div></div>
+        </div>
+        <div class="cot-detalle-item-label" style="margin-bottom:4px;">Notas</div>
+        <div class="cot-detalle-item-value">${g.notas ? escapeHtml(g.notas) : '—'}</div>`;
+    }
+
+    async function buscarGrupos(){
+      const params = new URLSearchParams();
+      const seleccionado = gruFClienteAuto.getSeleccionado();
+      const herramienta = document.getElementById('gruFHerramienta').value;
+      const estatusCurso = document.getElementById('gruFEstatusCurso').value;
+      const estatusCierre = document.getElementById('gruFEstatusCierre').value;
+      const desde = document.getElementById('gruFDesde').value;
+      const hasta = document.getElementById('gruFHasta').value;
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+      if(herramienta) params.set('herramienta', herramienta);
+      if(estatusCurso) params.set('estatusCurso', estatusCurso);
+      if(estatusCierre) params.set('estatusCierre', estatusCierre);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+      params.set('sort', gruSort);
+      params.set('dir', gruDir);
+
+      const body = document.getElementById('gruListaBody');
+      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
+      try {
+        const lista = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
+        gruListaCache = lista;
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        body.innerHTML = lista.map(g => `
+          <tr data-id="${g.id}">
+            <td>${escapeHtml(g.cliente)}</td>
+            <td>${g.cliente_final ? escapeHtml(g.cliente_final) : '—'}</td>
+            <td>
+              <button type="button" class="sol-temario-toggle" data-id="${g.id}" title="Ver notas, checklist y cotización de origen">
+                <span class="sol-temario-nombre">${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</span>
+                <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
+            <td>${badgeHerramientas(g)}</td>
+            <td>${nivelesDe(g).map(n => NIVEL_LABEL[n] || n).join(' · ') || '—'}</td>
+            <td class="radm-mono">${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}</td>
+            <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
+            <td>${escapeHtml(g.estatus_curso)}</td>
+            <td>${g.estatus_cierre ? escapeHtml(g.estatus_cierre) : '—'}</td>
+            <td>
+              <button type="button" class="cot-icon-btn gru-editar-btn" data-id="${g.id}" title="Editar el grupo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
+          </tr>
+          <tr class="sol-desglose-row" id="gru-desglose-${g.id}" hidden>
+            <td colspan="10"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
+          </tr>
+        `).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('gruListaBody').addEventListener('click', e => {
+      const toggle = e.target.closest('.sol-temario-toggle');
+      const editarBtn = e.target.closest('.gru-editar-btn');
+      if(toggle){
+        const fila = document.getElementById('gru-desglose-' + toggle.dataset.id);
+        if(!fila) return;
+        fila.hidden = !fila.hidden;
+        toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+      } else if(editarBtn){
+        const g = gruListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
+        if(g) abrirEdicionGrupo(g);
+      }
+    });
+
+    document.getElementById('gruBuscar').addEventListener('click', buscarGrupos);
+    function limpiarFiltrosGrupos(){
+      gruFClienteAuto.reset();
+      document.getElementById('gruFHerramienta').value = '';
+      document.getElementById('gruFEstatusCurso').value = '';
+      document.getElementById('gruFEstatusCierre').value = '';
+      document.getElementById('gruFDesde').value = '';
+      document.getElementById('gruFHasta').value = '';
+    }
+    document.getElementById('gruLimpiarFiltros').addEventListener('click', limpiarFiltrosGrupos);
+    document.getElementById('gruVerTodos').addEventListener('click', () => { limpiarFiltrosGrupos(); buscarGrupos(); });
+
+    // ══ CREAR / EDITAR GRUPO ══
+    // g=null → alta; g={...} (fila de listGruposAdmin) → edición. A diferencia
+    // de Solicitudes, Cliente/Cliente final SÍ son editables aquí — ver nota al
+    // inicio del IIFE.
+    function abrirFormGrupo(g){
+      const editando = !!g;
+      const wrap = document.getElementById('gruFormWrap');
+
+      wrap.innerHTML = `
+        <h3 class="radm-form-title">${editando ? 'Editando Grupo: ' + escapeHtml(g.grupo_codigo || g.cliente) : 'Nuevo Grupo'}</h3>
+        <div class="radm-form">
+          <div class="radm-form-row">
+            <div class="radm-field dip-autocomplete-wrap">
+              <label>CLIENTE (quien contrató) <span class="dip-req">*</span></label>
+              <input type="text" id="gruClienteNombre" placeholder="Escribe para buscar o crear...">
+              <div class="dip-autocomplete-list" id="gruClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
+              <input type="text" id="gruClienteCodigo" placeholder="ACME">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field dip-autocomplete-wrap">
+              <label>CLIENTE FINAL (opcional, si hay reventa/intermediario)</label>
+              <input type="text" id="gruClienteFinalNombre" placeholder="Solo si el curso lo recibe una empresa distinta...">
+              <div class="dip-autocomplete-list" id="gruClienteFinalLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>CÓDIGO</label>
+              <input type="text" id="gruClienteFinalCodigo" placeholder="ACME">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>CONTACTO (opcional)</label>
+              <select id="gruContactoSelect" disabled>
+                <option value="">Selecciona un cliente existente primero…</option>
+              </select>
+            </div>
+            <div class="radm-field" style="flex:none; justify-content:flex-end;">
+              <button type="button" class="radm-btn-add" id="gruBtnNuevoContacto" disabled style="margin-bottom:1px;" title="Se activa al elegir un cliente EXISTENTE de la lista. El contacto se da de alta contra el Cliente final si lo hay, si no contra el Cliente.">+ Nuevo contacto</button>
+            </div>
+          </div>
+          <div id="gruContactoFormWrap"></div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>MODALIDAD</label>
+              <select id="gruModalidad">
+                <option value="">Sin especificar</option>
+                ${MODALIDADES.map(m => `<option value="${m}">${m}</option>`).join('')}
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>GRUPO / CÓDIGO</label>
+              <input type="text" id="gruGrupoCodigo" placeholder="Ej. G-2026-014">
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field" style="flex:2;">
+              <label>HERRAMIENTAS <span class="dip-req">* al menos una</span></label>
+              <div class="sol-pill-group" data-group="herramientas">
+                ${Object.keys(TOOL_META).map(k => `<button type="button" class="sol-pill" data-value="${k}">${TOOL_META[k].nombre}</button>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>NOMBRE DEL CURSO (opcional)</label>
+              <input type="text" id="gruNombreCurso" placeholder="Ej. Excel Intermedio-Avanzado">
+            </div>
+            <div class="radm-field">
+              <label>NIVEL <span class="dip-req">* al menos uno</span></label>
+              <div class="sol-pill-group" data-group="niveles">
+                <button type="button" class="sol-pill" data-value="1">Básico</button>
+                <button type="button" class="sol-pill" data-value="2">Intermedio</button>
+                <button type="button" class="sol-pill" data-value="3">Avanzado</button>
+              </div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field"><label>HORAS</label><input type="number" id="gruHoras" min="0" step="0.5"></div>
+            <div class="radm-field"><label>SESIONES</label><input type="number" id="gruSesiones" min="0" step="1"></div>
+            <div class="radm-field"><label>INSTRUCTOR</label><select id="gruInstructor"><option value="">Sin asignar</option></select></div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field"><label>FECHA DE INICIO</label><input type="date" id="gruFechaInicio"></div>
+            <div class="radm-field"><label>FECHA DE FIN</label><input type="date" id="gruFechaFin"></div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>ESTATUS DEL CURSO</label>
+              <select id="gruEstatusCurso">${ESTATUS_CURSO.map(e => `<option value="${e}">${e}</option>`).join('')}</select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS DE CIERRE</label>
+              <select id="gruEstatusCierre">
+                <option value="">(vacío)</option>
+                ${ESTATUS_CIERRE.map(e => `<option value="${e}">${e}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field">
+              <label>COTIZACIÓN DE ORIGEN (opcional)</label>
+              <select id="gruCotizacion" disabled><option value="">Selecciona el Cliente primero…</option></select>
+            </div>
+            <div class="radm-field"><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
+          </div>
+          <div class="radm-actions" style="margin-bottom:14px;">
+            <div class="radm-switch-row" style="gap:24px;">
+              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruFotosRs"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Fotos RS</span></div>
+              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruCorreosMl"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Correos ML</span></div>
+              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruPagado"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Pagado</span></div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field"><label>NOTAS</label><textarea id="gruNotas" placeholder="Cualquier detalle relevante del grupo..."></textarea></div>
+          </div>
+          <div class="radm-actions">
+            <span class="radm-hint">El cliente y el contacto se dan de alta aquí mismo si todavía no existen.</span>
+            <div class="radm-actions-buttons">
+              <button type="button" class="radm-btn" id="gruGuardar">${editando ? 'Guardar cambios' : 'Guardar'}</button>
+              <button type="button" class="radm-btn radm-btn-ghost" id="gruCancelar">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+
+      // pills multi-select (herramientas/niveles) — a diferencia de Solicitudes
+      // (single-select, limpia hermanos), aquí cada pill se alterna solo.
+      wrap.querySelectorAll('.sol-pill-group').forEach(group => {
+        group.addEventListener('click', e => {
+          const pill = e.target.closest('.sol-pill');
+          if(!pill) return;
+          pill.classList.toggle('active');
+        });
+      });
+      function valoresPill(grupo){
+        return Array.from(wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`)).map(p => p.dataset.value);
+      }
+      function setPills(grupo, valores){
+        const set = new Set((valores || []).map(String));
+        wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', set.has(p.dataset.value)));
+      }
+
+      let gruContactos = [];
+      function pintarContactoSelect(){
+        const sel = document.getElementById('gruContactoSelect');
+        const opciones = gruContactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
+        sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
+      }
+      async function cargarContactosGrupo(cliente){
+        const sel = document.getElementById('gruContactoSelect');
+        const btnNuevo = document.getElementById('gruBtnNuevoContacto');
+        document.getElementById('gruContactoFormWrap').innerHTML = '';
+        if(!cliente){
+          gruContactos = [];
+          sel.disabled = true;
+          sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
+          btnNuevo.disabled = true;
+          return;
+        }
+        sel.disabled = true;
+        sel.innerHTML = '<option value="">Cargando contactos…</option>';
+        try { gruContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
+        catch(e){ gruContactos = []; }
+        pintarContactoSelect();
+        sel.disabled = false;
+        btnNuevo.disabled = false;
+      }
+      // Cliente correcto para Contacto: el final si existe, si no el que contrató.
+      function clienteEfectivoParaContacto(){
+        return gruClienteFinalAuto.getSeleccionado() || gruClienteAuto.getSeleccionado();
+      }
+
+      async function cargarCotizacionesCliente(cliente){
+        const sel = document.getElementById('gruCotizacion');
+        if(!cliente){
+          sel.disabled = true;
+          sel.innerHTML = '<option value="">Selecciona el Cliente primero…</option>';
+          return;
+        }
+        sel.disabled = true;
+        sel.innerHTML = '<option value="">Cargando cotizaciones…</option>';
+        try {
+          const cots = await apiGetConReintento('/api/listCotizacionesAdmin?vista=todas&clienteId=' + cliente.id);
+          const opciones = cots.map(c => `<option value="${c.id}">${escapeHtml(c.folio)} — ${escapeHtml(c.estatus)}</option>`).join('');
+          sel.innerHTML = `<option value="">Sin cotización de origen</option>${opciones}`;
+        } catch(e){ sel.innerHTML = '<option value="">No se pudieron cargar</option>'; }
+        sel.disabled = false;
+      }
+
+      const gruClienteAuto = crearAutocomplete({
+        inputId: 'gruClienteNombre', listId: 'gruClienteLista', codigoId: 'gruClienteCodigo',
+        onChange: (sel) => {
+          cargarCotizacionesCliente(sel);
+          if(!gruClienteFinalAuto.getSeleccionado()) cargarContactosGrupo(sel);
+        },
+      });
+      const gruClienteFinalAuto = crearAutocomplete({
+        inputId: 'gruClienteFinalNombre', listId: 'gruClienteFinalLista', codigoId: 'gruClienteFinalCodigo',
+        onChange: (sel) => cargarContactosGrupo(sel || gruClienteAuto.getSeleccionado()),
+      });
+
+      document.getElementById('gruBtnNuevoContacto').addEventListener('click', () => {
+        const cliente = clienteEfectivoParaContacto();
+        if(!cliente) return;
+        const cfw = document.getElementById('gruContactoFormWrap');
+        if(cfw.querySelector('.radm-inline-form')) return;
+        cfw.innerHTML = `
+          <div class="radm-inline-form">
+            <div class="radm-form-row">
+              <div class="radm-field"><label>NOMBRE</label><input type="text" class="gcf-nombre"></div>
+              <div class="radm-field"><label>CORREO</label><input type="text" class="gcf-correo"></div>
+              <div class="radm-field"><label>TELÉFONO</label><input type="text" class="gcf-telefono"></div>
+            </div>
+            <div class="radm-actions">
+              <span class="radm-hint">Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.</span>
+              <div class="radm-actions-buttons">
+                <button type="button" class="radm-btn gcf-guardar">Guardar</button>
+                <button type="button" class="radm-btn radm-btn-ghost gcf-cancelar">Cancelar</button>
+              </div>
+            </div>
+          </div>`;
+        cfw.querySelector('.gcf-cancelar').addEventListener('click', () => { cfw.innerHTML = ''; });
+        cfw.querySelector('.gcf-guardar').addEventListener('click', async () => {
+          const nombre = cfw.querySelector('.gcf-nombre').value.trim();
+          if(!nombre){ toast('Falta el nombre del contacto.', false); return; }
+          try {
+            const r = await apiPostJson('/api/crearContacto', {
+              cliente_id: cliente.id, nombre,
+              correo: cfw.querySelector('.gcf-correo').value.trim(),
+              telefono: cfw.querySelector('.gcf-telefono').value.trim(),
+            });
+            toast('Contacto guardado.', true);
+            cfw.innerHTML = '';
+            gruContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id);
+            pintarContactoSelect();
+            document.getElementById('gruContactoSelect').value = r.id;
+          } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+        });
+      });
+
+      apiGet('/api/getInstructores').then(data => {
+        const sel = document.getElementById('gruInstructor');
+        (data.instructores || []).forEach(nombre => {
+          const opt = document.createElement('option');
+          opt.value = nombre; opt.textContent = nombre;
+          sel.appendChild(opt);
+        });
+        if(editando && g.instructor) sel.value = g.instructor;
+      }).catch(() => { /* select se queda solo con "Sin asignar" */ });
+
+      document.getElementById('gruCancelar').addEventListener('click', () => activarTabGrupo('consultar'));
+
+      document.getElementById('gruGuardar').addEventListener('click', async () => {
+        const herramientas = valoresPill('herramientas');
+        if(!herramientas.length){ toast('Selecciona al menos una herramienta.', false); return; }
+        const niveles = valoresPill('niveles').map(Number);
+        if(!niveles.length){ toast('Selecciona al menos un nivel.', false); return; }
+
+        const clienteSel = gruClienteAuto.getSeleccionado();
+        const clienteNombre = document.getElementById('gruClienteNombre').value.trim();
+        const clienteCodigo = document.getElementById('gruClienteCodigo').value.trim();
+        let cliente;
+        if(clienteSel){ cliente = { clienteId: clienteSel.id }; }
+        else if(clienteNombre && clienteCodigo){ cliente = { nombre: clienteNombre, codigo: clienteCodigo }; }
+        else { toast('Selecciona el cliente que contrató, o captura nombre + código para uno nuevo.', false); return; }
+
+        const clienteFinalSel = gruClienteFinalAuto.getSeleccionado();
+        const clienteFinalNombre = document.getElementById('gruClienteFinalNombre').value.trim();
+        const clienteFinalCodigo = document.getElementById('gruClienteFinalCodigo').value.trim();
+        let clienteFinal = null;
+        if(clienteFinalSel){ clienteFinal = { clienteId: clienteFinalSel.id }; }
+        else if(clienteFinalNombre && clienteFinalCodigo){ clienteFinal = { nombre: clienteFinalNombre, codigo: clienteFinalCodigo }; }
+        else if(clienteFinalNombre || clienteFinalCodigo){ toast('Completa nombre y código del cliente final, o deja ambos vacíos.', false); return; }
+
+        const contactoSel = document.getElementById('gruContactoSelect');
+        const payload = {
+          cliente, cliente_final: clienteFinal,
+          contacto_id: contactoSel && contactoSel.value ? Number(contactoSel.value) : null,
+          modalidad: document.getElementById('gruModalidad').value || null,
+          grupo_codigo: document.getElementById('gruGrupoCodigo').value.trim(),
+          herramientas, nombre_curso: document.getElementById('gruNombreCurso').value.trim(), niveles,
+          horas: document.getElementById('gruHoras').value, sesiones: document.getElementById('gruSesiones').value,
+          fecha_inicio: document.getElementById('gruFechaInicio').value || null,
+          fecha_fin: document.getElementById('gruFechaFin').value || null,
+          instructor: document.getElementById('gruInstructor').value,
+          estatus_curso: document.getElementById('gruEstatusCurso').value,
+          estatus_cierre: document.getElementById('gruEstatusCierre').value,
+          cotizacion_id: document.getElementById('gruCotizacion').value || null,
+          fotos_rs: document.getElementById('gruFotosRs').checked,
+          correos_ml: document.getElementById('gruCorreosMl').checked,
+          pagado: document.getElementById('gruPagado').checked,
+          fecha_cierre: document.getElementById('gruFechaCierre').value || null,
+          notas: document.getElementById('gruNotas').value.trim(),
+        };
+
+        const btn = document.getElementById('gruGuardar');
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        try {
+          if(editando){
+            await apiPostJson('/api/editarGrupo', Object.assign({ id: g.id }, payload));
+            toast('Grupo actualizado.', true);
+          } else {
+            await apiPostJson('/api/crearGrupo', payload);
+            toast('Grupo guardado.', true);
+          }
+          activarTabGrupo('consultar');
+          buscarGrupos();
+        } catch(e){
+          toast('No se pudo guardar: ' + e.message, false);
+          btn.disabled = false; btn.textContent = editando ? 'Guardar cambios' : 'Guardar';
+        }
+      });
+
+      // ── prefill en modo edición ──
+      if(editando){
+        gruClienteAuto.set({ id: g.cliente_id, nombre: g.cliente, codigo: g.cliente_codigo });
+        if(g.cliente_final_id) gruClienteFinalAuto.set({ id: g.cliente_final_id, nombre: g.cliente_final, codigo: '' });
+        cargarContactosGrupo({ id: g.cliente_final_id || g.cliente_id }).then(() => {
+          document.getElementById('gruContactoSelect').value = g.contacto_id || '';
+        });
+        cargarCotizacionesCliente({ id: g.cliente_id }).then(() => {
+          document.getElementById('gruCotizacion').value = g.cotizacion_id || '';
+        });
+        document.getElementById('gruModalidad').value = g.modalidad || '';
+        document.getElementById('gruGrupoCodigo').value = g.grupo_codigo || '';
+        setPills('herramientas', herramientasDe(g));
+        document.getElementById('gruNombreCurso').value = g.nombre_curso || '';
+        setPills('niveles', nivelesDe(g));
+        document.getElementById('gruHoras').value = g.horas != null ? g.horas : '';
+        document.getElementById('gruSesiones').value = g.sesiones != null ? g.sesiones : '';
+        document.getElementById('gruFechaInicio').value = fechaInputValue(g.fecha_inicio);
+        document.getElementById('gruFechaFin').value = fechaInputValue(g.fecha_fin);
+        document.getElementById('gruEstatusCurso').value = g.estatus_curso;
+        document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
+        document.getElementById('gruFotosRs').checked = !!g.fotos_rs;
+        document.getElementById('gruCorreosMl').checked = !!g.correos_ml;
+        document.getElementById('gruPagado').checked = !!g.pagado;
+        document.getElementById('gruFechaCierre').value = fechaInputValue(g.fecha_cierre);
+        document.getElementById('gruNotas').value = g.notas || '';
+      }
+    }
+
+    function abrirEdicionGrupo(g){
+      abrirFormGrupo(g);
+      activarTabGrupo('crear');
+    }
+
+    // ══ PESTAÑAS Consultar Grupos / Crear Grupo ══
+    function activarTabGrupo(key){
+      document.querySelectorAll('#gruTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.grutab === key));
+      document.querySelectorAll('#panel-grupos .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'gruTab-' + key));
+    }
+    document.getElementById('gruTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.grutab;
+      activarTabGrupo(key);
+      if(key === 'crear') abrirFormGrupo(null); // clic directo en la pestaña siempre arranca en blanco
+    });
+
+    renderSortButtonsGrupos();
+    buscarGrupos();
   })();
 </script>
 

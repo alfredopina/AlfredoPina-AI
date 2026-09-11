@@ -311,6 +311,18 @@
     {
       "route": "/api/listActividadAdmin",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listGruposAdmin",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

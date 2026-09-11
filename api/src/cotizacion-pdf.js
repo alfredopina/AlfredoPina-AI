@@ -217,32 +217,6 @@ function marcasEsquina() {
   };
 }
 
-// acento de esquina — reemplaza el "glow" circular de la primera pasada:
-// Alfredo lo sintió fuera de lugar porque todo el resto del documento es
-// rectilíneo (pills, tabla, marcas de esquina, cuadrícula) y el círculo era
-// la única forma geométrica distinta. Mismo truco de "varios contornos
-// concéntricos, del más grande/tenue al más chico/marcado" pero con
-// cuadrados de esquina redondeada en vez de círculos — encaja con el resto
-// del lenguaje visual del documento. Solo contorno (sin relleno), se recorta
-// contra la esquina superior derecha de la página.
-function acentoEsquina(colorPuro) {
-  const cx = PAGE_W - 30;
-  const cy = 110;
-  const cuadros = [
-    { h: 200, fuerza: 0.18, grosor: 1.5 },
-    { h: 150, fuerza: 0.28, grosor: 1.8 },
-    { h: 100, fuerza: 0.4, grosor: 2.2 },
-    { h: 58, fuerza: 0.55, grosor: 2.6 },
-  ];
-  return {
-    canvas: cuadros.map(({ h, fuerza, grosor }) => ({
-      type: "rect", x: cx - h, y: cy - h, w: h * 2, h: h * 2, r: h * 0.18,
-      lineColor: tint(colorPuro, fuerza), lineWidth: grosor,
-    })),
-    absolutePosition: { x: 0, y: 0 },
-  };
-}
-
 // cuadrícula sutil de fondo — mismo motivo visual que `.grid-bg` ya usa el
 // sitio público, aplicada vía el callback `background` de pdfmake (se
 // repite sola en cada página). El color queda deliberadamente muy claro:
@@ -287,7 +261,6 @@ function construirPortada(datos) {
   return [
     franjaAcento(tc.fill),
     marcasEsquina(),
-    acentoEsquina(tc.fill),
     {
       stack: [
         // ── encabezado: logo + folio ──

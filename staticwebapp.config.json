@@ -351,6 +351,10 @@
     {
       "route": "/api/archivarPendiente",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/updateOrdenPendientes",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

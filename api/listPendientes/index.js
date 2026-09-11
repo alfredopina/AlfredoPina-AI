@@ -1,8 +1,10 @@
 // listPendientes/index.js
 // Function protegida (rol "admin"): trae las 5 particiones completas
 // (activas + archivadas, el volumen es mínimo) — el front separa por
-// categoría y ordena por fecha_creacion descendente, no hace falta filtrar
-// ni ordenar aquí.
+// categoría y ordena las activas por `orden` (drag & drop / botón de
+// ordenar) y las archivadas por fecha, no hace falta filtrar ni ordenar
+// aquí. `orden` puede venir null en notas creadas antes de este campo — el
+// front lo resuelve con la fecha de creación.
 const { getPendientesTable, isTableNotFound } = require("../src/pendientes-tables");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -20,6 +22,7 @@ module.exports = async function (context, req) {
           fecha_creacion: p.fecha_creacion || null,
           archivado: !!p.archivado,
           fecha_archivado: p.fecha_archivado || null,
+          orden: (typeof p.orden === "number") ? p.orden : null,
         });
       }
     } catch (err) {

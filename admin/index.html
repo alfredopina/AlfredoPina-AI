@@ -80,6 +80,10 @@
     padding:14px 12px 4px; font-weight:500;
   }
   .admin-nav-group:first-of-type{ padding-top:6px; }
+  /* Pendientes es un ítem suelto (no pertenece a ningún pilar del modelo de
+     negocio) que vive justo debajo del grupo Productos — sin este separador
+     se leía como si fuera un módulo más de Productos. */
+  .admin-nav-standalone{ margin-top:10px; padding-top:12px; border-top:1px solid var(--line-soft); }
 
   .admin-sidebar-footer{ border-top:1px solid var(--line-soft); padding-top:14px; margin-top:14px; }
   .admin-back{
@@ -904,13 +908,21 @@
   .pend-col-ico svg{ width:14px; height:14px; }
   .pend-col-title{ font-family:var(--display); font-weight:600; font-size:13.5px; }
   .pend-col-count{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
+  .pend-sort-btn{ flex:none; width:22px; height:22px; margin-left:6px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); cursor:pointer; padding:0; }
+  .pend-sort-btn svg{ width:12px; height:12px; }
+  .pend-sort-btn:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
 
   .pend-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
   .pend-list-archivadas{ margin-top:8px; padding-top:10px; border-top:1px dashed var(--line); }
 
   .pend-card{ display:flex; gap:9px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 11px; position:relative; }
   .pend-card:hover{ border-color:var(--blue-bright); }
-  .pend-check{ flex:none; width:17px; height:17px; margin-top:2px; border:1.5px solid var(--line); border-radius:4px; background:var(--panel-2); cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; color:var(--bg); }
+  .pend-drag{ flex:none; width:14px; height:14px; margin-top:3px; color:var(--text-faint); cursor:grab; opacity:0; transition:opacity .15s; touch-action:none; }
+  .pend-drag svg{ width:14px; height:14px; }
+  .pend-card:hover .pend-drag{ opacity:1; }
+  .pend-drag:active{ cursor:grabbing; }
+  .pend-check{ flex:none; width:18px; height:18px; margin-top:2px; border:2px solid var(--text-dim); border-radius:4px; background:var(--panel); cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; color:var(--bg); transition:border-color .15s, background-color .15s; }
+  .pend-check:hover{ border-color:var(--blue-bright); }
   .pend-check svg{ width:11px; height:11px; }
   .pend-card.archivada .pend-check{ background:var(--blue-bright); border-color:var(--blue-bright); }
   .pend-body{ flex:1; min-width:0; }
@@ -1019,7 +1031,7 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
         Recursos
       </button>
-      <button class="admin-nav-item" data-panel="pendientes">
+      <button class="admin-nav-item admin-nav-standalone" data-panel="pendientes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Pendientes
       </button>
@@ -8659,6 +8671,8 @@
     const ICO_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>';
+    const ICO_DRAG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+    const ICO_SORT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
@@ -8689,19 +8703,30 @@
 
     let pendCache = [];
     const uiState = {};
-    CATEGORIAS.forEach(c => { uiState[c.id] = { addOpen: false, archivedOpen: false, editingId: null }; });
+    CATEGORIAS.forEach(c => { uiState[c.id] = { addOpen: false, archivedOpen: false, editingId: null, ultimoOrdenFecha: null }; });
 
+    // Prioridad manual (drag & drop) para las activas: menor `orden` = más
+    // arriba. Las notas creadas antes de que este campo existiera (o
+    // cualquier nota nueva que todavía no se ha arrastrado) caen aquí con la
+    // fecha de creación en negativo, así siguen apareciendo arriba (más
+    // reciente primero, mismo comportamiento de siempre) hasta que Alfredo
+    // las reordene a mano — un solo drag reindexa TODA la columna a 0,10,20…
+    function ordenValor(p){
+      return (typeof p.orden === 'number') ? p.orden : -new Date(p.fecha_creacion).getTime();
+    }
     function porCategoria(catId, archivado){
-      return pendCache
-        .filter(p => p.categoria === catId && !!p.archivado === archivado)
-        .slice()
-        .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
+      const items = pendCache.filter(p => p.categoria === catId && !!p.archivado === archivado);
+      if(archivado){
+        return items.slice().sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
+      }
+      return items.slice().sort((a, b) => ordenValor(a) - ordenValor(b));
     }
 
     function cardHtml(p, editando){
       if(editando){
         return `
           <div class="pend-card editing" data-id="${p.id}">
+            <span class="pend-drag" style="visibility:hidden">${ICO_DRAG}</span>
             <span class="pend-check" style="visibility:hidden"></span>
             <div class="pend-body">
               <textarea class="pend-edit-area" id="pendEditArea-${p.id}" rows="2">${escapeHtml(p.texto)}</textarea>
@@ -8714,6 +8739,7 @@
       }
       return `
         <div class="pend-card${p.archivado ? ' archivada' : ''}" data-id="${p.id}">
+          ${p.archivado ? '' : `<span class="pend-drag" title="Arrastra para priorizar">${ICO_DRAG}</span>`}
           <button type="button" class="pend-check" data-accion="toggle-archivado" data-cat="${p.categoria}" data-id="${p.id}" data-archivado="${p.archivado ? '1' : '0'}" title="${p.archivado ? 'Desarchivar' : 'Archivar'}">${p.archivado ? ICO_CHECK : ''}</button>
           <div class="pend-body">
             <div class="pend-text" data-accion="editar" data-cat="${p.categoria}" data-id="${p.id}">${escapeHtml(p.texto)}</div>
@@ -8758,6 +8784,7 @@
             <span class="pend-col-ico">${cat.icono}</span>
             <span class="pend-col-title">${cat.nombre}</span>
             <span class="pend-col-count">${activas.length}</span>
+            ${activas.length > 1 ? `<button type="button" class="pend-sort-btn" data-accion="ordenar-fecha" data-cat="${cat.id}" title="Ordenar por fecha de creación">${ICO_SORT}</button>` : ''}
           </div>
           ${listaActivas}
           ${bloqueAgregar}
@@ -8768,6 +8795,28 @@
 
     function render(){
       document.getElementById('pendGrid').innerHTML = CATEGORIAS.map(columnaHtml).join('');
+      attachSortables();
+    }
+    // Sortable reordena por drag & drop dentro de una sola columna (nunca
+    // entre categorías — el handle .pend-drag solo existe en las tarjetas
+    // activas). render() reconstruye el grid completo en cada acción, así
+    // que hay que reenganchar Sortable cada vez — las instancias viejas
+    // quedan huérfanas sobre nodos ya reemplazados, sin necesidad de
+    // destruirlas a mano.
+    function attachSortables(){
+      if(!window.Sortable) return;
+      document.querySelectorAll('#pendGrid .pend-list').forEach(list => {
+        const catId = list.closest('.pend-col').dataset.cat;
+        Sortable.create(list, {
+          handle: '.pend-drag', animation: 150, filter: '.pend-card.editing',
+          onEnd: async () => {
+            const items = Array.from(list.querySelectorAll('.pend-card')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
+            items.forEach(it => { const p = pendCache.find(x => x.id === it.id); if(p) p.orden = it.orden; });
+            try { await apiPostJson('/api/updateOrdenPendientes', { categoria: catId, items }); }
+            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+          },
+        });
+      });
     }
     // deja el cursor listo en el textarea recién abierto (agregar o editar) —
     // se llama a propósito justo después de cada render() que abre uno,
@@ -8863,6 +8912,23 @@
       if(accion === 'toggle-archivados'){
         uiState[catId].archivedOpen = !uiState[catId].archivedOpen;
         render();
+        return;
+      }
+      if(accion === 'ordenar-fecha'){
+        const activas = porCategoria(catId, false);
+        const direccion = uiState[catId].ultimoOrdenFecha === 'asc' ? 'desc' : 'asc';
+        const ordenadas = activas.slice().sort((a, b) => {
+          const da = new Date(a.fecha_creacion).getTime(), db = new Date(b.fecha_creacion).getTime();
+          return direccion === 'asc' ? da - db : db - da;
+        });
+        const items = ordenadas.map((p, i) => ({ id: p.id, orden: i * 10 }));
+        items.forEach(it => { const p = pendCache.find(x => x.id === it.id); if(p) p.orden = it.orden; });
+        uiState[catId].ultimoOrdenFecha = direccion;
+        render();
+        try {
+          await apiPostJson('/api/updateOrdenPendientes', { categoria: catId, items });
+          toast(direccion === 'asc' ? 'Ordenado: más antiguo primero.' : 'Ordenado: más reciente primero.', true);
+        } catch(err){ toast('No se pudo guardar el nuevo orden: ' + err.message, false); }
         return;
       }
     });

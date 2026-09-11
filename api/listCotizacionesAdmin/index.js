@@ -6,6 +6,9 @@
 // vista, regresa activas por default. dias_abierta y vencida se calculan en
 // la consulta (no en el front): vencida es SOLO informativa — nunca cambia el
 // estatus real, Alfredo decide qué hacer con una cotización vencida.
+// ?estatus= (exacto, ej. "Reemplazada") se agregó para "Ver Cotizaciones" —
+// a diferencia de ?vista= (categorías amplias para el pipeline), aquí se
+// necesita cualquier estatus individual para navegar el historial completo.
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -17,7 +20,7 @@ const VISTAS = {
 };
 
 module.exports = async function (context, req) {
-  const { clienteId, desde, hasta } = req.query;
+  const { clienteId, desde, hasta, estatus } = req.query;
   const vista = VISTAS.hasOwnProperty(req.query.vista) ? req.query.vista : "activas";
 
   try {
@@ -26,6 +29,10 @@ module.exports = async function (context, req) {
     const condiciones = [];
 
     if (VISTAS[vista]) condiciones.push(VISTAS[vista]);
+    if (estatus) {
+      condiciones.push("s.estatus = @estatus");
+      request.input("estatus", sql.NVarChar, estatus);
+    }
     if (clienteId) {
       condiciones.push("s.cliente_id = @clienteId");
       request.input("clienteId", sql.Int, Number(clienteId));

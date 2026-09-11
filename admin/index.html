@@ -359,6 +359,12 @@
   .radm-btn-add:disabled:hover{ background-color:transparent; }
   .radm-btn-add svg{ width:11px; height:11px; }
 
+  /* título dinámico de los formularios "Crear/Editar X" — Clientes/Solicitudes */
+  .radm-form-title{ font-family:var(--display); font-weight:600; font-size:17px; margin:0 0 16px; }
+  /* separador marcado entre el scorecard y el resto de una vista "Consultar" —
+     componente compartido (Clientes/Solicitudes), un solo lugar para ajustar. */
+  .scorecard-block{ border-bottom:2px solid var(--line); padding-bottom:20px; margin-bottom:20px; }
+
   .radm-section{ margin-bottom:30px; }
   .radm-section-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .radm-section-title{ font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px; }
@@ -984,6 +990,13 @@
       <div class="admin-panel" id="panel-solicitudes" style="--c:var(--blue-bright)">
         <div id="solToast" class="radm-toast" hidden></div>
 
+        <div class="dash-etabs" id="solTabs">
+          <button type="button" class="dash-etab active" data-soltab="consultar">Consultar Solicitudes</button>
+          <button type="button" class="dash-etab" data-soltab="crear">Crear Solicitud</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="solTab-consultar">
+        <div class="scorecard-block">
         <div class="sol-kpi-row" id="solKpis">
           <div class="dkpi-card">
             <div class="dkpi-value" id="solKpiManuales">—</div>
@@ -997,6 +1010,7 @@
             <div class="dkpi-value" id="solKpiAtendidas">—</div>
             <div class="dkpi-label">% Solicitudes atendidas</div>
           </div>
+        </div>
         </div>
 
         <div class="sol-toolbar">
@@ -1049,11 +1063,8 @@
               <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
               <button type="button" class="sol-sort-btn" data-sort="horas">Horas<span class="sol-sort-ico" hidden></span></button>
             </div>
-            <button type="button" class="radm-btn-add" id="solBtnNueva" style="margin-left:auto;">+ Nueva Solicitud</button>
           </div>
         </div>
-
-        <div id="solFormWrap"></div>
 
         <div class="dip-table-wrap">
           <table class="dip-table">
@@ -1067,12 +1078,18 @@
                 <th>Canal</th>
                 <th>Estatus</th>
                 <th>Fecha</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="solListaBody">
-              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
+        </div>
+        </div>
+
+        <div class="dip-tabpanel" id="solTab-crear">
+          <div id="solFormWrap"></div>
         </div>
       </div>
       <div class="admin-panel" id="panel-cotizaciones" style="--c:var(--blue-bright)">
@@ -1080,6 +1097,7 @@
 
         <div class="dash-etabs" id="cotTabs">
           <button type="button" class="dash-etab active" data-cottab="crear">Crear Cotización</button>
+          <button type="button" class="dash-etab" data-cottab="ver">Ver Cotizaciones</button>
         </div>
 
         <div class="dip-tabpanel active" id="cotTab-crear">
@@ -1221,6 +1239,62 @@
           </div>
         </div>
 
+        <div class="dip-tabpanel" id="cotTab-ver">
+          <div class="dip-filters">
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE</label>
+              <input type="text" id="cotVFClienteNombre" placeholder="Escribe para buscar...">
+              <div class="dip-autocomplete-list" id="cotVFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS</label>
+              <select id="cotVFEstatus">
+                <option value="">Todos</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Enviada">Enviada</option>
+                <option value="En negociación">En negociación</option>
+                <option value="Ganada">Ganada</option>
+                <option value="Perdida">Perdida</option>
+                <option value="Reemplazada">Reemplazada</option>
+                <option value="Expirada">Expirada</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="cotVFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="cotVFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="cotVBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las cotizaciones">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
+          </div>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table">
+              <thead>
+                <tr><th>Cliente</th><th>Herramienta / Curso</th><th>Folio</th><th>Precio</th><th>Estatus</th><th>Fecha de creación</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="cotVListaBody">
+                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
       <div class="admin-panel" id="panel-diagnosticos"></div>
 
@@ -1264,50 +1338,62 @@
       <div class="admin-panel" id="panel-clientes" style="--c:var(--blue-bright)">
         <div id="cliToast" class="radm-toast" hidden></div>
 
-        <div class="cli-kpi-row" id="cliKpis">
-          <div class="dkpi-card">
-            <div class="dkpi-value" id="cliKpiTotal">—</div>
-            <div class="dkpi-label">Clientes</div>
+        <div class="dash-etabs" id="cliTabs">
+          <button type="button" class="dash-etab active" data-clitab="consultar">Consultar Clientes</button>
+          <button type="button" class="dash-etab" data-clitab="crear">Crear Cliente</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="cliTab-consultar">
+          <div class="scorecard-block">
+            <div class="cli-kpi-row" id="cliKpis">
+              <div class="dkpi-card">
+                <div class="dkpi-value" id="cliKpiTotal">—</div>
+                <div class="dkpi-label">Clientes</div>
+              </div>
+              <div class="dkpi-card">
+                <div class="dkpi-value" id="cliKpiContactos">—</div>
+                <div class="dkpi-label">Contactos</div>
+              </div>
+              <div class="dkpi-card" title="Clientes con al menos una cotización creada este año, sobre el total de clientes">
+                <div class="dkpi-value" id="cliKpiActivos">—</div>
+                <div class="dkpi-label">% Clientes activos</div>
+              </div>
+            </div>
           </div>
-          <div class="dkpi-card">
-            <div class="dkpi-value" id="cliKpiContactos">—</div>
-            <div class="dkpi-label">Contactos</div>
+
+          <div class="cli-toolbar">
+            <div class="cli-toolbar-row">
+              <div class="radm-field cli-buscar-field">
+                <label>BUSCAR</label>
+                <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
+              </div>
+            </div>
+            <div class="cli-toolbar-row cli-toolbar-row-sort">
+              <span class="cli-sort-label">ORDENAR</span>
+              <div class="cli-sort-group" id="cliSortGroup">
+                <button type="button" class="cli-sort-btn" data-sort="nombre">Nombre<span class="cli-sort-ico" hidden></span></button>
+                <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización<span class="cli-sort-ico" hidden></span></button>
+                <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad<span class="cli-sort-ico" hidden></span></button>
+              </div>
+            </div>
           </div>
-          <div class="dkpi-card" title="Clientes con al menos una cotización creada este año, sobre el total de clientes">
-            <div class="dkpi-value" id="cliKpiActivos">—</div>
-            <div class="dkpi-label">% Clientes activos</div>
+
+          <div class="cli-layout">
+            <div class="cli-list" id="cliLista">
+              <div class="radm-empty-row">Cargando clientes…</div>
+            </div>
+            <div class="cli-detail" id="cliDetalle">
+              <div class="admin-empty">
+                <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
+                <div class="admin-empty-title">Selecciona un cliente</div>
+                <div class="admin-empty-text">Elige un cliente de la lista para ver sus datos y contactos, o crea uno nuevo en la pestaña "Crear Cliente".</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="cli-toolbar">
-          <div class="cli-toolbar-row">
-            <div class="radm-field cli-buscar-field">
-              <label>BUSCAR</label>
-              <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
-            </div>
-            <button type="button" class="radm-btn-add cli-btn-nuevo" id="cliBtnNuevo">+ Nuevo Cliente</button>
-          </div>
-          <div class="cli-toolbar-row cli-toolbar-row-sort">
-            <span class="cli-sort-label">ORDENAR</span>
-            <div class="cli-sort-group" id="cliSortGroup">
-              <button type="button" class="cli-sort-btn" data-sort="nombre">Nombre<span class="cli-sort-ico" hidden></span></button>
-              <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización<span class="cli-sort-ico" hidden></span></button>
-              <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad<span class="cli-sort-ico" hidden></span></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="cli-layout">
-          <div class="cli-list" id="cliLista">
-            <div class="radm-empty-row">Cargando clientes…</div>
-          </div>
-          <div class="cli-detail" id="cliDetalle">
-            <div class="admin-empty">
-              <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-              <div class="admin-empty-title">Selecciona un cliente</div>
-              <div class="admin-empty-text">Elige un cliente de la lista para ver y editar sus contactos, o crea uno nuevo.</div>
-            </div>
-          </div>
+        <div class="dip-tabpanel" id="cliTab-crear">
+          <div id="cliFormClienteWrap"></div>
         </div>
       </div>
       <div class="admin-panel" id="panel-tracking-comercial" style="--c:var(--blue-bright)">
@@ -4429,30 +4515,30 @@
       if(!c){ det.classList.remove('seleccionado'); det.innerHTML = EMPTY_HTML; return; }
       det.classList.add('seleccionado');
 
+      // Consultar es SOLO LECTURA — el único punto de edición real es el botón
+      // "Editar", que manda a la pestaña Crear Cliente con este cliente cargado.
       det.innerHTML = `
         <div class="cli-detalle-head">
           <div>
             <div class="cli-detalle-nombre">${escapeHtml(c.nombre)}</div>
             <div class="cli-detalle-sub">${escapeHtml(c.codigo)}${antiguedadTexto(c.cliente_desde) ? ` · Cliente desde ${c.cliente_desde} (${antiguedadTexto(c.cliente_desde)})` : ''}</div>
           </div>
-          <button type="button" class="radm-icon-btn" data-action="edit-cliente" title="Editar cliente">${ICO.edit}</button>
+          <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" data-action="edit-cliente" style="min-width:auto">${ICO.edit} Editar</button>
         </div>
         ${c.notas ? `<div class="cli-detalle-notas">${escapeHtml(c.notas)}</div>` : ''}
         <div class="radm-section-head" style="margin-top:22px;">
           <span class="radm-section-title">CONTACTOS</span>
-          <button type="button" class="radm-btn-add" data-action="add-contacto">+ Agregar contacto</button>
         </div>
         <div class="radm-list" data-lista-contactos>
           <div class="radm-empty-row">Cargando contactos…</div>
         </div>`;
 
-      det.querySelector('[data-action="edit-cliente"]').addEventListener('click', () => abrirFormCliente(c));
+      det.querySelector('[data-action="edit-cliente"]').addEventListener('click', () => abrirEdicionCliente(c));
       const listaEl = det.querySelector('[data-lista-contactos]');
-      det.querySelector('[data-action="add-contacto"]').addEventListener('click', () => abrirFormContacto(listaEl, id, null));
 
       try {
         const contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id);
-        pintarContactos(listaEl, id, contactos);
+        pintarContactos(listaEl, id, contactos, false);
       } catch(e){
         listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`;
       }
@@ -4468,7 +4554,9 @@
       return partes.length ? partes.join(' · ') : '—';
     }
 
-    function pintarContactos(listaEl, clienteId, contactos){
+    // editable=false (Consultar, solo lectura) omite los íconos de editar/borrar
+    // — ahí solo se ve la info, la gestión real vive en Crear Cliente.
+    function pintarContactos(listaEl, clienteId, contactos, editable){
       if(!contactos.length){ listaEl.innerHTML = '<div class="radm-empty-row">Sin contactos todavía.</div>'; return; }
       listaEl.innerHTML = contactos.map(ct => `
         <div class="radm-row" data-id="${ct.id}">
@@ -4476,11 +4564,12 @@
             <div class="radm-row-title">${escapeHtml(ct.nombre)}${ct.es_principal ? '<span class="cli-badge">Principal</span>' : ''}</div>
             <div class="cli-contacto-meta">${contactoMeta(ct)}</div>
           </div>
-          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
-          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
+          ${editable ? `<button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>` : ''}
         </div>
       `).join('');
 
+      if(!editable) return;
       listaEl.querySelectorAll('[data-action="edit"]').forEach(b => {
         b.addEventListener('click', () => abrirFormContacto(listaEl, clienteId, contactos.find(x => x.id === Number(b.closest('.radm-row').dataset.id))));
       });
@@ -4552,7 +4641,7 @@
           toast('Contacto guardado.', true);
           form.remove();
           const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
-          pintarContactos(listaEl, clienteId, contactosNuevos);
+          pintarContactos(listaEl, clienteId, contactosNuevos, true);
           refrescarConteoCliente(clienteId, contactosNuevos.length);
           cargarKpis();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
@@ -4565,18 +4654,23 @@
         await apiPostJson('/api/eliminarContacto', { id });
         toast('Contacto eliminado.', true);
         const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
-        pintarContactos(listaEl, clienteId, contactosNuevos);
+        pintarContactos(listaEl, clienteId, contactosNuevos, true);
         refrescarConteoCliente(clienteId, contactosNuevos.length);
         cargarKpis();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
 
-    // ══ CLIENTE (alta/edición) ══
-    function abrirFormCliente(item){
-      const det = document.getElementById('cliDetalle');
+    // ══ CLIENTE (alta/edición) — vive en la pestaña "Crear Cliente" ══
+    // Un Cliente nuevo no tiene id hasta guardarse, así que la sección de
+    // Contactos solo aparece una vez que ya existe (item truthy: editando uno
+    // existente, o el mismo cliente recién guardado) — igual que antes,
+    // solo que ahora vive en su propia pestaña en vez del panel de detalle.
+    function renderFormCliente(item){
+      const wrap = document.getElementById('cliFormClienteWrap');
       const anioActual = new Date().getFullYear();
-      det.innerHTML = `
-        <div class="radm-inline-form" style="margin:0;">
+      wrap.innerHTML = `
+        <h3 class="radm-form-title">${item ? 'Editando Cliente: ' + escapeHtml(item.nombre) : 'Nuevo Cliente'}</h3>
+        <div class="radm-form">
           <div class="radm-form-row">
             <div class="radm-field"><label>NOMBRE</label><input type="text" class="clf-nombre" value="${item ? escapeHtml(item.nombre) : ''}"></div>
             <div class="radm-field" style="max-width:140px;"><label>CÓDIGO</label><input type="text" class="clf-codigo radm-mono" style="text-transform:uppercase;" value="${item ? escapeHtml(item.codigo) : ''}"></div>
@@ -4592,18 +4686,17 @@
               <button type="button" class="radm-btn radm-btn-ghost clf-cancelar">Cancelar</button>
             </div>
           </div>
-        </div>`;
+        </div>
+        <div id="cliFormContactosWrap"></div>`;
 
-      det.querySelector('.clf-cancelar').addEventListener('click', () => {
-        if(item) renderDetalle(item.id);
-        else if(cliSeleccionado) renderDetalle(cliSeleccionado);
-        else { det.classList.remove('seleccionado'); det.innerHTML = EMPTY_HTML; }
-      });
-      det.querySelector('.clf-guardar').addEventListener('click', async () => {
-        const nombre = det.querySelector('.clf-nombre').value.trim();
-        const codigo = det.querySelector('.clf-codigo').value.trim();
-        const notas = det.querySelector('.clf-notas').value.trim();
-        const desdeRaw = det.querySelector('.clf-desde').value.trim();
+      if(item) renderContactosSeccionCrear(item.id);
+
+      wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
+      wrap.querySelector('.clf-guardar').addEventListener('click', async () => {
+        const nombre = wrap.querySelector('.clf-nombre').value.trim();
+        const codigo = wrap.querySelector('.clf-codigo').value.trim();
+        const notas = wrap.querySelector('.clf-notas').value.trim();
+        const desdeRaw = wrap.querySelector('.clf-desde').value.trim();
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
         const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null };
         try {
@@ -4613,12 +4706,46 @@
           toast('Cliente guardado.', true);
           await cargarClientes(document.getElementById('cliBuscar').value.trim());
           cargarKpis();
-          seleccionarCliente(id);
+          seleccionarCliente(id); // refresca Consultar en segundo plano (no cambia de pestaña)
+          renderFormCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde });
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
-    document.getElementById('cliBtnNuevo').addEventListener('click', () => abrirFormCliente(null));
+    function renderContactosSeccionCrear(clienteId){
+      const wrap = document.getElementById('cliFormContactosWrap');
+      wrap.innerHTML = `
+        <div class="radm-section-head" style="margin-top:22px;">
+          <span class="radm-section-title">CONTACTOS</span>
+          <button type="button" class="radm-btn-add" id="cliBtnAddContacto">+ Agregar contacto</button>
+        </div>
+        <div class="radm-list" id="cliListaContactosCrear">
+          <div class="radm-empty-row">Cargando contactos…</div>
+        </div>`;
+      const listaEl = document.getElementById('cliListaContactosCrear');
+      document.getElementById('cliBtnAddContacto').addEventListener('click', () => abrirFormContacto(listaEl, clienteId, null));
+      apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId)
+        .then(contactos => pintarContactos(listaEl, clienteId, contactos, true))
+        .catch(e => { listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`; });
+    }
+
+    function abrirEdicionCliente(item){
+      renderFormCliente(item);
+      activarTabCliente('crear');
+    }
+
+    // ══ PESTAÑAS Consultar Clientes / Crear Cliente ══
+    function activarTabCliente(key){
+      document.querySelectorAll('#cliTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.clitab === key));
+      document.querySelectorAll('#panel-clientes .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cliTab-' + key));
+    }
+    document.getElementById('cliTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.clitab;
+      activarTabCliente(key);
+      if(key === 'crear') renderFormCliente(null); // clic directo en la pestaña siempre arranca en blanco
+    });
 
     document.getElementById('cliSortGroup').addEventListener('click', e => {
       const btn = e.target.closest('.cli-sort-btn');
@@ -4977,15 +5104,29 @@
       return escapeHtml(visibles) + (nombres.length > 2 ? ` +${nombres.length - 2} más` : '');
     }
 
+    // meta + temas — el desglose expandible por fila ahora también trae los 4
+    // campos que antes no se mostraban en ningún lado de la tabla
+    // (participantes/modalidad/ciudad_sede/fecha_tentativa), en vez de agregar
+    // columnas nuevas a una tabla que ya tiene 8.
+    function solicitudMetaHtml(s){
+      return `
+        <div class="cot-detalle-grid" style="margin-bottom:14px;">
+          <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(s.participantes || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(s.modalidad || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Ciudad / sede</div><div class="cot-detalle-item-value">${escapeHtml(s.ciudad_sede || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Fecha tentativa</div><div class="cot-detalle-item-value">${escapeHtml(s.fecha_tentativa || '—')}</div></div>
+        </div>`;
+    }
+
     function temarioDesgloseHtml(s){
       const temas = temasDe(s);
-      if(!temas.length) return '<div class="radm-empty-row">Sin desglose disponible.</div>';
-      return temas.map(t => `
+      const temasHtml = !temas.length ? '<div class="radm-empty-row">Sin desglose disponible.</div>' : temas.map(t => `
         <div class="sol-desglose-item">
           <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">${NIVEL_LABEL[t.nivel] ? NIVEL_LABEL[t.nivel] + ' · ' : ''}${t.horas} hr</span></div>
           ${t.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(t.descripcion)}</div>` : ''}
         </div>
       `).join('');
+      return solicitudMetaHtml(s) + temasHtml;
     }
 
     async function buscarSolicitudes(){
@@ -5002,10 +5143,11 @@
       params.set('dir', solDir);
 
       const body = document.getElementById('solListaBody');
-      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const lista = await apiGetConReintento('/api/listSolicitudesAdmin?' + params.toString());
-        if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        solListaCache = lista;
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
         body.innerHTML = lista.map(s => `
           <tr data-id="${s.id}">
             <td>${escapeHtml(s.cliente)}</td>
@@ -5022,23 +5164,34 @@
             <td><span class="dip-status"><span style="width:13px;height:13px;display:inline-flex;">${s.canal_origen === 'Sitio' ? ICO_SITIO : ICO_MANUAL}</span>${escapeHtml(s.canal_origen)}</span></td>
             <td><select class="sol-estatus-select" data-id="${s.id}">${ESTATUS.map(e => `<option value="${e}" ${e === s.estatus ? 'selected' : ''}>${e}</option>`).join('')}</select></td>
             <td>${fmtFecha(s.fecha_creacion)}</td>
+            <td>
+              <button type="button" class="cot-icon-btn sol-editar-btn" data-id="${s.id}" title="Editar la solicitud">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
           </tr>
           <tr class="sol-desglose-row" id="sol-desglose-${s.id}" hidden>
-            <td colspan="8"><div class="sol-desglose">${temarioDesgloseHtml(s)}</div></td>
+            <td colspan="9"><div class="sol-desglose">${temarioDesgloseHtml(s)}</div></td>
           </tr>
         `).join('');
       } catch(e){
-        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
+    let solListaCache = [];
 
     document.getElementById('solListaBody').addEventListener('click', e => {
       const toggle = e.target.closest('.sol-temario-toggle');
-      if(!toggle) return;
-      const fila = document.getElementById('sol-desglose-' + toggle.dataset.id);
-      if(!fila) return;
-      fila.hidden = !fila.hidden;
-      toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+      const editarBtn = e.target.closest('.sol-editar-btn');
+      if(toggle){
+        const fila = document.getElementById('sol-desglose-' + toggle.dataset.id);
+        if(!fila) return;
+        fila.hidden = !fila.hidden;
+        toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+      } else if(editarBtn){
+        const sol = solListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
+        if(sol) abrirEdicionSolicitud(sol);
+      }
     });
 
     document.getElementById('solBuscar').addEventListener('click', buscarSolicitudes);
@@ -5070,22 +5223,28 @@
       sel.disabled = false;
     });
 
-    // ══ ALTA DE SOLICITUD ══
-    function abrirFormSolicitud(){
+    // ══ ALTA/EDICIÓN DE SOLICITUD — vive en la pestaña "Crear Solicitud" ══
+    // sol=null → alta; sol={...} (fila de listSolicitudesAdmin) → edición.
+    // El Cliente no es editable en edición (mismo criterio que editarSolicitud
+    // en el backend: cambiar de empresa a una solicitud ya capturada es un caso
+    // raro que se resuelve mejor descartando y creando una nueva) — el campo se
+    // deja de solo lectura en vez de quitarlo, para no perder el contexto visual.
+    function abrirFormSolicitud(sol){
+      const editando = !!sol;
       const wrap = document.getElementById('solFormWrap');
-      if(wrap.querySelector('.radm-form')) return;
 
       wrap.innerHTML = `
+        <h3 class="radm-form-title">${editando ? 'Editando Solicitud: ' + escapeHtml(sol.cliente) + ' — ' + (TOOL_NAMES[sol.herramienta] || escapeHtml(sol.herramienta)) : 'Nueva Solicitud'}</h3>
         <div class="radm-form">
           <div class="radm-form-row">
             <div class="radm-field dip-autocomplete-wrap">
               <label>CLIENTE <span class="dip-req">*</span></label>
-              <input type="text" id="solEmpresaNombre" placeholder="Escribe para buscar o crear...">
+              <input type="text" id="solEmpresaNombre" placeholder="Escribe para buscar o crear..." ${editando ? 'readonly title="El cliente no se puede cambiar aquí — descarta y crea una nueva si fue un error."' : ''} value="${editando ? escapeHtml(sol.cliente) : ''}">
               <div class="dip-autocomplete-list" id="solEmpresaLista" hidden></div>
             </div>
             <div class="radm-field">
               <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
-              <input type="text" id="solEmpresaCodigo" placeholder="ACME">
+              <input type="text" id="solEmpresaCodigo" placeholder="ACME" ${editando ? 'readonly' : ''} value="${editando ? escapeHtml(sol.cliente_codigo || '') : ''}">
             </div>
           </div>
           <div class="radm-form-row">
@@ -5149,14 +5308,13 @@
             </div>
           </div>
           <div class="radm-actions">
-            <span class="radm-hint">El cliente y el contacto se dan de alta aquí mismo si todavía no existen.</span>
+            <span class="radm-hint">${editando ? 'El cliente no se puede cambiar aquí — si fue un error, descarta esta solicitud y crea una nueva.' : 'El cliente y el contacto se dan de alta aquí mismo si todavía no existen.'}</span>
             <div class="radm-actions-buttons">
-              <button type="button" class="radm-btn" id="solGuardar">Guardar</button>
+              <button type="button" class="radm-btn" id="solGuardar">${editando ? 'Guardar cambios' : 'Guardar'}</button>
               <button type="button" class="radm-btn radm-btn-ghost" id="solCancelar">Cancelar</button>
             </div>
           </div>
         </div>`;
-      wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
       // pills de Participantes/Modalidad — single-select por grupo, sin librería
       wrap.querySelectorAll('.sol-pill-group').forEach(group => {
@@ -5169,6 +5327,9 @@
       function valorPill(grupo){
         const activo = wrap.querySelector(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
         return activo ? activo.dataset.value : null;
+      }
+      function setPill(grupo, valor){
+        wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', p.dataset.value === valor));
       }
 
       let solContactos = [];
@@ -5249,17 +5410,9 @@
       });
       document.getElementById('solHerramienta').addEventListener('change', e => temarioSel.cargarHerramienta(e.target.value));
 
-      document.getElementById('solCancelar').addEventListener('click', () => { wrap.innerHTML = ''; });
+      document.getElementById('solCancelar').addEventListener('click', () => activarTabSolicitud('consultar'));
 
       document.getElementById('solGuardar').addEventListener('click', async () => {
-        const seleccionado = solEmpresaAuto.getSeleccionado();
-        const empresaNombre = document.getElementById('solEmpresaNombre').value.trim();
-        const empresaCodigo = document.getElementById('solEmpresaCodigo').value.trim();
-        let empresa;
-        if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
-        else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
-        else { toast('Selecciona un cliente existente o captura nombre + código para uno nuevo.', false); return; }
-
         const herramienta = document.getElementById('solHerramienta').value;
         if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
 
@@ -5269,12 +5422,6 @@
         const fechaTentativa = document.getElementById('solFechaTentativa').value.trim();
         const ciudadSede = document.getElementById('solCiudadSede').value.trim();
 
-        const payload = {
-          empresa, contacto_id: contactoId, herramienta, notas,
-          fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
-          participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
-        };
-
         // temas_json siempre lleva el desglose COMPLETO (con descripción) — lo
         // necesita Alfredo para armar la Cotización después, sin importar si el
         // temario es estándar o personalizado.
@@ -5283,14 +5430,48 @@
           toast(temarioSel.getModo() === 'estandar' ? 'Selecciona un temario estándar.' : 'Selecciona al menos un tema.', false);
           return;
         }
-        Object.assign(payload, temarioPayload);
 
         const btn = document.getElementById('solGuardar');
         btn.disabled = true; btn.textContent = 'Guardando...';
+
+        if(editando){
+          const payload = {
+            id: sol.id, contacto_id: contactoId, herramienta, notas,
+            fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
+            participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
+          };
+          Object.assign(payload, temarioPayload);
+          try {
+            await apiPostJson('/api/editarSolicitud', payload);
+            toast('Solicitud actualizada.', true);
+            activarTabSolicitud('consultar');
+            buscarSolicitudes();
+            cargarKpisSolicitudes();
+          } catch(e){
+            toast('No se pudo guardar: ' + e.message, false);
+            btn.disabled = false; btn.textContent = 'Guardar cambios';
+          }
+          return;
+        }
+
+        const seleccionado = solEmpresaAuto.getSeleccionado();
+        const empresaNombre = document.getElementById('solEmpresaNombre').value.trim();
+        const empresaCodigo = document.getElementById('solEmpresaCodigo').value.trim();
+        let empresa;
+        if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
+        else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
+        else { toast('Selecciona un cliente existente o captura nombre + código para uno nuevo.', false); btn.disabled = false; btn.textContent = 'Guardar'; return; }
+
+        const payload = {
+          empresa, contacto_id: contactoId, herramienta, notas,
+          fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
+          participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
+        };
+        Object.assign(payload, temarioPayload);
         try {
           await apiPostJson('/api/crearSolicitud', payload);
           toast('Solicitud guardada.', true);
-          wrap.innerHTML = '';
+          activarTabSolicitud('consultar');
           buscarSolicitudes();
           cargarKpisSolicitudes();
         } catch(e){
@@ -5298,9 +5479,49 @@
           btn.disabled = false; btn.textContent = 'Guardar';
         }
       });
+
+      // ── prefill en modo edición — después de todo el wiring de arriba ──
+      if(editando){
+        cargarContactosSolicitud({ id: sol.cliente_id }).then(() => {
+          document.getElementById('solContactoSelect').value = sol.contacto_id || '';
+        });
+        document.getElementById('solHerramienta').value = sol.herramienta;
+        temarioSel.cargarHerramienta(sol.herramienta).then(async () => {
+          if(sol.temario_tipo === 'estandar'){
+            const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
+            const match = (data.estandar || []).find(t => t.nombre === sol.temario_nombre);
+            if(match) temarioSel.preseleccionar({ temarioId: match.id });
+          } else {
+            let temas = [];
+            try { temas = JSON.parse(sol.temas_json || '[]'); } catch(e){ /* deja vacío */ }
+            temarioSel.preseleccionar({ temaIds: temas.map(t => t.temaId) });
+          }
+        });
+        document.getElementById('solFechaTentativa').value = sol.fecha_tentativa || '';
+        document.getElementById('solCiudadSede').value = sol.ciudad_sede || '';
+        setPill('participantes', sol.participantes);
+        setPill('modalidad', sol.modalidad);
+        document.getElementById('solNotas').value = sol.notas || '';
+      }
     }
 
-    document.getElementById('solBtnNueva').addEventListener('click', abrirFormSolicitud);
+    function abrirEdicionSolicitud(sol){
+      abrirFormSolicitud(sol);
+      activarTabSolicitud('crear');
+    }
+
+    // ══ PESTAÑAS Consultar Solicitudes / Crear Solicitud ══
+    function activarTabSolicitud(key){
+      document.querySelectorAll('#solTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.soltab === key));
+      document.querySelectorAll('#panel-solicitudes .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'solTab-' + key));
+    }
+    document.getElementById('solTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      const key = btn.dataset.soltab;
+      activarTabSolicitud(key);
+      if(key === 'crear') abrirFormSolicitud(null); // clic directo en la pestaña siempre arranca en blanco
+    });
 
     renderSortButtonsSolicitudes();
     cargarKpisSolicitudes();
@@ -5958,6 +6179,118 @@
       });
     }
 
+    // ══ VER COTIZACIONES — historial completo, filtros libres (a diferencia
+    // de Tracking Comercial, que solo maneja las 4 categorías amplias del
+    // pipeline) — mismo espíritu que "Consultar Diplomas" ══
+    // autocompletado de Cliente — copia propia mínima (solo filtro, sin
+    // código/alta), mismo patrón que ya usa Encuestas para su filtro.
+    function crearAutocompleteFiltroCot(){
+      const input = document.getElementById('cotVFClienteNombre');
+      const lista = document.getElementById('cotVFClienteLista');
+      let seleccionado = null;
+      let timer = null;
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+        }, 250);
+      });
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre };
+        input.value = item.dataset.nombre;
+        lista.hidden = true;
+      });
+      document.addEventListener('click', e => {
+        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+      });
+      return { getSeleccionado: () => seleccionado, reset: () => { seleccionado = null; input.value = ''; lista.hidden = true; } };
+    }
+    const cotVFClienteAuto = crearAutocompleteFiltroCot();
+
+    let cotVListaCache = [];
+    let cotVBuscado = false; // carga perezosa — no pega a la base hasta que se abre esta pestaña
+
+    async function buscarCotizacionesVer(){
+      const params = new URLSearchParams();
+      params.set('vista', 'todas');
+      const estatus = document.getElementById('cotVFEstatus').value;
+      const desde = document.getElementById('cotVFDesde').value;
+      const hasta = document.getElementById('cotVFHasta').value;
+      const seleccionado = cotVFClienteAuto.getSeleccionado();
+      if(estatus) params.set('estatus', estatus);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+
+      const body = document.getElementById('cotVListaBody');
+      body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
+      try {
+        const lista = await apiGetConReintento('/api/listCotizacionesAdmin?' + params.toString());
+        cotVListaCache = lista;
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        body.innerHTML = lista.map(c => `
+          <tr>
+            <td>${escapeHtml(c.cliente)}</td>
+            <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)} — ${escapeHtml(c.temario_nombre || 'Personalizado')}</td>
+            <td class="radm-mono">${escapeHtml(c.folio)}</td>
+            <td class="radm-mono" style="text-align:right;">${fmtMoney(c.precio_final)}</td>
+            <td><span class="cot-badge ${ESTATUS_BADGE[c.estatus] || ''}">${escapeHtml(c.estatus)}</span></td>
+            <td>${fmtFecha(c.fecha_creacion)}</td>
+            <td>
+              <div class="cot-row-actions">
+                <button type="button" class="cot-icon-btn cotV-ver-pdf" data-folio="${escapeHtml(c.folio)}" title="Ver PDF">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn cotV-recotizar" data-folio="${escapeHtml(c.folio)}" title="Recotizar (nueva versión)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    function accionRecotizar(c){
+      document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
+      precargarFormDesdeCotizacion(c);
+    }
+
+    document.getElementById('cotVListaBody').addEventListener('click', e => {
+      const verBtn = e.target.closest('.cotV-ver-pdf');
+      const recoBtn = e.target.closest('.cotV-recotizar');
+      if(verBtn){
+        window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(verBtn.dataset.folio), '_blank');
+      } else if(recoBtn){
+        const c = cotVListaCache.find(x => x.folio === recoBtn.dataset.folio);
+        if(c) accionRecotizar(c);
+      }
+    });
+
+    document.getElementById('cotVBuscar').addEventListener('click', buscarCotizacionesVer);
+    function limpiarFiltrosVer(){
+      document.getElementById('cotVFEstatus').value = '';
+      document.getElementById('cotVFDesde').value = '';
+      document.getElementById('cotVFHasta').value = '';
+      cotVFClienteAuto.reset();
+    }
+    document.getElementById('cotVLimpiarFiltros').addEventListener('click', limpiarFiltrosVer);
+    document.getElementById('cotVVerTodos').addEventListener('click', () => { limpiarFiltrosVer(); buscarCotizacionesVer(); });
+
     // ── pestañas ──
     document.getElementById('cotTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
@@ -5966,6 +6299,7 @@
       document.querySelectorAll('#cotTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('#panel-cotizaciones .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cotTab-' + key));
       if(key === 'crear'){ mostrarVistaCrear('lista'); cargarListaSolicitudesActivas(); cargarTarifasCache(); }
+      else if(key === 'ver' && !cotVBuscado){ cotVBuscado = true; buscarCotizacionesVer(); }
     });
 
     mostrarVistaCrear('lista');

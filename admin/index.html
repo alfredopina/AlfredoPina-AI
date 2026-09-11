@@ -55,19 +55,20 @@
   }
   .admin-nav-item:hover{ background:var(--panel-2); color:var(--text); }
   .admin-nav-item.active{ background:var(--blue-soft); color:var(--blue-bright); }
-  .admin-nav-icon{ width:16px; height:16px; flex:none; }
+  .admin-nav-icon{ width:16px; height:16px; flex:none; display:flex; align-items:center; justify-content:center; }
   .admin-nav-icon svg{ width:100%; height:100%; }
   .admin-nav-soon{
     margin-left:auto; font-family:var(--mono); font-size:8.5px; color:var(--text-faint);
     border:1px solid var(--line); padding:1px 6px; border-radius:8px; letter-spacing:.3px;
   }
-  /* punto que pulsa — mismo criterio visual que .float-chip .dot del sitio público,
-     solo en Tracking Comercial (ya tiene datos reales); Tracking Operación sigue
-     siendo un placeholder, así que lleva PRONTO en vez de esto. */
+  /* cuadrado que pulsa — reemplaza el ícono de Tracking Comercial/Operación
+     (ambos con datos en vivo); mismo criterio de "cuadrado, no círculo" que
+     ya usa el stepper de fase de Grupo, en vez de .float-chip .dot (circular)
+     del sitio público. */
   .admin-nav-live-dot{
-    width:6px; height:6px; border-radius:50%; background:var(--blue-bright);
+    width:8px; height:8px; border-radius:2px; background:var(--blue-bright);
     box-shadow:0 0 6px var(--blue-bright); display:inline-block;
-    margin-left:auto; animation:admin-live-pulse 1.8s ease-in-out infinite;
+    animation:admin-live-pulse 1.8s ease-in-out infinite;
   }
   @media (prefers-reduced-motion:reduce){ .admin-nav-live-dot{ animation:none; } }
   @keyframes admin-live-pulse{
@@ -911,14 +912,12 @@
         Dashboard
       </button>
       <button class="admin-nav-item" data-panel="tracking-comercial">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="10" width="5" height="10" rx="1"/><rect x="9.5" y="5" width="5" height="15" rx="1"/><rect x="16" y="13" width="5" height="7" rx="1"/></svg></span>
+        <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
         Tracking Comercial
-        <span class="admin-nav-live-dot"></span>
       </button>
       <button class="admin-nav-item" data-panel="tracking-operacion">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3" stroke-linecap="round"/></svg></span>
+        <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
         Tracking Operación
-        <span class="admin-nav-live-dot"></span>
       </button>
 
       <div class="admin-nav-group">COMERCIAL</div>
@@ -936,6 +935,10 @@
       </button>
 
       <div class="admin-nav-group">OPERACIÓN</div>
+      <button class="admin-nav-item" data-panel="grupos">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5"/><path d="M14.5 20v-1a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1" stroke-linecap="round"/></svg></span>
+        Grupos
+      </button>
       <button class="admin-nav-item" data-panel="diagnosticos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 6 4-14 2 8h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diagnósticos
@@ -947,10 +950,6 @@
       <button class="admin-nav-item" data-panel="diplomas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diplomas
-      </button>
-      <button class="admin-nav-item" data-panel="grupos">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5"/><path d="M14.5 20v-1a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1" stroke-linecap="round"/></svg></span>
-        Grupos
       </button>
 
       <div class="admin-nav-group">PRODUCTOS</div>

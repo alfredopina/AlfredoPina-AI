@@ -131,11 +131,11 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 
 **Fase 1 — Clientes/Contactos/Tarifas (sesión 2026-09-08):**
 - [x] Correr `sql/005_comercial.sql` en el Query Editor de `apcweb-backoffice` (agrega `notas` a `Cliente`, crea `Contacto`/`Solicitud`/`TarifaHerramienta`/`Cotizacion` — Solicitud/Cotizacion quedan sin Functions todavía, es solo esquema adelantado).
-- [ ] Correr `sql/006_comercial_ajustes.sql` (ajustes de la ronda de feedback del 2026-09-09: agrega `planta` a `Contacto` y `cliente_desde` a `Cliente`) en el mismo Query Editor.
+- [x] Correr `sql/006_comercial_ajustes.sql` (ajustes de la ronda de feedback del 2026-09-09: agrega `planta` a `Contacto` y `cliente_desde` a `Cliente`) — **confirmado corrido 2026-09-11** vía el script de validación de los 11 SQL.
 - [ ] Confirmar en producción: dar de alta un Cliente real con año de antigüedad, agregarle 2 contactos (uno con planta), marcar uno principal (y que el otro pierda la marca), editar notas, probar los 3 botones de orden (Nombre/Última cotización/Antigüedad) y buscar por nombre de un contacto, revisar que el scorecard de arriba (Clientes/Contactos/% Activos) muestre números reales, y ajustar las 6 Tarifas por hora (Configuración → Tarifas por hora → Desplegar) a los precios reales — hoy están sembradas en $1,200 de ejemplo, y ahora piden confirmación antes de guardar.
 
 **Urgente / de esta sesión (auditorías de seguridad/resiliencia/calidad, 2026-09-08):**
-- [x] Correr `sql/004_encuesta_constraint.sql` en el Query Editor de `apcweb-backoffice`.
+- [x] Correr `sql/004_encuesta_constraint.sql` en el Query Editor de `apcweb-backoffice` — **esta casilla estaba marcada por error desde 2026-09-08, nunca se había corrido de verdad; detectado y corregido 2026-09-11** con un script de validación que confirmó tablas/columnas/constraints de los 11 scripts SQL del proyecto contra la base real.
 - [x] Confirmar en producción que el lote de correcciones no rompió nada — Alfredo confirmó frontend/admin bien y probó el bloqueo de `getRecursos` manualmente, funcionó.
 - [x] Respaldo automático: secreto `BACKUP_CRON_SECRET` generado y configurado en Azure + GitHub, workflow corrido a mano con éxito.
 - [x] Confirmado: el respaldo del workflow ya se ve etiquetado "Automático" — módulo de Respaldos cerrado de punta a punta.

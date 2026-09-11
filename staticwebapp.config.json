@@ -323,6 +323,18 @@
     {
       "route": "/api/listGruposAdmin",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/avanzarFaseGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getResumenGruposAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getHistorialFaseGrupo",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

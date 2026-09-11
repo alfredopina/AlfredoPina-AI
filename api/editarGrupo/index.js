@@ -4,10 +4,15 @@
 // final SÍ son editables: un Grupo es control operativo propio de Alfredo, no
 // hay el mismo riesgo de "cambiar de empresa a una venta ya cerrada" que
 // justificaba el candado en editarSolicitud). Mismas validaciones que
-// crearGrupo, duplicadas a propósito — UPDATE en vez de INSERT.
+// crearGrupo, duplicadas a propósito — UPDATE en vez de INSERT. Si el UPDATE
+// cambia la fase derivada (ver src/grupo-fase.js), lo registra en
+// GrupoFaseHistorial dentro de la misma transacción — así el Grupo no
+// necesita pasar por el stepper interactivo para que su historial quede al
+// día, editar los <select> de estatus directamente también lo actualiza.
 const { getPool, sql } = require("../src/backoffice-db");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
+const { derivarFase, registrarCambioFase } = require("../src/grupo-fase");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -136,46 +141,62 @@ module.exports = async function (context, req) {
       }
     }
 
-    const result = await pool
-      .request()
-      .input("id", sql.Int, id)
-      .input("clienteId", sql.Int, cliente.id)
-      .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
-      .input("contactoId", sql.Int, contactoId)
-      .input("modalidad", sql.NVarChar, datos.modalidad)
-      .input("grupoCodigo", sql.NVarChar, datos.grupoCodigo)
-      .input("herramientas", sql.NVarChar, JSON.stringify(datos.herramientas))
-      .input("nombreCurso", sql.NVarChar, datos.nombreCurso)
-      .input("niveles", sql.NVarChar, JSON.stringify(datos.niveles))
-      .input("horas", sql.Decimal(6, 1), datos.horas)
-      .input("sesiones", sql.Int, datos.sesiones)
-      .input("fechaInicio", sql.Date, datos.fechaInicio ? new Date(datos.fechaInicio) : null)
-      .input("fechaFin", sql.Date, datos.fechaFin ? new Date(datos.fechaFin) : null)
-      .input("instructor", sql.NVarChar, datos.instructor)
-      .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
-      .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
-      .input("cotizacionId", sql.Int, datos.cotizacionId)
-      .input("fotosRs", sql.Bit, datos.fotosRs)
-      .input("correosMl", sql.Bit, datos.correosMl)
-      .input("pagado", sql.Bit, datos.pagado)
-      .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
-      .input("notas", sql.NVarChar, datos.notas)
-      .query(
-        `UPDATE Grupo SET
-           cliente_id = @clienteId, cliente_final_id = @clienteFinalId, contacto_id = @contactoId,
-           modalidad = @modalidad, grupo_codigo = @grupoCodigo, herramientas = @herramientas,
-           nombre_curso = @nombreCurso, niveles = @niveles, horas = @horas, sesiones = @sesiones,
-           fecha_inicio = @fechaInicio, fecha_fin = @fechaFin, instructor = @instructor,
-           estatus_curso = @estatusCurso, estatus_cierre = @estatusCierre, cotizacion_id = @cotizacionId,
-           fotos_rs = @fotosRs, correos_ml = @correosMl, pagado = @pagado, fecha_cierre = @fechaCierre,
-           notas = @notas
-         WHERE id = @id`
-      );
-    if (!result.rowsAffected[0]) {
+    const actual = await pool.request().input("id", sql.Int, id).query("SELECT estatus_curso, estatus_cierre FROM Grupo WHERE id = @id");
+    if (!actual.recordset.length) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese grupo ya no existe." } };
       return;
     }
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cliente, clienteFinal } };
+    const faseAnterior = derivarFase(actual.recordset[0].estatus_curso, actual.recordset[0].estatus_cierre);
+    const faseNueva = derivarFase(datos.estatusCurso, datos.estatusCierre);
+
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    try {
+      await new sql.Request(transaction)
+        .input("id", sql.Int, id)
+        .input("clienteId", sql.Int, cliente.id)
+        .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
+        .input("contactoId", sql.Int, contactoId)
+        .input("modalidad", sql.NVarChar, datos.modalidad)
+        .input("grupoCodigo", sql.NVarChar, datos.grupoCodigo)
+        .input("herramientas", sql.NVarChar, JSON.stringify(datos.herramientas))
+        .input("nombreCurso", sql.NVarChar, datos.nombreCurso)
+        .input("niveles", sql.NVarChar, JSON.stringify(datos.niveles))
+        .input("horas", sql.Decimal(6, 1), datos.horas)
+        .input("sesiones", sql.Int, datos.sesiones)
+        .input("fechaInicio", sql.Date, datos.fechaInicio ? new Date(datos.fechaInicio) : null)
+        .input("fechaFin", sql.Date, datos.fechaFin ? new Date(datos.fechaFin) : null)
+        .input("instructor", sql.NVarChar, datos.instructor)
+        .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
+        .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
+        .input("cotizacionId", sql.Int, datos.cotizacionId)
+        .input("fotosRs", sql.Bit, datos.fotosRs)
+        .input("correosMl", sql.Bit, datos.correosMl)
+        .input("pagado", sql.Bit, datos.pagado)
+        .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
+        .input("notas", sql.NVarChar, datos.notas)
+        .query(
+          `UPDATE Grupo SET
+             cliente_id = @clienteId, cliente_final_id = @clienteFinalId, contacto_id = @contactoId,
+             modalidad = @modalidad, grupo_codigo = @grupoCodigo, herramientas = @herramientas,
+             nombre_curso = @nombreCurso, niveles = @niveles, horas = @horas, sesiones = @sesiones,
+             fecha_inicio = @fechaInicio, fecha_fin = @fechaFin, instructor = @instructor,
+             estatus_curso = @estatusCurso, estatus_cierre = @estatusCierre, cotizacion_id = @cotizacionId,
+             fotos_rs = @fotosRs, correos_ml = @correosMl, pagado = @pagado, fecha_cierre = @fechaCierre,
+             notas = @notas
+           WHERE id = @id`
+        );
+      await registrarCambioFase(transaction, id, faseNueva, faseAnterior);
+      await transaction.commit();
+      context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cliente, clienteFinal } };
+    } catch (err) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackErr) {
+        context.log.error("Error haciendo rollback:", rollbackErr.message);
+      }
+      throw err;
+    }
   } catch (err) {
     context.log.error("Error editando el grupo:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar la edición." } };

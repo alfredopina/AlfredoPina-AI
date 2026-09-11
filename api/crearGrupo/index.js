@@ -10,9 +10,12 @@
 // existe, si no el que contrató — nunca se confía en lo que mande el front
 // para esto. herramientas/niveles son JSON arrays validados contra listas
 // fijas. Sin borrado — un Grupo mal capturado se corrige con editarGrupo.
+// El INSERT del Grupo y la siembra del historial de fase (ver
+// src/grupo-fase.js) van en una sola transacción — o quedan ambos, o ninguno.
 const { getPool, sql } = require("../src/backoffice-db");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
+const { sembrarHistorialInicial } = require("../src/grupo-fase");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -135,41 +138,60 @@ module.exports = async function (context, req) {
       }
     }
 
-    const insert = await pool
-      .request()
-      .input("clienteId", sql.Int, cliente.id)
-      .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
-      .input("contactoId", sql.Int, contactoId)
-      .input("modalidad", sql.NVarChar, datos.modalidad)
-      .input("grupoCodigo", sql.NVarChar, datos.grupoCodigo)
-      .input("herramientas", sql.NVarChar, JSON.stringify(datos.herramientas))
-      .input("nombreCurso", sql.NVarChar, datos.nombreCurso)
-      .input("niveles", sql.NVarChar, JSON.stringify(datos.niveles))
-      .input("horas", sql.Decimal(6, 1), datos.horas)
-      .input("sesiones", sql.Int, datos.sesiones)
-      .input("fechaInicio", sql.Date, datos.fechaInicio ? new Date(datos.fechaInicio) : null)
-      .input("fechaFin", sql.Date, datos.fechaFin ? new Date(datos.fechaFin) : null)
-      .input("instructor", sql.NVarChar, datos.instructor)
-      .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
-      .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
-      .input("cotizacionId", sql.Int, datos.cotizacionId)
-      .input("fotosRs", sql.Bit, datos.fotosRs)
-      .input("correosMl", sql.Bit, datos.correosMl)
-      .input("pagado", sql.Bit, datos.pagado)
-      .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
-      .input("notas", sql.NVarChar, datos.notas)
-      .query(
-        `INSERT INTO Grupo
-          (cliente_id, cliente_final_id, contacto_id, modalidad, grupo_codigo, herramientas, nombre_curso, niveles,
-           horas, sesiones, fecha_inicio, fecha_fin, instructor, estatus_curso, estatus_cierre, cotizacion_id,
-           fotos_rs, correos_ml, pagado, fecha_cierre, notas)
-         OUTPUT INSERTED.id
-         VALUES
-          (@clienteId, @clienteFinalId, @contactoId, @modalidad, @grupoCodigo, @herramientas, @nombreCurso, @niveles,
-           @horas, @sesiones, @fechaInicio, @fechaFin, @instructor, @estatusCurso, @estatusCierre, @cotizacionId,
-           @fotosRs, @correosMl, @pagado, @fechaCierre, @notas)`
-      );
-    context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id, cliente, clienteFinal } };
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    try {
+      const insert = await new sql.Request(transaction)
+        .input("clienteId", sql.Int, cliente.id)
+        .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
+        .input("contactoId", sql.Int, contactoId)
+        .input("modalidad", sql.NVarChar, datos.modalidad)
+        .input("grupoCodigo", sql.NVarChar, datos.grupoCodigo)
+        .input("herramientas", sql.NVarChar, JSON.stringify(datos.herramientas))
+        .input("nombreCurso", sql.NVarChar, datos.nombreCurso)
+        .input("niveles", sql.NVarChar, JSON.stringify(datos.niveles))
+        .input("horas", sql.Decimal(6, 1), datos.horas)
+        .input("sesiones", sql.Int, datos.sesiones)
+        .input("fechaInicio", sql.Date, datos.fechaInicio ? new Date(datos.fechaInicio) : null)
+        .input("fechaFin", sql.Date, datos.fechaFin ? new Date(datos.fechaFin) : null)
+        .input("instructor", sql.NVarChar, datos.instructor)
+        .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
+        .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
+        .input("cotizacionId", sql.Int, datos.cotizacionId)
+        .input("fotosRs", sql.Bit, datos.fotosRs)
+        .input("correosMl", sql.Bit, datos.correosMl)
+        .input("pagado", sql.Bit, datos.pagado)
+        .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
+        .input("notas", sql.NVarChar, datos.notas)
+        .query(
+          `INSERT INTO Grupo
+            (cliente_id, cliente_final_id, contacto_id, modalidad, grupo_codigo, herramientas, nombre_curso, niveles,
+             horas, sesiones, fecha_inicio, fecha_fin, instructor, estatus_curso, estatus_cierre, cotizacion_id,
+             fotos_rs, correos_ml, pagado, fecha_cierre, notas)
+           OUTPUT INSERTED.id
+           VALUES
+            (@clienteId, @clienteFinalId, @contactoId, @modalidad, @grupoCodigo, @herramientas, @nombreCurso, @niveles,
+             @horas, @sesiones, @fechaInicio, @fechaFin, @instructor, @estatusCurso, @estatusCierre, @cotizacionId,
+             @fotosRs, @correosMl, @pagado, @fechaCierre, @notas)`
+        );
+      const grupoId = insert.recordset[0].id;
+      await sembrarHistorialInicial(transaction, grupoId, {
+        estatusCurso: datos.estatusCurso,
+        estatusCierre: datos.estatusCierre,
+        fechaInicio: datos.fechaInicio,
+        fechaFin: datos.fechaFin,
+        fechaCierre: datos.fechaCierre,
+      });
+      await transaction.commit();
+      context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal } };
+    } catch (err) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackErr) {
+        context.log.error("Error haciendo rollback:", rollbackErr.message);
+      }
+      throw err;
+    }
   } catch (err) {
     context.log.error("Error creando el grupo:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo crear el grupo." } };

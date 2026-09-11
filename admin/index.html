@@ -788,6 +788,47 @@
   .cot-semaforo.hot{ color:#ef4444; background:color-mix(in srgb, #ef4444 16%, var(--panel-2)); }
   .cot-semaforo.hot .cot-semaforo-dot{ background:#ef4444; }
 
+  /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
+     por una línea que se rellena hasta la fase actual, mismo lenguaje visual
+     en sus 3 variantes (mini/expandido/interactivo), solo cambia tamaño de
+     nodo y qué tanto detalle (label/fecha) se muestra. ── */
+  .step-track{ display:flex; align-items:flex-start; width:100%; }
+  .step-item{ position:relative; display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+  .step-item:not(:last-child)::after{
+    content:''; position:absolute; left:50%; width:100%; height:2px; background:var(--line); z-index:0; top:5px;
+  }
+  .step-item.done:not(:last-child)::after{ background:var(--blue-bright); }
+  .step-node{
+    position:relative; z-index:1; flex:none; border-radius:4px; border:2px solid var(--line);
+    background:var(--panel-2); display:flex; align-items:center; justify-content:center; color:var(--bg);
+  }
+  .step-node.done{ background:var(--blue-bright); border-color:var(--blue-bright); }
+  .step-node.current{ background:var(--panel-2); border-color:var(--blue-bright); box-shadow:0 0 0 4px var(--blue-soft); }
+  .step-label{ font-size:11px; color:var(--text-faint); text-align:center; margin-top:8px; line-height:1.3; }
+  .step-item.done .step-label, .step-item.current .step-label{ color:var(--text-dim); }
+  .step-item.current .step-label{ color:var(--text); font-weight:600; }
+  .step-date{ font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:2px; }
+
+  .mini-track .step-item::after{ top:5px; }
+  .mini-track .step-node{ width:11px; height:11px; }
+  .mini-caption{ font-size:11px; color:var(--text-dim); margin-top:6px; }
+
+  .big-track .step-item::after{ top:10px; }
+  .big-track .step-node{ width:22px; height:22px; }
+  .big-track .step-node svg{ width:11px; height:11px; }
+
+  .int-track{ margin-bottom:6px; }
+  .int-track .step-item::after{ top:12px; }
+  .int-track .step-node{ width:26px; height:26px; cursor:default; }
+  .int-track .step-node svg{ width:12px; height:12px; }
+  .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
+  .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
+  .step-next-hint{
+    position:absolute; top:-26px; left:50%; transform:translateX(-50%); white-space:nowrap;
+    font-family:var(--mono); font-size:10px; color:var(--blue-bright);
+    background:var(--panel-3, var(--panel-2)); border:1px solid var(--blue-bright); border-radius:5px; padding:3px 7px;
+  }
+
   .cot-badge{
     display:inline-block; font-family:var(--mono); font-size:10.5px; border-radius:20px; padding:4px 10px;
     border:1px solid var(--line); color:var(--text-dim); white-space:nowrap;
@@ -877,7 +918,7 @@
       <button class="admin-nav-item" data-panel="tracking-operacion">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3" stroke-linecap="round"/></svg></span>
         Tracking Operación
-        <span class="admin-nav-soon">PRONTO</span>
+        <span class="admin-nav-live-dot"></span>
       </button>
 
       <div class="admin-nav-group">COMERCIAL</div>
@@ -1715,7 +1756,106 @@
           </table>
         </div>
       </div>
-      <div class="admin-panel" id="panel-tracking-operacion"></div>
+      <div class="admin-panel" id="panel-tracking-operacion" style="--c:var(--blue-bright)">
+        <div id="groToast" class="radm-toast" hidden></div>
+        <div class="cot-kpis" id="groKpis">
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Grupos activos</div>
+            <div class="cot-kpi-value" id="groKpiActivos">—</div>
+            <div class="cot-kpi-sub">fase distinta de Cerrado</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">En curso ahora</div>
+            <div class="cot-kpi-value" id="groKpiEnCurso">—</div>
+            <div class="cot-kpi-sub">impartiéndose hoy</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Por iniciar</div>
+            <div class="cot-kpi-value" id="groKpiPorIniciar">—</div>
+            <div class="cot-kpi-sub">todavía sin arrancar</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Cierre pendiente</div>
+            <div class="cot-kpi-value" id="groKpiCierrePendiente" style="color:#facc15;">—</div>
+            <div class="cot-kpi-sub">terminado, sin cerrar</div>
+          </div>
+          <div class="cot-kpi hero">
+            <div class="cot-kpi-label">Tiempo promedio de cierre</div>
+            <div class="cot-kpi-value" id="groKpiTiempoCierre">—</div>
+            <div class="cot-kpi-sub">grupos ya cerrados</div>
+          </div>
+        </div>
+
+        <div class="cot-alert" id="groAlerta" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="groAlertaTexto"></span>
+        </div>
+
+        <div class="sol-toolbar">
+          <div class="dip-filters" style="margin-bottom:0;">
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE</label>
+              <input type="text" id="groFClienteNombre" placeholder="Escribe para buscar...">
+              <div class="dip-autocomplete-list" id="groFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>HERRAMIENTA</label>
+              <select id="groFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="groFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="groFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="groBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="groLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="radm-tabs" id="groVistaTabs">
+          <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
+          <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
+          <button type="button" class="radm-tab" data-vista="todas">Todos</button>
+        </div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Grupo</th>
+                <th>Herramientas</th>
+                <th>Fase</th>
+                <th>Días</th>
+                <th>Instructor</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="groListaBody">
+              <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
         <div id="encToast" class="radm-toast" hidden></div>
 
@@ -2248,19 +2388,6 @@
     encuestas: 'Encuestas', diplomas: 'Diplomas', grupos: 'Grupos',
     config: 'Configuración', notificaciones: 'Notificaciones',
   };
-
-  const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
-
-  // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['tracking-operacion'].forEach(key => {
-    document.getElementById('panel-' + key).innerHTML = `
-      <div class="admin-empty">
-        <div class="admin-empty-icon">${EMPTY_ICON}</div>
-        <div class="admin-empty-title">${TITLES[key]} — próximamente</div>
-        <div class="admin-empty-text">Este módulo todavía no está construido. Cuando le toque su turno, va a vivir aquí mismo.</div>
-      </div>
-    `;
-  });
 
   // activarPanel es la única puerta para cambiar de sección — la usan el sidebar
   // y los íconos de campana/engrane del topbar (Configuración y Notificaciones no
@@ -7558,6 +7685,72 @@
     });
   })();
 
+  // Stepper de fase de Grupo — componente compartido entre el panel Grupos
+  // (Consultar/Crear) y Tracking Operación, mismo criterio que
+  // window.TemarioSelector arriba. render({fase, historial, variant}) regresa
+  // el HTML de las 3 variantes del mockup (mini/expandido/interactivo);
+  // wireInteractivo(containerEl, onAvanzar) engancha el clic del único nodo
+  // clicable (el inmediato siguiente a la fase actual) después de insertar
+  // ese HTML en el DOM — nunca dispara la llamada a la API él mismo, deja que
+  // quien lo use decida qué hacer tras el confirm() (avanzarFaseGrupo + toast
+  // + refrescar).
+  window.FaseStepper = (function(){
+    const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
+    const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function fmtFechaCorta(iso){
+      if(!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', timeZone:'UTC' }).replace('.', '');
+    }
+
+    // De un historial con posibles repetidos (ej. avanzó y regresó a mano vía
+    // Editar) se queda con la fecha MÁS RECIENTE por fase.
+    function fechaPorFaseDe(historial){
+      const mapa = {};
+      (historial || []).slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).forEach(h => { mapa[h.fase] = h.fecha; });
+      return mapa;
+    }
+
+    function render({ fase, historial, variant }){
+      const idxActual = FASES.indexOf(fase);
+      const fechaPorFase = fechaPorFaseDe(historial);
+      const claseTrack = variant === 'mini' ? 'mini-track' : variant === 'interactivo' ? 'int-track' : 'big-track';
+
+      const nodos = FASES.map((f, i) => {
+        const done = i < idxActual;
+        const current = i === idxActual;
+        const esSiguiente = variant === 'interactivo' && i === idxActual + 1;
+        const clases = ['step-item', done ? 'done' : '', current ? 'current' : '', esSiguiente ? 'next' : ''].filter(Boolean).join(' ');
+        const claseNodo = ['step-node', done ? 'done' : '', current ? 'current' : ''].filter(Boolean).join(' ');
+        const fecha = fechaPorFase[f];
+        return `<div class="${clases}" style="position:relative">
+          ${esSiguiente ? '<span class="step-next-hint">Toca para avanzar</span>' : ''}
+          <span class="${claseNodo}"${esSiguiente ? ` data-fase-siguiente="${f}"` : ''}>${done ? ICO_CHECK : ''}</span>
+          ${variant !== 'mini' ? `<div class="step-label">${f}</div>` : ''}
+          ${variant === 'expandido' && fecha ? `<div class="step-date">${fmtFechaCorta(fecha)}</div>` : ''}
+        </div>`;
+      }).join('');
+
+      return `<div class="step-track ${claseTrack}">${nodos}</div>` + (variant === 'mini' ? `<div class="mini-caption">${fase}</div>` : '');
+    }
+
+    // Engancha el clic del nodo "siguiente" dentro de containerEl (debe
+    // llamarse después de insertar el HTML de render({variant:'interactivo'})
+    // en el DOM). onAvanzar(faseNueva) se llama solo tras confirmar.
+    function wireInteractivo(containerEl, onAvanzar){
+      containerEl.querySelectorAll('.step-item.next .step-node[data-fase-siguiente]').forEach(node => {
+        node.addEventListener('click', () => {
+          const faseNueva = node.dataset.faseSiguiente;
+          if(!confirm(`¿Avanzar el grupo a la fase "${faseNueva}"?`)) return;
+          onAvanzar(faseNueva);
+        });
+      });
+    }
+
+    return { FASES, render, wireInteractivo };
+  })();
+
   // ═══════════════════════════════════════════════════════════════
   // PANEL GRUPOS — primer módulo de Fase 2 (Operación). Un Grupo es una
   // instancia real de curso entregada a un Cliente (equivalente operativo del
@@ -7582,6 +7775,18 @@
     const MODALIDADES = ['Online', 'Presencial', 'Híbrido'];
     const ESTATUS_CURSO = ['Por iniciar', 'En proceso', 'Terminado'];
     const ESTATUS_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
+    // Mapeo inverso de fase → estatus_curso/estatus_cierre, copia en el front
+    // de la misma tabla que api/src/grupo-fase.js#estatusDeFase — usado solo
+    // para reflejar de inmediato en pantalla lo que avanzarFaseGrupo ya
+    // guardó en la base, sin tener que volver a pedir el Grupo completo.
+    const FASE_A_ESTATUS = {
+      'Por iniciar': { estatus_curso: 'Por iniciar', estatus_cierre: null },
+      'En curso': { estatus_curso: 'En proceso', estatus_cierre: null },
+      Proyecto: { estatus_curso: 'Terminado', estatus_cierre: 'Proyecto' },
+      Calificaciones: { estatus_curso: 'Terminado', estatus_cierre: 'Calificaciones' },
+      Diplomas: { estatus_curso: 'Terminado', estatus_cierre: 'Diplomas' },
+      Cerrado: { estatus_curso: 'Terminado', estatus_cierre: 'Cerrado' },
+    };
     const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc' };
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -7590,7 +7795,13 @@
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
-      const el = document.getElementById('gruToast');
+      // Grupos y Tracking Operación comparten este IIFE (mismo criterio que
+      // Cotizaciones/Tracking Comercial) pero viven en 2 admin-panels
+      // distintos — un toast metido en el panel que no está activo queda
+      // oculto, así que cada uno tiene su propio div y aquí se elige el que
+      // corresponda al panel visible.
+      const enTracking = document.getElementById('panel-tracking-operacion').classList.contains('active');
+      const el = document.getElementById(enTracking ? 'groToast' : 'gruToast');
       el.textContent = msg;
       el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
       el.hidden = false;
@@ -7734,6 +7945,7 @@
 
     function grupoDetalleHtml(g){
       return `
+        <div id="gru-stepper-${g.id}" class="gru-stepper-wrap" style="margin-bottom:18px;"><span class="radm-hint">Cargando fases…</span></div>
         <div class="cot-detalle-grid" style="margin-bottom:14px;">
           <div><div class="cot-detalle-item-label">Fotos RS / Correos ML / Pagado</div><div class="cot-detalle-item-value" style="display:flex; gap:14px; flex-wrap:wrap;">${checkTexto(g.fotos_rs, 'Fotos RS')} ${checkTexto(g.correos_ml, 'Correos ML')} ${checkTexto(g.pagado, 'Pagado')}</div></div>
           <div><div class="cot-detalle-item-label">Cotización de origen</div><div class="cot-detalle-item-value">${g.cotizacion_folio ? `<a href="/api/getCotizacionPdf?folio=${encodeURIComponent(g.cotizacion_folio)}" target="_blank" style="color:var(--blue-bright)">${escapeHtml(g.cotizacion_folio)}</a>` : 'Sin ligar'}</div></div>
@@ -7797,6 +8009,19 @@
       }
     }
 
+    // Historial de fase por grupo, cacheado — el stepper expandido de cada
+    // fila se pide una sola vez, la primera vez que se expande esa fila.
+    const gruHistorialCache = {};
+    async function pintarStepperExpandido(g){
+      const wrap = document.getElementById('gru-stepper-' + g.id);
+      if(!wrap) return;
+      if(!gruHistorialCache[g.id]){
+        try { gruHistorialCache[g.id] = await apiGetConReintento('/api/getHistorialFaseGrupo?grupoId=' + g.id); }
+        catch(e){ wrap.innerHTML = '<span class="radm-hint">No se pudo cargar el historial de fases.</span>'; return; }
+      }
+      wrap.innerHTML = window.FaseStepper.render({ fase: g.fase, historial: gruHistorialCache[g.id], variant: 'expandido' });
+    }
+
     document.getElementById('gruListaBody').addEventListener('click', e => {
       const toggle = e.target.closest('.sol-temario-toggle');
       const editarBtn = e.target.closest('.gru-editar-btn');
@@ -7805,6 +8030,10 @@
         if(!fila) return;
         fila.hidden = !fila.hidden;
         toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+        if(!fila.hidden){
+          const g = gruListaCache.find(x => String(x.id) === String(toggle.dataset.id));
+          if(g) pintarStepperExpandido(g);
+        }
       } else if(editarBtn){
         const g = gruListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
         if(g) abrirEdicionGrupo(g);
@@ -7833,6 +8062,14 @@
 
       wrap.innerHTML = `
         <h3 class="radm-form-title">${editando ? 'Editando Grupo: ' + escapeHtml(g.grupo_codigo || g.cliente) : 'Nuevo Grupo'}</h3>
+        ${editando ? `
+        <div class="detail-card" style="border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:18px;">
+            <div style="font-size:12.5px; color:var(--text-dim);">Toca el siguiente cuadro para avanzar de fase sin abrir el formulario completo.</div>
+            <span class="detail-tag" style="font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 10px;">${g.dias_en_fase != null ? g.dias_en_fase + ' día' + (g.dias_en_fase === 1 ? '' : 's') + ' en esta fase' : ''}</span>
+          </div>
+          <div id="gruStepperInteractivo"></div>
+        </div>` : ''}
         <div class="radm-form">
           <div class="radm-form-row">
             <div class="radm-field dip-autocomplete-wrap">
@@ -7950,6 +8187,33 @@
             </div>
           </div>
         </div>`;
+
+      // stepper interactivo — solo en modo edición, arriba del formulario
+      // completo. Al avanzar, refleja de inmediato el cambio en pantalla
+      // (stepper + <select> de estatus + tag de días) sin recargar el Grupo.
+      if(editando){
+        const stepperEl = document.getElementById('gruStepperInteractivo');
+        const tagEl = wrap.querySelector('.detail-tag');
+        function pintarStepperInteractivo(){
+          stepperEl.innerHTML = window.FaseStepper.render({ fase: g.fase, historial: null, variant: 'interactivo' });
+          window.FaseStepper.wireInteractivo(stepperEl, async (faseNueva) => {
+            try {
+              await apiPostJson('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva });
+              toast('Fase actualizada a "' + faseNueva + '".', true);
+              const mapa = FASE_A_ESTATUS[faseNueva];
+              g.fase = faseNueva;
+              g.estatus_curso = mapa.estatus_curso;
+              g.estatus_cierre = mapa.estatus_cierre;
+              g.dias_en_fase = 0;
+              document.getElementById('gruEstatusCurso').value = g.estatus_curso;
+              document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
+              if(tagEl) tagEl.textContent = '0 días en esta fase';
+              pintarStepperInteractivo();
+            } catch(e){ toast('No se pudo avanzar la fase: ' + e.message, false); }
+          });
+        }
+        pintarStepperInteractivo();
+      }
 
       // pills multi-select (herramientas/niveles) — a diferencia de Solicitudes
       // (single-select, limpia hermanos), aquí cada pill se alterna solo.
@@ -8169,6 +8433,7 @@
     }
 
     function abrirEdicionGrupo(g){
+      activarPanel('grupos'); // Tracking Operación también llama esto — se asegura de cambiar de panel visible
       abrirFormGrupo(g);
       activarTabGrupo('crear');
     }
@@ -8188,6 +8453,124 @@
 
     renderSortButtonsGrupos();
     buscarGrupos();
+
+    // ═══════════════════════════════════════════════════════════════
+    // PANEL TRACKING OPERACIÓN — vive en el mismo IIFE que Grupos (mismo
+    // criterio que Tracking Comercial/Cotizaciones): nace de Grupos, reusa
+    // sus helpers/constantes (TOOL_META, NIVEL_LABEL, escapeHtml, apiGet*,
+    // toast ya panel-aware arriba) y su función abrirEdicionGrupo para la
+    // acción "Editar" de cada fila — sin duplicar esa lógica.
+    const groFClienteAuto = crearAutocomplete({ inputId: 'groFClienteNombre', listId: 'groFClienteLista' });
+    let groVista = 'activos';
+    let groListaCache = [];
+
+    async function cargarKpisGrupos(){
+      try {
+        const r = await apiGetConReintento('/api/getResumenGruposAdmin');
+        document.getElementById('groKpiActivos').textContent = r.activos;
+        document.getElementById('groKpiEnCurso').textContent = r.en_curso;
+        document.getElementById('groKpiPorIniciar').textContent = r.por_iniciar;
+        document.getElementById('groKpiCierrePendiente').textContent = r.cierre_pendiente;
+        document.getElementById('groKpiTiempoCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
+      } catch(e){
+        ['groKpiActivos', 'groKpiEnCurso', 'groKpiPorIniciar', 'groKpiCierrePendiente', 'groKpiTiempoCierre'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    const FASES_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas'];
+    function actualizarAlertaGrupos(lista){
+      const banner = document.getElementById('groAlerta');
+      const criticos = lista.filter(g => FASES_CIERRE.includes(g.fase) && g.dias_en_fase > 21);
+      if(!criticos.length){ banner.hidden = true; return; }
+      const nombres = criticos.slice(0, 2).map(g => escapeHtml(g.cliente));
+      const resto = criticos.length > 2 ? ` y ${criticos.length - 2} más` : '';
+      document.getElementById('groAlertaTexto').innerHTML =
+        `<b>${criticos.length} grupo${criticos.length === 1 ? '' : 's'}</b> llev${criticos.length === 1 ? 'a' : 'an'} más de 21 días en la misma fase de cierre — ${nombres.join(' y ')}${resto}.`;
+      banner.hidden = false;
+    }
+
+    // verde <10 días, ámbar 10-21, rojo >21 — solo tiene sentido mientras el
+    // Grupo está cerrando (Proyecto/Calificaciones/Diplomas); en cualquier
+    // otra fase la celda va vacía, no se fuerza un color sin significado.
+    function semaforoOperacion(g){
+      if(!FASES_CIERRE.includes(g.fase)) return null;
+      const dias = g.dias_en_fase != null ? g.dias_en_fase : 0;
+      if(dias > 21) return { clase: 'hot', texto: `${dias} días` };
+      if(dias >= 10) return { clase: 'warn', texto: `${dias} días` };
+      return { clase: 'ok', texto: `${dias} días` };
+    }
+
+    async function buscarGruposTracking(){
+      const params = new URLSearchParams();
+      params.set('vista', groVista);
+      const seleccionado = groFClienteAuto.getSeleccionado();
+      const herramienta = document.getElementById('groFHerramienta').value;
+      const desde = document.getElementById('groFDesde').value;
+      const hasta = document.getElementById('groFHasta').value;
+      if(seleccionado) params.set('clienteId', seleccionado.id);
+      if(herramienta) params.set('herramienta', herramienta);
+      if(desde) params.set('desde', desde);
+      if(hasta) params.set('hasta', hasta);
+
+      const body = document.getElementById('groListaBody');
+      body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
+      try {
+        const lista = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
+        groListaCache = lista;
+        if(groVista === 'activos') actualizarAlertaGrupos(lista);
+        else document.getElementById('groAlerta').hidden = true;
+        if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+        body.innerHTML = lista.map(g => {
+          const sem = semaforoOperacion(g);
+          return `
+          <tr data-id="${g.id}">
+            <td>
+              <div class="cot-cliente-nombre">${escapeHtml(g.cliente)}</div>
+              ${g.cliente_final ? `<div class="cot-cliente-sub">cliente final: ${escapeHtml(g.cliente_final)}</div>` : ''}
+            </td>
+            <td>${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</td>
+            <td>${badgeHerramientas(g)}</td>
+            <td>${window.FaseStepper.render({ fase: g.fase, variant: 'mini' })}</td>
+            <td>${sem ? `<span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span>` : ''}</td>
+            <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
+            <td>
+              <button type="button" class="cot-icon-btn gro-editar-btn" data-id="${g.id}" title="Editar el grupo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.getElementById('groListaBody').addEventListener('click', e => {
+      const btn = e.target.closest('.gro-editar-btn');
+      if(!btn) return;
+      const g = groListaCache.find(x => String(x.id) === String(btn.dataset.id));
+      if(g) abrirEdicionGrupo(g);
+    });
+
+    document.getElementById('groVistaTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.radm-tab');
+      if(!btn) return;
+      groVista = btn.dataset.vista;
+      document.querySelectorAll('#groVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b === btn));
+      buscarGruposTracking();
+    });
+
+    document.getElementById('groBuscar').addEventListener('click', buscarGruposTracking);
+    document.getElementById('groLimpiarFiltros').addEventListener('click', () => {
+      groFClienteAuto.reset();
+      document.getElementById('groFHerramienta').value = '';
+      document.getElementById('groFDesde').value = '';
+      document.getElementById('groFHasta').value = '';
+      buscarGruposTracking();
+    });
+
+    cargarKpisGrupos();
+    buscarGruposTracking();
   })();
 </script>
 

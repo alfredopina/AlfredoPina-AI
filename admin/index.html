@@ -821,7 +821,7 @@
 
 <div class="admin-shell">
   <aside class="admin-sidebar">
-    <a href="../index.html" class="admin-brand">
+    <a href="/" class="admin-brand">
       <img src="../assets/img/firma-ap.png" alt="Firma Alfredo Piña">
       <span>
         <div class="admin-brand-text">Alfredo Piña</div>
@@ -885,7 +885,7 @@
     </nav>
 
     <div class="admin-sidebar-footer">
-      <a href="../index.html" class="admin-back">
+      <a href="/" class="admin-back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Volver al sitio
       </a>
@@ -3714,7 +3714,7 @@
     let encQrInstance = null;
 
     function cargarQr(){
-      const link = new URL('encuesta.html', location.origin + '/').href;
+      const link = new URL('encuesta', location.origin + '/').href;
       document.getElementById('encLinkInput').value = link;
 
       encQrInstance = new QRCodeStyling({
@@ -4934,7 +4934,7 @@
 
     function cargarQr(){
       Object.keys(TOOL_META).forEach(tool => {
-        const link = new URL('diagnostico.html?h=' + tool, location.origin + '/').href;
+        const link = new URL('diagnostico?h=' + tool, location.origin + '/').href;
         document.getElementById('diagLink' + tool.charAt(0).toUpperCase() + tool.slice(1)).value = link;
         const t = TOOL_META[tool];
         const instance = new QRCodeStyling({

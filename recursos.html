@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://alfredopina.ai/recursos.html">
+<meta property="og:url" content="https://alfredopina.ai/recursos">
 <meta property="og:title" content="Recursos — Alfredo Piña">
 <meta property="og:description" content="Manuales, casos de uso y material complementario de tus cursos de Excel, Power BI y más.">
 <meta property="og:image" content="https://alfredopina.ai/assets/img/firma-ap.png">
@@ -212,16 +212,16 @@
 
 <nav>
   <div class="wrap">
-    <a href="index.html" class="nav-mark" style="text-decoration:none;">
+    <a href="/" class="nav-mark" style="text-decoration:none;">
       <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:34px; width:auto; display:block;">
       <span class="nav-name">Alfredo Piña</span>
     </a>
     <div class="nav-links">
-      <a href="index.html#experiencia" style="text-decoration:none;">Conóceme</a>
-      <a href="cursos.html" style="text-decoration:none;">Cursos</a>
-      <a href="recursos.html" style="text-decoration:none; color:var(--text);">Recursos</a>
+      <a href="/#experiencia" style="text-decoration:none;">Conóceme</a>
+      <a href="/cursos" style="text-decoration:none;">Cursos</a>
+      <a href="/recursos" style="text-decoration:none; color:var(--text);">Recursos</a>
     </div>
-    <a href="index.html#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
+    <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
 
@@ -594,7 +594,7 @@
 
     const otras = Object.keys(TOOL_META).filter(id => id !== currentToolId).map(id => {
       const t = TOOL_META[id];
-      return `<a href="cursos.html#${id}" class="explora-card"><span class="explora-icon">${t.icon}</span><span class="explora-label">${t.nombre}</span></a>`;
+      return `<a href="/cursos#${id}" class="explora-card"><span class="explora-icon">${t.icon}</span><span class="explora-label">${t.nombre}</span></a>`;
     });
     document.getElementById('exploraGrid').innerHTML = otras.join('');
   }

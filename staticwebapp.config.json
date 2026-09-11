@@ -1,6 +1,26 @@
 {
   "routes": [
     {
+      "route": "/cursos",
+      "rewrite": "/cursos.html"
+    },
+    {
+      "route": "/agenda",
+      "rewrite": "/agenda.html"
+    },
+    {
+      "route": "/recursos",
+      "rewrite": "/recursos.html"
+    },
+    {
+      "route": "/encuesta",
+      "rewrite": "/encuesta.html"
+    },
+    {
+      "route": "/diagnostico",
+      "rewrite": "/diagnostico.html"
+    },
+    {
       "route": "/admin",
       "allowedRoles": ["admin"]
     },

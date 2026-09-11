@@ -335,6 +335,22 @@
     {
       "route": "/api/getHistorialFaseGrupo",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listPendientes",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/archivarPendiente",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

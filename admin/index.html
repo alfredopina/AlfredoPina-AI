@@ -61,6 +61,19 @@
     margin-left:auto; font-family:var(--mono); font-size:8.5px; color:var(--text-faint);
     border:1px solid var(--line); padding:1px 6px; border-radius:8px; letter-spacing:.3px;
   }
+  /* punto que pulsa — mismo criterio visual que .float-chip .dot del sitio público,
+     solo en Tracking Comercial (ya tiene datos reales); Tracking Operación sigue
+     siendo un placeholder, así que lleva PRONTO en vez de esto. */
+  .admin-nav-live-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--blue-bright);
+    box-shadow:0 0 6px var(--blue-bright); display:inline-block;
+    margin-left:auto; animation:admin-live-pulse 1.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .admin-nav-live-dot{ animation:none; } }
+  @keyframes admin-live-pulse{
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:.4; transform:scale(.75); }
+  }
   .admin-nav-group{
     font-family:var(--mono); font-size:9.5px; color:var(--text-faint); letter-spacing:.6px;
     padding:14px 12px 4px; font-weight:500;
@@ -764,7 +777,22 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
         Dashboard
       </button>
+      <button class="admin-nav-item" data-panel="tracking-comercial">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="10" width="5" height="10" rx="1"/><rect x="9.5" y="5" width="5" height="15" rx="1"/><rect x="16" y="13" width="5" height="7" rx="1"/></svg></span>
+        Tracking Comercial
+        <span class="admin-nav-live-dot"></span>
+      </button>
+      <button class="admin-nav-item" data-panel="tracking-operacion">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3" stroke-linecap="round"/></svg></span>
+        Tracking Operación
+        <span class="admin-nav-soon">PRONTO</span>
+      </button>
+
       <div class="admin-nav-group">COMERCIAL</div>
+      <button class="admin-nav-item" data-panel="clientes">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h1M8 12h1M8 16h1" stroke-linecap="round"/></svg></span>
+        Clientes
+      </button>
       <button class="admin-nav-item" data-panel="solicitudes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6L18 5H6L4 12Z" stroke-linejoin="round"/></svg></span>
         Solicitudes
@@ -773,24 +801,13 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg></span>
         Cotizaciones
       </button>
+
+      <div class="admin-nav-group">OPERACIÓN</div>
       <button class="admin-nav-item" data-panel="diagnosticos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 6 4-14 2 8h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diagnósticos
         <span class="admin-nav-soon">PRONTO</span>
       </button>
-
-      <div class="admin-nav-group">OPERACIÓN</div>
-      <button class="admin-nav-item" data-panel="clientes">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h1M8 12h1M8 16h1" stroke-linecap="round"/></svg></span>
-        Clientes
-      </button>
-      <button class="admin-nav-item" data-panel="tracking">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="10" width="5" height="10" rx="1"/><rect x="9.5" y="5" width="5" height="15" rx="1"/><rect x="16" y="13" width="5" height="7" rx="1"/></svg></span>
-        Tracking
-        <span class="admin-nav-soon">PRONTO</span>
-      </button>
-
-      <div class="admin-nav-group">CIERRE</div>
       <button class="admin-nav-item" data-panel="encuestas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Encuestas
@@ -800,7 +817,7 @@
         Diplomas
       </button>
 
-      <div class="admin-nav-group">PRODUCTO</div>
+      <div class="admin-nav-group">PRODUCTOS</div>
       <button class="admin-nav-item" data-panel="cursos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
         Cursos
@@ -1062,71 +1079,10 @@
         <div id="cotToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="cotTabs">
-          <button type="button" class="dash-etab active" data-cottab="seguimiento">Seguimiento</button>
-          <button type="button" class="dash-etab" data-cottab="crear">Crear Cotización</button>
+          <button type="button" class="dash-etab active" data-cottab="crear">Crear Cotización</button>
         </div>
 
-        <div class="dip-tabpanel active" id="cotTab-seguimiento">
-          <div class="cot-kpis" id="cotKpis">
-            <div class="cot-kpi">
-              <div class="cot-kpi-label">Pipeline activo</div>
-              <div class="cot-kpi-value" id="cotKpiPipelineMonto">—</div>
-              <div class="cot-kpi-sub" id="cotKpiPipelineSub">—</div>
-            </div>
-            <div class="cot-kpi">
-              <div class="cot-kpi-label">Ganado</div>
-              <div class="cot-kpi-value" id="cotKpiGanadoMonto">—</div>
-              <div class="cot-kpi-sub up" id="cotKpiGanadoSub">—</div>
-            </div>
-            <div class="cot-kpi">
-              <div class="cot-kpi-label">Perdido</div>
-              <div class="cot-kpi-value" id="cotKpiPerdidoMonto">—</div>
-              <div class="cot-kpi-sub down" id="cotKpiPerdidoSub">—</div>
-            </div>
-            <div class="cot-kpi">
-              <div class="cot-kpi-label">Tasa de conversión</div>
-              <div class="cot-kpi-value" id="cotKpiConversion">—</div>
-              <div class="cot-kpi-sub">de las cerradas, últimos 90 días</div>
-            </div>
-            <div class="cot-kpi hero">
-              <div class="cot-kpi-label">Tiempo promedio de cierre</div>
-              <div class="cot-kpi-value" id="cotKpiTiempoCierre">—</div>
-              <div class="cot-kpi-sub">cotizaciones cerradas este mes</div>
-            </div>
-          </div>
-
-          <div class="cot-alert" id="cotAlerta" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="cotAlertaTexto"></span>
-          </div>
-
-          <div class="radm-tabs" id="cotVistaTabs">
-            <button type="button" class="radm-tab active" data-vista="activas">Activas</button>
-            <button type="button" class="radm-tab" data-vista="ganadas">Ganadas</button>
-            <button type="button" class="radm-tab" data-vista="perdidas">Perdidas</button>
-            <button type="button" class="radm-tab" data-vista="todas">Todas</button>
-          </div>
-
-          <div class="dip-table-wrap">
-            <table class="dip-table">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Curso</th>
-                  <th>Monto</th>
-                  <th>Días abierta</th>
-                  <th>Estatus</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="cotListaBody">
-                <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="dip-tabpanel" id="cotTab-crear">
+        <div class="dip-tabpanel active" id="cotTab-crear">
           <!-- Vista 1 (default): lista de Solicitudes activas para cotizar -->
           <div id="cotSolicitudesListaVista">
             <p class="radm-hint" style="margin-bottom:16px;">Toda Cotización nace de una Solicitud. Elige "Cotizar" en la que quieras convertir, "Editar" si algo cambió antes de cotizar, o "Descartar" si ya no aplica (no se borra, solo se marca como descartada).</p>
@@ -1354,7 +1310,67 @@
           </div>
         </div>
       </div>
-      <div class="admin-panel" id="panel-tracking"></div>
+      <div class="admin-panel" id="panel-tracking-comercial" style="--c:var(--blue-bright)">
+        <div id="cotToastTracking" class="radm-toast" hidden></div>
+        <div class="cot-kpis" id="cotKpis">
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Pipeline activo</div>
+            <div class="cot-kpi-value" id="cotKpiPipelineMonto">—</div>
+            <div class="cot-kpi-sub" id="cotKpiPipelineSub">—</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Ganado</div>
+            <div class="cot-kpi-value" id="cotKpiGanadoMonto">—</div>
+            <div class="cot-kpi-sub up" id="cotKpiGanadoSub">—</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Perdido</div>
+            <div class="cot-kpi-value" id="cotKpiPerdidoMonto">—</div>
+            <div class="cot-kpi-sub down" id="cotKpiPerdidoSub">—</div>
+          </div>
+          <div class="cot-kpi">
+            <div class="cot-kpi-label">Tasa de conversión</div>
+            <div class="cot-kpi-value" id="cotKpiConversion">—</div>
+            <div class="cot-kpi-sub">de las cerradas, últimos 90 días</div>
+          </div>
+          <div class="cot-kpi hero">
+            <div class="cot-kpi-label">Tiempo promedio de cierre</div>
+            <div class="cot-kpi-value" id="cotKpiTiempoCierre">—</div>
+            <div class="cot-kpi-sub">cotizaciones cerradas este mes</div>
+          </div>
+        </div>
+
+        <div class="cot-alert" id="cotAlerta" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="cotAlertaTexto"></span>
+        </div>
+
+        <div class="radm-tabs" id="cotVistaTabs">
+          <button type="button" class="radm-tab active" data-vista="activas">Activas</button>
+          <button type="button" class="radm-tab" data-vista="ganadas">Ganadas</button>
+          <button type="button" class="radm-tab" data-vista="perdidas">Perdidas</button>
+          <button type="button" class="radm-tab" data-vista="todas">Todas</button>
+        </div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Curso</th>
+                <th>Monto</th>
+                <th>Días abierta</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cotListaBody">
+              <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="admin-panel" id="panel-tracking-operacion"></div>
       <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
         <div id="encToast" class="radm-toast" hidden></div>
 
@@ -1775,14 +1791,15 @@
   const TITLES = {
     dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
-    tracking: 'Tracking', encuestas: 'Encuestas', diplomas: 'Diplomas',
+    'tracking-comercial': 'Tracking Comercial', 'tracking-operacion': 'Tracking Operación',
+    encuestas: 'Encuestas', diplomas: 'Diplomas',
     config: 'Configuración', notificaciones: 'Notificaciones',
   };
 
   const EMPTY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>';
 
   // arma el placeholder "Próximamente" de los módulos que aún no existen
-  ['diagnosticos', 'tracking'].forEach(key => {
+  ['diagnosticos', 'tracking-operacion'].forEach(key => {
     document.getElementById('panel-' + key).innerHTML = `
       <div class="admin-empty">
         <div class="admin-empty-icon">${EMPTY_ICON}</div>
@@ -5314,7 +5331,13 @@
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
-      const el = document.getElementById('cotToast');
+      // Seguimiento (Tracking Comercial) y Crear Cotización viven en 2
+      // admin-panels distintos desde el reacomodo de navegación — un toast
+      // metido en el panel que no está activo queda oculto (.admin-panel no
+      // activo es display:none), así que cada uno necesita su propio div,
+      // y aquí se elige el que corresponda al panel visible.
+      const enTracking = document.getElementById('panel-tracking-comercial').classList.contains('active');
+      const el = document.getElementById(enTracking ? 'cotToastTracking' : 'cotToast');
       el.textContent = msg;
       el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
       el.hidden = false;
@@ -5487,6 +5510,11 @@
     async function accionNuevaVersion(id){
       const c = cotizacionPorId(id);
       if(!c) return;
+      // "Nueva versión" se dispara desde Tracking Comercial pero el formulario
+      // vive en el panel Cotizaciones — ahora son 2 admin-panels separados
+      // (antes eran 2 pestañas del mismo panel), así que hay que cambiar de
+      // panel visible explícitamente antes de precargar el formulario.
+      activarPanel('cotizaciones');
       document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
       await precargarFormDesdeCotizacion(c);
     }
@@ -5789,7 +5817,11 @@
         mostrarVistaCrear('lista');
         cargarListaSolicitudesActivas();
         cargarKpisCotizaciones();
-        document.querySelector('#cotTabs .dash-etab[data-cottab="seguimiento"]').click();
+        // Seguimiento ya no es una pestaña de este mismo panel — ahora es el
+        // panel Tracking Comercial aparte, hay que navegar ahí de verdad (y
+        // refrescar la tabla, la navegación sola no vuelve a pedir datos).
+        activarPanel('tracking-comercial');
+        buscarCotizaciones();
       } catch(e){
         toast('No se pudo crear: ' + e.message, false);
       }

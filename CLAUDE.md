@@ -16,7 +16,7 @@ Si algún día hay que reconstruir la infraestructura desde cero (o algo se borr
 - **Backend:** Azure Functions (carpeta `api/`), modelo **v3 clásico** (carpeta + `function.json`), NO modelo v4 (`app.http(...)`) — el v4 falla en Static Web Apps managed functions por una feature flag no configurable en ese hosting. Ya hubo que corregir esto una vez, no repetir el error.
 - **Base de datos:** Azure Table Storage para módulos aislados (ej. Calendario). Para el futuro backoffice (que cruza Diagnóstico + Cotizaciones + Recursos), evaluar Azure SQL Database (tier serverless barato) en vez de Table Storage, porque los reportes van a necesitar cruzar datos entre módulos.
 - **Repo:** `github.com/alfredopina/AlfredoPina-AI` (público).
-- **Dominio:** `alfredopina.ai` decidido, aún no conectado (se prueba con un dominio viejo de LifeZen mientras se termina contenido).
+- **Dominio:** `alfredopina.ai` **conectado y en producción desde 2026-09-10** — DNS + dominio personalizado dados de alta en el Static Web App (`Web-AlfredoPina` → Custom domains), certificado válido. El correo `@alfredopina.ai` todavía NO existe (solo el sitio) — mientras tanto, `alfredo.pina@lifezen.com.mx` sigue siendo el correo real de contacto (login de `/admin` y `COTIZACION_CONTACT_EMAIL`, ver Fase 3 Cotizaciones en Pendientes).
 
 ## Identidad de marca — YA CERRADA, no reabrir sin que Alfredo lo pida explícitamente
 
@@ -129,7 +129,7 @@ Se actualiza en cada sesión: se agregan pendientes nuevos, se tachan/quitan los
 
 **Marketing / marca (menor prioridad):**
 - [ ] Imagen social dedicada (1200×630) para `og:image` — hoy usa `firma-ap.png` como placeholder.
-- [ ] Actualizar `og:url`/`og:image` cuando el dominio `alfredopina.ai` quede conectado.
+- [x] `og:url` ya apuntaba a `alfredopina.ai` desde antes (se configuró preventivamente) — confirmado que sigue correcto ahora que el dominio está conectado de verdad (2026-09-10), no requirió cambio de código.
 - [ ] Link real de YouTube en el footer (hoy `href="#"` placeholder).
 
 **Deuda técnica (no es tarea tuya en portal — para una sesión constructora cuando quieras invertir en limpieza):**

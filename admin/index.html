@@ -105,6 +105,16 @@
   .admin-icon-btn svg{ width:16px; height:16px; }
   .admin-icon-btn:hover{ color:var(--text); border-color:var(--text-dim); }
 
+  /* Botón "Despertar" — 3 estados, cada uno con un ícono distinto (nunca solo
+     color, por la deuteranomalía de Alfredo): rayo en reposo, ícono girando
+     mientras despierta la base, check al terminar. */
+  .admin-icon-btn.despertando{ color:var(--blue-bright); border-color:var(--blue-bright); cursor:default; }
+  .admin-icon-btn.despertando svg{ animation:admin-spin 1s linear infinite; }
+  @media (prefers-reduced-motion:reduce){ .admin-icon-btn.despertando svg{ animation:none; } }
+  @keyframes admin-spin{ to{ transform:rotate(360deg); } }
+  .admin-icon-btn.despertar-ok{ color:#4ade80; border-color:#4ade80; }
+  .admin-icon-btn.despertar-error{ color:#f87171; border-color:#f87171; }
+
   .admin-user-sep{ width:1px; height:26px; background:var(--line); flex:none; margin:0 2px; }
 
   .admin-user-avatar{
@@ -846,6 +856,9 @@
     <div class="admin-topbar">
       <div class="admin-topbar-title" id="topbarTitle">Dashboard</div>
       <div class="admin-user">
+        <button type="button" class="admin-icon-btn" id="btnDespertar" title="Despertar base de datos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Notificaciones (próximamente)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
         </button>
@@ -1917,6 +1930,42 @@
   document.getElementById('btnNotificaciones').addEventListener('click', () => activarPanel('notificaciones'));
   document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
   document.getElementById('notifBack').addEventListener('click', () => activarPanel(ultimoPanel));
+
+  // Botón "Despertar" — dispara un SELECT 1 contra apcweb-backoffice (Function
+  // despertarBackoffice) solo para sacarla del auto-pause antes de que Alfredo
+  // abra un panel de verdad (Clientes/Solicitudes/Cotizaciones/Diplomas/
+  // Encuestas). No navega a ningún panel. 3 estados, cada uno con un ícono
+  // distinto (nunca solo color, por la deuteranomalía de Alfredo).
+  (function(){
+    const btn = document.getElementById('btnDespertar');
+    const ICO = {
+      idle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      loading: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3.6-7.2" stroke-linecap="round"/></svg>',
+      ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>',
+    };
+    let enCurso = false;
+    function setEstado(estado, title){
+      btn.classList.remove('despertando', 'despertar-ok', 'despertar-error');
+      if(estado !== 'idle') btn.classList.add(estado === 'loading' ? 'despertando' : 'despertar-' + estado);
+      btn.innerHTML = ICO[estado];
+      btn.title = title;
+    }
+    btn.addEventListener('click', async () => {
+      if(enCurso) return;
+      enCurso = true;
+      setEstado('loading', 'Despertando…');
+      try {
+        const res = await fetch('/api/despertarBackoffice');
+        if(!res.ok) throw new Error();
+        setEstado('ok', 'Lista');
+      } catch(e){
+        setEstado('error', 'No se pudo despertar la base — intenta de nuevo');
+      } finally {
+        setTimeout(() => { setEstado('idle', 'Despertar base de datos'); enCurso = false; }, 2800);
+      }
+    });
+  })();
 
   // quién inició sesión — solo funciona una vez desplegado en Azure (no en local)
   fetch('/.auth/me')
@@ -3301,6 +3350,21 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
+    // Reintento con pausas crecientes — la base SQL serverless apcweb-backoffice
+    // se autopausa por inactividad y la primera consulta tras una pausa puede
+    // tardar hasta ~60s en despertar (mismo patrón que Clientes/Solicitudes/
+    // Cotizaciones, duplicado a propósito, este IIFE no comparte estado con esos).
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
     function fmtFecha(iso){
       if(!iso) return '—';
       const d = new Date(iso);
@@ -3331,7 +3395,7 @@
       document.getElementById('encBtnAddInstructor').disabled = true;
       document.getElementById('encBtnAddCurso').disabled = true;
       try {
-        encPreguntas = await apiGet('/api/listPreguntasAdmin');
+        encPreguntas = await apiGetConReintento('/api/listPreguntasAdmin');
       } catch(e){
         encPreguntas = [];
         toast('No se pudieron cargar las preguntas: ' + e.message, false);
@@ -3487,7 +3551,7 @@
       const panelActivo = document.getElementById('panel-encuestas').classList.contains('active');
       if(!encQrTabActiva || !panelActivo || document.hidden) return;
       try {
-        const data = await apiGet('/api/getContadorRespuestas');
+        const data = await apiGetConReintento('/api/getContadorRespuestas');
         document.getElementById('encContadorTotal').textContent = data.total;
         document.getElementById('encContadorHoy').textContent = data.hoy;
       } catch(e){
@@ -3678,7 +3742,7 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
               `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
@@ -3746,7 +3810,7 @@
       body.innerHTML = `<tr><td class="radm-empty-row">Buscando...</td></tr>`;
 
       try {
-        const lista = await apiGet('/api/listRespuestasEncuesta?' + params.toString());
+        const lista = await apiGetConReintento('/api/listRespuestasEncuesta?' + params.toString());
         if(!lista.length){ body.innerHTML = `<tr><td class="radm-empty-row">Sin resultados.</td></tr>`; return; }
 
         const columnas = construirColumnas(lista);
@@ -3826,6 +3890,22 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
+    // Reintento con pausas crecientes — la base SQL serverless apcweb-backoffice
+    // se autopausa por inactividad y la primera consulta tras una pausa puede
+    // tardar hasta ~60s en despertar (mismo patrón que Clientes/Solicitudes/
+    // Cotizaciones/Encuestas, duplicado a propósito, este IIFE no comparte
+    // estado con esos módulos).
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
 
     function fmtFecha(iso){
       if(!iso) return '—';
@@ -3862,7 +3942,7 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
               `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
@@ -4127,7 +4207,7 @@
       const body = document.getElementById('dipListaBody');
       body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGet('/api/listDiplomas?' + params.toString());
+        const lista = await apiGetConReintento('/api/listDiplomas?' + params.toString());
         if(!lista.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
         body.innerHTML = lista.map(d => `
           <tr data-folio="${escapeHtml(d.folio)}">
@@ -5005,7 +5085,7 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
               `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
@@ -6196,7 +6276,7 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
               `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`

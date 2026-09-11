@@ -251,6 +251,10 @@
     {
       "route": "/api/getCotizacionPdf",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/despertarBackoffice",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

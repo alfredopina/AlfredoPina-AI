@@ -255,6 +255,34 @@
     {
       "route": "/api/despertarBackoffice",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listPreguntasDiagnosticoAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/crearPreguntaDiagnostico",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarPreguntaDiagnostico",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarPreguntaDiagnostico",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/reordenarPreguntasDiagnostico",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listRespuestasDiagnosticoAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getContadorDiagnosticoAdmin",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

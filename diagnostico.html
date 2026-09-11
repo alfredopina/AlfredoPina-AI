@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Diagnóstico — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0d12;
+    --panel: #10141b;
+    --panel-2: #141a23;
+    --line: #1d2530;
+    --line-soft: #161c26;
+    --blue: #3d7fff;
+    --blue-bright: #6b9fff;
+    --blue-soft: rgba(61,127,255,.14);
+    --blue-dim: #16233f;
+    --text: #edf0f4;
+    --text-dim: #8991a1;
+    --text-faint: #4c5462;
+    --good: #4ade80;
+    --bad: #ef4444;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  .skip-link{
+    position:absolute; top:-40px; left:0; z-index:2000;
+    background:var(--panel); color:var(--text);
+    border:1px solid var(--line); border-radius:0 0 8px 0;
+    padding:10px 18px; font-size:14px; text-decoration:none;
+    transition:top .15s ease;
+  }
+  .skip-link:focus{ top:0; outline:2px solid var(--blue, #3d7fff); outline-offset:-2px; }
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--body);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  ::selection{background:var(--blue);color:#fff;}
+  a{color:inherit;text-decoration:none;}
+
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+    opacity:.6;
+  }
+
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+  nav{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(10px);
+    background:rgba(10,13,18,.7);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:720px;}
+  .nav-mark{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--text-dim); display:flex; align-items:center; gap:9px;}
+  .nav-name{font-family:var(--display); font-weight:600; font-size:14.5px; color:var(--text); letter-spacing:-.01em;}
+  .nav-links{display:flex;gap:22px;font-size:13.5px;color:var(--text-dim); align-items:center;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.3px;
+    border:1px solid var(--line); padding:7px 14px; border-radius:3px;
+    color:var(--text); transition:border-color .2s, background .2s;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .nav-cta svg{ color:var(--blue-bright); flex:none; }
+  .nav-cta:hover{border-color:var(--blue); background:var(--blue-soft);}
+  .nav-hidden-note{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
+    display:flex; align-items:center; gap:6px;
+  }
+  .nav-hidden-note svg{ width:12px; height:12px; flex:none; }
+  @media (max-width:640px){ .nav-links{ display:none; } }
+
+  header.diag-header{ padding:44px 0 8px; position:relative; z-index:1; }
+  h2.section-title{
+    font-family:var(--display); font-weight:600; font-size:clamp(26px,5.5vw,36px);
+    letter-spacing:-.01em; line-height:1.18; max-width:520px;
+  }
+  .diag-tool-badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px;
+    letter-spacing:.3px; border-radius:20px; padding:5px 12px; margin-bottom:16px;
+  }
+  .diag-tool-badge svg{ width:14px; height:14px; }
+
+  section{ padding:24px 0 80px; position:relative; z-index:1; }
+
+  .diag-loading{ font-family:var(--mono); font-size:13px; color:var(--text-faint); padding:40px 0; }
+
+  .diag-error{
+    border:1px solid var(--bad); border-radius:8px; background:rgba(239,68,68,.08);
+    color:var(--bad); font-size:13.5px; padding:18px 20px; margin:16px 0; line-height:1.6;
+  }
+
+  .diag-block{ margin-bottom:40px; }
+  .diag-block-title{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
+  }
+
+  .diag-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .diag-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
+  .diag-req{ color:var(--bad); }
+  .diag-field input[type=text]{
+    font-family:var(--body); font-size:14.5px; color:var(--text); background:var(--panel);
+    border:1px solid var(--line); border-radius:7px; padding:12px 14px; outline:none;
+    transition:border-color .2s; width:100%;
+  }
+  .diag-field input:focus{ border-color:var(--blue-bright); }
+
+  .diag-autocomplete-wrap{ position:relative; }
+  .diag-autocomplete-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    max-height:220px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.4);
+  }
+  .diag-autocomplete-item{ padding:10px 14px; font-size:13.5px; cursor:pointer; }
+  .diag-autocomplete-item:hover{ background:var(--panel); }
+  .diag-autocomplete-item b{ color:var(--text); }
+
+  /* ---- pregunta: imagen de referencia arriba, badges de contexto, texto,
+     4 opciones abajo como filas (letra + texto + checkbox de un solo valor) ---- */
+  .diag-question{ margin-bottom:0; padding:28px 0; border-bottom:1px solid var(--line-soft); }
+  .diag-question:first-child{ padding-top:0; }
+  .diag-question:last-child{ border-bottom:none; padding-bottom:0; }
+  .diag-question-badges{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .diag-badge-nivel{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.3px; color:var(--text-dim);
+    border:1px solid var(--line); border-radius:20px; padding:4px 11px;
+  }
+  .diag-badge-contador{
+    font-family:var(--mono); font-size:10.5px; font-style:italic; font-weight:700; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:20px; padding:4px 11px; margin-left:auto;
+  }
+  .diag-question-media{
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel);
+    margin-bottom:16px;
+  }
+  .diag-question-media img{ display:block; width:100%; height:auto; }
+  .diag-question-text{ font-size:15px; color:var(--text); margin-bottom:16px; line-height:1.5; font-weight:500; }
+
+  .diag-options{ display:flex; flex-direction:column; gap:8px; }
+  .diag-option{
+    display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:8px;
+    background:var(--panel); padding:12px 14px; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .diag-option:hover{ border-color:var(--text-faint); }
+  .diag-option.selected{ border-color:var(--blue-bright); background:var(--blue-soft); }
+  .diag-option-letra{
+    font-family:var(--mono); font-weight:700; font-size:13px; color:var(--text-dim); flex:none;
+    width:26px; height:26px; border:1px solid var(--line); border-radius:6px; display:flex;
+    align-items:center; justify-content:center;
+  }
+  .diag-option.selected .diag-option-letra{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .diag-option-texto{ flex:1; font-size:13.5px; color:var(--text); }
+  .diag-option-check{
+    flex:none; width:20px; height:20px; border:1px solid var(--line); border-radius:5px;
+    display:flex; align-items:center; justify-content:center; color:transparent; transition:all .15s;
+  }
+  .diag-option-check svg{ width:13px; height:13px; }
+  .diag-option.selected .diag-option-check{ border-color:var(--blue-bright); background:var(--blue-bright); color:#fff; }
+
+  .diag-privacy{
+    font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
+    padding-top:18px; margin:24px 0 20px; line-height:1.6;
+  }
+
+  .diag-submit-fx{
+    width:100%; display:flex; align-items:stretch; border:1px solid var(--blue-dim);
+    border-radius:6px; background:var(--panel); overflow:hidden; cursor:pointer;
+    transition:border-color .2s, background .2s;
+  }
+  .diag-submit-fx:hover:not(:disabled){ border-color:var(--blue-bright); background:var(--blue-soft); }
+  .diag-submit-fx:disabled{ opacity:.6; cursor:default; }
+  .diag-submit-fx-tag{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
+    background:var(--blue-soft); padding:18px 16px; border-right:1px solid var(--blue-dim); flex:none;
+    display:flex; align-items:center;
+  }
+  .diag-submit-fx-body{
+    font-family:var(--mono); font-size:14px; color:var(--text); padding:18px 20px;
+    display:flex; align-items:center; flex:1; justify-content:center;
+  }
+
+  .diag-thanks{ display:none; text-align:center; padding:70px 0 40px; }
+  .diag-thanks.show{ display:block; animation:diagThanksIn .4s ease forwards; }
+  @keyframes diagThanksIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .diag-thanks-icon{ width:56px; height:56px; color:var(--good); margin:0 auto 20px; }
+  .diag-thanks-icon path{ stroke-dasharray:1; stroke-dashoffset:1; animation:diagCheckDraw .6s .15s ease forwards; }
+  @keyframes diagCheckDraw{ to{ stroke-dashoffset:0; } }
+  .diag-thanks h2{ font-family:var(--display); font-weight:600; font-size:26px; margin-bottom:10px; }
+  .diag-thanks p{ color:var(--text-dim); font-size:14px; max-width:420px; margin:0 auto; }
+  .diag-thanks-fx{
+    display:inline-flex; align-items:center; gap:8px; margin-top:24px;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+  .diag-thanks-fx span{
+    font-weight:700; font-style:italic; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:4px; padding:2px 7px;
+  }
+
+  /* footer mínimo a propósito — sin el bloque "Hablemos"/contacto del resto
+     del sitio, mismo criterio que encuesta.html */
+  footer{border-top:1px solid var(--line-soft); padding:30px 0 40px; margin-top:10px;}
+  .diag-footer-copy{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); }
+
+  @media (max-width:480px){
+    .wrap{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+
+<div class="grid-bg"></div>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html#top" class="nav-mark">
+      <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:30px; width:auto; display:block;">
+      <span class="nav-name">Alfredo Piña</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#experiencia">Conóceme</a>
+      <a href="cursos.html">Cursos</a>
+      <a href="recursos.html">Recursos</a>
+      <span class="nav-hidden-note" title="Página pública pero sin liga en el menú — no indexada por buscadores.">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Diagnóstico
+      </span>
+    </div>
+    <a href="index.html#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
+  </div>
+</nav>
+
+<main id="contenido">
+
+<header class="wrap diag-header">
+  <div class="diag-tool-badge" id="diagToolBadge" hidden></div>
+  <h2 class="section-title">Vamos a ver de dónde partimos.</h2>
+</header>
+
+<section class="wrap">
+  <div class="diag-loading" id="diagLoading">Cargando diagnóstico…</div>
+  <div class="diag-error" id="diagError" hidden></div>
+
+  <form id="diagForm" hidden>
+    <div class="diag-block">
+      <div class="diag-block-title">Acerca de ti</div>
+      <div class="diag-field">
+        <label>NOMBRE <span class="diag-req">*</span></label>
+        <input type="text" id="diagNombre" placeholder="Tu nombre">
+      </div>
+      <div class="diag-field diag-autocomplete-wrap">
+        <label>EMPRESA <span class="diag-req">*</span></label>
+        <input type="text" id="diagEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
+        <div class="diag-autocomplete-list" id="diagEmpresaLista" hidden></div>
+      </div>
+    </div>
+
+    <div id="diagPreguntasArea"></div>
+
+    <p class="diag-privacy">Este diagnóstico se usa solo para nivelar al grupo por conocimiento previo — no es un examen que se califique ni se comparte con nadie fuera del curso.</p>
+
+    <button type="submit" class="diag-submit-fx" id="diagSubmit">
+      <span class="diag-submit-fx-tag">fx</span>
+      <span class="diag-submit-fx-body" id="diagSubmitBody">=ENVIAR_DIAGNOSTICO()</span>
+    </button>
+  </form>
+
+  <div class="diag-thanks" id="diagThanks">
+    <svg class="diag-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
+    <h2>¡Listo, ya quedó registrado!</h2>
+    <p>Gracias por tomarte el tiempo — con esto arrancamos el curso sabiendo exactamente de dónde partir.</p>
+    <div class="diag-thanks-fx"><span>fx</span> =GRACIAS()</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="diag-footer-copy">© 2026 Alfredo Piña</span>
+  </div>
+</footer>
+
+<script>
+  const TOOL_META = {
+    excel:   { nombre:'Excel',    color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
+    powerbi: { nombre:'Power BI', color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+  };
+  const NIVEL_LABEL = ['', 'Básico', 'Intermedio', 'Avanzado'];
+  const OPCIONES = ['A', 'B', 'C', 'D'];
+
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function apiGet(url){
+    const res = await fetch(url);
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || 'Error de red');
+    return body;
+  }
+  async function apiPostJson(url, data){
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || 'Error de red');
+    return body;
+  }
+
+  const params = new URLSearchParams(location.search);
+  const herramienta = (params.get('h') || '').trim().toLowerCase();
+
+  // ── autocompletado de Empresa — mismo patrón duplicado que ya usa
+  // encuesta.html, esta página tampoco carga nada del admin ──
+  function crearAutocomplete({ inputId, listId }){
+    const input = document.getElementById(inputId);
+    const lista = document.getElementById(listId);
+    let seleccionado = null;
+    let timer = null;
+
+    input.addEventListener('input', () => {
+      seleccionado = null;
+      const q = input.value.trim();
+      clearTimeout(timer);
+      if(!q){ lista.hidden = true; return; }
+      timer = setTimeout(async () => {
+        try {
+          const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
+          if(!clientes.length){ lista.hidden = true; return; }
+          lista.innerHTML = clientes.map(c =>
+            `<div class="diag-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}"><b>${escapeHtml(c.nombre)}</b></div>`
+          ).join('');
+          lista.hidden = false;
+        } catch(e){ /* silencioso, no bloquea seguir capturando */ }
+      }, 250);
+    });
+
+    lista.addEventListener('click', e => {
+      const item = e.target.closest('.diag-autocomplete-item');
+      if(!item) return;
+      seleccionado = { id:Number(item.dataset.id), nombre:item.dataset.nombre };
+      input.value = item.dataset.nombre;
+      lista.hidden = true;
+    });
+
+    document.addEventListener('click', e => {
+      if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+    });
+
+    return { getSeleccionado: () => seleccionado };
+  }
+
+  const empresaAuto = crearAutocomplete({ inputId:'diagEmpresaNombre', listId:'diagEmpresaLista' });
+
+  function codigoDesdeNombre(nombre){
+    return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
+  }
+
+  // ── una fila de pregunta: imagen de referencia arriba, badges de contexto,
+  // texto, 4 opciones abajo (checkbox visual, comportamiento de radio — un
+  // solo valor seleccionable por pregunta). El estado seleccionado SIEMPRE usa
+  // el azul de marca, nunca el color de la herramienta ni ningún color que
+  // pueda leerse como "correcto" — y no se revela en ningún momento si la
+  // respuesta elegida es correcta o no. ──
+  function renderPregunta(pregunta, indice, total){
+    const wrap = document.createElement('div');
+    wrap.className = 'diag-question';
+    wrap.dataset.preguntaId = pregunta.id;
+    wrap.innerHTML = `
+      <div class="diag-question-badges">
+        <span class="diag-badge-nivel">${NIVEL_LABEL[pregunta.nivel] || ''}</span>
+        <span class="diag-badge-contador">fx =PREGUNTA(${indice},${total})</span>
+      </div>
+      <div class="diag-question-media"><img src="${pregunta.imagen_url}" alt="Imagen de referencia de la pregunta ${indice}"></div>
+      <div class="diag-question-text">${escapeHtml(pregunta.texto)}</div>
+      <div class="diag-options">
+        ${OPCIONES.map(letra => `
+          <div class="diag-option" data-letra="${letra}" tabindex="0" role="radio" aria-checked="false">
+            <span class="diag-option-letra">${letra}</span>
+            <span class="diag-option-texto">${escapeHtml(pregunta['opcion_' + letra.toLowerCase()])}</span>
+            <span class="diag-option-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    function seleccionar(letra){
+      wrap.dataset.seleccionada = letra;
+      wrap.querySelectorAll('.diag-option').forEach(op => {
+        const sel = op.dataset.letra === letra;
+        op.classList.toggle('selected', sel);
+        op.setAttribute('aria-checked', sel ? 'true' : 'false');
+      });
+    }
+    wrap.querySelectorAll('.diag-option').forEach(op => {
+      op.addEventListener('click', () => seleccionar(op.dataset.letra));
+      op.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); seleccionar(op.dataset.letra); }
+      });
+    });
+
+    return wrap;
+  }
+
+  // Reintento con pausas crecientes — la base SQL (serverless) se auto-pausa
+  // tras inactividad y la primera consulta después puede tardar hasta 60s en
+  // "despertarla"; en vez de un "error de red" inmediato, se reintenta callado
+  // unas veces antes de rendirse de verdad (mismo patrón que encuesta.html).
+  const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+  async function pedirPreguntas(){
+    for(let intento = 0; ; intento++){
+      try {
+        return await apiGet('/api/getPreguntasDiagnostico?herramienta=' + herramienta);
+      } catch(e){
+        if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+        document.getElementById('diagLoading').textContent = 'Cargando diagnóstico… (puede tardar unos segundos)';
+        await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+      }
+    }
+  }
+
+  async function cargarDiagnostico(){
+    if(!TOOL_META[herramienta]){
+      document.getElementById('diagLoading').hidden = true;
+      const err = document.getElementById('diagError');
+      err.textContent = 'Este link no trae una herramienta válida (falta "?h=excel" o "?h=powerbi" en la dirección). Pide el link correcto a tu instructor.';
+      err.hidden = false;
+      return;
+    }
+
+    const badge = document.getElementById('diagToolBadge');
+    const t = TOOL_META[herramienta];
+    badge.style.color = t.color;
+    badge.style.background = 'color-mix(in srgb, ' + t.color + ' 14%, transparent)';
+    badge.innerHTML = t.icon + t.nombre;
+    badge.hidden = false;
+
+    try {
+      const preguntas = await pedirPreguntas();
+      if(!preguntas.length){
+        document.getElementById('diagLoading').hidden = true;
+        const err = document.getElementById('diagError');
+        err.textContent = 'Todavía no hay preguntas publicadas para ' + t.nombre + '. Avísale a tu instructor.';
+        err.hidden = false;
+        return;
+      }
+
+      // orden fijo: agrupado por nivel (Básico → Intermedio → Avanzado), no
+      // aleatorio — el banco ya viene ordenado así desde getPreguntasDiagnostico
+      const area = document.getElementById('diagPreguntasArea');
+      area.innerHTML = '';
+      preguntas.forEach((p, i) => area.appendChild(renderPregunta(p, i + 1, preguntas.length)));
+
+      document.getElementById('diagLoading').hidden = true;
+      document.getElementById('diagError').hidden = true;
+      document.getElementById('diagForm').hidden = false;
+    } catch(e){
+      document.getElementById('diagLoading').hidden = true;
+      const err = document.getElementById('diagError');
+      err.textContent = 'No se pudo cargar el diagnóstico: ' + e.message;
+      err.hidden = false;
+    }
+  }
+  cargarDiagnostico();
+
+  document.getElementById('diagForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const nombre = document.getElementById('diagNombre').value.trim();
+    if(!nombre){ alert('Escribe tu nombre.'); return; }
+
+    const seleccionado = empresaAuto.getSeleccionado();
+    const empresaNombre = document.getElementById('diagEmpresaNombre').value.trim();
+    let empresa;
+    if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
+    else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
+    else { alert('Escribe el nombre de tu empresa.'); return; }
+
+    const preguntasEl = Array.from(document.querySelectorAll('.diag-question'));
+    const sinResponder = preguntasEl.filter(q => !q.dataset.seleccionada);
+    if(sinResponder.length){
+      alert('Te falta responder ' + sinResponder.length + ' pregunta(s).');
+      sinResponder[0].scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+
+    const respuestas = preguntasEl.map(q => ({
+      preguntaId: Number(q.dataset.preguntaId),
+      opcionSeleccionada: q.dataset.seleccionada,
+    }));
+
+    const btn = document.getElementById('diagSubmit');
+    const body = document.getElementById('diagSubmitBody');
+    btn.disabled = true; body.textContent = '=ENVIANDO...()';
+    try {
+      await apiPostJson('/api/enviarDiagnostico', { nombre, herramienta, empresa, respuestas });
+      document.getElementById('diagForm').hidden = true;
+      document.getElementById('diagThanks').classList.add('show');
+    } catch(err){
+      alert('No se pudo enviar tu diagnóstico: ' + err.message);
+      btn.disabled = false; body.textContent = '=ENVIAR_DIAGNOSTICO()';
+    }
+  });
+</script>
+
+</body>
+</html>

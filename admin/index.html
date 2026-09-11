@@ -710,9 +710,44 @@
   .sol-sort-ico{ width:10px; height:10px; flex:none; }
   .sol-sort-ico svg{ width:100%; height:100%; }
 
-  .cfg-toggle-ico{ display:inline-flex; width:10px; height:10px; transition:transform .15s; }
+  .cfg-toggle-ico{ display:inline-flex; width:10px; height:10px; transition:transform .15s; flex:none; }
   .cfg-toggle-ico svg{ width:100%; height:100%; }
   .cfg-toggle-ico.expanded{ transform:rotate(180deg); }
+
+  /* ---- Configuración: cada sección es una tarjeta con borde, y el
+     encabezado COMPLETO es el disparador del acordeón (no un botón "Desplegar"
+     aparte) — clic en cualquier parte del renglón abre/cierra. ---- */
+  .cfg-card{
+    border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    margin-bottom:14px; overflow:hidden;
+  }
+  .cfg-card-head{
+    width:100%; display:flex; align-items:center; gap:10px; padding:16px 18px;
+    background:none; border:none; cursor:pointer; text-align:left; color:var(--text); font:inherit;
+  }
+  .cfg-card-head:hover{ background:var(--panel-2); }
+  .cfg-card-title{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px; flex:1;
+  }
+  .cfg-card-body{ padding:0 18px 18px; }
+
+  .cfg-actividad-list{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .cfg-actividad-row{
+    display:flex; align-items:center; gap:14px; border:1px solid var(--line-soft); border-radius:8px; padding:12px 14px;
+  }
+  .cfg-actividad-avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--blue-bright); color:#fff; flex:none;
+    display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700; font-size:12px;
+  }
+  .cfg-actividad-body{ flex:1; min-width:0; }
+  .cfg-actividad-nombre{ font-size:13px; font-weight:600; }
+  .cfg-actividad-correo{ font-family:var(--mono); font-size:11px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cfg-actividad-stat{ text-align:right; font-size:11px; color:var(--text-faint); flex:none; min-width:88px; }
+  .cfg-actividad-stat b{ display:block; font-family:var(--mono); font-size:15px; color:var(--text); font-weight:700; }
+  .cfg-actividad-rol{
+    font-family:var(--mono); font-size:9px; letter-spacing:.4px; color:var(--blue-bright);
+    border:1px solid var(--blue-bright); border-radius:12px; padding:3px 8px; flex:none;
+  }
 
   /* ---- PANEL COTIZACIONES — pestaña Seguimiento (mockup ya aprobado) ---- */
   .cot-kpis{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; margin-bottom:20px; }
@@ -979,43 +1014,57 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Volver
         </button>
-        <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">PERFIL</span><span class="admin-nav-soon">PRONTO</span></div>
-          <div class="cfg-note">Datos de tu marca y firma para documentos (cotizaciones, diplomas). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
-        </div>
-        <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">NOTIFICACIONES</span><span class="admin-nav-soon">PRONTO</span></div>
-          <div class="cfg-note">Qué eventos te avisan y por dónde (correo, campana del panel). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
-        </div>
-        <div class="radm-section">
-          <div class="radm-section-head"><span class="radm-section-title">ACCESOS</span><span class="admin-nav-soon">PRONTO</span></div>
-          <div class="cfg-note">Roles y permisos para más de un administrador (tú y Viridiana). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
-        </div>
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">TARIFAS POR HORA</span>
-            <button type="button" class="radm-btn-add cfg-toggle-btn" id="cfgTarifasToggle">
-              <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span class="cfg-toggle-label">Desplegar</span>
-            </button>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgPerfilHead">
+            <span class="cfg-card-title">PERFIL</span>
+            <span class="admin-nav-soon">PRONTO</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgPerfilBody" hidden>
+            <div class="cfg-note">Datos de tu marca y firma para documentos (cotizaciones, diplomas). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
           </div>
-          <div class="cfg-note">Precio base por hora de cada herramienta — Cotizaciones (Fase 1.2) los va a usar para calcular el precio sugerido. Cambiar un precio aquí no afecta cotizaciones ya emitidas.</div>
-          <div id="cfgTarifasBody" hidden>
+        </div>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgNotifHead">
+            <span class="cfg-card-title">NOTIFICACIONES</span>
+            <span class="admin-nav-soon">PRONTO</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgNotifBody" hidden>
+            <div class="cfg-note">Qué eventos te avisan y por dónde (correo, campana del panel). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgActividadHead">
+            <span class="cfg-card-title">ACTIVIDAD</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgActividadBody" hidden>
+            <div class="cfg-note">Quién ha entrado al panel y cuántas veces — útil ahora que van a ser 2 administradores.</div>
+            <div class="cfg-actividad-list" id="cfgActividadLista">
+              <div class="radm-empty-row">Cargando actividad…</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgTarifasHead">
+            <span class="cfg-card-title">TARIFAS POR HORA</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgTarifasBody" hidden>
+            <div class="cfg-note">Precio base por hora de cada herramienta — Cotizaciones (Fase 1.2) los va a usar para calcular el precio sugerido. Cambiar un precio aquí no afecta cotizaciones ya emitidas.</div>
             <div class="cfg-tarifas-grid" id="cfgTarifasGrid">
               <div class="radm-empty-row">Cargando tarifas…</div>
             </div>
           </div>
         </div>
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">RESPALDOS</span>
-            <button type="button" class="radm-btn-add cfg-toggle-btn" id="cfgRespaldosToggle">
-              <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span class="cfg-toggle-label">Desplegar</span>
-            </button>
-          </div>
-          <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
-          <div id="cfgRespaldosBody" hidden>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgRespaldosHead">
+            <span class="cfg-card-title">RESPALDOS</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgRespaldosBody" hidden>
+            <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
             <button type="button" class="radm-btn" id="bakGenerarBtn" style="margin:12px 0 16px;min-width:auto;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
               Respaldar ahora
@@ -2124,6 +2173,22 @@
   document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
   document.getElementById('notifBack').addEventListener('click', () => activarPanel(ultimoPanel));
 
+  // Acordeón simple para las 2 tarjetas de Configuración que todavía son solo
+  // un "PRONTO" — sin datos que cargar, así que no necesitan su propio IIFE.
+  // Actividad/Tarifas/Respaldos (con datos reales) llevan su propio manejo,
+  // cada una en su IIFE, más abajo.
+  function wireCfgCardSimple(headId, bodyId){
+    const head = document.getElementById(headId);
+    const body = document.getElementById(bodyId);
+    head.addEventListener('click', () => {
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+    });
+  }
+  wireCfgCardSimple('cfgPerfilHead', 'cfgPerfilBody');
+  wireCfgCardSimple('cfgNotifHead', 'cfgNotifBody');
+
   // Botón "Despertar" — dispara un SELECT 1 contra apcweb-backoffice (Function
   // despertarBackoffice) solo para sacarla del auto-pause antes de que Alfredo
   // abra un panel de verdad (Clientes/Solicitudes/Cotizaciones/Diplomas/
@@ -2144,13 +2209,25 @@
       btn.innerHTML = ICO[estado];
       btn.title = title;
     }
+    async function intentarDespertar(){
+      const res = await fetch('/api/despertarBackoffice');
+      if(!res.ok) throw new Error();
+    }
     btn.addEventListener('click', async () => {
       if(enCurso) return;
       enCurso = true;
       setEstado('loading', 'Despertando…');
       try {
-        const res = await fetch('/api/despertarBackoffice');
-        if(!res.ok) throw new Error();
+        try {
+          await intentarDespertar();
+        } catch(e){
+          // el primer intento puede tronar por el límite de 60s de la conexión
+          // aunque la base termine de despertar segundos después (ver
+          // backoffice-db.js) — un reintento automático cubre justo ese caso,
+          // sin que Alfredo tenga que darle clic de nuevo a mano.
+          setEstado('loading', 'Despertando… (reintentando)');
+          await intentarDespertar();
+        }
         setEstado('ok', 'Lista');
       } catch(e){
         setEstado('error', 'No se pudo despertar la base — intenta de nuevo');
@@ -7122,13 +7199,12 @@
 
     let cargado = false;
 
-    document.getElementById('cfgRespaldosToggle').addEventListener('click', () => {
+    document.getElementById('cfgRespaldosHead').addEventListener('click', () => {
       const body = document.getElementById('cfgRespaldosBody');
-      const toggle = document.getElementById('cfgRespaldosToggle');
+      const head = document.getElementById('cfgRespaldosHead');
       const expandir = body.hidden;
       body.hidden = !expandir;
-      toggle.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
-      toggle.querySelector('.cfg-toggle-label').textContent = expandir ? 'Ocultar' : 'Desplegar';
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
       if(expandir && !cargado){ cargado = true; cargarLista(); }
     });
 
@@ -7179,6 +7255,75 @@
         btn.innerHTML = textoOriginal;
       }
     });
+  })();
+
+  // ── Actividad (dentro de Configuración) — reemplaza a la vieja "Accesos",
+  // que se quedó sin funcionalidad real que construir (Azure no expone ningún
+  // API para ver/administrar roles en el plan Free). Esto sí es real: cuenta
+  // cuántas veces ha entrado cada administrador y cuándo fue la última vez —
+  // útil ahora que Viridiana se suma como segunda administradora. ──
+  (function(){
+    const NOMBRE_POR_CORREO = { 'alfredo.pina@lifezen.com.mx': 'Alfredo Piña' };
+    function nombreDe(correo){
+      if(NOMBRE_POR_CORREO[correo]) return NOMBRE_POR_CORREO[correo];
+      const local = (correo || '').split('@')[0] || '?';
+      return local.split(/[._-]/).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    }
+    function inicialesDe(nombre){
+      const partes = nombre.trim().split(/\s+/);
+      return ((partes[0] || '')[0] || '?').toUpperCase() + ((partes[1] || '')[0] || '').toUpperCase();
+    }
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function fmtFechaHora(iso){
+      if(!iso) return 'Nunca';
+      const d = new Date(iso);
+      return d.toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+
+    // se registra una vez por carga de /admin, justo tras confirmar la sesión
+    // en /.auth/me (ver más arriba) — nunca manda el correo, el servidor lo
+    // lee del header que Azure ya verificó.
+    fetch('/api/registrarAccesoAdmin', { method:'POST' }).catch(() => { /* silencioso, no bloquea el resto del admin */ });
+
+    let cargado = false;
+    document.getElementById('cfgActividadHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgActividadBody');
+      const head = document.getElementById('cfgActividadHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargarActividad(); }
+    });
+
+    async function cargarActividad(){
+      const cont = document.getElementById('cfgActividadLista');
+      try {
+        const lista = await apiGet('/api/listActividadAdmin');
+        if(!lista.length){ cont.innerHTML = '<div class="radm-empty-row">Todavía nadie ha entrado registrado.</div>'; return; }
+        cont.innerHTML = lista.map(a => {
+          const nombre = nombreDe(a.correo);
+          return `
+            <div class="cfg-actividad-row">
+              <span class="cfg-actividad-avatar">${escapeHtml(inicialesDe(nombre))}</span>
+              <div class="cfg-actividad-body">
+                <div class="cfg-actividad-nombre">${escapeHtml(nombre)}</div>
+                <div class="cfg-actividad-correo">${escapeHtml(a.correo)}</div>
+              </div>
+              <div class="cfg-actividad-stat"><b>${a.veces}</b>accesos</div>
+              <div class="cfg-actividad-stat"><b>${fmtFechaHora(a.ultimaVez)}</b>última vez</div>
+              <span class="cfg-actividad-rol">ADMIN</span>
+            </div>`;
+        }).join('');
+      } catch(e){
+        cont.innerHTML = `<div class="radm-empty-row">No se pudo cargar la actividad: ${escapeHtml(e.message)}</div>`;
+      }
+    }
   })();
 
   // ── Tarifas por hora (dentro de Configuración) ──
@@ -7291,13 +7436,12 @@
     }
 
     let cargado = false;
-    document.getElementById('cfgTarifasToggle').addEventListener('click', () => {
+    document.getElementById('cfgTarifasHead').addEventListener('click', () => {
       const body = document.getElementById('cfgTarifasBody');
-      const toggle = document.getElementById('cfgTarifasToggle');
+      const head = document.getElementById('cfgTarifasHead');
       const expandir = body.hidden;
       body.hidden = !expandir;
-      toggle.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
-      toggle.querySelector('.cfg-toggle-label').textContent = expandir ? 'Ocultar' : 'Desplegar';
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
       if(expandir && !cargado){ cargado = true; cargarTarifas(); }
     });
   })();

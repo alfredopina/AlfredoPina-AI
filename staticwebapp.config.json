@@ -303,6 +303,14 @@
     {
       "route": "/api/getContadorDiagnosticoAdmin",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/registrarAccesoAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listActividadAdmin",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

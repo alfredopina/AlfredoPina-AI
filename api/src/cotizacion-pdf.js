@@ -217,25 +217,28 @@ function marcasEsquina() {
   };
 }
 
-// "glow" tras el título — aproximación del difuminado del mockup (pdfmake no
-// tiene blur real). Se simula dibujando varios círculos concéntricos, del
-// más grande/más claro (casi blanco) al más chico/más saturado — el mismo
-// truco clásico para fingir un degradado radial suave con formas planas.
-// El orden importa: se dibujan de afuera hacia adentro, cada uno encima del
-// anterior, para que la densidad de color crezca hacia el centro.
-function glow(colorPuro) {
-  const cx = PAGE_W - 40;
-  const cy = 130;
-  const anillos = [
-    { r: 280, fuerza: 0.05 },
-    { r: 230, fuerza: 0.09 },
-    { r: 185, fuerza: 0.15 },
-    { r: 145, fuerza: 0.23 },
-    { r: 105, fuerza: 0.33 },
-    { r: 65, fuerza: 0.45 },
+// acento de esquina — reemplaza el "glow" circular de la primera pasada:
+// Alfredo lo sintió fuera de lugar porque todo el resto del documento es
+// rectilíneo (pills, tabla, marcas de esquina, cuadrícula) y el círculo era
+// la única forma geométrica distinta. Mismo truco de "varios contornos
+// concéntricos, del más grande/tenue al más chico/marcado" pero con
+// cuadrados de esquina redondeada en vez de círculos — encaja con el resto
+// del lenguaje visual del documento. Solo contorno (sin relleno), se recorta
+// contra la esquina superior derecha de la página.
+function acentoEsquina(colorPuro) {
+  const cx = PAGE_W - 30;
+  const cy = 110;
+  const cuadros = [
+    { h: 200, fuerza: 0.18, grosor: 1.5 },
+    { h: 150, fuerza: 0.28, grosor: 1.8 },
+    { h: 100, fuerza: 0.4, grosor: 2.2 },
+    { h: 58, fuerza: 0.55, grosor: 2.6 },
   ];
   return {
-    canvas: anillos.map(({ r, fuerza }) => ({ type: "ellipse", x: cx, y: cy, r1: r, r2: r, color: tint(colorPuro, fuerza) })),
+    canvas: cuadros.map(({ h, fuerza, grosor }) => ({
+      type: "rect", x: cx - h, y: cy - h, w: h * 2, h: h * 2, r: h * 0.18,
+      lineColor: tint(colorPuro, fuerza), lineWidth: grosor,
+    })),
     absolutePosition: { x: 0, y: 0 },
   };
 }
@@ -284,7 +287,7 @@ function construirPortada(datos) {
   return [
     franjaAcento(tc.fill),
     marcasEsquina(),
-    glow(tc.fill),
+    acentoEsquina(tc.fill),
     {
       stack: [
         // ── encabezado: logo + folio ──

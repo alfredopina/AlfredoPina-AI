@@ -182,15 +182,19 @@ function fxPill(expresionRuns, toolText) {
 }
 
 // franja de acento degradada (herramienta → azul) — pdfmake no dibuja
-// degradados nativos en canvas, se aproxima con varios rectángulos angostos
-// interpolando el color a mano.
+// degradados nativos en canvas, se aproxima con rectángulos angostos
+// interpolando el color a mano. 24 pasos en vez de 3 — con tan poco ancho
+// por segmento (~25pt) el ojo ya no distingue el escalón, se lee como un
+// degradado suave real.
 function franjaAcento(colorHerramienta) {
-  const stops = [colorHerramienta, lerpColor(colorHerramienta, AZUL, 0.5), AZUL];
-  const segW = PAGE_W / stops.length;
-  return {
-    canvas: stops.map((c, i) => ({ type: "rect", x: i * segW, y: 0, w: segW + 1, h: 5, color: c })),
-    absolutePosition: { x: 0, y: 0 },
-  };
+  const STEPS = 24;
+  const segW = PAGE_W / STEPS;
+  const rects = [];
+  for (let i = 0; i < STEPS; i++) {
+    const t = i / (STEPS - 1);
+    rects.push({ type: "rect", x: i * segW, y: 0, w: segW + 1, h: 5, color: lerpColor(colorHerramienta, AZUL, t) });
+  }
+  return { canvas: rects, absolutePosition: { x: 0, y: 0 } };
 }
 
 // marcas de esquina — 4 ángulos grises, estilo plano técnico (decorativo,
@@ -213,10 +217,46 @@ function marcasEsquina() {
   };
 }
 
-// mancha de color plana tras el título — aproximación del "glow" del mockup
-// (sin blur real, pdfmake no lo soporta): un óvalo grande de color muy claro.
-function glow(colorSoft) {
-  return { canvas: [{ type: "ellipse", x: PAGE_W - 130, y: 150, r1: 190, r2: 170, color: colorSoft }], absolutePosition: { x: 0, y: 0 } };
+// "glow" tras el título — aproximación del difuminado del mockup (pdfmake no
+// tiene blur real). Se simula dibujando varios círculos concéntricos, del
+// más grande/más claro (casi blanco) al más chico/más saturado — el mismo
+// truco clásico para fingir un degradado radial suave con formas planas.
+// El orden importa: se dibujan de afuera hacia adentro, cada uno encima del
+// anterior, para que la densidad de color crezca hacia el centro.
+function glow(colorPuro) {
+  const cx = PAGE_W - 40;
+  const cy = 130;
+  const anillos = [
+    { r: 280, fuerza: 0.05 },
+    { r: 230, fuerza: 0.09 },
+    { r: 185, fuerza: 0.15 },
+    { r: 145, fuerza: 0.23 },
+    { r: 105, fuerza: 0.33 },
+    { r: 65, fuerza: 0.45 },
+  ];
+  return {
+    canvas: anillos.map(({ r, fuerza }) => ({ type: "ellipse", x: cx, y: cy, r1: r, r2: r, color: tint(colorPuro, fuerza) })),
+    absolutePosition: { x: 0, y: 0 },
+  };
+}
+
+// cuadrícula sutil de fondo — mismo motivo visual que `.grid-bg` ya usa el
+// sitio público, aplicada vía el callback `background` de pdfmake (se
+// repite sola en cada página). El color queda deliberadamente muy claro:
+// como se dibuja ANTES que el resto del contenido, cualquier texto/tabla/
+// caja que caiga encima la tapa sin problema — solo se nota en las zonas
+// vacías de la página, que es justo donde se necesita textura.
+const GRID_LINE = "#e6e9f0";
+const GRID_STEP = 30;
+function fondoCuadricula(pageSize) {
+  const lineas = [];
+  for (let x = 0; x <= pageSize.width; x += GRID_STEP) {
+    lineas.push({ type: "line", x1: x, y1: 0, x2: x, y2: pageSize.height, lineColor: GRID_LINE, lineWidth: 0.5 });
+  }
+  for (let y = 0; y <= pageSize.height; y += GRID_STEP) {
+    lineas.push({ type: "line", x1: 0, y1: y, x2: pageSize.width, y2: y, lineColor: GRID_LINE, lineWidth: 0.5 });
+  }
+  return { canvas: lineas };
 }
 
 // ── PÁGINA 1 — Portada ──
@@ -232,10 +272,19 @@ function construirPortada(datos) {
   const chipLineas = [{ text: `${horasTotales} hr totales`, font: "JetBrainsMono", fontSize: 8.5, color: INK_DIM, noWrap: true }];
   if (participantes) chipLineas.push({ text: `Grupo: ${participantes}`, font: "JetBrainsMono", fontSize: 8.5, color: INK_DIM, margin: [0, 4, 0, 0], noWrap: true });
 
+  // Cuando no hay caja de Objetivo/Dirigido a (temario Personalizado, que no
+  // tiene ese dato) queda un hueco grande entre "Att. contacto" y la pastilla
+  // fx del pie, fija cerca del borde inferior — se compensa bajando el
+  // bloque de título/cliente para que el vacío se reparta parejo en vez de
+  // quedar todo junto arriba. No es centrado real (pdfmake no calcula
+  // espacio sobrante), es un ajuste fijo que se ve bien en el caso corto sin
+  // afectar el caso normal (con Objetivo/Dirigido a el offset es 0).
+  const offsetSinBrief = briefRows.length ? 0 : 130;
+
   return [
     franjaAcento(tc.fill),
     marcasEsquina(),
-    glow(soft),
+    glow(tc.fill),
     {
       stack: [
         // ── encabezado: logo + folio ──
@@ -263,9 +312,9 @@ function construirPortada(datos) {
                 pill({ text: `${herramientaLabel} · ${temarioTitulo}`.toUpperCase(), font: "JetBrainsMono", fontSize: 9, color: tc.text, noWrap: true }, { fillColor: soft, padding: [12, 6, 12, 6] }),
                 { text: temarioTitulo, font: "SpaceGrotesk", bold: true, fontSize: 31, color: INK, margin: [0, 14, 0, 0], lineHeight: 1.08 },
               ],
-              margin: [0, 34, 0, 0],
+              margin: [0, 34 + offsetSinBrief, 0, 0],
             },
-            { width: "auto", stack: [boxBorde(chipLineas, { padding: [10, 8, 10, 8] })], margin: [10, 36, 0, 0] },
+            { width: "auto", stack: [boxBorde(chipLineas, { padding: [10, 8, 10, 8] })], margin: [10, 36 + offsetSinBrief, 0, 0] },
           ],
         },
 
@@ -359,6 +408,13 @@ function construirTemario(datos) {
     );
   }
 
+  // Un temario de 3 temas o menos deja media página en blanco (el contenido
+  // se queda pegado arriba, no hay forma de que pdfmake calcule el sobrante
+  // y centre solo). Mismo criterio que en la portada: bajar el bloque un
+  // tanto fijo en vez de dejarlo huérfano arriba — no es centrado real, pero
+  // reparte el vacío de forma que se sienta intencional.
+  const offsetTemarioCorto = (temas || []).length <= 3 ? 90 : 0;
+
   return [
     franjaAcento(tc.fill),
     marcasEsquina(),
@@ -373,7 +429,7 @@ function construirTemario(datos) {
         { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 14, 0, 0] },
         ...filas.map((f, i) => (i === 0 ? Object.assign({}, f, { margin: [0, 18, 0, 0] }) : f)),
       ],
-      margin: [PAD_X, 28, PAD_X, 34],
+      margin: [PAD_X, 28 + offsetTemarioCorto, PAD_X, 34],
       pageBreak: "before",
     },
   ];
@@ -514,6 +570,7 @@ async function generarCotizacionPdf({
     pageMargins: [0, 0, 0, 0],
     defaultStyle: { font: "Inter", fontSize: 10, color: INK },
     images: { firma: FIRMA_PATH, foto: FOTO_PATH },
+    background: (currentPage, pageSize) => fondoCuadricula(pageSize),
     content: [...construirPortada(datos), ...construirTemario(datos), ...construirPropuesta(datos)],
   };
 

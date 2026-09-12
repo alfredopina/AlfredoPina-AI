@@ -9,6 +9,10 @@
 // GrupoFaseHistorial dentro de la misma transacción — así el Grupo no
 // necesita pasar por el stepper interactivo para que su historial quede al
 // día, editar los <select> de estatus directamente también lo actualiza.
+// `contacto_nuevo` — mismo mecanismo que crearGrupo (ver ese archivo): un
+// Cliente/Cliente final que se cambia a uno nuevo aquí mismo puede traer un
+// Contacto nuevo consigo, creado en la misma transacción justo antes del
+// UPDATE del Grupo.
 const { getPool, sql } = require("../src/backoffice-db");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
@@ -87,8 +91,6 @@ function validarCuerpo(body) {
     estatusCierre,
     cotizacionId: body.cotizacion_id ? Number(body.cotizacion_id) : null,
     fotosRs: body.fotos_rs ? 1 : 0,
-    correosMl: body.correos_ml ? 1 : 0,
-    pagado: body.pagado ? 1 : 0,
     fechaCierre: body.fecha_cierre || null,
     notas: (body.notas || "").trim() || null,
   };
@@ -97,7 +99,8 @@ function validarCuerpo(body) {
 module.exports = async function (context, req) {
   const body = req.body || {};
   const id = Number(body.id);
-  const contactoId = body.contacto_id ? Number(body.contacto_id) : null;
+  let contactoId = body.contacto_id ? Number(body.contacto_id) : null;
+  const contactoNuevo = !contactoId && body.contacto_nuevo && (body.contacto_nuevo.nombre || "").trim() ? body.contacto_nuevo : null;
 
   if (!id) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id del grupo." } };
@@ -152,6 +155,20 @@ module.exports = async function (context, req) {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      if (contactoNuevo) {
+        const clienteContactoId = (clienteFinal || cliente).id;
+        const insertContacto = await new sql.Request(transaction)
+          .input("clienteId", sql.Int, clienteContactoId)
+          .input("nombre", sql.NVarChar, contactoNuevo.nombre.trim())
+          .input("correo", sql.NVarChar, (contactoNuevo.correo || "").trim() || null)
+          .input("telefono", sql.NVarChar, (contactoNuevo.telefono || "").trim() || null)
+          .query(
+            `INSERT INTO Contacto (cliente_id, nombre, correo, telefono)
+             OUTPUT INSERTED.id VALUES (@clienteId, @nombre, @correo, @telefono)`
+          );
+        contactoId = insertContacto.recordset[0].id;
+      }
+
       await new sql.Request(transaction)
         .input("id", sql.Int, id)
         .input("clienteId", sql.Int, cliente.id)
@@ -171,8 +188,6 @@ module.exports = async function (context, req) {
         .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
         .input("cotizacionId", sql.Int, datos.cotizacionId)
         .input("fotosRs", sql.Bit, datos.fotosRs)
-        .input("correosMl", sql.Bit, datos.correosMl)
-        .input("pagado", sql.Bit, datos.pagado)
         .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
         .input("notas", sql.NVarChar, datos.notas)
         .query(
@@ -182,7 +197,7 @@ module.exports = async function (context, req) {
              nombre_curso = @nombreCurso, niveles = @niveles, horas = @horas, sesiones = @sesiones,
              fecha_inicio = @fechaInicio, fecha_fin = @fechaFin, instructor = @instructor,
              estatus_curso = @estatusCurso, estatus_cierre = @estatusCierre, cotizacion_id = @cotizacionId,
-             fotos_rs = @fotosRs, correos_ml = @correosMl, pagado = @pagado, fecha_cierre = @fechaCierre,
+             fotos_rs = @fotosRs, fecha_cierre = @fechaCierre,
              notas = @notas
            WHERE id = @id`
         );

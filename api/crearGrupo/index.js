@@ -12,6 +12,13 @@
 // fijas. Sin borrado — un Grupo mal capturado se corrige con editarGrupo.
 // El INSERT del Grupo y la siembra del historial de fase (ver
 // src/grupo-fase.js) van en una sola transacción — o quedan ambos, o ninguno.
+// `contacto_nuevo` ({nombre,correo,telefono}, opcional) resuelve el caso de
+// un Contacto para un Cliente/Cliente final que TODAVÍA no existe: no se
+// puede llamar a crearContacto antes porque no hay cliente_id real, así que
+// se inserta aquí mismo, dentro de la misma transacción, justo después de
+// resolver el Cliente — o se crean los tres (Cliente, Contacto y Grupo) o
+// no se crea ninguno. Si además viene contacto_id, contacto_id gana (un
+// contacto ya existente no necesita crearse de nuevo).
 const { getPool, sql } = require("../src/backoffice-db");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
@@ -90,8 +97,6 @@ function validarCuerpo(body) {
     estatusCierre,
     cotizacionId: body.cotizacion_id ? Number(body.cotizacion_id) : null,
     fotosRs: body.fotos_rs ? 1 : 0,
-    correosMl: body.correos_ml ? 1 : 0,
-    pagado: body.pagado ? 1 : 0,
     fechaCierre: body.fecha_cierre || null,
     notas: (body.notas || "").trim() || null,
   };
@@ -99,7 +104,8 @@ function validarCuerpo(body) {
 
 module.exports = async function (context, req) {
   const body = req.body || {};
-  const contactoId = body.contacto_id ? Number(body.contacto_id) : null;
+  let contactoId = body.contacto_id ? Number(body.contacto_id) : null;
+  const contactoNuevo = !contactoId && body.contacto_nuevo && (body.contacto_nuevo.nombre || "").trim() ? body.contacto_nuevo : null;
 
   let datos;
   try {
@@ -141,6 +147,20 @@ module.exports = async function (context, req) {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      if (contactoNuevo) {
+        const clienteContactoId = (clienteFinal || cliente).id;
+        const insertContacto = await new sql.Request(transaction)
+          .input("clienteId", sql.Int, clienteContactoId)
+          .input("nombre", sql.NVarChar, contactoNuevo.nombre.trim())
+          .input("correo", sql.NVarChar, (contactoNuevo.correo || "").trim() || null)
+          .input("telefono", sql.NVarChar, (contactoNuevo.telefono || "").trim() || null)
+          .query(
+            `INSERT INTO Contacto (cliente_id, nombre, correo, telefono)
+             OUTPUT INSERTED.id VALUES (@clienteId, @nombre, @correo, @telefono)`
+          );
+        contactoId = insertContacto.recordset[0].id;
+      }
+
       const insert = await new sql.Request(transaction)
         .input("clienteId", sql.Int, cliente.id)
         .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
@@ -159,20 +179,18 @@ module.exports = async function (context, req) {
         .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
         .input("cotizacionId", sql.Int, datos.cotizacionId)
         .input("fotosRs", sql.Bit, datos.fotosRs)
-        .input("correosMl", sql.Bit, datos.correosMl)
-        .input("pagado", sql.Bit, datos.pagado)
         .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
         .input("notas", sql.NVarChar, datos.notas)
         .query(
           `INSERT INTO Grupo
             (cliente_id, cliente_final_id, contacto_id, modalidad, grupo_codigo, herramientas, nombre_curso, niveles,
              horas, sesiones, fecha_inicio, fecha_fin, instructor, estatus_curso, estatus_cierre, cotizacion_id,
-             fotos_rs, correos_ml, pagado, fecha_cierre, notas)
+             fotos_rs, fecha_cierre, notas)
            OUTPUT INSERTED.id
            VALUES
             (@clienteId, @clienteFinalId, @contactoId, @modalidad, @grupoCodigo, @herramientas, @nombreCurso, @niveles,
              @horas, @sesiones, @fechaInicio, @fechaFin, @instructor, @estatusCurso, @estatusCierre, @cotizacionId,
-             @fotosRs, @correosMl, @pagado, @fechaCierre, @notas)`
+             @fotosRs, @fechaCierre, @notas)`
         );
       const grupoId = insert.recordset[0].id;
       await sembrarHistorialInicial(transaction, grupoId, {

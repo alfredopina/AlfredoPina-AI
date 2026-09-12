@@ -328,6 +328,7 @@
     box-shadow:0 0 0 4px color-mix(in srgb, var(--c) 8%, transparent);
   }
   .radm-form-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .radm-form-row[hidden]{ display:none; }
   .radm-field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
   .radm-field label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; }
   .radm-field input[type=text], .radm-field input[type=url], .radm-field textarea, .radm-field select{
@@ -674,6 +675,27 @@
   }
   .sol-pill:hover{ color:var(--text); }
   .sol-pill.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
+
+  /* Dropdown colapsable con checkboxes (Herramientas/Nivel en Grupos) — a
+     diferencia de .sol-pill-group (siempre visible), aquí el resumen de lo
+     elegido vive en el trigger y las opciones solo aparecen al abrir. */
+  .gru-msel{ position:relative; }
+  .gru-msel-trigger{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+    font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:10px 12px; cursor:pointer; text-align:left;
+  }
+  .gru-msel-trigger:hover{ border-color:var(--blue-bright); }
+  .gru-msel-trigger-text{ font-size:13px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gru-msel-chevron{ width:13px; height:13px; flex:none; color:var(--text-faint); transition:transform .15s; }
+  .gru-msel-panel{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:30;
+    background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px;
+    box-shadow:0 10px 28px rgba(0,0,0,.28); max-height:230px; overflow-y:auto;
+  }
+  .gru-msel-opt{ display:flex; align-items:center; gap:9px; padding:8px 7px; border-radius:6px; cursor:pointer; font-size:13px; }
+  .gru-msel-opt:hover{ background:var(--panel-2); }
+  .gru-msel-opt input{ flex:none; width:15px; height:15px; accent-color:var(--blue-bright); cursor:pointer; }
 
   .sol-temario-toggle{
     display:inline-flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer;
@@ -8181,7 +8203,7 @@
       return `
         <div id="gru-stepper-${g.id}" class="gru-stepper-wrap" style="margin-bottom:18px;"><span class="radm-hint">Cargando fases…</span></div>
         <div class="cot-detalle-grid" style="margin-bottom:14px;">
-          <div><div class="cot-detalle-item-label">Fotos RS / Correos ML / Pagado</div><div class="cot-detalle-item-value" style="display:flex; gap:14px; flex-wrap:wrap;">${checkTexto(g.fotos_rs, 'Fotos RS')} ${checkTexto(g.correos_ml, 'Correos ML')} ${checkTexto(g.pagado, 'Pagado')}</div></div>
+          <div><div class="cot-detalle-item-label">Fotos RS</div><div class="cot-detalle-item-value">${checkTexto(g.fotos_rs, 'Fotos RS')}</div></div>
           <div><div class="cot-detalle-item-label">Cotización de origen</div><div class="cot-detalle-item-value">${g.cotizacion_folio ? `<a href="/api/getCotizacionPdf?folio=${encodeURIComponent(g.cotizacion_folio)}" target="_blank" style="color:var(--blue-bright)">${escapeHtml(g.cotizacion_folio)}</a>` : 'Sin ligar'}</div></div>
           <div><div class="cot-detalle-item-label">Nombre del curso</div><div class="cot-detalle-item-value">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div></div>
         </div>
@@ -8316,14 +8338,18 @@
               <input type="text" id="gruClienteCodigo" placeholder="ACME">
             </div>
           </div>
-          <div class="radm-form-row">
+          <div class="radm-switch-row" style="margin:2px 0 10px;">
+            <label class="radm-switch"><input type="checkbox" id="gruToggleClienteFinal"><span class="radm-switch-track"></span></label>
+            <span class="radm-switch-label">¿Hay Cliente final? (reventa/intermediario)</span>
+          </div>
+          <div class="radm-form-row" id="gruClienteFinalRow" hidden>
             <div class="radm-field dip-autocomplete-wrap">
-              <label>CLIENTE FINAL (opcional, si hay reventa/intermediario)</label>
-              <input type="text" id="gruClienteFinalNombre" placeholder="Solo si el curso lo recibe una empresa distinta...">
+              <label>CLIENTE FINAL</label>
+              <input type="text" id="gruClienteFinalNombre" placeholder="La empresa que recibe el curso...">
               <div class="dip-autocomplete-list" id="gruClienteFinalLista" hidden></div>
             </div>
             <div class="radm-field">
-              <label>CÓDIGO</label>
+              <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
               <input type="text" id="gruClienteFinalCodigo" placeholder="ACME">
             </div>
           </div>
@@ -8331,7 +8357,7 @@
             <div class="radm-field">
               <label>CONTACTO (opcional)</label>
               <select id="gruContactoSelect" disabled>
-                <option value="">Selecciona un cliente existente primero…</option>
+                <option value="">Captura o elige primero el Cliente…</option>
               </select>
             </div>
             <div class="radm-field" style="flex:none; justify-content:flex-end;">
@@ -8348,15 +8374,21 @@
               </select>
             </div>
             <div class="radm-field">
-              <label>GRUPO / CÓDIGO</label>
-              <input type="text" id="gruGrupoCodigo" placeholder="Ej. G-2026-014">
+              <label>GRUPO</label>
+              <input type="text" id="gruGrupoCodigo" placeholder="Ej. Grupo1, Grupo2...">
             </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field" style="flex:2;">
               <label>HERRAMIENTAS <span class="dip-req">* al menos una</span></label>
-              <div class="sol-pill-group" data-group="herramientas">
-                ${Object.keys(TOOL_META).map(k => `<button type="button" class="sol-pill" data-value="${k}">${TOOL_META[k].nombre}</button>`).join('')}
+              <div class="gru-msel" id="gruHerramientasMsel">
+                <button type="button" class="gru-msel-trigger" id="gruHerramientasTrigger">
+                  <span class="gru-msel-trigger-text"></span>
+                  <svg class="gru-msel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="gru-msel-panel" id="gruHerramientasPanel" hidden>
+                  ${Object.keys(TOOL_META).map(k => `<label class="gru-msel-opt"><input type="checkbox" value="${k}"><span>${TOOL_META[k].nombre}</span></label>`).join('')}
+                </div>
               </div>
             </div>
           </div>
@@ -8367,16 +8399,22 @@
             </div>
             <div class="radm-field">
               <label>NIVEL <span class="dip-req">* al menos uno</span></label>
-              <div class="sol-pill-group" data-group="niveles">
-                <button type="button" class="sol-pill" data-value="1">Básico</button>
-                <button type="button" class="sol-pill" data-value="2">Intermedio</button>
-                <button type="button" class="sol-pill" data-value="3">Avanzado</button>
+              <div class="gru-msel" id="gruNivelesMsel">
+                <button type="button" class="gru-msel-trigger" id="gruNivelesTrigger">
+                  <span class="gru-msel-trigger-text"></span>
+                  <svg class="gru-msel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="gru-msel-panel" id="gruNivelesPanel" hidden>
+                  <label class="gru-msel-opt"><input type="checkbox" value="1"><span>Básico</span></label>
+                  <label class="gru-msel-opt"><input type="checkbox" value="2"><span>Intermedio</span></label>
+                  <label class="gru-msel-opt"><input type="checkbox" value="3"><span>Avanzado</span></label>
+                </div>
               </div>
             </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field"><label>HORAS</label><input type="number" id="gruHoras" min="0" step="0.5"></div>
-            <div class="radm-field"><label>SESIONES</label><input type="number" id="gruSesiones" min="0" step="1"></div>
+            <div class="radm-field"><label>SESIONES</label><input type="number" id="gruSesiones" min="0" step="1" placeholder="5 Sesiones Jueves de 2 a 6 pm"></div>
             <div class="radm-field"><label>INSTRUCTOR</label><select id="gruInstructor"><option value="">Sin asignar</option></select></div>
           </div>
           <div class="radm-form-row">
@@ -8406,8 +8444,6 @@
           <div class="radm-actions" style="margin-bottom:14px;">
             <div class="radm-switch-row" style="gap:24px;">
               <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruFotosRs"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Fotos RS</span></div>
-              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruCorreosMl"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Correos ML</span></div>
-              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruPagado"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Pagado</span></div>
             </div>
           </div>
           <div class="radm-form-row">
@@ -8449,40 +8485,58 @@
         pintarStepperInteractivo();
       }
 
-      // pills multi-select (herramientas/niveles) — a diferencia de Solicitudes
-      // (single-select, limpia hermanos), aquí cada pill se alterna solo.
-      wrap.querySelectorAll('.sol-pill-group').forEach(group => {
-        group.addEventListener('click', e => {
-          const pill = e.target.closest('.sol-pill');
-          if(!pill) return;
-          pill.classList.toggle('active');
+      // Multiselect colapsable (herramientas/niveles) — dropdown con el
+      // resumen de lo elegido cuando está cerrado, checkboxes al abrir.
+      // Reemplaza las pills que usaba antes, a pedido de Alfredo.
+      function crearMultiselect({ triggerId, panelId, placeholder }){
+        const trigger = document.getElementById(triggerId);
+        const panel = document.getElementById(panelId);
+        const textEl = trigger.querySelector('.gru-msel-trigger-text');
+        function actualizarTexto(){
+          const nombres = Array.from(panel.querySelectorAll('input:checked')).map(i => i.nextElementSibling.textContent);
+          textEl.textContent = nombres.length ? nombres.join(', ') : placeholder;
+        }
+        trigger.addEventListener('click', e => {
+          e.stopPropagation();
+          panel.hidden = !panel.hidden;
         });
-      });
-      function valoresPill(grupo){
-        return Array.from(wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`)).map(p => p.dataset.value);
+        panel.addEventListener('click', e => e.stopPropagation());
+        panel.addEventListener('change', actualizarTexto);
+        document.addEventListener('click', () => { panel.hidden = true; });
+        actualizarTexto();
+        return {
+          get: () => Array.from(panel.querySelectorAll('input:checked')).map(i => i.value),
+          set: (valores) => {
+            const set = new Set((valores || []).map(String));
+            panel.querySelectorAll('input').forEach(i => { i.checked = set.has(i.value); });
+            actualizarTexto();
+          },
+        };
       }
-      function setPills(grupo, valores){
-        const set = new Set((valores || []).map(String));
-        wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', set.has(p.dataset.value)));
-      }
+      const gruHerramientasMsel = crearMultiselect({ triggerId:'gruHerramientasTrigger', panelId:'gruHerramientasPanel', placeholder:'Selecciona herramientas…' });
+      const gruNivelesMsel = crearMultiselect({ triggerId:'gruNivelesTrigger', panelId:'gruNivelesPanel', placeholder:'Selecciona nivel…' });
 
       let gruContactos = [];
+      // Contacto para un cliente que TODAVÍA no existe (se captura aquí y se
+      // manda como `contacto_nuevo` al guardar — el backend lo crea junto con
+      // el Cliente nuevo, en la misma transacción).
+      let gruContactoNuevoPendiente = null;
       function pintarContactoSelect(){
         const sel = document.getElementById('gruContactoSelect');
         const opciones = gruContactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
         sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
       }
+      function pintarContactoSelectNuevo(){
+        const sel = document.getElementById('gruContactoSelect');
+        sel.innerHTML = gruContactoNuevoPendiente
+          ? `<option value="__nuevo__" selected>${escapeHtml(gruContactoNuevoPendiente.nombre)} (se crea junto con el cliente)</option>`
+          : '<option value="">Sin contacto específico</option>';
+      }
       async function cargarContactosGrupo(cliente){
         const sel = document.getElementById('gruContactoSelect');
         const btnNuevo = document.getElementById('gruBtnNuevoContacto');
         document.getElementById('gruContactoFormWrap').innerHTML = '';
-        if(!cliente){
-          gruContactos = [];
-          sel.disabled = true;
-          sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
-          btnNuevo.disabled = true;
-          return;
-        }
+        gruContactoNuevoPendiente = null;
         sel.disabled = true;
         sel.innerHTML = '<option value="">Cargando contactos…</option>';
         try { gruContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
@@ -8490,10 +8544,53 @@
         pintarContactoSelect();
         sel.disabled = false;
         btnNuevo.disabled = false;
+        btnNuevo.title = 'El contacto se da de alta contra el Cliente final si lo hay, si no contra el Cliente.';
       }
-      // Cliente correcto para Contacto: el final si existe, si no el que contrató.
-      function clienteEfectivoParaContacto(){
-        return gruClienteFinalAuto.getSeleccionado() || gruClienteAuto.getSeleccionado();
+      // ¿A qué cliente le corresponde el Contacto ahora mismo? El final si el
+      // toggle está prendido y tiene datos, si no el que contrató. Puede ser
+      // uno YA EXISTENTE ({existente:true, cliente:{id,...}}) o uno que
+      // todavía no se ha guardado ({existente:false, nombre, codigo}) — en
+      // ese segundo caso no hay ninguna lista de contactos que cargar todavía.
+      function datosClienteEfectivoContacto(){
+        const hayFinal = document.getElementById('gruToggleClienteFinal').checked;
+        if(hayFinal){
+          const sel = gruClienteFinalAuto.getSeleccionado();
+          if(sel) return { existente: true, cliente: sel };
+          const nombre = document.getElementById('gruClienteFinalNombre').value.trim();
+          const codigo = document.getElementById('gruClienteFinalCodigo').value.trim();
+          if(nombre && codigo) return { existente: false, nombre, codigo };
+          return null;
+        }
+        const sel = gruClienteAuto.getSeleccionado();
+        if(sel) return { existente: true, cliente: sel };
+        const nombre = document.getElementById('gruClienteNombre').value.trim();
+        const codigo = document.getElementById('gruClienteCodigo').value.trim();
+        if(nombre && codigo) return { existente: false, nombre, codigo };
+        return null;
+      }
+      function refrescarEstadoContacto(){
+        const efectivo = datosClienteEfectivoContacto();
+        const sel = document.getElementById('gruContactoSelect');
+        const btnNuevo = document.getElementById('gruBtnNuevoContacto');
+        if(!efectivo){
+          gruContactos = []; gruContactoNuevoPendiente = null;
+          document.getElementById('gruContactoFormWrap').innerHTML = '';
+          sel.disabled = true;
+          sel.innerHTML = '<option value="">Captura o elige primero el Cliente…</option>';
+          btnNuevo.disabled = true;
+          btnNuevo.title = 'Captura o elige primero el Cliente (o Cliente final, si aplica).';
+          return;
+        }
+        if(efectivo.existente){
+          cargarContactosGrupo(efectivo.cliente);
+        } else {
+          gruContactos = [];
+          document.getElementById('gruContactoFormWrap').innerHTML = '';
+          sel.disabled = false;
+          pintarContactoSelectNuevo();
+          btnNuevo.disabled = false;
+          btnNuevo.title = 'El cliente todavía no existe — este contacto se crea junto con él al guardar el Grupo.';
+        }
       }
 
       async function cargarCotizacionesCliente(cliente){
@@ -8517,17 +8614,30 @@
         inputId: 'gruClienteNombre', listId: 'gruClienteLista', codigoId: 'gruClienteCodigo',
         onChange: (sel) => {
           cargarCotizacionesCliente(sel);
-          if(!gruClienteFinalAuto.getSeleccionado()) cargarContactosGrupo(sel);
+          refrescarEstadoContacto();
         },
       });
       const gruClienteFinalAuto = crearAutocomplete({
         inputId: 'gruClienteFinalNombre', listId: 'gruClienteFinalLista', codigoId: 'gruClienteFinalCodigo',
-        onChange: (sel) => cargarContactosGrupo(sel || gruClienteAuto.getSeleccionado()),
+        onChange: () => refrescarEstadoContacto(),
       });
+      // Capturar nombre+código a mano (cliente nuevo, sin dar clic en ninguna
+      // sugerencia) también debe reflejarse en el estado del Contacto — antes
+      // solo se refrescaba al elegir de la lista, por eso "+ Nuevo contacto"
+      // se quedaba deshabilitado para un cliente que apenas se está creando.
+      ['gruClienteNombre', 'gruClienteCodigo', 'gruClienteFinalNombre', 'gruClienteFinalCodigo'].forEach(id => {
+        document.getElementById(id).addEventListener('input', refrescarEstadoContacto);
+      });
+      document.getElementById('gruToggleClienteFinal').addEventListener('change', e => {
+        document.getElementById('gruClienteFinalRow').hidden = !e.target.checked;
+        if(!e.target.checked) gruClienteFinalAuto.reset();
+        refrescarEstadoContacto();
+      });
+      refrescarEstadoContacto();
 
       document.getElementById('gruBtnNuevoContacto').addEventListener('click', () => {
-        const cliente = clienteEfectivoParaContacto();
-        if(!cliente) return;
+        const efectivo = datosClienteEfectivoContacto();
+        if(!efectivo) return;
         const cfw = document.getElementById('gruContactoFormWrap');
         if(cfw.querySelector('.radm-inline-form')) return;
         cfw.innerHTML = `
@@ -8538,7 +8648,7 @@
               <div class="radm-field"><label>TELÉFONO</label><input type="text" class="gcf-telefono"></div>
             </div>
             <div class="radm-actions">
-              <span class="radm-hint">Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.</span>
+              <span class="radm-hint">${efectivo.existente ? 'Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.' : 'El cliente todavía no existe — este contacto se crea junto con él al guardar el Grupo.'}</span>
               <div class="radm-actions-buttons">
                 <button type="button" class="radm-btn gcf-guardar">Guardar</button>
                 <button type="button" class="radm-btn radm-btn-ghost gcf-cancelar">Cancelar</button>
@@ -8549,18 +8659,25 @@
         cfw.querySelector('.gcf-guardar').addEventListener('click', async () => {
           const nombre = cfw.querySelector('.gcf-nombre').value.trim();
           if(!nombre){ toast('Falta el nombre del contacto.', false); return; }
-          try {
-            const r = await apiPostJson('/api/crearContacto', {
-              cliente_id: cliente.id, nombre,
-              correo: cfw.querySelector('.gcf-correo').value.trim(),
-              telefono: cfw.querySelector('.gcf-telefono').value.trim(),
-            });
-            toast('Contacto guardado.', true);
+          const correo = cfw.querySelector('.gcf-correo').value.trim();
+          const telefono = cfw.querySelector('.gcf-telefono').value.trim();
+          const efectivoActual = datosClienteEfectivoContacto();
+          if(!efectivoActual){ toast('Ya no hay un cliente capturado.', false); return; }
+          if(efectivoActual.existente){
+            try {
+              const r = await apiPostJson('/api/crearContacto', { cliente_id: efectivoActual.cliente.id, nombre, correo, telefono });
+              toast('Contacto guardado.', true);
+              cfw.innerHTML = '';
+              gruContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + efectivoActual.cliente.id);
+              pintarContactoSelect();
+              document.getElementById('gruContactoSelect').value = r.id;
+            } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+          } else {
+            gruContactoNuevoPendiente = { nombre, correo, telefono };
             cfw.innerHTML = '';
-            gruContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id);
-            pintarContactoSelect();
-            document.getElementById('gruContactoSelect').value = r.id;
-          } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+            pintarContactoSelectNuevo();
+            toast('Listo — este contacto se crea junto con el cliente nuevo al guardar el Grupo.', true);
+          }
         });
       });
 
@@ -8577,9 +8694,9 @@
       document.getElementById('gruCancelar').addEventListener('click', () => activarTabGrupo('consultar'));
 
       document.getElementById('gruGuardar').addEventListener('click', async () => {
-        const herramientas = valoresPill('herramientas');
+        const herramientas = gruHerramientasMsel.get();
         if(!herramientas.length){ toast('Selecciona al menos una herramienta.', false); return; }
-        const niveles = valoresPill('niveles').map(Number);
+        const niveles = gruNivelesMsel.get().map(Number);
         if(!niveles.length){ toast('Selecciona al menos un nivel.', false); return; }
 
         const clienteSel = gruClienteAuto.getSeleccionado();
@@ -8590,18 +8707,22 @@
         else if(clienteNombre && clienteCodigo){ cliente = { nombre: clienteNombre, codigo: clienteCodigo }; }
         else { toast('Selecciona el cliente que contrató, o captura nombre + código para uno nuevo.', false); return; }
 
-        const clienteFinalSel = gruClienteFinalAuto.getSeleccionado();
-        const clienteFinalNombre = document.getElementById('gruClienteFinalNombre').value.trim();
-        const clienteFinalCodigo = document.getElementById('gruClienteFinalCodigo').value.trim();
         let clienteFinal = null;
-        if(clienteFinalSel){ clienteFinal = { clienteId: clienteFinalSel.id }; }
-        else if(clienteFinalNombre && clienteFinalCodigo){ clienteFinal = { nombre: clienteFinalNombre, codigo: clienteFinalCodigo }; }
-        else if(clienteFinalNombre || clienteFinalCodigo){ toast('Completa nombre y código del cliente final, o deja ambos vacíos.', false); return; }
+        if(document.getElementById('gruToggleClienteFinal').checked){
+          const clienteFinalSel = gruClienteFinalAuto.getSeleccionado();
+          const clienteFinalNombre = document.getElementById('gruClienteFinalNombre').value.trim();
+          const clienteFinalCodigo = document.getElementById('gruClienteFinalCodigo').value.trim();
+          if(clienteFinalSel){ clienteFinal = { clienteId: clienteFinalSel.id }; }
+          else if(clienteFinalNombre && clienteFinalCodigo){ clienteFinal = { nombre: clienteFinalNombre, codigo: clienteFinalCodigo }; }
+          else { toast('Activaste "Cliente final" — completa su nombre y código, o apaga el toggle.', false); return; }
+        }
 
         const contactoSel = document.getElementById('gruContactoSelect');
+        const contactoIdVal = contactoSel && contactoSel.value && contactoSel.value !== '__nuevo__' ? Number(contactoSel.value) : null;
         const payload = {
           cliente, cliente_final: clienteFinal,
-          contacto_id: contactoSel && contactoSel.value ? Number(contactoSel.value) : null,
+          contacto_id: contactoIdVal,
+          contacto_nuevo: gruContactoNuevoPendiente,
           modalidad: document.getElementById('gruModalidad').value || null,
           grupo_codigo: document.getElementById('gruGrupoCodigo').value.trim(),
           herramientas, nombre_curso: document.getElementById('gruNombreCurso').value.trim(), niveles,
@@ -8613,8 +8734,6 @@
           estatus_cierre: document.getElementById('gruEstatusCierre').value,
           cotizacion_id: document.getElementById('gruCotizacion').value || null,
           fotos_rs: document.getElementById('gruFotosRs').checked,
-          correos_ml: document.getElementById('gruCorreosMl').checked,
-          pagado: document.getElementById('gruPagado').checked,
           fecha_cierre: document.getElementById('gruFechaCierre').value || null,
           notas: document.getElementById('gruNotas').value.trim(),
         };
@@ -8640,6 +8759,8 @@
       // ── prefill en modo edición ──
       if(editando){
         gruClienteAuto.set({ id: g.cliente_id, nombre: g.cliente, codigo: g.cliente_codigo });
+        document.getElementById('gruToggleClienteFinal').checked = !!g.cliente_final_id;
+        document.getElementById('gruClienteFinalRow').hidden = !g.cliente_final_id;
         if(g.cliente_final_id) gruClienteFinalAuto.set({ id: g.cliente_final_id, nombre: g.cliente_final, codigo: '' });
         cargarContactosGrupo({ id: g.cliente_final_id || g.cliente_id }).then(() => {
           document.getElementById('gruContactoSelect').value = g.contacto_id || '';
@@ -8649,9 +8770,9 @@
         });
         document.getElementById('gruModalidad').value = g.modalidad || '';
         document.getElementById('gruGrupoCodigo').value = g.grupo_codigo || '';
-        setPills('herramientas', herramientasDe(g));
+        gruHerramientasMsel.set(herramientasDe(g));
         document.getElementById('gruNombreCurso').value = g.nombre_curso || '';
-        setPills('niveles', nivelesDe(g));
+        gruNivelesMsel.set(nivelesDe(g));
         document.getElementById('gruHoras').value = g.horas != null ? g.horas : '';
         document.getElementById('gruSesiones').value = g.sesiones != null ? g.sesiones : '';
         document.getElementById('gruFechaInicio').value = fechaInputValue(g.fecha_inicio);
@@ -8659,8 +8780,6 @@
         document.getElementById('gruEstatusCurso').value = g.estatus_curso;
         document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
         document.getElementById('gruFotosRs').checked = !!g.fotos_rs;
-        document.getElementById('gruCorreosMl').checked = !!g.correos_ml;
-        document.getElementById('gruPagado').checked = !!g.pagado;
         document.getElementById('gruFechaCierre').value = fechaInputValue(g.fecha_cierre);
         document.getElementById('gruNotas').value = g.notas || '';
       }

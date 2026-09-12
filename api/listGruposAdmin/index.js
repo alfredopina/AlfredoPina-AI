@@ -74,7 +74,7 @@ module.exports = async function (context, req) {
              g.horas, g.sesiones, g.fecha_inicio, g.fecha_fin, g.instructor,
              g.estatus_curso, g.estatus_cierre,
              g.cotizacion_id, cot.folio AS cotizacion_folio,
-             g.fotos_rs, g.correos_ml, g.pagado, g.fecha_cierre, g.notas, g.fecha_creacion,
+             g.fotos_rs, g.fecha_cierre, g.notas, g.fecha_creacion,
              (SELECT DATEDIFF(day, MAX(gfh.fecha), GETUTCDATE()) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS dias_en_fase
       FROM Grupo g
       JOIN Cliente c ON c.id = g.cliente_id

@@ -4,6 +4,30 @@ Bitácora completa, sesión por sesión, movida aquí desde `CLAUDE.md` el 2026-
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
 
+### 2026-09-12 alfredo.pina: Grupos — Consultar Grupos con búsqueda automática, columna Fase, Editar/Mover/Eliminar separados (ronda de pulido 3)
+
+Tercera y más grande ronda de depuración de Grupos, mismo patrón de las dos anteriores: Alfredo trae una lista larga de pedidos concretos sobre Consultar Grupos, se iteran en texto las 2 dudas reales (semántica de Estatus de cierre, fuente de las sugerencias de Nombre del curso) antes de tocar código, y se construye todo de una vez. Detalle técnico completo en `CLAUDE.md` → "Estado del proyecto" → Grupos, bloque "Ronda de pulido 3", no repetido aquí.
+
+- **Consultar Grupos simplificado**: fuera Desde/Hasta y los botones Buscar/Ver todos — búsqueda automática al cambiar cualquier filtro (debounce de 350ms en el texto). Filtrar y Ordenar quedan cada uno en su línea, dentro de la misma tarjeta con borde, con un ícono al inicio en vez de texto ("ORDENAR"/lupa de "Buscar"). 3 sorts nuevos (Herramienta/Instructor/Fase), resueltos en el cliente porque el backend solo ordena por fecha/cliente.
+- **Tabla**: "Grupo / Código" → "Grupo"; Estatus del curso + Estatus de cierre se unifican en una sola columna **Fase**, reusando tal cual el stepper mini que ya usa Tracking Operación (pregunta de Alfredo: "¿qué tan complejo sería?" — resultó barato, cero componente nuevo); columna Horas agregada.
+- **Acciones separadas en 3**: Editar (solo el formulario) / Mover (solo el stepper) / Eliminar — pestaña nueva "Modificar Grupo" sin botón propio en la barra de pestañas, solo alcanzable desde una fila. El regreso (Cancelar/Volver/Guardar) recuerda si la acción se disparó desde Consultar Grupos o desde Tracking Operación y vuelve al lugar correcto — Tracking Operación ganó su propia acción "Mover" para que esto tuviera sentido también desde ahí.
+- **`eliminarGrupo` — única excepción de todo el proyecto a "nunca borrar de verdad"**, pedida explícita por Alfredo para corregir capturas erróneas o limpiar pruebas del backlog 2026. Borra `GrupoFaseHistorial` primero (la FK no tiene `ON DELETE CASCADE`) y luego el Grupo, en una transacción, con confirmación `window.confirm()` en el front.
+- **Bug real encontrado y corregido de paso**: Tracking Operación no se refrescaba al navegar ahí por el sidebar (solo cargaba sus datos una vez, al abrir `/admin`) — Alfredo lo reportó como "se siente medio bugeado". Corregido con un listener extra en el botón del sidebar.
+- Probado en el navegador local contando llamadas de red reales (no solo lo visual): debounce del filtro de texto, disparo inmediato de los `<select>`, orden por Herramienta, los 3 flujos de Editar/Mover/Eliminar desde ambos orígenes, y exactamente 1 refresco de KPIs+tabla al hacer clic en Tracking Operación. `node --check` limpio en `eliminarGrupo`.
+- **Pendiente para Alfredo:** confirmar en producción, sobre todo Editar/Mover/Eliminar desde los dos orígenes y que Tracking Operación ya se sienta al día.
+
+### 2026-09-12 alfredo.pina: Grupos — segunda ronda de pulido (Sesiones a texto libre, Estatus de cierre bloqueado, datalist de Nombre del curso, toggles agrupados)
+
+Segunda ronda de depuración de Grupos, mismo día que la primera (ver entrada de abajo) — 6 pedidos más, con `AskUserQuestion` para las 2 decisiones reales (semántica de "Estatus de cierre", fuente del datalist de Nombre del curso). Detalle técnico completo en `CLAUDE.md` → "Estado del proyecto" → Grupos, bloque "Ronda de pulido" (segunda), no repetido aquí.
+
+- **Sesiones deja de ser un conteo (`INT`) y pasa a texto libre** (ej. "5 Sesiones Jueves de 2 a 6 pm") — `sql/013_grupo_sesiones_texto.sql` (corrido y confirmado 2026-09-12, `ALTER COLUMN` a `NVARCHAR(150)`, sin pérdida de datos).
+- **Toggle "¿Más de 1 Grupo?"** — revela el campo Grupo, antes siempre visible.
+- **Estatus de cierre ya no dice "(vacío)"**: se bloquea hasta que Estatus del curso = Terminado y arranca en "Proyecto" al desbloquearse — se descartó un estado nuevo "En Proceso" por chocar de nombre con el valor "En proceso" de Estatus del curso.
+- **Nombre del curso** gana un datalist de sugerencias — a pedido explícito de Alfredo, sacado del propio historial de `Grupo.nombre_curso` (Function nueva `listNombresCursoAdmin`), no del catálogo de Cursos/TemariosEstandar.
+- **Los 4 toggles (Cliente final/Más de 1 Grupo/Tiene Cotización/Curso histórico) se agrupan al inicio del formulario** — "Curso histórico" revela Fecha de cierre, que para un Grupo nuevo no debe verse en absoluto (se llena sola al avanzar la fase a Cerrado vía el stepper).
+- Bug de CSS ya conocido (`[hidden]` perdiendo contra `display:flex`) reaparece por 3ª vez, ahora en `.radm-field` — mismo fix de siempre.
+- **Pendiente para Alfredo:** confirmar en producción, sobre todo el datalist de Nombre del curso una vez que ya haya un par de Grupos reales guardados.
+
 ### 2026-09-11 alfredo.pina: Grupos — ronda de pulido tras la primera prueba real (toggle Cliente final, contacto con cliente nuevo, dropdown de Herramientas/Nivel, quita Correos ML/Pagado)
 
 Alfredo empieza a cargar datos y probar en vivo el proyecto casi terminado — el rol de la sesión cambia de construir módulos nuevos a depurar/pulir los ya construidos, arrancando por Grupos. Llegó con 6 pedidos concretos y pidió explícitamente "iteremos dudas antes de arreglar" — antes de tocar código se investigó cada punto (leyendo `sql/010_grupos.sql`, `crearGrupo`/`editarGrupo`, `listCotizacionesAdmin`) y se usó `AskUserQuestion` para las 4 decisiones que sí eran del usuario (crear Cliente+Contacto juntos vs. dejarlo como estaba; diagnóstico del bug de Cotización de origen; tirar las columnas `correos_ml`/`pagado` de la base o solo dejar de usarlas; diseño del dropdown colapsado vs. checkboxes siempre visibles). Detalle técnico completo ya integrado en "Estado del proyecto" → Grupos, bloque "Ronda de pulido", no repetido aquí.

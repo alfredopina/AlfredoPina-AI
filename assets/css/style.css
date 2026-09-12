@@ -142,7 +142,7 @@
     padding:90px 0 70px; overflow:hidden;
   }
   .hero-photo-bg{position:absolute; top:0; right:0; height:100%; width:62%; z-index:0;}
-  .hero-photo-bg img{width:100%; height:100%; object-fit:cover; object-position:70% top; display:block;}
+  .hero-photo-bg img{width:100%; height:100%; object-fit:cover; object-position:70% top; display:block; filter:grayscale(.3) brightness(.52) contrast(1.25) saturate(1.1);}
   .hero-photo-fade{
     position:absolute; inset:0;
     background:

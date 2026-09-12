@@ -18,7 +18,7 @@ const pdfMake = require("pdfmake");
 const FONTS_DIR = path.join(__dirname, "..", "assets", "fonts");
 const IMG_DIR = path.join(__dirname, "..", "assets", "img");
 const FIRMA_PATH = path.join(IMG_DIR, "firma-ap.png");
-const FOTO_PATH = path.join(IMG_DIR, "alfredo-work-photo.png");
+const FOTO_PATH = path.join(IMG_DIR, "alfredo-headshot.png");
 
 // registrado una sola vez por proceso — pdfMake es un singleton (mismo
 // require() en cualquier Function de este proceso), no hace falta repetirlo

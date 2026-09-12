@@ -329,6 +329,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/avanzarFaseGrupo",
       "allowedRoles": ["admin"]
     },

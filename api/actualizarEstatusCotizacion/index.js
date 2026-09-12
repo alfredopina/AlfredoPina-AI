@@ -1,8 +1,10 @@
 // actualizarEstatusCotizacion/index.js
 // Function protegida (rol "admin"): cambia el estatus de una Cotización. Si
 // el nuevo estatus es "Enviada" y todavía no tenía fecha_envio, la pone a
-// ahora — usada también por getResumenCotizacionesAdmin/tiempo de cierre de
-// forma indirecta (ver esa Function para el criterio de "tiempo de cierre").
+// ahora. Igual con fecha_cierre cuando el nuevo estatus es Ganada/Perdida —
+// api/src/cliente-actividad.js (Días Inactivo) depende de que esta fecha sea
+// real, no aproximada. Usada también por getResumenCotizacionesAdmin/tiempo
+// de cierre de forma indirecta (ver esa Function para ese otro criterio).
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -26,7 +28,8 @@ module.exports = async function (context, req) {
       .input("estatus", sql.NVarChar, estatus)
       .query(
         `UPDATE Cotizacion SET estatus = @estatus,
-           fecha_envio = CASE WHEN @estatus = 'Enviada' AND fecha_envio IS NULL THEN SYSUTCDATETIME() ELSE fecha_envio END
+           fecha_envio = CASE WHEN @estatus = 'Enviada' AND fecha_envio IS NULL THEN SYSUTCDATETIME() ELSE fecha_envio END,
+           fecha_cierre = CASE WHEN @estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NULL THEN CAST(SYSUTCDATETIME() AS DATE) ELSE fecha_cierre END
          WHERE id = @id`
       );
     if (!result.rowsAffected[0]) {

@@ -565,68 +565,22 @@
   .dip-paso-head #encContadorRefresh{ margin-left:auto; }
 
   /* ---- PANEL CLIENTES ---- */
-  .cli-kpi-row{
-    display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; padding-bottom:22px;
-    border-bottom:1px solid var(--line);
+  /* Rediseño 2026-09-12: scorecard compacto tipo header, toolbar/tabla
+     reusando la misma estructura que Grupos (sol-toolbar/dip-table), y la
+     vista maestro-detalle (.cli-layout/.cli-row/.cli-detail) se retiró por
+     completo a favor de la tabla — solo quedan aquí las clases que la fila
+     expandible de Contactos sigue usando. */
+  .cli-scorecard-block{ border-bottom:3px solid var(--c); padding-bottom:10px; margin-bottom:14px; }
+  .cli-kpi-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .cli-kpi-row .dkpi-card{
+    flex:1; min-width:170px; flex-direction:row; align-items:center; gap:10px;
+    padding:10px 14px; border-left:4px solid var(--c); border-top:none;
   }
-  .cli-kpi-row .dkpi-card{ flex:1; min-width:150px; }
+  .cli-kpi-row .dkpi-card::before{ display:none; }
+  .cli-kpi-row .dkpi-icon{ width:18px; height:18px; flex:none; }
+  .cli-kpi-row .dkpi-value{ font-size:20px; white-space:nowrap; }
+  .cli-kpi-row .dkpi-label{ margin-left:auto; text-align:right; }
 
-  .cli-toolbar{
-    display:flex; flex-direction:column; gap:14px; background:var(--panel); border:1px solid var(--line);
-    border-radius:10px; padding:16px 18px; margin-bottom:20px;
-  }
-  .cli-toolbar-row{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
-  .cli-toolbar-row-sort{
-    align-items:center; padding-top:14px; border-top:1px solid var(--line-soft); flex-wrap:wrap;
-  }
-  .cli-buscar-field{ flex:1; min-width:200px; max-width:340px; }
-  .cli-btn-nuevo{ margin-left:auto; }
-  .cli-sort-group{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .cli-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
-  .cli-sort-btn{
-    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
-    background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
-    transition:all .15s;
-  }
-  .cli-sort-btn:hover{ color:var(--text); }
-  .cli-sort-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
-  .cli-sort-ico{ width:10px; height:10px; flex:none; }
-  .cli-sort-ico svg{ width:100%; height:100%; }
-
-  .cli-layout{ display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
-  @media (max-width:900px){ .cli-layout{ grid-template-columns:1fr; } }
-
-  .cli-list{ display:flex; flex-direction:column; gap:6px; max-height:70vh; overflow-y:auto; padding-right:2px; }
-  .cli-row{
-    border:1px solid var(--line); border-left:3px solid transparent; border-radius:7px; background:var(--panel);
-    padding:10px 12px 10px 10px; cursor:pointer; transition:border-color .15s, background .15s;
-  }
-  .cli-row:hover{ border:1px solid var(--text-dim); border-left:3px solid var(--text-dim); }
-  .cli-row.active{ border:1px solid var(--blue-bright); border-left:3px solid var(--blue-bright); background:var(--blue-soft); }
-  .cli-row-title{ font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cli-row-sub{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
-  .cli-row-meta{ display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
-  .cli-tag{
-    font-family:var(--mono); font-size:9.5px; color:var(--text-dim); background:var(--panel-2);
-    border:1px solid var(--line); border-radius:20px; padding:2px 8px; white-space:nowrap;
-  }
-
-  .cli-detail{
-    border:1px solid var(--line); border-left:3px solid transparent; border-radius:10px; background:var(--panel);
-    padding:22px; min-height:220px; transition:border-color .15s;
-  }
-  .cli-detail.seleccionado{ border-left:3px solid var(--blue-bright); }
-  .cli-detalle-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-  .cli-detalle-nombre{ font-family:var(--display); font-weight:600; font-size:17px; }
-  .cli-detalle-sub{ font-size:11.5px; color:var(--text-faint); margin-top:4px; font-family:var(--mono); }
-  .cli-detalle-notas{
-    font-size:12.5px; color:var(--text-dim); font-style:italic; margin-top:14px; line-height:1.5;
-    border-left:2px solid var(--line); padding-left:10px;
-  }
-  .cli-notas-preview{
-    font-size:11px; color:var(--text-faint); font-style:italic; margin-top:3px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
   .cli-badge{
     display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.3px;
     padding:2px 7px; border-radius:20px; border:1px solid var(--good); color:var(--good); margin-left:8px;
@@ -634,6 +588,14 @@
   .cli-contacto-meta{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
   .cli-wa{ display:inline-flex; align-items:center; gap:3px; color:var(--text-dim); }
   .cli-wa svg{ width:11px; height:11px; }
+  .cli-info-ico{ display:inline-flex; width:13px; height:13px; color:var(--text-faint); cursor:help; vertical-align:-2px; margin-left:4px; }
+  .cli-info-ico svg{ width:100%; height:100%; }
+  .cli-nota-dias{
+    border:1px solid var(--line); border-radius:8px; padding:12px 14px; background:var(--panel);
+    margin-bottom:14px; font-size:12px; line-height:1.6; color:var(--text-dim);
+  }
+  .cli-nota-dias ul{ margin:6px 0 0 18px; padding:0; }
+  .cli-nota-dias li{ margin-bottom:2px; }
 
   .cfg-tarifas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; margin-top:12px; }
   .cfg-tarifa-row{
@@ -1834,56 +1796,98 @@
         </div>
 
         <div class="dip-tabpanel active" id="cliTab-consultar">
-          <div class="scorecard-block">
+          <div class="cli-scorecard-block">
             <div class="cli-kpi-row" id="cliKpis">
-              <div class="dkpi-card">
-                <div class="dkpi-value" id="cliKpiTotal">—</div>
-                <div class="dkpi-label">Clientes</div>
+              <div class="dkpi-card" style="--c:var(--good)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="dkpi-value"><span id="cliKpiCompletos">—</span><span style="color:var(--text-faint); font-weight:400;"> / </span><span id="cliKpiTotal">—</span></div>
+                <div class="dkpi-label">Completos</div>
               </div>
-              <div class="dkpi-card">
+              <div class="dkpi-card" style="--c:var(--blue-bright)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10.5" r="2"/><path d="M6 16c0-1.7 1.3-3 3-3s3 1.3 3 3" stroke-linecap="round"/><path d="M14 9.5h4M14 13.5h4" stroke-linecap="round"/></svg></div>
                 <div class="dkpi-value" id="cliKpiContactos">—</div>
                 <div class="dkpi-label">Contactos</div>
               </div>
-              <div class="dkpi-card" title="Clientes con al menos una cotización creada este año, sobre el total de clientes">
-                <div class="dkpi-value" id="cliKpiActivos">—</div>
-                <div class="dkpi-label">% Clientes activos</div>
+              <div class="dkpi-card" style="--c:var(--good)" title="Clientes con menos de 30 días de inactividad (semáforo verde)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="dkpi-value"><span id="cliKpiVerde">—</span><span style="color:var(--text-faint); font-weight:400; font-size:13px;"> (<span id="cliKpiVerdePct">—</span>%)</span></div>
+                <div class="dkpi-label">En verde</div>
               </div>
             </div>
           </div>
 
-          <div class="cli-toolbar">
-            <div class="cli-toolbar-row">
-              <div class="radm-field cli-buscar-field">
+          <div class="sol-toolbar">
+            <div class="dip-filters" style="margin-bottom:0;">
+              <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div class="radm-field" style="flex:1; min-width:220px;">
                 <label>BUSCAR</label>
                 <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
               </div>
+              <div class="dip-filter-actions">
+                <button type="button" class="cot-icon-btn" id="cliLimpiarFiltros" title="Limpiar filtros y mostrar todos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+                </button>
+              </div>
             </div>
-            <div class="cli-toolbar-row cli-toolbar-row-sort">
-              <span class="cli-sort-label">ORDENAR</span>
-              <div class="cli-sort-group" id="cliSortGroup">
-                <button type="button" class="cli-sort-btn" data-sort="nombre">Nombre<span class="cli-sort-ico" hidden></span></button>
-                <button type="button" class="cli-sort-btn" data-sort="ultima_cotizacion">Última cotización<span class="cli-sort-ico" hidden></span></button>
-                <button type="button" class="cli-sort-btn" data-sort="antiguedad">Antigüedad<span class="cli-sort-ico" hidden></span></button>
+            <div class="sol-toolbar-row-sort">
+              <span class="sol-sort-label" style="display:inline-flex; align-items:center;" title="Ordenar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M8 19V5M4 9l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5v14M12 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div class="sol-sort-group" id="cliSortGroup">
+                <button type="button" class="sol-sort-btn" data-sort="nombre">Nombre<span class="sol-sort-ico" hidden></span></button>
+                <button type="button" class="sol-sort-btn" data-sort="antiguedad">Antigüedad<span class="sol-sort-ico" hidden></span></button>
+                <button type="button" class="sol-sort-btn" data-sort="completado">Completado<span class="sol-sort-ico" hidden></span></button>
+                <button type="button" class="sol-sort-btn" data-sort="dias_inactivo">Días Inactivo<span class="sol-sort-ico" hidden></span></button>
               </div>
             </div>
           </div>
 
-          <div class="cli-layout">
-            <div class="cli-list" id="cliLista">
-              <div class="radm-empty-row">Cargando clientes…</div>
-            </div>
-            <div class="cli-detail" id="cliDetalle">
-              <div class="admin-empty">
-                <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-                <div class="admin-empty-title">Selecciona un cliente</div>
-                <div class="admin-empty-text">Elige un cliente de la lista para ver sus datos y contactos, o crea uno nuevo en la pestaña "Crear Cliente".</div>
-              </div>
-            </div>
+          <div class="cli-nota-dias">
+            <strong>¿Cómo se calcula Días Inactivo?</strong> Cuenta desde tu última interacción real con el cliente:
+            <ul>
+              <li>Una Solicitud sin cotizar todavía, o una Cotización Enviada/En negociación → esa fecha (no cuenta como "hoy" solo por seguir activa).</li>
+              <li>Un Grupo dándose ahora mismo con ese cliente → 0 días.</li>
+              <li>Si no hay nada de lo anterior, la Cotización cerrada (Ganada o Perdida) más reciente.</li>
+              <li>Si tampoco hay cotización, el último Diploma que le diste.</li>
+              <li>Sin ningún dato → se trata como el caso más urgente (rojo), no como neutro.</li>
+            </ul>
+            <span style="color:var(--text-faint);">Semáforo: verde &lt;30 días · amarillo 30–90 · rojo &gt;90.</span>
+          </div>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Código</th>
+                  <th>Tipo</th>
+                  <th># Contactos</th>
+                  <th>Antigüedad</th>
+                  <th>Completado</th>
+                  <th>
+                    Días Inactivo
+                    <span class="cli-info-ico" title="Días desde tu última interacción real: cotización enviada, curso en curso, o el diploma más reciente si no hay nada más nuevo. 0 = interacción activa ahora mismo.">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                    </span>
+                  </th>
+                  <th>Semáforo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cliListaBody">
+                <tr><td colspan="9" class="radm-empty-row">Cargando clientes…</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div class="dip-tabpanel" id="cliTab-crear">
-          <div id="cliFormClienteWrap"></div>
+          <div id="cliFormWrap"></div>
+        </div>
+        <div class="dip-tabpanel" id="cliTab-modificar">
+          <div id="cliModificarWrap"></div>
         </div>
       </div>
       <div class="admin-panel" id="panel-tracking-comercial" style="--c:var(--blue-bright)">
@@ -2491,7 +2495,7 @@
               </select>
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="gruLimpiarFiltros" style="min-width:auto" title="Limpiar filtros y mostrar todos">
+              <button type="button" class="cot-icon-btn" id="gruLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
             </div>
@@ -2499,7 +2503,7 @@
 
           <div class="sol-toolbar-row-sort">
             <span class="sol-sort-label" style="display:inline-flex; align-items:center;" title="Ordenar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M7 15l5 5 5-5M7 9l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M8 19V5M4 9l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5v14M12 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
             <div class="sol-sort-group" id="gruSortGroup">
               <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha de inicio<span class="sol-sort-ico" hidden></span></button>
@@ -2517,7 +2521,7 @@
               <tr>
                 <th>Cliente</th>
                 <th>Cliente final</th>
-                <th>Grupo</th>
+                <th># Grupo</th>
                 <th>Herramientas</th>
                 <th>Nivel</th>
                 <th>Horas</th>
@@ -5710,16 +5714,14 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL CLIENTES — Fase 1 del roadmap (bloque Comercial). Layout tipo
-  // maestro-detalle: lista compacta a la izquierda (buscador que incluye
-  // nombre de contacto, orden por nombre/última cotización/antigüedad) y a la
-  // derecha el detalle del cliente seleccionado (datos + Contactos, con
-  // alta/edición/borrado inline y el candado de "un solo principal por
-  // cliente" resuelto en el backend). Scorecard arriba con KPIs simples.
-  // Solicitudes y Cotizaciones se construyen en fases futuras sobre este mismo
-  // Cliente — aquí solo entrega la base. "última cotización"/"% activos" ya
-  // están conectados a la tabla Cotizacion (vacía hasta Fase 1.2) — no hace
-  // falta tocar este archivo cuando esa fase empiece a llenarla.
+  // PANEL CLIENTES — rediseño 2026-09-12 (reemplaza el maestro-detalle
+  // original): tabla como Grupos/Solicitudes, con Tipo de Cliente
+  // (Directo/Intermediario, solo descriptivo por ahora) y Completado/Días
+  // Inactivo/Semáforo calculados en el backend (api/src/cliente-actividad.js,
+  // única fuente de la regla — nunca reimplementada aquí). Contactos se
+  // gestionan solo en "Modificar Cliente" (fila → Editar, pestaña oculta sin
+  // botón propio, mismo patrón que Modificar Grupo); Consultar y su fila
+  // expandible son solo lectura. "Crear Cliente" siempre nace en blanco.
   (function(){
     const ICO = {
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5727,16 +5729,16 @@
       wa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.1-5.5A8.5 8.5 0 1 1 21 11.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>',
+      chevron: '<svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
-    // dirección con la que arranca cada criterio la primera vez que se activa
-    // (clic sobre uno ya activo alterna asc/desc en vez de repetir el default).
-    const SORT_DEFAULT_DIR = { nombre: 'asc', antiguedad: 'asc', ultima_cotizacion: 'desc' };
-    const EMPTY_HTML = `
-      <div class="admin-empty">
-        <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-        <div class="admin-empty-title">Selecciona un cliente</div>
-        <div class="admin-empty-text">Elige un cliente de la lista para ver y editar sus contactos, o crea uno nuevo.</div>
-      </div>`;
+    const TIPOS_CLIENTE = ['Directo', 'Intermediario'];
+    // completado/dias_inactivo no los ordena el backend (no son columnas
+    // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
+    // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
+    const SORT_CLIENTE = ['completado', 'dias_inactivo'];
+    const SORT_DEFAULT_DIR = { nombre: 'asc', antiguedad: 'asc', completado: 'asc', dias_inactivo: 'desc' };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
@@ -5779,50 +5781,79 @@
       const anios = new Date().getFullYear() - anio;
       return anios <= 0 ? 'Nuevo este año' : `${anios} año${anios === 1 ? '' : 's'}`;
     }
-    function fmtUltimaCotizacion(iso){
-      if(!iso) return 'Sin cotizar';
-      const d = new Date(iso);
-      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
+    }
+    function tipoBadge(tipo){
+      const color = tipo === 'Intermediario' ? '#a78bfa' : 'var(--text-faint)';
+      return `<span class="sol-temario-tipo-tag" style="border-color:${color}; color:${color};">${escapeHtml(tipo || 'Directo')}</span>`;
+    }
+    function completadoHtml(completado){
+      return `<span class="dip-status">${completado ? ICO.check : ICO.warn}<span style="color:${completado ? 'var(--good)' : 'var(--text-faint)'}">${completado ? 'Completo' : 'Incompleto'}</span></span>`;
+    }
+    function semaforoHtml(semaforo){
+      const map = { verde: { cls: 'ok', texto: 'Activo' }, amarillo: { cls: 'warn', texto: 'Por revisar' }, rojo: { cls: 'hot', texto: 'Refrescar' } };
+      const m = map[semaforo] || map.rojo;
+      return `<span class="cot-semaforo ${m.cls}"><span class="cot-semaforo-dot"></span>${m.texto}</span>`;
+    }
+    function diasInactivoHtml(dias){
+      return dias == null
+        ? '<span class="radm-mono" style="color:var(--text-faint);">Sin datos</span>'
+        : `<span class="radm-mono">${dias}</span>`;
     }
 
     let cliClientes = [];
     let cliSort = 'nombre';
     let cliDir = 'asc';
-    let cliSeleccionado = null;
+    const cliContactosCache = {};
 
     function renderSortButtons(){
-      document.querySelectorAll('.cli-sort-btn').forEach(b => {
+      document.querySelectorAll('#cliSortGroup .sol-sort-btn').forEach(b => {
         const activo = b.dataset.sort === cliSort;
         b.classList.toggle('active', activo);
-        const ico = b.querySelector('.cli-sort-ico');
-        if(activo){
-          ico.innerHTML = cliDir === 'asc' ? ICO.sortAsc : ICO.sortDesc;
-          ico.hidden = false;
-        } else {
-          ico.hidden = true;
-        }
+        const ico = b.querySelector('.sol-sort-ico');
+        if(activo){ ico.innerHTML = cliDir === 'asc' ? ICO.sortAsc : ICO.sortDesc; ico.hidden = false; }
+        else { ico.hidden = true; }
       });
+    }
+
+    // Nulls de dias_inactivo ("sin interacción registrada") siempre se tratan
+    // como el caso MÁS urgente, nunca neutro — de ahí el Infinity.
+    function ordenarListaCliente(lista){
+      if(!SORT_CLIENTE.includes(cliSort)) return lista;
+      const factor = cliDir === 'asc' ? 1 : -1;
+      function valor(c){
+        if(cliSort === 'completado') return c.completado ? 1 : 0;
+        return c.dias_inactivo == null ? Infinity : c.dias_inactivo;
+      }
+      return lista.slice().sort((a, b) => (valor(a) - valor(b)) * factor);
     }
 
     async function cargarKpis(){
       try {
         const r = await apiGetConReintento('/api/getResumenClientesAdmin');
+        document.getElementById('cliKpiCompletos').textContent = r.clientes_completos;
         document.getElementById('cliKpiTotal').textContent = r.total_clientes;
         document.getElementById('cliKpiContactos').textContent = r.total_contactos;
-        const pct = r.total_clientes ? Math.round((r.clientes_activos / r.total_clientes) * 100) : 0;
-        document.getElementById('cliKpiActivos').textContent = pct + '%';
+        document.getElementById('cliKpiVerde').textContent = r.clientes_en_verde;
+        document.getElementById('cliKpiVerdePct').textContent = r.pct_en_verde;
       } catch(e){
-        ['cliKpiTotal', 'cliKpiContactos', 'cliKpiActivos'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['cliKpiCompletos', 'cliKpiTotal', 'cliKpiContactos', 'cliKpiVerde', 'cliKpiVerdePct'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
     async function cargarClientes(q){
+      const body = document.getElementById('cliListaBody');
+      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const params = new URLSearchParams();
         if(q) params.set('q', q);
-        params.set('sort', cliSort);
-        params.set('dir', cliDir);
-        cliClientes = await apiGetConReintento('/api/listClientesAdmin?' + params.toString());
+        // nombre/antiguedad sí las ordena el backend; completado/dias_inactivo
+        // se resuelven después con ordenarListaCliente.
+        params.set('sort', SORT_CLIENTE.includes(cliSort) ? 'nombre' : cliSort);
+        params.set('dir', SORT_CLIENTE.includes(cliSort) ? 'asc' : cliDir);
+        cliClientes = ordenarListaCliente(await apiGetConReintento('/api/listClientesAdmin?' + params.toString()));
       } catch(e){
         cliClientes = [];
         toast('No se pudieron cargar los clientes: ' + e.message, false);
@@ -5831,67 +5862,79 @@
     }
 
     function renderLista(){
-      const cont = document.getElementById('cliLista');
-      if(!cliClientes.length){ cont.innerHTML = '<div class="radm-empty-row">Sin clientes todavía.</div>'; return; }
+      const body = document.getElementById('cliListaBody');
+      if(!cliClientes.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin clientes todavía.</td></tr>`; return; }
 
-      cont.innerHTML = cliClientes.map(c => `
-        <div class="cli-row ${cliSeleccionado === c.id ? 'active' : ''}" data-id="${c.id}">
-          <div class="cli-row-title">${escapeHtml(c.nombre)}</div>
-          <div class="cli-row-sub">${escapeHtml(c.codigo)} · ${c.num_contactos} contacto${c.num_contactos === 1 ? '' : 's'}</div>
-          <div class="cli-row-meta">
-            ${antiguedadTexto(c.cliente_desde) ? `<span class="cli-tag">${antiguedadTexto(c.cliente_desde)}</span>` : ''}
-            <span class="cli-tag">${fmtUltimaCotizacion(c.ultima_cotizacion)}</span>
-          </div>
-        </div>
+      body.innerHTML = cliClientes.map(c => `
+        <tr data-id="${c.id}">
+          <td>${escapeHtml(c.nombre)}</td>
+          <td class="radm-mono">${escapeHtml(c.codigo)}</td>
+          <td>${tipoBadge(c.tipo_cliente)}</td>
+          <td>
+            <button type="button" class="sol-temario-toggle" data-id="${c.id}" title="Ver notas y contactos">
+              <span class="sol-temario-nombre">${c.num_contactos}</span>
+              ${ICO.chevron}
+            </button>
+          </td>
+          <td>${antiguedadTexto(c.cliente_desde) || '—'}</td>
+          <td>${completadoHtml(c.completado)}</td>
+          <td>${diasInactivoHtml(c.dias_inactivo)}</td>
+          <td>${semaforoHtml(c.semaforo)}</td>
+          <td>
+            <button type="button" class="cot-icon-btn cli-editar-btn" data-id="${c.id}" title="Editar cliente y contactos">${ICO.edit}</button>
+          </td>
+        </tr>
+        <tr class="sol-desglose-row" id="cli-desglose-${c.id}" hidden>
+          <td colspan="9"><div class="sol-desglose" id="cli-desglose-body-${c.id}"><span class="radm-hint">Cargando…</span></div></td>
+        </tr>
       `).join('');
 
-      cont.querySelectorAll('.cli-row').forEach(row => {
-        row.addEventListener('click', () => seleccionarCliente(Number(row.dataset.id)));
+      body.querySelectorAll('.sol-temario-toggle').forEach(btn => {
+        btn.addEventListener('click', () => toggleDesglose(Number(btn.dataset.id), btn));
+      });
+      body.querySelectorAll('.cli-editar-btn').forEach(btn => {
+        btn.addEventListener('click', () => abrirModificarCliente(cliClientes.find(x => x.id === Number(btn.dataset.id))));
       });
     }
 
-    function seleccionarCliente(id){
-      cliSeleccionado = id;
-      document.querySelectorAll('.cli-row').forEach(r => r.classList.toggle('active', Number(r.dataset.id) === id));
-      renderDetalle(id);
-    }
+    async function toggleDesglose(id, btnEl){
+      const fila = document.getElementById('cli-desglose-' + id);
+      const abrir = fila.hidden;
+      fila.hidden = !abrir;
+      const chevron = btnEl.querySelector('.sol-temario-chevron');
+      if(chevron) chevron.classList.toggle('open', abrir);
+      if(!abrir) return;
 
-    async function renderDetalle(id){
+      const cont = document.getElementById('cli-desglose-body-' + id);
       const c = cliClientes.find(x => x.id === id);
-      const det = document.getElementById('cliDetalle');
-      if(!c){ det.classList.remove('seleccionado'); det.innerHTML = EMPTY_HTML; return; }
-      det.classList.add('seleccionado');
-
-      // Consultar es SOLO LECTURA — el único punto de edición real es el botón
-      // "Editar", que manda a la pestaña Crear Cliente con este cliente cargado.
-      det.innerHTML = `
-        <div class="cli-detalle-head">
-          <div>
-            <div class="cli-detalle-nombre">${escapeHtml(c.nombre)}</div>
-            <div class="cli-detalle-sub">${escapeHtml(c.codigo)}${antiguedadTexto(c.cliente_desde) ? ` · Cliente desde ${c.cliente_desde} (${antiguedadTexto(c.cliente_desde)})` : ''}</div>
-          </div>
-          <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" data-action="edit-cliente" style="min-width:auto">${ICO.edit} Editar</button>
-        </div>
-        ${c.notas ? `<div class="cli-detalle-notas">${escapeHtml(c.notas)}</div>` : ''}
-        <div class="radm-section-head" style="margin-top:22px;">
-          <span class="radm-section-title">CONTACTOS</span>
-        </div>
-        <div class="radm-list" data-lista-contactos>
-          <div class="radm-empty-row">Cargando contactos…</div>
-        </div>`;
-
-      det.querySelector('[data-action="edit-cliente"]').addEventListener('click', () => abrirEdicionCliente(c));
-      const listaEl = det.querySelector('[data-lista-contactos]');
-
-      try {
-        const contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id);
-        pintarContactos(listaEl, id, contactos, false);
-      } catch(e){
-        listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`;
+      if(!cliContactosCache[id]){
+        try { cliContactosCache[id] = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id); }
+        catch(e){ cont.innerHTML = `<span class="radm-hint">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</span>`; return; }
       }
+      cont.innerHTML = clienteDetalleHtml(c, cliContactosCache[id]);
     }
 
-    // ══ CONTACTOS ══
+    function clienteDetalleHtml(c, contactos){
+      const f = c.fechas_actividad || {};
+      return `
+        ${c.notas ? `<div class="sol-desglose-item"><div class="sol-desglose-nombre">Notas</div><div class="sol-desglose-desc">${escapeHtml(c.notas)}</div></div>` : ''}
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">Fechas detrás de Días Inactivo</div>
+          <div class="sol-desglose-desc">
+            Solicitud sin cotizar: ${fmtFecha(f.solicitud_pendiente)} · Cotización activa: ${fmtFecha(f.cotizacion_activa)} ·
+            Grupo dándose ahora: ${f.grupo_activo ? 'Sí' : 'No'} · Cotización cerrada: ${fmtFecha(f.cotizacion_cerrada)} ·
+            Último diploma: ${fmtFecha(f.ultimo_diploma)}<br>
+            <span style="color:var(--text-faint);">Fecha usada: ${fmtFecha(f.fecha_referencia)}</span>
+          </div>
+        </div>
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">Contactos</div>
+          <div class="radm-list" style="margin-top:6px;">${pintarContactosHtml(contactos, false)}</div>
+        </div>`;
+    }
+
+    // ══ CONTACTOS — lectura (fila expandible de Consultar) y edición
+    // (Modificar Cliente) comparten el mismo render de fila ══
     function contactoMeta(ct){
       const partes = [];
       if(ct.planta) partes.push('Planta ' + escapeHtml(ct.planta));
@@ -5901,11 +5944,9 @@
       return partes.length ? partes.join(' · ') : '—';
     }
 
-    // editable=false (Consultar, solo lectura) omite los íconos de editar/borrar
-    // — ahí solo se ve la info, la gestión real vive en Crear Cliente.
-    function pintarContactos(listaEl, clienteId, contactos, editable){
-      if(!contactos.length){ listaEl.innerHTML = '<div class="radm-empty-row">Sin contactos todavía.</div>'; return; }
-      listaEl.innerHTML = contactos.map(ct => `
+    function pintarContactosHtml(contactos, editable){
+      if(!contactos.length) return '<div class="radm-empty-row">Sin contactos todavía.</div>';
+      return contactos.map(ct => `
         <div class="radm-row" data-id="${ct.id}">
           <div class="radm-row-body">
             <div class="radm-row-title">${escapeHtml(ct.nombre)}${ct.es_principal ? '<span class="cli-badge">Principal</span>' : ''}</div>
@@ -5915,7 +5956,12 @@
           <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>` : ''}
         </div>
       `).join('');
+    }
 
+    // editable=false (fila expandible de Consultar, solo lectura) omite los
+    // íconos de editar/borrar — la gestión real vive en Modificar Cliente.
+    function pintarContactos(listaEl, clienteId, contactos, editable){
+      listaEl.innerHTML = pintarContactosHtml(contactos, editable);
       if(!editable) return;
       listaEl.querySelectorAll('[data-action="edit"]').forEach(b => {
         b.addEventListener('click', () => abrirFormContacto(listaEl, clienteId, contactos.find(x => x.id === Number(b.closest('.radm-row').dataset.id))));
@@ -5928,8 +5974,12 @@
     function refrescarConteoCliente(clienteId, n){
       const c = cliClientes.find(x => x.id === clienteId);
       if(c) c.num_contactos = n;
-      const sub = document.querySelector(`.cli-row[data-id="${clienteId}"] .cli-row-sub`);
-      if(sub && c) sub.textContent = `${c.codigo} · ${n} contacto${n === 1 ? '' : 's'}`;
+      delete cliContactosCache[clienteId];
+      // Escopado a #cliListaBody: Grupos/Solicitudes reusan la misma clase
+      // .sol-temario-toggle con su propio data-id, que puede coincidir por
+      // pura casualidad numérica con un id de Cliente.
+      const boton = document.querySelector(`#cliListaBody .sol-temario-toggle[data-id="${clienteId}"] .sol-temario-nombre`);
+      if(boton) boton.textContent = n;
     }
 
     function abrirFormContacto(listaEl, clienteId, item){
@@ -6007,13 +6057,13 @@
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
 
-    // ══ CLIENTE (alta/edición) — vive en la pestaña "Crear Cliente" ══
-    // Un Cliente nuevo no tiene id hasta guardarse, así que la sección de
-    // Contactos solo aparece una vez que ya existe (item truthy: editando uno
-    // existente, o el mismo cliente recién guardado) — igual que antes,
-    // solo que ahora vive en su propia pestaña en vez del panel de detalle.
-    function renderFormCliente(item){
-      const wrap = document.getElementById('cliFormClienteWrap');
+    // ══ CLIENTE (alta/edición) — Crear siempre nace en blanco
+    // ('cliFormWrap'), Modificar solo se llega desde la fila → Editar
+    // ('cliModificarWrap') — mismo patrón abrirFormGrupo/Modificar Grupo.
+    function abrirFormCliente(item, targetWrapId){
+      const otroWrapId = targetWrapId === 'cliFormWrap' ? 'cliModificarWrap' : 'cliFormWrap';
+      document.getElementById(otroWrapId).innerHTML = '';
+      const wrap = document.getElementById(targetWrapId);
       const anioActual = new Date().getFullYear();
       wrap.innerHTML = `
         <h3 class="radm-form-title">${item ? 'Editando Cliente: ' + escapeHtml(item.nombre) : 'Nuevo Cliente'}</h3>
@@ -6024,19 +6074,28 @@
             <div class="radm-field" style="max-width:150px;"><label>CLIENTE DESDE (AÑO)</label><input type="number" class="clf-desde" min="1990" max="${anioActual}" placeholder="${anioActual}" value="${item && item.cliente_desde ? item.cliente_desde : ''}"></div>
           </div>
           <div class="radm-form-row">
+            <div class="radm-field" style="max-width:220px;">
+              <label>TIPO DE CLIENTE</label>
+              <select class="clf-tipo">
+                ${TIPOS_CLIENTE.map(t => `<option value="${t}" ${item && item.tipo_cliente === t ? 'selected' : ''}>${t}</option>`).join('')}
+              </select>
+            </div>
             <div class="radm-field"><label>NOTAS</label><textarea class="clf-notas">${item && item.notas ? escapeHtml(item.notas) : ''}</textarea></div>
           </div>
           <div class="radm-actions">
-            <span class="radm-hint">${item ? 'Los clientes no se eliminan — si ya no aplica, ajusta sus notas.' : 'El código es el alias corto del cliente (ej. "ACME") — se usa también en folios de diplomas.'}</span>
+            <span class="radm-hint">
+              ${item ? 'Los clientes no se eliminan — si ya no aplica, ajusta sus notas.' : 'El código es el alias corto del cliente (ej. "ACME") — se usa también en folios de diplomas.'}
+              Intermediario = te subcontrata y revende (sin cotización ni diploma tuyo de por medio) — por ahora solo descriptivo.
+            </span>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn clf-guardar">Guardar</button>
               <button type="button" class="radm-btn radm-btn-ghost clf-cancelar">Cancelar</button>
             </div>
           </div>
         </div>
-        <div id="cliFormContactosWrap"></div>`;
+        <div id="clfContactosWrap"></div>`;
 
-      if(item) renderContactosSeccionCrear(item.id);
+      if(item) renderContactosSeccion(item.id);
 
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
       wrap.querySelector('.clf-guardar').addEventListener('click', async () => {
@@ -6044,8 +6103,9 @@
         const codigo = wrap.querySelector('.clf-codigo').value.trim();
         const notas = wrap.querySelector('.clf-notas').value.trim();
         const desdeRaw = wrap.querySelector('.clf-desde').value.trim();
+        const tipoCliente = wrap.querySelector('.clf-tipo').value;
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
-        const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null };
+        const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null, tipo_cliente: tipoCliente };
         try {
           let id;
           if(item){ await apiPostJson('/api/editarCliente', { id: item.id, ...payload }); id = item.id; }
@@ -6053,35 +6113,40 @@
           toast('Cliente guardado.', true);
           await cargarClientes(document.getElementById('cliBuscar').value.trim());
           cargarKpis();
-          seleccionarCliente(id); // refresca Consultar en segundo plano (no cambia de pestaña)
-          renderFormCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde });
+          // Cliente nuevo: se queda en Modificar para agregarle contactos de
+          // inmediato, sin tener que volver a buscarlo en la tabla.
+          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente });
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
-    function renderContactosSeccionCrear(clienteId){
-      const wrap = document.getElementById('cliFormContactosWrap');
+    function renderContactosSeccion(clienteId){
+      const wrap = document.getElementById('clfContactosWrap');
       wrap.innerHTML = `
         <div class="radm-section-head" style="margin-top:22px;">
           <span class="radm-section-title">CONTACTOS</span>
-          <button type="button" class="radm-btn-add" id="cliBtnAddContacto">+ Agregar contacto</button>
+          <button type="button" class="radm-btn-add" id="clfBtnAddContacto">+ Agregar contacto</button>
         </div>
-        <div class="radm-list" id="cliListaContactosCrear">
+        <div class="radm-list" id="clfListaContactos">
           <div class="radm-empty-row">Cargando contactos…</div>
         </div>`;
-      const listaEl = document.getElementById('cliListaContactosCrear');
-      document.getElementById('cliBtnAddContacto').addEventListener('click', () => abrirFormContacto(listaEl, clienteId, null));
+      const listaEl = document.getElementById('clfListaContactos');
+      document.getElementById('clfBtnAddContacto').addEventListener('click', () => abrirFormContacto(listaEl, clienteId, null));
       apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId)
         .then(contactos => pintarContactos(listaEl, clienteId, contactos, true))
         .catch(e => { listaEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los contactos: ${escapeHtml(e.message)}</div>`; });
     }
 
-    function abrirEdicionCliente(item){
-      renderFormCliente(item);
-      activarTabCliente('crear');
+    // Editar se dispara desde una fila de Consultar Clientes — va a la
+    // pestaña "Modificar Cliente", que no tiene botón propio en la barra
+    // (mismo patrón que Modificar Grupo).
+    function abrirModificarCliente(item){
+      abrirFormCliente(item, 'cliModificarWrap');
+      activarTabCliente('modificar');
     }
 
-    // ══ PESTAÑAS Consultar Clientes / Crear Cliente ══
+    // ══ PESTAÑAS Consultar Clientes / Crear Cliente (Modificar Cliente no
+    // tiene botón propio, ver abrirModificarCliente) ══
     function activarTabCliente(key){
       document.querySelectorAll('#cliTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.clitab === key));
       document.querySelectorAll('#panel-clientes .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cliTab-' + key));
@@ -6091,11 +6156,11 @@
       if(!btn) return;
       const key = btn.dataset.clitab;
       activarTabCliente(key);
-      if(key === 'crear') renderFormCliente(null); // clic directo en la pestaña siempre arranca en blanco
+      if(key === 'crear') abrirFormCliente(null, 'cliFormWrap'); // clic directo en la pestaña siempre arranca en blanco
     });
 
     document.getElementById('cliSortGroup').addEventListener('click', e => {
-      const btn = e.target.closest('.cli-sort-btn');
+      const btn = e.target.closest('.sol-sort-btn');
       if(!btn) return;
       const sort = btn.dataset.sort;
       if(cliSort === sort){
@@ -6112,6 +6177,10 @@
     document.getElementById('cliBuscar').addEventListener('input', e => {
       clearTimeout(cliBuscarTimer);
       cliBuscarTimer = setTimeout(() => cargarClientes(e.target.value.trim()), 300);
+    });
+    document.getElementById('cliLimpiarFiltros').addEventListener('click', () => {
+      document.getElementById('cliBuscar').value = '';
+      cargarClientes('');
     });
 
     renderSortButtons();
@@ -8043,6 +8112,10 @@
       Diplomas: { estatus_curso: 'Terminado', estatus_cierre: 'Diplomas' },
       Cerrado: { estatus_curso: 'Terminado', estatus_cierre: 'Cerrado' },
     };
+    // Mismo orden que api/src/grupo-fase.js#FASES — duplicado a propósito
+    // (mismo criterio que el resto del proyecto), lo usa ordenarListaGrupos
+    // para el sort por Fase en el cliente.
+    const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
     const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc' };
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -8458,7 +8531,7 @@
               </select>
             </div>
             <div class="radm-field" id="gruGrupoField" hidden>
-              <label>GRUPO</label>
+              <label># GRUPO</label>
               <input type="text" id="gruGrupoCodigo" placeholder="Ej. Grupo1, Grupo2...">
             </div>
           </div>

@@ -4,6 +4,8 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
+const TIPOS_VALIDOS = ["Directo", "Intermediario"];
+
 function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
@@ -24,6 +26,7 @@ module.exports = async function (context, req) {
   const codigo = limpiarCodigo(body.codigo);
   const notas = (body.notas || "").trim() || null;
   const clienteDesde = anioONull(body.cliente_desde);
+  const tipoCliente = TIPOS_VALIDOS.includes(body.tipo_cliente) ? body.tipo_cliente : "Directo";
 
   if (!id || !nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id, nombre o código del cliente." } };
@@ -47,7 +50,10 @@ module.exports = async function (context, req) {
       .input("codigo", sql.NVarChar, codigo)
       .input("notas", sql.NVarChar, notas)
       .input("clienteDesde", sql.Int, clienteDesde)
-      .query("UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde WHERE id=@id");
+      .input("tipoCliente", sql.NVarChar, tipoCliente)
+      .query(
+        "UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde, tipo_cliente=@tipoCliente WHERE id=@id"
+      );
     if (!result.rowsAffected[0]) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese cliente ya no existe." } };
       return;

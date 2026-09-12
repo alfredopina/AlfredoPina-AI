@@ -6,6 +6,8 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
+const TIPOS_VALIDOS = ["Directo", "Intermediario"];
+
 function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
@@ -25,6 +27,7 @@ module.exports = async function (context, req) {
   const codigo = limpiarCodigo(body.codigo);
   const notas = (body.notas || "").trim() || null;
   const clienteDesde = anioONull(body.cliente_desde);
+  const tipoCliente = TIPOS_VALIDOS.includes(body.tipo_cliente) ? body.tipo_cliente : "Directo";
 
   if (!nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre o el código del cliente." } };
@@ -47,7 +50,10 @@ module.exports = async function (context, req) {
       .input("codigo", sql.NVarChar, codigo)
       .input("notas", sql.NVarChar, notas)
       .input("clienteDesde", sql.Int, clienteDesde)
-      .query("INSERT INTO Cliente (nombre, codigo, notas, cliente_desde) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde)");
+      .input("tipoCliente", sql.NVarChar, tipoCliente)
+      .query(
+        "INSERT INTO Cliente (nombre, codigo, notas, cliente_desde, tipo_cliente) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde, @tipoCliente)"
+      );
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {
     // 2627/2601 = violación de UNIQUE en SQL Server — ya existe un cliente con ese código.

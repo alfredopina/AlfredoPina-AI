@@ -21,12 +21,17 @@
     --text: #edf0f4; --text-dim: #a4acb9; --text-faint: #79828f;
     --good: #4ade80; --bad: #ef4444;
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
+    /* colores de "pilar" del panel Modelo — Comercial/Operación/Producto-Catálogo/
+       Infraestructura, coherentes con la paleta de marca pero sin chocar con los
+       colores por herramienta (Excel/Power BI/...) que ya usa el resto del admin */
+    --mdl-comercial: #3d7fff; --mdl-operacion: #f5a623; --mdl-catalogo: #4ade80; --mdl-infra: #8a96ac; --mdl-snapshot: #d7ac52;
   }
   :root[data-theme="light"]{
     --bg: #eef1f8; --panel: #ffffff; --panel-2: #e6ebf5; --line: #d2d9e6; --line-soft: #e0e5f0;
     --blue: #2f6fe0; --blue-bright: #1d5fd6; --blue-soft: rgba(47,111,224,.10); --blue-dim: #dde8fb;
     --text: #14181f; --text-dim: #4a5261; --text-faint: #6b7280;
     --good: #16a34a; --bad: #dc2626;
+    --mdl-comercial: #2f6fe0; --mdl-operacion: #b4690a; --mdl-catalogo: #158a45; --mdl-infra: #5b6577; --mdl-snapshot: #a3781f;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased; transition:background .15s, color .15s;}
@@ -962,6 +967,91 @@
   .pend-archived-link:hover{ color:var(--text-dim); }
 
   .pend-empty{ text-align:center; padding:18px 6px; color:var(--text-faint); font-size:12px; line-height:1.5; margin-bottom:10px; }
+
+  /* ── Panel Modelo — visor interactivo del modelo de datos completo del
+     sitio (Azure SQL + Table Storage), herramienta personal de Alfredo para
+     ver el compuesto del sistema — no un pilar del negocio, por eso vive
+     suelto en el sidebar debajo de Pendientes. Reusa los tokens de color del
+     sitio en vez de definir los suyos; --mdl-* de arriba son las únicas
+     variables nuevas, una por "pilar" del diagrama. */
+  .mdl-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .mdl-stats-line{ font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap; }
+  .mdl-search-wrap{ position:relative; flex:1; min-width:150px; max-width:260px; }
+  .mdl-search-wrap svg{ position:absolute; left:9px; top:50%; transform:translateY(-50%); width:13px; height:13px; color:var(--text-faint); pointer-events:none; }
+  .mdl-search-wrap input{
+    width:100%; padding:7px 10px 7px 28px; border-radius:7px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-family:var(--body); font-size:12.5px; outline:none;
+  }
+  .mdl-search-wrap input:focus{ border-color:var(--blue-bright); }
+  .mdl-zoom-readout{ font-family:var(--mono); font-size:11px; color:var(--text-faint); width:36px; text-align:center; }
+  .mdl-updated{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-left:auto; }
+
+  .mdl-viewport{
+    position:relative; height:min(70vh, 760px); border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; cursor:grab; background-color:var(--bg);
+    background-image:radial-gradient(circle, var(--line) 1.2px, transparent 1.2px); background-size:26px 26px;
+  }
+  .mdl-viewport.panning{ cursor:grabbing; }
+  .mdl-world{ position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+  .mdl-svg{ position:absolute; left:0; top:0; overflow:visible; }
+  .mdl-zone-label{ font-family:var(--mono); font-size:11.5px; fill:var(--text-faint); }
+  .mdl-zone-rect{ fill:var(--panel-2); fill-opacity:.35; }
+  .mdl-rel-label-bg{ fill:var(--panel); stroke:var(--line); stroke-width:1; }
+  .mdl-rel-label-txt{ font-family:var(--mono); font-size:9px; fill:var(--text-dim); }
+
+  .mdl-card{
+    position:absolute; width:280px; background:var(--panel); border:1px solid var(--line);
+    border-radius:11px; box-shadow:0 6px 18px rgba(0,0,0,.25); overflow:hidden; user-select:none;
+    transition:opacity .15s, box-shadow .15s;
+  }
+  .mdl-card.engine-storage{ border-style:dashed; }
+  .mdl-card.dim{ opacity:.2; }
+  .mdl-card.match, .mdl-card.selected{ box-shadow:0 0 0 2px var(--blue-bright); }
+  .mdl-card.selected .mdl-card-head{ background:var(--panel-2); }
+  .mdl-card-accent{ height:4px; width:100%; }
+  .mdl-card-head{ padding:9px 11px 8px; cursor:grab; border-bottom:1px solid var(--line); }
+  .mdl-card-head:active{ cursor:grabbing; }
+  .mdl-card-title-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .mdl-card-title{ font-family:var(--display); font-size:13.5px; font-weight:700; }
+  .mdl-engine-tag{ font-family:var(--mono); font-size:8.5px; font-weight:500; letter-spacing:.3px; padding:2px 5px; border-radius:5px; border:1px solid var(--line); color:var(--text-faint); white-space:nowrap; }
+  .mdl-card-meta{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:5px; }
+  .mdl-pillar-pill{ display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-dim); }
+  .mdl-pillar-dot{ width:7px; height:7px; border-radius:2px; flex:none; }
+  .mdl-pk-line{ font-family:var(--mono); font-size:9px; color:var(--text-faint); }
+  .mdl-card-note{ font-size:10px; color:var(--text-faint); font-style:italic; margin-top:5px; line-height:1.3; }
+  .mdl-card-stats{
+    font-family:var(--mono); font-size:9.5px; color:var(--text-faint); margin-top:6px; padding-top:6px;
+    border-top:1px dashed var(--line);
+  }
+  .mdl-card-stats.loaded{ color:var(--blue-bright); }
+
+  .mdl-field-list{ max-height:220px; overflow-y:auto; padding:4px 0; }
+  .mdl-field{ display:flex; align-items:baseline; gap:6px; padding:3px 11px; font-family:var(--mono); font-size:10.5px; line-height:1.3; }
+  .mdl-field-mark{ flex:none; width:7px; height:7px; margin-top:3px; border-radius:2px; border:1.3px solid var(--text-dim); }
+  .mdl-field.pk .mdl-field-mark{ background:var(--text-dim); }
+  .mdl-field.fk .mdl-field-mark{ border-radius:50%; background:transparent; }
+  .mdl-field.plain .mdl-field-mark{ border:none; background:var(--text-faint); width:4px; height:4px; margin-top:5px; border-radius:50%; opacity:.6; }
+  .mdl-field-name{ color:var(--text); font-weight:500; }
+  .mdl-field.opt .mdl-field-name{ color:var(--text-dim); }
+  .mdl-field-type{ color:var(--text-faint); margin-left:5px; }
+  .mdl-field-extra{ display:block; color:var(--text-faint); font-size:9px; margin-top:1px; word-break:break-word; }
+  .mdl-field-extra b{ color:var(--blue-bright); font-weight:500; }
+  .mdl-field-badge{ display:inline-block; font-size:8px; font-weight:600; color:var(--blue-bright); border:1px solid var(--line); border-radius:4px; padding:0 4px; margin-left:4px; }
+
+  .mdl-legend{
+    position:absolute; right:12px; bottom:12px; width:250px; background:var(--panel);
+    border:1px solid var(--line); border-radius:10px; box-shadow:0 8px 22px rgba(0,0,0,.3); padding:12px 12px 10px;
+    font-size:11px; color:var(--text-dim); transform:translateY(10px); opacity:0; pointer-events:none;
+    transition:opacity .15s, transform .15s;
+  }
+  .mdl-legend.open{ opacity:1; pointer-events:auto; transform:translateY(0); }
+  .mdl-legend h4{ font-family:var(--display); font-size:12px; margin:0 0 7px; color:var(--text); }
+  .mdl-legend .lg-row{ display:flex; align-items:center; gap:7px; margin:5px 0; }
+  .mdl-legend .lg-swatch{ width:14px; height:14px; border-radius:4px; flex:none; }
+  .mdl-legend hr{ border:none; border-top:1px solid var(--line); margin:8px 0; }
+  .mdl-legend svg{ width:30px; height:9px; flex:none; }
+
+  .mdl-hint{ position:absolute; left:12px; bottom:12px; font-size:10.5px; color:var(--text-faint); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 9px; max-width:210px; line-height:1.35; }
 </style>
 </head>
 <body>
@@ -1034,6 +1124,10 @@
       <button class="admin-nav-item admin-nav-standalone" data-panel="pendientes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Pendientes
+      </button>
+      <button class="admin-nav-item" data-panel="modelo">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="7" height="5" rx="1"/><rect x="14" y="4" width="7" height="5" rx="1"/><rect x="8.5" y="15" width="7" height="5" rx="1"/><path d="M6.5 9v2a2 2 0 0 0 2 2h1M17.5 9v2a2 2 0 0 1-2 2h-1" stroke-linecap="round"/></svg></span>
+        Modelo
       </button>
     </nav>
 
@@ -2435,6 +2529,68 @@
         <div id="pendToast" class="radm-toast" hidden></div>
         <div class="pend-grid" id="pendGrid"></div>
       </div>
+
+      <div class="admin-panel" id="panel-modelo" style="--c:var(--blue-bright)">
+        <div id="mdlToast" class="radm-toast" hidden></div>
+
+        <div class="mdl-toolbar">
+          <div class="mdl-stats-line" id="mdlStatsLine"></div>
+          <div class="mdl-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input id="mdlSearch" type="text" placeholder="Buscar tabla o campo…" autocomplete="off">
+          </div>
+          <button class="admin-icon-btn" id="mdlZoomOut" title="Alejar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/></svg>
+          </button>
+          <span class="mdl-zoom-readout" id="mdlZoomReadout">100%</span>
+          <button class="admin-icon-btn" id="mdlZoomIn" title="Acercar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+          </button>
+          <button class="admin-icon-btn" id="mdlFitBtn" title="Centrar todo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"/></svg>
+          </button>
+          <button class="admin-icon-btn" id="mdlResetBtn" title="Restaurar posiciones originales">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+          </button>
+          <button class="admin-icon-btn" id="mdlLegendBtn" title="Leyenda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </button>
+          <button class="admin-icon-btn" id="mdlActualizarBtn" title="Actualizar filas y última fecha de cada tabla">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.5-6.3M21 12a9 9 0 0 1-15.5 6.3M3 4v5h5M21 20v-5h-5"/></svg>
+          </button>
+          <span class="mdl-updated" id="mdlUpdated">Sin actualizar — pulsa el botón de refrescar</span>
+        </div>
+
+        <div class="mdl-viewport" id="mdlViewport">
+          <div class="mdl-world" id="mdlWorld">
+            <svg class="mdl-svg" id="mdlSvg">
+              <defs>
+                <marker id="mdlArrowFk" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--blue-bright)"/></marker>
+                <marker id="mdlArrowSoft" markerWidth="9" markerHeight="9" refX="6" refY="4" orient="auto"><circle cx="4" cy="4" r="3" fill="none" stroke="var(--text-dim)" stroke-width="1.4"/></marker>
+                <marker id="mdlArrowSnap" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto"><circle cx="3.5" cy="3.5" r="2" fill="var(--mdl-snapshot)"/></marker>
+              </defs>
+              <g id="mdlZonesLayer"></g>
+              <g id="mdlLinesLayer"></g>
+            </svg>
+            <div id="mdlCardsLayer"></div>
+          </div>
+          <div class="mdl-legend" id="mdlLegend">
+            <h4>Cómo leer el diagrama</h4>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--mdl-comercial)"></span> Comercial (SQL)</div>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--mdl-operacion)"></span> Operación (SQL)</div>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--mdl-catalogo)"></span> Producto / Catálogo (Table Storage)</div>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--mdl-infra)"></span> Infraestructura / herramientas propias</div>
+            <hr>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--panel-2); border:1px solid var(--text-dim)"></span> Borde sólido = Azure SQL</div>
+            <div class="lg-row"><span class="lg-swatch" style="background:var(--panel-2); border:1px dashed var(--text-dim)"></span> Borde punteado = Table Storage</div>
+            <hr>
+            <div class="lg-row"><svg viewBox="0 0 30 9"><line x1="0" y1="4.5" x2="26" y2="4.5" stroke="var(--blue-bright)" stroke-width="1.7" marker-end="url(#mdlArrowFk)"/></svg> FK real</div>
+            <div class="lg-row"><svg viewBox="0 0 30 9"><line x1="0" y1="4.5" x2="26" y2="4.5" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#mdlArrowSoft)"/></svg> Sin FK (id/array)</div>
+            <div class="lg-row"><svg viewBox="0 0 30 9"><line x1="0" y1="4.5" x2="26" y2="4.5" stroke="var(--mdl-snapshot)" stroke-width="1.3" stroke-dasharray="1,4" marker-end="url(#mdlArrowSnap)"/></svg> Foto/consulta, sin ref. viva</div>
+          </div>
+          <div class="mdl-hint">Arrastra una tabla para moverla · arrastra el fondo para navegar · scroll para zoom · clic para resaltar relaciones</div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -2464,7 +2620,7 @@
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Tracking Comercial', 'tracking-operacion': 'Tracking Operación',
     encuestas: 'Encuestas', diplomas: 'Diplomas', grupos: 'Grupos', pendientes: 'Pendientes',
-    config: 'Configuración', notificaciones: 'Notificaciones',
+    modelo: 'Modelo', config: 'Configuración', notificaciones: 'Notificaciones',
   };
 
   // activarPanel es la única puerta para cambiar de sección — la usan el sidebar
@@ -8934,6 +9090,721 @@
     });
 
     cargarPendientes();
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL MODELO — visor interactivo del modelo de datos completo del sitio
+  // (Azure SQL + Table Storage), reflejando el esquema real de sql/*.sql y
+  // api/src/*.js. Herramienta personal de Alfredo para ver el compuesto del
+  // sistema, no un pilar del modelo de negocio (por eso vive suelto en el
+  // sidebar, debajo de Pendientes) — mismo contenido que el Artifact público
+  // ya compartido, ahora embebido aquí para que viva dentro de /admin sin
+  // depender de un link externo a claude.ai.
+  //
+  // Filas/última fecha por tabla NO se cargan solas al abrir el panel — solo
+  // al pulsar el ícono de refrescar, mismo criterio que Tarifas/Respaldos en
+  // Configuración: evita despertar la base SQL serverless o recorrer las 8
+  // tablas de Table Storage (sin COUNT nativo, hay que listar entidad por
+  // entidad) solo por entrar a mirar el diagrama.
+  (function(){
+    const CARD_W = 280;
+    function f(name, type, opts){ return Object.assign({ name, type }, opts||{}); }
+
+    const TABLES = [
+      // ---------------- Azure SQL — Comercial ----------------
+      { id:'Cliente', engine:'sql', pillar:'comercial', pk:'id', x:70, y:100,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('nombre','NVARCHAR(200)'),
+          f('codigo','NVARCHAR(20)',{badge:'UNIQUE'}),
+          f('notas','NVARCHAR(MAX)',{opt:true}),
+          f('cliente_desde','INT',{opt:true,extra:'año de antigüedad'}),
+        ]},
+      { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id', x:410, y:100,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('nombre','NVARCHAR(200)'),
+          f('correo','NVARCHAR(200)',{opt:true}),
+          f('telefono','NVARCHAR(30)',{opt:true}),
+          f('tiene_whatsapp','BIT'),
+          f('area','NVARCHAR(100)',{opt:true}),
+          f('planta','NVARCHAR(100)',{opt:true,extra:'otra ubicación física'}),
+          f('es_principal','BIT',{extra:'máx. 1 por cliente'}),
+          f('fecha_creacion','DATETIME2'),
+        ]},
+      { id:'TarifaHerramienta', engine:'sql', pillar:'comercial', pk:'herramienta', x:750, y:100,
+        note:'Lookup de precio/hora — se congela en Cotizacion.precio_final al crear, nunca queda como referencia viva.',
+        fields:[
+          f('herramienta','NVARCHAR(50)',{pk:true}),
+          f('precio_hora','DECIMAL(10,2)'),
+        ]},
+      { id:'Solicitud', engine:'sql', pillar:'comercial', pk:'id', x:70, y:500,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('contacto_id','INT',{fk:'Contacto.id',opt:true}),
+          f('herramienta','NVARCHAR(50)'),
+          f('temario_tipo','estandar|personalizado'),
+          f('temario_nombre','NVARCHAR(200)',{opt:true}),
+          f('temas_json','NVARCHAR(MAX)',{opt:true,extra:'foto de temas/descripción — sin FK'}),
+          f('horas_totales','DECIMAL(6,1)',{opt:true}),
+          f('fecha_tentativa','NVARCHAR(200)',{opt:true,extra:'texto libre, no DATE'}),
+          f('ciudad_sede','NVARCHAR(150)',{opt:true}),
+          f('participantes','NVARCHAR(50)',{opt:true,extra:'CHECK: 4 valores fijos'}),
+          f('modalidad','NVARCHAR(30)',{opt:true,extra:'CHECK: Online/Presencial/Híbrido'}),
+          f('canal_origen','Manual|Sitio'),
+          f('estatus','NVARCHAR(30)',{extra:'Nueva…Descartada'}),
+          f('notas','NVARCHAR(MAX)',{opt:true}),
+          f('fecha_creacion','DATETIME2'),
+        ]},
+      { id:'Cotizacion', engine:'sql', pillar:'comercial', pk:'id', x:410, y:500,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('folio','NVARCHAR(40)',{badge:'UNIQUE'}),
+          f('solicitud_id','INT',{fk:'Solicitud.id',opt:true}),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('contacto_id','INT',{fk:'Contacto.id',opt:true}),
+          f('herramienta','NVARCHAR(50)'),
+          f('temario_tipo','estandar|personalizado'),
+          f('temario_nombre','NVARCHAR(200)',{opt:true}),
+          f('temas_json','NVARCHAR(MAX)',{opt:true,extra:'foto de temas — sin FK'}),
+          f('horas','DECIMAL(6,1)'),
+          f('precio_sugerido','DECIMAL(10,2)',{opt:true}),
+          f('descuento_pct','DECIMAL(5,2)',{opt:true}),
+          f('precio_final','DECIMAL(10,2)'),
+          f('fecha_creacion','DATETIME2'),
+          f('fecha_envio','DATETIME2',{opt:true}),
+          f('fecha_vigencia','DATE',{opt:true}),
+          f('fecha_tentativa','NVARCHAR(200)',{opt:true}),
+          f('ciudad_sede','NVARCHAR(150)',{opt:true}),
+          f('participantes','NVARCHAR(50)',{opt:true}),
+          f('modalidad','NVARCHAR(30)',{opt:true}),
+          f('estatus','NVARCHAR(30)',{extra:'Borrador…Reemplazada'}),
+          f('reemplaza_a_folio','NVARCHAR(40)',{fk:'Cotizacion.folio',opt:true,extra:'auto-referencia · "Nueva versión"'}),
+          f('blob_path','NVARCHAR(300)',{opt:true}),
+        ]},
+
+      // ---------------- Azure SQL — Operación ----------------
+      { id:'Grupo', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:100,
+        note:'cliente_id = quien contrató · cliente_final_id = quien recibe el curso, solo si hay reventa/intermediario (ej. Capacitanet→Clarios). Sin eliminarGrupo — se corrige con editarGrupo, nunca se borra.',
+        fields:[
+          f('id','INT',{pk:true}),
+          f('cliente_id','INT',{fk:'Cliente.id',extra:'quien contrató'}),
+          f('cliente_final_id','INT',{fk:'Cliente.id',opt:true,extra:'reventa/intermediario'}),
+          f('contacto_id','INT',{fk:'Contacto.id',opt:true}),
+          f('modalidad','NVARCHAR(30)',{opt:true}),
+          f('grupo_codigo','NVARCHAR(50)',{opt:true}),
+          f('herramientas','NVARCHAR(200)',{extra:'JSON[] de slugs'}),
+          f('nombre_curso','NVARCHAR(200)',{opt:true}),
+          f('niveles','NVARCHAR(20)',{extra:'JSON[]: [1,2,3]'}),
+          f('horas','DECIMAL(6,1)',{opt:true}),
+          f('sesiones','INT',{opt:true}),
+          f('fecha_inicio','DATE',{opt:true}),
+          f('fecha_fin','DATE',{opt:true}),
+          f('instructor','NVARCHAR(150)',{opt:true,extra:'texto plano, sin FK — vive en Blob'}),
+          f('estatus_curso','NVARCHAR(20)',{extra:'Por iniciar|En proceso|Terminado'}),
+          f('estatus_cierre','NVARCHAR(20)',{opt:true,extra:'Proyecto…Cerrado'}),
+          f('cotizacion_id','INT',{fk:'Cotizacion.id',opt:true,extra:'origen'}),
+          f('fotos_rs','BIT'),
+          f('correos_ml','BIT'),
+          f('pagado','BIT'),
+          f('fecha_cierre','DATE',{opt:true}),
+          f('notas','NVARCHAR(MAX)',{opt:true}),
+          f('fecha_creacion','DATETIME2'),
+        ]},
+      { id:'GrupoFaseHistorial', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:100,
+        note:'Se llena solo desde grupo-fase.js — la fase real se sigue derivando de estatus_curso/estatus_cierre en Grupo; esto solo guarda CUÁNDO se cruzó cada una (stepper con fechas, "días en esta fase").',
+        fields:[
+          f('id','INT',{pk:true}),
+          f('grupo_id','INT',{fk:'Grupo.id'}),
+          f('fase','NVARCHAR(20)',{extra:'6 valores fijos, para el stepper'}),
+          f('fecha','DATETIME2'),
+        ]},
+      { id:'Alumno', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:100,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('nombre_completo','NVARCHAR(200)'),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+        ]},
+      { id:'Diploma', engine:'sql', pillar:'operacion', pk:'folio', x:1170, y:500,
+        fields:[
+          f('folio','NVARCHAR(40)',{pk:true}),
+          f('alumno_id','INT',{fk:'Alumno.id'}),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('herramienta','NVARCHAR(50)'),
+          f('curso','NVARCHAR(200)'),
+          f('nivel','NVARCHAR(50)'),
+          f('fecha_inicio','DATE'),
+          f('fecha_fin','DATE'),
+          f('resultado','Aprobado|Participó|No Aprobado'),
+          f('instructor','NVARCHAR(120)'),
+          f('grupo','NVARCHAR(120)'),
+          f('proyecto','INT',{opt:true}),
+          f('asistencia','INT',{opt:true}),
+          f('participacion','INT',{opt:true}),
+          f('horas','INT',{opt:true}),
+          f('blob_path','NVARCHAR(300)',{opt:true}),
+          f('estatus','vigente|anulado'),
+          f('corrige_a_folio','NVARCHAR(40)',{fk:'Diploma.folio',opt:true,extra:'auto-referencia · columna existe, sin UI aún'}),
+          f('fecha_generacion','DATETIME2'),
+        ]},
+      { id:'EncuestaPregunta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:500,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('seccion','Instructor|Curso y Materiales'),
+          f('texto','NVARCHAR(300)'),
+          f('tipo','escala|texto'),
+          f('orden','INT'),
+          f('activa','BIT',{extra:'soft-delete — el borrado real sí ocurre'}),
+        ]},
+      { id:'EncuestaRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:500,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('nombre','NVARCHAR(200)',{opt:true}),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('curso','NVARCHAR(200)'),
+          f('instructor','NVARCHAR(120)'),
+          f('fecha','DATE'),
+          f('fecha_envio','DATETIME2'),
+        ]},
+      { id:'EncuestaRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:900,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('respuesta_id','INT',{fk:'EncuestaRespuesta.id'}),
+          f('pregunta_id','INT',{extra:'referencia SIN FK a propósito — conserva historial si se borra la pregunta'}),
+          f('valor','NVARCHAR(500)'),
+        ]},
+      { id:'DiagnosticoPregunta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:900,
+        note:'opcion_correcta nunca se manda al público — getPreguntasDiagnostico la filtra antes de responder a la Function pública.',
+        fields:[
+          f('id','INT',{pk:true}),
+          f('herramienta','VARCHAR(20)',{extra:'excel|powerbi'}),
+          f('nivel','TINYINT',{extra:'1·2·3'}),
+          f('texto','NVARCHAR(500)'),
+          f('imagen_url','NVARCHAR(500)',{extra:'Blob público, contenedor diagnostico'}),
+          f('opcion_a','NVARCHAR(300)'),
+          f('opcion_b','NVARCHAR(300)'),
+          f('opcion_c','NVARCHAR(300)'),
+          f('opcion_d','NVARCHAR(300)'),
+          f('opcion_correcta','CHAR(1)',{extra:'nunca se manda al público'}),
+          f('orden','INT'),
+          f('activa','BIT'),
+          f('fecha_creacion','DATETIME2'),
+        ]},
+      { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:900,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('nombre','NVARCHAR(200)'),
+          f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('herramienta','VARCHAR(20)',{extra:'excel|powerbi'}),
+          f('fecha_envio','DATETIME2'),
+        ]},
+      { id:'DiagnosticoRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:1300,
+        fields:[
+          f('id','INT',{pk:true}),
+          f('respuesta_id','INT',{fk:'DiagnosticoRespuesta.id'}),
+          f('pregunta_id','INT',{extra:'referencia SIN FK a propósito, mismo criterio que Encuestas'}),
+          f('nivel','TINYINT'),
+          f('opcion_seleccionada','CHAR(1)'),
+          f('fue_correcta','BIT',{extra:'foto al momento de responder, no se recalcula'}),
+        ]},
+
+      // ---------------- Table Storage — Catálogo de Cursos ----------------
+      { id:'Temas', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:70, y:1020,
+        note:'PartitionKey = herramienta · RowKey = temaId (slug). Banco compartido: alimenta tanto TemariosEstandar como el constructor personalizado.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta'}),
+          f('RowKey','string',{pk:true,extra:'temaId (slug)'}),
+          f('nombre','string'),
+          f('descripcion','string'),
+          f('horas','number'),
+          f('nivel','1·2·3',{extra:'Básico/Intermedio/Avanzado'}),
+          f('estado','borrador|publicado'),
+          f('orden','number'),
+        ]},
+      { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:410, y:1020,
+        note:'= el "Curso" que ve el cliente en /cursos.html. Se auto-crea sola al primer escritura, sin paso de portal.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta'}),
+          f('RowKey','string',{pk:true,extra:'temarioId (slug)'}),
+          f('nombre','string'), f('objetivo','string'), f('dirigido','string'),
+          f('tags','string',{opt:true,extra:'coma-separado'}),
+          f('temaIds','JSON[]',{extra:'lista ordenada ⇢ Temas'}),
+          f('estado','borrador|publicado'), f('orden','number'),
+        ]},
+      { id:'Proyectos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:750, y:1020,
+        note:'Se desbloquea solo si TODOS sus temaIds están cubiertos — no basta con uno.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta'}),
+          f('RowKey','string',{pk:true,extra:'proyectoId (slug)'}),
+          f('nombre','string'), f('objetivo','string'),
+          f('temaIds','JSON[]',{extra:'TODOS requeridos ⇢ Temas'}),
+          f('estado','borrador|publicado'), f('orden','number'),
+        ]},
+
+      // ---------------- Table Storage — Recursos ----------------
+      { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1170, y:1810,
+        note:'Código de descarga — módulo Recursos. No confundir con "Temario Estándar" (nombre distinto a propósito, ambigüedad ya documentada).',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta'}),
+          f('RowKey','string',{pk:true,extra:'cursoId'}),
+          f('nombre','string'), f('codigo','string',{extra:'código corto que se comparte'}),
+          f('estado','borrador|publicado'), f('orden','number'),
+          f('temarioId','string',{opt:true,extra:'⇢ TemariosEstandar.RowKey, opcional'}),
+        ]},
+      { id:'Recursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1510, y:1810,
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta_cursoId'}),
+          f('RowKey','string',{pk:true,extra:'uuid'}),
+          f('tipo','manual|caso|plantilla|skill|extra'),
+          f('titulo','string',{opt:true}), f('texto','string',{opt:true}),
+          f('url','string'), f('blobPath','string'), f('orden','number'),
+        ]},
+
+      // ---------------- Table Storage — Infraestructura y herramientas propias ----------------
+      { id:'IntentosCodigo', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:70, y:1540,
+        note:'Candado genérico de intentos fallidos — 10 fallos en 15 min bloquean 5 min. Fail-open si Table Storage falla.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'definido por quien llama'}),
+          f('RowKey','"contador"',{pk:true}),
+          f('fallos','number'), f('ventanaInicio','ISO datetime'), f('bloqueadoHasta','ISO datetime',{opt:true}),
+        ]},
+      { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1540,
+        note:'Deliberadamente en Table Storage, no en la base SQL — evita el auto-pause de 20-60s para una herramienta que necesita capturar al instante. Sin eliminarPendiente — el checkbox archiva, nunca borra.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'1 de 5 categorías fijas'}),
+          f('RowKey','string',{pk:true,extra:'uuid'}),
+          f('texto','string'),
+          f('fecha_creacion','ISO datetime'),
+          f('archivado','boolean'),
+          f('fecha_archivado','ISO datetime',{opt:true}),
+          f('orden','number',{opt:true,extra:'-Date.now() al crear · se reindexa 0,10,20… al reordenar'}),
+        ]},
+      { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:750, y:1540,
+        note:'Un renglón por administrador — el correo sale del header x-ms-client-principal que Azure ya verificó, nunca del cliente.',
+        fields:[
+          f('PartitionKey','"admin"',{pk:true,extra:'fijo'}),
+          f('RowKey','string',{pk:true,extra:'correo del administrador'}),
+          f('veces','number'), f('ultimaVez','ISO datetime'),
+        ]},
+    ];
+
+    // kind: fk (FK real SQL) · soft (referencia sin FK) · snap (foto/consulta, no vive como referencia)
+    const RELATIONS = [
+      { from:'Contacto', to:'Cliente', kind:'fk' },
+      { from:'Solicitud', to:'Cliente', kind:'fk' },
+      { from:'Solicitud', to:'Contacto', kind:'fk' },
+      { from:'Cotizacion', to:'Solicitud', kind:'fk' },
+      { from:'Cotizacion', to:'Cliente', kind:'fk' },
+      { from:'Cotizacion', to:'Contacto', kind:'fk' },
+      { from:'Cotizacion', to:'Cotizacion', kind:'fk', self:true, label:'reemplaza_a_folio' },
+      { from:'Alumno', to:'Cliente', kind:'fk' },
+      { from:'Diploma', to:'Alumno', kind:'fk' },
+      { from:'Diploma', to:'Cliente', kind:'fk' },
+      { from:'Diploma', to:'Diploma', kind:'fk', self:true, label:'corrige_a_folio · sin UI' },
+      { from:'EncuestaRespuesta', to:'Cliente', kind:'fk' },
+      { from:'EncuestaRespuestaDetalle', to:'EncuestaRespuesta', kind:'fk' },
+      { from:'EncuestaRespuestaDetalle', to:'EncuestaPregunta', kind:'soft', label:'pregunta_id · sin FK a propósito' },
+      { from:'TemariosEstandar', to:'Temas', kind:'soft', label:'temaIds[] ordenado' },
+      { from:'Proyectos', to:'Temas', kind:'soft', label:'temaIds[] todos requeridos' },
+      { from:'Recursos', to:'Cursos', kind:'soft', label:'PK = herramienta_cursoId' },
+      { from:'Cursos', to:'TemariosEstandar', kind:'soft', label:'temarioId opcional' },
+      { from:'IntentosCodigo', to:'Cursos', kind:'soft', label:'bloquea tras 10 fallos/15min' },
+      { from:'Solicitud', to:'TemariosEstandar', kind:'snap', label:'temas_json = foto' },
+      { from:'Cotizacion', to:'TemariosEstandar', kind:'snap', label:'temas_json = foto' },
+      { from:'TarifaHerramienta', to:'Cotizacion', kind:'snap', label:'precio_hora, sin ref. viva' },
+      { from:'Grupo', to:'Cliente', kind:'fk', label:'cliente_id', offset:-16 },
+      { from:'Grupo', to:'Cliente', kind:'fk', label:'cliente_final_id · opcional', offset:16 },
+      { from:'Grupo', to:'Contacto', kind:'fk' },
+      { from:'Grupo', to:'Cotizacion', kind:'fk', label:'cotizacion_id · origen' },
+      { from:'GrupoFaseHistorial', to:'Grupo', kind:'fk' },
+      { from:'DiagnosticoRespuesta', to:'Cliente', kind:'fk' },
+      { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoRespuesta', kind:'fk' },
+      { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoPregunta', kind:'soft', label:'pregunta_id · sin FK a propósito' },
+    ];
+
+    const ZONES = [
+      { x:40, y:40, w:1070, h:860, label:'Azure SQL · apcweb-backoffice — Comercial' },
+      { x:1140, y:40, w:1070, h:1650, label:'Azure SQL · apcweb-backoffice — Operación' },
+      { x:40, y:960, w:1070, h:460, label:'Table Storage · apcwebrecursos — Catálogo de Cursos' },
+      { x:40, y:1480, w:1070, h:460, label:'Table Storage · apcwebrecursos — Infraestructura y herramientas propias' },
+      { x:1140, y:1750, w:1070, h:460, label:'Table Storage · apcwebrecursos — Recursos (códigos de descarga)' },
+    ];
+
+    const WORLD_W = 2280, WORLD_H = 2280;
+    const STORAGE_KEY = 'apc-admin-modelo-layout-v1';
+
+    const pos = {};
+    TABLES.forEach(t => pos[t.id] = { x:t.x, y:t.y });
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e){ saved = null; }
+    if (saved) Object.keys(saved).forEach(id => { if (pos[id]) pos[id] = saved[id]; });
+    function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pos)); } catch(e){} }
+
+    function toast(msg, ok){
+      const el = document.getElementById('mdlToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    // ── tarjetas ──
+    const cardsLayer = document.getElementById('mdlCardsLayer');
+    const cardEls = {};
+    const statsEls = {};
+
+    function fieldRowHtml(fld){
+      const cls = ['mdl-field', fld.pk ? 'pk' : (fld.fk ? 'fk' : 'plain'), fld.opt ? 'opt' : ''].join(' ').trim();
+      let extra = '';
+      if (fld.fk) extra = `<span class="mdl-field-extra">→ <b>${fld.fk}</b></span>`;
+      else if (fld.extra) extra = `<span class="mdl-field-extra">${fld.extra}</span>`;
+      const badge = fld.badge ? `<span class="mdl-field-badge">${fld.badge}</span>` : '';
+      return `<div class="${cls}"><span class="mdl-field-mark"></span><span class="mdl-field-body"><span class="mdl-field-name">${fld.name}</span><span class="mdl-field-type">${fld.type}</span>${badge}${extra}</span></div>`;
+    }
+
+    const PILLAR_LABEL = { comercial:'Comercial', operacion:'Operación', catalogo:'Producto / Catálogo', infra:'Infraestructura' };
+
+    TABLES.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'mdl-card engine-' + t.engine;
+      el.id = 'mdlCard-' + t.id;
+      el.style.width = CARD_W + 'px';
+      el.style.left = pos[t.id].x + 'px';
+      el.style.top = pos[t.id].y + 'px';
+      el.title = t.engine === 'sql' ? 'Azure SQL · apcweb-backoffice' : 'Azure Table Storage · apcwebrecursos';
+      el.innerHTML = `
+        <div class="mdl-card-accent" style="background:var(--mdl-${t.pillar})"></div>
+        <div class="mdl-card-head">
+          <div class="mdl-card-title-row">
+            <span class="mdl-card-title">${t.id}</span>
+            <span class="mdl-engine-tag">${t.engine === 'sql' ? 'SQL' : 'TABLE STORAGE'}</span>
+          </div>
+          <div class="mdl-card-meta">
+            <span class="mdl-pillar-pill"><span class="mdl-pillar-dot" style="background:var(--mdl-${t.pillar})"></span>${PILLAR_LABEL[t.pillar]}</span>
+            <span class="mdl-pk-line">PK: ${t.pk}</span>
+          </div>
+          ${t.note ? `<div class="mdl-card-note">${t.note}</div>` : ''}
+          <div class="mdl-card-stats" id="mdlStats-${t.id}">Pulsa el ícono de refrescar para ver filas</div>
+        </div>
+        <div class="mdl-field-list">${t.fields.map(fieldRowHtml).join('')}</div>
+      `;
+      cardsLayer.appendChild(el);
+      cardEls[t.id] = el;
+      statsEls[t.id] = el.querySelector('#mdlStats-' + t.id);
+    });
+
+    document.getElementById('mdlStatsLine').textContent =
+      `${TABLES.length} tablas · 2 motores de datos · ${RELATIONS.length} relaciones`;
+
+    // ── zonas de fondo ──
+    const zonesLayer = document.getElementById('mdlZonesLayer');
+    ZONES.forEach(z => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.innerHTML = `
+        <rect class="mdl-zone-rect" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="14" stroke="var(--line)" stroke-dasharray="6,5"></rect>
+        <text class="mdl-zone-label" x="${z.x+14}" y="${z.y+22}">${z.label}</text>
+      `;
+      zonesLayer.appendChild(g);
+    });
+
+    // ── geometría + trazado de relaciones (misma lógica del Artifact público) ──
+    function cardRect(id){
+      const p = pos[id], el = cardEls[id];
+      const h = el.offsetHeight || 200;
+      return { x:p.x, y:p.y, w:CARD_W, h };
+    }
+    function edgePoint(rect, otherCenter){
+      const cx = rect.x + rect.w/2, cy = rect.y + rect.h/2;
+      const dx = otherCenter.x - cx, dy = otherCenter.y - cy;
+      if (Math.abs(dx) > Math.abs(dy)) return { x: cx + Math.sign(dx||1) * rect.w/2, y: cy };
+      return { x: cx, y: cy + Math.sign(dy||1) * rect.h/2 };
+    }
+    function bezierAt(p0,p1,p2,p3,t){
+      const mt = 1-t;
+      const x = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
+      const y = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
+      return {x,y};
+    }
+    const KIND_STYLE = {
+      fk:   { stroke:'var(--blue-bright)', width:1.6, dash:'none', marker:'url(#mdlArrowFk)' },
+      soft: { stroke:'var(--text-dim)', width:1.3, dash:'5,4', marker:'url(#mdlArrowSoft)' },
+      snap: { stroke:'var(--mdl-snapshot)', width:1.2, dash:'1,4', marker:'url(#mdlArrowSnap)' },
+    };
+    const linesLayer = document.getElementById('mdlLinesLayer');
+    const relEls = [];
+    RELATIONS.forEach(r => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('data-from', r.from); g.setAttribute('data-to', r.to);
+      const style = KIND_STYLE[r.kind];
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('fill','none'); path.setAttribute('stroke', style.stroke); path.setAttribute('stroke-width', style.width);
+      if (style.dash !== 'none') path.setAttribute('stroke-dasharray', style.dash);
+      path.setAttribute('marker-end', style.marker);
+      g.appendChild(path);
+      let labelGroup = null;
+      if (r.label){
+        labelGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
+        const w = Math.max(28, r.label.length * 5 + 10), h = 14;
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('class','mdl-rel-label-bg'); rect.setAttribute('width', w); rect.setAttribute('height', h); rect.setAttribute('rx', 4);
+        rect.setAttribute('x', -w/2); rect.setAttribute('y', -h/2);
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('class','mdl-rel-label-txt'); text.setAttribute('text-anchor','middle'); text.setAttribute('x', 0); text.setAttribute('y', 3);
+        text.textContent = r.label;
+        labelGroup.appendChild(rect); labelGroup.appendChild(text);
+        g.appendChild(labelGroup);
+      }
+      linesLayer.appendChild(g);
+      relEls.push({ r, g, path, labelGroup });
+    });
+
+    function updateLines(){
+      relEls.forEach(({r, path, labelGroup}) => {
+        const A = cardRect(r.from);
+        if (r.self){
+          const sx = A.x + A.w, sy = A.y + A.h*0.32;
+          const ex = A.x + A.w, ey = A.y + A.h*0.62;
+          const bulge = 68;
+          const c1 = { x: sx + bulge, y: sy }, c2 = { x: ex + bulge, y: ey };
+          path.setAttribute('d', `M ${sx},${sy} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${ex},${ey}`);
+          if (labelGroup){ const mid = bezierAt({x:sx,y:sy}, c1, c2, {x:ex,y:ey}, 0.5); labelGroup.setAttribute('transform', `translate(${mid.x + 6},${mid.y})`); }
+          return;
+        }
+        const B = cardRect(r.to);
+        const centerA = { x:A.x+A.w/2, y:A.y+A.h/2 };
+        const centerB = { x:B.x+B.w/2, y:B.y+B.h/2 };
+        let p0 = edgePoint(A, centerB);
+        let p3 = edgePoint(B, centerA);
+        if (r.offset){
+          const horiz = Math.abs(centerB.x - centerA.x) > Math.abs(centerB.y - centerA.y);
+          if (horiz){ p0 = { x:p0.x, y:p0.y + r.offset }; p3 = { x:p3.x, y:p3.y + r.offset }; }
+          else { p0 = { x:p0.x + r.offset, y:p0.y }; p3 = { x:p3.x + r.offset, y:p3.y }; }
+        }
+        const dx = p3.x - p0.x, dy = p3.y - p0.y;
+        let c1, c2;
+        if (Math.abs(dx) > Math.abs(dy)){ c1 = { x: p0.x + dx*0.5, y: p0.y }; c2 = { x: p0.x + dx*0.5, y: p3.y }; }
+        else { c1 = { x: p0.x, y: p0.y + dy*0.5 }; c2 = { x: p3.x, y: p0.y + dy*0.5 }; }
+        path.setAttribute('d', `M ${p0.x},${p0.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p3.x},${p3.y}`);
+        if (labelGroup){ const mid = bezierAt(p0, c1, c2, p3, 0.5); labelGroup.setAttribute('transform', `translate(${mid.x},${mid.y})`); }
+      });
+    }
+
+    const mdlSvg = document.getElementById('mdlSvg');
+    mdlSvg.setAttribute('width', WORLD_W); mdlSvg.setAttribute('height', WORLD_H); mdlSvg.setAttribute('viewBox', `0 0 ${WORLD_W} ${WORLD_H}`);
+    document.getElementById('mdlWorld').style.width = WORLD_W + 'px';
+    document.getElementById('mdlWorld').style.height = WORLD_H + 'px';
+
+    // ── pan + zoom ──
+    const viewport = document.getElementById('mdlViewport');
+    const world = document.getElementById('mdlWorld');
+    let scale = 1, panX = 0, panY = 0;
+    function applyTransform(){
+      world.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+      document.getElementById('mdlZoomReadout').textContent = Math.round(scale*100) + '%';
+    }
+    function fitView(){
+      const vw = viewport.clientWidth, vh = viewport.clientHeight, margin = 30;
+      const s = Math.min((vw-margin*2)/WORLD_W, (vh-margin*2)/WORLD_H, 1);
+      scale = Math.max(s, 0.15);
+      panX = (vw - WORLD_W*scale) / 2;
+      panY = (vh - WORLD_H*scale) / 2;
+      applyTransform();
+    }
+    let isPanning = false, panStart = null;
+    viewport.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.mdl-card')) return;
+      isPanning = true; panStart = { x:e.clientX, y:e.clientY, panX, panY };
+      viewport.classList.add('panning'); viewport.setPointerCapture(e.pointerId);
+    });
+    viewport.addEventListener('pointermove', (e) => {
+      if (!isPanning) return;
+      panX = panStart.panX + (e.clientX - panStart.x); panY = panStart.panY + (e.clientY - panStart.y);
+      applyTransform();
+    });
+    viewport.addEventListener('pointerup', () => { isPanning = false; viewport.classList.remove('panning'); });
+    viewport.addEventListener('pointercancel', () => { isPanning = false; viewport.classList.remove('panning'); });
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.12 : 1/1.12;
+      const newScale = Math.min(2.2, Math.max(0.12, scale * factor));
+      panX = cx - (cx - panX) * (newScale/scale); panY = cy - (cy - panY) * (newScale/scale);
+      scale = newScale; applyTransform();
+    }, { passive:false });
+
+    document.getElementById('mdlZoomIn').addEventListener('click', () => zoomStep(1.2));
+    document.getElementById('mdlZoomOut').addEventListener('click', () => zoomStep(1/1.2));
+    function zoomStep(factor){
+      const vw = viewport.clientWidth, vh = viewport.clientHeight, cx = vw/2, cy = vh/2;
+      const newScale = Math.min(2.2, Math.max(0.12, scale * factor));
+      panX = cx - (cx - panX) * (newScale/scale); panY = cy - (cy - panY) * (newScale/scale);
+      scale = newScale; applyTransform();
+    }
+    document.getElementById('mdlFitBtn').addEventListener('click', fitView);
+
+    // ── arrastrar tarjetas ──
+    let dragId = null, dragStart = null, moved = false;
+    Object.entries(cardEls).forEach(([id, el]) => {
+      const head = el.querySelector('.mdl-card-head');
+      head.addEventListener('pointerdown', (e) => {
+        e.stopPropagation(); dragId = id; moved = false;
+        dragStart = { x:e.clientX, y:e.clientY, px:pos[id].x, py:pos[id].y };
+        head.setPointerCapture(e.pointerId);
+      });
+      head.addEventListener('pointermove', (e) => {
+        if (dragId !== id) return;
+        const dx = (e.clientX - dragStart.x) / scale, dy = (e.clientY - dragStart.y) / scale;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+        pos[id].x = dragStart.px + dx; pos[id].y = dragStart.py + dy;
+        el.style.left = pos[id].x + 'px'; el.style.top = pos[id].y + 'px';
+        updateLines();
+      });
+      head.addEventListener('pointerup', () => {
+        if (dragId !== id) return;
+        dragId = null; persist();
+        if (!moved) toggleSelect(id);
+      });
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.mdl-card-head')) return;
+        toggleSelect(id);
+      });
+    });
+
+    // ── selección / resaltado de relaciones ──
+    let selected = null;
+    function neighbors(id){
+      const set = new Set([id]);
+      RELATIONS.forEach(r => { if (r.from === id) set.add(r.to); if (r.to === id) set.add(r.from); });
+      return set;
+    }
+    function toggleSelect(id){
+      if (searchQuery) return;
+      selected = selected === id ? null : id;
+      render();
+    }
+    function render(){
+      const active = selected ? neighbors(selected) : null;
+      Object.entries(cardEls).forEach(([id, el]) => {
+        el.classList.toggle('selected', selected === id);
+        el.classList.toggle('dim', !!active && !active.has(id));
+        el.classList.remove('match');
+      });
+      relEls.forEach(({r, g}) => {
+        const rel = !active || (active.has(r.from) && active.has(r.to) && (selected === r.from || selected === r.to));
+        g.style.opacity = active ? (rel ? 1 : 0.12) : 1;
+      });
+    }
+    viewport.addEventListener('pointerdown', (e) => {
+      if (!e.target.closest('.mdl-card')) { selected = null; render(); }
+    });
+
+    // ── búsqueda ──
+    let searchQuery = '';
+    const searchInput = document.getElementById('mdlSearch');
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      selected = null;
+      if (!searchQuery){ render(); return; }
+      Object.entries(cardEls).forEach(([id, el]) => {
+        const hay = el.textContent.toLowerCase().includes(searchQuery);
+        el.classList.toggle('match', hay); el.classList.toggle('dim', !hay); el.classList.remove('selected');
+      });
+      relEls.forEach(({g}) => g.style.opacity = 0.12);
+    });
+
+    // ── leyenda ──
+    const legend = document.getElementById('mdlLegend');
+    const LEGEND_KEY = 'apc-admin-modelo-legend-open';
+    let legendOpen = false;
+    try { legendOpen = localStorage.getItem(LEGEND_KEY) === '1'; } catch(e){}
+    legend.classList.toggle('open', legendOpen);
+    document.getElementById('mdlLegendBtn').addEventListener('click', () => {
+      legendOpen = !legendOpen; legend.classList.toggle('open', legendOpen);
+      try { localStorage.setItem(LEGEND_KEY, legendOpen ? '1' : '0'); } catch(e){}
+    });
+
+    // ── reset de layout ──
+    document.getElementById('mdlResetBtn').addEventListener('click', () => {
+      TABLES.forEach(t => {
+        pos[t.id] = { x:t.x, y:t.y };
+        cardEls[t.id].style.left = t.x + 'px'; cardEls[t.id].style.top = t.y + 'px';
+      });
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+      updateLines(); fitView();
+      toast('Posiciones originales restauradas', true);
+    });
+
+    // ── estadísticas: filas + última fecha, solo al pulsar el ícono de refrescar ──
+    // (nunca automático al abrir el panel — mismo criterio que Tarifas/Respaldos
+    // en Configuración, para no despertar la base SQL ni listar Table Storage
+    // sin que Alfredo lo pida de verdad)
+    const SIN_FECHA = new Set(['Cliente','TarifaHerramienta','Alumno','EncuestaPregunta','EncuestaRespuestaDetalle','DiagnosticoRespuestaDetalle']);
+    function fmtFecha(iso){
+      if(!iso) return null;
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+    function pintarStats(fila, esStorage){
+      const el = statsEls[fila.tabla];
+      if (!el) return;
+      if (fila.filas === null){ el.textContent = 'No se pudo leer esta tabla'; el.classList.add('loaded'); return; }
+      const fechaTxt = fmtFecha(fila.ultima);
+      const etiquetaFecha = esStorage ? 'última actividad' : 'última fecha';
+      let linea = `${fila.filas} fila${fila.filas === 1 ? '' : 's'}`;
+      if (fechaTxt) linea += ` · ${etiquetaFecha}: ${fechaTxt}`;
+      else if (!SIN_FECHA.has(fila.tabla)) linea += ` · sin registros aún`;
+      el.textContent = linea;
+      el.classList.add('loaded');
+    }
+
+    const actualizarBtn = document.getElementById('mdlActualizarBtn');
+    let cargandoStats = false;
+    async function cargarEstadisticas(){
+      if (cargandoStats) return;
+      cargandoStats = true;
+      actualizarBtn.classList.add('despertando');
+      try {
+        const data = await apiGetConReintento('/api/getModeloEstadisticas');
+        (data.sql || []).forEach(fila => pintarStats(fila, false));
+        (data.storage || []).forEach(fila => pintarStats(fila, true));
+        const hora = new Date(data.generado).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+        document.getElementById('mdlUpdated').textContent = 'Actualizado ' + hora;
+        if (data.sqlError) toast(data.sqlError, false);
+        else if (data.storageError) toast(data.storageError, false);
+        else toast('Modelo actualizado.', true);
+      } catch(err){
+        toast('No se pudieron leer las estadísticas: ' + err.message, false);
+      } finally {
+        actualizarBtn.classList.remove('despertando');
+        cargandoStats = false;
+      }
+    }
+    actualizarBtn.addEventListener('click', cargarEstadisticas);
+
+    // ── arranque ──
+    requestAnimationFrame(() => { updateLines(); fitView(); });
   })();
 </script>
 

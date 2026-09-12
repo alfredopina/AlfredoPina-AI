@@ -355,6 +355,10 @@
     {
       "route": "/api/updateOrdenPendientes",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getModeloEstadisticas",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

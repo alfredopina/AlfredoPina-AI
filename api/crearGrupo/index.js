@@ -79,8 +79,6 @@ function validarCuerpo(body) {
 
   const horas = body.horas != null && body.horas !== "" ? Number(body.horas) : null;
   if (horas != null && !Number.isFinite(horas)) throw new Error("Las horas no son válidas.");
-  const sesiones = body.sesiones != null && body.sesiones !== "" ? Number(body.sesiones) : null;
-  if (sesiones != null && !Number.isInteger(sesiones)) throw new Error("Las sesiones no son válidas.");
 
   return {
     herramientas,
@@ -89,7 +87,9 @@ function validarCuerpo(body) {
     grupoCodigo: (body.grupo_codigo || "").trim() || null,
     nombreCurso: (body.nombre_curso || "").trim() || null,
     horas,
-    sesiones,
+    // texto libre desde 2026-09-12 (ej. "5 Sesiones Jueves de 2 a 6 pm"), ya
+    // no un conteo — ver sql/013_grupo_sesiones_texto.sql
+    sesiones: (body.sesiones || "").trim() || null,
     fechaInicio: body.fecha_inicio || null,
     fechaFin: body.fecha_fin || null,
     instructor: (body.instructor || "").trim() || null,
@@ -171,7 +171,7 @@ module.exports = async function (context, req) {
         .input("nombreCurso", sql.NVarChar, datos.nombreCurso)
         .input("niveles", sql.NVarChar, JSON.stringify(datos.niveles))
         .input("horas", sql.Decimal(6, 1), datos.horas)
-        .input("sesiones", sql.Int, datos.sesiones)
+        .input("sesiones", sql.NVarChar, datos.sesiones)
         .input("fechaInicio", sql.Date, datos.fechaInicio ? new Date(datos.fechaInicio) : null)
         .input("fechaFin", sql.Date, datos.fechaFin ? new Date(datos.fechaFin) : null)
         .input("instructor", sql.NVarChar, datos.instructor)

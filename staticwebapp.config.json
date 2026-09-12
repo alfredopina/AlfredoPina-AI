@@ -325,6 +325,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/listNombresCursoAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/avanzarFaseGrupo",
       "allowedRoles": ["admin"]
     },

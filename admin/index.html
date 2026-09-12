@@ -329,6 +329,7 @@
   }
   .radm-form-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
   .radm-form-row[hidden]{ display:none; }
+  .radm-field[hidden]{ display:none; }
   .radm-field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
   .radm-field label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; }
   .radm-field input[type=text], .radm-field input[type=url], .radm-field textarea, .radm-field select{
@@ -8327,6 +8328,24 @@
           <div id="gruStepperInteractivo"></div>
         </div>` : ''}
         <div class="radm-form">
+          <div class="radm-toggles-block" style="display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:1px solid var(--line); border-radius:10px; margin-bottom:20px; background:var(--panel-2);">
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleClienteFinal"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Hay Cliente final? (reventa/intermediario)</span>
+            </div>
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleMultiGrupo"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Más de 1 Grupo? (te contrataron varios a la vez)</span>
+            </div>
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleCotizacion"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Tiene Cotización?</span>
+            </div>
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleHistorico"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Curso histórico? (ya cerrado, capturas la fecha real)</span>
+            </div>
+          </div>
           <div class="radm-form-row">
             <div class="radm-field dip-autocomplete-wrap">
               <label>CLIENTE (quien contrató) <span class="dip-req">*</span></label>
@@ -8337,10 +8356,6 @@
               <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
               <input type="text" id="gruClienteCodigo" placeholder="ACME">
             </div>
-          </div>
-          <div class="radm-switch-row" style="margin:2px 0 10px;">
-            <label class="radm-switch"><input type="checkbox" id="gruToggleClienteFinal"><span class="radm-switch-track"></span></label>
-            <span class="radm-switch-label">¿Hay Cliente final? (reventa/intermediario)</span>
           </div>
           <div class="radm-form-row" id="gruClienteFinalRow" hidden>
             <div class="radm-field dip-autocomplete-wrap">
@@ -8373,7 +8388,7 @@
                 ${MODALIDADES.map(m => `<option value="${m}">${m}</option>`).join('')}
               </select>
             </div>
-            <div class="radm-field">
+            <div class="radm-field" id="gruGrupoField" hidden>
               <label>GRUPO</label>
               <input type="text" id="gruGrupoCodigo" placeholder="Ej. Grupo1, Grupo2...">
             </div>
@@ -8395,7 +8410,8 @@
           <div class="radm-form-row">
             <div class="radm-field">
               <label>NOMBRE DEL CURSO (opcional)</label>
-              <input type="text" id="gruNombreCurso" placeholder="Ej. Excel Intermedio-Avanzado">
+              <input type="text" id="gruNombreCurso" list="gruNombreCursoList" placeholder="Ej. Excel Intermedio-Avanzado">
+              <datalist id="gruNombreCursoList"></datalist>
             </div>
             <div class="radm-field">
               <label>NIVEL <span class="dip-req">* al menos uno</span></label>
@@ -8414,7 +8430,7 @@
           </div>
           <div class="radm-form-row">
             <div class="radm-field"><label>HORAS</label><input type="number" id="gruHoras" min="0" step="0.5"></div>
-            <div class="radm-field"><label>SESIONES</label><input type="number" id="gruSesiones" min="0" step="1" placeholder="5 Sesiones Jueves de 2 a 6 pm"></div>
+            <div class="radm-field"><label>SESIONES</label><input type="text" id="gruSesiones" placeholder="5 Sesiones Jueves de 2 a 6 pm"></div>
             <div class="radm-field"><label>INSTRUCTOR</label><select id="gruInstructor"><option value="">Sin asignar</option></select></div>
           </div>
           <div class="radm-form-row">
@@ -8428,18 +8444,18 @@
             </div>
             <div class="radm-field">
               <label>ESTATUS DE CIERRE</label>
-              <select id="gruEstatusCierre">
-                <option value="">(vacío)</option>
+              <select id="gruEstatusCierre" disabled>
+                <option value="">Se activa cuando el curso esté Terminado</option>
                 ${ESTATUS_CIERRE.map(e => `<option value="${e}">${e}</option>`).join('')}
               </select>
             </div>
           </div>
           <div class="radm-form-row">
-            <div class="radm-field">
-              <label>COTIZACIÓN DE ORIGEN (opcional)</label>
+            <div class="radm-field" id="gruCotizacionField" hidden>
+              <label>COTIZACIÓN DE ORIGEN</label>
               <select id="gruCotizacion" disabled><option value="">Selecciona el Cliente primero…</option></select>
             </div>
-            <div class="radm-field"><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
+            <div class="radm-field" id="gruFechaCierreField" hidden><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
           </div>
           <div class="radm-actions" style="margin-bottom:14px;">
             <div class="radm-switch-row" style="gap:24px;">
@@ -8450,7 +8466,12 @@
             <div class="radm-field"><label>NOTAS</label><textarea id="gruNotas" placeholder="Cualquier detalle relevante del grupo..."></textarea></div>
           </div>
           <div class="radm-actions">
-            <span class="radm-hint">El cliente y el contacto se dan de alta aquí mismo si todavía no existen.</span>
+            <div class="radm-hint" style="line-height:1.7;">
+              Cliente y contacto se dan de alta aquí si aún no existen.<br>
+              Si el Cliente no es el cliente final, agrega el Cliente final y su código.<br>
+              El Grupo es consecutivo cuando nos contratan más de 1 grupo al momento.<br>
+              Si tiene Cotización hecha, asígnala aquí para trazar el registro.
+            </div>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn" id="gruGuardar">${editando ? 'Guardar cambios' : 'Guardar'}</button>
               <button type="button" class="radm-btn radm-btn-ghost" id="gruCancelar">Cancelar</button>
@@ -8476,6 +8497,7 @@
               g.estatus_cierre = mapa.estatus_cierre;
               g.dias_en_fase = 0;
               document.getElementById('gruEstatusCurso').value = g.estatus_curso;
+              actualizarEstatusCierre(); // desbloquea/bloquea el select según el nuevo estatus_curso
               document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
               if(tagEl) tagEl.textContent = '0 días en esta fase';
               pintarStepperInteractivo();
@@ -8635,6 +8657,47 @@
       });
       refrescarEstadoContacto();
 
+      // Toggles simples que solo muestran/ocultan un campo — sin más estado
+      // que mantener, a diferencia del de Cliente final (que además dispara
+      // la recarga de Contacto/Cotización).
+      document.getElementById('gruToggleMultiGrupo').addEventListener('change', e => {
+        document.getElementById('gruGrupoField').hidden = !e.target.checked;
+        if(!e.target.checked) document.getElementById('gruGrupoCodigo').value = '';
+      });
+      document.getElementById('gruToggleCotizacion').addEventListener('change', e => {
+        document.getElementById('gruCotizacionField').hidden = !e.target.checked;
+        if(!e.target.checked) document.getElementById('gruCotizacion').value = '';
+      });
+      document.getElementById('gruToggleHistorico').addEventListener('change', e => {
+        document.getElementById('gruFechaCierreField').hidden = !e.target.checked;
+        if(!e.target.checked) document.getElementById('gruFechaCierre').value = '';
+      });
+
+      // Estatus de cierre solo tiene sentido una vez que el curso terminó —
+      // bloqueado hasta entonces (en vez del confuso "(vacío)" de antes) y,
+      // al desbloquearse, arranca en "Proyecto" (la misma lectura que ya hace
+      // derivarFase para un cierre vacío) en vez de quedar en blanco.
+      function actualizarEstatusCierre(){
+        const sel = document.getElementById('gruEstatusCierre');
+        if(document.getElementById('gruEstatusCurso').value === 'Terminado'){
+          sel.disabled = false;
+          if(!sel.value) sel.value = 'Proyecto';
+        } else {
+          sel.disabled = true;
+          sel.value = '';
+        }
+      }
+      document.getElementById('gruEstatusCurso').addEventListener('change', actualizarEstatusCierre);
+      actualizarEstatusCierre();
+
+      // Sugerencias de "Nombre del curso" — nombres ya usados en otros
+      // Grupos (sigue siendo texto libre, esto solo evita variaciones de
+      // espacios/acentos del mismo curso). Puede llegar vacío al principio,
+      // crece solo conforme se den de alta Grupos.
+      apiGetConReintento('/api/listNombresCursoAdmin').then(nombres => {
+        document.getElementById('gruNombreCursoList').innerHTML = (nombres || []).map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+      }).catch(() => { /* datalist se queda vacío, el campo sigue siendo texto libre */ });
+
       document.getElementById('gruBtnNuevoContacto').addEventListener('click', () => {
         const efectivo = datosClienteEfectivoContacto();
         if(!efectivo) return;
@@ -8769,17 +8832,24 @@
           document.getElementById('gruCotizacion').value = g.cotizacion_id || '';
         });
         document.getElementById('gruModalidad').value = g.modalidad || '';
+        document.getElementById('gruToggleMultiGrupo').checked = !!g.grupo_codigo;
+        document.getElementById('gruGrupoField').hidden = !g.grupo_codigo;
         document.getElementById('gruGrupoCodigo').value = g.grupo_codigo || '';
         gruHerramientasMsel.set(herramientasDe(g));
         document.getElementById('gruNombreCurso').value = g.nombre_curso || '';
         gruNivelesMsel.set(nivelesDe(g));
         document.getElementById('gruHoras').value = g.horas != null ? g.horas : '';
-        document.getElementById('gruSesiones').value = g.sesiones != null ? g.sesiones : '';
+        document.getElementById('gruSesiones').value = g.sesiones || '';
         document.getElementById('gruFechaInicio').value = fechaInputValue(g.fecha_inicio);
         document.getElementById('gruFechaFin').value = fechaInputValue(g.fecha_fin);
         document.getElementById('gruEstatusCurso').value = g.estatus_curso;
+        actualizarEstatusCierre(); // desbloquea si ya está Terminado, antes de fijar el valor real
         document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
         document.getElementById('gruFotosRs').checked = !!g.fotos_rs;
+        document.getElementById('gruToggleCotizacion').checked = !!g.cotizacion_id;
+        document.getElementById('gruCotizacionField').hidden = !g.cotizacion_id;
+        document.getElementById('gruToggleHistorico').checked = !!g.fecha_cierre;
+        document.getElementById('gruFechaCierreField').hidden = !g.fecha_cierre;
         document.getElementById('gruFechaCierre').value = fechaInputValue(g.fecha_cierre);
         document.getElementById('gruNotas').value = g.notas || '';
       }

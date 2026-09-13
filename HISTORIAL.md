@@ -4,6 +4,31 @@ Bitácora completa, sesión por sesión, movida aquí desde `CLAUDE.md` el 2026-
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
 
+### 2026-09-13 alfredo.pina: Tracking Operación — rediseño con stepper vivo por fase y Grupos de Clientes Directos
+
+Continuación directa de la sesión de Clientes del mismo día (ver entrada de abajo). Alfredo pide un "stepper vivo" en Tracking Operación que muestre cuántos Grupos hay en cada fase y le dé peso visual a la fase con más carga (su "cuello de botella") — se itera en texto primero: dos mockups reales (HTML con los tokens de color/tipografía del sitio, no genéricos) mostrando 3 formas de dar peso (barra de altura, nodo que crece, intensidad de color) y luego, tras que Alfredo pidiera "mejor el diseño que ya tenemos, solo número y etiqueta", dos mockups más sobre el stepper EXISTENTE (relleno interno vs. la línea "hundiéndose" hacia la fase pesada) — Alfredo terminó descartando ambos pesos visuales y pidiendo solo el diseño actual con el número dentro, resolviendo el "vivo" con animación en una vuelta posterior. Detalle técnico completo en `CLAUDE.md` → "Estado del proyecto" → Tracking Operación, bloque "rediseño", no repetido aquí.
+
+- **Nueva variante `resumen` de `window.FaseStepper`** — cuadrado-y-línea de siempre, más remarcado, cada nodo muestra su conteo de grupos activos y es clicable para filtrar la tabla sin pedir datos de nuevo.
+- **"Vivo" resuelto con animación, no con polling**: todos los cuadros respiran sutil, el de mayor carga respira más fuerte con glow — cero costo de red/base, `prefers-reduced-motion` respetado.
+- Scorecard reducido a 4 tarjetas (estilo Clientes) y reordenado ARRIBA del stepper: Activos, Cerrados (del año), Días promedio de cierre (renombrada), y **Grupos de Clientes Directos** (nueva — cuenta por quién CONTRATÓ, no por el cliente final; primera métrica del proyecto para medir dependencia de intermediarios). Los tabs Activos/Cerrados/Todos se movieron al encabezado del stepper para no sumar altura.
+- Toolbar migrado al esquema de Grupos/Clientes (auto-búsqueda, íconos, sin Desde/Hasta/Buscar) + filtro por Instructor + orden por Cliente/Herramienta/Fase/Días en fase (antes sin ninguna opción de orden).
+- "Días" se renombra a "Días en fase" y ahora siempre se muestra (antes solo en fases de cierre); Tipo de Cliente y fechas salen de la tabla y se van al despliegue; Modalidad se agrega a la tabla.
+- Bug de ajuste encontrado de paso: Herramientas con 2-3 badges ensanchaba la columna sola — se corrigió apilándolas por línea (función compartida con Consultar Grupos, se beneficia ahí también). Mismo tratamiento para Nombre largo en Consultar Clientes.
+- Probado en el navegador con datos simulados (filtro por fase, animación asignada a la fase correcta, filtro por instructor, orden, despliegue). `npm test` en verde, `node --check` limpio.
+- **Pendiente para Alfredo:** confirmar en producción, sobre todo cómo se siente la animación con datos reales y si el borde del stepper necesita verse aún más grueso.
+
+### 2026-09-12/13 alfredo.pina: Clientes — rediseño completo a tabla, Tipo de Cliente, Días Inactivo/Completado
+
+Sesión larga en 3 rondas: (1) diseño completo en texto de la lógica de "Días Inactivo" (con huecos reales identificados y resueltos en conversación — falta de `fecha_cierre` en Cotizacion, Solicitud sin cotizar como primer eslabón, Borrador que no cuenta como activa) y construcción del rediseño completo de maestro-detalle a tabla; (2) ronda de ajustes finos (notas con viñetas, popover de info, colores/íconos, scorecard, botón Actualizar, Tipo=Indirecto agregado a mitad de sesión); (3) el mismo patrón se repite para Tracking Operación (ver entrada de arriba). Detalle técnico completo en `CLAUDE.md` → "Estado del proyecto" → Clientes, bloque "rediseño completo", no repetido aquí.
+
+- **Tabla en vez de maestro-detalle**, mismo patrón que Grupos — Editar → "Modificar Cliente" (pestaña oculta), Contactos se gestionan solo ahí.
+- **`sql/014`**: `tipo_cliente` en Cliente (Directo/Intermediario/Indirecto — el tercero se agregó un día después del diseño original, a mitad de la ronda de ajustes finos) y `fecha_cierre` real en Cotizacion.
+- **`api/src/cliente-actividad.js`** nuevo — única fuente de Días Inactivo (cadena de prioridad con 5 pasos, semáforo Activo/Tibio/Inactivo) y Completado (con excepción para Indirecto: basta correo de algún contacto, sin exigir Principal ni teléfono). 25 pruebas unitarias.
+- Scorecard de 4 tarjetas (Clientes, Completos, Contactos, Clientes Activos), popover de explicación en vez de bloque fijo, semáforo con punto verde pulsante.
+- **Bug real propio**: al construir el popover se borró sin querer la regla CSS del ícono ⓘ del header (mismo bloque de reemplazo, de más) — Alfredo lo reportó con una captura, se corrigió y se documentó la lección en "Ya resueltos".
+- Mismo bug de arquitectura que ya se había visto en Tracking Operación (panel que no se refresca al navegar desde otro panel) — mismo fix, más un botón manual "Actualizar" de respaldo.
+- **Pendiente para Alfredo:** confirmar en producción, sobre todo Días Inactivo con datos reales.
+
 ### 2026-09-12 alfredo.pina: Grupos — Consultar Grupos con búsqueda automática, columna Fase, Editar/Mover/Eliminar separados (ronda de pulido 3)
 
 Tercera y más grande ronda de depuración de Grupos, mismo patrón de las dos anteriores: Alfredo trae una lista larga de pedidos concretos sobre Consultar Grupos, se iteran en texto las 2 dudas reales (semántica de Estatus de cierre, fuente de las sugerencias de Nombre del curso) antes de tocar código, y se construye todo de una vez. Detalle técnico completo en `CLAUDE.md` → "Estado del proyecto" → Grupos, bloque "Ronda de pulido 3", no repetido aquí.

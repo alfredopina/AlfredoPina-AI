@@ -100,6 +100,22 @@ check(
   "Incompleto: sin antigüedad",
   calcularCompletado({ codigo: "ACME", clienteDesde: null, principalCorreo: "a@a.com", principalTelefono: "811" }) === false
 );
+check(
+  "Indirecto completo: código+antigüedad+algún contacto con correo, sin teléfono ni principal",
+  calcularCompletado({ codigo: "ACME", clienteDesde: 2020, tipoCliente: "Indirecto", algunContactoConCorreo: true, principalCorreo: null, principalTelefono: null }) === true
+);
+check(
+  "Indirecto incompleto: ningún contacto con correo",
+  calcularCompletado({ codigo: "ACME", clienteDesde: 2020, tipoCliente: "Indirecto", algunContactoConCorreo: false }) === false
+);
+check(
+  "Indirecto incompleto: sin código, aunque haya contacto con correo",
+  calcularCompletado({ codigo: "", clienteDesde: 2020, tipoCliente: "Indirecto", algunContactoConCorreo: true }) === false
+);
+check(
+  "Directo NO se beneficia de la excepción de Indirecto: sigue exigiendo principal+teléfono",
+  calcularCompletado({ codigo: "ACME", clienteDesde: 2020, tipoCliente: "Directo", algunContactoConCorreo: true, principalCorreo: null, principalTelefono: null }) === false
+);
 
 console.log("\n" + (failures === 0 ? "TODO OK" : `${failures} verificación(es) fallida(s)`));
 process.exit(failures === 0 ? 0 : 1);

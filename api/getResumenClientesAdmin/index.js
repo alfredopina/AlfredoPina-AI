@@ -14,7 +14,7 @@ module.exports = async function (context, req) {
     const [totales, filas] = await Promise.all([
       pool.request().query("SELECT COUNT(*) AS total_contactos FROM Contacto"),
       pool.request().query(`
-        SELECT c.id, c.codigo, c.cliente_desde,
+        SELECT c.id, c.codigo, c.cliente_desde, c.tipo_cliente,
                cp.correo AS principal_correo, cp.telefono AS principal_telefono,
                (SELECT MAX(fecha_creacion) FROM Solicitud
                   WHERE cliente_id = c.id AND estatus IN ('Nueva', 'En seguimiento')) AS solicitud_pendiente_fecha,
@@ -27,7 +27,10 @@ module.exports = async function (context, req) {
                  WHERE (cliente_id = c.id OR cliente_final_id = c.id)
                    AND (estatus_cierre IS NULL OR estatus_cierre <> 'Cerrado')
                ) THEN 1 ELSE 0 END AS grupo_activo,
-               (SELECT MAX(fecha_fin) FROM Diploma WHERE cliente_id = c.id AND estatus = 'vigente') AS ultimo_diploma_fecha
+               (SELECT MAX(fecha_fin) FROM Diploma WHERE cliente_id = c.id AND estatus = 'vigente') AS ultimo_diploma_fecha,
+               CASE WHEN EXISTS (
+                 SELECT 1 FROM Contacto WHERE cliente_id = c.id AND correo IS NOT NULL AND correo <> ''
+               ) THEN 1 ELSE 0 END AS algun_contacto_con_correo
         FROM Cliente c
         OUTER APPLY (SELECT TOP 1 correo, telefono FROM Contacto WHERE cliente_id = c.id AND es_principal = 1) cp
       `),
@@ -41,8 +44,10 @@ module.exports = async function (context, req) {
         calcularCompletado({
           codigo: c.codigo,
           clienteDesde: c.cliente_desde,
+          tipoCliente: c.tipo_cliente,
           principalCorreo: c.principal_correo,
           principalTelefono: c.principal_telefono,
+          algunContactoConCorreo: !!c.algun_contacto_con_correo,
         })
       ) {
         completos++;

@@ -50,15 +50,16 @@ function calcularDiasInactivo(
 // correo Y teléfono. Sin ningún contacto marcado como principal, cuenta como
 // incompleto de plano (empuja a Alfredo a marcar uno) — regla confirmada
 // explícitamente, no basta con "cualquier contacto que cumpla".
-function calcularCompletado({ codigo, clienteDesde, principalCorreo, principalTelefono }) {
-  return Boolean(
-    codigo &&
-      clienteDesde != null &&
-      principalCorreo &&
-      principalCorreo.trim() &&
-      principalTelefono &&
-      principalTelefono.trim()
-  );
+//
+// Excepción para Tipo=Indirecto (2026-09-13): con ellos Alfredo casi nunca
+// tiene una relación lo bastante formal como para tener un contacto
+// Principal con teléfono — basta con que ALGÚN contacto tenga correo, sin
+// exigir que esté marcado Principal ni que haya teléfono. Directo/
+// Intermediario siguen con la regla estricta de siempre.
+function calcularCompletado({ codigo, clienteDesde, tipoCliente, principalCorreo, principalTelefono, algunContactoConCorreo }) {
+  if (!codigo || clienteDesde == null) return false;
+  if (tipoCliente === "Indirecto") return Boolean(algunContactoConCorreo);
+  return Boolean(principalCorreo && principalCorreo.trim() && principalTelefono && principalTelefono.trim());
 }
 
 module.exports = { calcularDiasInactivo, calcularCompletado, DIAS_VERDE, DIAS_AMARILLO };

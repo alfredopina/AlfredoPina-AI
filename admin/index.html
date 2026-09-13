@@ -839,22 +839,38 @@
 
   /* Variante "resumen" (Tracking Operación) — no es el progreso de UN grupo,
      es cuántos grupos activos hay en cada fase ahora mismo. Mismo cuadrado y
-     línea que las demás variantes, sin done/current: cada nodo siempre
-     muestra su número, nunca un check. Clicable para filtrar la tabla. */
-  .resumen-track .step-item::after{ top:15px; }
+     línea que las demás variantes pero más remarcados (línea/borde más
+     gruesos que el resto de variantes, a pedido explícito) — sin done/
+     current: cada nodo siempre muestra su número, nunca un check. Clicable
+     para filtrar la tabla. */
+  .resumen-track .step-item::after{ top:16px; height:3px; background:var(--text-dim); }
   .resumen-track .step-node{
-    width:30px; height:30px; color:var(--text); font-family:var(--mono); font-size:13px; font-weight:700;
+    width:32px; height:32px; border-width:2.5px; border-color:var(--text-dim);
+    color:var(--text); font-family:var(--mono); font-size:13px; font-weight:700;
     cursor:pointer; transition:border-color .15s, box-shadow .15s;
   }
-  .resumen-track .step-item:hover .step-node{ border-color:var(--text-dim); }
+  .resumen-track .step-item:hover .step-node{ border-color:var(--blue-bright); }
   .resumen-track .step-item.activa .step-node{ border-color:var(--blue-bright); box-shadow:0 0 0 4px var(--blue-soft); }
   .resumen-track .step-item.activa .step-label{ color:var(--text); font-weight:600; }
+  /* "Vivo": todos los cuadros respiran muy sutil; el que tiene MÁS grupos
+     (el cuello de botella) respira más fuerte, con glow, para que salte a
+     la vista sin depender solo del número. */
+  @keyframes resumen-pulso-sutil{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.045); } }
+  @keyframes resumen-pulso-fuerte{
+    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 var(--blue-soft); border-color:var(--text-dim); }
+    50%{ transform:scale(1.14); box-shadow:0 0 0 7px var(--blue-soft); border-color:var(--blue-bright); }
+  }
+  .resumen-track .step-node{ animation:resumen-pulso-sutil 2.6s ease-in-out infinite; }
+  .resumen-track .step-item.max .step-node{ animation:resumen-pulso-fuerte 1.7s ease-in-out infinite; }
+  .resumen-track .step-item.activa .step-node{ animation:none; }
+  @media (prefers-reduced-motion:reduce){ .resumen-track .step-node{ animation:none; } }
 
   .stepper-resumen-card{
     background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 20px 6px; margin-bottom:16px;
   }
-  .stepper-resumen-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:10px; }
-  .stepper-resumen-title{ font-family:var(--display); font-size:13.5px; font-weight:600; }
+  .stepper-resumen-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; gap:10px; }
+  .stepper-resumen-title{ font-family:var(--display); font-size:13.5px; font-weight:600; padding-top:6px; }
+  .stepper-resumen-head-actions{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
   .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
   .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
   .step-next-hint{
@@ -2011,14 +2027,6 @@
       <div class="admin-panel" id="panel-tracking-operacion" style="--c:var(--blue-bright)">
         <div id="groToast" class="radm-toast" hidden></div>
 
-        <div class="stepper-resumen-card">
-          <div class="stepper-resumen-head">
-            <span class="stepper-resumen-title">Grupos activos por fase</span>
-            <button type="button" class="cli-info-btn" id="groStepperReset" hidden>Ver todos</button>
-          </div>
-          <div id="groStepperResumen"></div>
-        </div>
-
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="groKpis">
             <div class="dkpi-card" style="--c:var(--good)" title="Grupos con estatus_cierre distinto de Cerrado">
@@ -2045,6 +2053,21 @@
               <div class="dkpi-label">Grupos de Clientes Directos</div>
             </div>
           </div>
+        </div>
+
+        <div class="stepper-resumen-card">
+          <div class="stepper-resumen-head">
+            <span class="stepper-resumen-title">Grupos activos por fase</span>
+            <div class="stepper-resumen-head-actions">
+              <button type="button" class="cli-info-btn" id="groStepperReset" hidden>Ver todos</button>
+              <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
+                <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
+                <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
+                <button type="button" class="radm-tab" data-vista="todas">Todos</button>
+              </div>
+            </div>
+          </div>
+          <div id="groStepperResumen"></div>
         </div>
 
         <div class="cot-alert" id="groAlerta" hidden>
@@ -2099,18 +2122,11 @@
           </div>
         </div>
 
-        <div class="radm-tabs" id="groVistaTabs">
-          <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
-          <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
-          <button type="button" class="radm-tab" data-vista="todas">Todos</button>
-        </div>
-
         <div class="dip-table-wrap">
           <table class="dip-table">
             <thead>
               <tr>
                 <th>Cliente</th>
-                <th>Tipo</th>
                 <th># Grupo</th>
                 <th>Herramientas</th>
                 <th>Modalidad</th>
@@ -2121,13 +2137,12 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
                   </span>
                 </th>
-                <th>Inicio → última fase</th>
                 <th>Instructor</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="groListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -5958,7 +5973,7 @@
 
       body.innerHTML = cliClientes.map(c => `
         <tr data-id="${c.id}">
-          <td>${escapeHtml(c.nombre)}</td>
+          <td><span style="display:block; max-width:170px; overflow-wrap:break-word;">${escapeHtml(c.nombre)}</span></td>
           <td class="radm-mono">${escapeHtml(c.codigo)}</td>
           <td>${tipoBadge(c.tipo_cliente)}</td>
           <td>
@@ -8169,9 +8184,15 @@
     // está filtrando la tabla en ese momento (o null = todas).
     function renderResumen({ conteos, faseActiva }){
       const fasesResumen = FASES.filter(f => f !== 'Cerrado');
+      // El "cuello de botella" (mayor conteo) respira más fuerte que el
+      // resto — si hay empate, todas las fases empatadas lo resaltan; con
+      // todo en 0 nadie es cuello de botella, ninguna se marca.
+      const maxConteo = Math.max(0, ...fasesResumen.map(f => conteos[f] || 0));
       const nodos = fasesResumen.map(f => {
         const activa = f === faseActiva;
-        return `<div class="step-item ${activa ? 'activa' : ''}" style="position:relative">
+        const esMax = maxConteo > 0 && (conteos[f] || 0) === maxConteo;
+        const clases = ['step-item', activa ? 'activa' : '', esMax ? 'max' : ''].filter(Boolean).join(' ');
+        return `<div class="${clases}" style="position:relative">
           <span class="step-node" data-fase-resumen="${f}">${conteos[f] != null ? conteos[f] : 0}</span>
           <div class="step-label">${f}</div>
         </div>`;
@@ -8457,13 +8478,16 @@
       buscarGrupos();
     });
 
+    // Una fila por herramienta cuando hay más de una — antes iban todas en
+    // línea con margin-right y la columna se ensanchaba sola con 2-3 tags.
     function badgeHerramientas(g){
       const lista = herramientasDe(g);
       if(!lista.length) return '—';
-      return lista.map(h => {
+      const badges = lista.map(h => {
         const meta = TOOL_META[h] || { nombre: h, color: 'var(--text-dim)' };
-        return `<span class="dip-status" style="margin-right:8px;"><span class="dip-status-dot" style="background:${meta.color}"></span>${escapeHtml(meta.nombre)}</span>`;
+        return `<span class="dip-status"><span class="dip-status-dot" style="background:${meta.color}"></span>${escapeHtml(meta.nombre)}</span>`;
       }).join('');
+      return `<div style="display:flex; flex-direction:column; gap:4px;">${badges}</div>`;
     }
 
     function checkTexto(valor, etiqueta){
@@ -8474,6 +8498,8 @@
       return `
         <div id="gru-stepper-${g.id}" class="gru-stepper-wrap" style="margin-bottom:18px;"><span class="radm-hint">Cargando fases…</span></div>
         <div class="cot-detalle-grid" style="margin-bottom:14px;">
+          <div><div class="cot-detalle-item-label">Tipo de Cliente</div><div class="cot-detalle-item-value">${tipoBadgeTracking(g.tipo_cliente)}</div></div>
+          <div><div class="cot-detalle-item-label">Inicio → última fase</div><div class="cot-detalle-item-value radm-mono" style="font-size:11.5px;">${fmtFecha(g.fecha_inicio)} → ${fmtFecha(g.fecha_ultima_fase)}</div></div>
           <div><div class="cot-detalle-item-label">Fotos RS</div><div class="cot-detalle-item-value">${checkTexto(g.fotos_rs, 'Fotos RS')}</div></div>
           <div><div class="cot-detalle-item-label">Cotización de origen</div><div class="cot-detalle-item-value">${g.cotizacion_folio ? `<a href="/api/getCotizacionPdf?folio=${encodeURIComponent(g.cotizacion_folio)}" target="_blank" style="color:var(--blue-bright)">${escapeHtml(g.cotizacion_folio)}</a>` : 'Sin ligar'}</div></div>
           <div><div class="cot-detalle-item-label">Nombre del curso</div><div class="cot-detalle-item-value">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div></div>
@@ -9320,16 +9346,15 @@
       const body = document.getElementById('groListaBody');
       const filtrada = groListaCache.filter(g => !groFaseFiltro || g.fase === groFaseFiltro);
       const lista = ordenarListaTracking(filtrada);
-      if(!lista.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
       body.innerHTML = lista.map(g => `
         <tr data-id="${g.id}">
           <td>
             <div class="cot-cliente-nombre">${escapeHtml(g.cliente)}</div>
             ${g.cliente_final ? `<div class="cot-cliente-sub">cliente final: ${escapeHtml(g.cliente_final)}</div>` : ''}
           </td>
-          <td>${tipoBadgeTracking(g.tipo_cliente)}</td>
           <td>
-            <button type="button" class="sol-temario-toggle gro-desglose-toggle" data-id="${g.id}" title="Ver notas y cotización de origen">
+            <button type="button" class="sol-temario-toggle gro-desglose-toggle" data-id="${g.id}" title="Ver tipo de cliente, fechas, notas y cotización de origen">
               <span class="sol-temario-nombre">${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</span>
               <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -9338,7 +9363,6 @@
           <td>${g.modalidad ? escapeHtml(g.modalidad) : '—'}</td>
           <td>${window.FaseStepper.render({ fase: g.fase, variant: 'mini' })}</td>
           <td>${diasFaseHtml(g)}</td>
-          <td class="radm-mono" style="font-size:11px; color:var(--text-dim);">${fmtFecha(g.fecha_inicio)} → ${fmtFecha(g.fecha_ultima_fase)}</td>
           <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
@@ -9352,7 +9376,7 @@
           </td>
         </tr>
         <tr class="sol-desglose-row" id="gro-desglose-${g.id}" hidden>
-          <td colspan="10"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
+          <td colspan="8"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
         </tr>
       `).join('');
     }
@@ -9368,7 +9392,7 @@
       if(instructor) params.set('instructor', instructor);
 
       const body = document.getElementById('groListaBody');
-      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const lista = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
         groListaCache = lista;
@@ -9376,7 +9400,7 @@
         else document.getElementById('groAlerta').hidden = true;
         renderTablaTracking();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 

@@ -67,6 +67,7 @@ module.exports = async function (context, req) {
       body: {
         total_clientes: total,
         clientes_completos: completos,
+        pct_completos: total ? Math.round((completos / total) * 100) : 0,
         total_contactos: totales.recordset[0].total_contactos,
         clientes_en_verde: enVerde,
         pct_en_verde: total ? Math.round((enVerde / total) * 100) : 0,

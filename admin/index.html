@@ -588,14 +588,24 @@
   .cli-contacto-meta{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
   .cli-wa{ display:inline-flex; align-items:center; gap:3px; color:var(--text-dim); }
   .cli-wa svg{ width:11px; height:11px; }
-  .cli-info-ico{ display:inline-flex; width:13px; height:13px; color:var(--text-faint); cursor:help; vertical-align:-2px; margin-left:4px; }
-  .cli-info-ico svg{ width:100%; height:100%; }
-  .cli-nota-dias{
-    border:1px solid var(--line); border-radius:8px; padding:12px 14px; background:var(--panel);
-    margin-bottom:14px; font-size:12px; line-height:1.6; color:var(--text-dim);
+  /* Botón "Info" (Días Inactivo) — pill igual a .sol-sort-btn, alineado a la
+     derecha de la línea de Ordenar, y su popover (mismo patrón posicional
+     que .gru-msel-panel de Grupos: absoluto, se cierra al hacer clic afuera). */
+  .cli-info-wrap{ position:relative; margin-left:auto; }
+  .cli-info-btn{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
+    transition:all .15s;
   }
-  .cli-nota-dias ul{ margin:6px 0 0 18px; padding:0; }
-  .cli-nota-dias li{ margin-bottom:2px; }
+  .cli-info-btn:hover, .cli-info-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .cli-info-btn svg{ width:13px; height:13px; flex:none; }
+  .cli-info-popover{
+    position:absolute; top:calc(100% + 6px); right:0; z-index:40; width:340px; max-width:min(340px, 85vw);
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+    box-shadow:0 10px 28px rgba(0,0,0,.28); font-size:12px; line-height:1.6; color:var(--text-dim);
+  }
+  .cli-info-popover ul{ margin:6px 0 0 18px; padding:0; }
+  .cli-info-popover li{ margin-bottom:2px; }
 
   .cfg-tarifas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; margin-top:12px; }
   .cfg-tarifa-row{
@@ -782,6 +792,11 @@
   .cot-semaforo.warn .cot-semaforo-dot{ background:#facc15; }
   .cot-semaforo.hot{ color:#ef4444; background:color-mix(in srgb, #ef4444 16%, var(--panel-2)); }
   .cot-semaforo.hot .cot-semaforo-dot{ background:#ef4444; }
+  /* Semáforo de Clientes: el punto verde "respira" (mismo keyframe que ya usa
+     .admin-nav-live-dot del sidebar) — solo verde, solo Clientes, para no
+     animar los semáforos de Cotizaciones/Grupos que no lo pidieron. */
+  .cli-semaforo.ok .cot-semaforo-dot{ animation:admin-live-pulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .cli-semaforo.ok .cot-semaforo-dot{ animation:none; } }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
      por una línea que se rellena hasta la fase actual, mismo lenguaje visual
@@ -1798,9 +1813,14 @@
         <div class="dip-tabpanel active" id="cliTab-consultar">
           <div class="cli-scorecard-block">
             <div class="cli-kpi-row" id="cliKpis">
-              <div class="dkpi-card" style="--c:var(--good)">
+              <div class="dkpi-card" style="--c:var(--blue-bright)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1" stroke-linecap="round"/><path d="M10 21v-4h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="dkpi-value" id="cliKpiTotal">—</div>
+                <div class="dkpi-label">Clientes</div>
+              </div>
+              <div class="dkpi-card" style="--c:var(--good)" title="Clientes con código, antigüedad y un contacto principal con correo y teléfono">
                 <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-                <div class="dkpi-value"><span id="cliKpiCompletos">—</span><span style="color:var(--text-faint); font-weight:400;"> / </span><span id="cliKpiTotal">—</span></div>
+                <div class="dkpi-value"><span id="cliKpiCompletos">—</span><span style="color:var(--text-faint); font-weight:400; font-size:13px;"> (<span id="cliKpiCompletosPct">—</span>%)</span></div>
                 <div class="dkpi-label">Completos</div>
               </div>
               <div class="dkpi-card" style="--c:var(--blue-bright)">
@@ -1808,10 +1828,10 @@
                 <div class="dkpi-value" id="cliKpiContactos">—</div>
                 <div class="dkpi-label">Contactos</div>
               </div>
-              <div class="dkpi-card" style="--c:var(--good)" title="Clientes con menos de 30 días de inactividad (semáforo verde)">
+              <div class="dkpi-card" style="--c:var(--good)" title="Clientes con menos de 30 días de inactividad (semáforo verde) — la señal más simple de que la relación sigue viva">
                 <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="dkpi-value"><span id="cliKpiVerde">—</span><span style="color:var(--text-faint); font-weight:400; font-size:13px;"> (<span id="cliKpiVerdePct">—</span>%)</span></div>
-                <div class="dkpi-label">En verde</div>
+                <div class="dkpi-label">Clientes Activos</div>
               </div>
             </div>
           </div>
@@ -1826,6 +1846,9 @@
                 <input type="text" id="cliBuscar" placeholder="Nombre, código o contacto…">
               </div>
               <div class="dip-filter-actions">
+                <button type="button" class="cot-icon-btn" id="cliActualizar" title="Actualizar la lista y los indicadores">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
                 <button type="button" class="cot-icon-btn" id="cliLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
                 </button>
@@ -1841,19 +1864,24 @@
                 <button type="button" class="sol-sort-btn" data-sort="completado">Completado<span class="sol-sort-ico" hidden></span></button>
                 <button type="button" class="sol-sort-btn" data-sort="dias_inactivo">Días Inactivo<span class="sol-sort-ico" hidden></span></button>
               </div>
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="cliInfoBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info
+                </button>
+                <div class="cli-info-popover" id="cliInfoPopover" hidden>
+                  <strong>¿Cómo se calcula Días Inactivo?</strong> Cuenta desde tu última interacción real con el cliente:
+                  <ul>
+                    <li>Una Solicitud sin cotizar todavía, o una Cotización Enviada/En negociación → esa fecha (no cuenta como "hoy" solo por seguir activa).</li>
+                    <li>Un Grupo dándose ahora mismo con ese cliente → 0 días.</li>
+                    <li>Si no hay nada de lo anterior, la Cotización cerrada (Ganada o Perdida) más reciente.</li>
+                    <li>Si tampoco hay cotización, el último Diploma que le diste.</li>
+                    <li>Sin ningún dato → se trata como el caso más urgente (rojo), no como neutro.</li>
+                  </ul>
+                  <span style="color:var(--text-faint);">Semáforo: Activo &lt;30 días · Tibio 30–90 · Inactivo &gt;90.</span>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div class="cli-nota-dias">
-            <strong>¿Cómo se calcula Días Inactivo?</strong> Cuenta desde tu última interacción real con el cliente:
-            <ul>
-              <li>Una Solicitud sin cotizar todavía, o una Cotización Enviada/En negociación → esa fecha (no cuenta como "hoy" solo por seguir activa).</li>
-              <li>Un Grupo dándose ahora mismo con ese cliente → 0 días.</li>
-              <li>Si no hay nada de lo anterior, la Cotización cerrada (Ganada o Perdida) más reciente.</li>
-              <li>Si tampoco hay cotización, el último Diploma que le diste.</li>
-              <li>Sin ningún dato → se trata como el caso más urgente (rojo), no como neutro.</li>
-            </ul>
-            <span style="color:var(--text-faint);">Semáforo: verde &lt;30 días · amarillo 30–90 · rojo &gt;90.</span>
           </div>
 
           <div class="dip-table-wrap">
@@ -5730,10 +5758,12 @@
       sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>',
+      // Sin círculo a propósito — Alfredo reportó que con círculo "no le
+      // hallaba forma"; solo el signo, más legible a este tamaño.
+      warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:11px;height:11px;"><path d="M12 4v9M12 17h.01" stroke-linecap="round"/></svg>',
       chevron: '<svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
-    const TIPOS_CLIENTE = ['Directo', 'Intermediario'];
+    const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto'];
     // completado/dias_inactivo no los ordena el backend (no son columnas
     // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
     // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
@@ -5785,21 +5815,24 @@
       if(!iso) return '—';
       return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
     }
+    const TIPO_COLOR = { Intermediario: '#a78bfa', Indirecto: '#f97316' };
     function tipoBadge(tipo){
-      const color = tipo === 'Intermediario' ? '#a78bfa' : 'var(--text-faint)';
+      const color = TIPO_COLOR[tipo] || 'var(--text-faint)';
       return `<span class="sol-temario-tipo-tag" style="border-color:${color}; color:${color};">${escapeHtml(tipo || 'Directo')}</span>`;
     }
     function completadoHtml(completado){
-      return `<span class="dip-status">${completado ? ICO.check : ICO.warn}<span style="color:${completado ? 'var(--good)' : 'var(--text-faint)'}">${completado ? 'Completo' : 'Incompleto'}</span></span>`;
+      return `<span class="dip-status">${completado ? ICO.check : ICO.warn}<span style="color:${completado ? 'var(--good)' : '#facc15'}">${completado ? 'Completo' : 'Incompleto'}</span></span>`;
     }
+    // .cli-semaforo (además de .cot-semaforo) es lo que hace pulsar el punto
+    // verde con animación (ver CSS) — solo aquí, no en Cotizaciones/Grupos.
     function semaforoHtml(semaforo){
-      const map = { verde: { cls: 'ok', texto: 'Activo' }, amarillo: { cls: 'warn', texto: 'Por revisar' }, rojo: { cls: 'hot', texto: 'Refrescar' } };
+      const map = { verde: { cls: 'ok', texto: 'Activo' }, amarillo: { cls: 'warn', texto: 'Tibio' }, rojo: { cls: 'hot', texto: 'Inactivo' } };
       const m = map[semaforo] || map.rojo;
-      return `<span class="cot-semaforo ${m.cls}"><span class="cot-semaforo-dot"></span>${m.texto}</span>`;
+      return `<span class="cot-semaforo cli-semaforo ${m.cls}"><span class="cot-semaforo-dot"></span>${m.texto}</span>`;
     }
     function diasInactivoHtml(dias){
       return dias == null
-        ? '<span class="radm-mono" style="color:var(--text-faint);">Sin datos</span>'
+        ? '<span class="radm-mono" style="color:var(--text-faint);">-</span>'
         : `<span class="radm-mono">${dias}</span>`;
     }
 
@@ -5833,13 +5866,14 @@
     async function cargarKpis(){
       try {
         const r = await apiGetConReintento('/api/getResumenClientesAdmin');
-        document.getElementById('cliKpiCompletos').textContent = r.clientes_completos;
         document.getElementById('cliKpiTotal').textContent = r.total_clientes;
+        document.getElementById('cliKpiCompletos').textContent = r.clientes_completos;
+        document.getElementById('cliKpiCompletosPct').textContent = r.pct_completos;
         document.getElementById('cliKpiContactos').textContent = r.total_contactos;
         document.getElementById('cliKpiVerde').textContent = r.clientes_en_verde;
         document.getElementById('cliKpiVerdePct').textContent = r.pct_en_verde;
       } catch(e){
-        ['cliKpiCompletos', 'cliKpiTotal', 'cliKpiContactos', 'cliKpiVerde', 'cliKpiVerdePct'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['cliKpiTotal', 'cliKpiCompletos', 'cliKpiCompletosPct', 'cliKpiContactos', 'cliKpiVerde', 'cliKpiVerdePct'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
@@ -5917,7 +5951,10 @@
     function clienteDetalleHtml(c, contactos){
       const f = c.fechas_actividad || {};
       return `
-        ${c.notas ? `<div class="sol-desglose-item"><div class="sol-desglose-nombre">Notas</div><div class="sol-desglose-desc">${escapeHtml(c.notas)}</div></div>` : ''}
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">Contactos</div>
+          <div class="radm-list" style="margin-top:6px;">${pintarContactosHtml(contactos, false)}</div>
+        </div>
         <div class="sol-desglose-item">
           <div class="sol-desglose-nombre">Fechas detrás de Días Inactivo</div>
           <div class="sol-desglose-desc">
@@ -5927,10 +5964,7 @@
             <span style="color:var(--text-faint);">Fecha usada: ${fmtFecha(f.fecha_referencia)}</span>
           </div>
         </div>
-        <div class="sol-desglose-item">
-          <div class="sol-desglose-nombre">Contactos</div>
-          <div class="radm-list" style="margin-top:6px;">${pintarContactosHtml(contactos, false)}</div>
-        </div>`;
+        ${c.notas ? `<div class="sol-desglose-item"><div class="sol-desglose-nombre">Notas</div><div class="sol-desglose-desc">${escapeHtml(c.notas)}</div></div>` : ''}`;
     }
 
     // ══ CONTACTOS — lectura (fila expandible de Consultar) y edición
@@ -5971,15 +6005,13 @@
       });
     }
 
-    function refrescarConteoCliente(clienteId, n){
-      const c = cliClientes.find(x => x.id === clienteId);
-      if(c) c.num_contactos = n;
+    // Un Contacto puede cambiar el Completado del Cliente (correo/teléfono
+    // del principal) — no basta con parchar el contador de la fila, hay que
+    // volver a pedir la lista completa para que Completado/Días Inactivo no
+    // se queden viendo el dato viejo hasta la próxima recarga manual.
+    function refrescarListaClientes(clienteId){
       delete cliContactosCache[clienteId];
-      // Escopado a #cliListaBody: Grupos/Solicitudes reusan la misma clase
-      // .sol-temario-toggle con su propio data-id, que puede coincidir por
-      // pura casualidad numérica con un id de Cliente.
-      const boton = document.querySelector(`#cliListaBody .sol-temario-toggle[data-id="${clienteId}"] .sol-temario-nombre`);
-      if(boton) boton.textContent = n;
+      cargarClientes(document.getElementById('cliBuscar').value.trim());
     }
 
     function abrirFormContacto(listaEl, clienteId, item){
@@ -6039,7 +6071,7 @@
           form.remove();
           const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
           pintarContactos(listaEl, clienteId, contactosNuevos, true);
-          refrescarConteoCliente(clienteId, contactosNuevos.length);
+          refrescarListaClientes(clienteId);
           cargarKpis();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
@@ -6052,7 +6084,7 @@
         toast('Contacto eliminado.', true);
         const contactosNuevos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId);
         pintarContactos(listaEl, clienteId, contactosNuevos, true);
-        refrescarConteoCliente(clienteId, contactosNuevos.length);
+        refrescarListaClientes(clienteId);
         cargarKpis();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
@@ -6084,8 +6116,14 @@
           </div>
           <div class="radm-actions">
             <span class="radm-hint">
-              ${item ? 'Los clientes no se eliminan — si ya no aplica, ajusta sus notas.' : 'El código es el alias corto del cliente (ej. "ACME") — se usa también en folios de diplomas.'}
-              Intermediario = te subcontrata y revende (sin cotización ni diploma tuyo de por medio) — por ahora solo descriptivo.
+              ${item ? `
+                <ul style="list-style-type:square; margin:0 0 0 16px; padding:0;">
+                  <li>Los Clientes no se eliminan, solo se modifican si la información cambia en el tiempo.</li>
+                </ul>` : `
+                <ul style="list-style-type:square; margin:0 0 0 16px; padding:0;">
+                  <li>Escribe el nombre comercial del cliente y define un Código, idealmente en 3 caracteres mayúsculas.</li>
+                  <li>Define si el Cliente es Intermediario (nos subcontrata) o Indirecto (llega por un intermediario, pero ya hay comunicación directa) — si no, se considera Directo.</li>
+                </ul>`}
             </span>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn clf-guardar">Guardar</button>
@@ -6181,6 +6219,37 @@
     document.getElementById('cliLimpiarFiltros').addEventListener('click', () => {
       document.getElementById('cliBuscar').value = '';
       cargarClientes('');
+    });
+    document.getElementById('cliActualizar').addEventListener('click', () => {
+      cargarClientes(document.getElementById('cliBuscar').value.trim());
+      cargarKpis();
+    });
+
+    // Popover de "¿Cómo se calcula Días Inactivo?" — se cierra al hacer clic
+    // afuera, mismo criterio que los dropdown .gru-msel-panel de Grupos.
+    const cliInfoBtn = document.getElementById('cliInfoBtn');
+    const cliInfoPopover = document.getElementById('cliInfoPopover');
+    cliInfoBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      cliInfoPopover.hidden = !cliInfoPopover.hidden;
+      cliInfoBtn.classList.toggle('active', !cliInfoPopover.hidden);
+    });
+    document.addEventListener('click', e => {
+      if(!cliInfoPopover.hidden && !e.target.closest('.cli-info-wrap')){
+        cliInfoPopover.hidden = true;
+        cliInfoBtn.classList.remove('active');
+      }
+    });
+
+    // Bug real encontrado 2026-09-13 (mismo patrón que Tracking Operación,
+    // ver CLAUDE.md): Consultar Clientes solo cargaba su tabla UNA vez al
+    // abrir el admin — un Cliente/Cliente final dado de alta desde OTRO panel
+    // (ej. Tracking Operación) no aparecía hasta recargar la página entera.
+    // El clic directo en el ítem del sidebar ahora también refresca.
+    const cliNavBtn = document.querySelector('.admin-nav-item[data-panel="clientes"]');
+    if(cliNavBtn) cliNavBtn.addEventListener('click', () => {
+      cargarClientes(document.getElementById('cliBuscar').value.trim());
+      cargarKpis();
     });
 
     renderSortButtons();

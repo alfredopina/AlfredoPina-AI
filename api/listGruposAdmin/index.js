@@ -13,9 +13,11 @@
 // por la fase derivada — ver getResumenGruposAdmin para por qué esa
 // condición es equivalente. `fase` y `dias_en_fase` se agregan por fila
 // después de la consulta: fase siempre pasa por derivarFase (nunca se
-// reimplementa la regla en SQL), dias_en_fase sale de una subconsulta
-// correlacionada contra GrupoFaseHistorial (días desde que cruzó a la fase
-// actual).
+// reimplementa la regla en SQL), dias_en_fase/fecha_ultima_fase salen de
+// subconsultas correlacionadas contra GrupoFaseHistorial (misma fecha ancla,
+// una como número de días y otra como la fecha real — Tracking Operación usa
+// ambas). `instructor` filtra exacto (texto plano, no FK). `tipo_cliente` es
+// del Cliente que CONTRATÓ (g.cliente_id), no del Cliente final.
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase } = require("../src/grupo-fase");
@@ -28,7 +30,7 @@ const VISTAS = {
 };
 
 module.exports = async function (context, req) {
-  const { clienteId, herramienta, estatusCurso, estatusCierre, desde, hasta } = req.query;
+  const { clienteId, herramienta, instructor, estatusCurso, estatusCierre, desde, hasta } = req.query;
   const sortParam = SORTS.includes(req.query.sort) ? req.query.sort : "fecha";
   const dirParam = DIRS.includes(req.query.dir) ? req.query.dir : "desc";
 
@@ -45,6 +47,10 @@ module.exports = async function (context, req) {
     if (herramienta) {
       condiciones.push("g.herramientas LIKE @herramienta");
       request.input("herramienta", sql.NVarChar, `%"${herramienta}"%`);
+    }
+    if (instructor) {
+      condiciones.push("g.instructor = @instructor");
+      request.input("instructor", sql.NVarChar, instructor);
     }
     if (estatusCurso) {
       condiciones.push("g.estatus_curso = @estatusCurso");
@@ -67,7 +73,7 @@ module.exports = async function (context, req) {
 
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
-      SELECT g.id, g.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo,
+      SELECT g.id, g.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo, c.tipo_cliente,
              g.cliente_final_id, cf.nombre AS cliente_final,
              g.contacto_id, ct.nombre AS contacto,
              g.modalidad, g.grupo_codigo, g.herramientas, g.nombre_curso, g.niveles,
@@ -75,6 +81,7 @@ module.exports = async function (context, req) {
              g.estatus_curso, g.estatus_cierre,
              g.cotizacion_id, cot.folio AS cotizacion_folio,
              g.fotos_rs, g.fecha_cierre, g.notas, g.fecha_creacion,
+             (SELECT MAX(gfh.fecha) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS fecha_ultima_fase,
              (SELECT DATEDIFF(day, MAX(gfh.fecha), GETUTCDATE()) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS dias_en_fase
       FROM Grupo g
       JOIN Cliente c ON c.id = g.cliente_id

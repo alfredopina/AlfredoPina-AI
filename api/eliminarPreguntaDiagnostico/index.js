@@ -2,30 +2,44 @@
 // Function protegida (rol "admin"): borra una pregunta de verdad (no es un
 // simple desactivar) y su imagen del contenedor Blob "diagnostico". Las
 // respuestas históricas que ya la usaron NO se tocan — pregunta_id no tiene
-// FK a propósito (ver sql/009_diagnostico.sql), se vuelve un id huérfano y
-// listRespuestasDiagnosticoAdmin lo muestra como "(pregunta eliminada)".
-const { getPool, sql } = require("../src/backoffice-db");
+// FK a propósito (ver sql/015_diagnostico_tablestorage.sql), se vuelve un id
+// huérfano y listRespuestasDiagnosticoAdmin lo muestra como
+// "(pregunta eliminada)".
+//
+// Vive en Table Storage, no en SQL (2026-09-13) — necesita herramienta
+// (PartitionKey) además del id (RowKey) para poder borrar sin recorrer toda
+// la tabla; el admin ya conoce la herramienta activa cuando llama esto.
+const { getDiagnosticoPreguntasTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
 const { getDiagnosticoContainer } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
-  const id = Number((req.body || {}).id);
-  if (!id) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id de la pregunta." } };
+  const body = req.body || {};
+  const id = (body.id || "").trim();
+  const herramienta = (body.herramienta || "").trim().toLowerCase();
+
+  if (!id || !HERRAMIENTAS.includes(herramienta)) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id o la herramienta de la pregunta." } };
     return;
   }
 
   try {
-    const pool = await getPool();
-    const existente = await pool.request().input("id", sql.Int, id).query("SELECT imagen_url FROM DiagnosticoPregunta WHERE id = @id");
-    if (!existente.recordset.length) {
-      context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };
-      return;
+    const table = getDiagnosticoPreguntasTable();
+
+    let existente;
+    try {
+      existente = await table.getEntity(herramienta, id);
+    } catch (err) {
+      if (err.statusCode === 404) {
+        context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };
+        return;
+      }
+      throw err;
     }
 
-    await pool.request().input("id", sql.Int, id).query("DELETE FROM DiagnosticoPregunta WHERE id = @id");
+    await table.deleteEntity(herramienta, id);
 
-    const imagenUrl = existente.recordset[0].imagen_url;
+    const imagenUrl = existente.imagen_url;
     if (imagenUrl) {
       try {
         const blobName = decodeURIComponent(new URL(imagenUrl).pathname.split("/").pop());

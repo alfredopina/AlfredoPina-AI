@@ -3,12 +3,13 @@
 // Diagnóstico. La imagen es obligatoria aquí (a diferencia de
 // editarPreguntaDiagnostico, donde es opcional) — viaja como base64 dentro
 // del JSON, mismo patrón que uploadRecurso/subirPlantillaAsset.
+//
+// Vive en Table Storage, no en SQL (2026-09-13) — ver diagnostico-tables.js.
 const crypto = require("crypto");
-const { getPool, sql } = require("../src/backoffice-db");
+const { getDiagnosticoPreguntasTable, ensureTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
 const { subirImagenPregunta } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
 
-const HERRAMIENTAS = ["excel", "powerbi"];
 const OPCIONES = ["A", "B", "C", "D"];
 
 module.exports = async function (context, req) {
@@ -22,7 +23,7 @@ module.exports = async function (context, req) {
   const opcionD = (body.opcionD || "").trim();
   const opcionCorrecta = (body.opcionCorrecta || "").trim().toUpperCase();
   const orden = Number.isFinite(Number(body.orden)) ? Number(body.orden) : 0;
-  const activa = body.activa === false ? 0 : 1;
+  const activa = body.activa !== false;
   const imagenBase64 = body.imagenBase64 || "";
   const contentType = body.imagenContentType || "image/png";
 
@@ -48,30 +49,30 @@ module.exports = async function (context, req) {
   }
 
   try {
+    const id = crypto.randomUUID();
     const buffer = Buffer.from(imagenBase64, "base64");
-    const imagenUrl = await subirImagenPregunta(crypto.randomUUID(), buffer, contentType);
+    const imagenUrl = await subirImagenPregunta(id, buffer, contentType);
 
-    const pool = await getPool();
-    const insert = await pool
-      .request()
-      .input("herramienta", sql.VarChar, herramienta)
-      .input("nivel", sql.TinyInt, nivel)
-      .input("texto", sql.NVarChar, texto)
-      .input("imagenUrl", sql.NVarChar, imagenUrl)
-      .input("opcionA", sql.NVarChar, opcionA)
-      .input("opcionB", sql.NVarChar, opcionB)
-      .input("opcionC", sql.NVarChar, opcionC)
-      .input("opcionD", sql.NVarChar, opcionD)
-      .input("opcionCorrecta", sql.Char, opcionCorrecta)
-      .input("orden", sql.Int, orden)
-      .input("activa", sql.Bit, activa)
-      .query(
-        `INSERT INTO DiagnosticoPregunta
-           (herramienta, nivel, texto, imagen_url, opcion_a, opcion_b, opcion_c, opcion_d, opcion_correcta, orden, activa)
-         OUTPUT INSERTED.id
-         VALUES (@herramienta, @nivel, @texto, @imagenUrl, @opcionA, @opcionB, @opcionC, @opcionD, @opcionCorrecta, @orden, @activa)`
-      );
-    context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id, imagenUrl } };
+    const table = getDiagnosticoPreguntasTable();
+    await ensureTable(table);
+    await table.upsertEntity(
+      {
+        partitionKey: herramienta,
+        rowKey: id,
+        nivel,
+        texto,
+        imagen_url: imagenUrl,
+        opcion_a: opcionA,
+        opcion_b: opcionB,
+        opcion_c: opcionC,
+        opcion_d: opcionD,
+        opcion_correcta: opcionCorrecta,
+        orden,
+        activa,
+      },
+      "Replace"
+    );
+    context.res = { status: 200, headers: JSON_HEADERS, body: { id, imagenUrl } };
   } catch (err) {
     context.log.error("Error guardando la pregunta del diagnóstico:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar: " + err.message } };

@@ -5541,10 +5541,10 @@
       `).join('');
 
       cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormPregunta(diagPreguntas.find(p => p.id === Number(b.closest('.radm-row').dataset.id))));
+        b.addEventListener('click', () => abrirFormPregunta(diagPreguntas.find(p => p.id === b.closest('.radm-row').dataset.id)));
       });
       cont.querySelectorAll('[data-action="del"]').forEach(b => {
-        b.addEventListener('click', () => eliminarPregunta(Number(b.closest('.radm-row').dataset.id)));
+        b.addEventListener('click', () => eliminarPregunta(b.closest('.radm-row').dataset.id));
       });
 
       if(window.Sortable){
@@ -5554,8 +5554,8 @@
             // el orden solo importa dentro del MISMO nivel — la consulta
             // pública ordena por (nivel, orden), así que no hace falta
             // ningún truco de offset entre niveles como en Encuestas.
-            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({ id: Number(el.dataset.id), orden: i * 10 }));
-            try { await apiPostJson('/api/reordenarPreguntasDiagnostico', { items: items2 }); await cargarPreguntas(); }
+            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
+            try { await apiPostJson('/api/reordenarPreguntasDiagnostico', { herramienta: diagTool, items: items2 }); await cargarPreguntas(); }
             catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
           },
         });
@@ -5663,7 +5663,7 @@
       const p = diagPreguntas.find(x => x.id === id);
       if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial en Resultados, solo dejan de mostrar su texto/imagen. Si solo quieres que deje de aparecer en el diagnóstico, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
       try {
-        await apiPostJson('/api/eliminarPreguntaDiagnostico', { id });
+        await apiPostJson('/api/eliminarPreguntaDiagnostico', { id, herramienta: diagTool });
         toast('Pregunta eliminada.', true);
         await cargarPreguntas();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
@@ -10165,23 +10165,6 @@
           f('pregunta_id','INT',{extra:'referencia SIN FK a propósito — conserva historial si se borra la pregunta'}),
           f('valor','NVARCHAR(500)'),
         ]},
-      { id:'DiagnosticoPregunta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:900,
-        note:'opcion_correcta nunca se manda al público — getPreguntasDiagnostico la filtra antes de responder a la Function pública.',
-        fields:[
-          f('id','INT',{pk:true}),
-          f('herramienta','VARCHAR(20)',{extra:'excel|powerbi'}),
-          f('nivel','TINYINT',{extra:'1·2·3'}),
-          f('texto','NVARCHAR(500)'),
-          f('imagen_url','NVARCHAR(500)',{extra:'Blob público, contenedor diagnostico'}),
-          f('opcion_a','NVARCHAR(300)'),
-          f('opcion_b','NVARCHAR(300)'),
-          f('opcion_c','NVARCHAR(300)'),
-          f('opcion_d','NVARCHAR(300)'),
-          f('opcion_correcta','CHAR(1)',{extra:'nunca se manda al público'}),
-          f('orden','INT'),
-          f('activa','BIT'),
-          f('fecha_creacion','DATETIME2'),
-        ]},
       { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:900,
         fields:[
           f('id','INT',{pk:true}),
@@ -10194,7 +10177,7 @@
         fields:[
           f('id','INT',{pk:true}),
           f('respuesta_id','INT',{fk:'DiagnosticoRespuesta.id'}),
-          f('pregunta_id','INT',{extra:'referencia SIN FK a propósito, mismo criterio que Encuestas'}),
+          f('pregunta_id','NVARCHAR(50)',{extra:'id de Table Storage — referencia SIN FK a propósito, mismo criterio que Encuestas'}),
           f('nivel','TINYINT'),
           f('opcion_seleccionada','CHAR(1)'),
           f('fue_correcta','BIT',{extra:'foto al momento de responder, no se recalcula'}),
@@ -10278,6 +10261,18 @@
           f('RowKey','string',{pk:true,extra:'correo del administrador'}),
           f('veces','number'), f('ultimaVez','ISO datetime'),
         ]},
+      { id:'DiagnosticoPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:70, y:1840,
+        note:'Movido de SQL a Table Storage el 2026-09-13 — así cargar diagnostico.html nunca depende del auto-pause de la base. opcion_correcta nunca se manda al público (getPreguntasDiagnostico la filtra).',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'herramienta (excel|powerbi)'}),
+          f('RowKey','string',{pk:true,extra:'uuid'}),
+          f('nivel','number',{extra:'1·2·3'}),
+          f('texto','string'),
+          f('imagen_url','string',{extra:'Blob público, contenedor diagnostico'}),
+          f('opcion_a','string'), f('opcion_b','string'), f('opcion_c','string'), f('opcion_d','string'),
+          f('opcion_correcta','string',{extra:'nunca se manda al público'}),
+          f('orden','number'), f('activa','boolean'),
+        ]},
     ];
 
     // kind: fk (FK real SQL) · soft (referencia sin FK) · snap (foto/consulta, no vive como referencia)
@@ -10311,14 +10306,14 @@
       { from:'GrupoFaseHistorial', to:'Grupo', kind:'fk' },
       { from:'DiagnosticoRespuesta', to:'Cliente', kind:'fk' },
       { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoRespuesta', kind:'fk' },
-      { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoPregunta', kind:'soft', label:'pregunta_id · sin FK a propósito' },
+      { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoPreguntas', kind:'soft', label:'pregunta_id · Table Storage, sin FK a propósito' },
     ];
 
     const ZONES = [
       { x:40, y:40, w:1070, h:860, label:'Azure SQL · apcweb-backoffice — Comercial' },
       { x:1140, y:40, w:1070, h:1650, label:'Azure SQL · apcweb-backoffice — Operación' },
       { x:40, y:960, w:1070, h:460, label:'Table Storage · apcwebrecursos — Catálogo de Cursos' },
-      { x:40, y:1480, w:1070, h:460, label:'Table Storage · apcwebrecursos — Infraestructura y herramientas propias' },
+      { x:40, y:1480, w:1070, h:780, label:'Table Storage · apcwebrecursos — Infraestructura y herramientas propias' },
       { x:1140, y:1750, w:1070, h:460, label:'Table Storage · apcwebrecursos — Recursos (códigos de descarga)' },
     ];
 

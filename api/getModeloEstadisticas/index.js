@@ -18,6 +18,9 @@ const { JSON_HEADERS } = require("../src/http");
 // inventar una. Los nombres de tabla son constantes fijas de este archivo
 // (nunca vienen del request), así que interpolarlos directo en el SQL es
 // seguro — no hay superficie de inyección.
+//
+// DiagnosticoPregunta salió de aquí el 2026-09-13 — el banco de preguntas
+// del Diagnóstico se movió a Table Storage (ver STORAGE_TABLAS abajo).
 const SQL_TABLAS = [
   { tabla: "Cliente", fechaCol: null },
   { tabla: "Contacto", fechaCol: "fecha_creacion" },
@@ -31,7 +34,6 @@ const SQL_TABLAS = [
   { tabla: "EncuestaPregunta", fechaCol: null },
   { tabla: "EncuestaRespuesta", fechaCol: "fecha_envio" },
   { tabla: "EncuestaRespuestaDetalle", fechaCol: null },
-  { tabla: "DiagnosticoPregunta", fechaCol: "fecha_creacion" },
   { tabla: "DiagnosticoRespuesta", fechaCol: "fecha_envio" },
   { tabla: "DiagnosticoRespuestaDetalle", fechaCol: null },
 ];
@@ -42,7 +44,7 @@ const SQL_TABLAS = [
 // un Pendiente actualiza su Timestamp aunque no sea una fila nueva); el
 // front lo etiqueta "última actividad" para no confundirlo con la fecha real
 // de creación que sí reportan las tablas SQL.
-const STORAGE_TABLAS = ["Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes", "AdminActividad"];
+const STORAGE_TABLAS = ["Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes", "AdminActividad", "DiagnosticoPreguntas"];
 
 function isTableNotFound(err) {
   if (!err || err.statusCode !== 404) return false;

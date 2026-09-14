@@ -2,10 +2,10 @@
 // Function protegida (rol "admin"): TODAS las preguntas de una herramienta
 // (activas e inactivas), CON opcion_correcta — a diferencia de
 // getPreguntasDiagnostico, que es pública y nunca la incluye.
-const { getPool, sql } = require("../src/backoffice-db");
+//
+// Vive en Table Storage, no en SQL (2026-09-13) — ver diagnostico-tables.js.
+const { getDiagnosticoPreguntasTable, listarPreguntas, entidadAPregunta, HERRAMIENTAS } = require("../src/diagnostico-tables");
 const { JSON_HEADERS } = require("../src/http");
-
-const HERRAMIENTAS = ["excel", "powerbi"];
 
 module.exports = async function (context, req) {
   const herramienta = (req.query.herramienta || "").trim().toLowerCase();
@@ -15,17 +15,12 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const pool = await getPool();
-    const result = await pool
-      .request()
-      .input("herramienta", sql.VarChar, herramienta)
-      .query(
-        `SELECT id, herramienta, nivel, texto, imagen_url, opcion_a, opcion_b, opcion_c, opcion_d, opcion_correcta, orden, activa
-         FROM DiagnosticoPregunta
-         WHERE herramienta = @herramienta
-         ORDER BY nivel, orden`
-      );
-    context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
+    const table = getDiagnosticoPreguntasTable();
+    const entidades = await listarPreguntas(table, herramienta);
+    const preguntas = entidades
+      .map((e) => entidadAPregunta(e, { conCorrecta: true }))
+      .sort((a, b) => a.nivel - b.nivel || a.orden - b.orden);
+    context.res = { status: 200, headers: JSON_HEADERS, body: preguntas };
   } catch (err) {
     context.log.error("Error listando preguntas del diagnóstico:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron listar las preguntas: " + err.message } };

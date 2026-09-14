@@ -5,8 +5,8 @@
 // duplicado a propósito, mismo criterio de encapsular por módulo que ya usa
 // el proyecto.
 //
-// fue_correcta se calcula AQUÍ, comparando contra opcion_correcta de
-// DiagnosticoPregunta en este momento — es una foto: si la pregunta se edita
+// fue_correcta se calcula AQUÍ, comparando contra opcion_correcta del banco
+// de preguntas en este momento — es una foto: si la pregunta se edita
 // después, esta respuesta ya guardada no se recalcula (mismo espíritu que el
 // resto del historial del proyecto). nivel también se guarda en el detalle
 // (no solo en la pregunta) para poder tallar por banda aunque la pregunta se
@@ -14,7 +14,14 @@
 //
 // Sin protección anti-duplicados/anti-spam — igual que Encuestas: se
 // comparte en vivo por QR durante la sesión, no es un link difundido.
+//
+// El banco de preguntas (opcion_correcta/nivel) se lee de Table Storage, no
+// de SQL (2026-09-13) — mismo motivo que getPreguntasDiagnostico: no depender
+// del auto-pause de la base para lo que sí puede evitarse. pregunta_id es
+// ahora un id de Table Storage (string), por eso la columna correspondiente
+// en DiagnosticoRespuestaDetalle pasó de INT a NVARCHAR (sql/015).
 const { getPool, sql } = require("../src/backoffice-db");
+const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagnostico-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 const HERRAMIENTAS = ["excel", "powerbi"];
@@ -92,11 +99,9 @@ module.exports = async function (context, req) {
   // en este momento — nunca se confía en lo que mande el cliente para esto.
   let preguntasPorId;
   try {
-    const result = await pool
-      .request()
-      .input("herramienta", sql.VarChar, herramienta)
-      .query("SELECT id, nivel, opcion_correcta FROM DiagnosticoPregunta WHERE herramienta = @herramienta");
-    preguntasPorId = new Map(result.recordset.map((p) => [p.id, p]));
+    const table = getDiagnosticoPreguntasTable();
+    const entidades = await listarPreguntas(table, herramienta);
+    preguntasPorId = new Map(entidades.map((e) => [e.rowKey, { nivel: e.nivel, opcion_correcta: e.opcion_correcta }]));
   } catch (err) {
     context.log.error("Error leyendo el banco de preguntas:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo procesar tu envío en este momento." } };
@@ -119,7 +124,7 @@ module.exports = async function (context, req) {
     const respuestaId = insertRespuesta.recordset[0].id;
 
     for (const r of respuestas) {
-      const preguntaId = Number(r.preguntaId);
+      const preguntaId = (r.preguntaId || "").toString().trim();
       const opcionSeleccionada = (r.opcionSeleccionada || "").trim().toUpperCase();
       if (!preguntaId || !OPCIONES.includes(opcionSeleccionada)) continue;
       const pregunta = preguntasPorId.get(preguntaId);
@@ -128,7 +133,7 @@ module.exports = async function (context, req) {
       const fueCorrecta = opcionSeleccionada === pregunta.opcion_correcta;
       await new sql.Request(transaction)
         .input("respuestaId", sql.Int, respuestaId)
-        .input("preguntaId", sql.Int, preguntaId)
+        .input("preguntaId", sql.NVarChar, preguntaId)
         .input("nivel", sql.TinyInt, pregunta.nivel)
         .input("opcionSeleccionada", sql.Char, opcionSeleccionada)
         .input("fueCorrecta", sql.Bit, fueCorrecta ? 1 : 0)

@@ -480,6 +480,13 @@
   }
   cargarDiagnostico();
 
+  // Prewarm silencioso de la base SQL (donde vive enviarDiagnostico) — las
+  // preguntas ya no dependen de ella (viven en Table Storage), pero el envío
+  // final sí sigue tocándola. Se dispara en paralelo, sin bloquear ni avisar
+  // nada si falla: para cuando la persona termine las 15 preguntas (varios
+  // minutos), la base ya tuvo tiempo de sobra para despertar sola.
+  fetch('/api/despertarDiagnostico').catch(() => {});
+
   document.getElementById('diagForm').addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -502,7 +509,7 @@
     }
 
     const respuestas = preguntasEl.map(q => ({
-      preguntaId: Number(q.dataset.preguntaId),
+      preguntaId: q.dataset.preguntaId,
       opcionSeleccionada: q.dataset.seleccionada,
     }));
 
@@ -510,7 +517,24 @@
     const body = document.getElementById('diagSubmitBody');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
     try {
-      await apiPostJson('/api/enviarDiagnostico', { nombre, herramienta, empresa, respuestas });
+      // mismo reintento con pausas crecientes que pedirPreguntas — el prewarm
+      // de arriba cubre el caso normal, esto es la red de seguridad si de
+      // todos modos la base seguía dormida al momento de enviar.
+      let ultimoError;
+      let enviado = false;
+      for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length && !enviado; intento++){
+        try {
+          await apiPostJson('/api/enviarDiagnostico', { nombre, herramienta, empresa, respuestas });
+          enviado = true;
+        } catch(e){
+          ultimoError = e;
+          if(intento < REINTENTO_PAUSAS_MS.length){
+            body.textContent = '=ENVIANDO...() reintentando';
+            await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+          }
+        }
+      }
+      if(!enviado) throw ultimoError;
       document.getElementById('diagForm').hidden = true;
       document.getElementById('diagThanks').classList.add('show');
     } catch(err){

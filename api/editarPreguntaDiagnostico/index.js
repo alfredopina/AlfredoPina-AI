@@ -1,19 +1,23 @@
 // editarPreguntaDiagnostico/index.js
 // Function protegida (rol "admin"): edita una pregunta existente. A
 // diferencia de crearPreguntaDiagnostico, la imagen es OPCIONAL — si no viene
-// imagenBase64, se conserva la imagen_url ya guardada (mismo patrón dual que
-// editarRecurso/uploadRecurso: aquí no vale la pena separar en 2 Functions
-// porque no hay upload sin datos, siempre se manda el formulario completo).
-const { getPool, sql } = require("../src/backoffice-db");
+// imagenBase64, se conserva la imagen_url ya guardada.
+//
+// Vive en Table Storage, no en SQL (2026-09-13) — ver diagnostico-tables.js.
+// herramienta se trata como fija por la vida de la pregunta (el formulario
+// del admin nunca la deja cambiar, siempre se edita dentro del contexto de
+// una herramienta) — si no calza con el PartitionKey real, se trata igual
+// que "id no encontrado" en vez de intentar mover la entidad de partición.
+const crypto = require("crypto");
+const { getDiagnosticoPreguntasTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
 const { subirImagenPregunta } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
 
-const HERRAMIENTAS = ["excel", "powerbi"];
 const OPCIONES = ["A", "B", "C", "D"];
 
 module.exports = async function (context, req) {
   const body = req.body || {};
-  const id = Number(body.id);
+  const id = (body.id || "").trim();
   const herramienta = (body.herramienta || "").trim().toLowerCase();
   const nivel = Number(body.nivel);
   const texto = (body.texto || "").trim();
@@ -23,7 +27,7 @@ module.exports = async function (context, req) {
   const opcionD = (body.opcionD || "").trim();
   const opcionCorrecta = (body.opcionCorrecta || "").trim().toUpperCase();
   const orden = Number.isFinite(Number(body.orden)) ? Number(body.orden) : 0;
-  const activa = body.activa === false ? 0 : 1;
+  const activa = body.activa !== false;
   const imagenBase64 = body.imagenBase64 || "";
   const contentType = body.imagenContentType || "image/png";
 
@@ -49,45 +53,42 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const pool = await getPool();
+    const table = getDiagnosticoPreguntasTable();
 
-    let imagenUrl = null;
+    let existente;
+    try {
+      existente = await table.getEntity(herramienta, id);
+    } catch (err) {
+      if (err.statusCode === 404) {
+        context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };
+        return;
+      }
+      throw err;
+    }
+
+    let imagenUrl = existente.imagen_url;
     if (imagenBase64) {
       const buffer = Buffer.from(imagenBase64, "base64");
-      imagenUrl = await subirImagenPregunta(require("crypto").randomUUID(), buffer, contentType);
+      imagenUrl = await subirImagenPregunta(crypto.randomUUID(), buffer, contentType);
     }
 
-    const request = pool
-      .request()
-      .input("id", sql.Int, id)
-      .input("herramienta", sql.VarChar, herramienta)
-      .input("nivel", sql.TinyInt, nivel)
-      .input("texto", sql.NVarChar, texto)
-      .input("opcionA", sql.NVarChar, opcionA)
-      .input("opcionB", sql.NVarChar, opcionB)
-      .input("opcionC", sql.NVarChar, opcionC)
-      .input("opcionD", sql.NVarChar, opcionD)
-      .input("opcionCorrecta", sql.Char, opcionCorrecta)
-      .input("orden", sql.Int, orden)
-      .input("activa", sql.Bit, activa);
-
-    let setImagen = "";
-    if (imagenUrl) {
-      request.input("imagenUrl", sql.NVarChar, imagenUrl);
-      setImagen = "imagen_url = @imagenUrl, ";
-    }
-
-    const result = await request.query(
-      `UPDATE DiagnosticoPregunta
-       SET herramienta=@herramienta, nivel=@nivel, texto=@texto, ${setImagen}
-           opcion_a=@opcionA, opcion_b=@opcionB, opcion_c=@opcionC, opcion_d=@opcionD,
-           opcion_correcta=@opcionCorrecta, orden=@orden, activa=@activa
-       WHERE id=@id`
+    await table.upsertEntity(
+      {
+        partitionKey: herramienta,
+        rowKey: id,
+        nivel,
+        texto,
+        imagen_url: imagenUrl,
+        opcion_a: opcionA,
+        opcion_b: opcionB,
+        opcion_c: opcionC,
+        opcion_d: opcionD,
+        opcion_correcta: opcionCorrecta,
+        orden,
+        activa,
+      },
+      "Replace"
     );
-    if (!result.rowsAffected[0]) {
-      context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };
-      return;
-    }
     context.res = { status: 200, headers: JSON_HEADERS, body: { id, imagenUrl } };
   } catch (err) {
     context.log.error("Error editando la pregunta del diagnóstico:", err.message);

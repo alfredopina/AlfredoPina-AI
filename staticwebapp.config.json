@@ -225,6 +225,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/actualizarNotasCliente",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listContactosAdmin",
       "allowedRoles": ["admin"]
     },

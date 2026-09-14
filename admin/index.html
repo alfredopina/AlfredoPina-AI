@@ -916,7 +916,7 @@
 
   .cot-row-actions{ display:flex; align-items:center; gap:6px; }
   .cot-icon-btn{
-    display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px;
+    position:relative; display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px;
     border:1px solid var(--line); border-radius:6px; background:var(--panel-2); color:var(--text-dim);
     cursor:pointer; transition:all .15s; flex:none;
   }
@@ -924,6 +924,16 @@
   .cot-icon-btn:hover{ border-color:var(--blue-bright); color:var(--blue-bright); }
   .cot-icon-btn:disabled{ opacity:.4; cursor:default; }
   .cot-icon-btn:disabled:hover{ border-color:var(--line); color:var(--text-dim); }
+  /* Acción "Notas" (globito) en Clientes/Tracking Operación — resaltada
+     cuando ya hay una nota guardada: nunca solo por color (deuteranomalía de
+     Alfredo), el punto de la esquina es la señal principal, el tinte azul es
+     solo refuerzo. background-color explícito, no shorthand (ver "Ya
+     resuelto" sobre color-mix colapsando a transparente en esta hoja). */
+  .cot-icon-btn.tiene-nota{ border-color:var(--blue-bright); color:var(--blue-bright); background-color:var(--blue-soft); }
+  .cot-icon-btn.tiene-nota::after{
+    content:''; position:absolute; top:-3px; right:-3px; width:8px; height:8px;
+    border-radius:50%; background-color:var(--blue-bright); border:2px solid var(--panel);
+  }
 
   .cot-cliente-nombre{ font-weight:500; }
   .cot-cliente-sub{ font-size:11px; color:var(--text-faint); margin-top:2px; }
@@ -1979,6 +1989,15 @@
               </tbody>
             </table>
           </div>
+
+          <div class="gro-notas-popover" id="cliNotasPopover" hidden>
+            <div class="gro-notas-popover-title">Nota rápida</div>
+            <textarea id="cliNotasTextarea" placeholder="Escribe una nota..."></textarea>
+            <div class="gro-notas-popover-actions">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cliNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
+              <button type="button" class="radm-btn" id="cliNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
+            </div>
+          </div>
         </div>
 
         <div class="dip-tabpanel" id="cliTab-crear">
@@ -2165,7 +2184,7 @@
           <table class="dip-table">
             <thead>
               <tr>
-                <th>Cliente</th>
+                <th style="width:130px;">Cliente</th>
                 <th># Grupo</th>
                 <th>Herramientas</th>
                 <th>Modalidad</th>
@@ -5879,6 +5898,12 @@
       // hallaba forma"; solo el signo, más legible a este tamaño.
       warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:11px;height:11px;"><path d="M12 4v9M12 17h.01" stroke-linecap="round"/></svg>',
       chevron: '<svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      // Globito de notificación para la acción Notas — mismo ícono que su
+      // gemelo de Tracking Operación (definido aparte, cada IIFE tiene su
+      // propio ICO), pedido explícito de Alfredo (2026-09-14) para una
+      // actividad/pendiente sobre el cliente, no solo el campo de notas
+      // largo que ya vive en "Modificar Cliente".
+      notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
     const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto'];
     // completado/dias_inactivo no los ordena el backend (no son columnas
@@ -6035,7 +6060,12 @@
           <td>${diasInactivoHtml(c.dias_inactivo)}</td>
           <td>${semaforoHtml(c.semaforo)}</td>
           <td>
-            <button type="button" class="cot-icon-btn cli-editar-btn" data-id="${c.id}" title="Editar cliente y contactos">${ICO.edit}</button>
+            <div style="display:flex; gap:4px;">
+              <button type="button" class="cot-icon-btn cli-notas-btn${c.notas ? ' tiene-nota' : ''}" data-id="${c.id}" title="${c.notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida'}">
+                ${ICO.notas}
+              </button>
+              <button type="button" class="cot-icon-btn cli-editar-btn" data-id="${c.id}" title="Editar cliente y contactos">${ICO.edit}</button>
+            </div>
           </td>
         </tr>
         <tr class="sol-desglose-row" id="cli-desglose-${c.id}" hidden>
@@ -6049,7 +6079,64 @@
       body.querySelectorAll('.cli-editar-btn').forEach(btn => {
         btn.addEventListener('click', () => abrirModificarCliente(cliClientes.find(x => x.id === Number(btn.dataset.id))));
       });
+      body.querySelectorAll('.cli-notas-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const c = cliClientes.find(x => x.id === Number(btn.dataset.id));
+          if(c) abrirNotasCliente(c, btn);
+        });
+      });
     }
+
+    // Popover de "Nota rápida" (globito) — mismo patrón que Tracking
+    // Operación (actualizarNotasGrupo/gro-notas-btn): actualiza SOLO
+    // Cliente.notas, el mismo campo que ya usa "Modificar Cliente", sin
+    // mandar el resto del formulario. Alfredo lo pidió para anotar una
+    // actividad pendiente sobre el cliente sin tener que abrir el form
+    // completo — sigue siendo un campo de texto simple, no un historial.
+    let cliNotasClienteActual = null;
+    const cliNotasPopover = document.getElementById('cliNotasPopover');
+    const cliNotasTextarea = document.getElementById('cliNotasTextarea');
+    function abrirNotasCliente(c, btnEl){
+      cliNotasClienteActual = c;
+      cliNotasTextarea.value = c.notas || '';
+      const rect = btnEl.getBoundingClientRect();
+      const left = Math.min(rect.left, window.innerWidth - 296);
+      cliNotasPopover.style.top = (rect.bottom + 6) + 'px';
+      cliNotasPopover.style.left = Math.max(8, left) + 'px';
+      cliNotasPopover.hidden = false;
+      cliNotasTextarea.focus();
+    }
+    function cerrarNotasCliente(){
+      cliNotasPopover.hidden = true;
+      cliNotasClienteActual = null;
+    }
+    document.getElementById('cliNotasCancelar').addEventListener('click', cerrarNotasCliente);
+    document.getElementById('cliNotasGuardar').addEventListener('click', async () => {
+      if(!cliNotasClienteActual) return;
+      const notas = cliNotasTextarea.value.trim();
+      try {
+        await apiPostJson('/api/actualizarNotasCliente', { id: cliNotasClienteActual.id, notas });
+        cliNotasClienteActual.notas = notas;
+        // Si el despliegue de ese cliente ya estaba abierto, refresca su HTML
+        // para que no se quede viendo la nota vieja hasta la próxima recarga.
+        const filaDesglose = document.getElementById('cli-desglose-body-' + cliNotasClienteActual.id);
+        if(filaDesglose && !document.getElementById('cli-desglose-' + cliNotasClienteActual.id).hidden){
+          filaDesglose.innerHTML = clienteDetalleHtml(cliNotasClienteActual, cliContactosCache[cliNotasClienteActual.id] || []);
+        }
+        const btnFila = document.querySelector(`.cli-notas-btn[data-id="${cliNotasClienteActual.id}"]`);
+        if(btnFila){
+          btnFila.classList.toggle('tiene-nota', !!notas);
+          btnFila.title = notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida';
+        }
+        toast('Nota guardada.', true);
+        cerrarNotasCliente();
+      } catch(e){ toast('No se pudo guardar la nota: ' + e.message, false); }
+    });
+    document.addEventListener('click', e => {
+      if(!cliNotasPopover.hidden && !e.target.closest('#cliNotasPopover') && !e.target.closest('.cli-notas-btn')){
+        cerrarNotasCliente();
+      }
+    });
 
     async function toggleDesglose(id, btnEl){
       const fila = document.getElementById('cli-desglose-' + id);
@@ -8339,6 +8426,11 @@
     // (mismo criterio que el resto del proyecto), lo usa ordenarListaGrupos
     // para el sort por Fase en el cliente.
     const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
+    // Ícono de "globito" de notificación para la acción Notas de Tracking
+    // Operación (y su gemelo en Clientes, definido aparte en ese IIFE) — un
+    // speech-bubble simple en vez del ícono de documento que traía antes,
+    // pedido explícito de Alfredo (2026-09-14) para que se lea como mensaje.
+    const ICO_NOTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc' };
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -9390,9 +9482,10 @@
       if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
       body.innerHTML = lista.map(g => `
         <tr data-id="${g.id}">
-          <td>
-            <div class="cot-cliente-nombre">${escapeHtml(g.cliente)}</div>
+          <td style="max-width:130px;">
+            <div class="cot-cliente-nombre" style="overflow-wrap:break-word;">${escapeHtml(g.cliente)}</div>
             ${g.cliente_final ? `<div class="cot-cliente-sub">cliente final: ${escapeHtml(g.cliente_final)}</div>` : ''}
+            ${g.contacto ? `<div class="cot-cliente-sub">${escapeHtml(g.contacto)}</div>` : ''}
           </td>
           <td>
             <button type="button" class="sol-temario-toggle gro-desglose-toggle" data-id="${g.id}" title="Ver tipo de cliente, fechas, notas y cotización de origen">
@@ -9407,8 +9500,8 @@
           <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
-              <button type="button" class="cot-icon-btn gro-notas-btn" data-id="${g.id}" title="Ver o agregar una nota rápida">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" stroke-linejoin="round"/><path d="M14 3v4a1 1 0 0 0 1 1h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13h6M9 17h4" stroke-linecap="round"/></svg>
+              <button type="button" class="cot-icon-btn gro-notas-btn${g.notas ? ' tiene-nota' : ''}" data-id="${g.id}" title="${g.notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida'}">
+                ${ICO_NOTA}
               </button>
               <button type="button" class="cot-icon-btn gro-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -9511,6 +9604,11 @@
         const filaDesglose = document.getElementById('gro-desglose-' + groNotasGrupoActual.id);
         if(filaDesglose && !filaDesglose.hidden){
           filaDesglose.querySelector('.sol-desglose').innerHTML = grupoDetalleHtml(groNotasGrupoActual);
+        }
+        const btnFila = document.querySelector(`.gro-notas-btn[data-id="${groNotasGrupoActual.id}"]`);
+        if(btnFila){
+          btnFila.classList.toggle('tiene-nota', !!notas);
+          btnFila.title = notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida';
         }
         toast('Nota guardada.', true);
         cerrarNotasGrupo();

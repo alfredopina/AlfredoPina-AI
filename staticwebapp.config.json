@@ -321,6 +321,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/actualizarNotasGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listGruposAdmin",
       "allowedRoles": ["admin"]
     },

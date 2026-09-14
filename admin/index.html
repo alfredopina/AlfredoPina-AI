@@ -570,15 +570,19 @@
      vista maestro-detalle (.cli-layout/.cli-row/.cli-detail) se retiró por
      completo a favor de la tabla — solo quedan aquí las clases que la fila
      expandible de Contactos sigue usando. */
-  .cli-scorecard-block{ border-bottom:3px solid var(--c); padding-bottom:10px; margin-bottom:14px; }
+  .cli-scorecard-block{ margin-bottom:14px; }
   .cli-kpi-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  /* Tarjeta cuadrada (sin border-radius) a propósito — con radius, el borde
+     izquierdo de énfasis se ve curveado tipo "(" en las esquinas en vez de
+     una barra vertical recta. ~18% más alta que el .dkpi-card base para que
+     el número respire y se lea más grande. */
   .cli-kpi-row .dkpi-card{
     flex:1; min-width:170px; flex-direction:row; align-items:center; gap:10px;
-    padding:10px 14px; border-left:4px solid var(--c); border-top:none;
+    padding:14px 16px; border-left:4px solid var(--c); border-top:none; border-radius:0;
   }
   .cli-kpi-row .dkpi-card::before{ display:none; }
-  .cli-kpi-row .dkpi-icon{ width:18px; height:18px; flex:none; }
-  .cli-kpi-row .dkpi-value{ font-size:20px; white-space:nowrap; }
+  .cli-kpi-row .dkpi-icon{ width:19px; height:19px; flex:none; }
+  .cli-kpi-row .dkpi-value{ font-size:23px; white-space:nowrap; }
   .cli-kpi-row .dkpi-label{ margin-left:auto; text-align:right; }
 
   .cli-badge{
@@ -839,26 +843,25 @@
 
   /* Variante "resumen" (Tracking Operación) — no es el progreso de UN grupo,
      es cuántos grupos activos hay en cada fase ahora mismo. Mismo cuadrado y
-     línea que las demás variantes pero más remarcados (línea/borde más
-     gruesos que el resto de variantes, a pedido explícito) — sin done/
-     current: cada nodo siempre muestra su número, nunca un check. Clicable
-     para filtrar la tabla. */
-  .resumen-track .step-item::after{ top:16px; height:3px; background:var(--text-dim); }
+     línea que las demás variantes pero más remarcados (línea/borde azules y
+     más gruesos, cuadro más grande, a pedido explícito) — sin done/current:
+     cada nodo siempre muestra su número, nunca un check. Clicable para
+     filtrar la tabla. */
+  .resumen-track .step-item::after{ top:18px; height:3px; background:var(--blue-bright); }
   .resumen-track .step-node{
-    width:32px; height:32px; border-width:2.5px; border-color:var(--text-dim);
-    color:var(--text); font-family:var(--mono); font-size:13px; font-weight:700;
-    cursor:pointer; transition:border-color .15s, box-shadow .15s;
+    width:36px; height:36px; border-width:2.5px; border-color:var(--blue-bright);
+    color:var(--text); font-family:var(--mono); font-size:14.5px; font-weight:700;
+    cursor:pointer; transition:box-shadow .15s;
   }
-  .resumen-track .step-item:hover .step-node{ border-color:var(--blue-bright); }
-  .resumen-track .step-item.activa .step-node{ border-color:var(--blue-bright); box-shadow:0 0 0 4px var(--blue-soft); }
+  .resumen-track .step-item.activa .step-node{ box-shadow:0 0 0 4px var(--blue-soft); }
   .resumen-track .step-item.activa .step-label{ color:var(--text); font-weight:600; }
   /* "Vivo": todos los cuadros respiran muy sutil; el que tiene MÁS grupos
      (el cuello de botella) respira más fuerte, con glow, para que salte a
      la vista sin depender solo del número. */
   @keyframes resumen-pulso-sutil{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.045); } }
   @keyframes resumen-pulso-fuerte{
-    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 var(--blue-soft); border-color:var(--text-dim); }
-    50%{ transform:scale(1.14); box-shadow:0 0 0 7px var(--blue-soft); border-color:var(--blue-bright); }
+    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 var(--blue-soft); }
+    50%{ transform:scale(1.14); box-shadow:0 0 0 7px var(--blue-soft); }
   }
   .resumen-track .step-node{ animation:resumen-pulso-sutil 2.6s ease-in-out infinite; }
   .resumen-track .step-item.max .step-node{ animation:resumen-pulso-fuerte 1.7s ease-in-out infinite; }
@@ -866,11 +869,32 @@
   @media (prefers-reduced-motion:reduce){ .resumen-track .step-node{ animation:none; } }
 
   .stepper-resumen-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 20px 6px; margin-bottom:16px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px 14px; margin-bottom:16px;
   }
-  .stepper-resumen-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; gap:10px; }
-  .stepper-resumen-title{ font-family:var(--display); font-size:13.5px; font-weight:600; padding-top:6px; }
-  .stepper-resumen-head-actions{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .stepper-resumen-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:10px; }
+  .stepper-resumen-title{ font-family:var(--display); font-size:13.5px; font-weight:600; }
+  /* Semáforo "vivo" de Tracking Operación — mismo criterio de siempre
+     (puro CSS, sin polling): las 3 lecturas pulsan sutil, no solo la verde,
+     porque aquí la señal es "esto se sigue rastreando en vivo", no "todo
+     bien" — a diferencia del semáforo de Clientes, que sí es solo la verde. */
+  .gro-semaforo .cot-semaforo-dot{ animation:admin-live-pulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .gro-semaforo .cot-semaforo-dot{ animation:none; } }
+
+  /* Popover de "Nota rápida" (acción Notas, Tracking Operación) — a
+     diferencia de .cli-info-popover (fijo dentro de un wrapper), este se
+     dispara desde cualquier fila de la tabla, así que se posiciona con
+     position:fixed y coordenadas calculadas en JS junto al botón tocado. */
+  .gro-notas-popover{
+    position:fixed; z-index:50; width:280px; max-width:90vw;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    box-shadow:0 10px 28px rgba(0,0,0,.28);
+  }
+  .gro-notas-popover-title{ font-family:var(--display); font-weight:600; font-size:12.5px; }
+  .gro-notas-popover textarea{
+    width:100%; min-height:90px; background:var(--panel-2); border:1px solid var(--line); border-radius:6px;
+    color:var(--text); font:inherit; font-size:12.5px; padding:8px; resize:vertical; margin:8px 0; box-sizing:border-box;
+  }
+  .gro-notas-popover-actions{ display:flex; justify-content:flex-end; gap:8px; }
   .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
   .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
   .step-next-hint{
@@ -2032,12 +2056,12 @@
             <div class="dkpi-card" style="--c:var(--good)" title="Grupos con estatus_cierre distinto de Cerrado">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div class="dkpi-value" id="groKpiActivos">—</div>
-              <div class="dkpi-label">Activos</div>
+              <div class="dkpi-label">Grupos Activos</div>
             </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Grupos cerrados este año">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div class="dkpi-value" id="groKpiCerrados">—</div>
-              <div class="dkpi-label">Cerrados</div>
+              <div class="dkpi-label">Grupos Cerrados</div>
             </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Promedio entre fecha_fin y fecha_cierre de los grupos ya cerrados">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -2058,13 +2082,10 @@
         <div class="stepper-resumen-card">
           <div class="stepper-resumen-head">
             <span class="stepper-resumen-title">Grupos activos por fase</span>
-            <div class="stepper-resumen-head-actions">
-              <button type="button" class="cli-info-btn" id="groStepperReset" hidden>Ver todos</button>
-              <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
-                <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
-                <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
-                <button type="button" class="radm-tab" data-vista="todas">Todos</button>
-              </div>
+            <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
+              <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
+              <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
+              <button type="button" class="radm-tab" data-vista="todas">Todos</button>
             </div>
           </div>
           <div id="groStepperResumen"></div>
@@ -2104,6 +2125,9 @@
               </select>
             </div>
             <div class="dip-filter-actions">
+              <button type="button" class="cot-icon-btn" id="groActualizar" title="Actualizar la lista y los indicadores">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
               <button type="button" class="cot-icon-btn" id="groLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
@@ -2118,6 +2142,21 @@
               <button type="button" class="sol-sort-btn" data-sort="herramienta">Herramienta<span class="sol-sort-ico" hidden></span></button>
               <button type="button" class="sol-sort-btn" data-sort="fase">Fase<span class="sol-sort-ico" hidden></span></button>
               <button type="button" class="sol-sort-btn" data-sort="dias_en_fase">Días en fase<span class="sol-sort-ico" hidden></span></button>
+            </div>
+            <div class="cli-info-wrap">
+              <button type="button" class="cli-info-btn" id="groInfoBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                Info
+              </button>
+              <div class="cli-info-popover" id="groInfoPopover" hidden>
+                <strong>Fase y Días en fase</strong>
+                <ul>
+                  <li><b>Fase</b> es la parada operativa del Grupo: Por iniciar → En curso → Proyecto → Calificaciones → Diplomas → Cerrado. Se deriva de Estatus del curso/Estatus de cierre, nunca se captura a mano.</li>
+                  <li><b>Días en fase</b> es cuánto lleva el Grupo en esa fase — se muestra siempre, pero solo se resalta en color (verde/ámbar/rojo) mientras está cerrando (Proyecto/Calificaciones/Diplomas), donde sí hay urgencia real.</li>
+                  <li>El stepper de arriba cuenta los Grupos activos por fase (Cerrado no vive ahí, tiene su propia tarjeta) — toca un cuadro para filtrar la tabla.</li>
+                </ul>
+                <span style="color:var(--text-faint);">Semáforo de cierre: verde &lt;10 días · ámbar 10–21 · rojo &gt;21.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2145,6 +2184,15 @@
               <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="gro-notas-popover" id="groNotasPopover" hidden>
+          <div class="gro-notas-popover-title">Nota rápida</div>
+          <textarea id="groNotasTextarea" placeholder="Escribe una nota..."></textarea>
+          <div class="gro-notas-popover-actions">
+            <button type="button" class="radm-btn radm-btn-ghost" id="groNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
+            <button type="button" class="radm-btn" id="groNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
+          </div>
         </div>
       </div>
       <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
@@ -9270,17 +9318,10 @@
       cont.innerHTML = window.FaseStepper.renderResumen({ conteos: groConteosFase, faseActiva: groFaseFiltro });
       window.FaseStepper.wireResumen(cont, fase => {
         groFaseFiltro = fase;
-        document.getElementById('groStepperReset').hidden = !fase;
         renderStepperResumen();
         renderTablaTracking();
       });
     }
-    document.getElementById('groStepperReset').addEventListener('click', () => {
-      groFaseFiltro = null;
-      document.getElementById('groStepperReset').hidden = true;
-      renderStepperResumen();
-      renderTablaTracking();
-    });
 
     function actualizarAlertaGrupos(lista){
       const banner = document.getElementById('groAlerta');
@@ -9301,7 +9342,7 @@
       const dias = g.dias_en_fase != null ? g.dias_en_fase : 0;
       if(FASES_CIERRE.includes(g.fase)){
         const cls = dias > 21 ? 'hot' : dias >= 10 ? 'warn' : 'ok';
-        return `<span class="cot-semaforo ${cls}"><span class="cot-semaforo-dot"></span>${dias} días</span>`;
+        return `<span class="cot-semaforo gro-semaforo ${cls}"><span class="cot-semaforo-dot"></span>${dias} días</span>`;
       }
       return `<span class="radm-mono" style="color:var(--text-dim);">${dias} días</span>`;
     }
@@ -9366,6 +9407,9 @@
           <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
+              <button type="button" class="cot-icon-btn gro-notas-btn" data-id="${g.id}" title="Ver o agregar una nota rápida">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" stroke-linejoin="round"/><path d="M14 3v4a1 1 0 0 0 1 1h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13h6M9 17h4" stroke-linecap="round"/></svg>
+              </button>
               <button type="button" class="cot-icon-btn gro-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
@@ -9405,10 +9449,14 @@
     }
 
     document.getElementById('groListaBody').addEventListener('click', e => {
+      const notasBtn = e.target.closest('.gro-notas-btn');
       const editarBtn = e.target.closest('.gro-editar-btn');
       const moverBtn = e.target.closest('.gro-mover-btn');
       const toggleBtn = e.target.closest('.gro-desglose-toggle');
-      if(editarBtn){
+      if(notasBtn){
+        const g = groListaCache.find(x => String(x.id) === String(notasBtn.dataset.id));
+        if(g) abrirNotasGrupo(g, notasBtn);
+      } else if(editarBtn){
         const g = groListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
         if(g) abrirModificarGrupo(g, 'editar', { panel: 'tracking-operacion' });
       } else if(moverBtn){
@@ -9419,6 +9467,58 @@
         const abrir = fila.hidden;
         fila.hidden = !abrir;
         toggleBtn.querySelector('.sol-temario-chevron').classList.toggle('open', abrir);
+        // Bug real encontrado de paso (2026-09-13): a diferencia de Consultar
+        // Grupos, este despliegue nunca llamaba a pintarStepperExpandido —
+        // se quedaba en "Cargando fases…" para siempre.
+        if(abrir){
+          const g = groListaCache.find(x => String(x.id) === String(toggleBtn.dataset.id));
+          if(g) pintarStepperExpandido(g);
+        }
+      }
+    });
+
+    // Popover de "Nota rápida" — actualiza SOLO g.notas (nueva Function
+    // actualizarNotasGrupo, más ligera que editarGrupo) y refresca el dato en
+    // memoria + el despliegue si ya estaba abierto, sin recargar toda la
+    // tabla. No es un historial con fecha por entrada, solo el mismo campo
+    // de texto que ya existía — ver la nota en el código del backend.
+    let groNotasGrupoActual = null;
+    const groNotasPopover = document.getElementById('groNotasPopover');
+    const groNotasTextarea = document.getElementById('groNotasTextarea');
+    function abrirNotasGrupo(g, btnEl){
+      groNotasGrupoActual = g;
+      groNotasTextarea.value = g.notas || '';
+      const rect = btnEl.getBoundingClientRect();
+      const left = Math.min(rect.left, window.innerWidth - 296);
+      groNotasPopover.style.top = (rect.bottom + 6) + 'px';
+      groNotasPopover.style.left = Math.max(8, left) + 'px';
+      groNotasPopover.hidden = false;
+      groNotasTextarea.focus();
+    }
+    function cerrarNotasGrupo(){
+      groNotasPopover.hidden = true;
+      groNotasGrupoActual = null;
+    }
+    document.getElementById('groNotasCancelar').addEventListener('click', cerrarNotasGrupo);
+    document.getElementById('groNotasGuardar').addEventListener('click', async () => {
+      if(!groNotasGrupoActual) return;
+      const notas = groNotasTextarea.value.trim();
+      try {
+        await apiPostJson('/api/actualizarNotasGrupo', { id: groNotasGrupoActual.id, notas });
+        groNotasGrupoActual.notas = notas;
+        // Si el despliegue de ese grupo ya estaba abierto, refresca su HTML
+        // para que no se quede viendo la nota vieja hasta la próxima recarga.
+        const filaDesglose = document.getElementById('gro-desglose-' + groNotasGrupoActual.id);
+        if(filaDesglose && !filaDesglose.hidden){
+          filaDesglose.querySelector('.sol-desglose').innerHTML = grupoDetalleHtml(groNotasGrupoActual);
+        }
+        toast('Nota guardada.', true);
+        cerrarNotasGrupo();
+      } catch(e){ toast('No se pudo guardar la nota: ' + e.message, false); }
+    });
+    document.addEventListener('click', e => {
+      if(!groNotasPopover.hidden && !e.target.closest('#groNotasPopover') && !e.target.closest('.gro-notas-btn')){
+        cerrarNotasGrupo();
       }
     });
 
@@ -9427,11 +9527,21 @@
       if(!btn) return;
       groVista = btn.dataset.vista;
       document.querySelectorAll('#groVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b === btn));
+      // Cambiar de vista suelta el filtro de fase del stepper — "Todos" es
+      // ahora el reemplazo directo del botón "Ver todos" que existía antes
+      // (mismo criterio para Activos/Cerrados: un filtro de fase de otra
+      // vista no debería quedarse pegado sin que se note).
+      groFaseFiltro = null;
+      renderStepperResumen();
       buscarGruposTracking();
     });
 
     ['groFHerramienta', 'groFInstructor'].forEach(id => {
       document.getElementById(id).addEventListener('change', buscarGruposTracking);
+    });
+    document.getElementById('groActualizar').addEventListener('click', () => {
+      cargarKpisGrupos();
+      buscarGruposTracking();
     });
     document.getElementById('groLimpiarFiltros').addEventListener('click', () => {
       groFClienteAuto.reset(); // dispara buscarGruposTrackingDebounced() vía onChange — se cancela abajo para no duplicar la búsqueda
@@ -9439,6 +9549,21 @@
       document.getElementById('groFHerramienta').value = '';
       document.getElementById('groFInstructor').value = '';
       buscarGruposTracking();
+    });
+
+    // Popover "Info" (Fase/Días en fase) — mismo patrón que el de Clientes.
+    const groInfoBtn = document.getElementById('groInfoBtn');
+    const groInfoPopover = document.getElementById('groInfoPopover');
+    groInfoBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      groInfoPopover.hidden = !groInfoPopover.hidden;
+      groInfoBtn.classList.toggle('active', !groInfoPopover.hidden);
+    });
+    document.addEventListener('click', e => {
+      if(!groInfoPopover.hidden && !e.target.closest('#groInfoBtn') && !e.target.closest('#groInfoPopover')){
+        groInfoPopover.hidden = true;
+        groInfoBtn.classList.remove('active');
+      }
     });
 
     document.getElementById('groSortGroup').addEventListener('click', e => {

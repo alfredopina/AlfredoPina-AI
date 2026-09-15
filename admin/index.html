@@ -1226,38 +1226,25 @@
     </a>
 
     <nav class="admin-nav" id="adminNav">
-      <button class="admin-nav-item active" data-panel="dashboard">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
-        Dashboard
-      </button>
+      <div class="admin-nav-group">TRACKING</div>
       <button class="admin-nav-item" data-panel="tracking-comercial">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
-        Tracking Comercial
+        Comercial
+      </button>
+      <button class="admin-nav-item" data-panel="clientes">
+        <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
+        Clientes
       </button>
       <button class="admin-nav-item" data-panel="tracking-operacion">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
-        Tracking Operación
-      </button>
-
-      <div class="admin-nav-group">COMERCIAL</div>
-      <button class="admin-nav-item" data-panel="clientes">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h1M8 12h1M8 16h1" stroke-linecap="round"/></svg></span>
-        Clientes
+        Grupos
       </button>
       <button class="admin-nav-item" data-panel="solicitudes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6L18 5H6L4 12Z" stroke-linejoin="round"/></svg></span>
         Solicitudes
       </button>
-      <button class="admin-nav-item" data-panel="cotizaciones">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg></span>
-        Cotizaciones
-      </button>
 
-      <div class="admin-nav-group">OPERACIÓN</div>
-      <button class="admin-nav-item" data-panel="grupos">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5"/><path d="M14.5 20v-1a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1" stroke-linecap="round"/></svg></span>
-        Grupos
-      </button>
+      <div class="admin-nav-group">FORMATOS</div>
       <button class="admin-nav-item" data-panel="diagnosticos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 6 4-14 2 8h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diagnósticos
@@ -1280,7 +1267,13 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
         Recursos
       </button>
-      <button class="admin-nav-item admin-nav-standalone" data-panel="pendientes">
+
+      <div class="admin-nav-group">HERRAMIENTAS</div>
+      <button class="admin-nav-item active" data-panel="dashboard">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
+        Dashboard
+      </button>
+      <button class="admin-nav-item" data-panel="pendientes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Pendientes
       </button>
@@ -1479,8 +1472,8 @@
         <div id="solToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="solTabs">
-          <button type="button" class="dash-etab active" data-soltab="consultar">Consultar Solicitudes</button>
-          <button type="button" class="dash-etab" data-soltab="crear">Crear Solicitud</button>
+          <button type="button" class="dash-etab active" data-soltab="consultar">Histórico</button>
+          <button type="button" class="dash-etab" data-soltab="crear">Crear</button>
         </div>
 
         <div class="dip-tabpanel active" id="solTab-consultar">
@@ -1579,210 +1572,6 @@
         <div class="dip-tabpanel" id="solTab-crear">
           <div id="solFormWrap"></div>
         </div>
-      </div>
-      <div class="admin-panel" id="panel-cotizaciones" style="--c:var(--blue-bright)">
-        <div id="cotToast" class="radm-toast" hidden></div>
-
-        <div class="dash-etabs" id="cotTabs">
-          <button type="button" class="dash-etab active" data-cottab="crear">Crear Cotización</button>
-          <button type="button" class="dash-etab" data-cottab="ver">Ver Cotizaciones</button>
-        </div>
-
-        <div class="dip-tabpanel active" id="cotTab-crear">
-          <!-- Vista 1 (default): lista de Solicitudes activas para cotizar -->
-          <div id="cotSolicitudesListaVista">
-            <p class="radm-hint" style="margin-bottom:16px;">Toda Cotización nace de una Solicitud. Elige "Cotizar" en la que quieras convertir, "Editar" si algo cambió antes de cotizar, o "Descartar" si ya no aplica (no se borra, solo se marca como descartada).</p>
-            <div class="dip-table-wrap">
-              <table class="dip-table">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Herramienta</th>
-                    <th>Temario / Temas</th>
-                    <th>Horas</th>
-                    <th>Fecha</th>
-                    <th>Estatus</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="cotSolicitudesListaBody">
-                  <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Vista 2: resumen de solo lectura de la Solicitud elegida + precio editable -->
-          <div id="cotDetalleVista" hidden>
-            <button type="button" class="radm-back" id="cotDetalleVolver">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Volver a la lista
-            </button>
-
-            <div class="cot-detalle-card" id="cotDetalleResumen"></div>
-
-            <div class="cot-precio-form">
-              <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
-              <div class="radm-form-row" style="margin:0;">
-                <div class="radm-field">
-                  <label>DESCUENTO %</label>
-                  <input type="number" id="cotDescuentoPct" min="0" max="100" step="1">
-                </div>
-                <div class="radm-field">
-                  <label>PRECIO FINAL <span class="dip-req">*</span></label>
-                  <input type="number" id="cotPrecioFinal" min="0" step="0.01">
-                  <span class="radm-hint" id="cotPrecioFinalFmt"></span>
-                </div>
-                <div class="radm-field">
-                  <label>FECHA DE VIGENCIA</label>
-                  <input type="date" id="cotFechaVigencia">
-                </div>
-              </div>
-            </div>
-
-            <div class="radm-actions">
-              <span class="radm-hint" id="cotReemplazaHint"></span>
-              <div class="radm-actions-buttons">
-                <button type="button" class="radm-btn radm-btn-ghost" id="cotVistaPrevia">Vista previa</button>
-                <button type="button" class="radm-btn" id="cotCrear">Crear</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Vista 3: editar los datos de la Solicitud antes de cotizar -->
-          <div id="cotEditarVista" hidden>
-            <button type="button" class="radm-back" id="cotEditarVolver">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Cancelar edición
-            </button>
-            <div class="radm-form">
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>CONTACTO (opcional)</label>
-                  <select id="cotEditContactoSelect">
-                    <option value="">Sin contacto específico</option>
-                  </select>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>HERRAMIENTA <span class="dip-req">*</span></label>
-                  <select id="cotEditHerramienta">
-                    <option value="">Selecciona...</option>
-                    <option value="excel">Excel</option>
-                    <option value="powerbi">Power BI</option>
-                    <option value="powerapps">Power Apps</option>
-                    <option value="powerautomate">Power Automate</option>
-                    <option value="ia">IA Aplicada</option>
-                    <option value="ofimatica">Ofimática Básica</option>
-                  </select>
-                </div>
-              </div>
-              <div id="cotEditTemarioModoWrap"></div>
-              <div id="cotEditTemarioBody"></div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>FECHA TENTATIVA DE INICIO</label>
-                  <input type="text" id="cotEditFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
-                </div>
-                <div class="radm-field">
-                  <label>CIUDAD / SEDE (si es presencial)</label>
-                  <input type="text" id="cotEditCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>PARTICIPANTES</label>
-                  <div class="sol-pill-group" data-group="participantes">
-                    <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
-                    <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
-                    <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
-                    <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
-                  </div>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>MODALIDAD</label>
-                  <div class="sol-pill-group" data-group="modalidad">
-                    <button type="button" class="sol-pill" data-value="Online">Online</button>
-                    <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
-                    <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
-                  </div>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>COMENTARIOS</label>
-                  <textarea id="cotEditNotas"></textarea>
-                </div>
-              </div>
-              <div class="radm-actions">
-                <div class="radm-actions-buttons">
-                  <button type="button" class="radm-btn" id="cotEditGuardar">Guardar cambios</button>
-                  <button type="button" class="radm-btn radm-btn-ghost" id="cotEditCancelar2">Cancelar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="dip-tabpanel" id="cotTab-ver">
-          <div class="dip-filters">
-            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
-              <label>CLIENTE</label>
-              <input type="text" id="cotVFClienteNombre" placeholder="Escribe para buscar...">
-              <div class="dip-autocomplete-list" id="cotVFClienteLista" hidden></div>
-            </div>
-            <div class="radm-field">
-              <label>ESTATUS</label>
-              <select id="cotVFEstatus">
-                <option value="">Todos</option>
-                <option value="Borrador">Borrador</option>
-                <option value="Enviada">Enviada</option>
-                <option value="En negociación">En negociación</option>
-                <option value="Ganada">Ganada</option>
-                <option value="Perdida">Perdida</option>
-                <option value="Reemplazada">Reemplazada</option>
-                <option value="Expirada">Expirada</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>DESDE</label>
-              <input type="date" id="cotVFDesde">
-            </div>
-            <div class="radm-field">
-              <label>HASTA</label>
-              <input type="date" id="cotVFHasta">
-            </div>
-            <div class="dip-filter-actions">
-              <button type="button" class="radm-btn dip-btn-icon" id="cotVBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-                Buscar
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Limpiar filtros
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las cotizaciones">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-                Ver todos
-              </button>
-            </div>
-          </div>
-
-          <div class="dip-table-wrap">
-            <table class="dip-table">
-              <thead>
-                <tr><th>Cliente</th><th>Herramienta / Curso</th><th>Folio</th><th>Precio</th><th>Estatus</th><th>Fecha de creación</th><th>Acciones</th></tr>
-              </thead>
-              <tbody id="cotVListaBody">
-                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
       <div class="admin-panel" id="panel-diagnosticos" style="--c:var(--blue-bright)">
         <div id="diagToast" class="radm-toast" hidden></div>
@@ -2112,6 +1901,14 @@
       </div>
       <div class="admin-panel" id="panel-tracking-comercial" style="--c:var(--blue-bright)">
         <div id="cotToastTracking" class="radm-toast" hidden></div>
+
+        <div class="dash-etabs" id="cotTabs">
+          <button type="button" class="dash-etab active" data-cottab="tracking">Tracking</button>
+          <button type="button" class="dash-etab" data-cottab="crear">Crear</button>
+          <button type="button" class="dash-etab" data-cottab="ver">Histórico</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="cotTab-tracking">
         <div class="cot-kpis" id="cotKpis">
           <div class="cot-kpi">
             <div class="cot-kpi-label">Pipeline activo</div>
@@ -2169,10 +1966,213 @@
             </tbody>
           </table>
         </div>
+        </div>
+
+        <div class="dip-tabpanel" id="cotTab-crear">
+          <!-- Vista 1 (default): lista de Solicitudes activas para cotizar -->
+          <div id="cotSolicitudesListaVista">
+            <p class="radm-hint" style="margin-bottom:16px;">Toda Cotización nace de una Solicitud. Elige "Cotizar" en la que quieras convertir, "Editar" si algo cambió antes de cotizar, o "Descartar" si ya no aplica (no se borra, solo se marca como descartada).</p>
+            <div class="dip-table-wrap">
+              <table class="dip-table">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Herramienta</th>
+                    <th>Temario / Temas</th>
+                    <th>Horas</th>
+                    <th>Fecha</th>
+                    <th>Estatus</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="cotSolicitudesListaBody">
+                  <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Vista 2: resumen de solo lectura de la Solicitud elegida + precio editable -->
+          <div id="cotDetalleVista" hidden>
+            <button type="button" class="radm-back" id="cotDetalleVolver">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Volver a la lista
+            </button>
+
+            <div class="cot-detalle-card" id="cotDetalleResumen"></div>
+
+            <div class="cot-precio-form">
+              <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
+              <div class="radm-form-row" style="margin:0;">
+                <div class="radm-field">
+                  <label>DESCUENTO %</label>
+                  <input type="number" id="cotDescuentoPct" min="0" max="100" step="1">
+                </div>
+                <div class="radm-field">
+                  <label>PRECIO FINAL <span class="dip-req">*</span></label>
+                  <input type="number" id="cotPrecioFinal" min="0" step="0.01">
+                  <span class="radm-hint" id="cotPrecioFinalFmt"></span>
+                </div>
+                <div class="radm-field">
+                  <label>FECHA DE VIGENCIA</label>
+                  <input type="date" id="cotFechaVigencia">
+                </div>
+              </div>
+            </div>
+
+            <div class="radm-actions">
+              <span class="radm-hint" id="cotReemplazaHint"></span>
+              <div class="radm-actions-buttons">
+                <button type="button" class="radm-btn radm-btn-ghost" id="cotVistaPrevia">Vista previa</button>
+                <button type="button" class="radm-btn" id="cotCrear">Crear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista 3: editar los datos de la Solicitud antes de cotizar -->
+          <div id="cotEditarVista" hidden>
+            <button type="button" class="radm-back" id="cotEditarVolver">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Cancelar edición
+            </button>
+            <div class="radm-form">
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>CONTACTO (opcional)</label>
+                  <select id="cotEditContactoSelect">
+                    <option value="">Sin contacto específico</option>
+                  </select>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>HERRAMIENTA <span class="dip-req">*</span></label>
+                  <select id="cotEditHerramienta">
+                    <option value="">Selecciona...</option>
+                    <option value="excel">Excel</option>
+                    <option value="powerbi">Power BI</option>
+                    <option value="powerapps">Power Apps</option>
+                    <option value="powerautomate">Power Automate</option>
+                    <option value="ia">IA Aplicada</option>
+                    <option value="ofimatica">Ofimática Básica</option>
+                  </select>
+                </div>
+              </div>
+              <div id="cotEditTemarioModoWrap"></div>
+              <div id="cotEditTemarioBody"></div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>FECHA TENTATIVA DE INICIO</label>
+                  <input type="text" id="cotEditFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
+                </div>
+                <div class="radm-field">
+                  <label>CIUDAD / SEDE (si es presencial)</label>
+                  <input type="text" id="cotEditCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>PARTICIPANTES</label>
+                  <div class="sol-pill-group" data-group="participantes">
+                    <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
+                    <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
+                    <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
+                    <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
+                  </div>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>MODALIDAD</label>
+                  <div class="sol-pill-group" data-group="modalidad">
+                    <button type="button" class="sol-pill" data-value="Online">Online</button>
+                    <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
+                    <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
+                  </div>
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>COMENTARIOS</label>
+                  <textarea id="cotEditNotas"></textarea>
+                </div>
+              </div>
+              <div class="radm-actions">
+                <div class="radm-actions-buttons">
+                  <button type="button" class="radm-btn" id="cotEditGuardar">Guardar cambios</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="cotEditCancelar2">Cancelar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="cotTab-ver">
+          <div class="dip-filters">
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE</label>
+              <input type="text" id="cotVFClienteNombre" placeholder="Escribe para buscar...">
+              <div class="dip-autocomplete-list" id="cotVFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS</label>
+              <select id="cotVFEstatus">
+                <option value="">Todos</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Enviada">Enviada</option>
+                <option value="En negociación">En negociación</option>
+                <option value="Ganada">Ganada</option>
+                <option value="Perdida">Perdida</option>
+                <option value="Reemplazada">Reemplazada</option>
+                <option value="Expirada">Expirada</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>DESDE</label>
+              <input type="date" id="cotVFDesde">
+            </div>
+            <div class="radm-field">
+              <label>HASTA</label>
+              <input type="date" id="cotVFHasta">
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn dip-btn-icon" id="cotVBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="cotVVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las cotizaciones">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
+              </button>
+            </div>
+          </div>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table">
+              <thead>
+                <tr><th>Cliente</th><th>Herramienta / Curso</th><th>Folio</th><th>Precio</th><th>Estatus</th><th>Fecha de creación</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="cotVListaBody">
+                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
       <div class="admin-panel" id="panel-tracking-operacion" style="--c:var(--blue-bright)">
         <div id="groToast" class="radm-toast" hidden></div>
 
+        <div class="dash-etabs" id="gruTabs">
+          <button type="button" class="dash-etab active" data-grutab="tracking">Tracking</button>
+          <button type="button" class="dash-etab" data-grutab="crear">Crear</button>
+          <button type="button" class="dash-etab" data-grutab="consultar">Histórico</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="gruTab-tracking">
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="groKpis">
             <div class="dkpi-card" style="--c:var(--good)" title="Grupos con estatus_cierre distinto de Cerrado">
@@ -2318,6 +2318,105 @@
             <button type="button" class="radm-btn radm-btn-ghost" id="groNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
             <button type="button" class="radm-btn" id="groNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
           </div>
+        </div>
+        </div>
+
+        <div class="dip-tabpanel" id="gruTab-crear">
+          <div id="gruFormWrap"></div>
+        </div>
+
+        <div class="dip-tabpanel" id="gruTab-consultar">
+        <div class="sol-toolbar">
+          <div class="dip-filters" style="margin-bottom:0;">
+            <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE O CÓDIGO</label>
+              <input type="text" id="gruFClienteNombre" placeholder="Escribe nombre o código...">
+              <div class="dip-autocomplete-list" id="gruFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>HERRAMIENTA</label>
+              <select id="gruFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS DEL CURSO</label>
+              <select id="gruFEstatusCurso">
+                <option value="">Todos</option>
+                <option value="Por iniciar">Por iniciar</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Terminado">Terminado</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>ESTATUS DE CIERRE</label>
+              <select id="gruFEstatusCierre">
+                <option value="">Todos</option>
+                <option value="Proyecto">Proyecto</option>
+                <option value="Calificaciones">Calificaciones</option>
+                <option value="Diplomas">Diplomas</option>
+                <option value="Cerrado">Cerrado</option>
+              </select>
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="cot-icon-btn" id="gruLimpiarFiltros" title="Limpiar filtros y mostrar todos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sol-toolbar-row-sort">
+            <span class="sol-sort-label" style="display:inline-flex; align-items:center;" title="Ordenar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M8 19V5M4 9l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5v14M12 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <div class="sol-sort-group" id="gruSortGroup">
+              <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha de inicio<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="herramienta">Herramienta<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="instructor">Instructor<span class="sol-sort-ico" hidden></span></button>
+              <button type="button" class="sol-sort-btn" data-sort="fase">Fase<span class="sol-sort-ico" hidden></span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Cliente final</th>
+                <th># Grupo</th>
+                <th>Herramientas</th>
+                <th>Nivel</th>
+                <th>Horas</th>
+                <th>Fechas</th>
+                <th>Instructor</th>
+                <th>Fase</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="gruListaBody">
+              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+
+        <!-- Sin botón propio en la barra de pestañas — se llega aquí solo vía
+             las acciones "Editar"/"Mover" de una fila (Histórico o Tracking),
+             nunca navegando directo, para no mezclar "dar de alta" con
+             "modificar uno existente". -->
+        <div class="dip-tabpanel" id="gruTab-modificar">
+          <div id="gruModificarWrap"></div>
         </div>
       </div>
       <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
@@ -2714,112 +2813,6 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-grupos" style="--c:var(--blue-bright)">
-        <div id="gruToast" class="radm-toast" hidden></div>
-
-        <div class="dash-etabs" id="gruTabs">
-          <button type="button" class="dash-etab active" data-grutab="consultar">Consultar Grupos</button>
-          <button type="button" class="dash-etab" data-grutab="crear">Crear Grupo</button>
-        </div>
-
-        <div class="dip-tabpanel active" id="gruTab-consultar">
-        <div class="sol-toolbar">
-          <div class="dip-filters" style="margin-bottom:0;">
-            <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
-              <label>CLIENTE O CÓDIGO</label>
-              <input type="text" id="gruFClienteNombre" placeholder="Escribe nombre o código...">
-              <div class="dip-autocomplete-list" id="gruFClienteLista" hidden></div>
-            </div>
-            <div class="radm-field">
-              <label>HERRAMIENTA</label>
-              <select id="gruFHerramienta">
-                <option value="">Todas</option>
-                <option value="excel">Excel</option>
-                <option value="powerbi">Power BI</option>
-                <option value="powerapps">Power Apps</option>
-                <option value="powerautomate">Power Automate</option>
-                <option value="ia">IA Aplicada</option>
-                <option value="ofimatica">Ofimática Básica</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>ESTATUS DEL CURSO</label>
-              <select id="gruFEstatusCurso">
-                <option value="">Todos</option>
-                <option value="Por iniciar">Por iniciar</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Terminado">Terminado</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>ESTATUS DE CIERRE</label>
-              <select id="gruFEstatusCierre">
-                <option value="">Todos</option>
-                <option value="Proyecto">Proyecto</option>
-                <option value="Calificaciones">Calificaciones</option>
-                <option value="Diplomas">Diplomas</option>
-                <option value="Cerrado">Cerrado</option>
-              </select>
-            </div>
-            <div class="dip-filter-actions">
-              <button type="button" class="cot-icon-btn" id="gruLimpiarFiltros" title="Limpiar filtros y mostrar todos">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="sol-toolbar-row-sort">
-            <span class="sol-sort-label" style="display:inline-flex; align-items:center;" title="Ordenar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M8 19V5M4 9l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5v14M12 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <div class="sol-sort-group" id="gruSortGroup">
-              <button type="button" class="sol-sort-btn" data-sort="fecha">Fecha de inicio<span class="sol-sort-ico" hidden></span></button>
-              <button type="button" class="sol-sort-btn" data-sort="cliente">Cliente<span class="sol-sort-ico" hidden></span></button>
-              <button type="button" class="sol-sort-btn" data-sort="herramienta">Herramienta<span class="sol-sort-ico" hidden></span></button>
-              <button type="button" class="sol-sort-btn" data-sort="instructor">Instructor<span class="sol-sort-ico" hidden></span></button>
-              <button type="button" class="sol-sort-btn" data-sort="fase">Fase<span class="sol-sort-ico" hidden></span></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="dip-table-wrap">
-          <table class="dip-table">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Cliente final</th>
-                <th># Grupo</th>
-                <th>Herramientas</th>
-                <th>Nivel</th>
-                <th>Horas</th>
-                <th>Fechas</th>
-                <th>Instructor</th>
-                <th>Fase</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="gruListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        </div>
-
-        <div class="dip-tabpanel" id="gruTab-crear">
-          <div id="gruFormWrap"></div>
-        </div>
-
-        <!-- Sin botón propio en la barra de pestañas — se llega aquí solo vía
-             las acciones "Editar"/"Mover" de una fila (Consultar Grupos o
-             Tracking Operación), nunca navegando directo, para no mezclar
-             "dar de alta" con "modificar uno existente". -->
-        <div class="dip-tabpanel" id="gruTab-modificar">
-          <div id="gruModificarWrap"></div>
-        </div>
-      </div>
 
       <div class="admin-panel" id="panel-pendientes" style="--c:var(--blue-bright)">
         <div id="pendToast" class="radm-toast" hidden></div>
@@ -2912,10 +2905,10 @@
   })();
 
   const TITLES = {
-    dashboard: 'Dashboard', solicitudes: 'Solicitudes', cotizaciones: 'Cotizaciones',
+    dashboard: 'Dashboard', solicitudes: 'Solicitudes',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
-    'tracking-comercial': 'Tracking Comercial', 'tracking-operacion': 'Tracking Operación',
-    encuestas: 'Encuestas', diplomas: 'Diplomas', grupos: 'Grupos', pendientes: 'Pendientes',
+    'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
+    encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     modelo: 'Modelo', config: 'Configuración',
   };
 
@@ -7538,13 +7531,9 @@
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
-      // Seguimiento (Tracking Comercial) y Crear Cotización viven en 2
-      // admin-panels distintos desde el reacomodo de navegación — un toast
-      // metido en el panel que no está activo queda oculto (.admin-panel no
-      // activo es display:none), así que cada uno necesita su propio div,
-      // y aquí se elige el que corresponda al panel visible.
-      const enTracking = document.getElementById('panel-tracking-comercial').classList.contains('active');
-      const el = document.getElementById(enTracking ? 'cotToastTracking' : 'cotToast');
+      // Tracking/Crear/Histórico son pestañas del mismo panel desde la
+      // reunificación de 2026-09 — un solo toast para las 3.
+      const el = document.getElementById('cotToastTracking');
       el.textContent = msg;
       el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
       el.hidden = false;
@@ -7724,11 +7713,8 @@
     async function accionNuevaVersion(id){
       const c = cotizacionPorId(id);
       if(!c) return;
-      // "Nueva versión" se dispara desde Tracking Comercial pero el formulario
-      // vive en el panel Cotizaciones — ahora son 2 admin-panels separados
-      // (antes eran 2 pestañas del mismo panel), así que hay que cambiar de
-      // panel visible explícitamente antes de precargar el formulario.
-      activarPanel('cotizaciones');
+      // "Nueva versión" se dispara desde la pestaña Tracking — Crear vive en
+      // el mismo panel, solo hay que cambiar de pestaña.
       document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
       await precargarFormDesdeCotizacion(c);
     }
@@ -8031,11 +8017,9 @@
         mostrarVistaCrear('lista');
         cargarListaSolicitudesActivas();
         cargarKpisCotizaciones();
-        // Seguimiento ya no es una pestaña de este mismo panel — ahora es el
-        // panel Tracking Comercial aparte, hay que navegar ahí de verdad (y
-        // refrescar la tabla, la navegación sola no vuelve a pedir datos).
-        activarPanel('tracking-comercial');
-        buscarCotizaciones();
+        // Tracking es una pestaña del mismo panel — cambiar de pestaña ya
+        // dispara su propio refresco (ver el handler de #cotTabs).
+        document.querySelector('#cotTabs .dash-etab[data-cottab="tracking"]').click();
       } catch(e){
         toast('No se pudo crear: ' + e.message, false);
       }
@@ -8284,14 +8268,15 @@
     document.getElementById('cotVLimpiarFiltros').addEventListener('click', limpiarFiltrosVer);
     document.getElementById('cotVVerTodos').addEventListener('click', () => { limpiarFiltrosVer(); buscarCotizacionesVer(); });
 
-    // ── pestañas ──
+    // ── pestañas (Tracking / Crear / Histórico, un solo panel) ──
     document.getElementById('cotTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
       const key = btn.dataset.cottab;
       document.querySelectorAll('#cotTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
-      document.querySelectorAll('#panel-cotizaciones .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cotTab-' + key));
-      if(key === 'crear'){ mostrarVistaCrear('lista'); cargarListaSolicitudesActivas(); cargarTarifasCache(); }
+      document.querySelectorAll('#panel-tracking-comercial .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cotTab-' + key));
+      if(key === 'tracking'){ cargarKpisCotizaciones(); buscarCotizaciones(); }
+      else if(key === 'crear'){ mostrarVistaCrear('lista'); cargarListaSolicitudesActivas(); cargarTarifasCache(); }
       else if(key === 'ver' && !cotVBuscado){ cotVBuscado = true; buscarCotizacionesVer(); }
     });
 
@@ -8886,13 +8871,9 @@
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
-      // Grupos y Tracking Operación comparten este IIFE (mismo criterio que
-      // Cotizaciones/Tracking Comercial) pero viven en 2 admin-panels
-      // distintos — un toast metido en el panel que no está activo queda
-      // oculto, así que cada uno tiene su propio div y aquí se elige el que
-      // corresponda al panel visible.
-      const enTracking = document.getElementById('panel-tracking-operacion').classList.contains('active');
-      const el = document.getElementById(enTracking ? 'groToast' : 'gruToast');
+      // Tracking/Crear/Histórico/Modificar son pestañas del mismo panel desde
+      // la reunificación de 2026-09 — un solo toast para las 4.
+      const el = document.getElementById('groToast');
       el.textContent = msg;
       el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
       el.hidden = false;
@@ -9010,20 +8991,15 @@
     let gruSort = 'fecha';
     let gruDir = 'desc';
     let gruListaCache = [];
-    // A dónde volver al terminar de editar o mover la fase de un Grupo —
-    // "Editar"/"Mover" pueden dispararse desde Consultar Grupos o desde
-    // Tracking Operación, y hay que regresar al que lo disparó, no siempre a
-    // Consultar Grupos. Default: Consultar Grupos (mismo criterio que usa
-    // "Crear Grupo", que siempre vuelve ahí).
-    let gruOrigenModificar = { panel: 'grupos', tab: 'consultar' };
+    // A qué pestaña volver al terminar de editar o mover la fase de un Grupo —
+    // "Editar"/"Mover" pueden dispararse desde Histórico o desde Tracking, y
+    // hay que regresar a la que lo disparó. Default: Histórico (mismo
+    // criterio que usa "Crear Grupo", que siempre vuelve ahí).
+    let gruOrigenModificar = 'consultar';
     function volverDeModificar(){
-      if(gruOrigenModificar.panel === 'grupos'){
-        activarTabGrupo(gruOrigenModificar.tab);
-        if(gruOrigenModificar.tab === 'consultar') buscarGrupos();
-      } else {
-        activarPanel(gruOrigenModificar.panel);
-        if(gruOrigenModificar.panel === 'tracking-operacion'){ cargarKpisGrupos(); buscarGruposTracking(); }
-      }
+      activarTabGrupo(gruOrigenModificar);
+      if(gruOrigenModificar === 'consultar') buscarGrupos();
+      else { cargarKpisGrupos(); buscarGruposTracking(); }
     }
     // herramienta/instructor/fase no los ordena el backend (ver SORTS en
     // listGruposAdmin) — con el volumen real de Grupos (decenas, no miles) es
@@ -9192,10 +9168,10 @@
         }
       } else if(editarBtn){
         const g = gruListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
-        if(g) abrirModificarGrupo(g, 'editar', { panel: 'grupos', tab: 'consultar' });
+        if(g) abrirModificarGrupo(g, 'editar', 'consultar');
       } else if(moverBtn){
         const g = gruListaCache.find(x => String(x.id) === String(moverBtn.dataset.id));
-        if(g) abrirModificarGrupo(g, 'mover', { panel: 'grupos', tab: 'consultar' });
+        if(g) abrirModificarGrupo(g, 'mover', 'consultar');
       } else if(eliminarBtn){
         const g = gruListaCache.find(x => String(x.id) === String(eliminarBtn.dataset.id));
         if(g) confirmarEliminarGrupo(g);
@@ -9635,7 +9611,7 @@
         if(editando && g.instructor) sel.value = g.instructor;
       }).catch(() => { /* select se queda solo con "Sin asignar" */ });
 
-      if(!editando) gruOrigenModificar = { panel: 'grupos', tab: 'consultar' }; // Crear Grupo siempre vuelve a Consultar
+      if(!editando) gruOrigenModificar = 'consultar'; // Crear Grupo siempre vuelve a Histórico
       document.getElementById('gruCancelar').addEventListener('click', () => volverDeModificar());
 
       document.getElementById('gruGuardar').addEventListener('click', async () => {
@@ -9736,12 +9712,12 @@
       }
     }
 
-    // Editar/Mover se disparan desde una fila (Consultar Grupos o Tracking
-    // Operación) — origen={panel,tab} dice a dónde regresar (ver
+    // Editar/Mover se disparan desde una fila (Histórico o Tracking, misma
+    // panel) — origen (nombre de pestaña) dice a dónde regresar (ver
     // volverDeModificar). Van a la pestaña "Modificar Grupo", que no tiene
     // botón propio en la barra de pestañas (no se navega ahí directo).
     function abrirModificarGrupo(g, modo, origen){
-      activarPanel('grupos');
+      activarPanel('tracking-operacion');
       gruOrigenModificar = origen;
       if(modo === 'mover') abrirStepperGrupo(g);
       else abrirFormGrupo(g, 'gruModificarWrap');
@@ -9795,18 +9771,20 @@
     // botón propio, ver abrirModificarGrupo) ══
     function activarTabGrupo(key){
       document.querySelectorAll('#gruTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.grutab === key));
-      document.querySelectorAll('#panel-grupos .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'gruTab-' + key));
+      document.querySelectorAll('#panel-tracking-operacion .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'gruTab-' + key));
     }
+    let gruVBuscado = false; // carga perezosa — Histórico no pega a la base hasta que se abre esa pestaña
     document.getElementById('gruTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
       const key = btn.dataset.grutab;
       activarTabGrupo(key);
       if(key === 'crear') abrirFormGrupo(null, 'gruFormWrap'); // clic directo en la pestaña siempre arranca en blanco
+      else if(key === 'consultar' && !gruVBuscado){ gruVBuscado = true; buscarGrupos(); }
+      else if(key === 'tracking'){ cargarKpisGrupos(); buscarGruposTracking(); }
     });
 
     renderSortButtonsGrupos();
-    buscarGrupos();
 
     // ═══════════════════════════════════════════════════════════════
     // PANEL TRACKING OPERACIÓN — vive en el mismo IIFE que Grupos (mismo
@@ -10004,10 +9982,10 @@
         if(g) abrirNotasGrupo(g, notasBtn);
       } else if(editarBtn){
         const g = groListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
-        if(g) abrirModificarGrupo(g, 'editar', { panel: 'tracking-operacion' });
+        if(g) abrirModificarGrupo(g, 'editar', 'tracking');
       } else if(moverBtn){
         const g = groListaCache.find(x => String(x.id) === String(moverBtn.dataset.id));
-        if(g) abrirModificarGrupo(g, 'mover', { panel: 'tracking-operacion' });
+        if(g) abrirModificarGrupo(g, 'mover', 'tracking');
       } else if(toggleBtn){
         const fila = document.getElementById('gro-desglose-' + toggleBtn.dataset.id);
         const abrir = fila.hidden;

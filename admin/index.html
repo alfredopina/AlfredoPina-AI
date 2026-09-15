@@ -19,7 +19,7 @@
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
     --blue: #3d7fff; --blue-bright: #6b9fff; --blue-soft: rgba(61,127,255,.14); --blue-dim: #16233f;
     --text: #edf0f4; --text-dim: #a4acb9; --text-faint: #79828f;
-    --good: #4ade80; --bad: #ef4444;
+    --good: #4ade80; --bad: #dc2626;
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
     /* colores de "pilar" del panel Modelo — Comercial/Operación/Producto-Catálogo/
        Infraestructura, coherentes con la paleta de marca pero sin chocar con los
@@ -447,7 +447,7 @@
   .diag-resultado-nivel{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; }
   .diag-resultado-estado{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; font-weight:600; }
   .diag-resultado-estado.ok{ color:var(--good, #4ade80); }
-  .diag-resultado-estado.bad{ color:var(--bad, #ef4444); }
+  .diag-resultado-estado.bad{ color:var(--bad, #dc2626); }
   .diag-resultado-estado svg{ width:14px; height:14px; }
   .diag-resultado-texto{ font-size:13px; margin-bottom:4px; }
   .diag-resultado-eleccion{ font-size:12px; color:var(--text-dim); }
@@ -639,14 +639,20 @@
      tarjetas cortas sin espacio para texto extra). */
   .cfg-notif-row{ border:1px solid var(--line); border-radius:9px; padding:12px 14px; background:var(--panel); }
   .cfg-notif-row + .cfg-notif-row{ margin-top:10px; }
+  .cfg-notif-group-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .cfg-notif-sub{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:7px 0; }
+  .cfg-notif-sub + .cfg-notif-sub{ border-top:1px dashed var(--line-soft); margin-top:2px; }
+  .cfg-notif-sub-label{ width:158px; flex:none; font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:7px; }
+  .cfg-notif-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .cfg-notif-row-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .cfg-notif-row-icon{ width:18px; height:18px; color:var(--blue-bright); flex:none; }
   .cfg-notif-row-icon svg{ width:100%; height:100%; }
   .cfg-notif-row-nombre{ flex:1; font-family:var(--display); font-weight:600; font-size:13px; min-width:140px; }
-  .cfg-notif-row-top input{
+  .cfg-notif-sub input, .cfg-notif-row-top input{
     width:70px; font-family:var(--mono); font-size:12.5px; color:var(--text); background:var(--panel-2);
     border:1px solid var(--line); border-radius:5px; padding:6px 8px; outline:none; text-align:right;
   }
+  .cfg-notif-sub input:focus, .cfg-notif-sub input.cfg-notif-dirty,
   .cfg-notif-row-top input:focus, .cfg-notif-row-top input.cfg-notif-dirty{ border-color:var(--blue-bright); }
   .cfg-notif-row-sufijo{ font-size:11.5px; color:var(--text-faint); }
   .cfg-notif-row-nota{ font-size:11.5px; color:var(--text-faint); margin-top:9px; line-height:1.55; }
@@ -797,14 +803,14 @@
   .cot-kpi-sub svg{ width:11px; height:11px; flex:none; }
 
   .cot-alert{
-    display:flex; align-items:flex-start; gap:12px; border:1px solid #facc15; border-radius:10px;
-    background:color-mix(in srgb, #facc15 12%, var(--panel)); padding:14px 16px; margin-bottom:20px; font-size:12.5px;
+    display:flex; align-items:flex-start; gap:12px; border:1px solid #dfb35a; border-radius:10px;
+    background:color-mix(in srgb, #dfb35a 12%, var(--panel)); padding:14px 16px; margin-bottom:20px; font-size:12.5px;
   }
   /* [hidden] y .cot-alert{display:flex} tienen la misma especificidad — sin
      este override explícito, el atributo hidden pierde contra la regla de
      clase y el banner queda visible (vacío) aunque nunca se le quite hidden. */
   .cot-alert[hidden]{ display:none; }
-  .cot-alert svg{ width:18px; height:18px; flex:none; color:#facc15; margin-top:1px; }
+  .cot-alert svg{ width:18px; height:18px; flex:none; color:#dfb35a; margin-top:1px; }
   .cot-alert a{ color:var(--blue-bright); font-weight:600; white-space:nowrap; }
 
   .cot-semaforo{
@@ -814,10 +820,10 @@
   .cot-semaforo-dot{ width:7px; height:7px; border-radius:50%; flex:none; }
   .cot-semaforo.ok{ color:var(--good); background:color-mix(in srgb, var(--good) 14%, var(--panel-2)); }
   .cot-semaforo.ok .cot-semaforo-dot{ background:var(--good); }
-  .cot-semaforo.warn{ color:#facc15; background:color-mix(in srgb, #facc15 16%, var(--panel-2)); }
-  .cot-semaforo.warn .cot-semaforo-dot{ background:#facc15; }
-  .cot-semaforo.hot{ color:#ef4444; background:color-mix(in srgb, #ef4444 16%, var(--panel-2)); }
-  .cot-semaforo.hot .cot-semaforo-dot{ background:#ef4444; }
+  .cot-semaforo.warn{ color:#dfb35a; background:color-mix(in srgb, #dfb35a 16%, var(--panel-2)); }
+  .cot-semaforo.warn .cot-semaforo-dot{ background:#dfb35a; }
+  .cot-semaforo.hot{ color:#dc2626; background:color-mix(in srgb, #dc2626 16%, var(--panel-2)); }
+  .cot-semaforo.hot .cot-semaforo-dot{ background:#dc2626; }
   /* Semáforo de Clientes: el punto verde "respira" (mismo keyframe que ya usa
      .admin-nav-live-dot del sidebar) — solo verde, solo Clientes, para no
      animar los semáforos de Cotizaciones/Grupos que no lo pidieron. */
@@ -922,7 +928,7 @@
      position:relative que sirva de ancla para un position:absolute). */
   .notif-badge{
     position:absolute; top:2px; right:2px; min-width:15px; height:15px; padding:0 4px;
-    background-color:#ef4444; color:#fff; font-family:var(--mono); font-size:9.5px; font-weight:700;
+    background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:9.5px; font-weight:700;
     border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
     box-shadow:0 0 0 2px var(--panel);
   }
@@ -972,7 +978,7 @@
   .notif-row-detalle{ font-size:11.5px; color:var(--text-dim); margin-top:1px; }
   .notif-day-pill{
     font-family:var(--mono); font-size:11px; font-weight:600; color:#fca5a5;
-    background-color:rgba(239,68,68,.15); border-radius:5px; padding:2px 6px; white-space:nowrap; flex:none;
+    background-color:rgba(220,38,38,.15); border-radius:5px; padding:2px 6px; white-space:nowrap; flex:none;
   }
   .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
   .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
@@ -988,9 +994,9 @@
   }
   .cot-badge.draft{ border-color:var(--text-faint); color:var(--text-dim); }
   .cot-badge.sent{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
-  .cot-badge.negoti{ border-color:#facc15; color:#facc15; background:color-mix(in srgb, #facc15 12%, var(--panel-2)); }
+  .cot-badge.negoti{ border-color:#dfb35a; color:#dfb35a; background:color-mix(in srgb, #dfb35a 12%, var(--panel-2)); }
   .cot-badge.won{ border-color:var(--good); color:var(--good); background:color-mix(in srgb, var(--good) 12%, var(--panel-2)); }
-  .cot-badge.lost{ border-color:#ef4444; color:#ef4444; background:color-mix(in srgb, #ef4444 12%, var(--panel-2)); }
+  .cot-badge.lost{ border-color:#dc2626; color:#dc2626; background:color-mix(in srgb, #dc2626 12%, var(--panel-2)); }
   .cot-badge.replaced, .cot-badge.expired{ border-color:var(--text-faint); color:var(--text-faint); }
 
   .cot-row-actions{ display:flex; align-items:center; gap:6px; }
@@ -1416,7 +1422,7 @@
           </button>
           <div class="cfg-card-body" id="cfgNotifBody" hidden>
             <div class="cfg-note">
-              Estos 3 números son los que hacen que una cotización, un grupo o un cliente se marquen como "urgente" — tanto en la campana de arriba como en las alertas ámbar que ya ves en Tracking Comercial, Tracking Grupos y Clientes (es el mismo número en todos lados, un solo lugar donde cambiarlo). Cada señal tiene además un nivel de "seguimiento" más temprano (ámbar), que no se configura aquí y se queda fijo en código — va anotado junto a cada campo para que tengas contexto real al momento de poner el número.
+              Cada señal (Cotizaciones/Grupos/Clientes) trae 2 números editables — <b>Seguimiento</b> (ámbar) es a partir de cuándo el panel correspondiente empieza a colorearlo como "ya vale la pena revisarlo", solo ahí, sin avisarte en ningún otro lado; <b>Urgente</b> (rojo) es a partir de cuándo además aparece en la campana de arriba. Los 2 son el mismo número que ya ves en Tracking Comercial/Tracking Grupos/Clientes — un solo lugar donde cambiarlos.
             </div>
             <div class="cfg-notif-list" id="cfgNotifList" style="margin-top:14px;">
               <div class="radm-empty-row">Cargando umbrales…</div>
@@ -3024,7 +3030,10 @@
     };
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    window.UMBRALES_NOTIF = { cotizacionesDias: 10, gruposDias: 21, clientesDias: 90 }; // defaults hasta que cargue de verdad
+    window.UMBRALES_NOTIF = {
+      cotizacionesDias: 10, gruposDias: 21, clientesDias: 90,
+      cotizacionesSeguimientoDias: 6, gruposSeguimientoDias: 10, clientesSeguimientoDias: 30,
+    }; // defaults hasta que cargue de verdad
     let datos = null; // { total, umbrales, grupos:{cotizaciones,grupos,clientes} }
 
     const bell = document.getElementById('btnNotificaciones');
@@ -3227,7 +3236,7 @@
     function colorCompletitud(pct, totalCursos){
       if(!totalCursos) return 'var(--line)';
       if(pct >= 100) return '#4ade80';
-      if(pct >= 50) return '#facc15';
+      if(pct >= 50) return '#dfb35a';
       return '#b91c1c';
     }
 
@@ -6242,7 +6251,7 @@
     function completadoHtml(completado){
       // color en el span exterior (no solo en el texto) para que el ícono
       // (stroke="currentColor") y la palabra siempre compartan el mismo tono.
-      const color = completado ? 'var(--good)' : '#ef4444';
+      const color = completado ? 'var(--good)' : '#dc2626';
       return `<span class="dip-status" style="color:${color}">${completado ? ICO.check : ICO.warn}<span>${completado ? 'Completo' : 'Incompleto'}</span></span>`;
     }
     // .cli-semaforo (además de .cot-semaforo) es lo que hace pulsar el punto
@@ -7603,11 +7612,10 @@
       }
     }
 
-    // El umbral "urgente" (default 10) viene de Configuración → Notificaciones
-    // (window.UMBRALES_NOTIF, cargado una vez al abrir /admin — ver el IIFE
-    // "NOTIFICACIONES" más abajo) — mismo número que usa la campana, nunca
-    // reimplementado aparte. El nivel "de seguimiento" (6) se queda fijo en
-    // código a propósito, no es configurable (ver CLAUDE.md → Notificaciones).
+    // Los umbrales "urgente" (default 10) y "seguimiento" (default 6) vienen
+    // de Configuración → Notificaciones (window.UMBRALES_NOTIF, cargado una
+    // vez al abrir /admin — ver el IIFE "NOTIFICACIONES" más abajo) — mismos
+    // números que usa la campana, nunca reimplementados aparte.
     function actualizarAlerta(lista){
       const banner = document.getElementById('cotAlerta');
       const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
@@ -7626,8 +7634,9 @@
 
     function semaforoDe(c){
       const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
+      const umbralSeguimiento = (window.UMBRALES_NOTIF || {}).cotizacionesSeguimientoDias || 6;
       if(c.vencida || c.dias_abierta >= umbral) return { clase:'hot', texto: `${c.dias_abierta} días · Urgente` };
-      if(c.dias_abierta >= 6) return { clase:'warn', texto: `${c.dias_abierta} días · Seguimiento` };
+      if(c.dias_abierta >= umbralSeguimiento) return { clase:'warn', texto: `${c.dias_abierta} días · Seguimiento` };
       return { clase:'ok', texto: `${c.dias_abierta} días · A tiempo` };
     }
 
@@ -8611,42 +8620,60 @@
       return body;
     }
 
-    const CAMPOS = [
+    // Cada señal trae 2 umbrales editables — Seguimiento (ámbar, solo
+    // colorea el semáforo del panel) y Urgente (rojo, lo único que además
+    // dispara la campana). Los 2 se validan juntos en el backend
+    // (notificaciones-config.js#PARES): seguimiento siempre debe quedar
+    // estrictamente por debajo de su urgente.
+    const GRUPOS = [
       {
-        campo:'cotizacionesDias', nombre:'Cotizaciones frías',
+        nombre:'Cotizaciones frías',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        nota:'Seguimiento (ámbar) fijo en 6 días — a partir de ahí ya vale la pena revisarla. El número de aquí es a partir de cuándo se considera fría de verdad, en Tracking Comercial y en la campana.',
+        seguimiento:'cotizacionesSeguimientoDias', urgente:'cotizacionesDias',
+        nota:'Seguimiento (ámbar) colorea la cotización en Tracking Comercial para que sepas que ya conviene revisarla, sin avisarte en ningún otro lado. Urgente (rojo) es lo que además la mete a la campana.',
       },
       {
-        campo:'gruposDias', nombre:'Grupos atorados',
+        nombre:'Grupos atorados',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
-        nota:'Seguimiento (ámbar) fijo entre 10 y 21 días en la misma fase de cierre (Proyecto/Calificaciones/Diplomas). El número de aquí es a partir de cuándo es raro que siga tanto tiempo ahí, en Tracking Grupos y en la campana.',
+        seguimiento:'gruposSeguimientoDias', urgente:'gruposDias',
+        nota:'Días en la misma fase de cierre (Proyecto/Calificaciones/Diplomas). Seguimiento (ámbar) colorea el grupo en Tracking Grupos; Urgente (rojo) es lo que además lo mete a la campana.',
       },
       {
-        campo:'clientesDias', nombre:'Clientes inactivos',
+        nombre:'Clientes inactivos',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M16 4.2c1.4.5 2.4 1.9 2.4 3.5s-1 3-2.4 3.5" stroke-linecap="round"/><path d="M15.5 14.6c1.9.6 3.3 2.4 4 5.4" stroke-linecap="round"/></svg>',
-        nota:'Seguimiento (ámbar) fijo entre 30 y 90 días sin interacción. El número de aquí es a partir de cuándo se considera inactivo de verdad, en Clientes y en la campana.',
+        seguimiento:'clientesSeguimientoDias', urgente:'clientesDias',
+        nota:'Días sin interacción. Seguimiento (ámbar) colorea al cliente "Tibio" en Consultar Clientes; Urgente (rojo) lo pasa a "Inactivo" y además lo mete a la campana.',
       },
     ];
+    const NIVEL_LABEL = { seguimiento:'Seguimiento (ámbar)', urgente:'Urgente (rojo)' };
+
+    function filaHtml(nivel, campo, umbrales){
+      return `
+        <div class="cfg-notif-sub" data-nivel="${nivel}">
+          <span class="cfg-notif-sub-label"><span class="cfg-notif-dot" style="background:${nivel === 'urgente' ? '#dc2626' : '#dfb35a'}"></span>${NIVEL_LABEL[nivel]}</span>
+          <input type="number" min="1" step="1" class="cfg-notif-input" data-campo="${campo}" data-original="${umbrales[campo]}" value="${umbrales[campo]}">
+          <span class="cfg-notif-row-sufijo">días</span>
+          <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" style="min-width:auto;" disabled>Actualizar</button>
+        </div>`;
+    }
 
     function pintar(umbrales){
       const cont = document.getElementById('cfgNotifList');
-      cont.innerHTML = CAMPOS.map(c => `
+      cont.innerHTML = GRUPOS.map(g => `
         <div class="cfg-notif-row">
-          <div class="cfg-notif-row-top">
-            <span class="cfg-notif-row-icon">${c.icono}</span>
-            <span class="cfg-notif-row-nombre">${c.nombre}</span>
-            <input type="number" min="1" step="1" class="cfg-notif-input" data-campo="${c.campo}" data-original="${umbrales[c.campo]}" value="${umbrales[c.campo]}">
-            <span class="cfg-notif-row-sufijo">días</span>
-            <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" style="min-width:auto;" disabled>Actualizar</button>
+          <div class="cfg-notif-group-head">
+            <span class="cfg-notif-row-icon">${g.icono}</span>
+            <span class="cfg-notif-row-nombre">${g.nombre}</span>
           </div>
-          <div class="cfg-notif-row-nota">${c.nota}</div>
+          ${filaHtml('seguimiento', g.seguimiento, umbrales)}
+          ${filaHtml('urgente', g.urgente, umbrales)}
+          <div class="cfg-notif-row-nota">${g.nota}</div>
         </div>
       `).join('');
 
       cont.querySelectorAll('.cfg-notif-input').forEach(input => {
         input.addEventListener('input', () => {
-          const btn = input.closest('.cfg-notif-row').querySelector('.cfg-notif-btn');
+          const btn = input.closest('.cfg-notif-sub').querySelector('.cfg-notif-btn');
           const dirty = input.value !== '' && Number(input.value) !== Number(input.dataset.original);
           input.classList.toggle('cfg-notif-dirty', dirty);
           btn.disabled = !dirty;
@@ -8655,14 +8682,16 @@
 
       cont.querySelectorAll('.cfg-notif-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const row = btn.closest('.cfg-notif-row');
-          const input = row.querySelector('.cfg-notif-input');
+          const sub = btn.closest('.cfg-notif-sub');
+          const input = sub.querySelector('.cfg-notif-input');
           const campo = input.dataset.campo;
-          const nombre = row.querySelector('.cfg-notif-row-nombre').textContent;
+          const nivel = sub.dataset.nivel;
+          const nombreSenal = sub.closest('.cfg-notif-row').querySelector('.cfg-notif-row-nombre').textContent;
+          const nombre = `${NIVEL_LABEL[nivel]} de ${nombreSenal}`;
           const anterior = Number(input.dataset.original);
           const nuevo = Number(input.value);
           if(!Number.isInteger(nuevo) || nuevo < 1){ toast('El valor debe ser un entero mayor a 0.', false); return; }
-          if(!confirm(`¿Cambiar el umbral de ${nombre} de ${anterior} a ${nuevo} días? Este mismo número se usa en la campana y en las alertas de Tracking.`)) return;
+          if(!confirm(`¿Cambiar ${nombre} de ${anterior} a ${nuevo} días?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`)) return;
 
           const textoOriginal = btn.textContent;
           btn.disabled = true; btn.textContent = 'Guardando...';
@@ -9833,10 +9862,9 @@
       });
     }
 
-    // El umbral "urgente" (default 21) viene de Configuración → Notificaciones
-    // (window.UMBRALES_NOTIF, mismo número que usa la campana) — ver el IIFE
-    // "NOTIFICACIONES" más abajo. El nivel "de seguimiento" (10) se queda
-    // fijo en código a propósito, no es configurable.
+    // Los umbrales "urgente" (default 21) y "seguimiento" (default 10)
+    // vienen de Configuración → Notificaciones (window.UMBRALES_NOTIF, mismos
+    // números que usa la campana) — ver el IIFE "NOTIFICACIONES" más abajo.
     function actualizarAlertaGrupos(lista){
       const banner = document.getElementById('groAlerta');
       const umbral = (window.UMBRALES_NOTIF || {}).gruposDias || 21;
@@ -9857,7 +9885,8 @@
       const dias = g.dias_en_fase != null ? g.dias_en_fase : 0;
       if(FASES_CIERRE.includes(g.fase)){
         const umbral = (window.UMBRALES_NOTIF || {}).gruposDias || 21;
-        const cls = dias > umbral ? 'hot' : dias >= 10 ? 'warn' : 'ok';
+        const umbralSeguimiento = (window.UMBRALES_NOTIF || {}).gruposSeguimientoDias || 10;
+        const cls = dias > umbral ? 'hot' : dias >= umbralSeguimiento ? 'warn' : 'ok';
         return `<span class="cot-semaforo gro-semaforo ${cls}"><span class="cot-semaforo-dot"></span>${dias} días</span>`;
       }
       return `<span class="radm-mono" style="color:var(--text-dim);">${dias} días</span>`;

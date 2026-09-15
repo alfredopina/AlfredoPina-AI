@@ -13,6 +13,7 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { calcularDiasInactivo, calcularCompletado } = require("../src/cliente-actividad");
+const { getUmbrales } = require("../src/notificaciones-config");
 
 const SORTS = ["nombre", "antiguedad"];
 const DIRS = ["asc", "desc"];
@@ -47,6 +48,7 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
+    const umbrales = await getUmbrales();
     const result = await pool
       .request()
       .input("like", sql.NVarChar, `%${q}%`)
@@ -75,7 +77,8 @@ module.exports = async function (context, req) {
           cotizacionCerradaFecha: c.cotizacion_cerrada_fecha,
           ultimoDiplomaFecha: c.ultimo_diploma_fecha,
         },
-        ahora
+        ahora,
+        { diasVerde: umbrales.clientesSeguimientoDias, diasAmarillo: umbrales.clientesDias }
       );
       const completado = calcularCompletado({
         codigo: c.codigo,

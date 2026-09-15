@@ -7,10 +7,12 @@
 const { getPool } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { calcularDiasInactivo, calcularCompletado } = require("../src/cliente-actividad");
+const { getUmbrales } = require("../src/notificaciones-config");
 
 module.exports = async function (context, req) {
   try {
     const pool = await getPool();
+    const umbrales = await getUmbrales();
     const [totales, filas] = await Promise.all([
       pool.request().query("SELECT COUNT(*) AS total_contactos FROM Contacto"),
       pool.request().query(`
@@ -60,7 +62,8 @@ module.exports = async function (context, req) {
           cotizacionCerradaFecha: c.cotizacion_cerrada_fecha,
           ultimoDiplomaFecha: c.ultimo_diploma_fecha,
         },
-        ahora
+        ahora,
+        { diasVerde: umbrales.clientesSeguimientoDias, diasAmarillo: umbrales.clientesDias }
       );
       if (semaforo === "verde") enVerde++;
     }

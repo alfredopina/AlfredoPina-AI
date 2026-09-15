@@ -19,7 +19,7 @@
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
     --blue: #3d7fff; --blue-bright: #6b9fff; --blue-soft: rgba(61,127,255,.14); --blue-dim: #16233f;
     --text: #edf0f4; --text-dim: #a4acb9; --text-faint: #79828f;
-    --good: #4ade80; --bad: #dc2626;
+    --good: #14b8a6; --bad: #dc2626;
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
     /* colores de "pilar" del panel Modelo — Comercial/Operación/Producto-Catálogo/
        Infraestructura, coherentes con la paleta de marca pero sin chocar con los
@@ -30,7 +30,7 @@
     --bg: #eef1f8; --panel: #ffffff; --panel-2: #e6ebf5; --line: #d2d9e6; --line-soft: #e0e5f0;
     --blue: #2f6fe0; --blue-bright: #1d5fd6; --blue-soft: rgba(47,111,224,.10); --blue-dim: #dde8fb;
     --text: #14181f; --text-dim: #4a5261; --text-faint: #6b7280;
-    --good: #16a34a; --bad: #dc2626;
+    --good: #0d9488; --bad: #dc2626;
     --mdl-comercial: #2f6fe0; --mdl-operacion: #b4690a; --mdl-catalogo: #158a45; --mdl-infra: #5b6577; --mdl-snapshot: #a3781f;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -122,7 +122,7 @@
   .admin-icon-btn.despertando svg{ animation:admin-spin 1s linear infinite; }
   @media (prefers-reduced-motion:reduce){ .admin-icon-btn.despertando svg{ animation:none; } }
   @keyframes admin-spin{ to{ transform:rotate(360deg); } }
-  .admin-icon-btn.despertar-ok{ color:#4ade80; border-color:#4ade80; }
+  .admin-icon-btn.despertar-ok{ color:#14b8a6; border-color:#14b8a6; }
   .admin-icon-btn.despertar-error{ color:#f87171; border-color:#f87171; }
 
   .admin-user-sep{ width:1px; height:26px; background:var(--line); flex:none; margin:0 2px; }
@@ -446,7 +446,7 @@
   .diag-resultado-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
   .diag-resultado-nivel{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; }
   .diag-resultado-estado{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; font-weight:600; }
-  .diag-resultado-estado.ok{ color:var(--good, #4ade80); }
+  .diag-resultado-estado.ok{ color:var(--good, #14b8a6); }
   .diag-resultado-estado.bad{ color:var(--bad, #dc2626); }
   .diag-resultado-estado svg{ width:14px; height:14px; }
   .diag-resultado-texto{ font-size:13px; margin-bottom:4px; }
@@ -3411,7 +3411,7 @@
     // acompañados del número en el centro, nunca solo el color (ver CLAUDE.md)
     function colorCompletitud(pct, totalCursos){
       if(!totalCursos) return 'var(--line)';
-      if(pct >= 100) return '#4ade80';
+      if(pct >= 100) return '#14b8a6';
       if(pct >= 50) return '#dfb35a';
       return '#b91c1c';
     }
@@ -3525,7 +3525,7 @@
             : `Sin vincular a un Temario Estándar (temas/proyecto no disponibles) · ${manualTxt}`;
           return `<div class="radm-row">
             <div class="radm-row-body">
-              <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#4ade80;">${ICO.check}</span>` : ''}</div>
+              <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#14b8a6;">${ICO.check}</span>` : ''}</div>
               <div class="radm-row-sub">${sub}</div>
             </div>
           </div>`;

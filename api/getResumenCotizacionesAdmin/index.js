@@ -9,16 +9,32 @@
 // simplificar"). Alerta de "más de 10 días sin respuesta" del mockup se arma
 // en el front con la misma dias_abierta que ya regresa listCotizacionesAdmin,
 // no hace falta duplicarla aquí.
-const { getPool } = require("../src/backoffice-db");
+const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { getUmbrales } = require("../src/notificaciones-config");
 
 module.exports = async function (context, req) {
   try {
     const pool = await getPool();
-    const result = await pool.request().query(`
+    const umbrales = await getUmbrales();
+    const result = await pool
+      .request()
+      .input("umbral", sql.Int, umbrales.cotizacionesDias)
+      .input("umbralSeguimiento", sql.Int, umbrales.cotizacionesSeguimientoDias)
+      .query(`
       SELECT
         (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación')) AS pipeline_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación')) AS pipeline_monto,
+
+        -- Desglose por antigüedad (mismo umbral que ya pinta el semáforo de
+        -- Tracking Comercial, ver semaforoDe() en admin/index.html) — Tracking
+        -- View (Fase 2) lo necesita para su tarjeta-resumen.
+        (SELECT COUNT(*) FROM Cotizacion
+          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbralSeguimiento) AS antiguedad_verde,
+        (SELECT COUNT(*) FROM Cotizacion
+          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) >= @umbralSeguimiento AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbral) AS antiguedad_amarillo,
+        (SELECT COUNT(*) FROM Cotizacion
+          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
 
         (SELECT COUNT(*) FROM Cotizacion
           WHERE estatus = 'Ganada' AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS ganado_conteo,
@@ -50,6 +66,7 @@ module.exports = async function (context, req) {
         perdido_monto: r.perdido_monto,
         tasa_conversion: tasaConversion,
         tiempo_cierre_dias: r.tiempo_cierre_dias != null ? Math.round(r.tiempo_cierre_dias * 10) / 10 : null,
+        antiguedad: { verde: r.antiguedad_verde, amarillo: r.antiguedad_amarillo, rojo: r.antiguedad_rojo },
       },
     };
   } catch (err) {

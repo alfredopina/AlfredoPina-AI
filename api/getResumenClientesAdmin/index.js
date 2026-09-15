@@ -41,6 +41,8 @@ module.exports = async function (context, req) {
     const ahora = new Date();
     let completos = 0;
     let enVerde = 0;
+    let enAmarillo = 0;
+    let enRojo = 0;
     for (const c of filas.recordset) {
       if (
         calcularCompletado({
@@ -66,6 +68,8 @@ module.exports = async function (context, req) {
         { diasVerde: umbrales.clientesSeguimientoDias, diasAmarillo: umbrales.clientesDias }
       );
       if (semaforo === "verde") enVerde++;
+      else if (semaforo === "amarillo") enAmarillo++;
+      else enRojo++;
     }
 
     const total = filas.recordset.length;
@@ -79,6 +83,11 @@ module.exports = async function (context, req) {
         total_contactos: totales.recordset[0].total_contactos,
         clientes_en_verde: enVerde,
         pct_en_verde: total ? Math.round((enVerde / total) * 100) : 0,
+        // Desglose completo del semáforo — Tracking View (Fase 2) lo necesita
+        // para su tarjeta-resumen; listClientesAdmin/la tabla ya lo calculan
+        // fila por fila, aquí solo se suma.
+        clientes_en_amarillo: enAmarillo,
+        clientes_en_rojo: enRojo,
       },
     };
   } catch (err) {

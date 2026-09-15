@@ -830,6 +830,31 @@
   .cli-semaforo.ok .cot-semaforo-dot{ animation:admin-live-pulse 1.8s ease-in-out infinite; }
   @media (prefers-reduced-motion:reduce){ .cli-semaforo.ok .cot-semaforo-dot{ animation:none; } }
 
+  /* ── Tracking View (Fase 2) — 4 tarjetas resumen, una por Tracking ── */
+  .trkv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:900px){ .trkv-grid{ grid-template-columns:1fr; } }
+  .trkv-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 24px;
+    display:flex; flex-direction:column; gap:16px; cursor:pointer; transition:border-color .15s, transform .15s;
+  }
+  .trkv-card:hover, .trkv-card:focus-visible{ border-color:var(--blue-bright); transform:translateY(-2px); outline:none; }
+  .trkv-card-head{ display:flex; align-items:center; gap:9px; }
+  .trkv-card-head h3{ font-family:var(--display); font-weight:600; font-size:16px; margin:0; flex:1; }
+  .trkv-go{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  .trkv-go svg{ width:12px; height:12px; transition:transform .15s; }
+  .trkv-card:hover .trkv-go svg{ transform:translateX(3px); }
+  .trkv-kpis{ display:flex; gap:22px; flex-wrap:wrap; }
+  .trkv-kpi{ display:flex; flex-direction:column; gap:3px; }
+  .trkv-kpi-label{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); }
+  .trkv-kpi-value{ font-family:var(--display); font-weight:700; font-size:22px; color:var(--text); font-variant-numeric:tabular-nums; }
+  .trkv-signal{ display:flex; flex-wrap:wrap; gap:7px; margin-top:auto; }
+  .trkv-card--soon{ cursor:default; border-style:dashed; }
+  .trkv-card--soon:hover{ border-color:var(--line); transform:none; }
+  .trkv-card--soon h3{ color:var(--text-dim); }
+  .trkv-tag-soon{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; color:var(--text-faint); border:1px solid var(--line); border-radius:20px; padding:4px 10px; }
+  .trkv-soon-copy{ font-size:12.5px; color:var(--text-dim); line-height:1.6; margin:0; max-width:46ch; }
+  .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
+
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
      por una línea que se rellena hasta la fase actual, mismo lenguaje visual
      en sus 3 variantes (mini/expandido/interactivo), solo cambia tamaño de
@@ -1226,6 +1251,11 @@
     </a>
 
     <nav class="admin-nav" id="adminNav">
+      <button class="admin-nav-item active" data-panel="tracking-view">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+        Tracking View
+      </button>
+
       <div class="admin-nav-group">TRACKING</div>
       <button class="admin-nav-item" data-panel="tracking-comercial">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
@@ -1269,7 +1299,7 @@
       </button>
 
       <div class="admin-nav-group">HERRAMIENTAS</div>
-      <button class="admin-nav-item active" data-panel="dashboard">
+      <button class="admin-nav-item" data-panel="dashboard">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
         Dashboard
       </button>
@@ -1293,7 +1323,7 @@
 
   <main class="admin-main">
     <div class="admin-topbar">
-      <div class="admin-topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="admin-topbar-title" id="topbarTitle">Tracking View</div>
       <div class="admin-user">
         <button type="button" class="admin-icon-btn" id="btnDespertar" title="Despertar base de datos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1344,7 +1374,61 @@
     </div>
 
     <div class="admin-content">
-      <div class="admin-panel active" id="panel-dashboard">
+      <div class="admin-panel active" id="panel-tracking-view">
+        <div class="trkv-grid">
+          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Comercial</h3>
+              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvComSignal"></div>
+          </article>
+
+          <article class="trkv-card" tabindex="0" data-goto="clientes">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Clientes</h3>
+              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Clientes</span><span class="trkv-kpi-value" id="trkvCliTotal">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Completos</span><span class="trkv-kpi-value" id="trkvCliCompletos">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Activos</span><span class="trkv-kpi-value" id="trkvCliActivos">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvCliSignal"></div>
+          </article>
+
+          <article class="trkv-card" tabindex="0" data-goto="tracking-operacion">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Grupos</h3>
+              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Activos</span><span class="trkv-kpi-value" id="trkvGruActivos">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Cerrados (año)</span><span class="trkv-kpi-value" id="trkvGruCerrados">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvGruDias">—</span></div>
+            </div>
+            <div id="trkvGruStepper"></div>
+          </article>
+
+          <article class="trkv-card trkv-card--soon">
+            <div class="trkv-card-head">
+              <span class="trkv-dot-soon"></span>
+              <h3>Solicitudes</h3>
+              <span class="trkv-tag-soon">PRONTO</span>
+            </div>
+            <p class="trkv-soon-copy">Tendrá su propio semáforo y umbral de urgencia — mismos criterios que los demás Tracking. Se construye después.</p>
+          </article>
+        </div>
+      </div>
+      <div class="admin-panel" id="panel-dashboard">
         <div class="dash-etabs" id="dashTabs">
           <button type="button" class="dash-etab active" data-dashtab="comercial">Comercial</button>
           <button type="button" class="dash-etab" data-dashtab="operacion">Operación</button>
@@ -2905,6 +2989,7 @@
   })();
 
   const TITLES = {
+    'tracking-view': 'Tracking View',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
@@ -2918,7 +3003,7 @@
   // — es el popover de la campana, ver su propio IIFE más abajo). Se
   // recuerda el último panel "de verdad" (no config) para que el botón
   // "Volver" de Configuración sepa a dónde regresar.
-  let ultimoPanel = 'dashboard';
+  let ultimoPanel = 'tracking-view';
   function activarPanel(key){
     if(key !== 'config') ultimoPanel = key;
     document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
@@ -3189,6 +3274,104 @@
     .catch(() => {
       document.getElementById('userEmail').textContent = '/.auth/me no disponible (normal en local)';
     });
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL TRACKING VIEW (Fase 2, 2026-09-15) — 4 tarjetas resumen, un
+  // vistazo de los 4 Tracking sin entrar a cada uno. Reusa tal cual las
+  // Functions de resumen que ya alimentan cada scorecard (getResumen
+  // CotizacionesAdmin/getResumenClientesAdmin/getResumenGruposAdmin) —
+  // nunca recalcula nada aparte. Es la pantalla de aterrizaje nueva del
+  // admin (reemplaza a Dashboard como panel activo por default).
+  // Solicitudes no tiene Function propia todavía — tarjeta placeholder
+  // "PRONTO" hasta que se diseñe su propio semáforo/umbral.
+  // ═══════════════════════════════════════════════════════════════
+  (function(){
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+    function fmtMoney(n){
+      return (n || 0).toLocaleString('es-MX', { style:'currency', currency:'MXN', maximumFractionDigits:0 });
+    }
+    function pillsAntiguedad(a){
+      return `
+        <span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>En tiempo · ${a.verde || 0}</span>
+        <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento · ${a.amarillo || 0}</span>
+        <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgentes · ${a.rojo || 0}</span>
+      `;
+    }
+
+    async function cargarComercial(){
+      try {
+        const r = await apiGetConReintento('/api/getResumenCotizacionesAdmin');
+        document.getElementById('trkvComPipeline').textContent = fmtMoney(r.pipeline_monto);
+        document.getElementById('trkvComConversion').textContent = r.tasa_conversion + '%';
+        document.getElementById('trkvComCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
+        document.getElementById('trkvComSignal').innerHTML = pillsAntiguedad(r.antiguedad || {});
+      } catch(e){
+        ['trkvComPipeline','trkvComConversion','trkvComCierre'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    async function cargarClientes(){
+      try {
+        const r = await apiGetConReintento('/api/getResumenClientesAdmin');
+        document.getElementById('trkvCliTotal').textContent = r.total_clientes;
+        document.getElementById('trkvCliCompletos').textContent = r.pct_completos + '%';
+        document.getElementById('trkvCliActivos').textContent = r.pct_en_verde + '%';
+        document.getElementById('trkvCliSignal').innerHTML = `
+          <span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>Activos · ${r.clientes_en_verde || 0}</span>
+          <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Tibios · ${r.clientes_en_amarillo || 0}</span>
+          <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Inactivos · ${r.clientes_en_rojo || 0}</span>
+        `;
+      } catch(e){
+        ['trkvCliTotal','trkvCliCompletos','trkvCliActivos'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    async function cargarGrupos(){
+      try {
+        const r = await apiGetConReintento('/api/getResumenGruposAdmin');
+        document.getElementById('trkvGruActivos').textContent = r.activos;
+        document.getElementById('trkvGruCerrados').textContent = r.cerrados_este_anio;
+        document.getElementById('trkvGruDias').textContent = r.dias_promedio_cierre != null ? r.dias_promedio_cierre + ' días' : '—';
+        document.getElementById('trkvGruStepper').innerHTML = window.FaseStepper.renderResumen({ conteos: r.conteos_fase || {}, faseActiva: null });
+      } catch(e){
+        ['trkvGruActivos','trkvGruCerrados','trkvGruDias'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    function cargarTodo(){
+      cargarComercial();
+      cargarClientes();
+      cargarGrupos();
+    }
+
+    document.querySelectorAll('#panel-tracking-view .trkv-card[data-goto]').forEach(card => {
+      const ir = () => activarPanel(card.dataset.goto);
+      card.addEventListener('click', ir);
+      card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); } });
+    });
+
+    cargarTodo();
+    // Mismo criterio que Tracking Operación (2026-09-12): refrescar también
+    // al hacer clic en el ítem del sidebar, no solo al cargar /admin — si
+    // algo cambió en otro panel, el vistazo no debe quedarse con números viejos.
+    const navBtn = document.querySelector('.admin-nav-item[data-panel="tracking-view"]');
+    if(navBtn) navBtn.addEventListener('click', cargarTodo);
+  })();
 
   // ═══════════════════════════════════════════════════════════════
   // PANEL DASHBOARD — pestañas estilo Excel: Comercial/Operación/Cierre/Productos.

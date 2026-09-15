@@ -3060,9 +3060,21 @@
 
     function pintarPopover(){
       if(!datos){
-        body.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las notificaciones.</div>`;
+        if(cargando){
+          body.innerHTML = `<div class="radm-empty-row">Cargando… (la base puede tardar unos segundos en despertar)</div>`;
+          sub.textContent = 'Cargando…';
+          footUmbrales.textContent = '';
+          return;
+        }
+        body.innerHTML = `
+          <div class="radm-empty-row">No se pudieron cargar las notificaciones${ultimoError ? ': ' + escapeHtml(ultimoError) : ''}.</div>
+          <div style="padding:0 10px 10px;">
+            <button type="button" class="radm-btn radm-btn-ghost" id="notifReintentar" style="min-width:auto;">Reintentar</button>
+          </div>`;
         sub.textContent = '';
         footUmbrales.textContent = '';
+        const btnReintentar = document.getElementById('notifReintentar');
+        if(btnReintentar) btnReintentar.addEventListener('click', cargarNotificaciones);
         return;
       }
       if(!datos.total){
@@ -3118,17 +3130,45 @@
       if(cfgBody.hidden) head.click();
     });
 
+    // getNotificacionesActivas le pega a apcweb-backoffice (SQL serverless,
+    // auto-pausa) — necesita el mismo reintento con pausas crecientes que ya
+    // usa el resto del admin contra esa base (ver "Ya resuelto" en CLAUDE.md:
+    // apiGet a secas contra esa base falla en silencio si estaba dormida).
+    // Se dejó fuera en la primera versión de este IIFE — corregido.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function pedirNotificaciones(){
+      for(let intento = 0; ; intento++){
+        try {
+          const res = await fetch('/api/getNotificacionesActivas');
+          const b = await res.json().catch(() => ({}));
+          if(!res.ok) throw new Error(b.error || 'Error de red');
+          return b;
+        } catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    let ultimoError = null;
+    let cargando = true;
     async function cargarNotificaciones(){
+      cargando = true;
+      if(!popover.hidden) pintarPopover();
       try {
-        const res = await fetch('/api/getNotificacionesActivas');
-        const b = await res.json().catch(() => ({}));
-        if(!res.ok) throw new Error(b.error || 'Error de red');
+        const b = await pedirNotificaciones();
         datos = b;
+        ultimoError = null;
         window.UMBRALES_NOTIF = b.umbrales || window.UMBRALES_NOTIF;
         pintarBadge();
-        if(!popover.hidden) pintarPopover();
       } catch(e){
-        // silencioso — badge se queda sin número, el popover avisa si se abre sin datos
+        // el badge se queda sin número, pero el popover SÍ muestra el error
+        // real (esto es admin-only, no hay razón para ocultarlo como en las
+        // Functions públicas) — con un botón para reintentar sin recargar.
+        ultimoError = e.message;
+      } finally {
+        cargando = false;
+        if(!popover.hidden) pintarPopover();
       }
     }
     cargarNotificaciones();

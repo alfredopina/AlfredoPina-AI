@@ -23,9 +23,17 @@
 const DIAS_VERDE = 30;
 const DIAS_AMARILLO = 90;
 
+// diasAmarillo es configurable desde Configuración → Notificaciones
+// (api/src/notificaciones-config.js) — el 3er parámetro es opcional y por
+// default usa las mismas constantes de siempre, así que listClientesAdmin/
+// getResumenClientesAdmin (y cualquier llamada vieja que no lo pase) no
+// cambian de comportamiento. diasVerde se deja igual de ajustable por
+// simetría, aunque hoy nada lo configura todavía (solo el umbral "urgente"
+// es configurable, ver CLAUDE.md → Notificaciones).
 function calcularDiasInactivo(
   { solicitudPendienteFecha, cotizacionActivaFecha, grupoActivo, cotizacionCerradaFecha, ultimoDiplomaFecha },
-  ahora = new Date()
+  ahora = new Date(),
+  { diasVerde = DIAS_VERDE, diasAmarillo = DIAS_AMARILLO } = {}
 ) {
   const candidatosActivos = [solicitudPendienteFecha, cotizacionActivaFecha].filter(Boolean).map((f) => new Date(f));
   if (grupoActivo) candidatosActivos.push(ahora);
@@ -42,7 +50,7 @@ function calcularDiasInactivo(
   if (!fechaRef) return { dias: null, semaforo: "rojo", fechaRef: null };
 
   const dias = Math.max(0, Math.round((ahora.getTime() - fechaRef.getTime()) / 86400000));
-  const semaforo = dias < DIAS_VERDE ? "verde" : dias <= DIAS_AMARILLO ? "amarillo" : "rojo";
+  const semaforo = dias < diasVerde ? "verde" : dias <= diasAmarillo ? "amarillo" : "rojo";
   return { dias, semaforo, fechaRef: fechaRef.toISOString().slice(0, 10) };
 }
 

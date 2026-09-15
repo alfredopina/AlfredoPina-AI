@@ -44,7 +44,10 @@ const SQL_TABLAS = [
 // un Pendiente actualiza su Timestamp aunque no sea una fila nueva); el
 // front lo etiqueta "última actividad" para no confundirlo con la fecha real
 // de creación que sí reportan las tablas SQL.
-const STORAGE_TABLAS = ["Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes", "AdminActividad", "DiagnosticoPreguntas"];
+const STORAGE_TABLAS = [
+  "Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes",
+  "AdminActividad", "DiagnosticoPreguntas", "ConfiguracionNotificaciones",
+];
 
 function isTableNotFound(err) {
   if (!err || err.statusCode !== 404) return false;

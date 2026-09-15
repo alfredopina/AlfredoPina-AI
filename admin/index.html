@@ -634,6 +634,23 @@
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
 
+  /* Configuración → Notificaciones — 3 filas con nota de contexto debajo de
+     cada una (a diferencia de .cfg-tarifas-grid, que es una rejilla de
+     tarjetas cortas sin espacio para texto extra). */
+  .cfg-notif-row{ border:1px solid var(--line); border-radius:9px; padding:12px 14px; background:var(--panel); }
+  .cfg-notif-row + .cfg-notif-row{ margin-top:10px; }
+  .cfg-notif-row-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .cfg-notif-row-icon{ width:18px; height:18px; color:var(--blue-bright); flex:none; }
+  .cfg-notif-row-icon svg{ width:100%; height:100%; }
+  .cfg-notif-row-nombre{ flex:1; font-family:var(--display); font-weight:600; font-size:13px; min-width:140px; }
+  .cfg-notif-row-top input{
+    width:70px; font-family:var(--mono); font-size:12.5px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:5px; padding:6px 8px; outline:none; text-align:right;
+  }
+  .cfg-notif-row-top input:focus, .cfg-notif-row-top input.cfg-notif-dirty{ border-color:var(--blue-bright); }
+  .cfg-notif-row-sufijo{ font-size:11.5px; color:var(--text-faint); }
+  .cfg-notif-row-nota{ font-size:11.5px; color:var(--text-faint); margin-top:9px; line-height:1.55; }
+
   /* ---- PANEL SOLICITUDES — selector de temario (estándar/personalizado) ---- */
   .sol-temas-list{ display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; }
   .sol-tema-item{
@@ -880,10 +897,12 @@
   .gro-semaforo .cot-semaforo-dot{ animation:admin-live-pulse 1.8s ease-in-out infinite; }
   @media (prefers-reduced-motion:reduce){ .gro-semaforo .cot-semaforo-dot{ animation:none; } }
 
-  /* Popover de "Nota rápida" (acción Notas, Tracking Operación) — a
-     diferencia de .cli-info-popover (fijo dentro de un wrapper), este se
-     dispara desde cualquier fila de la tabla, así que se posiciona con
-     position:fixed y coordenadas calculadas en JS junto al botón tocado. */
+  /* Popover de "Seguimiento" (acción Notas, renombrada de "Nota rápida" el
+     2026-09-15 para no chocar con el módulo Pendientes del sidebar — mismo
+     campo/Functions de siempre, solo cambió el texto visible) — a diferencia
+     de .cli-info-popover (fijo dentro de un wrapper), este se dispara desde
+     cualquier fila de la tabla, así que se posiciona con position:fixed y
+     coordenadas calculadas en JS junto al botón tocado. */
   .gro-notas-popover{
     position:fixed; z-index:50; width:280px; max-width:90vw;
     background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px;
@@ -895,6 +914,66 @@
     color:var(--text); font:inherit; font-size:12.5px; padding:8px; resize:vertical; margin:8px 0; box-sizing:border-box;
   }
   .gro-notas-popover-actions{ display:flex; justify-content:flex-end; gap:8px; }
+
+  /* Popover de Notificaciones (campana del topbar) — diseño "agrupado por
+     módulo" aprobado en mockup (Versión A). Mismo criterio posicional que
+     .gro-notas-popover: position:fixed con coordenadas calculadas en JS
+     junto a btnNotificaciones (el botón no vive dentro de un wrapper
+     position:relative que sirva de ancla para un position:absolute). */
+  .notif-badge{
+    position:absolute; top:2px; right:2px; min-width:15px; height:15px; padding:0 4px;
+    background-color:#ef4444; color:#fff; font-family:var(--mono); font-size:9.5px; font-weight:700;
+    border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
+    box-shadow:0 0 0 2px var(--panel);
+  }
+  #btnNotificaciones{ position:relative; }
+  #btnNotificaciones.notif-abierto{ color:var(--blue-bright); background-color:var(--blue-soft); }
+
+  .notif-popover{
+    position:fixed; z-index:60; width:360px; max-width:92vw;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .notif-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:13px 15px 11px; border-bottom:1px solid var(--line);
+  }
+  .notif-fx{ font-family:var(--mono); font-size:12px; color:var(--blue-bright); font-weight:500; display:block; }
+  .notif-sub{ font-size:11px; color:var(--text-faint); display:block; margin-top:2px; }
+  .notif-close{
+    width:24px; height:24px; border-radius:6px; color:var(--text-faint); flex:none; border:none; background:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .notif-close:hover{ color:var(--text); }
+  .notif-close svg{ width:14px; height:14px; }
+  .notif-body{ max-height:400px; overflow-y:auto; }
+  .notif-foot{
+    padding:10px 15px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; color:var(--text-faint);
+  }
+  .notif-foot a{ color:var(--blue-bright); text-decoration:none; font-weight:500; display:inline-flex; align-items:center; gap:4px; }
+  .notif-foot a svg{ width:12px; height:12px; }
+  .notif-vacio{ display:flex; flex-direction:column; align-items:center; gap:8px; padding:34px 20px; color:var(--text-dim); font-size:12.5px; text-align:center; }
+  .notif-vacio svg{ width:26px; height:26px; color:var(--good); }
+
+  .notif-grp{ padding:6px 6px 8px; }
+  .notif-grp + .notif-grp{ border-top:1px solid var(--line); }
+  .notif-grp-head{ display:flex; align-items:center; gap:8px; padding:9px 10px 6px; }
+  .notif-grp-head svg{ width:15px; height:15px; color:var(--text-dim); flex:none; }
+  .notif-grp-head b{ font-family:var(--display); font-size:12.5px; font-weight:600; flex:1; }
+  .notif-grp-count{
+    font-family:var(--mono); font-size:10.5px; font-weight:600; color:var(--text-dim);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:1px 7px;
+  }
+  .notif-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; }
+  .notif-row:hover{ background:var(--panel-2); }
+  .notif-row-text{ flex:1; min-width:0; }
+  .notif-row-cliente{ font-size:12.5px; font-weight:600; }
+  .notif-row-detalle{ font-size:11.5px; color:var(--text-dim); margin-top:1px; }
+  .notif-day-pill{
+    font-family:var(--mono); font-size:11px; font-weight:600; color:#fca5a5;
+    background-color:rgba(239,68,68,.15); border-radius:5px; padding:2px 6px; white-space:nowrap; flex:none;
+  }
   .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
   .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
   .step-next-hint{
@@ -1220,9 +1299,29 @@
         <button type="button" class="admin-icon-btn" id="btnDespertar" title="Despertar base de datos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Notificaciones (próximamente)">
+        <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Notificaciones">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
         </button>
+
+        <div class="notif-popover" id="notifPopover" hidden>
+          <div class="notif-head">
+            <div>
+              <span class="notif-fx">fx =NOTIFICACIONES()</span>
+              <span class="notif-sub" id="notifSub">Cargando…</span>
+            </div>
+            <button type="button" class="notif-close" id="notifClose" title="Cerrar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="notif-body" id="notifBody"></div>
+          <div class="notif-foot">
+            <span id="notifFootUmbrales"></span>
+            <a href="#" id="notifFootConfig">Configurar
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </div>
         <button type="button" class="admin-icon-btn" id="btnConfig" title="Configuración">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -1313,11 +1412,18 @@
         <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgNotifHead">
             <span class="cfg-card-title">NOTIFICACIONES</span>
-            <span class="admin-nav-soon">PRONTO</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </button>
           <div class="cfg-card-body" id="cfgNotifBody" hidden>
-            <div class="cfg-note">Qué eventos te avisan y por dónde (correo, campana del panel). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
+            <div class="cfg-note">
+              Estos 3 números son los que hacen que una cotización, un grupo o un cliente se marquen como "urgente" — tanto en la campana de arriba como en las alertas ámbar que ya ves en Tracking Comercial, Tracking Grupos y Clientes (es el mismo número en todos lados, un solo lugar donde cambiarlo). Cada señal tiene además un nivel de "seguimiento" más temprano (ámbar), que no se configura aquí y se queda fijo en código — va anotado junto a cada campo para que tengas contexto real al momento de poner el número.
+            </div>
+            <div class="cfg-notif-list" id="cfgNotifList" style="margin-top:14px;">
+              <div class="radm-empty-row">Cargando umbrales…</div>
+            </div>
+            <div class="cfg-note" style="margin-top:14px;">
+              El resumen semanal (un correo con todas estas señales de un jalón) todavía no está construido — queda pendiente para más adelante.
+            </div>
           </div>
         </div>
         <div class="cfg-card">
@@ -1361,18 +1467,6 @@
           </div>
         </div>
         <div id="bakToast" class="radm-toast" hidden></div>
-      </div>
-
-      <div class="admin-panel" id="panel-notificaciones">
-        <button class="radm-back" id="notifBack">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Volver
-        </button>
-        <div class="admin-empty">
-          <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-          <div class="admin-empty-title">Notificaciones — próximamente</div>
-          <div class="admin-empty-text">Aquí van a llegar tus solicitudes, diagnósticos y demás avisos en cuanto esos módulos existan.</div>
-        </div>
       </div>
 
       <div class="admin-panel" id="panel-solicitudes" style="--c:var(--blue-bright)">
@@ -1991,9 +2085,12 @@
           </div>
 
           <div class="gro-notas-popover" id="cliNotasPopover" hidden>
-            <div class="gro-notas-popover-title">Nota rápida</div>
+            <div class="gro-notas-popover-title">Seguimiento</div>
             <textarea id="cliNotasTextarea" placeholder="Escribe una nota..."></textarea>
             <div class="gro-notas-popover-actions">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cliNotasBorrar" title="Borrar esta nota" style="min-width:auto; padding:6px 10px; margin-right:auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
               <button type="button" class="radm-btn radm-btn-ghost" id="cliNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
               <button type="button" class="radm-btn" id="cliNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
             </div>
@@ -2206,9 +2303,12 @@
         </div>
 
         <div class="gro-notas-popover" id="groNotasPopover" hidden>
-          <div class="gro-notas-popover-title">Nota rápida</div>
+          <div class="gro-notas-popover-title">Seguimiento</div>
           <textarea id="groNotasTextarea" placeholder="Escribe una nota..."></textarea>
           <div class="gro-notas-popover-actions">
+            <button type="button" class="radm-btn radm-btn-ghost" id="groNotasBorrar" title="Borrar esta nota" style="min-width:auto; padding:6px 10px; margin-right:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <button type="button" class="radm-btn radm-btn-ghost" id="groNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
             <button type="button" class="radm-btn" id="groNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
           </div>
@@ -2810,16 +2910,18 @@
     diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Tracking Comercial', 'tracking-operacion': 'Tracking Operación',
     encuestas: 'Encuestas', diplomas: 'Diplomas', grupos: 'Grupos', pendientes: 'Pendientes',
-    modelo: 'Modelo', config: 'Configuración', notificaciones: 'Notificaciones',
+    modelo: 'Modelo', config: 'Configuración',
   };
 
-  // activarPanel es la única puerta para cambiar de sección — la usan el sidebar
-  // y los íconos de campana/engrane del topbar (Configuración y Notificaciones no
-  // viven en el sidebar). Se recuerda el último panel "de verdad" (no config ni
-  // notificaciones) para que el botón "Volver" de esos dos sepa a dónde regresar.
+  // activarPanel es la única puerta para cambiar de sección — la usan el
+  // sidebar y el engrane de Configuración (Configuración no vive en el
+  // sidebar; Notificaciones tampoco, pero desde 2026-09-15 ya no es un panel
+  // — es el popover de la campana, ver su propio IIFE más abajo). Se
+  // recuerda el último panel "de verdad" (no config) para que el botón
+  // "Volver" de Configuración sepa a dónde regresar.
   let ultimoPanel = 'dashboard';
   function activarPanel(key){
-    if(key !== 'config' && key !== 'notificaciones') ultimoPanel = key;
+    if(key !== 'config') ultimoPanel = key;
     document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
     document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
     document.getElementById('topbarTitle').textContent = TITLES[key] || key;
@@ -2832,9 +2934,7 @@
   });
 
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
-  document.getElementById('btnNotificaciones').addEventListener('click', () => activarPanel('notificaciones'));
   document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
-  document.getElementById('notifBack').addEventListener('click', () => activarPanel(ultimoPanel));
 
   // Acordeón simple para las 2 tarjetas de Configuración que todavía son solo
   // un "PRONTO" — sin datos que cargar, así que no necesitan su propio IIFE.
@@ -2850,7 +2950,9 @@
     });
   }
   wireCfgCardSimple('cfgPerfilHead', 'cfgPerfilBody');
-  wireCfgCardSimple('cfgNotifHead', 'cfgNotifBody');
+  // cfgNotifHead ya no usa el acordeón genérico — tiene datos reales que
+  // cargar perezoso (umbrales), mismo criterio que Actividad/Tarifas/
+  // Respaldos, ver su propio IIFE más abajo.
 
   // Botón "Despertar" — dispara un SELECT 1 contra apcweb-backoffice (Function
   // despertarBackoffice) solo para sacarla del auto-pause antes de que Alfredo
@@ -2898,6 +3000,141 @@
         setTimeout(() => { setEstado('idle', 'Despertar base de datos'); enCurso = false; }, 2800);
       }
     });
+  })();
+
+  // ── Notificaciones (campana del topbar) — reemplaza el panel de página
+  // completa que existía antes (placeholder desde que se construyó el shell
+  // del admin) por un popover con las 3 señales que ya calculan Tracking
+  // Comercial, Tracking Operación y Clientes, agrupadas por módulo (mockup
+  // Versión A, aprobado 2026-09-15). Una sola llamada a
+  // getNotificacionesActivas al cargar /admin trae de un jalón el conteo
+  // para el badge, el detalle completo (no hace falta una 2ª llamada
+  // perezosa al abrir el popover) Y los umbrales — que se guardan en
+  // window.UMBRALES_NOTIF para que actualizarAlerta/semaforoDe (Cotizaciones)
+  // y actualizarAlertaGrupos/diasFaseHtml (Grupos) usen el mismo número, un
+  // solo lugar de verdad. window.refrescarNotificaciones() queda expuesto
+  // para que Configuración → Notificaciones pueda refrescar todo esto en
+  // vivo después de guardar un umbral, sin recargar la página. ──
+  (function(){
+    const ICO = {
+      cot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      gru: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
+      cli: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M16 4.2c1.4.5 2.4 1.9 2.4 3.5s-1 3-2.4 3.5" stroke-linecap="round"/><path d="M15.5 14.6c1.9.6 3.3 2.4 4 5.4" stroke-linecap="round"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" stroke-linecap="round"/><path d="M8 12l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    window.UMBRALES_NOTIF = { cotizacionesDias: 10, gruposDias: 21, clientesDias: 90 }; // defaults hasta que cargue de verdad
+    let datos = null; // { total, umbrales, grupos:{cotizaciones,grupos,clientes} }
+
+    const bell = document.getElementById('btnNotificaciones');
+    const badge = document.getElementById('notifBadge');
+    const popover = document.getElementById('notifPopover');
+    const body = document.getElementById('notifBody');
+    const sub = document.getElementById('notifSub');
+    const footUmbrales = document.getElementById('notifFootUmbrales');
+
+    function pintarBadge(){
+      if(!datos || !datos.total){ badge.hidden = true; return; }
+      badge.hidden = false;
+      badge.textContent = datos.total > 99 ? '99+' : String(datos.total);
+    }
+
+    function grupoHtml(clave, icono, nombre, panelDestino){
+      const items = (datos.grupos && datos.grupos[clave]) || [];
+      if(!items.length) return '';
+      return `
+        <div class="notif-grp">
+          <div class="notif-grp-head">${icono}<b>${nombre}</b><span class="notif-grp-count">${items.length}</span></div>
+          ${items.map(it => `
+            <div class="notif-row" data-panel="${panelDestino}">
+              <div class="notif-row-text">
+                <div class="notif-row-cliente">${escapeHtml(it.cliente)}</div>
+                <div class="notif-row-detalle">${escapeHtml(it.detalle)}</div>
+              </div>
+              <span class="notif-day-pill">${it.dias == null ? '—' : it.dias + ' d'}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    function pintarPopover(){
+      if(!datos){
+        body.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las notificaciones.</div>`;
+        sub.textContent = '';
+        footUmbrales.textContent = '';
+        return;
+      }
+      if(!datos.total){
+        body.innerHTML = `<div class="notif-vacio">${ICO.check}<span>Todo al día.</span></div>`;
+      } else {
+        body.innerHTML = [
+          grupoHtml('cotizaciones', ICO.cot, 'Cotizaciones frías', 'tracking-comercial'),
+          grupoHtml('grupos', ICO.gru, 'Grupos atorados', 'tracking-operacion'),
+          grupoHtml('clientes', ICO.cli, 'Clientes inactivos', 'clientes'),
+        ].join('');
+        body.querySelectorAll('.notif-row').forEach(row => {
+          row.addEventListener('click', () => {
+            cerrarPopover();
+            activarPanel(row.dataset.panel);
+          });
+        });
+      }
+      sub.textContent = datos.total
+        ? `${datos.total} activa${datos.total === 1 ? '' : 's'} requieren tu atención`
+        : 'Sin pendientes por ahora';
+      const u = datos.umbrales || window.UMBRALES_NOTIF;
+      footUmbrales.textContent = `Umbrales: ${u.cotizacionesDias} · ${u.gruposDias} · ${u.clientesDias} días`;
+    }
+
+    function abrirPopover(){
+      pintarPopover();
+      const rect = bell.getBoundingClientRect();
+      popover.style.top = (rect.bottom + 8) + 'px';
+      popover.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
+      popover.hidden = false;
+      bell.classList.add('notif-abierto');
+    }
+    function cerrarPopover(){
+      popover.hidden = true;
+      bell.classList.remove('notif-abierto');
+    }
+    bell.addEventListener('click', () => { popover.hidden ? abrirPopover() : cerrarPopover(); });
+    document.getElementById('notifClose').addEventListener('click', cerrarPopover);
+    document.addEventListener('click', e => {
+      if(!popover.hidden && !e.target.closest('#notifPopover') && !e.target.closest('#btnNotificaciones')){
+        cerrarPopover();
+      }
+    });
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Escape' && !popover.hidden) cerrarPopover();
+    });
+    document.getElementById('notifFootConfig').addEventListener('click', e => {
+      e.preventDefault();
+      cerrarPopover();
+      activarPanel('config');
+      const head = document.getElementById('cfgNotifHead');
+      const cfgBody = document.getElementById('cfgNotifBody');
+      if(cfgBody.hidden) head.click();
+    });
+
+    async function cargarNotificaciones(){
+      try {
+        const res = await fetch('/api/getNotificacionesActivas');
+        const b = await res.json().catch(() => ({}));
+        if(!res.ok) throw new Error(b.error || 'Error de red');
+        datos = b;
+        window.UMBRALES_NOTIF = b.umbrales || window.UMBRALES_NOTIF;
+        pintarBadge();
+        if(!popover.hidden) pintarPopover();
+      } catch(e){
+        // silencioso — badge se queda sin número, el popover avisa si se abre sin datos
+      }
+    }
+    cargarNotificaciones();
+    // Expuesto para que Configuración → Notificaciones refresque badge/popover
+    // y los umbrales compartidos en cuanto Alfredo guarda un cambio.
+    window.refrescarNotificaciones = cargarNotificaciones;
   })();
 
   // quién inició sesión — solo funciona una vez desplegado en Azure (no en local)
@@ -6061,7 +6298,7 @@
           <td>${semaforoHtml(c.semaforo)}</td>
           <td>
             <div style="display:flex; gap:4px;">
-              <button type="button" class="cot-icon-btn cli-notas-btn${c.notas ? ' tiene-nota' : ''}" data-id="${c.id}" title="${c.notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida'}">
+              <button type="button" class="cot-icon-btn cli-notas-btn${c.notas ? ' tiene-nota' : ''}" data-id="${c.id}" title="${c.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento'}">
                 ${ICO.notas}
               </button>
               <button type="button" class="cot-icon-btn cli-editar-btn" data-id="${c.id}" title="Editar cliente y contactos">${ICO.edit}</button>
@@ -6110,10 +6347,8 @@
       cliNotasPopover.hidden = true;
       cliNotasClienteActual = null;
     }
-    document.getElementById('cliNotasCancelar').addEventListener('click', cerrarNotasCliente);
-    document.getElementById('cliNotasGuardar').addEventListener('click', async () => {
+    async function guardarNotasCliente(notas){
       if(!cliNotasClienteActual) return;
-      const notas = cliNotasTextarea.value.trim();
       try {
         await apiPostJson('/api/actualizarNotasCliente', { id: cliNotasClienteActual.id, notas });
         cliNotasClienteActual.notas = notas;
@@ -6126,11 +6361,21 @@
         const btnFila = document.querySelector(`.cli-notas-btn[data-id="${cliNotasClienteActual.id}"]`);
         if(btnFila){
           btnFila.classList.toggle('tiene-nota', !!notas);
-          btnFila.title = notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida';
+          btnFila.title = notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento';
         }
-        toast('Nota guardada.', true);
+        toast(notas ? 'Seguimiento guardado.' : 'Seguimiento borrado.', true);
         cerrarNotasCliente();
-      } catch(e){ toast('No se pudo guardar la nota: ' + e.message, false); }
+      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+    }
+    document.getElementById('cliNotasCancelar').addEventListener('click', cerrarNotasCliente);
+    document.getElementById('cliNotasBorrar').addEventListener('click', () => {
+      if(!cliNotasClienteActual) return;
+      if(!confirm('¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.')) return;
+      cliNotasTextarea.value = '';
+      guardarNotasCliente('');
+    });
+    document.getElementById('cliNotasGuardar').addEventListener('click', () => {
+      guardarNotasCliente(cliNotasTextarea.value.trim());
     });
     document.addEventListener('click', e => {
       if(!cliNotasPopover.hidden && !e.target.closest('#cliNotasPopover') && !e.target.closest('.cli-notas-btn')){
@@ -7318,14 +7563,20 @@
       }
     }
 
+    // El umbral "urgente" (default 10) viene de Configuración → Notificaciones
+    // (window.UMBRALES_NOTIF, cargado una vez al abrir /admin — ver el IIFE
+    // "NOTIFICACIONES" más abajo) — mismo número que usa la campana, nunca
+    // reimplementado aparte. El nivel "de seguimiento" (6) se queda fijo en
+    // código a propósito, no es configurable (ver CLAUDE.md → Notificaciones).
     function actualizarAlerta(lista){
       const banner = document.getElementById('cotAlerta');
-      const criticas = lista.filter(c => c.dias_abierta >= 10);
+      const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
+      const criticas = lista.filter(c => c.dias_abierta >= umbral);
       if(!criticas.length){ banner.hidden = true; return; }
       const nombres = criticas.slice(0, 2).map(c => escapeHtml(c.cliente));
       const resto = criticas.length > 2 ? ` y ${criticas.length - 2} más` : '';
       document.getElementById('cotAlertaTexto').innerHTML =
-        `<b>${criticas.length} cotizaci${criticas.length === 1 ? 'ón' : 'ones'}</b> llev${criticas.length === 1 ? 'a' : 'an'} más de 10 días sin respuesta — ${nombres.join(' y ')}${resto}.`;
+        `<b>${criticas.length} cotizaci${criticas.length === 1 ? 'ón' : 'ones'}</b> llev${criticas.length === 1 ? 'a' : 'an'} más de ${umbral} días sin respuesta — ${nombres.join(' y ')}${resto}.`;
       banner.hidden = false;
     }
 
@@ -7334,7 +7585,8 @@
     let cotListaCache = [];
 
     function semaforoDe(c){
-      if(c.vencida || c.dias_abierta >= 10) return { clase:'hot', texto: `${c.dias_abierta} días · Urgente` };
+      const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
+      if(c.vencida || c.dias_abierta >= umbral) return { clase:'hot', texto: `${c.dias_abierta} días · Urgente` };
       if(c.dias_abierta >= 6) return { clase:'warn', texto: `${c.dias_abierta} días · Seguimiento` };
       return { clase:'ok', texto: `${c.dias_abierta} días · A tiempo` };
     }
@@ -8283,6 +8535,132 @@
       body.hidden = !expandir;
       head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
       if(expandir && !cargado){ cargado = true; cargarTarifas(); }
+    });
+  })();
+
+  // ── Configuración → Notificaciones — 3 umbrales configurables (días para
+  // considerar cada señal "urgente"), Table Storage
+  // (ConfiguracionNotificaciones, ver api/src/notificaciones-config.js) — sin
+  // riesgo de auto-pause, así que sin reintento con pausas crecientes (ese
+  // patrón es solo para lo que sí vive en apcweb-backoffice). Mismo patrón
+  // visual/interacción que Tarifas por hora arriba: input + botón
+  // "Actualizar" deshabilitado hasta que cambia + confirm(), un campo a la
+  // vez. Guardar un umbral también actualiza window.UMBRALES_NOTIF y llama a
+  // window.refrescarNotificaciones() (expuesto por el IIFE de la campana más
+  // abajo) para que Tracking Comercial/Grupos y el popover reflejen el
+  // cambio en vivo, sin recargar la página. ──
+  (function(){
+    function toast(msg, ok){
+      const el = document.getElementById('bakToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.hidden = true; }, 3200);
+    }
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+
+    const CAMPOS = [
+      {
+        campo:'cotizacionesDias', nombre:'Cotizaciones frías',
+        icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        nota:'Seguimiento (ámbar) fijo en 6 días — a partir de ahí ya vale la pena revisarla. El número de aquí es a partir de cuándo se considera fría de verdad, en Tracking Comercial y en la campana.',
+      },
+      {
+        campo:'gruposDias', nombre:'Grupos atorados',
+        icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
+        nota:'Seguimiento (ámbar) fijo entre 10 y 21 días en la misma fase de cierre (Proyecto/Calificaciones/Diplomas). El número de aquí es a partir de cuándo es raro que siga tanto tiempo ahí, en Tracking Grupos y en la campana.',
+      },
+      {
+        campo:'clientesDias', nombre:'Clientes inactivos',
+        icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M16 4.2c1.4.5 2.4 1.9 2.4 3.5s-1 3-2.4 3.5" stroke-linecap="round"/><path d="M15.5 14.6c1.9.6 3.3 2.4 4 5.4" stroke-linecap="round"/></svg>',
+        nota:'Seguimiento (ámbar) fijo entre 30 y 90 días sin interacción. El número de aquí es a partir de cuándo se considera inactivo de verdad, en Clientes y en la campana.',
+      },
+    ];
+
+    function pintar(umbrales){
+      const cont = document.getElementById('cfgNotifList');
+      cont.innerHTML = CAMPOS.map(c => `
+        <div class="cfg-notif-row">
+          <div class="cfg-notif-row-top">
+            <span class="cfg-notif-row-icon">${c.icono}</span>
+            <span class="cfg-notif-row-nombre">${c.nombre}</span>
+            <input type="number" min="1" step="1" class="cfg-notif-input" data-campo="${c.campo}" data-original="${umbrales[c.campo]}" value="${umbrales[c.campo]}">
+            <span class="cfg-notif-row-sufijo">días</span>
+            <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" style="min-width:auto;" disabled>Actualizar</button>
+          </div>
+          <div class="cfg-notif-row-nota">${c.nota}</div>
+        </div>
+      `).join('');
+
+      cont.querySelectorAll('.cfg-notif-input').forEach(input => {
+        input.addEventListener('input', () => {
+          const btn = input.closest('.cfg-notif-row').querySelector('.cfg-notif-btn');
+          const dirty = input.value !== '' && Number(input.value) !== Number(input.dataset.original);
+          input.classList.toggle('cfg-notif-dirty', dirty);
+          btn.disabled = !dirty;
+        });
+      });
+
+      cont.querySelectorAll('.cfg-notif-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const row = btn.closest('.cfg-notif-row');
+          const input = row.querySelector('.cfg-notif-input');
+          const campo = input.dataset.campo;
+          const nombre = row.querySelector('.cfg-notif-row-nombre').textContent;
+          const anterior = Number(input.dataset.original);
+          const nuevo = Number(input.value);
+          if(!Number.isInteger(nuevo) || nuevo < 1){ toast('El valor debe ser un entero mayor a 0.', false); return; }
+          if(!confirm(`¿Cambiar el umbral de ${nombre} de ${anterior} a ${nuevo} días? Este mismo número se usa en la campana y en las alertas de Tracking.`)) return;
+
+          const textoOriginal = btn.textContent;
+          btn.disabled = true; btn.textContent = 'Guardando...';
+          try {
+            await apiPostJson('/api/actualizarUmbralNotificacion', { campo, valor: nuevo });
+            input.dataset.original = nuevo;
+            input.classList.remove('cfg-notif-dirty');
+            if(window.UMBRALES_NOTIF) window.UMBRALES_NOTIF[campo] = nuevo;
+            if(window.refrescarNotificaciones) window.refrescarNotificaciones();
+            toast('Umbral actualizado.', true);
+          } catch(e){
+            toast('No se pudo guardar: ' + e.message, false);
+            btn.disabled = false;
+          } finally {
+            btn.textContent = textoOriginal;
+          }
+        });
+      });
+    }
+
+    async function cargar(){
+      const cont = document.getElementById('cfgNotifList');
+      try {
+        const umbrales = await apiGet('/api/getConfiguracionNotificaciones');
+        pintar(umbrales);
+      } catch(e){
+        cont.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los umbrales: ${e.message}</div>`;
+      }
+    }
+
+    let cargado = false;
+    document.getElementById('cfgNotifHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgNotifBody');
+      const head = document.getElementById('cfgNotifHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargar(); }
     });
   })();
 
@@ -9415,14 +9793,19 @@
       });
     }
 
+    // El umbral "urgente" (default 21) viene de Configuración → Notificaciones
+    // (window.UMBRALES_NOTIF, mismo número que usa la campana) — ver el IIFE
+    // "NOTIFICACIONES" más abajo. El nivel "de seguimiento" (10) se queda
+    // fijo en código a propósito, no es configurable.
     function actualizarAlertaGrupos(lista){
       const banner = document.getElementById('groAlerta');
-      const criticos = lista.filter(g => FASES_CIERRE.includes(g.fase) && g.dias_en_fase > 21);
+      const umbral = (window.UMBRALES_NOTIF || {}).gruposDias || 21;
+      const criticos = lista.filter(g => FASES_CIERRE.includes(g.fase) && g.dias_en_fase > umbral);
       if(!criticos.length){ banner.hidden = true; return; }
       const nombres = criticos.slice(0, 2).map(g => escapeHtml(g.cliente));
       const resto = criticos.length > 2 ? ` y ${criticos.length - 2} más` : '';
       document.getElementById('groAlertaTexto').innerHTML =
-        `<b>${criticos.length} grupo${criticos.length === 1 ? '' : 's'}</b> llev${criticos.length === 1 ? 'a' : 'an'} más de 21 días en la misma fase de cierre — ${nombres.join(' y ')}${resto}.`;
+        `<b>${criticos.length} grupo${criticos.length === 1 ? '' : 's'}</b> llev${criticos.length === 1 ? 'a' : 'an'} más de ${umbral} días en la misma fase de cierre — ${nombres.join(' y ')}${resto}.`;
       banner.hidden = false;
     }
 
@@ -9433,7 +9816,8 @@
     function diasFaseHtml(g){
       const dias = g.dias_en_fase != null ? g.dias_en_fase : 0;
       if(FASES_CIERRE.includes(g.fase)){
-        const cls = dias > 21 ? 'hot' : dias >= 10 ? 'warn' : 'ok';
+        const umbral = (window.UMBRALES_NOTIF || {}).gruposDias || 21;
+        const cls = dias > umbral ? 'hot' : dias >= 10 ? 'warn' : 'ok';
         return `<span class="cot-semaforo gro-semaforo ${cls}"><span class="cot-semaforo-dot"></span>${dias} días</span>`;
       }
       return `<span class="radm-mono" style="color:var(--text-dim);">${dias} días</span>`;
@@ -9500,7 +9884,7 @@
           <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
-              <button type="button" class="cot-icon-btn gro-notas-btn${g.notas ? ' tiene-nota' : ''}" data-id="${g.id}" title="${g.notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida'}">
+              <button type="button" class="cot-icon-btn gro-notas-btn${g.notas ? ' tiene-nota' : ''}" data-id="${g.id}" title="${g.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento'}">
                 ${ICO_NOTA}
               </button>
               <button type="button" class="cot-icon-btn gro-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
@@ -9592,10 +9976,8 @@
       groNotasPopover.hidden = true;
       groNotasGrupoActual = null;
     }
-    document.getElementById('groNotasCancelar').addEventListener('click', cerrarNotasGrupo);
-    document.getElementById('groNotasGuardar').addEventListener('click', async () => {
+    async function guardarNotasGrupo(notas){
       if(!groNotasGrupoActual) return;
-      const notas = groNotasTextarea.value.trim();
       try {
         await apiPostJson('/api/actualizarNotasGrupo', { id: groNotasGrupoActual.id, notas });
         groNotasGrupoActual.notas = notas;
@@ -9608,11 +9990,21 @@
         const btnFila = document.querySelector(`.gro-notas-btn[data-id="${groNotasGrupoActual.id}"]`);
         if(btnFila){
           btnFila.classList.toggle('tiene-nota', !!notas);
-          btnFila.title = notas ? 'Nota agregada — clic para ver o editar' : 'Agregar una nota rápida';
+          btnFila.title = notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento';
         }
-        toast('Nota guardada.', true);
+        toast(notas ? 'Seguimiento guardado.' : 'Seguimiento borrado.', true);
         cerrarNotasGrupo();
-      } catch(e){ toast('No se pudo guardar la nota: ' + e.message, false); }
+      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+    }
+    document.getElementById('groNotasCancelar').addEventListener('click', cerrarNotasGrupo);
+    document.getElementById('groNotasBorrar').addEventListener('click', () => {
+      if(!groNotasGrupoActual) return;
+      if(!confirm('¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.')) return;
+      groNotasTextarea.value = '';
+      guardarNotasGrupo('');
+    });
+    document.getElementById('groNotasGuardar').addEventListener('click', () => {
+      guardarNotasGrupo(groNotasTextarea.value.trim());
     });
     document.addEventListener('click', e => {
       if(!groNotasPopover.hidden && !e.target.closest('#groNotasPopover') && !e.target.closest('.gro-notas-btn')){
@@ -10272,6 +10664,15 @@
           f('opcion_a','string'), f('opcion_b','string'), f('opcion_c','string'), f('opcion_d','string'),
           f('opcion_correcta','string',{extra:'nunca se manda al público'}),
           f('orden','number'), f('activa','boolean'),
+        ]},
+      { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1840,
+        note:'Un solo renglón fijo — los 3 umbrales "urgente" de la campana (Cotizaciones/Grupos/Clientes), editables desde Configuración → Notificaciones. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
+        fields:[
+          f('PartitionKey','"config"',{pk:true,extra:'fijo'}),
+          f('RowKey','"notificaciones"',{pk:true,extra:'fijo'}),
+          f('cotizacionesDias','number',{extra:'default 10'}),
+          f('gruposDias','number',{extra:'default 21'}),
+          f('clientesDias','number',{extra:'default 90'}),
         ]},
     ];
 

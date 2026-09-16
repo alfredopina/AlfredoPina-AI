@@ -901,14 +901,19 @@
   .trkv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
   @media (max-width:900px){ .trkv-grid{ grid-template-columns:1fr; } }
   .trkv-card{
+    position:relative;
     background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:28px 30px;
     display:flex; flex-direction:column; gap:20px; cursor:pointer; transition:border-color .15s, transform .15s;
   }
   .trkv-card:hover, .trkv-card:focus-visible{ border-color:var(--blue-bright); transform:translateY(-2px); outline:none; }
-  .trkv-card-head{ display:flex; align-items:center; gap:9px; }
+  .trkv-card-head{ display:flex; align-items:center; gap:9px; padding-right:26px; }
   .trkv-card-head h3{ font-family:var(--display); font-weight:600; font-size:16px; margin:0; flex:1; }
-  .trkv-go{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-faint); }
-  .trkv-go svg{ width:12px; height:12px; transition:transform .15s; }
+  /* La flecha (antes "Ver detalle" + flecha) ahora vive sola, centrada
+     verticalmente en el borde derecho de la tarjeta — pedido explícito de
+     Alfredo (2026-09-16): la tarjeta completa ya es clicable, el texto era
+     redundante. La campanita (ver abajo) ya no comparte renglón con ella. */
+  .trkv-go{ position:absolute; top:50%; right:20px; transform:translateY(-50%); color:var(--text-faint); }
+  .trkv-go svg{ width:18px; height:18px; display:block; transition:transform .15s; }
   .trkv-card:hover .trkv-go svg{ transform:translateX(3px); }
   .trkv-kpis{ display:flex; gap:22px; flex-wrap:wrap; }
   .trkv-kpi{ display:flex; flex-direction:column; gap:3px; }
@@ -920,15 +925,19 @@
   .trkv-card--soon h3{ color:var(--text-dim); }
   .trkv-tag-soon{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; color:var(--text-faint); border:1px solid var(--line); border-radius:20px; padding:4px 10px; }
   .trkv-soon-copy{ font-size:12.5px; color:var(--text-dim); line-height:1.6; margin:0; max-width:46ch; }
-  /* Campanita con conteo — mismo look que .notif-badge del topbar, solo más
-     chica, para que cada tarjeta avise cuántas de SUS alertas ya disparó la
-     campana, sin tener que abrirla. Oculta en 0 (nunca un cero decorativo). */
-  .trkv-bell{ position:relative; display:inline-flex; color:var(--text-faint); }
-  .trkv-bell svg{ width:16px; height:16px; }
+  /* Campanita con conteo — mismo look que .notif-badge del topbar, para que
+     cada tarjeta avise cuántas de SUS alertas ya disparó la campana, sin
+     tener que abrirla. Oculta en 0 (nunca un cero decorativo). Ancla a la
+     esquina superior derecha de la TARJETA (no del renglón de título) y más
+     grande — pedido explícito de Alfredo (2026-09-16), antes vivía chica y
+     a media línea junto a "Ver detalle". */
+  .trkv-bell{ position:absolute; top:22px; right:24px; display:inline-flex; color:var(--text-faint); }
+  .trkv-bell[hidden]{ display:none; }
+  .trkv-bell svg{ width:24px; height:24px; }
   .trkv-bell-count{
-    position:absolute; top:-6px; right:-8px; min-width:14px; height:14px; padding:0 3px;
-    background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:9px; font-weight:700;
-    border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
+    position:absolute; top:-8px; right:-10px; min-width:19px; height:19px; padding:0 4px;
+    background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:11px; font-weight:700;
+    border-radius:10px; display:flex; align-items:center; justify-content:center; line-height:1;
     box-shadow:0 0 0 2px var(--panel);
   }
   /* Stepper resumen de Grupos, más grande solo aquí (pedido explícito de
@@ -1478,7 +1487,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
-              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
             </div>
             <div class="trkv-kpis">
               <div class="trkv-kpi"><span class="trkv-kpi-label">Clientes</span><span class="trkv-kpi-value" id="trkvCliTotal">—</span></div>
@@ -1498,7 +1507,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
-              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
             </div>
             <div class="trkv-kpis">
               <div class="trkv-kpi"><span class="trkv-kpi-label">Activos</span><span class="trkv-kpi-value" id="trkvGruActivos">—</span></div>
@@ -1528,7 +1537,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
-              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
             </div>
             <div class="trkv-kpis">
               <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
@@ -8127,7 +8136,9 @@
     function actualizarAlerta(lista){
       const banner = document.getElementById('cotAlerta');
       const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
-      const criticas = lista.filter(c => c.dias_abierta >= umbral);
+      // Un Borrador nunca se envió — "sin respuesta" no le aplica, se excluye
+      // (mismo criterio que getNotificacionesActivas, ver "Ya resueltos").
+      const criticas = lista.filter(c => c.estatus !== 'Borrador' && c.dias_abierta >= umbral);
       if(!criticas.length){ banner.hidden = true; return; }
       const nombres = criticas.slice(0, 2).map(c => escapeHtml(c.cliente));
       const resto = criticas.length > 2 ? ` y ${criticas.length - 2} más` : '';
@@ -8141,6 +8152,10 @@
     let cotListaCache = [];
 
     function semaforoDe(c){
+      // Un Borrador nunca se envió — "sin respuesta" no le aplica (mismo
+      // criterio que actualizarAlerta/getNotificacionesActivas), así que no
+      // le corresponde ningún color de urgencia, solo un estado neutro.
+      if(c.estatus === 'Borrador') return null;
       const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
       const umbralSeguimiento = (window.UMBRALES_NOTIF || {}).cotizacionesSeguimientoDias || 6;
       if(c.vencida || c.dias_abierta >= umbral) return { clase:'hot', texto: `${c.dias_abierta} días · Urgente` };
@@ -8172,7 +8187,7 @@
                 <div class="cot-curso-tool">${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</div>
               </td>
               <td class="radm-mono">${fmtMoney(c.precio_final)}</td>
-              <td><span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span></td>
+              <td>${sem ? `<span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span>` : `<span class="radm-mono" style="color:var(--text-dim);">Sin enviar</span>`}</td>
               <td><span class="cot-badge ${badgeClase}">${escapeHtml(c.estatus)}</span></td>
               <td>
                 <div class="cot-row-actions">

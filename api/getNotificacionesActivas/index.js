@@ -18,16 +18,22 @@ const { calcularDiasInactivo } = require("../src/cliente-actividad");
 const { JSON_HEADERS } = require("../src/http");
 
 async function cotizacionesFrias(pool, umbral) {
+  // Un Borrador nunca se mandó a nadie — "sin respuesta" no le aplica (nadie
+  // la está ignorando, Alfredo simplemente no la ha enviado). Se excluye por
+  // completo del cálculo de "frías", y los días se cuentan desde fecha_envio
+  // (no desde fecha_creacion) — lo que importa es cuánto lleva SIN RESPUESTA
+  // desde que sí se mandó, no cuánto lleva viva en el sistema.
   const result = await pool
     .request()
     .input("umbral", sql.Int, umbral)
     .query(`
       SELECT s.id, c.nombre AS cliente, s.herramienta,
-             DATEDIFF(day, s.fecha_creacion, GETUTCDATE()) AS dias
+             DATEDIFF(day, s.fecha_envio, GETUTCDATE()) AS dias
       FROM Cotizacion s
       JOIN Cliente c ON c.id = s.cliente_id
-      WHERE s.estatus IN ('Borrador', 'Enviada', 'En negociación')
-        AND DATEDIFF(day, s.fecha_creacion, GETUTCDATE()) >= @umbral
+      WHERE s.estatus IN ('Enviada', 'En negociación')
+        AND s.fecha_envio IS NOT NULL
+        AND DATEDIFF(day, s.fecha_envio, GETUTCDATE()) >= @umbral
       ORDER BY dias DESC
     `);
   return result.recordset.map((r) => ({

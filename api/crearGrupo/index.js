@@ -96,7 +96,6 @@ function validarCuerpo(body) {
     estatusCurso,
     estatusCierre,
     cotizacionId: body.cotizacion_id ? Number(body.cotizacion_id) : null,
-    fotosRs: body.fotos_rs ? 1 : 0,
     fechaCierre: body.fecha_cierre || null,
     notas: (body.notas || "").trim() || null,
   };
@@ -178,19 +177,18 @@ module.exports = async function (context, req) {
         .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
         .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
         .input("cotizacionId", sql.Int, datos.cotizacionId)
-        .input("fotosRs", sql.Bit, datos.fotosRs)
         .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
         .input("notas", sql.NVarChar, datos.notas)
         .query(
           `INSERT INTO Grupo
             (cliente_id, cliente_final_id, contacto_id, modalidad, grupo_codigo, herramientas, nombre_curso, niveles,
              horas, sesiones, fecha_inicio, fecha_fin, instructor, estatus_curso, estatus_cierre, cotizacion_id,
-             fotos_rs, fecha_cierre, notas)
+             fecha_cierre, notas)
            OUTPUT INSERTED.id
            VALUES
             (@clienteId, @clienteFinalId, @contactoId, @modalidad, @grupoCodigo, @herramientas, @nombreCurso, @niveles,
              @horas, @sesiones, @fechaInicio, @fechaFin, @instructor, @estatusCurso, @estatusCierre, @cotizacionId,
-             @fotosRs, @fechaCierre, @notas)`
+             @fechaCierre, @notas)`
         );
       const grupoId = insert.recordset[0].id;
       await sembrarHistorialInicial(transaction, grupoId, {

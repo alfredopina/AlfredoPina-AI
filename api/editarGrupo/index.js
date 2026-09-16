@@ -90,7 +90,6 @@ function validarCuerpo(body) {
     estatusCurso,
     estatusCierre,
     cotizacionId: body.cotizacion_id ? Number(body.cotizacion_id) : null,
-    fotosRs: body.fotos_rs ? 1 : 0,
     fechaCierre: body.fecha_cierre || null,
     notas: (body.notas || "").trim() || null,
   };
@@ -187,7 +186,6 @@ module.exports = async function (context, req) {
         .input("estatusCurso", sql.NVarChar, datos.estatusCurso)
         .input("estatusCierre", sql.NVarChar, datos.estatusCierre)
         .input("cotizacionId", sql.Int, datos.cotizacionId)
-        .input("fotosRs", sql.Bit, datos.fotosRs)
         .input("fechaCierre", sql.Date, datos.fechaCierre ? new Date(datos.fechaCierre) : null)
         .input("notas", sql.NVarChar, datos.notas)
         .query(
@@ -197,7 +195,7 @@ module.exports = async function (context, req) {
              nombre_curso = @nombreCurso, niveles = @niveles, horas = @horas, sesiones = @sesiones,
              fecha_inicio = @fechaInicio, fecha_fin = @fechaFin, instructor = @instructor,
              estatus_curso = @estatusCurso, estatus_cierre = @estatusCierre, cotizacion_id = @cotizacionId,
-             fotos_rs = @fotosRs, fecha_cierre = @fechaCierre,
+             fecha_cierre = @fechaCierre,
              notas = @notas
            WHERE id = @id`
         );

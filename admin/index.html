@@ -761,6 +761,16 @@
   }
   .cli-contactos-btn:hover{ border-color:var(--blue-bright); background-color:var(--panel-2); }
   .cli-contactos-btn:hover .sol-temario-nombre{ color:var(--blue-bright); }
+  /* Botón de "Días en fase" (Grupos, Tracking e Histórico) — mismo pill
+     visual que .cli-contactos-btn de Clientes, duplicado a propósito bajo su
+     propio nombre (cada módulo tiene el suyo, ver criterio del proyecto)
+     para no leer "contactos" en un botón que en realidad abre el desglose de
+     fase de un Grupo. */
+  .gro-dias-btn{
+    padding:6px 10px; border:1px solid var(--line); border-radius:20px; background-color:var(--panel-2);
+  }
+  .gro-dias-btn:hover{ border-color:var(--blue-bright); background-color:var(--panel-2); }
+  .gro-dias-btn:hover .sol-temario-nombre{ filter:brightness(1.15); }
   .sol-temario-tipo-tag{
     font-family:var(--mono); font-size:9.5px; color:var(--text-faint); background:var(--panel-2);
     border:1px solid var(--line); border-radius:20px; padding:1px 7px; white-space:nowrap;
@@ -965,11 +975,21 @@
      la vista sin depender solo del número. */
   @keyframes resumen-pulso-sutil{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.045); } }
   @keyframes resumen-pulso-fuerte{
-    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 var(--blue-soft); }
-    50%{ transform:scale(1.14); box-shadow:0 0 0 7px var(--blue-soft); }
+    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(223,179,90,.35); }
+    50%{ transform:scale(1.14); box-shadow:0 0 0 7px rgba(223,179,90,.35); }
   }
   .resumen-track .step-node{ animation:resumen-pulso-sutil 2.6s ease-in-out infinite; }
-  .resumen-track .step-item.max .step-node{ animation:resumen-pulso-fuerte 1.7s ease-in-out infinite; }
+  /* Corregido 2026-09-16: el cuello de botella pulsaba más fuerte pero en el
+     MISMO azul de siempre — Alfredo pidió un color propio para distinguirlo
+     de un vistazo (su deuteranomalía hace que "más grande/mismo color" no
+     siempre salte a la vista). Ámbar — no rojo: un cuello de botella no es
+     "urgente" por sí mismo (eso ya lo marca el semáforo de Días en fase en
+     rojo si de verdad aplica), es solo "aquí se te está acumulando volumen". */
+  .resumen-track .step-item.max .step-node{
+    animation:resumen-pulso-fuerte 1.7s ease-in-out infinite;
+    border-color:#dfb35a; color:#dfb35a;
+  }
+  .resumen-track .step-item.max:not(.activa) .step-label{ color:#dfb35a; }
   .resumen-track .step-item.activa .step-node{ animation:none; }
   @media (prefers-reduced-motion:reduce){ .resumen-track .step-node{ animation:none; } }
 
@@ -2310,12 +2330,6 @@
       <div class="admin-panel" id="panel-tracking-operacion" style="--c:var(--blue-bright)">
         <div id="groToast" class="radm-toast" hidden></div>
 
-        <div class="dash-etabs" id="gruTabs">
-          <button type="button" class="dash-etab active" data-grutab="tracking">Tracking</button>
-          <button type="button" class="dash-etab" data-grutab="crear">Crear</button>
-          <button type="button" class="dash-etab" data-grutab="consultar">Histórico</button>
-        </div>
-
         <div class="dip-tabpanel active" id="gruTab-tracking">
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="groKpis">
@@ -2391,6 +2405,11 @@
               </select>
             </div>
             <div class="dip-filter-actions">
+              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="tracking" style="white-space:nowrap;">+ Crear Grupo</button>
+              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="consultar" data-origen="tracking">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Histórico
+              </button>
               <button type="button" class="cot-icon-btn" id="groActualizar" title="Actualizar la lista y los indicadores">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
@@ -2400,17 +2419,9 @@
               <div class="cli-info-wrap">
                 <button type="button" class="cli-info-btn" id="groInfoBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info
+                  Info Días en Fase
                 </button>
-                <div class="cli-info-popover" id="groInfoPopover" hidden>
-                  <strong>Fase y Días en fase</strong>
-                  <ul>
-                    <li><b>Fase</b> es la parada operativa del Grupo: Por iniciar → En curso → Proyecto → Calificaciones → Diplomas → Cerrado. Se deriva de Estatus del curso/Estatus de cierre, nunca se captura a mano.</li>
-                    <li><b>Días en fase</b> es cuánto lleva el Grupo en esa fase — se muestra siempre, pero solo se resalta en color (verde/ámbar/rojo) mientras está cerrando (Proyecto/Calificaciones/Diplomas), donde sí hay urgencia real.</li>
-                    <li>El stepper de arriba cuenta los Grupos activos por fase (Cerrado no vive ahí, tiene su propia tarjeta) — toca un cuadro para filtrar la tabla.</li>
-                  </ul>
-                  <span style="color:var(--text-faint);">Semáforo de cierre: verde &lt;10 días · ámbar 10–21 · rojo &gt;21.</span>
-                </div>
+                <div class="cli-info-popover" id="groInfoPopover" hidden></div>
               </div>
             </div>
           </div>
@@ -2421,18 +2432,18 @@
             <thead>
               <tr>
                 <th style="width:130px;" data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
-                <th># Grupo</th>
+                <th data-sort="grupo">Grupo<span class="th-sort-ico"></span></th>
                 <th data-sort="herramienta">Herramientas<span class="th-sort-ico"></span></th>
-                <th>Modalidad</th>
+                <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
+                <th data-sort="horas">Horas<span class="th-sort-ico"></span></th>
                 <th data-sort="fase">Fase<span class="th-sort-ico"></span></th>
                 <th data-sort="dias_en_fase">
                   Días en fase
-                  <span class="cli-info-ico" title="Días desde que el grupo entró a su fase actual. Solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — en las demás fases es solo información.">
+                  <span class="cli-info-ico" id="groDiasInfoIco">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
                   </span>
                   <span class="th-sort-ico"></span>
                 </th>
-                <th>Instructor</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -2483,6 +2494,12 @@
               </select>
             </div>
             <div class="radm-field">
+              <label>CURSO</label>
+              <select id="gruFCurso">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="radm-field">
               <label>ESTATUS DEL CURSO</label>
               <select id="gruFEstatusCurso">
                 <option value="">Todos</option>
@@ -2501,10 +2518,40 @@
                 <option value="Cerrado">Cerrado</option>
               </select>
             </div>
+            <div class="radm-field">
+              <label>INSTRUCTOR</label>
+              <select id="gruFInstructor">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>TIPO DE CLIENTE</label>
+              <select id="gruFTipoCliente">
+                <option value="">Todos</option>
+                <option value="Directo">Directo</option>
+                <option value="Intermediario">Intermediario</option>
+                <option value="Indirecto">Indirecto</option>
+              </select>
+            </div>
             <div class="dip-filter-actions">
+              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="tracking" data-origen="consultar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Tracking
+              </button>
+              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="consultar" style="white-space:nowrap;">+ Crear Grupo</button>
+              <button type="button" class="cot-icon-btn" id="gruActualizar" title="Actualizar la lista">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
               <button type="button" class="cot-icon-btn" id="gruLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="gruInfoBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info Días en Fase
+                </button>
+                <div class="cli-info-popover" id="gruInfoPopover" hidden></div>
+              </div>
             </div>
           </div>
         </div>
@@ -2513,20 +2560,24 @@
           <table class="dip-table">
             <thead>
               <tr>
-                <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
-                <th>Cliente final</th>
-                <th># Grupo</th>
+                <th style="width:130px;" data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
+                <th data-sort="grupo">Grupo<span class="th-sort-ico"></span></th>
                 <th data-sort="herramienta">Herramientas<span class="th-sort-ico"></span></th>
-                <th>Nivel</th>
-                <th>Horas</th>
-                <th data-sort="fecha">Fechas<span class="th-sort-ico"></span></th>
-                <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
+                <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
+                <th data-sort="horas">Horas<span class="th-sort-ico"></span></th>
                 <th data-sort="fase">Fase<span class="th-sort-ico"></span></th>
+                <th data-sort="dias_en_fase">
+                  Días en fase
+                  <span class="cli-info-ico" id="gruDiasInfoIco">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="th-sort-ico"></span>
+                </th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="gruListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -9250,11 +9301,9 @@
     // speech-bubble simple en vez del ícono de documento que traía antes,
     // pedido explícito de Alfredo (2026-09-14) para que se lea como mensaje.
     const ICO_NOTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc' };
+    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc', grupo: 'asc', curso: 'asc', horas: 'desc', dias_en_fase: 'desc' };
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const ICO_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px;"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function toast(msg, ok){
@@ -9388,16 +9437,21 @@
       if(gruOrigenModificar === 'consultar') buscarGrupos();
       else { cargarKpisGrupos(); buscarGruposTracking(); }
     }
-    // herramienta/instructor/fase no los ordena el backend (ver SORTS en
-    // listGruposAdmin) — con el volumen real de Grupos (decenas, no miles) es
-    // más simple reordenar en el cliente que replicar la regla de fase en
-    // SQL. fecha/cliente siguen viniendo ya ordenados del servidor.
+    // Ninguna de estas columnas las ordena el backend (ver SORTS en
+    // listGruposAdmin, solo fecha/cliente) — con el volumen real de Grupos
+    // (decenas, no miles) es más simple reordenar en el cliente que
+    // replicar cada regla en SQL.
+    const SORT_GRUPOS_CLIENT = ['herramienta', 'instructor', 'fase', 'grupo', 'curso', 'horas', 'dias_en_fase'];
     function ordenarListaGrupos(lista){
-      if(!['herramienta', 'instructor', 'fase'].includes(gruSort)) return lista;
+      if(!SORT_GRUPOS_CLIENT.includes(gruSort)) return lista;
       const factor = gruDir === 'asc' ? 1 : -1;
       function valor(g){
         if(gruSort === 'herramienta'){ const h = herramientasDe(g)[0]; return h ? ((TOOL_META[h] || {}).nombre || h) : ''; }
         if(gruSort === 'instructor') return g.instructor || '';
+        if(gruSort === 'grupo') return g.grupo_codigo || '';
+        if(gruSort === 'curso') return g.nombre_curso || '';
+        if(gruSort === 'horas') return g.horas != null ? g.horas : -1;
+        if(gruSort === 'dias_en_fase') return g.dias_en_fase != null ? g.dias_en_fase : -1;
         return FASES.indexOf(g.fase);
       }
       return lista.slice().sort((a, b) => {
@@ -9438,22 +9492,84 @@
       return `<div style="display:flex; flex-direction:column; gap:4px;">${badges}</div>`;
     }
 
-    function checkTexto(valor, etiqueta){
-      return `<span class="dip-status">${valor ? ICO_CHECK : ICO_CROSS}<span style="color:${valor ? 'var(--good)' : 'var(--text-faint)'}">${etiqueta}</span></span>`;
-    }
-
+    // Rediseñado 2026-09-16: Fotos RS se quitó del proyecto (Alfredo confirmó
+    // que no lo usa), "Inicio → última fase" se quitó por redundante (el
+    // stepper expandido de abajo ya cuenta la misma historia con fecha exacta
+    // por parada) y "Nombre del curso" se quitó porque ahora es su propia
+    // columna en la tabla (Curso), ya no hace falta repetirlo aquí.
     function grupoDetalleHtml(g){
       return `
+        <div class="cot-detalle-item-label" style="margin-bottom:6px;">Historial de fase — fecha en que el grupo entró a cada parada</div>
         <div id="gru-stepper-${g.id}" class="gru-stepper-wrap" style="margin-bottom:18px;"><span class="radm-hint">Cargando fases…</span></div>
         <div class="cot-detalle-grid" style="margin-bottom:14px;">
           <div><div class="cot-detalle-item-label">Tipo de Cliente</div><div class="cot-detalle-item-value">${tipoBadgeTracking(g.tipo_cliente)}</div></div>
-          <div><div class="cot-detalle-item-label">Inicio → última fase</div><div class="cot-detalle-item-value radm-mono" style="font-size:11.5px;">${fmtFecha(g.fecha_inicio)} → ${fmtFecha(g.fecha_ultima_fase)}</div></div>
-          <div><div class="cot-detalle-item-label">Fotos RS</div><div class="cot-detalle-item-value">${checkTexto(g.fotos_rs, 'Fotos RS')}</div></div>
           <div><div class="cot-detalle-item-label">Cotización de origen</div><div class="cot-detalle-item-value">${g.cotizacion_folio ? `<a href="/api/getCotizacionPdf?folio=${encodeURIComponent(g.cotizacion_folio)}" target="_blank" style="color:var(--blue-bright)">${escapeHtml(g.cotizacion_folio)}</a>` : 'Sin ligar'}</div></div>
-          <div><div class="cot-detalle-item-label">Nombre del curso</div><div class="cot-detalle-item-value">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div></div>
         </div>
-        <div class="cot-detalle-item-label" style="margin-bottom:4px;">Notas</div>
+        <div class="cot-detalle-item-label" style="margin-bottom:4px;">Notas de seguimiento</div>
         <div class="cot-detalle-item-value">${g.notas ? escapeHtml(g.notas) : '—'}</div>`;
+    }
+
+    // Curso/Tipo de Cliente no le pegan al backend (mismo criterio que Tipo/
+    // Semáforo en Clientes) — se filtran en el cliente sobre gruListaRaw (lo
+    // que ya trajo el resto de los filtros), vía aplicarFiltrosGrupos().
+    let gruListaRaw = [];
+    function aplicarFiltrosGrupos(){
+      const curso = document.getElementById('gruFCurso').value;
+      const tipo = document.getElementById('gruFTipoCliente').value;
+      let lista = gruListaRaw;
+      if(curso) lista = lista.filter(g => g.nombre_curso === curso);
+      if(tipo) lista = lista.filter(g => (g.tipo_cliente || 'Directo') === tipo);
+      gruListaCache = ordenarListaGrupos(lista);
+      renderTablaGrupos();
+    }
+
+    function renderTablaGrupos(){
+      actualizarTooltipDiasFase();
+      const body = document.getElementById('gruListaBody');
+      if(!gruListaCache.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+      body.innerHTML = gruListaCache.map(g => `
+        <tr data-id="${g.id}">
+          <td style="max-width:130px;">
+            <div class="cot-cliente-nombre" style="overflow-wrap:break-word;">${escapeHtml(g.cliente)}</div>
+            ${g.cliente_final ? `<div class="cot-cliente-sub">CF: ${escapeHtml(g.cliente_final)}</div>` : ''}
+            ${g.contacto ? `<div class="cot-cliente-sub">${escapeHtml(g.contacto)}</div>` : ''}
+          </td>
+          <td>
+            <div>${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</div>
+            ${g.instructor ? `<div class="cot-cliente-sub">${escapeHtml(g.instructor)}</div>` : ''}
+          </td>
+          <td>${badgeHerramientas(g)}</td>
+          <td>
+            <div>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
+            ${g.modalidad ? `<div class="cot-cliente-sub">${escapeHtml(g.modalidad)}</div>` : ''}
+          </td>
+          <td class="radm-mono">${g.horas != null ? g.horas : '—'}</td>
+          <td>${window.FaseStepper.render({ fase: g.fase, variant: 'mini' })}</td>
+          <td>
+            <button type="button" class="sol-temario-toggle gro-dias-btn" data-id="${g.id}" title="Ver historial de fase, tipo de cliente, cotización y notas">
+              <span class="sol-temario-nombre">${diasFaseHtml(g)}</span>
+              <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            ${g.fecha_ultima_fase ? `<div class="cot-cliente-sub">${fmtFecha(g.fecha_ultima_fase)}</div>` : ''}
+          </td>
+          <td>
+            <div style="display:flex; gap:4px;">
+              <button type="button" class="cot-icon-btn gru-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="cot-icon-btn gru-mover-btn" data-id="${g.id}" title="Mover la fase del grupo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6l6 6-6 6M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="cot-icon-btn gru-eliminar-btn" data-id="${g.id}" title="Eliminar el grupo (borrado real, no se puede deshacer)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr class="sol-desglose-row" id="gru-desglose-${g.id}" hidden>
+          <td colspan="8"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
+        </tr>
+      `).join('');
     }
 
     async function buscarGrupos(){
@@ -9462,55 +9578,22 @@
       const herramienta = document.getElementById('gruFHerramienta').value;
       const estatusCurso = document.getElementById('gruFEstatusCurso').value;
       const estatusCierre = document.getElementById('gruFEstatusCierre').value;
+      const instructor = document.getElementById('gruFInstructor').value;
       if(seleccionado) params.set('clienteId', seleccionado.id);
       if(herramienta) params.set('herramienta', herramienta);
       if(estatusCurso) params.set('estatusCurso', estatusCurso);
       if(estatusCierre) params.set('estatusCierre', estatusCierre);
+      if(instructor) params.set('instructor', instructor);
       params.set('sort', gruSort);
       params.set('dir', gruDir);
 
       const body = document.getElementById('gruListaBody');
-      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
-        gruListaCache = ordenarListaGrupos(lista);
-        if(!gruListaCache.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
-        body.innerHTML = gruListaCache.map(g => `
-          <tr data-id="${g.id}">
-            <td>${escapeHtml(g.cliente)}</td>
-            <td>${g.cliente_final ? escapeHtml(g.cliente_final) : '—'}</td>
-            <td>
-              <button type="button" class="sol-temario-toggle" data-id="${g.id}" title="Ver notas, checklist y cotización de origen">
-                <span class="sol-temario-nombre">${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</span>
-                <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </td>
-            <td>${badgeHerramientas(g)}</td>
-            <td>${nivelesDe(g).map(n => NIVEL_LABEL[n] || n).join(' · ') || '—'}</td>
-            <td class="radm-mono">${g.horas != null ? g.horas : '—'}</td>
-            <td class="radm-mono">${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}</td>
-            <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
-            <td>${window.FaseStepper.render({ fase: g.fase, variant: 'mini' })}</td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button type="button" class="cot-icon-btn gru-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" class="cot-icon-btn gru-mover-btn" data-id="${g.id}" title="Mover la fase del grupo">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6l6 6-6 6M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" class="cot-icon-btn gru-eliminar-btn" data-id="${g.id}" title="Eliminar el grupo (borrado real, no se puede deshacer)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr class="sol-desglose-row" id="gru-desglose-${g.id}" hidden>
-            <td colspan="10"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
-          </tr>
-        `).join('');
+        gruListaRaw = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
+        aplicarFiltrosGrupos();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -9566,8 +9649,13 @@
     // Búsqueda automática: cada filtro dispara buscarGrupos() al cambiar (el
     // de texto, debounced arriba) — sin botón "Buscar" ni "Ver todos", limpiar
     // ya deja la tabla mostrando todo de una vez.
-    ['gruFHerramienta', 'gruFEstatusCurso', 'gruFEstatusCierre'].forEach(id => {
+    ['gruFHerramienta', 'gruFEstatusCurso', 'gruFEstatusCierre', 'gruFInstructor'].forEach(id => {
       document.getElementById(id).addEventListener('change', buscarGrupos);
+    });
+    // Curso/Tipo de Cliente son client-side (ver aplicarFiltrosGrupos) — no
+    // necesitan refetch, solo re-filtrar/re-pintar lo ya cargado.
+    ['gruFCurso', 'gruFTipoCliente'].forEach(id => {
+      document.getElementById(id).addEventListener('change', aplicarFiltrosGrupos);
     });
     function limpiarFiltrosGrupos(){
       gruFClienteAuto.reset(); // dispara buscarGruposDebounced() vía onChange — se cancela abajo para no duplicar la búsqueda
@@ -9575,9 +9663,13 @@
       document.getElementById('gruFHerramienta').value = '';
       document.getElementById('gruFEstatusCurso').value = '';
       document.getElementById('gruFEstatusCierre').value = '';
+      document.getElementById('gruFInstructor').value = '';
+      document.getElementById('gruFCurso').value = '';
+      document.getElementById('gruFTipoCliente').value = '';
       buscarGrupos();
     }
     document.getElementById('gruLimpiarFiltros').addEventListener('click', limpiarFiltrosGrupos);
+    document.getElementById('gruActualizar').addEventListener('click', buscarGrupos);
 
     // ══ CREAR / EDITAR GRUPO ══
     // g=null → alta (siempre en 'gruFormWrap', pestaña Crear Grupo); g={...}
@@ -9726,11 +9818,6 @@
               <select id="gruCotizacion" disabled><option value="">Selecciona el Cliente primero…</option></select>
             </div>
             <div class="radm-field" id="gruFechaCierreField" hidden><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
-          </div>
-          <div class="radm-actions" style="margin-bottom:14px;">
-            <div class="radm-switch-row" style="gap:24px;">
-              <div class="radm-switch-row"><label class="radm-switch"><input type="checkbox" id="gruFotosRs"><span class="radm-switch-track"></span></label><span class="radm-switch-label">Fotos RS</span></div>
-            </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field"><label>NOTAS</label><textarea id="gruNotas" placeholder="Cualquier detalle relevante del grupo..."></textarea></div>
@@ -10039,7 +10126,6 @@
           estatus_curso: document.getElementById('gruEstatusCurso').value,
           estatus_cierre: document.getElementById('gruEstatusCierre').value,
           cotizacion_id: document.getElementById('gruCotizacion').value || null,
-          fotos_rs: document.getElementById('gruFotosRs').checked,
           fecha_cierre: document.getElementById('gruFechaCierre').value || null,
           notas: document.getElementById('gruNotas').value.trim(),
         };
@@ -10087,7 +10173,6 @@
         document.getElementById('gruEstatusCurso').value = g.estatus_curso;
         actualizarEstatusCierre(); // desbloquea si ya está Terminado, antes de fijar el valor real
         document.getElementById('gruEstatusCierre').value = g.estatus_cierre || '';
-        document.getElementById('gruFotosRs').checked = !!g.fotos_rs;
         document.getElementById('gruToggleCotizacion').checked = !!g.cotizacion_id;
         document.getElementById('gruCotizacionField').hidden = !g.cotizacion_id;
         document.getElementById('gruToggleHistorico').checked = !!g.fecha_cierre;
@@ -10152,21 +10237,27 @@
       document.getElementById('gruStepperVolver').addEventListener('click', () => volverDeModificar());
     }
 
-    // ══ PESTAÑAS Consultar Grupos / Crear Grupo (Modificar Grupo no tiene
-    // botón propio, ver abrirModificarGrupo) ══
+    // ══ Vistas Tracking / Crear Grupo / Histórico — ya sin barra de pestañas
+    // propia (Alfredo la quitó 2026-09-16, "no me convencían" — mismo criterio
+    // que Clientes): "+ Crear Grupo"/"Histórico"/"Tracking" ahora son botones
+    // dentro de la barra de filtros de cada vista (.gru-nav-btn, un solo
+    // listener delegado sirve a los de ambas). Modificar Grupo sigue sin
+    // botón propio, ver abrirModificarGrupo. ══
     function activarTabGrupo(key){
-      document.querySelectorAll('#gruTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.grutab === key));
       document.querySelectorAll('#panel-tracking-operacion .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'gruTab-' + key));
     }
     let gruVBuscado = false; // carga perezosa — Histórico no pega a la base hasta que se abre esa pestaña
-    document.getElementById('gruTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.dash-etab');
-      if(!btn) return;
-      const key = btn.dataset.grutab;
-      activarTabGrupo(key);
-      if(key === 'crear') abrirFormGrupo(null, 'gruFormWrap'); // clic directo en la pestaña siempre arranca en blanco
-      else if(key === 'consultar' && !gruVBuscado){ gruVBuscado = true; buscarGrupos(); }
-      else if(key === 'tracking'){ cargarKpisGrupos(); buscarGruposTracking(); }
+    document.querySelectorAll('.gru-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.grutab;
+        activarTabGrupo(key);
+        if(key === 'crear'){
+          gruOrigenModificar = btn.dataset.origen || gruOrigenModificar; // "Cancelar" regresa a donde estabas
+          abrirFormGrupo(null, 'gruFormWrap'); // clic directo en el botón siempre arranca en blanco
+        }
+        else if(key === 'consultar' && !gruVBuscado){ gruVBuscado = true; buscarGrupos(); }
+        else if(key === 'tracking'){ cargarKpisGrupos(); buscarGruposTracking(); }
+      });
     });
 
     renderSortButtonsGrupos();
@@ -10187,7 +10278,7 @@
     // herramienta/instructor. null = sin filtrar por fase.
     let groFaseFiltro = null;
     let groConteosFase = {};
-    const SORT_DEFAULT_DIR_TRACKING = { cliente: 'asc', herramienta: 'asc', fase: 'asc', dias_en_fase: 'desc' };
+    const SORT_DEFAULT_DIR_TRACKING = { cliente: 'asc', herramienta: 'asc', fase: 'asc', dias_en_fase: 'desc', grupo: 'asc', curso: 'asc', horas: 'desc' };
 
     let groBuscarDebounce = null;
     function buscarGruposTrackingDebounced(){
@@ -10269,6 +10360,9 @@
         if(groSort === 'cliente') return g.cliente || '';
         if(groSort === 'herramienta'){ const h = herramientasDe(g)[0]; return h ? ((TOOL_META[h] || {}).nombre || h) : ''; }
         if(groSort === 'fase') return FASES.indexOf(g.fase);
+        if(groSort === 'grupo') return g.grupo_codigo || '';
+        if(groSort === 'curso') return g.nombre_curso || '';
+        if(groSort === 'horas') return g.horas != null ? g.horas : -1;
         return g.dias_en_fase == null ? -1 : g.dias_en_fase;
       }
       return lista.slice().sort((a, b) => {
@@ -10290,6 +10384,7 @@
     // de fase del stepper + el orden actual — sin llamada de red, mismo
     // criterio que el sort client-side de Consultar Grupos.
     function renderTablaTracking(){
+      actualizarTooltipDiasFase();
       const body = document.getElementById('groListaBody');
       const filtrada = groListaCache.filter(g => !groFaseFiltro || g.fase === groFaseFiltro);
       const lista = ordenarListaTracking(filtrada);
@@ -10298,20 +10393,27 @@
         <tr data-id="${g.id}">
           <td style="max-width:130px;">
             <div class="cot-cliente-nombre" style="overflow-wrap:break-word;">${escapeHtml(g.cliente)}</div>
-            ${g.cliente_final ? `<div class="cot-cliente-sub">cliente final: ${escapeHtml(g.cliente_final)}</div>` : ''}
+            ${g.cliente_final ? `<div class="cot-cliente-sub">CF: ${escapeHtml(g.cliente_final)}</div>` : ''}
             ${g.contacto ? `<div class="cot-cliente-sub">${escapeHtml(g.contacto)}</div>` : ''}
           </td>
           <td>
-            <button type="button" class="sol-temario-toggle gro-desglose-toggle" data-id="${g.id}" title="Ver tipo de cliente, fechas, notas y cotización de origen">
-              <span class="sol-temario-nombre">${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</span>
-              <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
+            <div>${g.grupo_codigo ? escapeHtml(g.grupo_codigo) : '—'}</div>
+            ${g.instructor ? `<div class="cot-cliente-sub">${escapeHtml(g.instructor)}</div>` : ''}
           </td>
           <td>${badgeHerramientas(g)}</td>
-          <td>${g.modalidad ? escapeHtml(g.modalidad) : '—'}</td>
+          <td>
+            <div>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
+            ${g.modalidad ? `<div class="cot-cliente-sub">${escapeHtml(g.modalidad)}</div>` : ''}
+          </td>
+          <td class="radm-mono">${g.horas != null ? g.horas : '—'}</td>
           <td>${window.FaseStepper.render({ fase: g.fase, variant: 'mini' })}</td>
-          <td>${diasFaseHtml(g)}</td>
-          <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
+          <td>
+            <button type="button" class="sol-temario-toggle gro-desglose-toggle gro-dias-btn" data-id="${g.id}" title="Ver historial de fase, tipo de cliente, cotización y notas">
+              <span class="sol-temario-nombre">${diasFaseHtml(g)}</span>
+              <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            ${g.fecha_ultima_fase ? `<div class="cot-cliente-sub">${fmtFecha(g.fecha_ultima_fase)}</div>` : ''}
+          </td>
           <td>
             <div style="display:flex; gap:4px;">
               <button type="button" class="cot-icon-btn gro-notas-btn${g.notas ? ' tiene-nota' : ''}" data-id="${g.id}" title="${g.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento'}">
@@ -10471,20 +10573,81 @@
       buscarGruposTracking();
     });
 
-    // Popover "Info" (Fase/Días en fase) — mismo patrón que el de Clientes.
-    const groInfoBtn = document.getElementById('groInfoBtn');
-    const groInfoPopover = document.getElementById('groInfoPopover');
-    groInfoBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      groInfoPopover.hidden = !groInfoPopover.hidden;
-      groInfoBtn.classList.toggle('active', !groInfoPopover.hidden);
-    });
-    document.addEventListener('click', e => {
-      if(!groInfoPopover.hidden && !e.target.closest('#groInfoBtn') && !e.target.closest('#groInfoPopover')){
-        groInfoPopover.hidden = true;
-        groInfoBtn.classList.remove('active');
-      }
-    });
+    // Popover "Info Días en Fase" — rediseñado 2026-09-16 con el mismo
+    // patrón de pasos numerados que Clientes (antes un párrafo de bullets con
+    // el semáforo "10/21" fijo en el HTML) — un solo renderer, 2 instancias
+    // (Tracking e Histórico comparten el mismo texto/umbrales, cada tabla
+    // tiene su propio botón+popover porque viven en dip-tabpanels distintos).
+    function renderInfoDiasFaseGrupoPopover(popoverEl){
+      const u = window.UMBRALES_NOTIF || {};
+      const seguimiento = u.gruposSeguimientoDias ?? 10;
+      const urgente = u.gruposDias ?? 21;
+      popoverEl.innerHTML = `
+        <div class="cli-info-pop-title">Fase y Días en fase</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">1</span>
+            <div class="cli-info-step-body">
+              <strong>Fase</strong> es la parada operativa del Grupo
+              <span class="cli-info-step-sub">Por iniciar → En curso → Proyecto → Calificaciones → Diplomas → Cerrado. Se deriva de Estatus del curso/Estatus de cierre, nunca se captura a mano.</span>
+            </div>
+          </li>
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">2</span>
+            <div class="cli-info-step-body">
+              <strong>Días en fase</strong> es cuánto lleva el Grupo en esa fase
+              <span class="cli-info-step-sub">Se muestra siempre, pero solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — en las demás fases es solo un número informativo, sin urgencia real.</span>
+            </div>
+          </li>
+          <li class="cli-info-step cli-info-step--fallback">
+            <span class="cli-info-step-num">3</span>
+            <div class="cli-info-step-body">
+              <strong>El stepper de arriba (solo en Tracking) cuenta Grupos activos por fase</strong>
+              <span class="cli-info-step-sub">Cerrado no vive ahí, tiene su propia tarjeta. Toca un cuadro para filtrar la tabla — el que respira más fuerte en ámbar es tu cuello de botella actual.</span>
+            </div>
+          </li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Semáforo de cierre — el umbral rojo se edita en Configuración → Notificaciones</div>
+          <div class="cli-info-semaforo-legend">
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo</span><span>menos de ${seguimiento} días</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento</span><span>${seguimiento}–${urgente} días</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgente</span><span>más de ${urgente} días</span></div>
+          </div>
+        </div>`;
+    }
+    function wireInfoPopoverGrupo(btnId, popoverId){
+      const btn = document.getElementById(btnId);
+      const pop = document.getElementById(popoverId);
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const abrir = pop.hidden;
+        if(abrir) renderInfoDiasFaseGrupoPopover(pop);
+        pop.hidden = !abrir;
+        btn.classList.toggle('active', abrir);
+      });
+      document.addEventListener('click', e => {
+        if(!pop.hidden && !e.target.closest('#' + btnId) && !e.target.closest('#' + popoverId)){
+          pop.hidden = true;
+          btn.classList.remove('active');
+        }
+      });
+    }
+    wireInfoPopoverGrupo('groInfoBtn', 'groInfoPopover');
+    wireInfoPopoverGrupo('gruInfoBtn', 'gruInfoPopover');
+    // Mismo umbral en el tooltip ⓘ de la columna "Días en fase" de las 2
+    // tablas — se recalcula en cada render (no solo una vez al cargar la
+    // página) porque window.UMBRALES_NOTIF llega async desde Notificaciones,
+    // así nunca se queda mostrando el default si Alfredo ya lo personalizó.
+    function actualizarTooltipDiasFase(){
+      const u = window.UMBRALES_NOTIF || {};
+      const texto = `Días desde que el grupo entró a su fase actual. Solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — umbral editable en Configuración → Notificaciones (hoy: ${u.gruposSeguimientoDias ?? 10}/${u.gruposDias ?? 21} días).`;
+      ['groDiasInfoIco', 'gruDiasInfoIco'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.title = texto;
+      });
+    }
+    actualizarTooltipDiasFase();
 
     document.querySelectorAll('#gruTab-tracking th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
@@ -10497,8 +10660,19 @@
     });
 
     apiGet('/api/getInstructores').then(data => {
-      const sel = document.getElementById('groFInstructor');
-      (data.instructores || []).forEach(nombre => {
+      ['groFInstructor', 'gruFInstructor'].forEach(id => {
+        const sel = document.getElementById(id);
+        (data.instructores || []).forEach(nombre => {
+          const opt = document.createElement('option');
+          opt.value = nombre; opt.textContent = nombre;
+          sel.appendChild(opt);
+        });
+      });
+    }).catch(() => {});
+
+    apiGetConReintento('/api/listNombresCursoAdmin').then(nombres => {
+      const sel = document.getElementById('gruFCurso');
+      (nombres || []).forEach(nombre => {
         const opt = document.createElement('option');
         opt.value = nombre; opt.textContent = nombre;
         sel.appendChild(opt);
@@ -10918,9 +11092,6 @@
           f('estatus_curso','NVARCHAR(20)',{extra:'Por iniciar|En proceso|Terminado'}),
           f('estatus_cierre','NVARCHAR(20)',{opt:true,extra:'Proyecto…Cerrado'}),
           f('cotizacion_id','INT',{fk:'Cotizacion.id',opt:true,extra:'origen'}),
-          f('fotos_rs','BIT'),
-          f('correos_ml','BIT'),
-          f('pagado','BIT'),
           f('fecha_cierre','DATE',{opt:true}),
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('fecha_creacion','DATETIME2'),

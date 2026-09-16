@@ -901,8 +901,8 @@
   .trkv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
   @media (max-width:900px){ .trkv-grid{ grid-template-columns:1fr; } }
   .trkv-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 24px;
-    display:flex; flex-direction:column; gap:16px; cursor:pointer; transition:border-color .15s, transform .15s;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:28px 30px;
+    display:flex; flex-direction:column; gap:20px; cursor:pointer; transition:border-color .15s, transform .15s;
   }
   .trkv-card:hover, .trkv-card:focus-visible{ border-color:var(--blue-bright); transform:translateY(-2px); outline:none; }
   .trkv-card-head{ display:flex; align-items:center; gap:9px; }
@@ -920,6 +920,23 @@
   .trkv-card--soon h3{ color:var(--text-dim); }
   .trkv-tag-soon{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; color:var(--text-faint); border:1px solid var(--line); border-radius:20px; padding:4px 10px; }
   .trkv-soon-copy{ font-size:12.5px; color:var(--text-dim); line-height:1.6; margin:0; max-width:46ch; }
+  /* Campanita con conteo — mismo look que .notif-badge del topbar, solo más
+     chica, para que cada tarjeta avise cuántas de SUS alertas ya disparó la
+     campana, sin tener que abrirla. Oculta en 0 (nunca un cero decorativo). */
+  .trkv-bell{ position:relative; display:inline-flex; color:var(--text-faint); }
+  .trkv-bell svg{ width:16px; height:16px; }
+  .trkv-bell-count{
+    position:absolute; top:-6px; right:-8px; min-width:14px; height:14px; padding:0 3px;
+    background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:9px; font-weight:700;
+    border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
+    box-shadow:0 0 0 2px var(--panel);
+  }
+  /* Stepper resumen de Grupos, más grande solo aquí (pedido explícito de
+     Alfredo) — el mismo componente en Tracking Operación se queda en su
+     tamaño de siempre, esto es un override acotado al contenedor. */
+  .trkv-stepper-grande .resumen-track .step-node{ width:44px; height:44px; font-size:16px; }
+  .trkv-stepper-grande .resumen-track .step-item::after{ top:22px; }
+  .trkv-stepper-grande .step-label{ font-size:12px; }
   .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
@@ -1453,30 +1470,22 @@
     <div class="admin-content">
       <div class="admin-panel active" id="panel-tracking-view">
         <div class="trkv-grid">
-          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
-            <div class="trkv-card-head">
-              <span class="admin-nav-live-dot"></span>
-              <h3>Comercial</h3>
-              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
-            </div>
-            <div class="trkv-kpis">
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
-            </div>
-            <div class="trkv-signal" id="trkvComSignal"></div>
-          </article>
-
           <article class="trkv-card" tabindex="0" data-goto="clientes">
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Clientes</h3>
+              <span class="trkv-bell" id="trkvCliBell" hidden title="Clientes inactivos que ya notificó la campana">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
               <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
             </div>
             <div class="trkv-kpis">
               <div class="trkv-kpi"><span class="trkv-kpi-label">Clientes</span><span class="trkv-kpi-value" id="trkvCliTotal">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Completos</span><span class="trkv-kpi-value" id="trkvCliCompletos">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Contactos</span><span class="trkv-kpi-value" id="trkvCliContactos">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Activos</span><span class="trkv-kpi-value" id="trkvCliActivos">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Directos</span><span class="trkv-kpi-value" id="trkvCliDirectos">—</span></div>
             </div>
             <div class="trkv-signal" id="trkvCliSignal"></div>
           </article>
@@ -1485,14 +1494,21 @@
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Grupos</h3>
+              <span class="trkv-bell" id="trkvGruBell" hidden title="Grupos atorados que ya notificó la campana">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
               <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
             </div>
             <div class="trkv-kpis">
               <div class="trkv-kpi"><span class="trkv-kpi-label">Activos</span><span class="trkv-kpi-value" id="trkvGruActivos">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Cerrados (año)</span><span class="trkv-kpi-value" id="trkvGruCerrados">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Total (año)</span><span class="trkv-kpi-value" id="trkvGruTotalAnio">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvGruDias">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Directos</span><span class="trkv-kpi-value" id="trkvGruDirectos">—</span></div>
             </div>
-            <div id="trkvGruStepper"></div>
+            <div class="trkv-signal" id="trkvGruSignal"></div>
+            <div id="trkvGruStepper" class="trkv-stepper-grande"></div>
           </article>
 
           <article class="trkv-card trkv-card--soon">
@@ -1502,6 +1518,26 @@
               <span class="trkv-tag-soon">PRONTO</span>
             </div>
             <p class="trkv-soon-copy">Tendrá su propio semáforo y umbral de urgencia — mismos criterios que los demás Tracking. Se construye después.</p>
+          </article>
+
+          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Comercial</h3>
+              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya notificó la campana">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
+              <span class="trkv-go">Ver detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Ganado</span><span class="trkv-kpi-value" id="trkvComGanado">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Perdido</span><span class="trkv-kpi-value" id="trkvComPerdido">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvComSignal"></div>
           </article>
         </div>
       </div>
@@ -1950,6 +1986,11 @@
                 </div>
                 <div class="dkpi-label">Clientes Activos</div>
               </div>
+              <div class="dkpi-card" style="--c:var(--blue-bright)" title="(Directo + Intermediario) / total — clientes con quienes tienes una relación comercial directa (contratan o revenden), a diferencia de Indirecto (solo llega vía un intermediario)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1" stroke-linecap="round"/><path d="M10 21v-4h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="dkpi-value"><span id="cliKpiDirectos">—</span>%</div>
+                <div class="dkpi-label">Clientes Directos</div>
+              </div>
             </div>
           </div>
 
@@ -2343,6 +2384,11 @@
               <div class="dkpi-value" id="groKpiCerrados">—</div>
               <div class="dkpi-label">Grupos Cerrados</div>
             </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Grupos Activos + Cerrados este año — mide cuántos grupos has impartido en total durante 2026">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="groKpiTotalAnio">—</div>
+              <div class="dkpi-label">Total (año)</div>
+            </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Promedio entre fecha_fin y fecha_cierre de los grupos ya cerrados">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div class="dkpi-value"><span id="groKpiDiasCierre">—</span> <span style="font-size:13px; color:var(--text-faint); font-weight:400;">días</span></div>
@@ -2444,11 +2490,12 @@
                   </span>
                   <span class="th-sort-ico"></span>
                 </th>
+                <th data-sort="fecha_ultima_fase">Fecha<span class="th-sort-ico"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="groListaBody">
-              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -2573,11 +2620,12 @@
                   </span>
                   <span class="th-sort-ico"></span>
                 </th>
+                <th data-sort="fecha_ultima_fase">Fecha<span class="th-sort-ico"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="gruListaBody">
-              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -3405,11 +3453,13 @@
       try {
         const r = await apiGetConReintento('/api/getResumenCotizacionesAdmin');
         document.getElementById('trkvComPipeline').textContent = fmtMoney(r.pipeline_monto);
+        document.getElementById('trkvComGanado').textContent = fmtMoney(r.ganado_monto);
+        document.getElementById('trkvComPerdido').textContent = fmtMoney(r.perdido_monto);
         document.getElementById('trkvComConversion').textContent = r.tasa_conversion + '%';
         document.getElementById('trkvComCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
         document.getElementById('trkvComSignal').innerHTML = pillsAntiguedad(r.antiguedad || {});
       } catch(e){
-        ['trkvComPipeline','trkvComConversion','trkvComCierre'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['trkvComPipeline','trkvComGanado','trkvComPerdido','trkvComConversion','trkvComCierre'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
@@ -3418,14 +3468,16 @@
         const r = await apiGetConReintento('/api/getResumenClientesAdmin');
         document.getElementById('trkvCliTotal').textContent = r.total_clientes;
         document.getElementById('trkvCliCompletos').textContent = r.pct_completos + '%';
+        document.getElementById('trkvCliContactos').textContent = r.total_contactos;
         document.getElementById('trkvCliActivos').textContent = r.pct_en_verde + '%';
+        document.getElementById('trkvCliDirectos').textContent = r.pct_clientes_directos + '%';
         document.getElementById('trkvCliSignal').innerHTML = `
           <span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>Activos · ${r.clientes_en_verde || 0}</span>
           <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Tibios · ${r.clientes_en_amarillo || 0}</span>
           <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Inactivos · ${r.clientes_en_rojo || 0}</span>
         `;
       } catch(e){
-        ['trkvCliTotal','trkvCliCompletos','trkvCliActivos'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['trkvCliTotal','trkvCliCompletos','trkvCliContactos','trkvCliActivos','trkvCliDirectos'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
@@ -3434,17 +3486,45 @@
         const r = await apiGetConReintento('/api/getResumenGruposAdmin');
         document.getElementById('trkvGruActivos').textContent = r.activos;
         document.getElementById('trkvGruCerrados').textContent = r.cerrados_este_anio;
+        document.getElementById('trkvGruTotalAnio').textContent = r.activos + r.cerrados_este_anio;
         document.getElementById('trkvGruDias').textContent = r.dias_promedio_cierre != null ? r.dias_promedio_cierre + ' días' : '—';
+        document.getElementById('trkvGruDirectos').textContent = `${r.grupos_directos} (${r.pct_directos}%)`;
+        const s = r.semaforo_cierre || {};
+        document.getElementById('trkvGruSignal').innerHTML = `
+          <span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo · ${s.ok || 0}</span>
+          <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento · ${s.warn || 0}</span>
+          <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgente · ${s.hot || 0}</span>
+        `;
         document.getElementById('trkvGruStepper').innerHTML = window.FaseStepper.renderResumen({ conteos: r.conteos_fase || {}, faseActiva: null });
       } catch(e){
-        ['trkvGruActivos','trkvGruCerrados','trkvGruDias'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['trkvGruActivos','trkvGruCerrados','trkvGruTotalAnio','trkvGruDias','trkvGruDirectos'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
+    }
+
+    // Campanitas de las 3 tarjetas — reusa tal cual getNotificacionesActivas
+    // (la misma Function que ya alimenta la campana del topbar), solo cuenta
+    // cuántos ítems trae cada grupo. Es una llamada aparte de la que ya hace
+    // el topbar (viven en módulos/IIFEs distintos) — mismo criterio de
+    // duplicación ligera que ya usa el resto del proyecto entre secciones.
+    async function cargarBellsTrackingView(){
+      try {
+        const r = await apiGetConReintento('/api/getNotificacionesActivas');
+        const grupos = r.grupos || {};
+        const mapa = { trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
+        Object.entries(mapa).forEach(([id, items]) => {
+          const el = document.getElementById(id);
+          const n = (items || []).length;
+          el.hidden = !n;
+          if(n) el.querySelector('.trkv-bell-count').textContent = n > 99 ? '99+' : String(n);
+        });
+      } catch(e){ /* silencioso — es un badge informativo extra, la campana del topbar ya avisa si algo falla de verdad */ }
     }
 
     function cargarTodo(){
       cargarComercial();
       cargarClientes();
       cargarGrupos();
+      cargarBellsTrackingView();
     }
 
     document.querySelectorAll('#panel-tracking-view .trkv-card[data-goto]').forEach(card => {
@@ -6597,8 +6677,9 @@
         document.getElementById('cliKpiContactos').textContent = r.total_contactos;
         document.getElementById('cliKpiVerde').textContent = r.clientes_en_verde;
         document.getElementById('cliKpiVerdePct').textContent = r.pct_en_verde;
+        document.getElementById('cliKpiDirectos').textContent = r.pct_clientes_directos;
       } catch(e){
-        ['cliKpiTotal', 'cliKpiCompletos', 'cliKpiCompletosPct', 'cliKpiContactos', 'cliKpiVerde', 'cliKpiVerdePct'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['cliKpiTotal', 'cliKpiCompletos', 'cliKpiCompletosPct', 'cliKpiContactos', 'cliKpiVerde', 'cliKpiVerdePct', 'cliKpiDirectos'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
@@ -9451,7 +9532,7 @@
         if(gruSort === 'grupo') return g.grupo_codigo || '';
         if(gruSort === 'curso') return g.nombre_curso || '';
         if(gruSort === 'horas') return g.horas != null ? g.horas : -1;
-        if(gruSort === 'dias_en_fase') return g.dias_en_fase != null ? g.dias_en_fase : -1;
+        if(gruSort === 'dias_en_fase') return (g.dias_en_fase != null && g.fase !== 'Cerrado') ? g.dias_en_fase : -1;
         return FASES.indexOf(g.fase);
       }
       return lista.slice().sort((a, b) => {
@@ -9526,7 +9607,7 @@
     function renderTablaGrupos(){
       actualizarTooltipDiasFase();
       const body = document.getElementById('gruListaBody');
-      if(!gruListaCache.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+      if(!gruListaCache.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
       body.innerHTML = gruListaCache.map(g => `
         <tr data-id="${g.id}">
           <td style="max-width:130px;">
@@ -9539,8 +9620,8 @@
             ${g.instructor ? `<div class="cot-cliente-sub">${escapeHtml(g.instructor)}</div>` : ''}
           </td>
           <td>${badgeHerramientas(g)}</td>
-          <td>
-            <div>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
+          <td style="max-width:150px;">
+            <div style="overflow-wrap:break-word;">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
             ${g.modalidad ? `<div class="cot-cliente-sub">${escapeHtml(g.modalidad)}</div>` : ''}
           </td>
           <td class="radm-mono">${g.horas != null ? g.horas : '—'}</td>
@@ -9550,8 +9631,8 @@
               <span class="sol-temario-nombre">${diasFaseHtml(g)}</span>
               <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            ${g.fecha_ultima_fase ? `<div class="cot-cliente-sub">${fmtFecha(g.fecha_ultima_fase)}</div>` : ''}
           </td>
+          <td class="radm-mono" style="font-size:11.5px; color:var(--text-dim);">${g.fecha_ultima_fase ? fmtFecha(g.fecha_ultima_fase) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
               <button type="button" class="cot-icon-btn gru-editar-btn" data-id="${g.id}" title="Editar los detalles del grupo">
@@ -9567,7 +9648,7 @@
           </td>
         </tr>
         <tr class="sol-desglose-row" id="gru-desglose-${g.id}" hidden>
-          <td colspan="8"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
+          <td colspan="9"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
         </tr>
       `).join('');
     }
@@ -9588,12 +9669,12 @@
       params.set('dir', gruDir);
 
       const body = document.getElementById('gruListaBody');
-      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         gruListaRaw = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
         aplicarFiltrosGrupos();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -10292,12 +10373,13 @@
         const r = await apiGetConReintento('/api/getResumenGruposAdmin');
         document.getElementById('groKpiActivos').textContent = r.activos;
         document.getElementById('groKpiCerrados').textContent = r.cerrados_este_anio;
+        document.getElementById('groKpiTotalAnio').textContent = r.activos + r.cerrados_este_anio;
         document.getElementById('groKpiDiasCierre').textContent = r.dias_promedio_cierre != null ? r.dias_promedio_cierre : '—';
         document.getElementById('groKpiDirectos').textContent = r.grupos_directos;
         document.getElementById('groKpiDirectosPct').textContent = r.pct_directos;
         groConteosFase = r.conteos_fase || {};
       } catch(e){
-        ['groKpiActivos', 'groKpiCerrados', 'groKpiDiasCierre', 'groKpiDirectos', 'groKpiDirectosPct'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ['groKpiActivos', 'groKpiCerrados', 'groKpiTotalAnio', 'groKpiDiasCierre', 'groKpiDirectos', 'groKpiDirectosPct'].forEach(id => { document.getElementById(id).textContent = '—'; });
         groConteosFase = {};
       }
       renderStepperResumen();
@@ -10335,7 +10417,13 @@
     // cierre, dejaba "En curso"/"Por iniciar" en blanco) — el color/pill de
     // urgencia sigue siendo exclusivo de Proyecto/Calificaciones/Diplomas,
     // en las demás fases es solo un número informativo, sin semáforo.
+    // Cerrado no cuenta "Días en fase" — Alfredo lo notó directo (2026-09-16):
+    // un grupo cerrado nunca vuelve a cambiar de fase, así que ese número solo
+    // seguiría creciendo para siempre sin significar nada ("¿nunca se
+    // detendrán?"). La fecha real de cierre ya vive en su propia columna
+    // "Fecha" — aquí un guion, nunca un contador sin sentido.
     function diasFaseHtml(g){
+      if(g.fase === 'Cerrado') return `<span class="radm-mono" style="color:var(--text-faint);">—</span>`;
       const dias = g.dias_en_fase != null ? g.dias_en_fase : 0;
       if(FASES_CIERRE.includes(g.fase)){
         const umbral = (window.UMBRALES_NOTIF || {}).gruposDias || 21;
@@ -10363,7 +10451,7 @@
         if(groSort === 'grupo') return g.grupo_codigo || '';
         if(groSort === 'curso') return g.nombre_curso || '';
         if(groSort === 'horas') return g.horas != null ? g.horas : -1;
-        return g.dias_en_fase == null ? -1 : g.dias_en_fase;
+        return (g.dias_en_fase == null || g.fase === 'Cerrado') ? -1 : g.dias_en_fase;
       }
       return lista.slice().sort((a, b) => {
         const va = valor(a), vb = valor(b);
@@ -10388,7 +10476,7 @@
       const body = document.getElementById('groListaBody');
       const filtrada = groListaCache.filter(g => !groFaseFiltro || g.fase === groFaseFiltro);
       const lista = ordenarListaTracking(filtrada);
-      if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
       body.innerHTML = lista.map(g => `
         <tr data-id="${g.id}">
           <td style="max-width:130px;">
@@ -10401,8 +10489,8 @@
             ${g.instructor ? `<div class="cot-cliente-sub">${escapeHtml(g.instructor)}</div>` : ''}
           </td>
           <td>${badgeHerramientas(g)}</td>
-          <td>
-            <div>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
+          <td style="max-width:150px;">
+            <div style="overflow-wrap:break-word;">${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}</div>
             ${g.modalidad ? `<div class="cot-cliente-sub">${escapeHtml(g.modalidad)}</div>` : ''}
           </td>
           <td class="radm-mono">${g.horas != null ? g.horas : '—'}</td>
@@ -10412,8 +10500,8 @@
               <span class="sol-temario-nombre">${diasFaseHtml(g)}</span>
               <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            ${g.fecha_ultima_fase ? `<div class="cot-cliente-sub">${fmtFecha(g.fecha_ultima_fase)}</div>` : ''}
           </td>
+          <td class="radm-mono" style="font-size:11.5px; color:var(--text-dim);">${g.fecha_ultima_fase ? fmtFecha(g.fecha_ultima_fase) : '—'}</td>
           <td>
             <div style="display:flex; gap:4px;">
               <button type="button" class="cot-icon-btn gro-notas-btn${g.notas ? ' tiene-nota' : ''}" data-id="${g.id}" title="${g.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento'}">
@@ -10429,7 +10517,7 @@
           </td>
         </tr>
         <tr class="sol-desglose-row" id="gro-desglose-${g.id}" hidden>
-          <td colspan="8"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
+          <td colspan="9"><div class="sol-desglose">${grupoDetalleHtml(g)}</div></td>
         </tr>
       `).join('');
     }
@@ -10445,7 +10533,7 @@
       if(instructor) params.set('instructor', instructor);
 
       const body = document.getElementById('groListaBody');
-      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const lista = await apiGetConReintento('/api/listGruposAdmin?' + params.toString());
         groListaCache = lista;
@@ -10453,7 +10541,7 @@
         else document.getElementById('groAlerta').hidden = true;
         renderTablaTracking();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -10596,7 +10684,7 @@
             <span class="cli-info-step-num">2</span>
             <div class="cli-info-step-body">
               <strong>Días en fase</strong> es cuánto lleva el Grupo en esa fase
-              <span class="cli-info-step-sub">Se muestra siempre, pero solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — en las demás fases es solo un número informativo, sin urgencia real.</span>
+              <span class="cli-info-step-sub">Solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — en las demás fases es solo un número informativo, sin urgencia real. Un grupo ya Cerrado no cuenta más ("—"), la columna Fecha de al lado ya guarda cuándo cerró.</span>
             </div>
           </li>
           <li class="cli-info-step cli-info-step--fallback">

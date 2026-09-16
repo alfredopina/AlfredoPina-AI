@@ -45,7 +45,13 @@ module.exports = async function (context, req) {
     let enVerde = 0;
     let enAmarillo = 0;
     let enRojo = 0;
+    let directosOIntermediarios = 0;
     for (const c of filas.recordset) {
+      // "Directo" o "Intermediario" son clientes con quien SÍ tienes una
+      // relación comercial directa (contratan para sí, o contratan para
+      // revender) — a diferencia de "Indirecto", que solo existe en el
+      // sistema porque llegó vía un intermediario (relación cliente_final).
+      if ((c.tipo_cliente || "Directo") !== "Indirecto") directosOIntermediarios++;
       if (
         calcularCompletado({
           codigo: c.codigo,
@@ -91,6 +97,12 @@ module.exports = async function (context, req) {
         // fila por fila, aquí solo se suma.
         clientes_en_amarillo: enAmarillo,
         clientes_en_rojo: enRojo,
+        // % Clientes Directos = (Directo + Intermediario) / total — pedido
+        // explícito de Alfredo (2026-09-16) para medir cuántos de sus
+        // clientes dependen de él directamente, en vez de solo llegarle vía
+        // un intermediario (Indirecto). Mismo criterio de "% Directos" que
+        // ya mide Grupos, pero con su propia fórmula — no se comparten.
+        pct_clientes_directos: total ? Math.round((directosOIntermediarios / total) * 100) : 0,
       },
     };
   } catch (err) {

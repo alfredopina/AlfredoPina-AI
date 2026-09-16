@@ -83,7 +83,9 @@ async function clientesInactivos(pool, umbral) {
              WHERE (cliente_id = c.id OR cliente_final_id = c.id)
                AND (estatus_cierre IS NULL OR estatus_cierre <> 'Cerrado')
            ) THEN 1 ELSE 0 END AS grupo_activo,
-           (SELECT MAX(fecha_fin) FROM Diploma WHERE cliente_id = c.id AND estatus = 'vigente') AS ultimo_diploma_fecha
+           (SELECT MAX(fecha_fin) FROM Diploma WHERE cliente_id = c.id AND estatus = 'vigente') AS ultimo_diploma_fecha,
+           (SELECT MAX(fecha_cierre) FROM Grupo
+              WHERE (cliente_id = c.id OR cliente_final_id = c.id) AND estatus_cierre = 'Cerrado') AS ultimo_grupo_cerrado_fecha
     FROM Cliente c
   `);
   const ahora = new Date();
@@ -96,6 +98,7 @@ async function clientesInactivos(pool, umbral) {
         grupoActivo: !!c.grupo_activo,
         cotizacionCerradaFecha: c.cotizacion_cerrada_fecha,
         ultimoDiplomaFecha: c.ultimo_diploma_fecha,
+        ultimoGrupoCerradoFecha: c.ultimo_grupo_cerrado_fecha,
       },
       ahora,
       { diasAmarillo: umbral }

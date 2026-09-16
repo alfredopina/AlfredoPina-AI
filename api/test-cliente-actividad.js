@@ -70,7 +70,37 @@ const hace = (dias) => new Date(AHORA.getTime() - dias * 86400000).toISOString()
   check("Activa+solicitud: gana la más reciente de las dos (5 días)", r.dias === 5);
 }
 
-// 9) Umbral exacto: 30 días es amarillo (no verde), 90 es amarillo (no rojo todavía), 91 ya es rojo.
+// 9b) Solo Grupo Cerrado (fallback nuevo 2026-09-16) — sin diploma/cotización/solicitud/grupo activo.
+{
+  const r = calcularDiasInactivo({ ultimoGrupoCerradoFecha: hace(60) }, AHORA);
+  check("Solo Grupo Cerrado: usa su fecha", r.dias === 60);
+  check("Solo Grupo Cerrado a 60 días: amarillo", r.semaforo === "amarillo");
+}
+
+// 9c-9f) Respaldo histórico (Cotización cerrada / Diploma / Grupo Cerrado):
+// gana el MÁS RECIENTE de los 3, nunca una prioridad fija (corrección
+// 2026-09-16, ver comentario del archivo) — se prueban las 4 combinaciones
+// de "cuál es más nuevo" para blindar que ninguna quedó con orden fijo.
+{
+  const r = calcularDiasInactivo({ ultimoDiplomaFecha: hace(100), ultimoGrupoCerradoFecha: hace(10) }, AHORA);
+  check("Grupo Cerrado más reciente gana sobre Diploma más viejo", r.dias === 10);
+}
+{
+  const r = calcularDiasInactivo({ ultimoDiplomaFecha: hace(10), ultimoGrupoCerradoFecha: hace(100) }, AHORA);
+  check("Diploma más reciente gana sobre Grupo Cerrado más viejo", r.dias === 10);
+}
+{
+  const r = calcularDiasInactivo({ cotizacionCerradaFecha: hace(5), ultimoGrupoCerradoFecha: hace(70) }, AHORA);
+  check("Cotización cerrada más reciente gana sobre Grupo Cerrado más viejo", r.dias === 5);
+}
+{
+  // El hueco real que motivó la corrección: una Cotización cerrada de hace
+  // casi 2 años NO debe ganarle a un Grupo cerrado hace 30 días.
+  const r = calcularDiasInactivo({ cotizacionCerradaFecha: hace(700), ultimoGrupoCerradoFecha: hace(30) }, AHORA);
+  check("Grupo Cerrado más reciente gana sobre Cotización cerrada vieja (el hueco original)", r.dias === 30 && r.semaforo === "amarillo");
+}
+
+// Umbral exacto: 30 días es amarillo (no verde), 90 es amarillo (no rojo todavía), 91 ya es rojo.
 {
   check("29 días: verde", calcularDiasInactivo({ cotizacionCerradaFecha: hace(29) }, AHORA).semaforo === "verde");
   check("30 días: amarillo", calcularDiasInactivo({ cotizacionCerradaFecha: hace(30) }, AHORA).semaforo === "amarillo");

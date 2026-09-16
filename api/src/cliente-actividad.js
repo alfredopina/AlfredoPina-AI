@@ -14,12 +14,26 @@
 //      como "hoy" (0 días) — mientras el curso está en curso, Alfredo está
 //      interactuando con ese cliente sin importar fechas.
 //   Si hay más de uno de los anteriores, se usa el MÁS RECIENTE de todos.
-//   3. Si no hay nada de lo anterior, Cotización cerrada (Ganada/Perdida,
-//      Reemplazada se ignora — ya existe una versión más nueva que cuenta por
-//      su cuenta) → su fecha_cierre real.
-//   4. Si tampoco hay cotización cerrada, el último Diploma vigente emitido.
-//   5. Si no hay NINGÚN dato → "sin interacción registrada", se trata como
+//   3. Si no hay nada de lo anterior ("respaldo histórico" — ninguno de estos
+//      3 significa actividad EN CURSO, así que entre ellos gana el más
+//      reciente, no una prioridad fija; ver corrección 2026-09-16 abajo):
+//      Cotización cerrada (Ganada/Perdida, Reemplazada se ignora — ya existe
+//      una versión más nueva que cuenta por su cuenta), último Diploma
+//      vigente emitido, o fecha_cierre del último Grupo Cerrado con ese
+//      cliente.
+//   4. Si no hay NINGÚN dato → "sin interacción registrada", se trata como
 //      el caso más urgente (rojo), no como neutro.
+//
+// Corrección 2026-09-16: el respaldo histórico (antes solo Cotización
+// cerrada → Diploma) ganó un 3er ingrediente (Grupo Cerrado, para el caso de
+// un curso cerrado sin diploma emitido ni cotización ligada — antes eso no
+// dejaba NINGÚN rastro). Al agregarlo se encontró un hueco real: los 3 se
+// evaluaban en orden de prioridad FIJO (Cotización siempre le ganaba a
+// Diploma, Diploma siempre a Grupo Cerrado), así que una Cotización cerrada
+// de hace 2 años podía ganarle a un Grupo cerrado hace 1 mes — justo lo
+// opuesto de lo que "Días Inactivo" quiere medir. Corregido: ahora los 3 se
+// tratan igual que los "activos" de arriba — gana la fecha MÁS RECIENTE de
+// los que existan, sin importar cuál sea.
 const DIAS_VERDE = 30;
 const DIAS_AMARILLO = 90;
 
@@ -31,7 +45,7 @@ const DIAS_AMARILLO = 90;
 // simetría, aunque hoy nada lo configura todavía (solo el umbral "urgente"
 // es configurable, ver CLAUDE.md → Notificaciones).
 function calcularDiasInactivo(
-  { solicitudPendienteFecha, cotizacionActivaFecha, grupoActivo, cotizacionCerradaFecha, ultimoDiplomaFecha },
+  { solicitudPendienteFecha, cotizacionActivaFecha, grupoActivo, cotizacionCerradaFecha, ultimoDiplomaFecha, ultimoGrupoCerradoFecha },
   ahora = new Date(),
   { diasVerde = DIAS_VERDE, diasAmarillo = DIAS_AMARILLO } = {}
 ) {
@@ -41,10 +55,15 @@ function calcularDiasInactivo(
   let fechaRef = null;
   if (candidatosActivos.length) {
     fechaRef = new Date(Math.max(...candidatosActivos.map((d) => d.getTime())));
-  } else if (cotizacionCerradaFecha) {
-    fechaRef = new Date(cotizacionCerradaFecha);
-  } else if (ultimoDiplomaFecha) {
-    fechaRef = new Date(ultimoDiplomaFecha);
+  } else {
+    // Respaldo histórico: gana el más reciente de los 3, no una prioridad
+    // fija (ver nota arriba) — mismo criterio Math.max que los activos.
+    const candidatosHistoricos = [cotizacionCerradaFecha, ultimoDiplomaFecha, ultimoGrupoCerradoFecha]
+      .filter(Boolean)
+      .map((f) => new Date(f));
+    if (candidatosHistoricos.length) {
+      fechaRef = new Date(Math.max(...candidatosHistoricos.map((d) => d.getTime())));
+    }
   }
 
   if (!fechaRef) return { dias: null, semaforo: "rojo", fechaRef: null };

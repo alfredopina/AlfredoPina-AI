@@ -12,15 +12,16 @@ const { TableClient } = require("@azure/data-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 // tabla SQL → columna de fecha real más útil para "último registro". Varias
-// tablas (Cliente, TarifaHerramienta, Alumno, EncuestaPregunta,
-// EncuestaRespuestaDetalle, DiagnosticoRespuestaDetalle) no tienen ninguna
-// columna de fecha en su esquema — se listan con NULL explícito en vez de
-// inventar una. Los nombres de tabla son constantes fijas de este archivo
-// (nunca vienen del request), así que interpolarlos directo en el SQL es
-// seguro — no hay superficie de inyección.
+// tablas (Cliente, TarifaHerramienta, Alumno, EncuestaRespuestaDetalle,
+// DiagnosticoRespuestaDetalle) no tienen ninguna columna de fecha en su
+// esquema — se listan con NULL explícito en vez de inventar una. Los nombres
+// de tabla son constantes fijas de este archivo (nunca vienen del request),
+// así que interpolarlos directo en el SQL es seguro — no hay superficie de
+// inyección.
 //
-// DiagnosticoPregunta salió de aquí el 2026-09-13 — el banco de preguntas
-// del Diagnóstico se movió a Table Storage (ver STORAGE_TABLAS abajo).
+// DiagnosticoPregunta salió de aquí el 2026-09-13 y EncuestaPregunta el
+// 2026-09-16 — los 2 bancos de preguntas se movieron a Table Storage (ver
+// STORAGE_TABLAS abajo), mismo criterio en ambos casos.
 const SQL_TABLAS = [
   { tabla: "Cliente", fechaCol: null },
   { tabla: "Contacto", fechaCol: "fecha_creacion" },
@@ -31,7 +32,6 @@ const SQL_TABLAS = [
   { tabla: "GrupoFaseHistorial", fechaCol: "fecha" },
   { tabla: "Alumno", fechaCol: null },
   { tabla: "Diploma", fechaCol: "fecha_generacion" },
-  { tabla: "EncuestaPregunta", fechaCol: null },
   { tabla: "EncuestaRespuesta", fechaCol: "fecha_envio" },
   { tabla: "EncuestaRespuestaDetalle", fechaCol: null },
   { tabla: "DiagnosticoRespuesta", fechaCol: "fecha_envio" },
@@ -46,7 +46,7 @@ const SQL_TABLAS = [
 // de creación que sí reportan las tablas SQL.
 const STORAGE_TABLAS = [
   "Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes",
-  "AdminActividad", "DiagnosticoPreguntas", "ConfiguracionNotificaciones",
+  "AdminActividad", "DiagnosticoPreguntas", "EncuestaPreguntas", "ConfiguracionNotificaciones",
 ];
 
 function isTableNotFound(err) {

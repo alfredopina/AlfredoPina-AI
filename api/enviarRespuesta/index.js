@@ -99,12 +99,12 @@ module.exports = async function (context, req) {
     const respuestaId = insertRespuesta.recordset[0].id;
 
     for (const r of respuestas) {
-      const preguntaId = Number(r.preguntaId);
+      const preguntaId = (r.preguntaId || "").toString().trim();
       const valor = (r.valor || "").toString().trim();
       if (!preguntaId || !valor) continue;
       await new sql.Request(transaction)
         .input("respuestaId", sql.Int, respuestaId)
-        .input("preguntaId", sql.Int, preguntaId)
+        .input("preguntaId", sql.NVarChar, preguntaId)
         .input("valor", sql.NVarChar, valor)
         .query("INSERT INTO EncuestaRespuestaDetalle (respuesta_id, pregunta_id, valor) VALUES (@respuestaId, @preguntaId, @valor)");
     }

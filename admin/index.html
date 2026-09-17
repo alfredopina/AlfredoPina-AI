@@ -1283,6 +1283,15 @@
   .mdl-svg{ position:absolute; left:0; top:0; overflow:visible; }
   .mdl-zone-label{ font-family:var(--mono); font-size:11.5px; fill:var(--text-faint); }
   .mdl-zone-rect{ fill:var(--panel-2); fill-opacity:.35; }
+  /* Macro-región SQL vs Table Storage — el motor de datos es la separación
+     visual dominante (borde grueso solid/dashed, mismo criterio que ya usa
+     cada tarjeta individual), las zonas por pilar (Comercial/Operación/...)
+     quedan como agrupación secundaria más delgada dentro de cada una. */
+  .mdl-macro-rect{ fill:none; stroke-width:2.5; }
+  .mdl-macro-rect.sql{ stroke:var(--blue-bright); stroke-dasharray:none; }
+  .mdl-macro-rect.storage{ stroke:var(--blue-bright); stroke-dasharray:18,9; }
+  .mdl-macro-title{ font-family:var(--display); font-weight:700; font-size:16px; fill:var(--text); }
+  .mdl-macro-sub{ font-family:var(--mono); font-size:11px; fill:var(--text-faint); }
   .mdl-rel-label-bg{ fill:var(--panel); stroke:var(--line); stroke-width:1; }
   .mdl-rel-label-txt{ font-family:var(--mono); font-size:9px; fill:var(--text-dim); }
 
@@ -4892,7 +4901,6 @@
   // propio IIFE, sin acoplarse a Diplomas ni a Cursos/Recursos.
   (function(){
     const SECCIONES = { Instructor: 'encListaInstructor', 'Curso y Materiales': 'encListaCurso' };
-    const BASE_ORDEN = { Instructor: 0, 'Curso y Materiales': 1000 };
     const ICO = {
       drag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4997,10 +5005,10 @@
       `).join('');
 
       cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormPregunta(seccion, encPreguntas.find(p => p.id === Number(b.closest('.radm-row').dataset.id))));
+        b.addEventListener('click', () => abrirFormPregunta(seccion, encPreguntas.find(p => p.id === b.closest('.radm-row').dataset.id)));
       });
       cont.querySelectorAll('[data-action="del"]').forEach(b => {
-        b.addEventListener('click', () => eliminarPregunta(Number(b.closest('.radm-row').dataset.id)));
+        b.addEventListener('click', () => eliminarPregunta(b.closest('.radm-row').dataset.id, seccion));
       });
 
       if(window.Sortable){
@@ -5008,9 +5016,9 @@
           handle: '.radm-drag', animation:150,
           onEnd: async () => {
             const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
-              id: Number(el.dataset.id), orden: BASE_ORDEN[seccion] + i * 10,
+              id: el.dataset.id, orden: i * 10,
             }));
-            try { await apiPostJson('/api/reordenarPreguntas', { items: items2 }); await cargarPreguntas(); }
+            try { await apiPostJson('/api/reordenarPreguntas', { seccion, items: items2 }); await cargarPreguntas(); }
             catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
           },
         });
@@ -5064,7 +5072,7 @@
         if(!texto){ toast('Falta el texto de la pregunta.', false); return; }
 
         const itemsSeccion = encPreguntas.filter(p => p.seccion === seccionFija);
-        const orden = item ? item.orden : BASE_ORDEN[seccionFija] + itemsSeccion.length * 10;
+        const orden = item ? item.orden : itemsSeccion.length * 10;
 
         try {
           await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion:seccionFija, texto, tipo, orden, activa });
@@ -5077,11 +5085,11 @@
     document.getElementById('encBtnAddInstructor').addEventListener('click', () => abrirFormPregunta('Instructor', null));
     document.getElementById('encBtnAddCurso').addEventListener('click', () => abrirFormPregunta('Curso y Materiales', null));
 
-    async function eliminarPregunta(id){
+    async function eliminarPregunta(id, seccion){
       const p = encPreguntas.find(x => x.id === id);
       if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial, solo dejan de mostrar su texto en Resultados. Si solo quieres que deje de aparecer en la encuesta, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
       try {
-        await apiPostJson('/api/eliminarPregunta', { id });
+        await apiPostJson('/api/eliminarPregunta', { id, seccion });
         toast('Pregunta eliminada.', true);
         await cargarPreguntas();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
@@ -11108,6 +11116,7 @@
           f('codigo','NVARCHAR(20)',{badge:'UNIQUE'}),
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('cliente_desde','INT',{opt:true,extra:'año de antigüedad'}),
+          f('tipo_cliente','NVARCHAR(20)',{extra:'Directo|Intermediario|Indirecto, default Directo'}),
         ]},
       { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id', x:410, y:100,
         fields:[
@@ -11172,6 +11181,7 @@
           f('estatus','NVARCHAR(30)',{extra:'Borrador…Reemplazada'}),
           f('reemplaza_a_folio','NVARCHAR(40)',{fk:'Cotizacion.folio',opt:true,extra:'auto-referencia · "Nueva versión"'}),
           f('blob_path','NVARCHAR(300)',{opt:true}),
+          f('fecha_cierre','DATE',{opt:true,extra:'fecha real al pasar a Ganada/Perdida'}),
         ]},
 
       // ---------------- Azure SQL — Operación ----------------
@@ -11188,7 +11198,7 @@
           f('nombre_curso','NVARCHAR(200)',{opt:true}),
           f('niveles','NVARCHAR(20)',{extra:'JSON[]: [1,2,3]'}),
           f('horas','DECIMAL(6,1)',{opt:true}),
-          f('sesiones','INT',{opt:true}),
+          f('sesiones','NVARCHAR(150)',{opt:true,extra:'texto libre, ej. "5 Sesiones Jueves de 2 a 6 pm"'}),
           f('fecha_inicio','DATE',{opt:true}),
           f('fecha_fin','DATE',{opt:true}),
           f('instructor','NVARCHAR(150)',{opt:true,extra:'texto plano, sin FK — vive en Blob'}),
@@ -11235,15 +11245,6 @@
           f('corrige_a_folio','NVARCHAR(40)',{fk:'Diploma.folio',opt:true,extra:'auto-referencia · columna existe, sin UI aún'}),
           f('fecha_generacion','DATETIME2'),
         ]},
-      { id:'EncuestaPregunta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:500,
-        fields:[
-          f('id','INT',{pk:true}),
-          f('seccion','Instructor|Curso y Materiales'),
-          f('texto','NVARCHAR(300)'),
-          f('tipo','escala|texto'),
-          f('orden','INT'),
-          f('activa','BIT',{extra:'soft-delete — el borrado real sí ocurre'}),
-        ]},
       { id:'EncuestaRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:500,
         fields:[
           f('id','INT',{pk:true}),
@@ -11261,7 +11262,7 @@
           f('pregunta_id','INT',{extra:'referencia SIN FK a propósito — conserva historial si se borra la pregunta'}),
           f('valor','NVARCHAR(500)'),
         ]},
-      { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:900,
+      { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:900,
         fields:[
           f('id','INT',{pk:true}),
           f('nombre','NVARCHAR(200)'),
@@ -11269,7 +11270,7 @@
           f('herramienta','VARCHAR(20)',{extra:'excel|powerbi'}),
           f('fecha_envio','DATETIME2'),
         ]},
-      { id:'DiagnosticoRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:1300,
+      { id:'DiagnosticoRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:900,
         fields:[
           f('id','INT',{pk:true}),
           f('respuesta_id','INT',{fk:'DiagnosticoRespuesta.id'}),
@@ -11280,7 +11281,7 @@
         ]},
 
       // ---------------- Table Storage — Catálogo de Cursos ----------------
-      { id:'Temas', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:70, y:1020,
+      { id:'Temas', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:70, y:1460,
         note:'PartitionKey = herramienta · RowKey = temaId (slug). Banco compartido: alimenta tanto TemariosEstandar como el constructor personalizado.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -11292,7 +11293,7 @@
           f('estado','borrador|publicado'),
           f('orden','number'),
         ]},
-      { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:410, y:1020,
+      { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:410, y:1460,
         note:'= el "Curso" que ve el cliente en /cursos.html. Se auto-crea sola al primer escritura, sin paso de portal.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -11302,7 +11303,7 @@
           f('temaIds','JSON[]',{extra:'lista ordenada ⇢ Temas'}),
           f('estado','borrador|publicado'), f('orden','number'),
         ]},
-      { id:'Proyectos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:750, y:1020,
+      { id:'Proyectos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:750, y:1460,
         note:'Se desbloquea solo si TODOS sus temaIds están cubiertos — no basta con uno.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -11313,7 +11314,7 @@
         ]},
 
       // ---------------- Table Storage — Recursos ----------------
-      { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1170, y:1810,
+      { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1170, y:1460,
         note:'Código de descarga — módulo Recursos. No confundir con "Temario Estándar" (nombre distinto a propósito, ambigüedad ya documentada).',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -11322,7 +11323,7 @@
           f('estado','borrador|publicado'), f('orden','number'),
           f('temarioId','string',{opt:true,extra:'⇢ TemariosEstandar.RowKey, opcional'}),
         ]},
-      { id:'Recursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1510, y:1810,
+      { id:'Recursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1510, y:1460,
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta_cursoId'}),
           f('RowKey','string',{pk:true,extra:'uuid'}),
@@ -11332,14 +11333,14 @@
         ]},
 
       // ---------------- Table Storage — Infraestructura y herramientas propias ----------------
-      { id:'IntentosCodigo', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:70, y:1540,
+      { id:'IntentosCodigo', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:70, y:1960,
         note:'Candado genérico de intentos fallidos — 10 fallos en 15 min bloquean 5 min. Fail-open si Table Storage falla.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'definido por quien llama'}),
           f('RowKey','"contador"',{pk:true}),
           f('fallos','number'), f('ventanaInicio','ISO datetime'), f('bloqueadoHasta','ISO datetime',{opt:true}),
         ]},
-      { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1540,
+      { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1960,
         note:'Deliberadamente en Table Storage, no en la base SQL — evita el auto-pause de 20-60s para una herramienta que necesita capturar al instante. Sin eliminarPendiente — el checkbox archiva, nunca borra.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'1 de 5 categorías fijas'}),
@@ -11350,14 +11351,14 @@
           f('fecha_archivado','ISO datetime',{opt:true}),
           f('orden','number',{opt:true,extra:'-Date.now() al crear · se reindexa 0,10,20… al reordenar'}),
         ]},
-      { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:750, y:1540,
+      { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:750, y:1960,
         note:'Un renglón por administrador — el correo sale del header x-ms-client-principal que Azure ya verificó, nunca del cliente.',
         fields:[
           f('PartitionKey','"admin"',{pk:true,extra:'fijo'}),
           f('RowKey','string',{pk:true,extra:'correo del administrador'}),
           f('veces','number'), f('ultimaVez','ISO datetime'),
         ]},
-      { id:'DiagnosticoPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:70, y:1840,
+      { id:'DiagnosticoPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:1090, y:1960,
         note:'Movido de SQL a Table Storage el 2026-09-13 — así cargar diagnostico.html nunca depende del auto-pause de la base. opcion_correcta nunca se manda al público (getPreguntasDiagnostico la filtra).',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta (excel|powerbi)'}),
@@ -11369,14 +11370,26 @@
           f('opcion_correcta','string',{extra:'nunca se manda al público'}),
           f('orden','number'), f('activa','boolean'),
         ]},
-      { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1840,
-        note:'Un solo renglón fijo — los 3 umbrales "urgente" de la campana (Cotizaciones/Grupos/Clientes), editables desde Configuración → Notificaciones. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
+      { id:'EncuestaPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:1770, y:1960,
+        note:'Movido de SQL a Table Storage el 2026-09-16 (mismo criterio que DiagnosticoPreguntas) — así cargar encuesta.html nunca depende del auto-pause de la base.',
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'sección (Instructor|Curso y Materiales)'}),
+          f('RowKey','string',{pk:true,extra:'uuid'}),
+          f('texto','string'),
+          f('tipo','escala|texto'),
+          f('orden','number'), f('activa','boolean'),
+        ]},
+      { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:1430, y:1960,
+        note:'Un solo renglón fijo — 3 umbrales "urgente" (disparan la campana) + sus 3 pares "seguimiento" (ámbar, agregados 2026-09-15, solo colorean el semáforo) — Cotizaciones/Grupos/Clientes, editables desde Configuración → Notificaciones. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
         fields:[
           f('PartitionKey','"config"',{pk:true,extra:'fijo'}),
           f('RowKey','"notificaciones"',{pk:true,extra:'fijo'}),
-          f('cotizacionesDias','number',{extra:'default 10'}),
-          f('gruposDias','number',{extra:'default 21'}),
-          f('clientesDias','number',{extra:'default 90'}),
+          f('cotizacionesDias','number',{extra:'urgente, default 10'}),
+          f('cotizacionesSeguimientoDias','number',{extra:'ámbar, default 6'}),
+          f('gruposDias','number',{extra:'urgente, default 21'}),
+          f('gruposSeguimientoDias','number',{extra:'ámbar, default 10'}),
+          f('clientesDias','number',{extra:'urgente, default 90'}),
+          f('clientesSeguimientoDias','number',{extra:'ámbar, default 30'}),
         ]},
     ];
 
@@ -11395,7 +11408,7 @@
       { from:'Diploma', to:'Diploma', kind:'fk', self:true, label:'corrige_a_folio · sin UI' },
       { from:'EncuestaRespuesta', to:'Cliente', kind:'fk' },
       { from:'EncuestaRespuestaDetalle', to:'EncuestaRespuesta', kind:'fk' },
-      { from:'EncuestaRespuestaDetalle', to:'EncuestaPregunta', kind:'soft', label:'pregunta_id · sin FK a propósito' },
+      { from:'EncuestaRespuestaDetalle', to:'EncuestaPreguntas', kind:'soft', label:'pregunta_id · Table Storage, sin FK a propósito' },
       { from:'TemariosEstandar', to:'Temas', kind:'soft', label:'temaIds[] ordenado' },
       { from:'Proyectos', to:'Temas', kind:'soft', label:'temaIds[] todos requeridos' },
       { from:'Recursos', to:'Cursos', kind:'soft', label:'PK = herramienta_cursoId' },
@@ -11414,16 +11427,29 @@
       { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoPreguntas', kind:'soft', label:'pregunta_id · Table Storage, sin FK a propósito' },
     ];
 
+    // Zonas por pilar de negocio — agrupación secundaria, borde delgado.
     const ZONES = [
-      { x:40, y:40, w:1070, h:860, label:'Azure SQL · apcweb-backoffice — Comercial' },
-      { x:1140, y:40, w:1070, h:1650, label:'Azure SQL · apcweb-backoffice — Operación' },
-      { x:40, y:960, w:1070, h:460, label:'Table Storage · apcwebrecursos — Catálogo de Cursos' },
-      { x:40, y:1480, w:1070, h:780, label:'Table Storage · apcwebrecursos — Infraestructura y herramientas propias' },
-      { x:1140, y:1750, w:1070, h:460, label:'Table Storage · apcwebrecursos — Recursos (códigos de descarga)' },
+      { x:40, y:40, w:1070, h:860, label:'Comercial' },
+      { x:1140, y:40, w:1070, h:1260, label:'Operación' },
+      { x:40, y:1400, w:1070, h:460, label:'Catálogo de Cursos' },
+      { x:1140, y:1400, w:1070, h:460, label:'Recursos (códigos de descarga)' },
+      { x:40, y:1900, w:2070, h:460, label:'Infraestructura y herramientas propias' },
     ];
 
-    const WORLD_W = 2280, WORLD_H = 2280;
-    const STORAGE_KEY = 'apc-admin-modelo-layout-v1';
+    // Macro-región por MOTOR de datos — la separación visual dominante que
+    // pidió Alfredo (sólido = Azure SQL, punteado = Table Storage, mismo
+    // criterio que ya usa cada tarjeta individual). Coordenadas calculadas a
+    // mano para envolver holgado a las ZONES de arriba; los conteos del label
+    // sí se calculan solos desde TABLES, nunca a mano.
+    const MACRO_ZONES = [
+      { x:20, y:20, w:2210, h:1300, label:'AZURE SQL', sub:'apcweb-backoffice', style:'sql',
+        count: TABLES.filter(t => t.engine === 'sql').length },
+      { x:20, y:1380, w:2210, h:1000, label:'TABLE STORAGE', sub:'apcwebrecursos', style:'storage',
+        count: TABLES.filter(t => t.engine === 'storage').length },
+    ];
+
+    const WORLD_W = 2280, WORLD_H = 2440;
+    const STORAGE_KEY = 'apc-admin-modelo-layout-v3';
 
     const pos = {};
     TABLES.forEach(t => pos[t.id] = { x:t.x, y:t.y });
@@ -11506,8 +11532,18 @@
     document.getElementById('mdlStatsLine').textContent =
       `${TABLES.length} tablas · 2 motores de datos · ${RELATIONS.length} relaciones`;
 
-    // ── zonas de fondo ──
+    // ── zonas de fondo — macro-región por motor primero (más gruesa, detrás),
+    // luego las zonas por pilar de negocio encima (más delgadas) ──
     const zonesLayer = document.getElementById('mdlZonesLayer');
+    MACRO_ZONES.forEach(z => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.innerHTML = `
+        <rect class="mdl-macro-rect ${z.style}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="22"></rect>
+        <text class="mdl-macro-title" x="${z.x+22}" y="${z.y+34}">${z.label}</text>
+        <text class="mdl-macro-sub" x="${z.x+22}" y="${z.y+52}">${z.sub} · ${z.count} tablas</text>
+      `;
+      zonesLayer.appendChild(g);
+    });
     ZONES.forEach(z => {
       const g = document.createElementNS('http://www.w3.org/2000/svg','g');
       g.innerHTML = `
@@ -11749,7 +11785,7 @@
     // (nunca automático al abrir el panel — mismo criterio que Tarifas/Respaldos
     // en Configuración, para no despertar la base SQL ni listar Table Storage
     // sin que Alfredo lo pida de verdad)
-    const SIN_FECHA = new Set(['Cliente','TarifaHerramienta','Alumno','EncuestaPregunta','EncuestaRespuestaDetalle','DiagnosticoRespuestaDetalle']);
+    const SIN_FECHA = new Set(['Cliente','TarifaHerramienta','Alumno','EncuestaRespuestaDetalle','DiagnosticoRespuestaDetalle']);
     function fmtFecha(iso){
       if(!iso) return null;
       const d = new Date(iso);

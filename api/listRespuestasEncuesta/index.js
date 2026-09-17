@@ -1,9 +1,16 @@
 // listRespuestasEncuesta/index.js
 // Function protegida (rol "admin"): respuestas con filtros para la pestaña
-// "Resultados". Regresa cada respuesta con su detalle ya resuelto (LEFT JOIN
-// contra EncuestaPregunta — una pregunta borrada no tumba la consulta, solo
-// aparece como "(pregunta eliminada)", ver sql/003_encuestas.sql).
+// "Resultados". Regresa cada respuesta con su detalle ya resuelto — una
+// pregunta borrada no tumba la consulta, solo aparece como
+// "(pregunta eliminada)".
+//
+// El texto/tipo de cada pregunta ya no sale de un LEFT JOIN a SQL
+// (2026-09-16, el banco vive en Table Storage) — se resuelve aparte, una
+// sola lectura completa del banco (son ~11 preguntas, sin problema traerlas
+// todas de un jalón) cacheada en memoria antes del merge, mismo patrón que
+// ya usa listRespuestasDiagnosticoAdmin.
 const { getPool, sql } = require("../src/backoffice-db");
+const { getEncuestaPreguntasTable, listarTodas } = require("../src/encuesta-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -38,14 +45,17 @@ module.exports = async function (context, req) {
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
       SELECT r.id AS respuesta_id, r.nombre, r.cliente_id, c.nombre AS cliente, r.curso, r.instructor, r.fecha, r.fecha_envio,
-             d.pregunta_id, ISNULL(p.texto, '(pregunta eliminada)') AS pregunta_texto, p.tipo AS pregunta_tipo, d.valor
+             d.pregunta_id, d.valor
       FROM EncuestaRespuesta r
       JOIN Cliente c ON c.id = r.cliente_id
       JOIN EncuestaRespuestaDetalle d ON d.respuesta_id = r.id
-      LEFT JOIN EncuestaPregunta p ON p.id = d.pregunta_id
       ${where}
       ORDER BY r.fecha_envio DESC, r.id, d.id
     `);
+
+    const table = getEncuestaPreguntasTable();
+    const entidades = await listarTodas(table);
+    const preguntasPorId = new Map(entidades.map((e) => [e.rowKey, e]));
 
     // agrupa las filas planas (una por pregunta) en una respuesta por cabecera
     const porId = new Map();
@@ -63,10 +73,11 @@ module.exports = async function (context, req) {
           respuestas: [],
         });
       }
+      const pregunta = preguntasPorId.get(row.pregunta_id);
       porId.get(row.respuesta_id).respuestas.push({
         pregunta_id: row.pregunta_id,
-        texto: row.pregunta_texto,
-        tipo: row.pregunta_tipo,
+        texto: pregunta ? pregunta.texto : "(pregunta eliminada)",
+        tipo: pregunta ? pregunta.tipo : null,
         valor: row.valor,
       });
     }

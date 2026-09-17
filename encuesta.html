@@ -463,12 +463,12 @@
     return wrap;
   }
 
-  // Reintento con pausas crecientes — la base SQL (serverless) se auto-pausa
-  // tras 1h sin uso y la primera consulta después de eso puede tardar hasta
-  // 60s en "despertarla"; a veces ese primer intento se cae por timeout antes
-  // de que la base termine de arrancar. En vez de mostrarle a quien esté
-  // contestando un "error de red" por algo que se resuelve solo segundos
-  // después, se reintenta callado unas veces antes de rendirse de verdad.
+  // Reintento con pausas crecientes — ya no protege la CARGA de datos contra
+  // la base SQL (2026-09-16: getPreguntasEncuesta vive en Table Storage,
+  // nunca se pausa, y getInstructores siempre fue Blob Storage) pero se deja
+  // el mismo mecanismo por si un fetch falla por una razón de red pasajera
+  // cualquiera, y se reusa tal cual para el envío final (enviarRespuesta),
+  // que sí sigue en SQL — ver más abajo, cerca de "despertarEncuesta".
   const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
 
   async function pedirDatosEncuesta(){
@@ -549,6 +549,13 @@
   }
   cargarEncuesta();
 
+  // Prewarm silencioso de apcweb-backoffice — el banco de preguntas ya no
+  // depende de SQL (ver arriba), pero enviarRespuesta (el envío final) sí
+  // sigue tocándola. Se dispara en paralelo, sin bloquear ni avisar nada si
+  // falla: para cuando el alumno termine de contestar (varios minutos), la
+  // base ya tuvo tiempo de sobra para despertar sola.
+  fetch('/api/despertarEncuesta').catch(() => {});
+
   document.getElementById('encForm').addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -575,26 +582,46 @@
     }
 
     const respuestas = Array.from(document.querySelectorAll('.enc-question')).map(el => ({
-      preguntaId: Number(el.dataset.preguntaId),
+      preguntaId: el.dataset.preguntaId,
       valor: el.querySelector('.xcell').dataset.value,
     }));
     const comentariosEl = document.getElementById('encComentarios');
     if(comentariosEl && comentariosEl.value.trim()){
-      respuestas.push({ preguntaId:Number(comentariosEl.dataset.preguntaId), valor:comentariosEl.value.trim() });
+      respuestas.push({ preguntaId:comentariosEl.dataset.preguntaId, valor:comentariosEl.value.trim() });
     }
 
     const btn = document.getElementById('encSubmit');
     const body = document.getElementById('encSubmitBody');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
-    try {
-      await apiPostJson('/api/enviarRespuesta', {
-        nombre: document.getElementById('encNombre').value.trim(),
-        empresa, curso, instructor, fecha, respuestas,
-      });
+
+    // Reintento con las mismas pausas crecientes que la carga (ver
+    // pedirDatosEncuesta arriba) — despertarEncuesta() ya se disparó al
+    // cargar la página, pero si de todos modos la base seguía dormida al
+    // momento de enviar (una encuesta larga puede tardar varios minutos en
+    // contestarse), el envío no debe morir en el primer intento.
+    let ultimoError;
+    let enviado = false;
+    for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length && !enviado; intento++){
+      try {
+        await apiPostJson('/api/enviarRespuesta', {
+          nombre: document.getElementById('encNombre').value.trim(),
+          empresa, curso, instructor, fecha, respuestas,
+        });
+        enviado = true;
+      } catch(e){
+        ultimoError = e;
+        if(intento < REINTENTO_PAUSAS_MS.length){
+          body.textContent = '=ENVIANDO...() reintentando';
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    if(enviado){
       document.getElementById('encForm').hidden = true;
       document.getElementById('encThanks').classList.add('show');
-    } catch(err){
-      alert('No se pudo enviar tu respuesta: ' + err.message);
+    } else {
+      alert('No se pudo enviar tu respuesta: ' + ultimoError.message);
       btn.disabled = false; body.textContent = '=ENVIAR_ENCUESTA()';
     }
   });

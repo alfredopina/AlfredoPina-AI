@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
-<title>Diagnóstico — Alfredo Piña</title>
+<title>Diagnóstico de nivel — Alfredo Piña</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
@@ -106,13 +106,23 @@
     color:var(--bad); font-size:13.5px; padding:18px 20px; margin:16px 0; line-height:1.6;
   }
 
-  .diag-block{ margin-bottom:40px; }
+  /* ---- barra de avance — solo visible durante las preguntas, pequeña y sin
+     números (el número de pregunta ya vive en cada tarjeta) ---- */
+  .diag-progress{ height:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; margin:0 0 28px; }
+  .diag-progress-bar{ height:100%; width:0%; background:var(--blue-bright); border-radius:2px; transition:width .35s ease; }
+
+  .diag-block{ margin-bottom:8px; }
   .diag-block-title{
     font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
     color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
   }
 
   .diag-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  /* [hidden] pierde contra display:flex de la misma especificidad — mismo
+     bug ya documentado varias veces en CLAUDE.md → "Ya resueltos"
+     (.cot-alert, .radm-form-row, .radm-field), reaparece aquí porque es la
+     primera vez que un .diag-field se oculta dinámicamente. */
+  .diag-field[hidden]{ display:none; }
   .diag-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
   .diag-req{ color:var(--bad); }
   .diag-field input[type=text]{
@@ -121,6 +131,12 @@
     transition:border-color .2s; width:100%;
   }
   .diag-field input:focus{ border-color:var(--blue-bright); }
+  .diag-empresa-lock{
+    font-size:14.5px; color:var(--text); background:var(--panel); border:1px solid var(--blue-dim);
+    border-radius:7px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .diag-empresa-lock svg{ width:15px; height:15px; color:var(--blue-bright); flex:none; }
+  .diag-empresa-lock-nota{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:6px; display:block; }
 
   .diag-autocomplete-wrap{ position:relative; }
   .diag-autocomplete-list{
@@ -132,51 +148,58 @@
   .diag-autocomplete-item:hover{ background:var(--panel); }
   .diag-autocomplete-item b{ color:var(--text); }
 
-  /* ---- pregunta: imagen de referencia arriba, badges de contexto, texto,
-     4 opciones abajo como filas (letra + texto + checkbox de un solo valor) ---- */
-  .diag-question{ margin-bottom:0; padding:28px 0; border-bottom:1px solid var(--line-soft); }
-  .diag-question:first-child{ padding-top:0; }
-  .diag-question:last-child{ border-bottom:none; padding-bottom:0; }
-  .diag-question-badges{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-  .diag-badge-nivel{
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.3px; color:var(--text-dim);
-    border:1px solid var(--line); border-radius:20px; padding:4px 11px;
+  /* ---- pregunta: número + fx arriba, texto encima de la imagen (para no
+     confundir el orden), imagen debajo, 5 opciones abajo (4 reales
+     barajadas + "No lo sé" fija al final, nunca aleatoria) ---- */
+  .diag-question{ margin-bottom:0; }
+  .diag-question-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .diag-question-num{
+    font-family:var(--display); font-weight:700; font-size:20px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex:none;
   }
-  .diag-badge-contador{
-    font-family:var(--mono); font-size:10.5px; font-style:italic; font-weight:700; color:var(--blue-bright);
-    background:var(--blue-soft); border-radius:20px; padding:4px 11px; margin-left:auto;
+  .diag-question-fx{
+    font-family:var(--mono); font-size:11.5px; font-style:italic; font-weight:700; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:20px; padding:5px 12px;
   }
+  .diag-question-text{ font-size:16px; color:var(--text); margin-bottom:18px; line-height:1.5; font-weight:500; }
   .diag-question-media{
     border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel);
-    margin-bottom:16px;
+    margin-bottom:20px;
   }
   .diag-question-media img{ display:block; width:100%; height:auto; }
-  .diag-question-text{ font-size:15px; color:var(--text); margin-bottom:16px; line-height:1.5; font-weight:500; }
 
-  .diag-options{ display:flex; flex-direction:column; gap:8px; }
+  .diag-options{ display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
   .diag-option{
-    display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:8px;
-    background:var(--panel); padding:12px 14px; cursor:pointer; transition:border-color .15s, background .15s;
+    display:flex; align-items:center; gap:12px; border:1px solid rgba(237,240,244,.16); border-radius:8px;
+    background:var(--panel); padding:13px 14px; cursor:pointer; transition:border-color .15s, background .15s;
   }
-  .diag-option:hover{ border-color:var(--text-faint); }
+  .diag-option:hover{ border-color:var(--text-dim); }
   .diag-option.selected{ border-color:var(--blue-bright); background:var(--blue-soft); }
   .diag-option-letra{
     font-family:var(--mono); font-weight:700; font-size:13px; color:var(--text-dim); flex:none;
-    width:26px; height:26px; border:1px solid var(--line); border-radius:6px; display:flex;
+    width:26px; height:26px; border:1px solid rgba(237,240,244,.35); border-radius:6px; display:flex;
     align-items:center; justify-content:center;
   }
   .diag-option.selected .diag-option-letra{ border-color:var(--blue-bright); color:var(--blue-bright); }
   .diag-option-texto{ flex:1; font-size:13.5px; color:var(--text); }
-  .diag-option-check{
-    flex:none; width:20px; height:20px; border:1px solid var(--line); border-radius:5px;
-    display:flex; align-items:center; justify-content:center; color:transparent; transition:all .15s;
+  .diag-option-fija .diag-option-texto{ color:var(--text-dim); font-style:italic; }
+  /* Radio-dot en vez del checkbox de antes — comunica "elige una", no
+     "marca varias". Un solo círculo relleno cuando está seleccionada. */
+  .diag-option-radio{
+    flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid rgba(237,240,244,.35);
+    display:flex; align-items:center; justify-content:center; transition:border-color .15s;
   }
-  .diag-option-check svg{ width:13px; height:13px; }
-  .diag-option.selected .diag-option-check{ border-color:var(--blue-bright); background:var(--blue-bright); color:#fff; }
+  .diag-option-radio::after{
+    content:''; width:10px; height:10px; border-radius:50%; background:var(--blue-bright);
+    opacity:0; transform:scale(.4); transition:all .15s;
+  }
+  .diag-option.selected .diag-option-radio{ border-color:var(--blue-bright); }
+  .diag-option.selected .diag-option-radio::after{ opacity:1; transform:scale(1); }
 
   .diag-privacy{
     font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
-    padding-top:18px; margin:24px 0 20px; line-height:1.6;
+    padding-top:18px; margin:8px 0 20px; line-height:1.6;
   }
 
   .diag-submit-fx{
@@ -185,7 +208,7 @@
     transition:border-color .2s, background .2s;
   }
   .diag-submit-fx:hover:not(:disabled){ border-color:var(--blue-bright); background:var(--blue-soft); }
-  .diag-submit-fx:disabled{ opacity:.6; cursor:default; }
+  .diag-submit-fx:disabled{ opacity:.45; cursor:default; }
   .diag-submit-fx-tag{
     font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
     background:var(--blue-soft); padding:18px 16px; border-right:1px solid var(--blue-dim); flex:none;
@@ -203,7 +226,7 @@
   .diag-thanks-icon path{ stroke-dasharray:1; stroke-dashoffset:1; animation:diagCheckDraw .6s .15s ease forwards; }
   @keyframes diagCheckDraw{ to{ stroke-dashoffset:0; } }
   .diag-thanks h2{ font-family:var(--display); font-weight:600; font-size:26px; margin-bottom:10px; }
-  .diag-thanks p{ color:var(--text-dim); font-size:14px; max-width:420px; margin:0 auto; }
+  .diag-thanks p{ color:var(--text-dim); font-size:14px; max-width:440px; margin:0 auto; }
   .diag-thanks-fx{
     display:inline-flex; align-items:center; gap:8px; margin-top:24px;
     font-family:var(--mono); font-size:12px; color:var(--text-faint);
@@ -213,10 +236,17 @@
     background:var(--blue-soft); border-radius:4px; padding:2px 7px;
   }
 
-  /* footer mínimo a propósito — sin el bloque "Hablemos"/contacto del resto
-     del sitio, mismo criterio que encuesta.html */
+  /* footer — línea de contacto real (correo/teléfono/redes/copyright), sin
+     el bloque grande "Hablemos"/=CONTACTAR() del resto del sitio, mismo
+     criterio que ya usa esta página para no distraer aquí. */
   footer{border-top:1px solid var(--line-soft); padding:30px 0 40px; margin-top:10px;}
-  .diag-footer-copy{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); }
+  .diag-contact-meta{
+    display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12.5px;
+    color:var(--text-faint); font-family:var(--mono);
+  }
+  .diag-contact-meta a{ color:var(--text-dim); }
+  .diag-contact-meta a:hover{ color:var(--blue-bright); }
+  .diag-contact-meta > *:not(:last-child)::after{ content:'·'; margin-left:14px; color:var(--line); }
 
   @media (max-width:480px){
     .wrap{padding:0 18px;}
@@ -252,41 +282,59 @@
 
 <header class="wrap diag-header">
   <div class="diag-tool-badge" id="diagToolBadge" hidden></div>
-  <h2 class="section-title">Vamos a ver de dónde partimos.</h2>
+  <h2 class="section-title">Diagnóstico de nivel</h2>
 </header>
 
 <section class="wrap">
   <div class="diag-loading" id="diagLoading">Cargando diagnóstico…</div>
   <div class="diag-error" id="diagError" hidden></div>
 
-  <form id="diagForm" hidden>
+  <div class="diag-progress" id="diagProgress" hidden><div class="diag-progress-bar" id="diagProgressBar"></div></div>
+
+  <div id="diagPasoIdentidad" hidden>
     <div class="diag-block">
       <div class="diag-block-title">Acerca de ti</div>
       <div class="diag-field">
         <label>NOMBRE <span class="diag-req">*</span></label>
         <input type="text" id="diagNombre" placeholder="Tu nombre">
       </div>
-      <div class="diag-field diag-autocomplete-wrap">
+      <div class="diag-field diag-autocomplete-wrap" id="diagEmpresaCampo">
         <label>EMPRESA <span class="diag-req">*</span></label>
         <input type="text" id="diagEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
         <div class="diag-autocomplete-list" id="diagEmpresaLista" hidden></div>
       </div>
+      <div class="diag-field" id="diagEmpresaBloqueada" hidden>
+        <label>EMPRESA</label>
+        <div class="diag-empresa-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="diagEmpresaLockTexto"></span>
+        </div>
+        <span class="diag-empresa-lock-nota">Ya identificada por tu link — no hace falta que la escribas.</span>
+      </div>
+      <div class="diag-field">
+        <label>ÁREA</label>
+        <input type="text" id="diagArea" placeholder="Ej. Finanzas, Operaciones...">
+      </div>
+      <div class="diag-field">
+        <label>CORREO</label>
+        <input type="text" id="diagCorreo" placeholder="tu@empresa.com">
+      </div>
     </div>
 
-    <div id="diagPreguntasArea"></div>
+    <p class="diag-privacy">Este diagnóstico nos ayuda a agrupar mejor a los participantes del curso y a medir qué tanto aprendimos, comparando lo que sabías antes contra lo que sabes después.</p>
 
-    <p class="diag-privacy">Este diagnóstico se usa solo para nivelar al grupo por conocimiento previo — no es un examen que se califique ni se comparte con nadie fuera del curso.</p>
-
-    <button type="submit" class="diag-submit-fx" id="diagSubmit">
+    <button type="button" class="diag-submit-fx" id="diagComenzarBtn">
       <span class="diag-submit-fx-tag">fx</span>
-      <span class="diag-submit-fx-body" id="diagSubmitBody">=ENVIAR_DIAGNOSTICO()</span>
+      <span class="diag-submit-fx-body">=COMENZAR()</span>
     </button>
-  </form>
+  </div>
+
+  <div id="diagPreguntasArea"></div>
 
   <div class="diag-thanks" id="diagThanks">
     <svg class="diag-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
     <h2>¡Listo, ya quedó registrado!</h2>
-    <p>Gracias por tomarte el tiempo — con esto arrancamos el curso sabiendo exactamente de dónde partir.</p>
+    <p>Gracias por tu respuesta — este diagnóstico nos permitirá darte el mejor entrenamiento y la mejor experiencia en el curso.</p>
     <div class="diag-thanks-fx"><span>fx</span> =GRACIAS()</div>
   </div>
 </section>
@@ -295,7 +343,16 @@
 
 <footer>
   <div class="wrap">
-    <span class="diag-footer-copy">© 2026 Alfredo Piña</span>
+    <div class="diag-contact-meta">
+      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
+      <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
+      <a href="#" target="_blank">YouTube ↗</a>
+      <span style="display:inline-flex;align-items:center;gap:7px;">
+        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:14px; width:auto; display:block; opacity:.6;">
+        © 2026 Alfredo Piña
+      </span>
+    </div>
   </div>
 </footer>
 
@@ -304,8 +361,8 @@
     excel:   { nombre:'Excel',    color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
     powerbi: { nombre:'Power BI', color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
   };
-  const NIVEL_LABEL = ['', 'Básico', 'Intermedio', 'Avanzado'];
-  const OPCIONES = ['A', 'B', 'C', 'D'];
+  const OPCIONES_REALES = ['A', 'B', 'C', 'D'];
+  const POSICIONES = ['A', 'B', 'C', 'D']; // posiciones visuales fijas para las 4 reales barajadas; "No lo sé" siempre usa "E"
 
   function escapeHtml(s){
     return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -326,9 +383,20 @@
 
   const params = new URLSearchParams(location.search);
   const herramienta = (params.get('h') || '').trim().toLowerCase();
+  // Link dedicado por Cliente (generado desde el admin → Diagnósticos → QR y
+  // Link) — si ambos vienen, la empresa ya está resuelta y se bloquea el
+  // campo, sin pegarle a ninguna API para esto (el nombre viaja tal cual en
+  // la URL, nunca se expone un lookup público por id). Ver CLAUDE.md →
+  // Diagnóstico Fase 2.
+  const clienteIdParam = params.get('clienteId');
+  const clienteNombreParam = params.get('clienteNombre');
+  const empresaBloqueada = clienteIdParam && clienteNombreParam
+    ? { clienteId: Number(clienteIdParam), nombre: clienteNombreParam }
+    : null;
 
   // ── autocompletado de Empresa — mismo patrón duplicado que ya usa
-  // encuesta.html, esta página tampoco carga nada del admin ──
+  // encuesta.html, esta página tampoco carga nada del admin. Se omite por
+  // completo si el link ya trae la empresa resuelta. ──
   function crearAutocomplete({ inputId, listId }){
     const input = document.getElementById(inputId);
     const lista = document.getElementById(listId);
@@ -367,39 +435,76 @@
     return { getSeleccionado: () => seleccionado };
   }
 
-  const empresaAuto = crearAutocomplete({ inputId:'diagEmpresaNombre', listId:'diagEmpresaLista' });
+  let empresaAuto = null;
+  if(empresaBloqueada){
+    document.getElementById('diagEmpresaCampo').hidden = true;
+    document.getElementById('diagEmpresaBloqueada').hidden = false;
+    document.getElementById('diagEmpresaLockTexto').textContent = empresaBloqueada.nombre;
+  } else {
+    empresaAuto = crearAutocomplete({ inputId:'diagEmpresaNombre', listId:'diagEmpresaLista' });
+  }
 
   function codigoDesdeNombre(nombre){
     return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
   }
 
-  // ── una fila de pregunta: imagen de referencia arriba, badges de contexto,
-  // texto, 4 opciones abajo (checkbox visual, comportamiento de radio — un
-  // solo valor seleccionable por pregunta). El estado seleccionado SIEMPRE usa
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Baraja el orden de despliegue de las 4 opciones reales (A-D siguen
+  // siendo solo etiquetas de POSICIÓN, top-a-abajo) y agrega "No lo sé"
+  // siempre fija al final como "E" — nunca entra al barajado. Al elegir, se
+  // manda la letra ORIGINAL (la que apunta a opcion_a../d en la base), igual
+  // que antes — el backend no cambia en nada por esto.
+  function opcionesMostradas(pregunta){
+    const reales = shuffle(OPCIONES_REALES.map(l => ({ letra:l, texto:pregunta['opcion_' + l.toLowerCase()] })));
+    const mostradas = reales.map((op, i) => ({ posicion:POSICIONES[i], letra:op.letra, texto:op.texto, fija:false }));
+    mostradas.push({ posicion:'E', letra:'N', texto:'No lo sé', fija:true });
+    return mostradas;
+  }
+
+  // ── una tarjeta de pregunta: número + fx arriba, texto ENCIMA de la
+  // imagen (para no confundir el orden), imagen debajo, 5 opciones (4
+  // reales barajadas + "No lo sé" fija). El estado seleccionado SIEMPRE usa
   // el azul de marca, nunca el color de la herramienta ni ningún color que
   // pueda leerse como "correcto" — y no se revela en ningún momento si la
-  // respuesta elegida es correcta o no. ──
-  function renderPregunta(pregunta, indice, total){
+  // respuesta elegida es correcta o no. Sin etiqueta de nivel: el usuario no
+  // tiene por qué saber si una pregunta es básica o avanzada. ──
+  function renderPregunta(pregunta, indice, total, onAvanzar){
     const wrap = document.createElement('div');
     wrap.className = 'diag-question';
+    wrap.hidden = indice !== 1;
     wrap.dataset.preguntaId = pregunta.id;
+    const opciones = opcionesMostradas(pregunta);
+    const esUltima = indice === total;
     wrap.innerHTML = `
-      <div class="diag-question-badges">
-        <span class="diag-badge-nivel">${NIVEL_LABEL[pregunta.nivel] || ''}</span>
-        <span class="diag-badge-contador">fx =PREGUNTA(${indice},${total})</span>
+      <div class="diag-question-head">
+        <span class="diag-question-num">${indice}</span>
+        <span class="diag-question-fx">fx =PREGUNTA(${indice})</span>
       </div>
-      <div class="diag-question-media"><img src="${pregunta.imagen_url}" alt="Imagen de referencia de la pregunta ${indice}"></div>
       <div class="diag-question-text">${escapeHtml(pregunta.texto)}</div>
+      <div class="diag-question-media"><img src="${pregunta.imagen_url}" alt="Imagen de referencia de la pregunta ${indice}"></div>
       <div class="diag-options">
-        ${OPCIONES.map(letra => `
-          <div class="diag-option" data-letra="${letra}" tabindex="0" role="radio" aria-checked="false">
-            <span class="diag-option-letra">${letra}</span>
-            <span class="diag-option-texto">${escapeHtml(pregunta['opcion_' + letra.toLowerCase()])}</span>
-            <span class="diag-option-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        ${opciones.map(o => `
+          <div class="diag-option ${o.fija ? 'diag-option-fija' : ''}" data-letra="${o.letra}" tabindex="0" role="radio" aria-checked="false">
+            <span class="diag-option-letra">${o.posicion}</span>
+            <span class="diag-option-texto">${escapeHtml(o.texto)}</span>
+            <span class="diag-option-radio"></span>
           </div>
         `).join('')}
       </div>
+      <button type="button" class="diag-submit-fx diag-siguiente-btn" disabled>
+        <span class="diag-submit-fx-tag">fx</span>
+        <span class="diag-submit-fx-body">${esUltima ? '=ENVIAR_DIAGNOSTICO()' : '=SIGUIENTE()'}</span>
+      </button>
     `;
+
+    const btnSiguiente = wrap.querySelector('.diag-siguiente-btn');
 
     function seleccionar(letra){
       wrap.dataset.seleccionada = letra;
@@ -408,6 +513,7 @@
         op.classList.toggle('selected', sel);
         op.setAttribute('aria-checked', sel ? 'true' : 'false');
       });
+      btnSiguiente.disabled = false;
     }
     wrap.querySelectorAll('.diag-option').forEach(op => {
       op.addEventListener('click', () => seleccionar(op.dataset.letra));
@@ -415,6 +521,10 @@
         if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); seleccionar(op.dataset.letra); }
       });
     });
+
+    // Sin botón de regresar a propósito — una vez que se avanza, la
+    // pregunta anterior queda fija con lo que se eligió, no se puede editar.
+    btnSiguiente.addEventListener('click', () => onAvanzar());
 
     return wrap;
   }
@@ -433,6 +543,29 @@
         document.getElementById('diagLoading').textContent = 'Cargando diagnóstico… (puede tardar unos segundos)';
         await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
       }
+    }
+  }
+
+  let totalPreguntas = 0;
+  let indiceActual = 0; // 0-based, cuál pregunta se ve ahora
+  let tiempoInicio = null;
+
+  function actualizarBarra(){
+    const pct = totalPreguntas ? Math.round(((indiceActual) / totalPreguntas) * 100) : 0;
+    document.getElementById('diagProgressBar').style.width = pct + '%';
+  }
+
+  function avanzar(){
+    const preguntasEl = Array.from(document.querySelectorAll('.diag-question'));
+    preguntasEl[indiceActual].hidden = true;
+    indiceActual++;
+    actualizarBarra();
+    if(indiceActual < preguntasEl.length){
+      preguntasEl[indiceActual].hidden = false;
+      window.scrollTo({ top:0, behavior:'smooth' });
+    } else {
+      document.getElementById('diagProgressBar').style.width = '100%';
+      enviarDiagnostico();
     }
   }
 
@@ -462,15 +595,24 @@
         return;
       }
 
-      // orden fijo: agrupado por nivel (Básico → Intermedio → Avanzado), no
-      // aleatorio — el banco ya viene ordenado así desde getPreguntasDiagnostico
+      // El banco ya viene ordenado (nivel, orden) desde getPreguntasDiagnostico
+      // — se agrupa por nivel (Básico→Intermedio→Avanzado se conserva) y se
+      // baraja el orden SOLO adentro de cada grupo, para que cada quien vea
+      // una secuencia distinta sin perder la progresión de dificultad.
+      const porNivel = { 1:[], 2:[], 3:[] };
+      preguntas.forEach(p => { if(porNivel[p.nivel]) porNivel[p.nivel].push(p); });
+      const ordenFinal = [1, 2, 3].flatMap(n => shuffle(porNivel[n]));
+
+      totalPreguntas = ordenFinal.length;
+      indiceActual = 0;
+
       const area = document.getElementById('diagPreguntasArea');
       area.innerHTML = '';
-      preguntas.forEach((p, i) => area.appendChild(renderPregunta(p, i + 1, preguntas.length)));
+      ordenFinal.forEach((p, i) => area.appendChild(renderPregunta(p, i + 1, ordenFinal.length, avanzar)));
 
       document.getElementById('diagLoading').hidden = true;
       document.getElementById('diagError').hidden = true;
-      document.getElementById('diagForm').hidden = false;
+      document.getElementById('diagPasoIdentidad').hidden = false;
     } catch(e){
       document.getElementById('diagLoading').hidden = true;
       const err = document.getElementById('diagError');
@@ -483,48 +625,58 @@
   // Prewarm silencioso de la base SQL (donde vive enviarDiagnostico) — las
   // preguntas ya no dependen de ella (viven en Table Storage), pero el envío
   // final sí sigue tocándola. Se dispara en paralelo, sin bloquear ni avisar
-  // nada si falla: para cuando la persona termine las 15 preguntas (varios
+  // nada si falla: para cuando la persona termine de contestar (varios
   // minutos), la base ya tuvo tiempo de sobra para despertar sola.
   fetch('/api/despertarDiagnostico').catch(() => {});
 
-  document.getElementById('diagForm').addEventListener('submit', async e => {
-    e.preventDefault();
-
+  document.getElementById('diagComenzarBtn').addEventListener('click', () => {
     const nombre = document.getElementById('diagNombre').value.trim();
     if(!nombre){ alert('Escribe tu nombre.'); return; }
 
-    const seleccionado = empresaAuto.getSeleccionado();
-    const empresaNombre = document.getElementById('diagEmpresaNombre').value.trim();
     let empresa;
-    if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
-    else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
-    else { alert('Escribe el nombre de tu empresa.'); return; }
-
-    const preguntasEl = Array.from(document.querySelectorAll('.diag-question'));
-    const sinResponder = preguntasEl.filter(q => !q.dataset.seleccionada);
-    if(sinResponder.length){
-      alert('Te falta responder ' + sinResponder.length + ' pregunta(s).');
-      sinResponder[0].scrollIntoView({ behavior:'smooth', block:'center' });
-      return;
+    if(empresaBloqueada){
+      empresa = { clienteId: empresaBloqueada.clienteId };
+    } else {
+      const seleccionado = empresaAuto.getSeleccionado();
+      const empresaNombre = document.getElementById('diagEmpresaNombre').value.trim();
+      if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
+      else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
+      else { alert('Escribe el nombre de tu empresa.'); return; }
     }
 
+    const correo = document.getElementById('diagCorreo').value.trim();
+    if(correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ alert('El correo no se ve válido — revísalo o déjalo en blanco.'); return; }
+
+    window.__diagIdentidad = { nombre, empresa, area: document.getElementById('diagArea').value.trim(), correo };
+    tiempoInicio = Date.now();
+
+    document.getElementById('diagPasoIdentidad').hidden = true;
+    document.getElementById('diagProgress').hidden = false;
+    actualizarBarra();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  async function enviarDiagnostico(){
+    const identidad = window.__diagIdentidad;
+    const preguntasEl = Array.from(document.querySelectorAll('.diag-question'));
     const respuestas = preguntasEl.map(q => ({
       preguntaId: q.dataset.preguntaId,
       opcionSeleccionada: q.dataset.seleccionada,
     }));
+    const tiempoRespuestaSeg = tiempoInicio ? Math.round((Date.now() - tiempoInicio) / 1000) : null;
 
-    const btn = document.getElementById('diagSubmit');
-    const body = document.getElementById('diagSubmitBody');
+    const btn = preguntasEl[preguntasEl.length - 1].querySelector('.diag-siguiente-btn');
+    const body = btn.querySelector('.diag-submit-fx-body');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
     try {
-      // mismo reintento con pausas crecientes que pedirPreguntas — el prewarm
-      // de arriba cubre el caso normal, esto es la red de seguridad si de
-      // todos modos la base seguía dormida al momento de enviar.
       let ultimoError;
       let enviado = false;
       for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length && !enviado; intento++){
         try {
-          await apiPostJson('/api/enviarDiagnostico', { nombre, herramienta, empresa, respuestas });
+          await apiPostJson('/api/enviarDiagnostico', {
+            nombre: identidad.nombre, herramienta, empresa: identidad.empresa, respuestas,
+            area: identidad.area, correo: identidad.correo, tiempoRespuestaSeg,
+          });
           enviado = true;
         } catch(e){
           ultimoError = e;
@@ -535,13 +687,14 @@
         }
       }
       if(!enviado) throw ultimoError;
-      document.getElementById('diagForm').hidden = true;
+      document.getElementById('diagPreguntasArea').hidden = true;
+      document.getElementById('diagProgress').hidden = true;
       document.getElementById('diagThanks').classList.add('show');
     } catch(err){
       alert('No se pudo enviar tu diagnóstico: ' + err.message);
       btn.disabled = false; body.textContent = '=ENVIAR_DIAGNOSTICO()';
     }
-  });
+  }
 </script>
 
 </body>

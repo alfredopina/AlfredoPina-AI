@@ -6484,7 +6484,11 @@
       const wrap = document.getElementById('diagClienteLinkWrap');
       if(!cliente){ wrap.hidden = true; return; }
       const tool = document.getElementById('diagClienteHerramienta').value;
-      const link = new URL(`diagnostico?h=${tool}&clienteId=${cliente.id}`, location.origin + '/').href;
+      // El nombre viaja tal cual en la URL (Fase 2, diagnostico.html ya lo
+      // lee) — evita tener que exponer un lookup público "cliente por id"
+      // solo para resolver el nombre, que hubiera permitido enumerar
+      // clientes desde afuera.
+      const link = new URL(`diagnostico?h=${tool}&clienteId=${cliente.id}&clienteNombre=${encodeURIComponent(cliente.nombre)}`, location.origin + '/').href;
       document.getElementById('diagClienteLinkInput').value = link;
       wrap.hidden = false;
     }

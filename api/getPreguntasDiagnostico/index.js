@@ -23,7 +23,18 @@ module.exports = async function (context, req) {
       .filter((e) => !!e.activa)
       .map((e) => entidadAPregunta(e, { conCorrecta: false }))
       .sort((a, b) => a.nivel - b.nivel || a.orden - b.orden);
-    context.res = { status: 200, headers: JSON_HEADERS, body: preguntas };
+
+    // Tope defensivo de 5 por nivel — el admin ya lo hace cumplir al crear/
+    // editar, esto solo blinda contra que alguna vez existan más activas de
+    // la cuenta (ej. sobrantes de una carga vieja) y el público termine
+    // viendo más de 15 preguntas en total.
+    const porNivel = {};
+    const limitadas = preguntas.filter((p) => {
+      porNivel[p.nivel] = (porNivel[p.nivel] || 0) + 1;
+      return porNivel[p.nivel] <= 5;
+    });
+
+    context.res = { status: 200, headers: JSON_HEADERS, body: limitadas };
   } catch (err) {
     context.log.error("Error obteniendo preguntas del diagnóstico:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar las preguntas en este momento." } };

@@ -6,11 +6,12 @@
 //
 // Vive en Table Storage, no en SQL (2026-09-13) — ver diagnostico-tables.js.
 const crypto = require("crypto");
-const { getDiagnosticoPreguntasTable, ensureTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
+const { getDiagnosticoPreguntasTable, ensureTable, listarPreguntas, HERRAMIENTAS } = require("../src/diagnostico-tables");
 const { subirImagenPregunta } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
 
 const OPCIONES = ["A", "B", "C", "D"];
+const MAX_POR_NIVEL = 5;
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -49,12 +50,27 @@ module.exports = async function (context, req) {
   }
 
   try {
+    const table = getDiagnosticoPreguntasTable();
+    await ensureTable(table);
+
+    // Tope real de 5 preguntas por nivel — antes no existía ningún límite,
+    // así que el público podía terminar viendo más de 15 preguntas en total
+    // si Alfredo cargaba de más sin querer. Ver CLAUDE.md → Diagnóstico.
+    const existentes = await listarPreguntas(table, herramienta);
+    const enNivel = existentes.filter((e) => e.nivel === nivel).length;
+    if (enNivel >= MAX_POR_NIVEL) {
+      context.res = {
+        status: 400,
+        headers: JSON_HEADERS,
+        body: { error: `Ya hay ${MAX_POR_NIVEL} preguntas en el nivel ${nivel} de ${herramienta} — es el máximo.` },
+      };
+      return;
+    }
+
     const id = crypto.randomUUID();
     const buffer = Buffer.from(imagenBase64, "base64");
     const imagenUrl = await subirImagenPregunta(id, buffer, contentType);
 
-    const table = getDiagnosticoPreguntasTable();
-    await ensureTable(table);
     await table.upsertEntity(
       {
         partitionKey: herramienta,

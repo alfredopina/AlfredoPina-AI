@@ -50,6 +50,7 @@ module.exports = async function (context, req) {
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
       SELECT r.id AS respuesta_id, r.nombre, r.cliente_id, c.nombre AS cliente, r.herramienta, r.fecha_envio,
+             r.area, r.correo, r.tiempo_respuesta_seg,
              d.pregunta_id, d.nivel, d.opcion_seleccionada, d.fue_correcta
       FROM DiagnosticoRespuesta r
       JOIN Cliente c ON c.id = r.cliente_id
@@ -79,6 +80,9 @@ module.exports = async function (context, req) {
           cliente: row.cliente,
           herramienta: row.herramienta,
           fecha_envio: row.fecha_envio,
+          area: row.area,
+          correo: row.correo,
+          tiempo_respuesta_seg: row.tiempo_respuesta_seg,
           detalle: [],
           tallies: { basico: { aciertos: 0, total: 0 }, intermedio: { aciertos: 0, total: 0 }, avanzado: { aciertos: 0, total: 0 } },
         });

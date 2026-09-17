@@ -10,7 +10,7 @@
 // (PartitionKey) además del id (RowKey) para poder borrar sin recorrer toda
 // la tabla; el admin ya conoce la herramienta activa cuando llama esto.
 const { getDiagnosticoPreguntasTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
-const { getDiagnosticoContainer } = require("../src/diagnostico-storage");
+const { eliminarImagenPorUrl } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -38,17 +38,7 @@ module.exports = async function (context, req) {
     }
 
     await table.deleteEntity(herramienta, id);
-
-    const imagenUrl = existente.imagen_url;
-    if (imagenUrl) {
-      try {
-        const blobName = decodeURIComponent(new URL(imagenUrl).pathname.split("/").pop());
-        const container = await getDiagnosticoContainer();
-        await container.deleteBlob(blobName);
-      } catch (e) {
-        context.log.warn("No se pudo borrar la imagen " + imagenUrl, e.message);
-      }
-    }
+    await eliminarImagenPorUrl(existente.imagen_url);
 
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {

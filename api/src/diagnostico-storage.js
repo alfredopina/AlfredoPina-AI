@@ -39,4 +39,21 @@ async function subirImagenPregunta(key, buffer, contentType) {
   return blockBlobClient.url;
 }
 
-module.exports = { getDiagnosticoContainer, subirImagenPregunta };
+// Borra el blob de una imagen ya subida, a partir de su URL pública — nunca
+// crítico: si falla (ej. ya no existe), solo se registra un aviso, no debe
+// tumbar la operación principal (guardar/editar/eliminar una pregunta).
+// Usada por eliminarPreguntaDiagnostico y por editarPreguntaDiagnostico al
+// reemplazar una imagen (antes de esto, la imagen vieja quedaba huérfana en
+// Storage para siempre — bug real, ver CLAUDE.md → Diagnóstico).
+async function eliminarImagenPorUrl(imagenUrl) {
+  if (!imagenUrl) return;
+  try {
+    const blobName = decodeURIComponent(new URL(imagenUrl).pathname.split("/").pop());
+    const container = await getDiagnosticoContainer();
+    await container.deleteBlob(blobName);
+  } catch (err) {
+    console.warn("No se pudo borrar la imagen " + imagenUrl, err.message);
+  }
+}
+
+module.exports = { getDiagnosticoContainer, subirImagenPregunta, eliminarImagenPorUrl };

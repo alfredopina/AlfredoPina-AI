@@ -25,7 +25,10 @@ const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagno
 const { JSON_HEADERS } = require("../src/http");
 
 const HERRAMIENTAS = ["excel", "powerbi"];
-const OPCIONES = ["A", "B", "C", "D"];
+// 'N' = "No lo sé" (Fase 2 la agrega al público) — nunca es igual a
+// opcion_correcta (siempre A-D), así que cuenta como incorrecta sin
+// necesitar ningún caso especial en el cálculo de fue_correcta.
+const OPCIONES = ["A", "B", "C", "D", "N"];
 
 function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -67,6 +70,11 @@ module.exports = async function (context, req) {
   const herramienta = (body.herramienta || "").trim().toLowerCase();
   const empresa = body.empresa || {};
   const respuestas = Array.isArray(body.respuestas) ? body.respuestas : [];
+  // Los 3 son opcionales — el front todavía no los manda hasta Fase 2, así
+  // que llegan null con el front actual sin romper nada.
+  const area = (body.area || "").trim() || null;
+  const correo = (body.correo || "").trim() || null;
+  const tiempoRespuestaSeg = Number.isFinite(Number(body.tiempoRespuestaSeg)) ? Math.round(Number(body.tiempoRespuestaSeg)) : null;
 
   if (!nombre) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta tu nombre." } };
@@ -116,10 +124,13 @@ module.exports = async function (context, req) {
       .input("nombre", sql.NVarChar, nombre)
       .input("clienteId", sql.Int, cliente.id)
       .input("herramienta", sql.VarChar, herramienta)
+      .input("area", sql.NVarChar, area)
+      .input("correo", sql.NVarChar, correo)
+      .input("tiempoRespuestaSeg", sql.Int, tiempoRespuestaSeg)
       .query(
-        `INSERT INTO DiagnosticoRespuesta (nombre, cliente_id, herramienta)
+        `INSERT INTO DiagnosticoRespuesta (nombre, cliente_id, herramienta, area, correo, tiempo_respuesta_seg)
          OUTPUT INSERTED.id
-         VALUES (@nombre, @clienteId, @herramienta)`
+         VALUES (@nombre, @clienteId, @herramienta, @area, @correo, @tiempoRespuestaSeg)`
       );
     const respuestaId = insertRespuesta.recordset[0].id;
 

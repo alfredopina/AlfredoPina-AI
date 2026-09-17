@@ -1784,34 +1784,14 @@
         <div id="diagToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="diagTabs">
-          <button type="button" class="dash-etab active" data-diagtab="preguntas">Preguntas</button>
+          <button type="button" class="dash-etab active" data-diagtab="excel">Excel</button>
+          <button type="button" class="dash-etab" data-diagtab="powerbi">Power BI</button>
           <button type="button" class="dash-etab" data-diagtab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-diagtab="resultados">Resultados</button>
         </div>
 
-        <div class="dip-tabpanel active" id="diagTab-preguntas">
-          <div class="radm-view active" id="diagView-tools">
-            <span class="radm-hint" style="display:block; margin-bottom:16px;">Elige una herramienta para editar su banco de preguntas (5 por nivel, ancladas a una imagen de referencia).</span>
-            <div class="radm-tools-grid" id="diagToolsGrid" style="max-width:520px;"></div>
-          </div>
-
-          <div class="radm-view" id="diagView-tool">
-            <button type="button" class="radm-back" id="diagBack">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Herramientas
-            </button>
-            <div class="dash-etabs" id="diagNivelTabs">
-              <button type="button" class="dash-etab active" data-nivel="1">Básico</button>
-              <button type="button" class="dash-etab" data-nivel="2">Intermedio</button>
-              <button type="button" class="dash-etab" data-nivel="3">Avanzado</button>
-            </div>
-            <div class="radm-section-head">
-              <span class="radm-section-title" id="diagNivelTitle">BÁSICO</span>
-              <button type="button" class="radm-btn-add" id="diagBtnAdd">+ Agregar pregunta</button>
-            </div>
-            <div class="radm-list" id="diagLista"></div>
-          </div>
-        </div>
+        <div class="dip-tabpanel active" id="diagTab-excel"></div>
+        <div class="dip-tabpanel" id="diagTab-powerbi"></div>
 
         <div class="dip-tabpanel" id="diagTab-qr">
           <div class="diag-qr-row">
@@ -1851,6 +1831,34 @@
               <div class="enc-qr-actions-row">
                 <button type="button" class="radm-btn" data-ver="powerbi" style="min-width:auto">Ver diagnóstico</button>
                 <button type="button" class="radm-btn radm-btn-ghost" data-descargar="powerbi" style="min-width:auto">Descargar QR (PNG)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Link para un cliente específico</span>
+            </div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Genera un link que ya trae al cliente resuelto — evita que lo escriban mal o que se mezclen registros cuando varios clientes están respondiendo al mismo tiempo.</span>
+            <div class="radm-form-row">
+              <div class="radm-field" style="max-width:160px;">
+                <label>HERRAMIENTA</label>
+                <select id="diagClienteHerramienta">
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                </select>
+              </div>
+              <div class="radm-field dip-autocomplete-wrap" style="flex:1; min-width:220px;">
+                <label>CLIENTE</label>
+                <input type="text" id="diagClienteNombre" placeholder="Escribe el nombre del cliente..." autocomplete="off">
+                <div class="dip-autocomplete-list" id="diagClienteLista" hidden></div>
+              </div>
+            </div>
+            <div class="radm-field" id="diagClienteLinkWrap" hidden>
+              <label>LINK</label>
+              <div class="enc-link-row">
+                <input type="text" id="diagClienteLinkInput" readonly>
+                <button type="button" class="radm-btn radm-btn-ghost" id="diagClienteCopiar" style="min-width:auto">Copiar</button>
               </div>
             </div>
           </div>
@@ -6096,8 +6104,11 @@
       });
     }
 
-    // ── pestañas — QR y Resultados se cargan perezosos, solo la primera vez ──
+    // ── pestañas — cada herramienta y Resultados se cargan perezosos, solo la
+    // primera vez que se abren; Excel es la pestaña activa por default, se
+    // carga en el arranque del IIFE (ver abajo) ──
     let diagQrCargado = false, diagResultadosCargados = false, diagQrTabActiva = false;
+    const diagCargado = { excel: false, powerbi: false };
     document.getElementById('diagTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
@@ -6105,73 +6116,86 @@
       document.querySelectorAll('#diagTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('#panel-diagnosticos .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'diagTab-' + key));
       diagQrTabActiva = (key === 'qr');
+      if((key === 'excel' || key === 'powerbi') && !diagCargado[key]){ diagCargado[key] = true; cargarPreguntas(key); }
       if(key === 'qr' && !diagQrCargado){ diagQrCargado = true; cargarQr(); }
       if(key === 'resultados' && !diagResultadosCargados){ diagResultadosCargados = true; buscarResultados(); }
     });
 
-    // ══ PREGUNTAS ══
-    let diagTool = null;
-    let diagNivel = 1;
-    let diagPreguntas = [];
+    // ══ PREGUNTAS ══ — una sola página por herramienta (ya no hay grid de
+    // selección ni sub-pestañas de nivel, ver CLAUDE.md → Diagnóstico Fase 1),
+    // con 3 secciones fijas (Básico/Intermedio/Avanzado) mismo patrón
+    // `.radm-section`/`.radm-list` que ya usa Encuestas para sus 2 secciones.
+    const MAX_POR_NIVEL = 5;
+    const diagPreguntas = { excel: [], powerbi: [] };
 
-    function renderToolsGrid(){
-      const grid = document.getElementById('diagToolsGrid');
-      grid.innerHTML = Object.keys(TOOL_META).map(id => {
-        const t = TOOL_META[id];
-        return `
-          <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
-            <span class="radm-tool-icon">${t.icon}</span>
-            <span class="radm-tool-name">${t.nombre}</span>
-          </button>`;
-      }).join('');
-      grid.querySelectorAll('.radm-tool-card').forEach(card => {
-        card.addEventListener('click', () => goTool(card.dataset.tool));
-      });
+    function listaSel(tool, nivel){
+      return document.querySelector(`.radm-list[data-tool="${tool}"][data-nivel="${nivel}"]`);
     }
-    renderToolsGrid();
+    function btnAddSel(tool, nivel){
+      return document.querySelector(`.radm-btn-add[data-tool="${tool}"][data-nivel="${nivel}"]`);
+    }
 
-    function goTool(id){
-      diagTool = id;
-      diagNivel = 1;
-      document.getElementById('diagView-tools').classList.remove('active');
-      document.getElementById('diagView-tool').classList.add('active');
-      document.querySelectorAll('#diagNivelTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.nivel === '1'));
-      document.getElementById('diagNivelTitle').textContent = NIVEL_LABEL[1].toUpperCase();
-      cargarPreguntas();
+    function construirVistaHerramienta(tool){
+      const cont = document.getElementById('diagTab-' + tool);
+      cont.innerHTML = [1, 2, 3].map(nivel => `
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">${NIVEL_LABEL[nivel].toUpperCase()}</span>
+            <button type="button" class="radm-btn-add" data-add data-tool="${tool}" data-nivel="${nivel}">+ Agregar pregunta</button>
+          </div>
+          <div class="radm-list" data-tool="${tool}" data-nivel="${nivel}"></div>
+        </div>
+      `).join('');
     }
-    function goTools(){
-      diagTool = null;
-      document.getElementById('diagView-tools').classList.add('active');
-      document.getElementById('diagView-tool').classList.remove('active');
-    }
-    document.getElementById('diagBack').addEventListener('click', goTools);
+    construirVistaHerramienta('excel');
+    construirVistaHerramienta('powerbi');
 
-    document.getElementById('diagNivelTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.dash-etab');
-      if(!btn) return;
-      diagNivel = Number(btn.dataset.nivel);
-      document.querySelectorAll('#diagNivelTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
-      document.getElementById('diagNivelTitle').textContent = NIVEL_LABEL[diagNivel].toUpperCase();
-      renderListaPreguntas();
+    // Un solo listener delegado para las 6 combinaciones tool×nivel — los
+    // botones "+ Agregar pregunta" se regeneran cada vez que se reconstruye
+    // la vista, así que delegar en el panel evita reenganchar listeners.
+    document.getElementById('panel-diagnosticos').addEventListener('click', e => {
+      const btn = e.target.closest('[data-add]');
+      if(!btn || btn.disabled) return;
+      abrirFormPregunta(btn.dataset.tool, Number(btn.dataset.nivel), null);
     });
 
     // Deshabilita "+ Agregar pregunta" mientras carga — mismo candado que
     // Encuestas, la base SQL serverless puede tardar hasta 60s en despertar.
-    async function cargarPreguntas(){
-      document.getElementById('diagBtnAdd').disabled = true;
+    // (Diagnóstico vive en Table Storage, nunca se pausa — pero
+    // listPreguntasDiagnosticoAdmin sí es protegida por rol admin como
+    // cualquier otra, se deja el mismo candado por consistencia visual.)
+    async function cargarPreguntas(tool){
+      document.querySelectorAll(`.radm-btn-add[data-tool="${tool}"]`).forEach(b => { b.disabled = true; });
       try {
-        diagPreguntas = await apiGetConReintento('/api/listPreguntasDiagnosticoAdmin?herramienta=' + diagTool);
+        const data = await apiGetConReintento('/api/listPreguntasDiagnosticoAdmin?herramienta=' + tool);
+        // Blindaje encontrado probando en un entorno sin backend real: una
+        // respuesta 200 que no sea un array (nunca debería pasar contra la
+        // Function real, pero mejor no tronar el panel entero si algún día
+        // pasa) se trata igual que una lista vacía, no como dato válido.
+        diagPreguntas[tool] = Array.isArray(data) ? data : [];
       } catch(e){
-        diagPreguntas = [];
+        diagPreguntas[tool] = [];
         toast('No se pudieron cargar las preguntas: ' + e.message, false);
       }
-      renderListaPreguntas();
-      document.getElementById('diagBtnAdd').disabled = false;
+      [1, 2, 3].forEach(nivel => renderListaPreguntas(tool, nivel));
     }
 
-    function renderListaPreguntas(){
-      const cont = document.getElementById('diagLista');
-      const items = diagPreguntas.filter(p => p.nivel === diagNivel).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    // El tope real de 5 se hace cumplir en 3 lugares (defensa en profundidad,
+    // ver CLAUDE.md → Diagnóstico Fase 1): aquí (deshabilita "+ Agregar" antes
+    // de intentar), en crearPreguntaDiagnostico/editarPreguntaDiagnostico
+    // (rechaza el guardado) y en getPreguntasDiagnostico (corta a 5 lo que ve
+    // el público, por si alguna vez hay más activas de la cuenta).
+    function renderListaPreguntas(tool, nivel){
+      const cont = listaSel(tool, nivel);
+      const btnAdd = btnAddSel(tool, nivel);
+      const items = (diagPreguntas[tool] || []).filter(p => p.nivel === nivel).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+      if(btnAdd){
+        const lleno = items.length >= MAX_POR_NIVEL;
+        btnAdd.disabled = lleno;
+        btnAdd.textContent = lleno ? `${items.length}/${MAX_POR_NIVEL} — máximo alcanzado` : '+ Agregar pregunta';
+      }
+
       if(!items.length){ cont.innerHTML = '<div class="radm-empty-row">Sin preguntas todavía en este nivel.</div>'; return; }
 
       cont.innerHTML = items.map(p => `
@@ -6188,10 +6212,10 @@
       `).join('');
 
       cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormPregunta(diagPreguntas.find(p => p.id === b.closest('.radm-row').dataset.id)));
+        b.addEventListener('click', () => abrirFormPregunta(tool, nivel, diagPreguntas[tool].find(p => p.id === b.closest('.radm-row').dataset.id)));
       });
       cont.querySelectorAll('[data-action="del"]').forEach(b => {
-        b.addEventListener('click', () => eliminarPregunta(b.closest('.radm-row').dataset.id));
+        b.addEventListener('click', () => eliminarPregunta(tool, b.closest('.radm-row').dataset.id));
       });
 
       if(window.Sortable){
@@ -6202,15 +6226,45 @@
             // pública ordena por (nivel, orden), así que no hace falta
             // ningún truco de offset entre niveles como en Encuestas.
             const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
-            try { await apiPostJson('/api/reordenarPreguntasDiagnostico', { herramienta: diagTool, items: items2 }); await cargarPreguntas(); }
+            try { await apiPostJson('/api/reordenarPreguntasDiagnostico', { herramienta: tool, items: items2 }); await cargarPreguntas(tool); }
             catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
           },
         });
       }
     }
 
-    function abrirFormPregunta(item){
-      const cont = document.getElementById('diagLista');
+    // Validación de calidad de imagen, 100% en el navegador (sin librería
+    // nueva, sin costo de servidor) — solo AVISA, nunca bloquea guardar: no
+    // hay un estándar real de "hoja legible", así que se deja a criterio de
+    // Alfredo, que ya valida visualmente con un screenshot del resultado.
+    // Aplica solo hacia adelante, nunca revisa imágenes ya subidas.
+    const IMG_ANCHO_MIN = 1000;
+    const IMG_PESO_MAX = 3 * 1024 * 1024;
+    const IMG_FORMATOS = ['image/png', 'image/jpeg', 'image/webp'];
+    function validarImagenPregunta(file){
+      return new Promise(resolve => {
+        if(!IMG_FORMATOS.includes(file.type)){
+          resolve({ ok:false, mensaje:'Formato no recomendado — usa PNG, JPG o WEBP.' });
+          return;
+        }
+        if(file.size > IMG_PESO_MAX){
+          resolve({ ok:false, mensaje:`Pesa ${(file.size / 1024 / 1024).toFixed(1)}MB — se recomienda máximo 3MB para que cargue rápido en celular.` });
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          if(img.naturalWidth < IMG_ANCHO_MIN) resolve({ ok:false, mensaje:`Ancho de ${img.naturalWidth}px — se recomiendan al menos ${IMG_ANCHO_MIN}px para que se vea nítida.` });
+          else resolve({ ok:true, mensaje:`${img.naturalWidth}×${img.naturalHeight}px — se ve bien.` });
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve({ ok:true, mensaje:'' }); };
+        img.src = url;
+      });
+    }
+
+    function abrirFormPregunta(tool, nivel, item){
+      const cont = listaSel(tool, nivel);
       const existing = cont.querySelector('.radm-inline-form');
       if(existing) existing.remove();
 
@@ -6225,16 +6279,18 @@
         </div>
         <div class="radm-form-row">
           <div class="radm-field" style="flex:none;">
-            <label>IMAGEN DE REFERENCIA${item ? ' (opcional — deja vacío para conservar la actual)' : ''}</label>
-            ${item ? `<div class="diag-img-preview"><img src="${item.imagen_url}" alt=""></div>` : ''}
+            <label>IMAGEN DE REFERENCIA</label>
+            ${item ? `<div class="diag-img-preview"><img src="${item.imagen_url}" alt=""></div>
+            <button type="button" class="radm-btn radm-btn-ghost diag-f-cambiar-imagen" style="min-width:auto; display:block; margin-bottom:10px;">Cambiar imagen</button>` : ''}
             <div class="diag-img-preview" id="diagImgNueva" hidden><img alt=""></div>
-            <input type="file" accept="image/*" class="diag-f-imagen">
+            <input type="file" accept="image/png,image/jpeg,image/webp" class="diag-f-imagen" ${item ? 'hidden' : ''}>
+            <span class="radm-hint diag-f-imagen-hint" style="display:block; margin-top:6px;"></span>
           </div>
         </div>
         <div class="diag-opciones">
           ${OPCIONES.map(letra => `
             <div class="diag-opcion-row">
-              <input type="radio" name="diagCorrecta" value="${letra}" class="diag-f-correcta" ${item && item.opcion_correcta === letra ? 'checked' : ''}>
+              <input type="radio" name="diagCorrecta-${tool}-${nivel}" value="${letra}" class="diag-f-correcta" ${item && item.opcion_correcta === letra ? 'checked' : ''}>
               <span class="diag-opcion-letra">${letra}</span>
               <input type="text" class="diag-f-opcion" data-letra="${letra}" placeholder="Opción ${letra}" value="${item ? escapeHtml(item['opcion_' + letra.toLowerCase()]) : ''}">
             </div>
@@ -6256,12 +6312,28 @@
         </div>`;
       cont.appendChild(form);
 
-      form.querySelector('.diag-f-imagen').addEventListener('change', e => {
+      // "Cambiar imagen" (solo en edición) — la imagen actual se reemplaza,
+      // nunca se queda huérfana en Storage (el backend borra la vieja al
+      // guardar una nueva, ver CLAUDE.md → Diagnóstico Fase 1).
+      const btnCambiar = form.querySelector('.diag-f-cambiar-imagen');
+      if(btnCambiar){
+        btnCambiar.addEventListener('click', () => {
+          form.querySelector('.diag-f-imagen').hidden = false;
+          btnCambiar.hidden = true;
+          form.querySelector('.diag-f-imagen-hint').textContent = 'Elige la imagen nueva — se reemplaza la actual al guardar.';
+        });
+      }
+
+      form.querySelector('.diag-f-imagen').addEventListener('change', async e => {
         const file = e.target.files[0];
         const prev = form.querySelector('#diagImgNueva');
-        if(!file){ prev.hidden = true; return; }
+        const hint = form.querySelector('.diag-f-imagen-hint');
+        if(!file){ prev.hidden = true; hint.textContent = ''; return; }
         prev.querySelector('img').src = URL.createObjectURL(file);
         prev.hidden = false;
+        const { ok, mensaje } = await validarImagenPregunta(file);
+        hint.textContent = mensaje;
+        hint.style.color = ok ? '' : '#ef4444';
       });
       form.querySelector('.diag-f-activa').addEventListener('change', e => {
         form.querySelector('.diag-f-activa-label').textContent = e.target.checked ? 'Activa' : 'Inactiva';
@@ -6280,12 +6352,13 @@
         if(!correctaEl){ toast('Marca cuál opción es la correcta.', false); return; }
         if(!item && !file){ toast('Falta la imagen de referencia.', false); return; }
 
-        const itemsNivel = diagPreguntas.filter(p => p.nivel === diagNivel);
+        const itemsNivel = (diagPreguntas[tool] || []).filter(p => p.nivel === nivel);
+        if(!item && itemsNivel.length >= MAX_POR_NIVEL){ toast(`Ya hay ${MAX_POR_NIVEL} preguntas en este nivel — es el máximo.`, false); return; }
         const orden = item ? item.orden : itemsNivel.length * 10;
 
         const payload = {
           id: item ? item.id : undefined,
-          herramienta: diagTool, nivel: diagNivel, texto,
+          herramienta: tool, nivel, texto,
           opcionA: opciones.A, opcionB: opciones.B, opcionC: opciones.C, opcionD: opciones.D,
           opcionCorrecta: correctaEl.value, orden, activa,
         };
@@ -6299,22 +6372,25 @@
         try {
           await apiPostJson(item ? '/api/editarPreguntaDiagnostico' : '/api/crearPreguntaDiagnostico', payload);
           toast('Pregunta guardada.', true);
-          await cargarPreguntas();
+          await cargarPreguntas(tool);
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
-    document.getElementById('diagBtnAdd').addEventListener('click', () => abrirFormPregunta(null));
-
-    async function eliminarPregunta(id){
-      const p = diagPreguntas.find(x => x.id === id);
+    async function eliminarPregunta(tool, id){
+      const p = (diagPreguntas[tool] || []).find(x => x.id === id);
       if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial en Resultados, solo dejan de mostrar su texto/imagen. Si solo quieres que deje de aparecer en el diagnóstico, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
       try {
-        await apiPostJson('/api/eliminarPreguntaDiagnostico', { id, herramienta: diagTool });
+        await apiPostJson('/api/eliminarPreguntaDiagnostico', { id, herramienta: tool });
         toast('Pregunta eliminada.', true);
-        await cargarPreguntas();
+        await cargarPreguntas(tool);
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
+
+    // Excel es la pestaña activa por default — se carga de una vez; Power BI
+    // se queda perezoso, igual que QR/Resultados, hasta que se le da clic.
+    diagCargado.excel = true;
+    cargarPreguntas('excel');
 
     // ══ QR / LINK ══
     const diagQrInstances = {};
@@ -6395,6 +6471,31 @@
       }
     });
 
+    // ── Link dedicado por Cliente — resuelve al cliente de una vez (sin que
+    // lo escriba, sin typos) para que no se mezclen registros cuando varias
+    // empresas responden al mismo tiempo. Reusa crearAutocompleteFiltro
+    // (definida abajo, hoisted) — sin Function nueva, es solo construcción de
+    // URL en el cliente. La página pública todavía no lee "clienteId" (eso
+    // llega en la Fase 2) — mientras tanto el link funciona igual que
+    // cualquier otro, solo que no bloquea el campo Empresa todavía.
+    const diagClienteAuto = crearAutocompleteFiltro({ inputId:'diagClienteNombre', listId:'diagClienteLista' });
+    function actualizarLinkCliente(){
+      const cliente = diagClienteAuto.getSeleccionado();
+      const wrap = document.getElementById('diagClienteLinkWrap');
+      if(!cliente){ wrap.hidden = true; return; }
+      const tool = document.getElementById('diagClienteHerramienta').value;
+      const link = new URL(`diagnostico?h=${tool}&clienteId=${cliente.id}`, location.origin + '/').href;
+      document.getElementById('diagClienteLinkInput').value = link;
+      wrap.hidden = false;
+    }
+    document.getElementById('diagClienteHerramienta').addEventListener('change', actualizarLinkCliente);
+    document.getElementById('diagClienteNombre').addEventListener('input', () => { document.getElementById('diagClienteLinkWrap').hidden = true; });
+    document.getElementById('diagClienteLista').addEventListener('click', actualizarLinkCliente);
+    document.getElementById('diagClienteCopiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(document.getElementById('diagClienteLinkInput').value); toast('Link copiado.', true); }
+      catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+    });
+
     // ══ RESULTADOS ══
     function crearAutocompleteFiltro({ inputId, listId }){
       const input = document.getElementById(inputId);
@@ -6445,7 +6546,11 @@
 
     function detalleHtml(r){
       const items = r.detalle.slice().sort((a, b) => (a.nivel - b.nivel) || (a.pregunta_id - b.pregunta_id)).map(d => {
-        const opcionTexto = d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
+        // 'N' = "No lo sé" (Fase 2) — no es una letra de las 4 columnas
+        // opcion_a..d, así que nunca hay texto que resolverle, solo la
+        // etiqueta. Cuenta como Incorrecta (fue_correcta ya viene en 0).
+        const esNoSe = d.opcion_seleccionada === 'N';
+        const opcionTexto = !esNoSe && d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
           ? d['opcion_' + d.opcion_seleccionada.toLowerCase()] : null;
         return `
           <div class="diag-resultado-item">
@@ -6454,10 +6559,18 @@
               <span class="diag-resultado-estado ${d.fue_correcta ? 'ok' : 'bad'}">${d.fue_correcta ? ICO.check : ICO.x}${d.fue_correcta ? 'Correcta' : 'Incorrecta'}</span>
             </div>
             <div class="diag-resultado-texto">${escapeHtml(d.texto)}</div>
-            <div class="diag-resultado-eleccion">Eligió: <b>${escapeHtml(d.opcion_seleccionada)}</b>${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''}</div>
+            <div class="diag-resultado-eleccion">Eligió: <b>${esNoSe ? 'No lo sé' : escapeHtml(d.opcion_seleccionada)}</b>${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''}</div>
           </div>`;
       }).join('');
-      return `<div class="diag-resultado-detalle">${items || '<div class="radm-empty-row">Sin desglose disponible.</div>'}</div>`;
+      // Metadata nueva de la Fase 1 (área/correo/tiempo de respuesta) — solo
+      // se muestra si al menos un dato llegó, para no ensuciar el desglose de
+      // envíos viejos que nunca la capturaron (front público sin Fase 2 aún).
+      const metaBits = [];
+      if(r.area) metaBits.push('Área: ' + escapeHtml(r.area));
+      if(r.correo) metaBits.push('Correo: ' + escapeHtml(r.correo));
+      if(r.tiempo_respuesta_seg != null) metaBits.push('Tiempo de respuesta: ' + Math.round(r.tiempo_respuesta_seg) + 's');
+      const metaHtml = metaBits.length ? `<div class="radm-hint" style="display:block; margin-bottom:14px;">${metaBits.join(' · ')}</div>` : '';
+      return `<div class="diag-resultado-detalle">${metaHtml}${items || '<div class="radm-empty-row">Sin desglose disponible.</div>'}</div>`;
     }
 
     async function buscarResultados(){

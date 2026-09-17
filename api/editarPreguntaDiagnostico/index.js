@@ -9,9 +9,11 @@
 // una herramienta) — si no calza con el PartitionKey real, se trata igual
 // que "id no encontrado" en vez de intentar mover la entidad de partición.
 const crypto = require("crypto");
-const { getDiagnosticoPreguntasTable, HERRAMIENTAS } = require("../src/diagnostico-tables");
-const { subirImagenPregunta } = require("../src/diagnostico-storage");
+const { getDiagnosticoPreguntasTable, listarPreguntas, HERRAMIENTAS } = require("../src/diagnostico-tables");
+const { subirImagenPregunta, eliminarImagenPorUrl } = require("../src/diagnostico-storage");
 const { JSON_HEADERS } = require("../src/http");
+
+const MAX_POR_NIVEL = 5;
 
 const OPCIONES = ["A", "B", "C", "D"];
 
@@ -66,10 +68,29 @@ module.exports = async function (context, req) {
       throw err;
     }
 
+    // Si el nivel cambia, hay que revalidar el tope de 5 contra el nivel
+    // DESTINO (el de origen se libera con este mismo cambio) — nunca contra
+    // el propio id, que ya no debe contarse dos veces.
+    if (nivel !== existente.nivel) {
+      const todas = await listarPreguntas(table, herramienta);
+      const enNivelDestino = todas.filter((e) => e.nivel === nivel && e.rowKey !== id).length;
+      if (enNivelDestino >= MAX_POR_NIVEL) {
+        context.res = {
+          status: 400,
+          headers: JSON_HEADERS,
+          body: { error: `Ya hay ${MAX_POR_NIVEL} preguntas en el nivel ${nivel} — es el máximo.` },
+        };
+        return;
+      }
+    }
+
     let imagenUrl = existente.imagen_url;
     if (imagenBase64) {
       const buffer = Buffer.from(imagenBase64, "base64");
       imagenUrl = await subirImagenPregunta(crypto.randomUUID(), buffer, contentType);
+      // La imagen vieja ya no la usa nadie — antes se quedaba huérfana en
+      // Storage para siempre, ver CLAUDE.md → Diagnóstico.
+      await eliminarImagenPorUrl(existente.imagen_url);
     }
 
     await table.upsertEntity(

@@ -29,11 +29,23 @@ BEGIN
 END
 GO
 
+-- El UNIQUE (respuesta_id, pregunta_id) de sql/004_encuesta_constraint.sql
+-- depende de pregunta_id — SQL Server no deja cambiar el tipo de una columna
+-- con un constraint encima, hay que tirarlo antes y recrearlo después
+-- (mismo patrón ya usado en sql/012/sql/016 con los DEFAULT de Grupo).
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_EncuestaRespuestaDetalle')
+  ALTER TABLE EncuestaRespuestaDetalle DROP CONSTRAINT UQ_EncuestaRespuestaDetalle;
+GO
+
 -- pregunta_id ahora es el uuid (RowKey) de la tabla "EncuestaPreguntas" en
 -- Table Storage — SIN FK a propósito, mismo criterio de siempre (ver
 -- sql/003_encuestas.sql): si se borra una pregunta, las respuestas
 -- históricas se conservan (solo pierden el texto al mostrarse).
 ALTER TABLE EncuestaRespuestaDetalle ALTER COLUMN pregunta_id NVARCHAR(50) NOT NULL;
+GO
+
+ALTER TABLE EncuestaRespuestaDetalle
+ADD CONSTRAINT UQ_EncuestaRespuestaDetalle UNIQUE (respuesta_id, pregunta_id);
 GO
 
 DROP TABLE IF EXISTS EncuestaPregunta;

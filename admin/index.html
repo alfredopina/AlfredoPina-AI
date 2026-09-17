@@ -441,21 +441,65 @@
   .diag-qr-tool-icon{ width:18px; height:18px; }
   .diag-qr-tool-icon svg{ width:100%; height:100%; }
 
-  .diag-resultado-detalle{ display:flex; flex-direction:column; gap:14px; }
-  .diag-resultado-item{ border:1px solid var(--line-soft); border-radius:8px; padding:12px 14px; }
-  .diag-resultado-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
-  .diag-resultado-nivel{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; }
-  .diag-resultado-estado{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; font-weight:600; }
-  .diag-resultado-estado.ok{ color:var(--good, #14b8a6); }
-  .diag-resultado-estado.bad{ color:var(--bad, #dc2626); }
-  .diag-resultado-estado svg{ width:14px; height:14px; }
-  .diag-resultado-texto{ font-size:13px; margin-bottom:4px; }
-  .diag-resultado-eleccion{ font-size:12px; color:var(--text-dim); }
-  .diag-tallies{ display:flex; gap:10px; flex-wrap:wrap; }
-  .diag-tally-pill{
-    font-family:var(--mono); font-size:11.5px; padding:4px 10px; border-radius:20px;
-    border:1px solid var(--line); color:var(--text-dim); white-space:nowrap;
+  /* Tarjeta de herramienta en QR/Link — acciones+link a la izquierda, QR a la
+     derecha (antes todo apilado verticalmente). Colapsa a una columna en
+     mobile, QR abajo. */
+  .diag-qr-card-body{ display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
+  .diag-qr-card-left{ flex:1 1 220px; min-width:220px; }
+  .diag-qr-card-right{ flex:none; }
+  .diag-qr-actions{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .diag-qr-actions .radm-btn{ justify-content:flex-start; gap:8px; }
+  .diag-qr-actions .radm-btn svg{ width:15px; height:15px; flex:none; }
+
+  /* Scorecard "Respuestas en vivo" — más chico, mismo esquema compacto que
+     ya usan Clientes/Grupos (ícono+valor en línea), sin envolver en .dip-paso
+     (tarjeta con borde) para que se sienta más ligero al ir arriba de todo. */
+  .diag-kpi-row-chica .dkpi-card{ padding:10px 12px; }
+  .diag-kpi-row-chica .dkpi-value{ font-size:18px; }
+
+  /* ── Resultados: desglose de las 15 respuestas como grid denso de chips
+     (en vez de una tarjeta por pregunta con scroll largo), agrupado por
+     nivel — solo aquí en el admin tiene sentido mostrar el nivel, el público
+     nunca lo ve. Clic en un chip muestra su detalle en una sola línea debajo,
+     nunca 15 bloques abiertos a la vez. ── */
+  .diag-chip-group{ margin-bottom:14px; }
+  .diag-chip-group:last-child{ margin-bottom:0; }
+  .diag-chip-group-title{
+    font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px;
+    text-transform:uppercase; margin-bottom:8px;
   }
+  .diag-chip-grid{ display:flex; flex-wrap:wrap; gap:6px; }
+  .diag-chip{
+    display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; font-weight:700;
+    padding:6px 9px; border-radius:6px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text-dim); cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .diag-chip svg{ width:12px; height:12px; flex:none; }
+  .diag-chip.ok{ border-color:var(--good, #14b8a6); color:var(--good, #14b8a6); }
+  .diag-chip.bad{ border-color:var(--bad, #dc2626); color:var(--bad, #dc2626); }
+  /* anillo azul de "seleccionado" SIN tapar el color ok/bad — sigue siendo
+     importante ver de un vistazo cuáles son correctas mientras exploras */
+  .diag-chip.activo{ box-shadow:0 0 0 2px var(--blue-bright); }
+  .diag-chip-detalle{
+    display:none; margin-top:10px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:8px;
+    background:var(--panel-2); font-size:12.5px; color:var(--text-dim); line-height:1.5;
+  }
+  .diag-chip-detalle.show{ display:block; }
+  .diag-chip-detalle b{ color:var(--text); }
+
+  /* Badge de Total — mismo lenguaje visual que "Completo" de Clientes
+     (ícono+texto en un pill), pero neutro: no juzga si el puntaje es bueno o
+     malo (eso se queda fuera de esta ronda, ver CLAUDE_DETALLE.md), solo
+     unifica la FORMA. */
+  .diag-total-pill{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-weight:700; font-size:12.5px;
+    color:var(--blue-bright); background:var(--blue-soft); border-radius:20px; padding:4px 11px;
+  }
+  .diag-total-pill svg{ width:13px; height:13px; }
+
+  /* Nombre + correo como sub-línea, mismo tratamiento que "cliente final" en
+     Grupos / "código" en Clientes. */
+  .diag-nombre-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:2px; }
 
   /* ───────────────────────── PANEL DIPLOMAS ───────────────────────── */
   .radm-field input[type=date], .radm-field input[type=number]{
@@ -1794,50 +1838,36 @@
         <div class="dip-tabpanel" id="diagTab-powerbi"></div>
 
         <div class="dip-tabpanel" id="diagTab-qr">
-          <div class="diag-qr-row">
-            <div class="dip-paso" style="--c:#22c55e">
-              <div class="dip-paso-head">
-                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></span>Excel</span>
+          <div class="cli-scorecard-block">
+            <div class="dip-paso-head" style="margin-bottom:10px;">
+              <span class="dip-paso-title" style="font-size:12px;">Respuestas en vivo</span>
+              <button type="button" class="cot-icon-btn" id="diagContadorRefresh" title="Actualizar ahora">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="enc-kpi-row diag-kpi-row-chica">
+              <div class="dkpi-card" title="Total de diagnósticos recibidos desde siempre">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></div>
+                <div class="dkpi-value" id="diagContadorTotal">—</div>
+                <div class="dkpi-label">Total</div>
               </div>
-              <div class="radm-field">
-                <label>LINK</label>
-                <div class="enc-link-row">
-                  <input type="text" id="diagLinkExcel" readonly>
-                  <button type="button" class="radm-btn radm-btn-ghost" data-copiar="excel" style="min-width:auto">Copiar</button>
-                </div>
+              <div class="dkpi-card" title="Diagnósticos de Excel">
+                <div class="dkpi-icon" style="color:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></div>
+                <div class="dkpi-value" id="diagContadorExcel">—</div>
+                <div class="dkpi-label">Excel</div>
               </div>
-              <div class="enc-qr-preview-row">
-                <div class="enc-qr-card"><div id="diagQrExcel"></div></div>
-              </div>
-              <div class="enc-qr-actions-row">
-                <button type="button" class="radm-btn" data-ver="excel" style="min-width:auto">Ver diagnóstico</button>
-                <button type="button" class="radm-btn radm-btn-ghost" data-descargar="excel" style="min-width:auto">Descargar QR (PNG)</button>
+              <div class="dkpi-card" title="Diagnósticos de Power BI">
+                <div class="dkpi-icon" style="color:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="dkpi-value" id="diagContadorPowerbi">—</div>
+                <div class="dkpi-label">Power BI</div>
               </div>
             </div>
-            <div class="dip-paso" style="--c:#f2c94c">
-              <div class="dip-paso-head">
-                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Power BI</span>
-              </div>
-              <div class="radm-field">
-                <label>LINK</label>
-                <div class="enc-link-row">
-                  <input type="text" id="diagLinkPowerbi" readonly>
-                  <button type="button" class="radm-btn radm-btn-ghost" data-copiar="powerbi" style="min-width:auto">Copiar</button>
-                </div>
-              </div>
-              <div class="enc-qr-preview-row">
-                <div class="enc-qr-card"><div id="diagQrPowerbi"></div></div>
-              </div>
-              <div class="enc-qr-actions-row">
-                <button type="button" class="radm-btn" data-ver="powerbi" style="min-width:auto">Ver diagnóstico</button>
-                <button type="button" class="radm-btn radm-btn-ghost" data-descargar="powerbi" style="min-width:auto">Descargar QR (PNG)</button>
-              </div>
-            </div>
+            <span class="radm-hint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
           </div>
 
           <div class="dip-paso">
             <div class="dip-paso-head">
-              <span class="dip-paso-title">Link para un cliente específico</span>
+              <span class="dip-paso-title">Link dedicado</span>
             </div>
             <span class="radm-hint" style="display:block; margin-bottom:14px;">Genera un link que ya trae al cliente resuelto — evita que lo escriban mal o que se mezclen registros cuando varios clientes están respondiendo al mismo tiempo.</span>
             <div class="radm-form-row">
@@ -1863,80 +1893,105 @@
             </div>
           </div>
 
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-title">Respuestas en vivo</span>
-              <button type="button" class="radm-icon-btn" id="diagContadorRefresh" title="Actualizar ahora">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </div>
-            <div class="enc-kpi-row">
-              <div class="dkpi-card" title="Total de diagnósticos recibidos desde siempre">
-                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></div>
-                <div class="dkpi-value" id="diagContadorTotal">—</div>
-                <div class="dkpi-label">Total</div>
+          <div class="diag-qr-row">
+            <div class="dip-paso" style="--c:#22c55e">
+              <div class="dip-paso-head">
+                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></span>Excel</span>
               </div>
-              <div class="dkpi-card" title="Diagnósticos de Excel">
-                <div class="dkpi-icon" style="color:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></div>
-                <div class="dkpi-value" id="diagContadorExcel">—</div>
-                <div class="dkpi-label">Excel</div>
-              </div>
-              <div class="dkpi-card" title="Diagnósticos de Power BI">
-                <div class="dkpi-icon" style="color:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-                <div class="dkpi-value" id="diagContadorPowerbi">—</div>
-                <div class="dkpi-label">Power BI</div>
+              <div class="diag-qr-card-body">
+                <div class="diag-qr-card-left">
+                  <div class="radm-field">
+                    <label>LINK</label>
+                    <input type="text" id="diagLinkExcel" readonly>
+                  </div>
+                  <div class="diag-qr-actions">
+                    <button type="button" class="radm-btn radm-btn-ghost" data-copiar="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-ver="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver diagnóstico</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-descargar="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                  </div>
+                </div>
+                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="diagQrExcel"></div></div></div>
               </div>
             </div>
-            <span class="radm-hint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
+            <div class="dip-paso" style="--c:#f2c94c">
+              <div class="dip-paso-head">
+                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Power BI</span>
+              </div>
+              <div class="diag-qr-card-body">
+                <div class="diag-qr-card-left">
+                  <div class="radm-field">
+                    <label>LINK</label>
+                    <input type="text" id="diagLinkPowerbi" readonly>
+                  </div>
+                  <div class="diag-qr-actions">
+                    <button type="button" class="radm-btn radm-btn-ghost" data-copiar="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-ver="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver diagnóstico</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-descargar="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                  </div>
+                </div>
+                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="diagQrPowerbi"></div></div></div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="dip-tabpanel" id="diagTab-resultados">
-          <div class="dip-filters">
-            <div class="radm-field">
-              <label>HERRAMIENTA</label>
-              <select id="diagFHerramienta">
-                <option value="">Todas</option>
-                <option value="excel">Excel</option>
-                <option value="powerbi">Power BI</option>
-              </select>
-            </div>
-            <div class="radm-field dip-autocomplete-wrap" style="min-width:200px;">
-              <label>EMPRESA</label>
-              <input type="text" id="diagFEmpresaNombre">
-              <div class="dip-autocomplete-list" id="diagFEmpresaLista" hidden></div>
-            </div>
-            <div class="radm-field">
-              <label>DESDE</label>
-              <input type="date" id="diagFDesde">
-            </div>
-            <div class="radm-field">
-              <label>HASTA</label>
-              <input type="date" id="diagFHasta">
-            </div>
-            <div class="dip-filter-actions">
-              <button type="button" class="radm-btn dip-btn-icon" id="diagBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-                Buscar
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="diagLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Limpiar filtros
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="diagVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todos los diagnósticos">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-                Ver todos
-              </button>
+          <div class="sol-toolbar">
+            <div class="dip-filters" style="margin-bottom:0;">
+              <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div class="radm-field">
+                <label>HERRAMIENTA</label>
+                <select id="diagFHerramienta">
+                  <option value="">Todas</option>
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                </select>
+              </div>
+              <div class="radm-field dip-autocomplete-wrap" style="min-width:200px;">
+                <label>EMPRESA</label>
+                <input type="text" id="diagFEmpresaNombre">
+                <div class="dip-autocomplete-list" id="diagFEmpresaLista" hidden></div>
+              </div>
+              <div class="radm-field">
+                <label>DESDE</label>
+                <input type="date" id="diagFDesde">
+              </div>
+              <div class="radm-field">
+                <label>HASTA</label>
+                <input type="date" id="diagFHasta">
+              </div>
+              <div class="dip-filter-actions">
+                <button type="button" class="cot-icon-btn" id="diagActualizar" title="Actualizar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn" id="diagLimpiarFiltros" title="Limpiar filtros y mostrar todos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+                </button>
+              </div>
             </div>
           </div>
+          <span class="radm-hint" style="display:block; margin:8px 0 12px;">Se busca solo, en cuanto cambias cualquier filtro — y esta pestaña se vuelve a cargar cada vez que entras aquí.</span>
 
           <div class="dip-table-wrap">
             <table class="dip-table" id="diagResultadosTable">
               <thead>
-                <tr><th>Nombre</th><th>Empresa</th><th>Herramienta</th><th>Fecha</th><th>Básico</th><th>Intermedio</th><th>Avanzado</th><th>Total</th></tr>
+                <tr>
+                  <th data-sort="fecha_envio">Fecha<span class="th-sort-ico"></span></th>
+                  <th data-sort="herramienta">Herramienta<span class="th-sort-ico"></span></th>
+                  <th data-sort="cliente">Empresa<span class="th-sort-ico"></span></th>
+                  <th data-sort="area">Área<span class="th-sort-ico"></span></th>
+                  <th data-sort="nombre">Nombre<span class="th-sort-ico"></span></th>
+                  <th data-sort="basico">Básico<span class="th-sort-ico"></span></th>
+                  <th data-sort="intermedio">Intermedio<span class="th-sort-ico"></span></th>
+                  <th data-sort="avanzado">Avanzado<span class="th-sort-ico"></span></th>
+                  <th data-sort="total">Total<span class="th-sort-ico"></span></th>
+                  <th data-sort="tiempo_respuesta_seg">Duración<span class="th-sort-ico"></span></th>
+                </tr>
               </thead>
               <tbody id="diagResultadosBody">
-                <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -6054,6 +6109,8 @@
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>',
       chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -6090,11 +6147,6 @@
         }
       }
     }
-    function fmtFecha(iso){
-      if(!iso) return '—';
-      const d = new Date(iso);
-      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
-    }
     function fileToBase64(file){
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -6107,7 +6159,7 @@
     // ── pestañas — cada herramienta y Resultados se cargan perezosos, solo la
     // primera vez que se abren; Excel es la pestaña activa por default, se
     // carga en el arranque del IIFE (ver abajo) ──
-    let diagQrCargado = false, diagResultadosCargados = false, diagQrTabActiva = false;
+    let diagQrCargado = false, diagQrTabActiva = false;
     const diagCargado = { excel: false, powerbi: false };
     document.getElementById('diagTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
@@ -6118,7 +6170,10 @@
       diagQrTabActiva = (key === 'qr');
       if((key === 'excel' || key === 'powerbi') && !diagCargado[key]){ diagCargado[key] = true; cargarPreguntas(key); }
       if(key === 'qr' && !diagQrCargado){ diagQrCargado = true; cargarQr(); }
-      if(key === 'resultados' && !diagResultadosCargados){ diagResultadosCargados = true; buscarResultados(); }
+      // Resultados SIEMPRE se recarga al entrar (no solo la primera vez) —
+      // pedido explícito de Alfredo, a diferencia del resto de pestañas
+      // perezosas de este panel.
+      if(key === 'resultados') buscarResultados();
     });
 
     // ══ PREGUNTAS ══ — una sola página por herramienta (ya no hay grid de
@@ -6544,37 +6599,113 @@
 
     const diagFEmpresaAuto = crearAutocompleteFiltro({ inputId:'diagFEmpresaNombre', listId:'diagFEmpresaLista' });
 
-    function tallyPill(nombre, t){
-      return `<span class="diag-tally-pill">${nombre} ${t.aciertos}/${t.total}</span>`;
+    function fmtFechaHora(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    function fmtDuracion(seg){
+      if(seg == null) return '—';
+      const m = Math.floor(seg / 60), s = seg % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
     }
 
+    // ── desglose compacto: grid de chips (número + ícono ✓/✗) agrupados por
+    // nivel, en vez de una tarjeta larga por pregunta — clic en un chip
+    // muestra su detalle en UNA sola línea debajo del grid, nunca 15 bloques
+    // abiertos a la vez. Solo aquí en el admin tiene sentido agrupar por
+    // nivel (el público nunca lo ve). ──
     function detalleHtml(r){
-      const items = r.detalle.slice().sort((a, b) => (a.nivel - b.nivel) || (a.pregunta_id - b.pregunta_id)).map(d => {
-        // 'N' = "No lo sé" (Fase 2) — no es una letra de las 4 columnas
-        // opcion_a..d, así que nunca hay texto que resolverle, solo la
-        // etiqueta. Cuenta como Incorrecta (fue_correcta ya viene en 0).
-        const esNoSe = d.opcion_seleccionada === 'N';
-        const opcionTexto = !esNoSe && d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
-          ? d['opcion_' + d.opcion_seleccionada.toLowerCase()] : null;
+      const porNivel = { 1:[], 2:[], 3:[] };
+      r.detalle.forEach(d => { if(porNivel[d.nivel]) porNivel[d.nivel].push(d); });
+      const grupos = [1, 2, 3].map(nivel => {
+        if(!porNivel[nivel].length) return '';
         return `
-          <div class="diag-resultado-item">
-            <div class="diag-resultado-head">
-              <span class="diag-resultado-nivel">${NIVEL_LABEL[d.nivel] || '—'}</span>
-              <span class="diag-resultado-estado ${d.fue_correcta ? 'ok' : 'bad'}">${d.fue_correcta ? ICO.check : ICO.x}${d.fue_correcta ? 'Correcta' : 'Incorrecta'}</span>
+          <div class="diag-chip-group">
+            <div class="diag-chip-group-title">${NIVEL_LABEL[nivel]}</div>
+            <div class="diag-chip-grid">
+              ${porNivel[nivel].map((d, i) => `
+                <button type="button" class="diag-chip ${d.fue_correcta ? 'ok' : 'bad'}" data-respuesta-id="${r.id}" data-pregunta-id="${escapeHtml(d.pregunta_id)}" title="Pregunta ${i + 1} de ${NIVEL_LABEL[nivel]}">
+                  ${d.fue_correcta ? ICO.check : ICO.x}${i + 1}
+                </button>
+              `).join('')}
             </div>
-            <div class="diag-resultado-texto">${escapeHtml(d.texto)}</div>
-            <div class="diag-resultado-eleccion">Eligió: <b>${esNoSe ? 'No lo sé' : escapeHtml(d.opcion_seleccionada)}</b>${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''}</div>
           </div>`;
       }).join('');
-      // Metadata nueva de la Fase 1 (área/correo/tiempo de respuesta) — solo
-      // se muestra si al menos un dato llegó, para no ensuciar el desglose de
-      // envíos viejos que nunca la capturaron (front público sin Fase 2 aún).
-      const metaBits = [];
-      if(r.area) metaBits.push('Área: ' + escapeHtml(r.area));
-      if(r.correo) metaBits.push('Correo: ' + escapeHtml(r.correo));
-      if(r.tiempo_respuesta_seg != null) metaBits.push('Tiempo de respuesta: ' + Math.round(r.tiempo_respuesta_seg) + 's');
-      const metaHtml = metaBits.length ? `<div class="radm-hint" style="display:block; margin-bottom:14px;">${metaBits.join(' · ')}</div>` : '';
-      return `<div class="diag-resultado-detalle">${metaHtml}${items || '<div class="radm-empty-row">Sin desglose disponible.</div>'}</div>`;
+      return `
+        <div class="diag-resultado-detalle">
+          ${grupos || '<div class="radm-empty-row">Sin desglose disponible.</div>'}
+          <div class="diag-chip-detalle" id="diag-chip-detalle-${r.id}"></div>
+        </div>`;
+    }
+
+    let diagResultadosRaw = [];
+    const DIAG_SORT_CAMPOS = {
+      fecha_envio: r => new Date(r.fecha_envio).getTime(),
+      herramienta: r => r.herramienta || '',
+      cliente: r => r.cliente || '',
+      area: r => r.area || '',
+      nombre: r => r.nombre || '',
+      basico: r => r.tallies.basico.aciertos,
+      intermedio: r => r.tallies.intermedio.aciertos,
+      avanzado: r => r.tallies.avanzado.aciertos,
+      total: r => r.total.aciertos,
+      tiempo_respuesta_seg: r => r.tiempo_respuesta_seg,
+    };
+    let diagSort = 'fecha_envio', diagDir = 'desc';
+
+    function renderSortButtonsResultados(){
+      document.querySelectorAll('#diagResultadosTable th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === diagSort;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (diagDir === 'asc' ? ICO.sortAsc : ICO.sortDesc) : '';
+      });
+    }
+    // Nulls (ej. Duración de envíos viejos sin este dato, o Área/Correo
+    // vacíos) siempre se van al fondo, sin importar la dirección — no aplica
+    // aquí el criterio de "más urgente" de Clientes, es solo orden de tabla.
+    function ordenarResultados(lista){
+      const extraer = DIAG_SORT_CAMPOS[diagSort];
+      if(!extraer) return lista;
+      const factor = diagDir === 'asc' ? 1 : -1;
+      return lista.slice().sort((a, b) => {
+        const va = extraer(a), vb = extraer(b);
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
+    }
+
+    function renderResultadosTabla(){
+      renderSortButtonsResultados();
+      const body = document.getElementById('diagResultadosBody');
+      const lista = ordenarResultados(diagResultadosRaw);
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+
+      body.innerHTML = lista.map(r => `
+        <tr data-id="${r.id}">
+          <td class="radm-mono">${fmtFechaHora(r.fecha_envio)}</td>
+          <td>${TOOL_META[r.herramienta] ? TOOL_META[r.herramienta].nombre : escapeHtml(r.herramienta)}</td>
+          <td>${escapeHtml(r.cliente)}</td>
+          <td>${r.area ? escapeHtml(r.area) : '—'}</td>
+          <td>
+            <button type="button" class="sol-temario-toggle" data-id="${r.id}" title="Ver el desglose de respuestas">
+              <span class="sol-temario-nombre">${escapeHtml(r.nombre)}</span>
+              <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            ${r.correo ? `<div class="diag-nombre-sub">${escapeHtml(r.correo)}</div>` : ''}
+          </td>
+          <td class="radm-mono">${r.tallies.basico.aciertos}/${r.tallies.basico.total}</td>
+          <td class="radm-mono">${r.tallies.intermedio.aciertos}/${r.tallies.intermedio.total}</td>
+          <td class="radm-mono">${r.tallies.avanzado.aciertos}/${r.tallies.avanzado.total}</td>
+          <td><span class="diag-total-pill">${ICO.check}${r.total.aciertos}/${r.total.total}</span></td>
+          <td class="radm-mono">${fmtDuracion(r.tiempo_respuesta_seg)}</td>
+        </tr>
+        <tr class="sol-desglose-row" id="diag-desglose-${r.id}" hidden>
+          <td colspan="10"><div class="sol-desglose">${detalleHtml(r)}</div></td>
+        </tr>
+      `).join('');
     }
 
     async function buscarResultados(){
@@ -6589,56 +6720,66 @@
       if(seleccionado) params.set('clienteId', seleccionado.id);
 
       const body = document.getElementById('diagResultadosBody');
-      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
 
       try {
-        const lista = await apiGetConReintento('/api/listRespuestasDiagnosticoAdmin?' + params.toString());
-        if(!lista.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
-
-        body.innerHTML = lista.map(r => `
-          <tr data-id="${r.id}">
-            <td>
-              <button type="button" class="sol-temario-toggle" data-id="${r.id}" title="Ver el detalle de las 15 preguntas">
-                <span class="sol-temario-nombre">${escapeHtml(r.nombre)}</span>
-                <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </td>
-            <td>${escapeHtml(r.cliente)}</td>
-            <td>${TOOL_META[r.herramienta] ? TOOL_META[r.herramienta].nombre : escapeHtml(r.herramienta)}</td>
-            <td>${fmtFecha(r.fecha_envio)}</td>
-            <td class="radm-mono">${r.tallies.basico.aciertos}/${r.tallies.basico.total}</td>
-            <td class="radm-mono">${r.tallies.intermedio.aciertos}/${r.tallies.intermedio.total}</td>
-            <td class="radm-mono">${r.tallies.avanzado.aciertos}/${r.tallies.avanzado.total}</td>
-            <td class="radm-mono">${r.total.aciertos}/${r.total.total}</td>
-          </tr>
-          <tr class="sol-desglose-row" id="diag-desglose-${r.id}" hidden>
-            <td colspan="8"><div class="sol-desglose">${detalleHtml(r)}</div></td>
-          </tr>
-        `).join('');
+        diagResultadosRaw = await apiGetConReintento('/api/listRespuestasDiagnosticoAdmin?' + params.toString());
+        renderResultadosTabla();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
-    document.getElementById('diagResultadosBody').addEventListener('click', e => {
-      const toggle = e.target.closest('.sol-temario-toggle');
-      if(!toggle) return;
-      const fila = document.getElementById('diag-desglose-' + toggle.dataset.id);
-      if(!fila) return;
-      fila.hidden = !fila.hidden;
-      toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
+    document.querySelectorAll('#diagResultadosTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        if(diagSort === th.dataset.sort) diagDir = diagDir === 'asc' ? 'desc' : 'asc';
+        else { diagSort = th.dataset.sort; diagDir = 'asc'; }
+        renderResultadosTabla();
+      });
     });
 
-    document.getElementById('diagBuscar').addEventListener('click', buscarResultados);
+    document.getElementById('diagResultadosBody').addEventListener('click', e => {
+      const toggle = e.target.closest('.sol-temario-toggle');
+      if(toggle){
+        const fila = document.getElementById('diag-desglose-' + toggle.dataset.id);
+        if(fila){ fila.hidden = !fila.hidden; toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden); }
+        return;
+      }
+      const chip = e.target.closest('.diag-chip');
+      if(chip){
+        const cont = document.getElementById('diag-chip-detalle-' + chip.dataset.respuestaId);
+        if(!cont) return;
+        const yaActivo = chip.classList.contains('activo');
+        chip.closest('.diag-resultado-detalle').querySelectorAll('.diag-chip').forEach(c => c.classList.remove('activo'));
+        if(yaActivo){ cont.classList.remove('show'); cont.innerHTML = ''; return; }
+        const r = diagResultadosRaw.find(x => String(x.id) === chip.dataset.respuestaId);
+        const d = r && r.detalle.find(x => x.pregunta_id === chip.dataset.preguntaId);
+        if(!d) return;
+        chip.classList.add('activo');
+        const esNoSe = d.opcion_seleccionada === 'N';
+        const opcionTexto = !esNoSe && d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
+          ? d['opcion_' + d.opcion_seleccionada.toLowerCase()] : null;
+        cont.innerHTML = `<b>${escapeHtml(d.texto)}</b><br>Eligió: <b>${esNoSe ? 'No lo sé' : escapeHtml(d.opcion_seleccionada)}</b>${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''} — ${d.fue_correcta ? 'Correcta' : 'Incorrecta'}`;
+        cont.classList.add('show');
+      }
+    });
 
-    function limpiarFiltrosResultados(){
+    // Búsqueda automática: cambiar cualquier filtro dispara buscarResultados
+    // solo — sin botón "Buscar" ni "Ver todos" (redundante con Limpiar).
+    document.getElementById('diagFHerramienta').addEventListener('change', buscarResultados);
+    document.getElementById('diagFDesde').addEventListener('change', buscarResultados);
+    document.getElementById('diagFHasta').addEventListener('change', buscarResultados);
+    document.getElementById('diagFEmpresaLista').addEventListener('click', () => buscarResultados());
+    document.getElementById('diagFEmpresaNombre').addEventListener('input', e => { if(!e.target.value.trim()) buscarResultados(); });
+
+    document.getElementById('diagActualizar').addEventListener('click', buscarResultados);
+    document.getElementById('diagLimpiarFiltros').addEventListener('click', () => {
       document.getElementById('diagFHerramienta').value = '';
       document.getElementById('diagFDesde').value = '';
       document.getElementById('diagFHasta').value = '';
       diagFEmpresaAuto.reset();
-    }
-    document.getElementById('diagLimpiarFiltros').addEventListener('click', limpiarFiltrosResultados);
-    document.getElementById('diagVerTodos').addEventListener('click', () => { limpiarFiltrosResultados(); buscarResultados(); });
+      buscarResultados();
+    });
   })();
 
   // ═══════════════════════════════════════════════════════════════

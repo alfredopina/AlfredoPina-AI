@@ -71,15 +71,23 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 
 **Admin (`/admin`), reorganizado sept-2026:** sidebar con grupos `TRACKING` (Comercial/Clientes/Grupos/Solicitudes) → `FORMATOS` (Diagnósticos/Encuestas/Diplomas) → `PRODUCTOS` (Cursos/Recursos) → `HERRAMIENTAS` (Dashboard/Pendientes/Modelo). "Tracking View" es la landing por default (4 tarjetas-resumen). Notificaciones (campana + umbrales configurables urgente/seguimiento) construidas. Panel Modelo: visor interactivo de las 24 tablas / 30 relaciones del esquema completo.
 
+## Roadmap de bloques restantes (definido 2026-09-17 — MVP ya funcional en todo, esto es llenar de datos/probar/afinar UX)
+
+1. **Bloque 1 (esta semana):** Diagnóstico (Power BI hoy, Excel enseguida, falta reporteo) → Encuestas → Diplomas. Urge cerrar cursos ya dados. **Entidad Alumno se resuelve aquí, dentro de Diplomas** (no en Grupos como se pensó originalmente).
+2. **Bloque 2 (próxima semana):** Cursos y Recursos al 100% — resolver Temario/Curso/Recursos, y afinar el sitio público: CSS hardcodeado en el diseño (incluye deuda técnica vieja de separar el CSS/JS inline de `cursos.html`), mejorar navegación, link a última publicación de LinkedIn, link real de YouTube en footer, imagen social `og:image` (1200×630), mejorar sección de socios comerciales y de conferencias.
+3. **Bloque 3:** Solicitudes y Comercial — Tracking propio de Solicitudes (semáforo + umbral, igual que Cliente/Grupos/Comercial) + concepto nuevo de Proyectos dentro de Solicitudes/Cotizaciones + **afinar Notificaciones/Seguimiento y construir el Resumen semanal aquí** (Notificaciones necesita darle umbrales propios a Solicitudes primero). Cotizaciones se prueba en producción de punta a punta cuando se llegue a este bloque (es el único Tracking de los 4 que falta confirmar en vivo — Tracking View/Notificaciones/Grupos/Clientes ya están confirmados al 100%).
+4. **Bloque 4:** Dashboard al 100% con datos cargados — distinto de Tracking View: históricos, gráficos, KPIs y filtros reales.
+5. **Bloque 5 (futuro, fuera de los 4 anteriores):** módulo nuevo de Cobranza/Facturación — todavía sin diseñar.
+
 ## Pendientes generales (los de más peso — ver `CLAUDE_DETALLE.md` para el checklist completo con todos los "confirmar en producción")
 
-- Cargar el banco real de 30 preguntas de Diagnóstico (15 Excel + 15 Power BI).
-- Reemplazar los 11 textos de ejemplo de preguntas de Encuestas por los definitivos.
-- Diseñar un Tracking propio para Solicitudes (semáforo + umbral configurable, sin construir todavía).
-- Ambigüedad de nombres sin resolver: "Temario Estándar" vs. "Curso" (Recursos) vs. "Grupo" — ya se resolvió Grupo, falta Temario/Curso.
-- Resumen semanal de Notificaciones (idea aprobada, no construida).
-- Decidir qué hacer con 6 vulnerabilidades moderadas de `npm audit` (requiere `mssql@12.7.1`, riesgo de romper Diplomas/Encuestas).
-- Evaluar la entidad Alumno (pendiente desde que se construyó Grupos).
+- Cargar el banco real de 30 preguntas de Diagnóstico (15 Excel + 15 Power BI) — Bloque 1, en curso.
+- Reemplazar los 11 textos de ejemplo de preguntas de Encuestas por los definitivos — Bloque 1.
+- Ambigüedad de nombres sin resolver: "Temario Estándar" vs. "Curso" (Recursos) vs. "Grupo" — ya se resolvió Grupo, falta Temario/Curso — Bloque 2.
+- Sitio público a afinar: CSS hardcodeado, navegación, link LinkedIn, socios comerciales, conferencias — Bloque 2.
+- Tracking propio de Solicitudes + Proyectos + Notificaciones/Seguimiento afinados + Resumen semanal — Bloque 3.
+- `npm audit`: **decidido no tocarlo** — 2 CVEs moderados (@azure/identity race condition local, uuid buffer bounds solo si se pasa `buf`), ninguno explotable en el uso real del sitio; el fix (`mssql@12.7.1`, 2 versiones mayores) arriesga romper Diplomas/Encuestas sin beneficio real. Se revisita solo si algún día se toca `mssql` por otra razón.
+- Sin bloque asignado, arrastrados a propósito: Rol **Lector** en Azure IAM para Viridiana (opcional, no bloquea nada) · Analítica de tráfico del sitio (pospuesta a propósito desde 2026-09-10).
 - Largo checklist de "confirmar en producción" de módulos ya construidos pero no probados de punta a punta por Alfredo todavía — vive completo en `CLAUDE.md` → "Pendientes de Alfredo".
 
 ## Dónde está el detalle fino

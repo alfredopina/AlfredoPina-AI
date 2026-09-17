@@ -202,20 +202,27 @@
     padding-top:18px; margin:8px 0 20px; line-height:1.6;
   }
 
+  /* Relleno sólido en vez de solo contorno — con el estilo de pill de antes
+     se leía como una etiqueta informativa, no como un botón que invita a dar
+     clic (pedido explícito de Alfredo, sobre todo por "Siguiente", que se da
+     clic 15 veces seguidas). */
   .diag-submit-fx{
-    width:100%; display:flex; align-items:stretch; border:1px solid var(--blue-dim);
-    border-radius:6px; background:var(--panel); overflow:hidden; cursor:pointer;
-    transition:border-color .2s, background .2s;
+    width:100%; display:flex; align-items:stretch; border:1px solid var(--blue);
+    border-radius:6px; background:var(--blue); overflow:hidden; cursor:pointer;
+    transition:background .2s, transform .1s;
   }
-  .diag-submit-fx:hover:not(:disabled){ border-color:var(--blue-bright); background:var(--blue-soft); }
-  .diag-submit-fx:disabled{ opacity:.45; cursor:default; }
+  .diag-submit-fx:hover:not(:disabled){ background:var(--blue-bright); border-color:var(--blue-bright); }
+  .diag-submit-fx:active:not(:disabled){ transform:scale(.99); }
+  .diag-submit-fx:disabled{ opacity:.4; cursor:default; background:var(--panel); border-color:var(--blue-dim); }
+  .diag-submit-fx:disabled .diag-submit-fx-tag{ color:var(--blue-bright); background:transparent; }
+  .diag-submit-fx:disabled .diag-submit-fx-body{ color:var(--text-dim); }
   .diag-submit-fx-tag{
-    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
-    background:var(--blue-soft); padding:18px 16px; border-right:1px solid var(--blue-dim); flex:none;
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:#0a0d12;
+    background:rgba(10,13,18,.16); padding:18px 16px; border-right:1px solid rgba(10,13,18,.16); flex:none;
     display:flex; align-items:center;
   }
   .diag-submit-fx-body{
-    font-family:var(--mono); font-size:14px; color:var(--text); padding:18px 20px;
+    font-family:var(--mono); font-size:14px; font-weight:600; color:#0a0d12; padding:18px 20px;
     display:flex; align-items:center; flex:1; justify-content:center;
   }
 

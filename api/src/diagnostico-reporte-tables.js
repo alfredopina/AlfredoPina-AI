@@ -101,13 +101,14 @@ async function listarReportes(table) {
   const entidades = table.listEntities({
     queryOptions: {
       filter: "PartitionKey eq 'reporte'",
-      select: ["rowKey", "herramienta", "clienteNombre", "desde", "hasta", "generadoEn", "visitas", "n", "promedioGeneral"],
+      select: ["rowKey", "herramienta", "clienteId", "clienteNombre", "desde", "hasta", "generadoEn", "visitas", "n", "promedioGeneral"],
     },
   });
   for await (const e of entidades) {
     items.push({
       token: e.rowKey,
       herramienta: e.herramienta,
+      clienteId: e.clienteId,
       clienteNombre: e.clienteNombre,
       desde: e.desde || null,
       hasta: e.hasta || null,

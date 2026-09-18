@@ -1862,7 +1862,7 @@
                 <div class="dkpi-label">Power BI</div>
               </div>
             </div>
-            <span class="radm-hint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
+            <span class="radm-hint" id="diagContadorHint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
           </div>
 
           <div class="dip-paso">
@@ -2793,7 +2793,7 @@
                 <div class="dkpi-label">Respuestas de hoy</div>
               </div>
             </div>
-            <span class="radm-hint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
+            <span class="radm-hint" id="encContadorHint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
           </div>
         </div>
 
@@ -5178,21 +5178,37 @@
       document.getElementById('encQr').innerHTML = '';
       encQrInstance.append(document.getElementById('encQr'));
 
-      cargarContador();
+      reanudarContador();
       // el intervalo se queda armado, pero cada tick se autofiltra (ver
       // cargarContador) — solo pega a la base si esta pestaña QR sigue siendo
       // la visible ahora mismo. Sin ese filtro, dejar el admin abierto en otra
       // sección (o en otra pestaña de Encuestas) mantendría la base SQL
       // serverless despierta sin necesidad, gastando su cupo gratis de
       // vCore-segundos/mes más rápido de lo que conviene.
-      if(!encContadorInterval) encContadorInterval = setInterval(cargarContador, 20000);
     }
 
     let encContadorInterval = null;
+    let encContadorInicio = 0;
+    const ENC_CONTADOR_MAX_MS = 25 * 60 * 1000; // tope: una pestaña olvidada abierta no debe quemar vCore-seconds toda la jornada
+    const ENC_CONTADOR_HINT_NORMAL = 'Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.';
+    const ENC_CONTADOR_HINT_PAUSADO = 'Actualización automática pausada tras 25 min seguidos (para no dejar la base despierta de más) — usa el ícono de arriba para reanudar.';
+
+    function reanudarContador(){
+      cargarContador();
+      encContadorInicio = Date.now();
+      document.getElementById('encContadorHint').textContent = ENC_CONTADOR_HINT_NORMAL;
+      if(!encContadorInterval) encContadorInterval = setInterval(cargarContador, 20000);
+    }
 
     async function cargarContador(){
       const panelActivo = document.getElementById('panel-encuestas').classList.contains('active');
       if(!encQrTabActiva || !panelActivo || document.hidden) return;
+      if(encContadorInterval && Date.now() - encContadorInicio > ENC_CONTADOR_MAX_MS){
+        clearInterval(encContadorInterval);
+        encContadorInterval = null;
+        document.getElementById('encContadorHint').textContent = ENC_CONTADOR_HINT_PAUSADO;
+        return;
+      }
       try {
         const data = await apiGetConReintento('/api/getContadorRespuestas');
         document.getElementById('encContadorTotal').textContent = data.total;
@@ -5203,7 +5219,7 @@
       }
     }
 
-    document.getElementById('encContadorRefresh').addEventListener('click', cargarContador);
+    document.getElementById('encContadorRefresh').addEventListener('click', reanudarContador);
 
     document.getElementById('encBtnCopiar').addEventListener('click', async () => {
       try {
@@ -6469,18 +6485,34 @@
         diagQrInstances[tool] = instance;
       });
 
-      cargarContador();
+      reanudarContador();
       // mismo candado de polling que Encuestas — el intervalo se queda armado,
       // pero cada tick se autofiltra en cargarContador() para no despertar la
       // base SQL serverless sin necesidad cuando esta pestaña no está a la vista.
-      if(!diagContadorInterval) diagContadorInterval = setInterval(cargarContador, 20000);
     }
 
     let diagContadorInterval = null;
+    let diagContadorInicio = 0;
+    const DIAG_CONTADOR_MAX_MS = 25 * 60 * 1000; // tope: una pestaña olvidada abierta no debe quemar vCore-seconds toda la jornada
+    const DIAG_CONTADOR_HINT_NORMAL = 'Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.';
+    const DIAG_CONTADOR_HINT_PAUSADO = 'Actualización automática pausada tras 25 min seguidos (para no dejar la base despierta de más) — usa el ícono de arriba para reanudar.';
+
+    function reanudarContador(){
+      cargarContador();
+      diagContadorInicio = Date.now();
+      document.getElementById('diagContadorHint').textContent = DIAG_CONTADOR_HINT_NORMAL;
+      if(!diagContadorInterval) diagContadorInterval = setInterval(cargarContador, 20000);
+    }
 
     async function cargarContador(){
       const panelActivo = document.getElementById('panel-diagnosticos').classList.contains('active');
       if(!diagQrTabActiva || !panelActivo || document.hidden) return;
+      if(diagContadorInterval && Date.now() - diagContadorInicio > DIAG_CONTADOR_MAX_MS){
+        clearInterval(diagContadorInterval);
+        diagContadorInterval = null;
+        document.getElementById('diagContadorHint').textContent = DIAG_CONTADOR_HINT_PAUSADO;
+        return;
+      }
       try {
         const data = await apiGetConReintento('/api/getContadorDiagnosticoAdmin');
         document.getElementById('diagContadorTotal').textContent = data.total;
@@ -6492,7 +6524,7 @@
         document.getElementById('diagContadorPowerbi').textContent = '—';
       }
     }
-    document.getElementById('diagContadorRefresh').addEventListener('click', cargarContador);
+    document.getElementById('diagContadorRefresh').addEventListener('click', reanudarContador);
 
     function descargarBlob(blob, filename){
       const url = URL.createObjectURL(blob);

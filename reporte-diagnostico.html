@@ -487,8 +487,8 @@
     }
 
     const insightsItems = [];
-    if(g.insights.nivelFuerte && g.insights.nivelDebil){
-      insightsItems.push(`<div class="rep-insight-item" style="color:var(--blue-bright);">${ICO_CHECK}<span style="color:var(--text);">El grupo domina <b>${NIVEL_LABEL[g.insights.nivelFuerte]}</b> y se debilita en <b>${NIVEL_LABEL[g.insights.nivelDebil]}</b>.</span></div>`);
+    if(g.insights.fraseNivel){
+      insightsItems.push(`<div class="rep-insight-item" style="color:var(--blue-bright);">${ICO_CHECK}<span style="color:var(--text);">${escapeHtml(g.insights.fraseNivel)}</span></div>`);
     }
     insightsItems.push(`<div class="rep-insight-item" style="color:var(--ambar);">${ICO_PEOPLE}<span style="color:var(--text);"><b>${g.insights.necesitanAtencion.n} de ${g.n} (${g.insights.necesitanAtencion.pct}%)</b> necesitan reforzar fundamentos antes de avanzar.</span></div>`);
 
@@ -687,8 +687,8 @@
 
   function insightsHtmlPrint(g){
     const items = [];
-    if(g.insights.nivelFuerte && g.insights.nivelDebil){
-      items.push(`<div class="p-insight" style="color:var(--blue-bright);">${ICO_CHECK}<span style="color:#181c24;">El grupo domina <b>${NIVEL_LABEL[g.insights.nivelFuerte]}</b> y se debilita en <b>${NIVEL_LABEL[g.insights.nivelDebil]}</b>.</span></div>`);
+    if(g.insights.fraseNivel){
+      items.push(`<div class="p-insight" style="color:var(--blue-bright);">${ICO_CHECK}<span style="color:#181c24;">${escapeHtml(g.insights.fraseNivel)}</span></div>`);
     }
     items.push(`<div class="p-insight" style="color:#8a6d1a;">${ICO_PEOPLE}<span style="color:#181c24;"><b>${g.insights.necesitanAtencion.n} de ${g.n} (${g.insights.necesitanAtencion.pct}%)</b> necesitan reforzar fundamentos antes de avanzar.</span></div>`);
     return items.join('');

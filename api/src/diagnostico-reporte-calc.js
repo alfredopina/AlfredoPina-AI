@@ -43,6 +43,77 @@ function bucketDuracion(seg) {
 
 const DURACION_LABEL = { expres: "Exprés", normal: "Ritmo normal", pausado: "Ritmo pausado", atipico: "Atípico" };
 
+function labelsUnidos(labels) {
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return labels.join(" y ");
+  return labels.slice(0, -1).join(", ") + " y " + labels[labels.length - 1];
+}
+
+// Frase de nivel fuerte/débil — compartida entre el insight del GRUPO
+// (contra promedioPorNivel) y el de cada PERSONA (contra sus propios
+// pctBasico/Intermedio/Avanzado). Antes el insight de cada persona reusaba
+// por error el nivel fuerte/débil calculado del GRUPO completo, con el valor
+// de esa persona metido a la fuerza — sonaba incongruente en cuanto la
+// persona no seguía ese mismo patrón (ej. alguien parejo 100/100/100, donde
+// el grupo tenía a Avanzado como el más débil en promedio). Cubre además:
+// empate en el nivel más alto/más bajo (uno o varios niveles), desempeño
+// parejo (alto/bajo/medio) y el caso donde el "más débil" sigue siendo un
+// buen puntaje (≥80%) — ahí no tiene sentido presentarlo como una debilidad.
+function fraseNiveles(pctBasico, pctIntermedio, pctAvanzado, sujeto) {
+  const niveles = [
+    { label: "Básico", val: pctBasico },
+    { label: "Intermedio", val: pctIntermedio },
+    { label: "Avanzado", val: pctAvanzado },
+  ].filter((n) => n.val != null);
+  if (!niveles.length) return "";
+
+  const max = Math.max(...niveles.map((n) => n.val));
+  const min = Math.min(...niveles.map((n) => n.val));
+  const todos3 = niveles.length === 3 ? "los 3 niveles" : "los niveles evaluados";
+  const esGrupo = sujeto === "grupo";
+
+  if (max === min) {
+    if (max >= 80) {
+      return esGrupo
+        ? `El grupo tiene un desempeño sólido y parejo en ${todos3} (${max}%).`
+        : `Tiene un desempeño sólido y parejo en ${todos3} (${max}%).`;
+    }
+    if (max <= 20) {
+      return esGrupo
+        ? `El grupo tuvo dificultad pareja en ${todos3} (${max}%) — conviene reforzar desde la base.`
+        : `Tuvo dificultad pareja en ${todos3} (${max}%) — conviene reforzar desde la base.`;
+    }
+    return esGrupo
+      ? `El grupo tiene un desempeño parejo en ${todos3} (${max}%), con oportunidad de mejora repartida por igual.`
+      : `Tiene un desempeño parejo en ${todos3} (${max}%), con oportunidad de mejora repartida por igual.`;
+  }
+
+  const fuertes = labelsUnidos(niveles.filter((n) => n.val === max).map((n) => n.label));
+  const debiles = labelsUnidos(niveles.filter((n) => n.val === min).map((n) => n.label));
+
+  // El nivel "más bajo" sigue siendo un buen puntaje — no se presenta como
+  // debilidad, solo como la relativa (más honesto que forzar un tono de alarma).
+  if (min >= 80) {
+    return esGrupo
+      ? `El grupo tiene un desempeño fuerte en general — destaca en ${fuertes} (${max}%), con ${debiles} (${min}%) como su área de mayor oportunidad relativa.`
+      : `Tiene un desempeño fuerte en general — destaca en ${fuertes} (${max}%), con ${debiles} (${min}%) como su área de mayor oportunidad relativa.`;
+  }
+  return esGrupo
+    ? `El grupo domina ${fuertes} (${max}%); tiene más oportunidad de mejora en ${debiles} (${min}%).`
+    : `Su nivel más fuerte es ${fuertes} (${max}%); tiene más oportunidad de mejora en ${debiles} (${min}%).`;
+}
+
+// Comparación contra la mediana — siempre su propia oración, separada de
+// fraseNiveles (antes iba pegada con un guion largo en una sola oración
+// densa; separarlas es más fácil de leer, pedido explícito de Alfredo).
+function fraseMediana(pctGeneral, medianaGeneral) {
+  if (pctGeneral == null || medianaGeneral == null) return "";
+  const delta = pctGeneral - medianaGeneral;
+  if (delta > 0) return `Está ${delta} puntos porcentuales arriba de la mediana de su grupo (${medianaGeneral}%).`;
+  if (delta < 0) return `Está ${Math.abs(delta)} puntos porcentuales debajo de la mediana de su grupo (${medianaGeneral}%).`;
+  return `Está justo en la mediana de su grupo (${medianaGeneral}%).`;
+}
+
 // Agrupa las filas planas (1 fila por pregunta contestada) en 1 registro por
 // persona, con tallies por nivel — mismo patrón que listRespuestasDiagnosticoAdmin
 // pero sin resolver el banco de preguntas (aquí no hace falta el detalle).
@@ -168,15 +239,7 @@ async function calcularReporte(pool, sql, { herramienta, clienteId, clienteNombr
     if (p.duracionBucket) duracion[p.duracionBucket]++;
   }
 
-  // insight de nivel fuerte/débil — solo entre niveles con dato real
-  const nivelesConDato = Object.entries(promedioPorNivel).filter(([, v]) => v != null);
-  let nivelFuerte = null,
-    nivelDebil = null;
-  if (nivelesConDato.length) {
-    nivelesConDato.sort((a, b) => b[1] - a[1]);
-    nivelFuerte = nivelesConDato[0][0];
-    nivelDebil = nivelesConDato[nivelesConDato.length - 1][0];
-  }
+  const fraseNivelGrupo = fraseNiveles(promedioPorNivel.basico, promedioPorNivel.intermedio, promedioPorNivel.avanzado, "grupo");
   const necesitanAtencionN = participantes.filter((p) => p.grupo === "basico").length;
 
   // Regla de negocio (pedida por Alfredo): el benchmark solo se muestra con
@@ -188,23 +251,13 @@ async function calcularReporte(pool, sql, { herramienta, clienteId, clienteNombr
   const benchmark = benchmarkCrudo && benchmarkCrudo.n > UMBRAL_BENCHMARK_MIN_N ? benchmarkCrudo : null;
   const promedioGeneral = promedio(participantes.map((p) => p.pctGeneral));
 
-  // insight por persona (mismo estilo que el de General, prefijado por el tag
-  // de grupo en la vista Individual) — se guarda ya armado para no repetir la
-  // lógica de texto en el front.
+  // insight por persona — a partir de SUS PROPIOS niveles (nunca del
+  // grupo, ver fraseNiveles), prefijado por el tag de grupo en la vista
+  // Individual. Se guarda ya armado para no repetir la lógica de texto en
+  // el front (pantalla e impresión leen el mismo string).
   for (const p of participantes) {
-    if (nivelFuerte && nivelDebil && p.pctGeneral != null && medianaGeneral != null) {
-      const delta = medianaGeneral - p.pctGeneral;
-      const compMediana =
-        delta > 0
-          ? `está ${delta} puntos porcentuales debajo de la mediana de su grupo (${medianaGeneral}%)`
-          : delta < 0
-          ? `está ${Math.abs(delta)} puntos porcentuales arriba de la mediana de su grupo (${medianaGeneral}%)`
-          : `está justo en la mediana de su grupo (${medianaGeneral}%)`;
-      const pctPorNivel = { basico: p.pctBasico, intermedio: p.pctIntermedio, avanzado: p.pctAvanzado };
-      p.insight = `Su nivel más fuerte es ${NIVEL_LABEL[nivelFuerte]} (${pctPorNivel[nivelFuerte]}%) y el más débil es ${NIVEL_LABEL[nivelDebil]} (${pctPorNivel[nivelDebil]}%) — ${compMediana}.`;
-    } else {
-      p.insight = "";
-    }
+    const frases = [fraseNiveles(p.pctBasico, p.pctIntermedio, p.pctAvanzado, "persona"), fraseMediana(p.pctGeneral, medianaGeneral)].filter(Boolean);
+    p.insight = frases.join(" ");
   }
 
   return {
@@ -217,8 +270,7 @@ async function calcularReporte(pool, sql, { herramienta, clienteId, clienteNombr
       promedioPorNivel,
       benchmark: benchmark ? { ...benchmark, delta: promedioGeneral != null ? promedioGeneral - benchmark.promedio : null } : null,
       insights: {
-        nivelFuerte,
-        nivelDebil,
+        fraseNivel: fraseNivelGrupo,
         necesitanAtencion: { n: necesitanAtencionN, pct: n > 0 ? Math.round((necesitanAtencionN / n) * 100) : 0 },
       },
       duracion,
@@ -227,4 +279,4 @@ async function calcularReporte(pool, sql, { herramienta, clienteId, clienteNombr
   };
 }
 
-module.exports = { calcularReporte, calcularBenchmark, DURACION_LABEL, NIVEL_LABEL, bucketDuracion, mediana, promedio };
+module.exports = { calcularReporte, calcularBenchmark, DURACION_LABEL, NIVEL_LABEL, bucketDuracion, mediana, promedio, fraseNiveles, fraseMediana };

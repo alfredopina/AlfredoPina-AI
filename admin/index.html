@@ -189,6 +189,18 @@
     background:var(--panel-2); color:var(--blue-bright); border-color:var(--blue-bright); font-weight:700;
   }
   .dash-etab.active::before{ border-color:var(--blue-bright); }
+
+  /* Diagnósticos ya son 5 pestañas con el mismo estilo — Excel/Power BI se
+     tiñen con el color propio de cada herramienta (ya establecido en la
+     paleta de marca) para que no se sienta todo "el mismo diseño" repetido;
+     QR/Resultados/Reportes no son de una herramienta específica, se quedan
+     en el azul por default. */
+  #diagTabs .dash-etab[data-diagtab="excel"]:hover{ color:#22c55e; }
+  #diagTabs .dash-etab[data-diagtab="excel"].active{ color:#22c55e; border-color:#22c55e; }
+  #diagTabs .dash-etab[data-diagtab="excel"].active::before{ border-color:#22c55e; }
+  #diagTabs .dash-etab[data-diagtab="powerbi"]:hover{ color:#f2c94c; }
+  #diagTabs .dash-etab[data-diagtab="powerbi"].active{ color:#f2c94c; border-color:#f2c94c; }
+  #diagTabs .dash-etab[data-diagtab="powerbi"].active::before{ border-color:#f2c94c; }
   .dash-tabpanel{ display:none; }
   .dash-tabpanel.active{ display:block; }
   .dip-tabpanel{ display:none; }

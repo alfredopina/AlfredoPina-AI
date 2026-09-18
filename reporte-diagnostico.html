@@ -166,18 +166,75 @@
     .rep-ind-left{ width:100%; }
   }
 
-  /* ── impresión — panel imprimible propio (claro), construido en JS,
-     independiente del tema oscuro interactivo (ver script). ── */
+  /* ── impresión — panel imprimible propio construido en JS, EN CLARO pero
+     con la misma identidad visual del reporte en pantalla (Space Grotesk,
+     anillos/medidor, colores de marca) — antes era texto plano/tablas sin
+     nada que ver con el diseño, ajuste pedido por Alfredo. Independiente del
+     tema oscuro interactivo: imprimir el tema oscuro tal cual depende de que
+     el navegador de quien imprime tenga activado "Imprimir gráficos de
+     fondo" (casi nunca por default) y gasta mucha tinta en papel — mismo
+     criterio que ya se usó para el PDF de Cotizaciones (api/src/cotizacion-pdf.js,
+     paleta INK/INK_DIM/RULE reusada aquí para que los materiales impresos
+     del sitio se sientan consistentes entre sí). Los anillos/medidor de
+     impresión son ESTÁTICOS (sin animación) — capturar un print/PDF a medio
+     fill-in se vería roto, ver ringSvgPrint/gaugeSvgPrint. ── */
   #repPrintArea{ display:none; }
   @media print{
     body *{ visibility:hidden; }
-    #repPrintArea, #repPrintArea *{ visibility:visible; }
-    #repPrintArea{ display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; color:#111; padding:20px; }
-    #repPrintArea h1, #repPrintArea h2{ font-family:Arial, sans-serif; }
-    #repPrintArea table{ border-collapse:collapse; width:100%; margin-bottom:16px; }
-    #repPrintArea th, #repPrintArea td{ border:1px solid #ccc; padding:6px 8px; font-size:11px; text-align:left; }
-    .rep-print-page{ page-break-after:always; }
+    #repPrintArea, #repPrintArea *{ visibility:visible; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    #repPrintArea{ display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; }
+    .rep-print-page{ padding:26px 30px; page-break-after:always; }
     .rep-print-page:last-child{ page-break-after:auto; }
+
+    .p-header{ display:flex; align-items:center; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid #e0e3ea; margin-bottom:16px; }
+    .p-brand{ display:flex; align-items:center; gap:8px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:600; font-size:12.5px; color:#181c24; }
+    .p-brand img{ height:18px; width:auto; }
+    .p-meta{ font-family:'JetBrains Mono',monospace; font-size:9px; color:#8b93a1; }
+
+    .p-title{ font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:19px; color:#181c24; margin:0 0 4px; }
+    .p-subtitle{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#5b6270; margin:0 0 14px; }
+
+    .p-kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-bottom:12px; }
+    .p-kpi{ position:relative; padding:9px 10px 9px 15px; border:1px solid #e0e3ea; border-radius:6px; }
+    .p-kpi::before{ content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:2px; background:#3d7fff; }
+    .p-kpi-lbl{ display:block; font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.3px; text-transform:uppercase; color:#8b93a1; margin-bottom:4px; }
+    .p-kpi-val{ font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:17px; color:#181c24; }
+
+    .p-combo{ display:flex; border:1px solid #e0e3ea; border-radius:8px; margin-bottom:12px; overflow:hidden; }
+    .p-combo-left{ flex:0 0 180px; padding:12px; display:flex; flex-direction:column; align-items:center; border-right:1px solid #e0e3ea; }
+    .p-combo-right{ flex:1; padding:12px; display:flex; flex-direction:column; gap:7px; justify-content:center; }
+    .p-pill{ display:inline-flex; align-items:center; font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700; border-radius:20px; padding:4px 10px; margin-top:6px; white-space:nowrap; }
+    .p-pill.teal{ color:#0d9488; background:rgba(13,148,136,.1); border:1px solid #0d9488; }
+    .p-pill.ambar{ color:#8a6d1a; background:rgba(138,109,26,.1); border:1px solid #8a6d1a; }
+    .p-nota{ font-family:'JetBrains Mono',monospace; font-size:8px; color:#8b93a1; text-align:center; margin-top:6px; }
+    .p-insight{ display:flex; align-items:flex-start; gap:6px; font-size:10.5px; color:#181c24; line-height:1.5; }
+    .p-insight svg{ width:13px; height:13px; flex:none; margin-top:1px; }
+
+    .p-rings{ display:flex; justify-content:space-around; border:1px solid #e0e3ea; border-radius:8px; padding:12px; margin-bottom:12px; }
+    .p-ring-item{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .p-ring-item span{ font-family:'JetBrains Mono',monospace; font-size:9px; color:#5b6270; }
+
+    .p-duracion-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px; }
+    .p-duracion-card{ text-align:center; font-size:10px; border:1px solid #e0e3ea; border-radius:6px; padding:6px; color:#181c24; }
+    .p-duracion-card b{ font-family:'JetBrains Mono',monospace; }
+
+    .p-grupo-head{ margin:14px 0 7px; }
+    .p-grupo-tag{ display:inline-block; font-family:'Space Grotesk',Arial,sans-serif; font-weight:600; font-size:11.5px; border-radius:6px; padding:5px 11px; border:1px solid; }
+    .p-grupo-tag.basico{ color:#8a6d1a; border-color:#8a6d1a; background:rgba(138,109,26,.08); }
+    .p-grupo-tag.intermedio{ color:#0d9488; border-color:#0d9488; background:rgba(13,148,136,.08); }
+
+    table.p-table{ border-collapse:collapse; width:100%; margin-bottom:6px; }
+    .p-table th{ text-align:left; font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.2px; text-transform:uppercase; color:#8b93a1; padding:0 6px 6px; border-bottom:1px solid #e0e3ea; }
+    .p-table td{ padding:6px; font-size:10px; border-bottom:1px solid #eef0f4; color:#181c24; }
+    .p-table td.mono{ font-family:'JetBrains Mono',monospace; }
+    .p-pct{ font-family:'JetBrains Mono',monospace; font-weight:700; }
+    .p-pct.bien{ color:#0d9488; }
+    .p-pct.medio{ color:#8a6d1a; }
+    .p-pct.mal{ color:#dc2626; }
+
+    .p-profile-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; border:1px solid #e0e3ea; border-radius:8px; padding:15px 18px; margin-bottom:14px; }
+    .p-profile-name{ font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:17px; color:#181c24; margin-bottom:3px; }
+    .p-profile-meta{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#5b6270; }
   }
 </style>
 </head>
@@ -581,22 +638,82 @@
     document.getElementById('repImprimirIndividuales').addEventListener('click', imprimirTodosIndividuales);
   }
 
-  // ── impresión — construye un panel claro/plano dedicado (ver CSS @media
-  // print) en vez de reusar la interfaz oscura interactiva; cada botón arma
-  // su propio contenido y llama a window.print() (Ctrl+P/Guardar como PDF,
-  // sin costo de servidor, decisión ya confirmada). ──
-  function bloqueDatosPersona(p){
+  // ── impresión — panel imprimible propio construido en JS, EN CLARO pero
+  // con la misma identidad visual del reporte en pantalla (ver comentario
+  // largo en el CSS de arriba, @media print). Los helpers *Print son
+  // versiones ESTÁTICAS (sin animación) de ringSvg/gaugeSvg — un print/PDF
+  // capturado a medio fill-in se vería roto. ──
+  function colorHexPrint(p){ if(p == null) return '#8b93a1'; if(p >= 80) return '#0d9488'; if(p >= 40) return '#8a6d1a'; return '#dc2626'; }
+  function pctClasePrint(p){ if(p == null) return ''; if(p >= 80) return 'bien'; if(p >= 40) return 'medio'; return 'mal'; }
+
+  function ringSvgPrint({ p, color, size=88, r=32, stroke=7, fontSize=16 }){
+    const c = 2 * Math.PI * r;
+    const off = c * (1 - (p || 0) / 100);
+    const vb = (r + stroke) * 2, mid = vb / 2;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${vb} ${vb}">
+      <circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="#e0e3ea" stroke-width="${stroke}"></circle>
+      <circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${mid} ${mid})"></circle>
+      <text x="${mid}" y="${mid + fontSize * 0.33}" text-anchor="middle" font-family="Space Grotesk, Arial" font-size="${fontSize}" font-weight="700" fill="#181c24">${p == null ? '—' : p + '%'}</text>
+    </svg>`;
+  }
+
+  function gaugeSvgPrint({ p, benchP }){
+    const c = Math.PI * 70;
+    const off = c * (1 - (p || 0) / 100);
+    let marcador = '';
+    if(benchP != null){
+      const theta = (180 - 1.8 * benchP) * Math.PI / 180;
+      const mx = 90 + 70 * Math.cos(theta), my = 90 - 70 * Math.sin(theta);
+      marcador = `<circle cx="${mx}" cy="${my}" r="4" fill="#8b93a1"></circle>`;
+    }
+    return `<svg width="150" height="90" viewBox="0 0 180 100">
+      <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#e0e3ea" stroke-width="14" stroke-linecap="round"></path>
+      <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#3d7fff" stroke-width="14" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"></path>
+      ${marcador}
+      <text x="90" y="74" text-anchor="middle" font-family="Space Grotesk, Arial" font-weight="700" font-size="20" fill="#181c24">${p == null ? '—' : p + '%'}</text>
+    </svg>`;
+  }
+
+  function encabezadoPrint(){
+    const meta = REPORTE.snapshot.meta;
+    const toolMeta = TOOL_META[meta.herramienta] || {};
+    return `<div class="p-header">
+        <div class="p-brand"><img src="assets/img/firma-ap.png" alt=""> Alfredo Piña</div>
+        <span class="p-meta">GENERADO EL ${fmtFechaHora(REPORTE.generadoEn).toUpperCase()}</span>
+      </div>
+      <h1 class="p-title">Reporte de Diagnóstico · <span style="color:${toolMeta.color || '#181c24'};">${(toolMeta.nombre || meta.herramienta || '').toUpperCase()}</span> — ${escapeHtml(meta.clienteNombre || '')}</h1>
+      <p class="p-subtitle">${escapeHtml(document.getElementById('repSubtitle').textContent)}</p>`;
+  }
+
+  function insightsHtmlPrint(g){
+    const items = [];
+    if(g.insights.nivelFuerte && g.insights.nivelDebil){
+      items.push(`<div class="p-insight" style="color:var(--blue-bright);">${ICO_CHECK}<span style="color:#181c24;">El grupo domina <b>${NIVEL_LABEL[g.insights.nivelFuerte]}</b> y se debilita en <b>${NIVEL_LABEL[g.insights.nivelDebil]}</b>.</span></div>`);
+    }
+    items.push(`<div class="p-insight" style="color:#8a6d1a;">${ICO_PEOPLE}<span style="color:#181c24;"><b>${g.insights.necesitanAtencion.n} de ${g.n} (${g.insights.necesitanAtencion.pct}%)</b> necesitan reforzar fundamentos antes de avanzar.</span></div>`);
+    return items.join('');
+  }
+
+  function bloqueDatosPersonaPrint(p){
+    const esBasico = p.grupo === 'basico';
     return `<div class="rep-print-page">
-      <h2>${escapeHtml(p.nombre)}</h2>
-      <p>${escapeHtml(p.correo || '—')}${p.area ? ' · ' + escapeHtml(p.area) : ''} · ${fmtFechaHora(p.fechaEnvio)}</p>
-      <p><b>Recomendado: Iniciar en ${p.grupo === 'basico' ? 'Básico' : 'Intermedio'}</b> · Duración: ${fmtDuracion(p.tiempoSeg)}${p.duracionBucket ? ' (' + DURACION_LABEL[p.duracionBucket] + ')' : ''}</p>
-      <table><tbody>
-        <tr><td>Básico</td><td>${p.pctBasico == null ? '—' : p.pctBasico + '%'}</td></tr>
-        <tr><td>Intermedio</td><td>${p.pctIntermedio == null ? '—' : p.pctIntermedio + '%'}</td></tr>
-        <tr><td>Avanzado</td><td>${p.pctAvanzado == null ? '—' : p.pctAvanzado + '%'}</td></tr>
-        <tr><td>General</td><td>${p.pctGeneral == null ? '—' : p.pctGeneral + '%'}</td></tr>
-      </tbody></table>
-      <p>${escapeHtml(p.insight || '')}</p>
+      ${encabezadoPrint()}
+      <div class="p-profile-head">
+        <div>
+          <div class="p-profile-name">${escapeHtml(p.nombre)}</div>
+          <div class="p-profile-meta">${escapeHtml(p.correo || '—')}${p.area ? ' · ' + escapeHtml(p.area) : ''}</div>
+        </div>
+        ${gaugeSvgPrint({ p: p.pctGeneral, benchP: null })}
+        ${p.duracionBucket ? `<span class="p-pill ${p.duracionBucket === 'pausado' || p.duracionBucket === 'atipico' ? 'ambar' : 'teal'}">${fmtDuracion(p.tiempoSeg)} · ${DURACION_LABEL[p.duracionBucket]}</span>` : ''}
+      </div>
+      <div class="p-rings">
+        ${['basico', 'intermedio', 'avanzado'].map(niv => {
+          const val = p['pct' + niv.charAt(0).toUpperCase() + niv.slice(1)];
+          return `<div class="p-ring-item">${ringSvgPrint({ p: val, color: colorHexPrint(val) })}<span>${NIVEL_LABEL[niv]}</span></div>`;
+        }).join('')}
+      </div>
+      <div class="p-grupo-head"><span class="p-grupo-tag ${esBasico ? 'basico' : 'intermedio'}">Recomendado: Iniciar en ${esBasico ? 'Básico' : 'Intermedio'}</span></div>
+      <p style="font-size:11px; color:#181c24; line-height:1.6;">${escapeHtml(p.insight || 'Sin suficientes datos para un resumen.')}</p>
     </div>`;
   }
 
@@ -608,34 +725,61 @@
 
   function imprimirGeneralGrupos(){
     const g = REPORTE.snapshot.general;
-    const meta = REPORTE.snapshot.meta;
-    const toolNombre = (TOOL_META[meta.herramienta] || {}).nombre || meta.herramienta;
-    const filaTabla = p => `<tr><td>${escapeHtml(p.nombre)}</td><td>${escapeHtml(p.correo || '—')}</td><td>${p.pctBasico ?? '—'}%</td><td>${p.pctIntermedio ?? '—'}%</td><td>${p.pctAvanzado ?? '—'}%</td><td>${p.pctGeneral ?? '—'}%</td></tr>`;
     const basico = REPORTE.snapshot.participantes.filter(p => p.grupo === 'basico');
     const intermedio = REPORTE.snapshot.participantes.filter(p => p.grupo === 'intermedio');
+
+    const kpisHtml = [
+      ['Participantes', g.n],
+      ['Promedio general', g.promedioGeneral + '%'],
+      ['Mediana', g.medianaGeneral + '%'],
+      ['Tiempo promedio', fmtDuracion(g.tiempoPromedioSeg)],
+    ].map(([lbl, val]) => `<div class="p-kpi"><span class="p-kpi-lbl">${lbl}</span><div class="p-kpi-val">${val}</div></div>`).join('');
+
+    const comboLeft = g.benchmark
+      ? `${gaugeSvgPrint({ p: g.promedioGeneral, benchP: g.benchmark.promedio })}
+         <span class="p-pill ${g.benchmark.delta >= 0 ? 'teal' : 'ambar'}">${g.benchmark.delta === 0 ? 'Igual al histórico' : (g.benchmark.delta >= 0 ? '+' : '') + g.benchmark.delta + '% ' + (g.benchmark.delta >= 0 ? 'arriba' : 'abajo') + ' del histórico'}</span>
+         <div class="p-nota">Basado en ${g.benchmark.n} diagnósticos históricos.</div>`
+      : `${gaugeSvgPrint({ p: g.promedioGeneral, benchP: null })}
+         <div class="p-nota">Sin suficiente historial (&gt;10) para comparar vs. el mercado.</div>`;
+
+    const ringsHtml = ['basico', 'intermedio', 'avanzado'].map(niv => `
+      <div class="p-ring-item">${ringSvgPrint({ p: g.promedioPorNivel[niv], color: colorHexPrint(g.promedioPorNivel[niv]) })}<span>${NIVEL_LABEL[niv]}</span></div>`).join('');
+
+    const d = g.duracion;
+    const duracionHtml = ['normal', 'expres', 'pausado', 'atipico'].map(k => `<div class="p-duracion-card"><b>${d[k]}</b> ${DURACION_LABEL[k]}</div>`).join('');
+
+    const filaTabla = p => `<tr>
+        <td>${escapeHtml(p.nombre)}</td><td class="mono">${escapeHtml(p.correo || '—')}</td>
+        <td class="p-pct ${pctClasePrint(p.pctBasico)}">${p.pctBasico ?? '—'}%</td>
+        <td class="p-pct ${pctClasePrint(p.pctIntermedio)}">${p.pctIntermedio ?? '—'}%</td>
+        <td class="p-pct ${pctClasePrint(p.pctAvanzado)}">${p.pctAvanzado ?? '—'}%</td>
+        <td class="p-pct">${p.pctGeneral ?? '—'}%</td>
+      </tr>`;
+
     imprimir(`<div class="rep-print-page">
-      <h1>Reporte de Diagnóstico · ${toolNombre} — ${escapeHtml(meta.clienteNombre || '')}</h1>
-      <p>Generado el ${fmtFechaHora(REPORTE.generadoEn)}</p>
-      <h2>General</h2>
-      <p>Participantes: ${g.n} · Promedio general: ${g.promedioGeneral ?? '—'}% · Mediana: ${g.medianaGeneral ?? '—'}% · Tiempo promedio: ${fmtDuracion(g.tiempoPromedioSeg)}</p>
-      ${g.benchmark ? `<p>Vs. el mercado: ${g.benchmark.promedio}% histórico (${g.benchmark.n} diagnósticos) — delta ${g.benchmark.delta >= 0 ? '+' : ''}${g.benchmark.delta}%</p>` : ''}
-      <p>Básico: ${g.promedioPorNivel.basico ?? '—'}% · Intermedio: ${g.promedioPorNivel.intermedio ?? '—'}% · Avanzado: ${g.promedioPorNivel.avanzado ?? '—'}%</p>
-      <h2>Grupos — Recomendado: Iniciar en Básico (${basico.length})</h2>
-      <table><thead><tr><th>Nombre</th><th>Correo</th><th>%Básico</th><th>%Intermedio</th><th>%Avanzado</th><th>%General</th></tr></thead>
+      ${encabezadoPrint()}
+      <div class="p-kpi-grid">${kpisHtml}</div>
+      <div class="p-combo"><div class="p-combo-left">${comboLeft}</div><div class="p-combo-right">${insightsHtmlPrint(g)}</div></div>
+      <div class="p-rings">${ringsHtml}</div>
+      <div class="p-duracion-grid">${duracionHtml}</div>
+
+      <div class="p-grupo-head"><span class="p-grupo-tag basico">Recomendado: Iniciar en Básico (${basico.length})</span></div>
+      <table class="p-table"><thead><tr><th>Nombre</th><th>Correo</th><th>%Básico</th><th>%Intermedio</th><th>%Avanzado</th><th>%General</th></tr></thead>
       <tbody>${basico.map(filaTabla).join('') || '<tr><td colspan="6">Sin personas.</td></tr>'}</tbody></table>
-      <h2>Grupos — Recomendado: Iniciar en Intermedio (${intermedio.length})</h2>
-      <table><thead><tr><th>Nombre</th><th>Correo</th><th>%Básico</th><th>%Intermedio</th><th>%Avanzado</th><th>%General</th></tr></thead>
+
+      <div class="p-grupo-head"><span class="p-grupo-tag intermedio">Recomendado: Iniciar en Intermedio (${intermedio.length})</span></div>
+      <table class="p-table"><thead><tr><th>Nombre</th><th>Correo</th><th>%Básico</th><th>%Intermedio</th><th>%Avanzado</th><th>%General</th></tr></thead>
       <tbody>${intermedio.map(filaTabla).join('') || '<tr><td colspan="6">Sin personas.</td></tr>'}</tbody></table>
     </div>`);
   }
 
   function imprimirTodosIndividuales(){
-    imprimir(REPORTE.snapshot.participantes.map(bloqueDatosPersona).join(''));
+    imprimir(REPORTE.snapshot.participantes.map(bloqueDatosPersonaPrint).join(''));
   }
 
   function imprimirIndividualUno(id){
     const p = REPORTE.snapshot.participantes.find(x => x.id === id);
-    if(p) imprimir(bloqueDatosPersona(p));
+    if(p) imprimir(bloqueDatosPersonaPrint(p));
   }
 
   window.addEventListener('afterprint', () => { document.getElementById('repPrintArea').innerHTML = ''; });

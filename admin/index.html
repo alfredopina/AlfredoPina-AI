@@ -448,8 +448,17 @@
   .diag-qr-card-left{ flex:1 1 220px; min-width:220px; }
   .diag-qr-card-right{ flex:none; }
   .diag-qr-actions{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
-  .diag-qr-actions .radm-btn{ justify-content:flex-start; gap:8px; }
-  .diag-qr-actions .radm-btn svg{ width:15px; height:15px; flex:none; }
+  /* Punto medio entre "solo texto" (radm-btn-ghost, se sentía etiqueta) y un
+     relleno sólido — fondo tenue del color de la herramienta (--c, ya viene
+     de .dip-paso) + borde del mismo color, sin gritar. display:flex real
+     (antes solo se le ponía justify-content sin display:flex, por eso el
+     ícono no quedaba centrado con el texto). */
+  .diag-qr-actions .radm-btn{
+    display:flex; align-items:center; justify-content:flex-start; gap:9px;
+    background-color:color-mix(in srgb, var(--c) 14%, transparent); border-color:var(--c); color:var(--c);
+  }
+  .diag-qr-actions .radm-btn:hover{ background-color:color-mix(in srgb, var(--c) 24%, transparent); }
+  .diag-qr-actions .radm-btn svg{ width:15px; height:15px; flex:none; display:block; }
 
   /* Scorecard "Respuestas en vivo" — más chico, mismo esquema compacto que
      ya usan Clientes/Grupos (ícono+valor en línea), sin envolver en .dip-paso
@@ -457,35 +466,45 @@
   .diag-kpi-row-chica .dkpi-card{ padding:10px 12px; }
   .diag-kpi-row-chica .dkpi-value{ font-size:18px; }
 
-  /* ── Resultados: desglose de las 15 respuestas como grid denso de chips
-     (en vez de una tarjeta por pregunta con scroll largo), agrupado por
-     nivel — solo aquí en el admin tiene sentido mostrar el nivel, el público
-     nunca lo ve. Clic en un chip muestra su detalle en una sola línea debajo,
-     nunca 15 bloques abiertos a la vez. ── */
-  .diag-chip-group{ margin-bottom:14px; }
-  .diag-chip-group:last-child{ margin-bottom:0; }
-  .diag-chip-group-title{
+  /* ── Resultados: desglose de las 15 respuestas en 3 columnas (Básico /
+     Intermedio / Avanzado) lado a lado, cada una con sus preguntas en
+     renglones de una línea (número + ícono + texto truncado) + una 2da línea
+     más sutil con la respuesta elegida — reemplaza al grid de chips, que
+     dejaba mucho espacio muerto en un contenedor ancho con solo 5 preguntas
+     por nivel. Solo aquí en el admin tiene sentido mostrar el nivel, el
+     público nunca lo ve. ── */
+  .diag-nivel-grid{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:22px; }
+  @media (max-width:760px){ .diag-nivel-grid{ grid-template-columns:1fr; } }
+  .diag-nivel-col{ display:flex; flex-direction:column; gap:9px; min-width:0; }
+  .diag-nivel-titulo{
     font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px;
-    text-transform:uppercase; margin-bottom:8px;
+    text-transform:uppercase; border-bottom:1px solid var(--line-soft); padding-bottom:6px;
   }
-  .diag-chip-grid{ display:flex; flex-wrap:wrap; gap:6px; }
-  .diag-chip{
-    display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; font-weight:700;
-    padding:6px 9px; border-radius:6px; border:1px solid var(--line); background:var(--panel);
-    color:var(--text-dim); cursor:pointer; transition:border-color .15s, background .15s;
+  .diag-resp-row{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .diag-resp-linea{ display:flex; align-items:center; gap:7px; min-width:0; }
+  .diag-resp-ico{
+    flex:none; width:15px; height:15px; border-radius:50%; display:flex; align-items:center; justify-content:center;
   }
-  .diag-chip svg{ width:12px; height:12px; flex:none; }
-  .diag-chip.ok{ border-color:var(--good, #14b8a6); color:var(--good, #14b8a6); }
-  .diag-chip.bad{ border-color:var(--bad, #dc2626); color:var(--bad, #dc2626); }
-  /* anillo azul de "seleccionado" SIN tapar el color ok/bad — sigue siendo
-     importante ver de un vistazo cuáles son correctas mientras exploras */
-  .diag-chip.activo{ box-shadow:0 0 0 2px var(--blue-bright); }
-  .diag-chip-detalle{
-    display:none; margin-top:10px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:8px;
-    background:var(--panel-2); font-size:12.5px; color:var(--text-dim); line-height:1.5;
+  .diag-resp-ico svg{ width:9px; height:9px; }
+  .diag-resp-ico.ok{ background:color-mix(in srgb, var(--good, #14b8a6) 18%, transparent); color:var(--good, #14b8a6); }
+  .diag-resp-ico.bad{ background:color-mix(in srgb, var(--bad, #dc2626) 18%, transparent); color:var(--bad, #dc2626); }
+  .diag-resp-num{ flex:none; width:11px; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .diag-resp-texto{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--text-dim); }
+  /* sub-línea de la respuesta elegida — más sutil, sangrada bajo el texto de
+     la pregunta para leerse como un detalle, no como otro renglón igual */
+  .diag-resp-sub{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint); padding-left:22px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .diag-chip-detalle.show{ display:block; }
-  .diag-chip-detalle b{ color:var(--text); }
+
+  /* Puntaje de Básico/Intermedio/Avanzado — solo el número de aciertos (el
+     total siempre es 5, no hace falta mostrar "/5"), coloreado por umbral:
+     4-5 bien, 2-3 seguimiento, 0-1 urgente. El color nunca es la única señal
+     porque el propio dígito ya es texto, no un swatch vacío. */
+  .diag-puntaje{ font-weight:700; }
+  .diag-puntaje.bien{ color:var(--good, #14b8a6); }
+  .diag-puntaje.medio{ color:#dfb35a; }
+  .diag-puntaje.mal{ color:var(--bad, #dc2626); }
 
   /* Badge de Total — mismo lenguaje visual que "Completo" de Clientes
      (ícono+texto en un pill), pero neutro: no juzga si el puntaje es bueno o
@@ -1988,10 +2007,11 @@
                   <th data-sort="avanzado">Avanzado<span class="th-sort-ico"></span></th>
                   <th data-sort="total">Total<span class="th-sort-ico"></span></th>
                   <th data-sort="tiempo_respuesta_seg">Duración<span class="th-sort-ico"></span></th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="diagResultadosBody">
-                <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -6641,33 +6661,47 @@
       return `${m}:${String(s).padStart(2, '0')}`;
     }
 
-    // ── desglose compacto: grid de chips (número + ícono ✓/✗) agrupados por
-    // nivel, en vez de una tarjeta larga por pregunta — clic en un chip
-    // muestra su detalle en UNA sola línea debajo del grid, nunca 15 bloques
-    // abiertos a la vez. Solo aquí en el admin tiene sentido agrupar por
-    // nivel (el público nunca lo ve). ──
+    // ── desglose en 3 columnas (Básico/Intermedio/Avanzado lado a lado) —
+    // reemplaza al grid de chips, que dejaba mucho espacio muerto con solo 5
+    // preguntas por nivel en un contenedor ancho. Cada renglón ya muestra la
+    // respuesta elegida como 2da línea sutil, sin necesitar clic para verla.
+    // Solo aquí en el admin tiene sentido agrupar por nivel (el público
+    // nunca lo ve). ──
     function detalleHtml(r){
       const porNivel = { 1:[], 2:[], 3:[] };
       r.detalle.forEach(d => { if(porNivel[d.nivel]) porNivel[d.nivel].push(d); });
-      const grupos = [1, 2, 3].map(nivel => {
-        if(!porNivel[nivel].length) return '';
+      const columnas = [1, 2, 3].map(nivel => {
+        const items = porNivel[nivel];
+        if(!items.length) return '';
         return `
-          <div class="diag-chip-group">
-            <div class="diag-chip-group-title">${NIVEL_LABEL[nivel]}</div>
-            <div class="diag-chip-grid">
-              ${porNivel[nivel].map((d, i) => `
-                <button type="button" class="diag-chip ${d.fue_correcta ? 'ok' : 'bad'}" data-respuesta-id="${r.id}" data-pregunta-id="${escapeHtml(d.pregunta_id)}" title="Pregunta ${i + 1} de ${NIVEL_LABEL[nivel]}">
-                  ${d.fue_correcta ? ICO.check : ICO.x}${i + 1}
-                </button>
-              `).join('')}
-            </div>
+          <div class="diag-nivel-col">
+            <div class="diag-nivel-titulo">${NIVEL_LABEL[nivel]}</div>
+            ${items.map((d, i) => {
+              const esNoSe = d.opcion_seleccionada === 'N';
+              const opcionTexto = !esNoSe && d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
+                ? d['opcion_' + d.opcion_seleccionada.toLowerCase()] : null;
+              const respuestaTexto = esNoSe ? 'No lo sé' : `${escapeHtml(d.opcion_seleccionada)}${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''}`;
+              return `
+                <div class="diag-resp-row">
+                  <div class="diag-resp-linea">
+                    <span class="diag-resp-ico ${d.fue_correcta ? 'ok' : 'bad'}">${d.fue_correcta ? ICO.check : ICO.x}</span>
+                    <span class="diag-resp-num">${i + 1}</span>
+                    <span class="diag-resp-texto" title="${escapeHtml(d.texto)}">${escapeHtml(d.texto)}</span>
+                  </div>
+                  <div class="diag-resp-sub" title="Eligió: ${respuestaTexto}">Eligió: ${respuestaTexto}</div>
+                </div>`;
+            }).join('')}
           </div>`;
       }).join('');
-      return `
-        <div class="diag-resultado-detalle">
-          ${grupos || '<div class="radm-empty-row">Sin desglose disponible.</div>'}
-          <div class="diag-chip-detalle" id="diag-chip-detalle-${r.id}"></div>
-        </div>`;
+      return `<div class="diag-nivel-grid">${columnas || '<div class="radm-empty-row">Sin desglose disponible.</div>'}</div>`;
+    }
+
+    // Solo el número de aciertos (el total siempre es 5) coloreado por
+    // umbral: 4-5 bien, 2-3 seguimiento, 0-1 urgente.
+    function colorPuntaje(n){
+      if(n >= 4) return 'bien';
+      if(n >= 2) return 'medio';
+      return 'mal';
     }
 
     let diagResultadosRaw = [];
@@ -6713,7 +6747,7 @@
       renderSortButtonsResultados();
       const body = document.getElementById('diagResultadosBody');
       const lista = ordenarResultados(diagResultadosRaw);
-      if(!lista.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
 
       body.innerHTML = lista.map(r => `
         <tr data-id="${r.id}">
@@ -6728,14 +6762,17 @@
             </button>
             ${r.correo ? `<div class="diag-nombre-sub">${escapeHtml(r.correo)}</div>` : ''}
           </td>
-          <td class="radm-mono">${r.tallies.basico.aciertos}/${r.tallies.basico.total}</td>
-          <td class="radm-mono">${r.tallies.intermedio.aciertos}/${r.tallies.intermedio.total}</td>
-          <td class="radm-mono">${r.tallies.avanzado.aciertos}/${r.tallies.avanzado.total}</td>
+          <td class="radm-mono diag-puntaje ${colorPuntaje(r.tallies.basico.aciertos)}">${r.tallies.basico.aciertos}</td>
+          <td class="radm-mono diag-puntaje ${colorPuntaje(r.tallies.intermedio.aciertos)}">${r.tallies.intermedio.aciertos}</td>
+          <td class="radm-mono diag-puntaje ${colorPuntaje(r.tallies.avanzado.aciertos)}">${r.tallies.avanzado.aciertos}</td>
           <td><span class="diag-total-pill">${ICO.check}${r.total.aciertos}/${r.total.total}</span></td>
           <td class="radm-mono">${fmtDuracion(r.tiempo_respuesta_seg)}</td>
+          <td>
+            <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-id="${r.id}" title="Eliminar esta respuesta — borrado real, no se puede deshacer">${ICO.trash}</button>
+          </td>
         </tr>
         <tr class="sol-desglose-row" id="diag-desglose-${r.id}" hidden>
-          <td colspan="10"><div class="sol-desglose">${detalleHtml(r)}</div></td>
+          <td colspan="11"><div class="sol-desglose">${detalleHtml(r)}</div></td>
         </tr>
       `).join('');
     }
@@ -6752,13 +6789,13 @@
       if(seleccionado) params.set('clienteId', seleccionado.id);
 
       const body = document.getElementById('diagResultadosBody');
-      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Buscando...</td></tr>`;
 
       try {
         diagResultadosRaw = await apiGetConReintento('/api/listRespuestasDiagnosticoAdmin?' + params.toString());
         renderResultadosTabla();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -6770,29 +6807,26 @@
       });
     });
 
-    document.getElementById('diagResultadosBody').addEventListener('click', e => {
+    document.getElementById('diagResultadosBody').addEventListener('click', async e => {
       const toggle = e.target.closest('.sol-temario-toggle');
       if(toggle){
         const fila = document.getElementById('diag-desglose-' + toggle.dataset.id);
         if(fila){ fila.hidden = !fila.hidden; toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden); }
         return;
       }
-      const chip = e.target.closest('.diag-chip');
-      if(chip){
-        const cont = document.getElementById('diag-chip-detalle-' + chip.dataset.respuestaId);
-        if(!cont) return;
-        const yaActivo = chip.classList.contains('activo');
-        chip.closest('.diag-resultado-detalle').querySelectorAll('.diag-chip').forEach(c => c.classList.remove('activo'));
-        if(yaActivo){ cont.classList.remove('show'); cont.innerHTML = ''; return; }
-        const r = diagResultadosRaw.find(x => String(x.id) === chip.dataset.respuestaId);
-        const d = r && r.detalle.find(x => x.pregunta_id === chip.dataset.preguntaId);
-        if(!d) return;
-        chip.classList.add('activo');
-        const esNoSe = d.opcion_seleccionada === 'N';
-        const opcionTexto = !esNoSe && d.opcion_seleccionada && d['opcion_' + d.opcion_seleccionada.toLowerCase()] != null
-          ? d['opcion_' + d.opcion_seleccionada.toLowerCase()] : null;
-        cont.innerHTML = `<b>${escapeHtml(d.texto)}</b><br>Eligió: <b>${esNoSe ? 'No lo sé' : escapeHtml(d.opcion_seleccionada)}</b>${opcionTexto ? ') ' + escapeHtml(opcionTexto) : ''} — ${d.fue_correcta ? 'Correcta' : 'Incorrecta'}`;
-        cont.classList.add('show');
+      const btnDel = e.target.closest('[data-action="eliminar"]');
+      if(btnDel){
+        const id = Number(btnDel.dataset.id);
+        const r = diagResultadosRaw.find(x => x.id === id);
+        // Única excepción del proyecto a "nunca borrar de verdad", además de
+        // eliminarGrupo — pedida explícita por Alfredo para limpiar pruebas/
+        // duplicados. El reporte agregará otras acciones aquí más adelante.
+        if(!confirm(`¿Eliminar la respuesta de "${r ? r.nombre : id}"? Es un borrado real y no se puede deshacer.`)) return;
+        try {
+          await apiPostJson('/api/eliminarRespuestaDiagnostico', { id });
+          toast('Respuesta eliminada.', true);
+          await buscarResultados();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
       }
     });
 

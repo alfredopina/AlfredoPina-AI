@@ -305,6 +305,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarRespuestaDiagnostico",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getContadorDiagnosticoAdmin",
       "allowedRoles": ["admin"]
     },

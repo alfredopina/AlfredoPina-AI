@@ -202,27 +202,28 @@
     padding-top:18px; margin:8px 0 20px; line-height:1.6;
   }
 
-  /* Relleno sólido en vez de solo contorno — con el estilo de pill de antes
-     se leía como una etiqueta informativa, no como un botón que invita a dar
-     clic (pedido explícito de Alfredo, sobre todo por "Siguiente", que se da
-     clic 15 veces seguidas). */
+  /* Punto medio entre el pill de solo contorno de antes (se leía como
+     etiqueta) y un azul 100% sólido (Alfredo lo sintió "mucho color" para
+     un botón que se toca 15 veces seguidas) — relleno con la mitad de
+     intensidad del azul de marca, borde sólido para que el contorno del
+     botón siga leyéndose nítido. */
   .diag-submit-fx{
     width:100%; display:flex; align-items:stretch; border:1px solid var(--blue);
-    border-radius:6px; background:var(--blue); overflow:hidden; cursor:pointer;
-    transition:background .2s, transform .1s;
+    border-radius:6px; background-color:color-mix(in srgb, var(--blue) 42%, var(--panel) 58%);
+    overflow:hidden; cursor:pointer; transition:background-color .2s, border-color .2s, transform .1s;
   }
-  .diag-submit-fx:hover:not(:disabled){ background:var(--blue-bright); border-color:var(--blue-bright); }
+  .diag-submit-fx:hover:not(:disabled){ background-color:color-mix(in srgb, var(--blue) 62%, var(--panel) 38%); border-color:var(--blue-bright); }
   .diag-submit-fx:active:not(:disabled){ transform:scale(.99); }
-  .diag-submit-fx:disabled{ opacity:.4; cursor:default; background:var(--panel); border-color:var(--blue-dim); }
-  .diag-submit-fx:disabled .diag-submit-fx-tag{ color:var(--blue-bright); background:transparent; }
+  .diag-submit-fx:disabled{ opacity:.4; cursor:default; background-color:var(--panel); border-color:var(--blue-dim); }
+  .diag-submit-fx:disabled .diag-submit-fx-tag{ color:var(--blue-bright); background-color:transparent; }
   .diag-submit-fx:disabled .diag-submit-fx-body{ color:var(--text-dim); }
   .diag-submit-fx-tag{
-    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:#0a0d12;
-    background:rgba(10,13,18,.16); padding:18px 16px; border-right:1px solid rgba(10,13,18,.16); flex:none;
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
+    background-color:rgba(10,13,18,.25); padding:18px 16px; border-right:1px solid rgba(10,13,18,.25); flex:none;
     display:flex; align-items:center;
   }
   .diag-submit-fx-body{
-    font-family:var(--mono); font-size:14px; font-weight:600; color:#0a0d12; padding:18px 20px;
+    font-family:var(--mono); font-size:14px; font-weight:600; color:var(--text); padding:18px 20px;
     display:flex; align-items:center; flex:1; justify-content:center;
   }
 

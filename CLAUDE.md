@@ -52,7 +52,7 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 - El atributo `hidden` pierde contra una clase que fija su propio `display` — cualquier clase nueva con `display` propio que alguna vez se oculte con `hidden` necesita `.clase[hidden]{display:none}` desde que se escribe.
 - No mezcles `border-color`/`background` shorthand con `color-mix()` o un long-hand de un solo lado — usa `background-color`/long-hands explícitos (puede colapsar a transparente/vacío sin error visible).
 - Antes de un `ALTER COLUMN` en un script SQL, revisa constraints existentes de esa columna (`sys.key_constraints`/`check_constraints`/`default_constraints`) — no asumas que el script de referencia que estás calcando ya los cubrió.
-- Nunca borres datos de verdad — todo es reversible (archivar/cambiar estatus), salvo `eliminarGrupo`, única excepción pedida explícita por Alfredo.
+- Nunca borres datos de verdad — todo es reversible (archivar/cambiar estatus), salvo `eliminarGrupo` y `eliminarRespuestaDiagnostico`, excepciones pedidas explícitas por Alfredo (siempre con `confirm()` fuerte antes).
 - Un panel que carga datos solo al abrir `/admin` necesita refrescar también al navegar ahí desde el sidebar, no solo al cargar la página completa.
 - Nunca reproduzcas contenido con copyright de terceros; nunca inventes URLs.
 

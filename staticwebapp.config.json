@@ -21,6 +21,10 @@
       "rewrite": "/diagnostico.html"
     },
     {
+      "route": "/reporte",
+      "rewrite": "/reporte-diagnostico.html"
+    },
+    {
       "route": "/admin",
       "allowedRoles": ["admin"]
     },
@@ -378,6 +382,10 @@
     },
     {
       "route": "/api/getModeloEstadisticas",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/generarReporteDiagnostico",
       "allowedRoles": ["admin"]
     }
   ],

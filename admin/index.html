@@ -1993,6 +1993,24 @@
           </div>
           <span class="radm-hint" style="display:block; margin:8px 0 12px;">Se busca solo, en cuanto cambias cualquier filtro — y esta pestaña se vuelve a cargar cada vez que entras aquí.</span>
 
+          <div class="dip-paso" style="margin-bottom:18px;">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Reporte para el cliente</span>
+            </div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Genera un reporte con los resultados que ves filtrados arriba (Herramienta + Empresa + fechas) — calcula todo una sola vez y te da un link para mandarle al cliente, sin login.</span>
+            <button type="button" class="radm-btn radm-btn-ghost" id="diagGenerarReporte" style="min-width:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Generar reporte
+            </button>
+            <div class="radm-field" id="diagReporteLinkWrap" style="margin-top:12px;" hidden>
+              <label>LINK DEL REPORTE</label>
+              <div class="enc-link-row">
+                <input type="text" id="diagReporteLinkInput" readonly>
+                <button type="button" class="radm-btn radm-btn-ghost" id="diagReporteCopiar" style="min-width:auto">Copiar</button>
+              </div>
+            </div>
+          </div>
+
           <div class="dip-table-wrap">
             <table class="dip-table" id="diagResultadosTable">
               <thead>
@@ -6845,6 +6863,35 @@
       document.getElementById('diagFHasta').value = '';
       diagFEmpresaAuto.reset();
       buscarResultados();
+    });
+
+    // ── Generar reporte — reusa los mismos filtros de Resultados (Herramienta
+    // + Empresa + fechas). Herramienta y Empresa son obligatorias aquí (el
+    // reporte es "para un cliente", el benchmark necesita saber a quién
+    // excluir) aunque en la tabla de Resultados sean opcionales.
+    document.getElementById('diagGenerarReporte').addEventListener('click', async () => {
+      const herramienta = document.getElementById('diagFHerramienta').value;
+      const cliente = diagFEmpresaAuto.getSeleccionado();
+      if(!herramienta){ toast('Elige una Herramienta (Excel o Power BI) para generar el reporte.', false); return; }
+      if(!cliente){ toast('Elige una Empresa en los filtros para generar el reporte.', false); return; }
+      const desde = document.getElementById('diagFDesde').value;
+      const hasta = document.getElementById('diagFHasta').value;
+      const btn = document.getElementById('diagGenerarReporte');
+      btn.disabled = true;
+      try {
+        const r = await apiPostJson('/api/generarReporteDiagnostico', {
+          herramienta, clienteId: cliente.id, clienteNombre: cliente.nombre, desde: desde || null, hasta: hasta || null,
+        });
+        const link = new URL(`reporte?token=${r.token}`, location.origin + '/').href;
+        document.getElementById('diagReporteLinkInput').value = link;
+        document.getElementById('diagReporteLinkWrap').hidden = false;
+        toast('Reporte generado.', true);
+      } catch(err){ toast('No se pudo generar el reporte: ' + err.message, false); }
+      finally { btn.disabled = false; }
+    });
+    document.getElementById('diagReporteCopiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(document.getElementById('diagReporteLinkInput').value); toast('Link copiado.', true); }
+      catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
     });
   })();
 

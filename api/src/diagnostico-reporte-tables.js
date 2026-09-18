@@ -49,6 +49,14 @@ async function guardarReporte(table, { token, herramienta, clienteId, clienteNom
       desde: desde || "",
       hasta: hasta || "",
       generadoEn: new Date().toISOString(),
+      visitas: 0,
+      // n/promedioGeneral duplicados como propiedades propias (además de ir
+      // dentro de snapshotJson) para que listarReportes pueda proyectar solo
+      // estos campos chicos sin tener que parsear el JSON completo de cada
+      // fila — importa poco hoy, pero evita que listar 100+ reportes se
+      // vuelva lento/caro según crezca el snapshot (con Individual incluido).
+      n: snapshot.general.n,
+      promedioGeneral: snapshot.general.promedioGeneral,
       snapshotJson: JSON.stringify(snapshot),
     },
     "Replace"
@@ -74,4 +82,54 @@ async function leerReporte(table, token) {
   }
 }
 
-module.exports = { getDiagnosticoReportesTable, nuevoToken, guardarReporte, leerReporte };
+// Solo para getReporteDiagnosticoPublico — mejor esfuerzo, nunca debe tumbar
+// la carga del reporte si falla (ej. 2 personas abriendo el link al mismo
+// tiempo, condición de carrera rara en el conteo, aceptable para un contador
+// simple de aperturas, no es un dato que se vaya a facturar ni auditar).
+async function incrementarVisitas(table, token) {
+  try {
+    const e = await table.getEntity("reporte", token);
+    await table.updateEntity({ partitionKey: "reporte", rowKey: token, visitas: (e.visitas || 0) + 1 }, "Merge");
+  } catch (err) {
+    // silencioso a propósito
+  }
+}
+
+async function listarReportes(table) {
+  await ensureTable(table);
+  const items = [];
+  const entidades = table.listEntities({
+    queryOptions: {
+      filter: "PartitionKey eq 'reporte'",
+      select: ["rowKey", "herramienta", "clienteNombre", "desde", "hasta", "generadoEn", "visitas", "n", "promedioGeneral"],
+    },
+  });
+  for await (const e of entidades) {
+    items.push({
+      token: e.rowKey,
+      herramienta: e.herramienta,
+      clienteNombre: e.clienteNombre,
+      desde: e.desde || null,
+      hasta: e.hasta || null,
+      generadoEn: e.generadoEn,
+      visitas: e.visitas || 0,
+      n: e.n,
+      promedioGeneral: e.promedioGeneral,
+    });
+  }
+  return items;
+}
+
+async function eliminarReporte(table, token) {
+  await table.deleteEntity("reporte", token);
+}
+
+module.exports = {
+  getDiagnosticoReportesTable,
+  nuevoToken,
+  guardarReporte,
+  leerReporte,
+  incrementarVisitas,
+  listarReportes,
+  eliminarReporte,
+};

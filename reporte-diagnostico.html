@@ -39,8 +39,11 @@
   .rep-subtitle{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:18px; }
 
   .rep-tabsrow{ display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
-  .rep-tab{ display:flex; align-items:center; gap:7px; padding-bottom:12px; font-family:var(--display); font-weight:600; font-size:13.5px; color:var(--text-faint); border-bottom:2px solid transparent; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none; }
+  /* antes --text-faint (casi ilegible cuando no está activa) — se sube a
+     --text-dim + hover propio para que se note que también son botones */
+  .rep-tab{ display:flex; align-items:center; gap:7px; padding-bottom:12px; font-family:var(--display); font-weight:600; font-size:13.5px; color:var(--text-dim); border-bottom:2px solid transparent; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none; transition:color .15s; }
   .rep-tab svg{ width:15px; height:15px; }
+  .rep-tab:hover{ color:var(--text); }
   .rep-tab.active{ color:var(--text); border-bottom-color:var(--blue-bright); }
   .rep-actions{ display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; }
   .rep-abtn{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; border-radius:6px; padding:7px 11px; cursor:pointer; background-color:transparent; }
@@ -62,12 +65,15 @@
   .rep-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; }
 
   .rep-kpi-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-  .rep-kpi{ padding:16px 18px; }
+  /* acento vertical a la izquierda en vez de barra horizontal abajo —
+     posicionado absoluto para no empujar el contenido, con su propio
+     padding-left para que no se le encime al texto */
+  .rep-kpi{ position:relative; padding:16px 18px 16px 24px; overflow:hidden; }
   .rep-kpi-head{ display:flex; align-items:center; gap:5px; margin-bottom:8px; }
   .rep-kpi-head svg{ width:11px; height:11px; color:var(--text-faint); }
   .rep-kpi-val{ font-family:var(--display); font-weight:700; font-size:25px; }
-  @keyframes repAccentPulse{ 0%,100%{opacity:.35;} 50%{opacity:1;} }
-  .rep-kpi-accent{ height:3px; border-radius:2px; margin-top:12px; background:var(--blue-bright); animation:repAccentPulse 2.6s ease-in-out infinite; }
+  @keyframes repAccentPulse{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
+  .rep-kpi-accent{ position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--blue-bright); animation:repAccentPulse 2.4s ease-in-out infinite; }
 
   /* benchmark + insights, combinados en una sola sección lado a lado */
   .rep-combo{ display:flex; gap:0; margin-bottom:18px; overflow:hidden; }
@@ -101,9 +107,17 @@
 
   /* ── Grupos ── */
   .rep-grupo-tabs{ display:flex; gap:10px; margin-bottom:14px; }
-  .rep-grupo-tab{ font-family:var(--display); font-weight:600; font-size:13px; border-radius:8px; padding:10px 16px; cursor:pointer; background:var(--panel); border:1px solid var(--line); color:var(--text-faint); }
-  .rep-grupo-tab.active.basico{ color:var(--ambar); background:rgba(223,179,90,.1); border-color:var(--ambar); }
-  .rep-grupo-tab.active.intermedio{ color:var(--text); background:var(--panel-2); border-color:var(--line); }
+  /* los 2 SIEMPRE se ven "con datos" (borde+texto de color, nunca gris
+     apagado) — antes el inactivo se leía como "vacío/deshabilitado" en vez
+     de "tiene datos, nomás no es el filtro activo". La diferencia entre
+     activo/inactivo es relleno vs. solo contorno, no vivo vs. apagado. */
+  .rep-grupo-tab{ font-family:var(--display); font-weight:600; font-size:13px; border-radius:8px; padding:10px 16px; cursor:pointer; background:transparent; border:1px solid; transition:background-color .15s; }
+  .rep-grupo-tab.basico{ color:var(--ambar); border-color:var(--ambar); }
+  .rep-grupo-tab.intermedio{ color:var(--teal); border-color:var(--teal); }
+  .rep-grupo-tab.basico:hover{ background-color:rgba(223,179,90,.08); }
+  .rep-grupo-tab.intermedio:hover{ background-color:rgba(20,184,166,.08); }
+  .rep-grupo-tab.active.basico{ background-color:rgba(223,179,90,.16); }
+  .rep-grupo-tab.active.intermedio{ background-color:rgba(20,184,166,.16); }
   .rep-criterio-note{ display:flex; align-items:flex-start; gap:10px; background:rgba(223,179,90,.06); border:1px solid rgba(223,179,90,.35); border-radius:8px; padding:11px 16px; margin-bottom:18px; font-size:12px; color:var(--text-dim); line-height:1.5; }
   .rep-criterio-note svg{ width:14px; height:14px; flex:none; margin-top:2px; color:var(--ambar); }
   .rep-criterio-note b{ color:var(--text); }
@@ -203,6 +217,7 @@
           <button type="button" class="rep-abtn info" id="repInfoBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
             Cómo se calcula
+            <svg id="repInfoChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:11px; height:11px; transition:transform .15s;"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <button type="button" class="rep-abtn imprimir" id="repImprimirGeneral">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -217,7 +232,7 @@
       <div class="rep-info-panel" id="repInfoPanel" hidden>
         <p style="margin-bottom:10px;"><b>Mediana:</b> el valor que divide a la mitad al grupo — la mitad de las personas queda arriba, la mitad abajo. Es más resistente a valores extremos que el promedio.</p>
         <p style="margin-bottom:10px;"><b>Recomendación de grupo:</b> se sugiere "Iniciar en Básico" cuando el %General de la persona está debajo de la mediana del grupo, <b>o</b> cuando su %Básico es menor a 80% (4 de 5) — un Básico débil conviene reforzarlo aunque el resto vaya bien.</p>
-        <p style="margin-bottom:10px;"><b>Vs. el mercado:</b> compara este grupo contra el promedio histórico de Alfredo para esa misma herramienta, en todos sus clientes salvo este — mejora conforme se acumulan más diagnósticos.</p>
+        <p style="margin-bottom:10px;"><b>Vs. el mercado:</b> compara este grupo contra el promedio histórico de Alfredo para esa misma herramienta, en todos sus clientes salvo este — solo se muestra con más de 10 diagnósticos históricos (con menos, la comparación es más ruido que señal).</p>
         <p><b>Duración:</b> Exprés (menos de 10 min), Ritmo normal (10-20 min), Ritmo pausado (20-30 min), Atípico (30+ min) — un ritmo muy rápido o muy largo puede señalar que la persona no leyó bien las preguntas.</p>
       </div>
     </div>
@@ -389,11 +404,11 @@
       ['Promedio general', g.promedioGeneral + '%'],
       ['Mediana', g.medianaGeneral + '%'],
       ['Tiempo promedio', fmtDuracion(g.tiempoPromedioSeg)],
-    ].map(([lbl, val]) => `
+    ].map(([lbl, val], i) => `
       <div class="rep-card rep-kpi">
         <div class="rep-kpi-head"><span class="rep-lbl">${lbl}</span></div>
         <div class="rep-kpi-val">${val}</div>
-        <div class="rep-kpi-accent"></div>
+        <div class="rep-kpi-accent" style="animation-delay:${(i * 0.55).toFixed(2)}s;"></div>
       </div>`).join('');
 
     let benchHtml;
@@ -411,7 +426,7 @@
     } else {
       benchHtml = `
         ${gaugeSvg({ p: g.promedioGeneral, benchP: null })}
-        <div class="rep-bench-nota">Aún no hay suficiente historial de otros clientes para comparar.</div>`;
+        <div class="rep-bench-nota">Todavía no hay suficiente historial de otros clientes (se necesitan más de 10 diagnósticos) para comparar contra el mercado.</div>`;
     }
 
     const insightsItems = [];
@@ -560,6 +575,7 @@
     document.getElementById('repInfoBtn').addEventListener('click', () => {
       const panel = document.getElementById('repInfoPanel');
       panel.hidden = !panel.hidden;
+      document.getElementById('repInfoChevron').style.transform = panel.hidden ? '' : 'rotate(180deg)';
     });
     document.getElementById('repImprimirGeneral').addEventListener('click', imprimirGeneralGrupos);
     document.getElementById('repImprimirIndividuales').addEventListener('click', imprimirTodosIndividuales);

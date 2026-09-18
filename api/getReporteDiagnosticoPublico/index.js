@@ -3,7 +3,7 @@
 // getPreguntasDiagnostico): lee un snapshot ya calculado de Table Storage por
 // su token opaco — nunca toca SQL, así la página carga instantáneo sin
 // depender del auto-pause de apcweb-backoffice (ver diagnostico-reporte-tables.js).
-const { getDiagnosticoReportesTable, leerReporte } = require("../src/diagnostico-reporte-tables");
+const { getDiagnosticoReportesTable, leerReporte, incrementarVisitas } = require("../src/diagnostico-reporte-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -20,6 +20,7 @@ module.exports = async function (context, req) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese reporte no existe o ya no está disponible." } };
       return;
     }
+    await incrementarVisitas(table, token);
     context.res = { status: 200, headers: JSON_HEADERS, body: reporte };
   } catch (err) {
     context.log.error("Error leyendo el reporte de diagnóstico:", err.message);

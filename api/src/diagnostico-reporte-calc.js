@@ -13,6 +13,7 @@
 const NIVEL_NOMBRE = { 1: "basico", 2: "intermedio", 3: "avanzado" };
 const NIVEL_LABEL = { basico: "Básico", intermedio: "Intermedio", avanzado: "Avanzado" };
 const UMBRAL_BASICO_PCT = 80;
+const UMBRAL_BENCHMARK_MIN_N = 10;
 
 function pct(aciertos, total) {
   return total > 0 ? Math.round((aciertos / total) * 100) : null;
@@ -178,7 +179,13 @@ async function calcularReporte(pool, sql, { herramienta, clienteId, clienteNombr
   }
   const necesitanAtencionN = participantes.filter((p) => p.grupo === "basico").length;
 
-  const benchmark = clienteId ? await calcularBenchmark(pool, sql, { herramienta, clienteIdExcluir: clienteId }) : null;
+  // Regla de negocio (pedida por Alfredo): el benchmark solo se muestra con
+  // más de 10 respuestas históricas de otros clientes — con menos, comparar
+  // "vs. el mercado" es más ruido que señal. Con poco historial, el reporte
+  // simplemente no muestra comparación (el gauge ya muestra el promedio
+  // propio del cliente sin marcador de mercado — ver reporte-diagnostico.html).
+  const benchmarkCrudo = clienteId ? await calcularBenchmark(pool, sql, { herramienta, clienteIdExcluir: clienteId }) : null;
+  const benchmark = benchmarkCrudo && benchmarkCrudo.n > UMBRAL_BENCHMARK_MIN_N ? benchmarkCrudo : null;
   const promedioGeneral = promedio(participantes.map((p) => p.pctGeneral));
 
   // insight por persona (mismo estilo que el de General, prefijado por el tag

@@ -387,6 +387,14 @@
     {
       "route": "/api/generarReporteDiagnostico",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listReportesDiagnosticoAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarReporteDiagnostico",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

@@ -1851,6 +1851,7 @@
           <button type="button" class="dash-etab" data-diagtab="powerbi">Power BI</button>
           <button type="button" class="dash-etab" data-diagtab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-diagtab="resultados">Resultados</button>
+          <button type="button" class="dash-etab" data-diagtab="reportes">Reportes</button>
         </div>
 
         <div class="dip-tabpanel active" id="diagTab-excel"></div>
@@ -1993,24 +1994,6 @@
           </div>
           <span class="radm-hint" style="display:block; margin:8px 0 12px;">Se busca solo, en cuanto cambias cualquier filtro — y esta pestaña se vuelve a cargar cada vez que entras aquí.</span>
 
-          <div class="dip-paso" style="margin-bottom:18px;">
-            <div class="dip-paso-head">
-              <span class="dip-paso-title">Reporte para el cliente</span>
-            </div>
-            <span class="radm-hint" style="display:block; margin-bottom:14px;">Genera un reporte con los resultados que ves filtrados arriba (Herramienta + Empresa + fechas) — calcula todo una sola vez y te da un link para mandarle al cliente, sin login.</span>
-            <button type="button" class="radm-btn radm-btn-ghost" id="diagGenerarReporte" style="min-width:auto;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Generar reporte
-            </button>
-            <div class="radm-field" id="diagReporteLinkWrap" style="margin-top:12px;" hidden>
-              <label>LINK DEL REPORTE</label>
-              <div class="enc-link-row">
-                <input type="text" id="diagReporteLinkInput" readonly>
-                <button type="button" class="radm-btn radm-btn-ghost" id="diagReporteCopiar" style="min-width:auto">Copiar</button>
-              </div>
-            </div>
-          </div>
-
           <div class="dip-table-wrap">
             <table class="dip-table" id="diagResultadosTable">
               <thead>
@@ -2030,6 +2013,69 @@
               </thead>
               <tbody id="diagResultadosBody">
                 <tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="diagTab-reportes">
+          <div class="dip-paso" style="margin-bottom:18px;">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Generar reporte</span>
+            </div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Herramienta y Empresa son obligatorias (el benchmark necesita saber a quién excluir); fechas opcionales. Calcula todo una sola vez y te da un link para mandarle al cliente, sin login.</span>
+            <div class="radm-form-row">
+              <div class="radm-field" style="max-width:160px;">
+                <label>HERRAMIENTA</label>
+                <select id="diagRepHerramienta">
+                  <option value="">Elige...</option>
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                </select>
+              </div>
+              <div class="radm-field dip-autocomplete-wrap" style="flex:1; min-width:220px;">
+                <label>CLIENTE</label>
+                <input type="text" id="diagRepClienteNombre" placeholder="Escribe el nombre del cliente..." autocomplete="off">
+                <div class="dip-autocomplete-list" id="diagRepClienteLista" hidden></div>
+              </div>
+              <div class="radm-field">
+                <label>DESDE</label>
+                <input type="date" id="diagRepDesde">
+              </div>
+              <div class="radm-field">
+                <label>HASTA</label>
+                <input type="date" id="diagRepHasta">
+              </div>
+            </div>
+            <button type="button" class="radm-btn radm-btn-ghost" id="diagGenerarReporte" style="min-width:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Generar reporte
+            </button>
+            <div class="radm-field" id="diagReporteLinkWrap" style="margin-top:12px;" hidden>
+              <label>LINK DEL REPORTE</label>
+              <div class="enc-link-row">
+                <input type="text" id="diagReporteLinkInput" readonly>
+                <button type="button" class="radm-btn radm-btn-ghost" id="diagReporteCopiar" style="min-width:auto">Copiar</button>
+              </div>
+            </div>
+          </div>
+
+          <span class="radm-hint" style="display:block; margin:8px 0 12px;">Esta pestaña se vuelve a cargar cada vez que entras aquí — mismo criterio que Resultados.</span>
+
+          <div class="dip-table-wrap">
+            <table class="dip-table" id="diagReportesTable">
+              <thead>
+                <tr>
+                  <th>Filtros aplicados</th>
+                  <th data-sort="generadoEn">Creado<span class="th-sort-ico"></span></th>
+                  <th data-sort="n">Muestra<span class="th-sort-ico"></span></th>
+                  <th data-sort="promedioGeneral">Promedio gral<span class="th-sort-ico"></span></th>
+                  <th data-sort="visitas">Visitas<span class="th-sort-ico"></span></th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="diagReportesBody">
+                <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -6165,6 +6211,8 @@
       chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>',
+      copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -6224,10 +6272,12 @@
       diagQrTabActiva = (key === 'qr');
       if((key === 'excel' || key === 'powerbi') && !diagCargado[key]){ diagCargado[key] = true; cargarPreguntas(key); }
       if(key === 'qr' && !diagQrCargado){ diagQrCargado = true; cargarQr(); }
-      // Resultados SIEMPRE se recarga al entrar (no solo la primera vez) —
-      // pedido explícito de Alfredo, a diferencia del resto de pestañas
-      // perezosas de este panel.
+      // Resultados y Reportes SIEMPRE se recargan al entrar (no solo la
+      // primera vez) — pedido explícito de Alfredo, a diferencia del resto
+      // de pestañas perezosas de este panel. Reportes es Table Storage puro
+      // (sin auto-pause de SQL de por medio), recargar siempre sale gratis.
       if(key === 'resultados') buscarResultados();
+      if(key === 'reportes') cargarReportesLista();
     });
 
     // ══ PREGUNTAS ══ — una sola página por herramienta (ya no hay grid de
@@ -6865,17 +6915,18 @@
       buscarResultados();
     });
 
-    // ── Generar reporte — reusa los mismos filtros de Resultados (Herramienta
-    // + Empresa + fechas). Herramienta y Empresa son obligatorias aquí (el
-    // reporte es "para un cliente", el benchmark necesita saber a quién
-    // excluir) aunque en la tabla de Resultados sean opcionales.
+    // ══ REPORTES — pestaña propia, separada de Resultados (antes vivía ahí,
+    // movida a petición de Alfredo) con sus propios filtros de generación
+    // (no comparte estado con los de Resultados). ══
+    const diagRepClienteAuto = crearAutocompleteFiltro({ inputId:'diagRepClienteNombre', listId:'diagRepClienteLista' });
+
     document.getElementById('diagGenerarReporte').addEventListener('click', async () => {
-      const herramienta = document.getElementById('diagFHerramienta').value;
-      const cliente = diagFEmpresaAuto.getSeleccionado();
+      const herramienta = document.getElementById('diagRepHerramienta').value;
+      const cliente = diagRepClienteAuto.getSeleccionado();
       if(!herramienta){ toast('Elige una Herramienta (Excel o Power BI) para generar el reporte.', false); return; }
-      if(!cliente){ toast('Elige una Empresa en los filtros para generar el reporte.', false); return; }
-      const desde = document.getElementById('diagFDesde').value;
-      const hasta = document.getElementById('diagFHasta').value;
+      if(!cliente){ toast('Elige un Cliente para generar el reporte.', false); return; }
+      const desde = document.getElementById('diagRepDesde').value;
+      const hasta = document.getElementById('diagRepHasta').value;
       const btn = document.getElementById('diagGenerarReporte');
       btn.disabled = true;
       try {
@@ -6886,12 +6937,110 @@
         document.getElementById('diagReporteLinkInput').value = link;
         document.getElementById('diagReporteLinkWrap').hidden = false;
         toast('Reporte generado.', true);
+        cargarReportesLista();
       } catch(err){ toast('No se pudo generar el reporte: ' + err.message, false); }
       finally { btn.disabled = false; }
     });
     document.getElementById('diagReporteCopiar').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(document.getElementById('diagReporteLinkInput').value); toast('Link copiado.', true); }
       catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+    });
+
+    function fmtFiltrosReporte(r){
+      const tool = TOOL_META[r.herramienta] ? TOOL_META[r.herramienta].nombre : r.herramienta;
+      const rango = r.desde && r.hasta ? `${fmtFechaCorta(r.desde)}–${fmtFechaCorta(r.hasta)}`
+        : r.desde ? `Desde ${fmtFechaCorta(r.desde)}` : r.hasta ? `Hasta ${fmtFechaCorta(r.hasta)}` : 'Todos los envíos';
+      return `${tool} · ${escapeHtml(r.clienteNombre || '—')} · ${rango}`;
+    }
+    function fmtFechaCorta(iso){ if(!iso) return ''; return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+
+    let diagReportesRaw = [];
+    const DIAG_REP_SORT_CAMPOS = {
+      generadoEn: r => new Date(r.generadoEn).getTime(),
+      n: r => r.n,
+      promedioGeneral: r => r.promedioGeneral,
+      visitas: r => r.visitas,
+    };
+    let diagRepSort = 'generadoEn', diagRepDir = 'desc';
+
+    function renderSortButtonsReportes(){
+      document.querySelectorAll('#diagReportesTable th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === diagRepSort;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (diagRepDir === 'asc' ? ICO.sortAsc : ICO.sortDesc) : '';
+      });
+    }
+    function ordenarReportes(lista){
+      const extraer = DIAG_REP_SORT_CAMPOS[diagRepSort];
+      if(!extraer) return lista;
+      const factor = diagRepDir === 'asc' ? 1 : -1;
+      return lista.slice().sort((a, b) => {
+        const va = extraer(a), vb = extraer(b);
+        const aVacio = va == null, bVacio = vb == null;
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return (va - vb) * factor;
+      });
+    }
+
+    function renderReportesTabla(){
+      renderSortButtonsReportes();
+      const body = document.getElementById('diagReportesBody');
+      const lista = ordenarReportes(diagReportesRaw);
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Todavía no has generado ningún reporte.</td></tr>`; return; }
+      body.innerHTML = lista.map(r => `
+        <tr data-token="${r.token}">
+          <td>${fmtFiltrosReporte(r)}</td>
+          <td class="radm-mono">${fmtFechaHora(r.generadoEn)}</td>
+          <td class="radm-mono">${r.n ?? '—'}</td>
+          <td class="radm-mono diag-puntaje ${r.promedioGeneral >= 80 ? 'bien' : r.promedioGeneral >= 40 ? 'medio' : 'mal'}">${r.promedioGeneral != null ? r.promedioGeneral + '%' : '—'}</td>
+          <td class="radm-mono">${r.visitas}</td>
+          <td>
+            <button type="button" class="radm-icon-btn" data-action="abrir" data-token="${r.token}" title="Abrir el reporte">${ICO.eye}</button>
+            <button type="button" class="radm-icon-btn" data-action="copiar" data-token="${r.token}" title="Copiar el link">${ICO.copiar}</button>
+            <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-token="${r.token}" title="Eliminar este reporte — el link deja de funcionar">${ICO.trash}</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function cargarReportesLista(){
+      const body = document.getElementById('diagReportesBody');
+      body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>`;
+      try {
+        diagReportesRaw = await apiGetConReintento('/api/listReportesDiagnosticoAdmin');
+        renderReportesTabla();
+      } catch(e){ body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`; }
+    }
+
+    document.querySelectorAll('#diagReportesTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        if(diagRepSort === th.dataset.sort) diagRepDir = diagRepDir === 'asc' ? 'desc' : 'asc';
+        else { diagRepSort = th.dataset.sort; diagRepDir = 'asc'; }
+        renderReportesTabla();
+      });
+    });
+
+    document.getElementById('diagReportesBody').addEventListener('click', async e => {
+      const btn = e.target.closest('[data-action]');
+      if(!btn) return;
+      const token = btn.dataset.token;
+      const link = new URL(`reporte?token=${token}`, location.origin + '/').href;
+      if(btn.dataset.action === 'abrir'){ window.open(link, '_blank'); return; }
+      if(btn.dataset.action === 'copiar'){
+        try { await navigator.clipboard.writeText(link); toast('Link copiado.', true); }
+        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+        return;
+      }
+      if(btn.dataset.action === 'eliminar'){
+        const r = diagReportesRaw.find(x => x.token === token);
+        if(!confirm(`¿Eliminar el reporte de "${r ? r.clienteNombre : token}"? El link que ya le mandaste al cliente deja de funcionar — las respuestas del Diagnóstico NO se borran, se puede volver a generar.`)) return;
+        try {
+          await apiPostJson('/api/eliminarReporteDiagnostico', { token });
+          toast('Reporte eliminado.', true);
+          cargarReportesLista();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+      }
     });
   })();
 

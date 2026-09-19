@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Reporte de Encuestas — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#10141b; --panel-2:#141a23; --line:#1d2530; --line-soft:#161c26;
+    --blue:#3d7fff; --blue-bright:#6b9fff; --blue-soft:rgba(61,127,255,.14);
+    --text:#edf0f4; --text-dim:#8991a1; --text-faint:#4c5462;
+    --rojo:#dc2626; --ambar:#dfb35a; --teal:#14b8a6;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;}
+  svg{display:block;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+  [hidden]{display:none !important;}
+
+  .rep-loading, .rep-error{ font-family:var(--mono); font-size:13px; padding:60px 0; text-align:center; color:var(--text-faint); }
+  .rep-error{ color:var(--rojo); }
+
+  .lbl{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-dim); }
+  .card{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; }
+
+  /* semáforo: siempre número + ícono + texto, nunca solo color */
+  .pill{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:20px; padding:5px 11px; white-space:nowrap; border:1px solid; }
+  .pill svg{ width:12px; height:12px; }
+  .pill.bien{ color:var(--teal); background:rgba(20,184,166,.14); border-color:var(--teal); }
+  .pill.medio{ color:var(--ambar); background:rgba(223,179,90,.14); border-color:var(--ambar); }
+  .pill.mal{ color:var(--rojo); background:rgba(220,38,38,.14); border-color:var(--rojo); }
+  .num.bien{ color:var(--teal); } .num.medio{ color:var(--ambar); } .num.mal{ color:var(--rojo); }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  .chip b{ color:var(--text); font-weight:600; }
+  .chip svg{ width:12px; height:12px; }
+
+  header.rep-header{ border-bottom:1px solid var(--line); padding:18px 0 16px; }
+  .rep-brand{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .rep-brand-id{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600; font-size:14.5px; }
+  .rep-brand-id img{ height:24px; width:auto; display:block; }
+  .rep-generado{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
+  .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(21px,3vw,27px); margin-bottom:6px; }
+  .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
+  .rep-filtros{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
+  .abtn{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; border-radius:6px; padding:7px 11px; cursor:pointer; color:var(--blue-bright); background-color:var(--blue-soft); border:1px solid var(--blue); }
+  .abtn svg{ width:12px; height:12px; }
+  .info-panel{ margin:14px 0 0; padding:16px 18px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; font-size:12.5px; line-height:1.7; color:var(--text-dim); }
+  .info-panel b{ color:var(--text); }
+
+  main{ padding:24px 0 70px; }
+  .sec-title{ font-family:var(--display); font-weight:600; font-size:15px; margin:30px 0 12px; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .sec-title svg{ width:16px; height:16px; color:var(--blue-bright); }
+  .sec-title small{ font-family:var(--mono); font-weight:400; font-size:11px; color:var(--text-dim); }
+
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; }
+  .kpi{ position:relative; padding:16px 18px 16px 24px; overflow:hidden; }
+  .kpi-head{ display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .kpi-head svg{ width:12px; height:12px; color:var(--text-faint); }
+  .kpi-val{ font-family:var(--display); font-weight:700; font-size:26px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .kpi-val small{ font-family:var(--mono); font-size:11px; font-weight:500; color:var(--text-dim); }
+  .kpi-accent{ position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--blue-bright); }
+  .kpi-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px; }
+
+  .rings{ display:flex; justify-content:space-around; flex-wrap:wrap; gap:18px 10px; padding:22px 14px; }
+  .ring-item{ display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; flex:1 1 130px; min-width:120px; }
+  .ring-item .name{ font-family:var(--display); font-weight:600; font-size:12.5px; min-height:30px; display:flex; align-items:center; }
+  .ring-wrap{ position:relative; width:86px; height:86px; }
+  .ring-wrap svg{ width:86px; height:86px; transform:rotate(-90deg); }
+  .ring-wrap .v{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700; font-size:21px; }
+  .ring-item.sep{ border-left:1px solid var(--line); }
+  @keyframes ringFill{ from{ stroke-dashoffset:var(--full); } to{ stroke-dashoffset:var(--end); } }
+  .ring-fill{ animation:ringFill 1.2s cubic-bezier(.2,.8,.2,1) forwards; }
+
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .duo.solo{ grid-template-columns:1fr; }
+  .rank{ padding:16px 18px; }
+  .rank-title{ display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:600; font-size:13.5px; margin-bottom:12px; }
+  .rank-title svg{ width:15px; height:15px; }
+  .rank-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line-soft); }
+  .rank-item:first-of-type{ border-top:none; }
+  .rank-pos{ font-family:var(--mono); font-size:11px; color:var(--text-faint); width:16px; }
+  .rank-txt{ flex:1; font-size:12.5px; line-height:1.4; }
+  .rank-cat{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .rank-prom{ font-family:var(--mono); font-weight:700; font-size:14px; }
+  .rank-ok{ display:flex; align-items:center; gap:10px; font-size:13px; line-height:1.5; color:var(--text-dim); }
+  .rank-ok svg{ width:18px; height:18px; color:var(--teal); flex:none; }
+
+  .dist-legend{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:12px 18px; border-bottom:1px solid var(--line); }
+  .lg{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); }
+  .lg i{ display:inline-block; width:22px; height:14px; border-radius:3px; text-align:center; font-style:normal; font-size:10px; line-height:14px; color:#fff; font-weight:700; }
+  .dist-cat{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--blue-bright); padding:16px 18px 6px; display:flex; align-items:center; gap:10px; }
+  .dist-cat .cprom{ margin-left:auto; text-transform:none; letter-spacing:0; color:var(--text-dim); }
+  .dist-row{ display:grid; grid-template-columns:minmax(0,300px) 1fr 78px; gap:18px; align-items:center; padding:9px 18px; border-top:1px solid var(--line-soft); }
+  .dist-q{ font-size:12.5px; line-height:1.4; }
+  .stack{ display:flex; height:26px; border-radius:5px; overflow:hidden; background:var(--panel); }
+  .seg{ display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10.5px; font-weight:700; color:#fff; min-width:0; }
+  .s1{ background:#1c2f57; } .s2{ background:#234a99; } .s3{ background:#2f63cf; } .s4{ background:#3d7fff; } .s5{ background:#8fb5ff; color:#0a0d12; }
+  .dist-prom{ font-family:var(--mono); font-weight:700; font-size:14px; text-align:right; }
+  .dist-prom small{ display:block; font-size:9.5px; font-weight:500; color:var(--text-dim); }
+
+  .coment-list{ display:grid; gap:10px; }
+  .coment{ padding:14px 16px; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .coment-meta{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:8px; white-space:normal; }
+  .nota-final{ margin-top:34px; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); line-height:1.7; border-top:1px solid var(--line-soft); padding-top:16px; }
+
+  @media (max-width:820px){
+    .kpi-grid{ grid-template-columns:1fr 1fr; } .duo{ grid-template-columns:1fr; }
+    .dist-row{ grid-template-columns:1fr; gap:8px; } .ring-item.sep{ border-left:none; }
+  }
+  @media (prefers-reduced-motion:reduce){ .ring-fill{ animation:none; stroke-dashoffset:var(--end); } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="rep-loading" id="repLoading">Cargando reporte…</div>
+  <div class="rep-error" id="repError" hidden></div>
+</div>
+
+<div id="repApp" hidden>
+  <header class="rep-header"><div class="wrap">
+    <div class="rep-brand">
+      <div class="rep-brand-id"><img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña"><span>Alfredo Piña</span></div>
+      <span class="rep-generado" id="repGenerado"></span>
+    </div>
+    <h1 class="rep-title" id="repTitle"></h1>
+    <div class="rep-etiqueta" id="repEtiqueta" hidden></div>
+    <div class="rep-filtros" id="repFiltros"></div>
+    <button type="button" class="abtn" id="repInfoBtn" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1" stroke-linecap="round" stroke-linejoin="round"/></svg>Cómo se calcula
+    </button>
+    <div class="info-panel" id="repInfoPanel" hidden>
+      <b>Promedios.</b> Se promedian todas las calificaciones (escala de 1 a 5) de las personas incluidas. Cada dimensión (Curso y Materiales, Instructor, Aprendizaje y Aplicación) junta las calificaciones de sus preguntas; Satisfacción y Recomendación son preguntas individuales.<br>
+      <b>Semáforo.</b> 4.0 o más = Bien · de 3.0 a 3.9 = Seguimiento · menos de 3.0 = Atención. El número siempre va junto al texto.<br>
+      <b>Qué entra.</b> Todas las respuestas que coinciden con los filtros y todos los comentarios, sin nombres ni correos. Este reporte se calculó una sola vez y no cambia si llegan más respuestas.
+    </div>
+  </div></header>
+
+  <main><div class="wrap">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Promedio por dimensión <small>escala 1 a 5</small></div>
+    <div class="card rings" id="rings"></div>
+
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>Lo mejor calificado y lo que queda por debajo de 4.0</div>
+    <div class="duo" id="rank"></div>
+
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>Cómo contestó la gente, pregunta por pregunta <small>número de personas por calificación</small></div>
+    <div class="card" id="dist"></div>
+
+    <div id="comentBlock" hidden>
+      <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4V5Z" stroke-linejoin="round"/></svg>Comentarios <small id="comentN"></small></div>
+      <div class="coment-list" id="coments"></div>
+    </div>
+
+    <div class="nota-final" id="notaFinal"></div>
+  </div></main>
+</div>
+
+<script>
+(function(){
+  const TOKEN = new URLSearchParams(location.search).get('token') || '';
+  const TOOL_NOMBRE = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
+  const SVG = {
+    ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    medio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2" stroke-linecap="round"/></svg>',
+    mal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4l9 16H3L12 4Z" stroke-linejoin="round"/><path d="M12 10v4M12 17h.01" stroke-linecap="round"/></svg>',
+    up:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    down:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--ambar)" stroke-width="2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.5 2.3 3.5 5.2" stroke-linecap="round"/></svg>',
+    star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" stroke-linejoin="round"/></svg>',
+    grp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>',
+    msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4V5Z" stroke-linejoin="round"/></svg>',
+    person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>',
+    cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>',
+  };
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  // 'YYYY-MM-DD' → dd/mm/aaaa sin pasar por Date (evita el corrimiento de zona horaria)
+  function fmtDia(iso){ if(!iso) return ''; const [a, m, d] = String(iso).slice(0, 10).split('-'); return `${d}/${m}/${a}`; }
+  function fmtFechaHora(iso){ return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  // misma regla en toda la página: se redondea a 1 decimal ANTES de clasificar
+  const r1 = a => Math.round(a * 10) / 10;
+  const cls = a => r1(a) >= 4 ? 'bien' : r1(a) >= 3 ? 'medio' : 'mal';
+  const txt = c => c === 'bien' ? 'Bien' : c === 'medio' ? 'Seguimiento' : 'Atención';
+  const fmt = a => r1(a).toFixed(1);
+  const pill = a => `<span class="pill ${cls(a)}">${SVG[cls(a) === 'bien' ? 'ok' : cls(a)]}${txt(cls(a))}</span>`;
+
+  function mostrarError(msg){
+    document.getElementById('repLoading').hidden = true;
+    const e = document.getElementById('repError');
+    e.textContent = msg; e.hidden = false;
+  }
+
+  function render(s){
+    const f = s.filtros || {};
+    document.title = (s.etiqueta ? s.etiqueta + ' — ' : '') + 'Reporte de Encuestas — Alfredo Piña';
+    document.getElementById('repGenerado').textContent = 'GENERADO ' + fmtFechaHora(s.generadoEn).toUpperCase();
+    document.getElementById('repTitle').textContent = 'Encuesta de Satisfacción' + (f.curso ? ' · ' + f.curso : '');
+    if(s.etiqueta){ const e = document.getElementById('repEtiqueta'); e.textContent = s.etiqueta; e.hidden = false; }
+
+    // filtros aplicados (o, sin filtros, el rango real de las respuestas)
+    const chips = [];
+    if(f.instructor) chips.push(`<span class="chip">${SVG.person}Instructor: <b>${esc(f.instructor)}</b></span>`);
+    if(f.herramienta) chips.push(`<span class="chip">Herramienta: <b>${esc(TOOL_NOMBRE[f.herramienta] || f.herramienta)}</b></span>`);
+    if(f.curso) chips.push(`<span class="chip">Curso: <b>${esc(f.curso)}</b></span>`);
+    if(f.modalidad) chips.push(`<span class="chip">Modalidad: <b>${esc(f.modalidad)}</b></span>`);
+    if(f.desde || f.hasta) chips.push(`<span class="chip">${SVG.cal}<b>${f.desde ? fmtDia(f.desde) : '…'} – ${f.hasta ? fmtDia(f.hasta) : '…'}</b></span>`);
+    else if(s.rango && s.rango.desde) chips.push(`<span class="chip">${SVG.cal}Respuestas del <b>${fmtDia(s.rango.desde)}</b> al <b>${fmtDia(s.rango.hasta)}</b></span>`);
+    if(!chips.length) chips.push('<span class="chip">Todas las respuestas</span>');
+    document.getElementById('repFiltros').innerHTML = chips.join('');
+
+    // KPIs
+    const nCom = (s.comentarios || []).length;
+    const kpis = [
+      ['users', 'Respuestas', s.n, '<small>personas</small>', ''],
+      ['grp', 'Grupos', s.nGrupos, '<small>grupos</small>', s.nSinGrupo ? `y ${s.nSinGrupo} por link genérico` : 'con respuestas'],
+      ['star', 'Promedio general', fmt(s.promedioGeneral), pill(s.promedioGeneral), 'todas las preguntas de escala'],
+      ['msg', 'Comentarios', nCom, '<small>' + (nCom === 1 ? 'persona' : 'personas') + '</small>', `de ${s.n} respuestas`],
+    ];
+    document.getElementById('kpis').innerHTML = kpis.map(k => `<div class="card kpi"><span class="kpi-accent"></span><div class="kpi-head">${SVG[k[0]]}<span class="lbl">${k[1]}</span></div><div class="kpi-val">${k[2]}${k[3]}</div><div class="kpi-sub">${k[4]}</div></div>`).join('');
+
+    // anillos: las 3 dimensiones + las Globales (por su nombre corto)
+    const cats = s.categorias || [];
+    const anillos = cats.filter(c => c.promedio != null).map(c => ({ nombre: c.nombre, prom: c.promedio, sep: false }));
+    const globales = (cats.find(c => c.nombre === 'Globales') || { preguntas: [] }).preguntas;
+    globales.forEach((g, i) => anillos.push({ nombre: g.nombre || g.texto, prom: g.promedio, sep: i === 0 && anillos.length > 0 }));
+    const R = 34, C = 2 * Math.PI * R;
+    document.getElementById('rings').innerHTML = anillos.map(a => {
+      const c = cls(a.prom);
+      const col = c === 'bien' ? 'var(--teal)' : c === 'medio' ? 'var(--ambar)' : 'var(--rojo)';
+      return `<div class="ring-item ${a.sep ? 'sep' : ''}"><div class="name">${esc(a.nombre)}</div>
+        <div class="ring-wrap"><svg viewBox="0 0 86 86"><circle cx="43" cy="43" r="${R}" fill="none" stroke="var(--line)" stroke-width="8"/><circle class="ring-fill" cx="43" cy="43" r="${R}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" style="--full:${C}; --end:${C * (1 - a.prom / 5)}; stroke-dashoffset:${C};"/></svg><div class="v num ${c}">${fmt(a.prom)}</div></div>${pill(a.prom)}</div>`;
+    }).join('');
+
+    // mejores 3 + lo que quedó por debajo de 4.0 (si no hay nada, se dice explícito)
+    const lista = (arr, icon, titulo) => `<div class="card rank"><div class="rank-title">${SVG[icon]}${titulo}</div>${arr.map((q, i) => `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(q.texto)}<span class="rank-cat">${esc(q.categoria)}</span></span><span class="rank-prom num ${cls(q.promedio)}">${fmt(q.promedio)}</span></div>`).join('')}</div>`;
+    const bajos = s.bajoCuatro || [];
+    const rank = document.getElementById('rank');
+    rank.className = 'duo';
+    rank.innerHTML = lista(s.mejores || [], 'up', 'Las 3 mejor calificadas') + (bajos.length
+      ? lista(bajos, 'down', `Por debajo de 4.0 (${bajos.length})`)
+      : `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 4.0</div><div class="rank-ok">${SVG.ok}Ninguna pregunta quedó por debajo de 4.0 — todas están en Bien.</div></div>`);
+
+    // distribución
+    const etq = (s.escala && s.escala.length === 5) ? s.escala : ['1', '2', '3', '4', '5'];
+    let d = `<div class="dist-legend"><span class="lbl">Calificación</span>${etq.map((e, i) => `<span class="lg"><i class="s${i + 1}">${i + 1}</i>${esc(e)}</span>`).join('')}</div>`;
+    cats.forEach(c => {
+      d += `<div class="dist-cat">${esc(c.nombre)}${c.promedio != null ? `<span class="cprom">promedio ${fmt(c.promedio)}</span>` : ''}</div>`;
+      c.preguntas.forEach(q => {
+        const etiqueta = q.nombre ? `<b>${esc(q.nombre)}</b> — ` : '';
+        d += `<div class="dist-row"><div class="dist-q">${etiqueta}${esc(q.texto)}</div><div class="stack">${q.conteos.map((v, i) => v ? `<div class="seg s${i + 1}" style="flex:${v}">${v}</div>` : '').join('')}</div><div class="dist-prom num ${cls(q.promedio)}">${fmt(q.promedio)}<small>${txt(cls(q.promedio))}</small></div></div>`;
+      });
+    });
+    document.getElementById('dist').innerHTML = d;
+
+    // comentarios (todos, anónimos)
+    if(nCom){
+      document.getElementById('comentBlock').hidden = false;
+      document.getElementById('comentN').textContent = `${nCom} de ${s.n} respuestas dejaron comentario`;
+      document.getElementById('coments').innerHTML = s.comentarios.map(c => `<div class="card coment">“${esc(c.texto)}”<div class="coment-meta">Anónimo${c.fecha ? ' · ' + fmtDia(c.fecha) : ''}</div></div>`).join('');
+    }
+
+    document.getElementById('notaFinal').innerHTML = `Reporte calculado el ${fmtFechaHora(s.generadoEn)} con las respuestas disponibles en ese momento — no cambia si llegan más.<br>Las respuestas son anónimas: el reporte no muestra nombres ni correos.`;
+
+    document.getElementById('repLoading').hidden = true;
+    document.getElementById('repApp').hidden = false;
+  }
+
+  document.getElementById('repInfoBtn').addEventListener('click', e => {
+    const panel = document.getElementById('repInfoPanel');
+    panel.hidden = !panel.hidden;
+    e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
+  });
+
+  async function cargar(){
+    if(!TOKEN){ mostrarError('Falta el token del reporte en el link.'); return; }
+    try {
+      const res = await fetch('/api/getReporteEncuestaPublico?token=' + encodeURIComponent(TOKEN));
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || 'No se pudo cargar el reporte.');
+      render(data);
+    } catch(e){ mostrarError(e.message); }
+  }
+  cargar();
+})();
+</script>
+</body>
+</html>

@@ -25,6 +25,10 @@
       "rewrite": "/reporte-diagnostico.html"
     },
     {
+      "route": "/reporte-encuesta",
+      "rewrite": "/reporte-encuesta.html"
+    },
+    {
       "route": "/admin",
       "allowedRoles": ["admin"]
     },
@@ -410,6 +414,18 @@
     },
     {
       "route": "/api/cambiarEstadoLinkEncuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/generarReporteEncuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listReportesEncuestaAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarReporteEncuesta",
       "allowedRoles": ["admin"]
     },
     {

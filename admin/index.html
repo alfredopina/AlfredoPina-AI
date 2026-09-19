@@ -709,10 +709,12 @@
   tr.enc-fila-activa td{ background:var(--blue-soft); }
 
   /* Resultados (Fase 2) */
-  .enc-pronto{
-    font-family:var(--mono); font-size:10.5px; color:var(--text-dim); border:1px solid var(--line);
-    border-radius:20px; padding:3px 10px;
-  }
+  /* tarjeta "Generar reporte" de Resultados y tabla de Reportes */
+  .enc-gen-stats{ display:flex; gap:8px; flex-wrap:wrap; }
+  .enc-gen-chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background-color:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  .enc-gen-chip b{ color:var(--text); font-weight:600; }
+  .enc-rep-filtros{ display:flex; flex-wrap:wrap; gap:5px; max-width:340px; }
+  .enc-rep-filtros .enc-gen-chip{ padding:3px 8px; font-size:10.5px; }
   /* "Fuera de sesión": ícono + texto (nunca solo color) */
   .enc-fuera{
     display:flex; align-items:center; gap:5px; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:#dfb35a; white-space:nowrap;
@@ -2946,6 +2948,7 @@
           <button type="button" class="dash-etab active" data-enctab="preguntas">Preguntas</button>
           <button type="button" class="dash-etab" data-enctab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-enctab="resultados">Resultados</button>
+          <button type="button" class="dash-etab" data-enctab="reportes">Reportes</button>
         </div>
 
         <div class="dip-tabpanel active" id="encTab-preguntas">
@@ -3176,14 +3179,26 @@
 
           <div class="dip-paso" style="margin-bottom:18px;">
             <div class="dip-paso-head" style="margin-bottom:8px;">
-              <span class="dip-paso-title">Reporte</span>
-              <span class="enc-pronto">Próximamente</span>
+              <span class="dip-paso-title">Reporte con los filtros de arriba</span>
             </div>
-            <span class="radm-hint" style="display:block; margin-bottom:12px;">Se generará con los filtros de arriba (por instructor, curso, herramienta, modalidad o fechas): promedios por dimensión (Curso, Instructor, Aprendizaje), distribución de respuestas y comentarios, con un link para compartir. Se construye en la siguiente fase.</span>
-            <button type="button" class="radm-btn radm-btn-ghost" id="encGenerarReporte" style="min-width:auto;" disabled title="Disponible en la siguiente fase">
+            <div class="enc-gen-stats" id="encGenStats"></div>
+            <div class="radm-field" style="max-width:420px; margin:14px 0;">
+              <label>ETIQUETA (OPCIONAL) — para reconocerlo en la pestaña Reportes</label>
+              <input type="text" id="encGenEtiqueta" maxlength="80" placeholder="Ej. Excel Core Tools — septiembre">
+            </div>
+            <button type="button" class="radm-btn radm-btn-ghost" id="encGenerarReporte" style="min-width:auto;" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Generar reporte
+              <span id="encGenerarTxt">Generar reporte</span>
             </button>
+            <span class="radm-hint" style="display:block; margin-top:10px;">Incluye todas las respuestas y todos los comentarios (sin nombres ni correos). Si alguno es ofensivo, elimina esa respuesta aquí abajo ANTES de generar — un reporte ya generado no cambia.</span>
+            <div class="radm-field" id="encReporteLinkWrap" style="margin-top:12px;" hidden>
+              <label>LINK DEL REPORTE</label>
+              <div class="enc-link-row">
+                <input type="text" id="encReporteLinkInput" readonly>
+                <button type="button" class="radm-btn radm-btn-ghost" id="encReporteAbrir" style="min-width:auto">Abrir</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="encReporteCopiar" style="min-width:auto">Copiar</button>
+              </div>
+            </div>
           </div>
 
           <div class="dip-table-wrap">
@@ -3195,7 +3210,28 @@
             </table>
           </div>
         </div>
-      </div>
+
+      <div class="dip-tabpanel" id="encTab-reportes">
+          <span class="radm-hint" style="display:block; margin:0 0 12px;">Reportes ya generados (se generan desde Resultados). Esta pestaña se vuelve a cargar cada vez que entras aquí. Eliminar un reporte solo quita su link — las respuestas no se tocan y se puede volver a generar.</span>
+          <div class="dip-table-wrap">
+            <table class="dip-table" id="encReportesTable">
+              <thead>
+                <tr>
+                  <th data-sort="generadoEn">Creado<span class="th-sort-ico"></span></th>
+                  <th data-sort="etiqueta">Etiqueta<span class="th-sort-ico"></span></th>
+                  <th>Filtros aplicados</th>
+                  <th data-sort="n">Muestra<span class="th-sort-ico"></span></th>
+                  <th data-sort="promedioGeneral">Promedio gral<span class="th-sort-ico"></span></th>
+                  <th data-sort="nComentarios">Comentarios<span class="th-sort-ico"></span></th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="encReportesBody">
+                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>      </div>
       <div class="admin-panel" id="panel-diplomas" style="--c:var(--blue-bright)">
         <div id="dipToast" class="radm-toast" hidden></div>
 
@@ -5338,6 +5374,7 @@
       qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      abrir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
@@ -5403,6 +5440,7 @@
       encQrTabActiva = (key === 'qr');
       if(key === 'qr') entrarQr();
       if(key === 'resultados') buscarResultados();
+      if(key === 'reportes') cargarReportes();
     });
 
     // ══ PREGUNTAS ══
@@ -6199,6 +6237,7 @@
     }
 
     function renderResultados(){
+      actualizarGenerar();
       const head = document.getElementById('encResultadosHead');
       const body = document.getElementById('encResultadosBody');
       const cols = columnasRes();
@@ -6255,6 +6294,7 @@
       const params = new URLSearchParams();
       [['instructor','encFInstructor'], ['herramienta','encFHerramienta'], ['curso','encFCurso'], ['modalidad','encFModalidad'], ['desde','encFDesde'], ['hasta','encFHasta']]
         .forEach(([k, id]) => { const v = document.getElementById(id).value; if(v) params.set(k, v); });
+      encFiltrosBuscados = Object.fromEntries(params.entries());
 
       document.getElementById('encResultadosBody').innerHTML = `<tr><td colspan="${N_COLS_RES}" class="radm-empty-row">Buscando...</td></tr>`;
       try {
@@ -6309,6 +6349,162 @@
     document.getElementById('encLimpiarFiltros').addEventListener('click', () => {
       ['encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta'].forEach(id => { document.getElementById(id).value = ''; });
       buscarResultados();
+    });
+
+    // ══ REPORTE — se genera desde Resultados con los filtros que están
+    // aplicados (la última búsqueda), y se consulta en la pestaña Reportes.
+    // Entran TODAS las respuestas y TODOS los comentarios: si uno es ofensivo,
+    // se elimina esa respuesta ANTES de generar (el reporte es un snapshot). ══
+    let encFiltrosBuscados = {};
+    function urlReporte(token){ return new URL('reporte-encuesta?token=' + token, location.origin + '/').href; }
+
+    function actualizarGenerar(){
+      const n = encResultadosRaw.length;
+      const grupos = new Set(encResultadosRaw.filter(r => r.grupo_id != null).map(r => r.grupo_id)).size;
+      const conComentario = encResultadosRaw.filter(r => r.comentario).length;
+      document.getElementById('encGenStats').innerHTML =
+        `<span class="enc-gen-chip"><b>${n}</b> respuestas coinciden</span>` +
+        `<span class="enc-gen-chip"><b>${grupos}</b> ${grupos === 1 ? 'grupo' : 'grupos'}</span>` +
+        `<span class="enc-gen-chip"><b>${conComentario}</b> con comentario</span>`;
+      const btn = document.getElementById('encGenerarReporte');
+      btn.disabled = n === 0;
+      document.getElementById('encGenerarTxt').textContent = n ? `Generar reporte con ${n} ${n === 1 ? 'respuesta' : 'respuestas'}` : 'Generar reporte';
+    }
+
+    // generarReporteEncuesta SÍ lee SQL — mismo reintento con pausas crecientes
+    // que las lecturas, salvo que un 4xx (sin respuestas, filtro inválido) no
+    // se reintenta: el servidor ya contestó que no.
+    async function apiPostConReintento(url, data){
+      for(let intento = 0; ; intento++){
+        try {
+          const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+          const body = await res.json().catch(() => ({}));
+          if(res.ok) return body;
+          const err = new Error(body.error || 'Error de red');
+          err.definitivo = res.status >= 400 && res.status < 500;
+          throw err;
+        } catch(e){
+          if(e.definitivo || intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    document.getElementById('encGenerarReporte').addEventListener('click', async () => {
+      if(!encResultadosRaw.length) return;
+      const btn = document.getElementById('encGenerarReporte');
+      btn.disabled = true;
+      try {
+        const r = await apiPostConReintento('/api/generarReporteEncuesta', { ...encFiltrosBuscados, etiqueta: document.getElementById('encGenEtiqueta').value.trim() });
+        document.getElementById('encReporteLinkInput').value = urlReporte(r.token);
+        document.getElementById('encReporteLinkWrap').hidden = false;
+        toast(`Reporte generado con ${r.n} ${r.n === 1 ? 'respuesta' : 'respuestas'}.`, true);
+      } catch(err){ toast('No se pudo generar el reporte: ' + err.message, false); }
+      finally { actualizarGenerar(); }
+    });
+    document.getElementById('encReporteAbrir').addEventListener('click', () => {
+      const v = document.getElementById('encReporteLinkInput').value;
+      if(v) window.open(v, '_blank');
+    });
+    document.getElementById('encReporteCopiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(document.getElementById('encReporteLinkInput').value); toast('Link copiado.', true); }
+      catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+    });
+
+    // ══ REPORTES — solo consulta de lo ya generado (Table Storage, sin SQL) ══
+    let encReportesRaw = [];
+    const encRepSort = { campo:'generadoEn', dir:'desc' };
+    const N_COLS_REP = 7;
+
+    function chipsFiltrosReporte(f){
+      const chips = [];
+      if(f.instructor) chips.push('Instructor: ' + f.instructor);
+      if(f.herramienta) chips.push(TOOL_NOMBRE[f.herramienta] || f.herramienta);
+      if(f.curso) chips.push('Curso: ' + f.curso);
+      if(f.modalidad) chips.push(f.modalidad);
+      if(f.desde || f.hasta){
+        const dia = iso => iso.split('-').reverse().join('/');
+        chips.push((f.desde ? dia(f.desde) : '…') + ' – ' + (f.hasta ? dia(f.hasta) : '…'));
+      }
+      if(!chips.length) chips.push('Todas las respuestas');
+      return `<div class="enc-rep-filtros">${chips.map(c => `<span class="enc-gen-chip">${escapeHtml(c)}</span>`).join('')}</div>`;
+    }
+
+    function renderReportes(){
+      const body = document.getElementById('encReportesBody');
+      document.querySelectorAll('#encReportesTable th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === encRepSort.campo;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (encRepSort.dir === 'asc' ? ICO.sortAsc : ICO.sortDesc) : '';
+      });
+      if(!encReportesRaw.length){ body.innerHTML = `<tr><td colspan="${N_COLS_REP}" class="radm-empty-row">Todavía no has generado reportes — se generan desde Resultados.</td></tr>`; return; }
+      const factor = encRepSort.dir === 'asc' ? 1 : -1;
+      const lista = encReportesRaw.slice().sort((a, b) => {
+        const va = a[encRepSort.campo], vb = b[encRepSort.campo];
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
+      body.innerHTML = lista.map(r => `
+        <tr>
+          <td class="radm-mono">${fmtFechaHora(r.generadoEn)}</td>
+          <td>${r.etiqueta ? escapeHtml(r.etiqueta) : '<span class="enc-anonimo">Sin etiqueta</span>'}</td>
+          <td>${chipsFiltrosReporte(r.filtros || {})}</td>
+          <td class="radm-mono">${r.n}${r.nGrupos ? `<div class="diag-nombre-sub">${r.nGrupos} ${r.nGrupos === 1 ? 'grupo' : 'grupos'}</div>` : ''}</td>
+          <td><span class="enc-gral-pill ${claseProm(r.promedioGeneral)}">${fmtProm(r.promedioGeneral)}</span></td>
+          <td class="radm-mono">${r.nComentarios || 0}</td>
+          <td>
+            <div class="diag-row-actions">
+              <button type="button" class="radm-icon-btn" data-action="abrir" data-token="${r.token}" title="Abrir el reporte">${ICO.abrir}</button>
+              <button type="button" class="radm-icon-btn" data-action="copiar" data-token="${r.token}" title="Copiar el link">${ICO.copiar}</button>
+              <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-token="${r.token}" title="Eliminar este reporte — el link deja de funcionar">${ICO.trash}</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function cargarReportes(){
+      document.getElementById('encReportesBody').innerHTML = `<tr><td colspan="${N_COLS_REP}" class="radm-empty-row">Cargando...</td></tr>`;
+      try {
+        encReportesRaw = await apiGetConReintento('/api/listReportesEncuestaAdmin');
+        renderReportes();
+      } catch(e){
+        document.getElementById('encReportesBody').innerHTML = `<tr><td colspan="${N_COLS_REP}" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.querySelectorAll('#encReportesTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        if(encRepSort.campo === th.dataset.sort) encRepSort.dir = encRepSort.dir === 'asc' ? 'desc' : 'asc';
+        else { encRepSort.campo = th.dataset.sort; encRepSort.dir = th.dataset.sort === 'etiqueta' ? 'asc' : 'desc'; }
+        renderReportes();
+      });
+    });
+
+    document.getElementById('encReportesBody').addEventListener('click', async e => {
+      const btn = e.target.closest('[data-action]');
+      if(!btn) return;
+      const token = btn.dataset.token;
+      if(btn.dataset.action === 'abrir'){ window.open(urlReporte(token), '_blank'); return; }
+      if(btn.dataset.action === 'copiar'){
+        try { await navigator.clipboard.writeText(urlReporte(token)); toast('Link copiado.', true); }
+        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+        return;
+      }
+      if(btn.dataset.action === 'eliminar'){
+        const r = encReportesRaw.find(x => x.token === token);
+        // NO es excepción a "nunca borrar de verdad": un reporte es un snapshot
+        // derivado, las respuestas siguen intactas y se puede volver a generar
+        if(!confirm(`¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las respuestas NO se borran y se puede volver a generar.`)) return;
+        try {
+          await apiPostJson('/api/eliminarReporteEncuesta', { token });
+          toast('Reporte eliminado.', true);
+          cargarReportes();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+      }
     });
   })();
 

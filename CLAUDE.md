@@ -82,7 +82,7 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 ## Pendientes generales (los de más peso — ver `CLAUDE_DETALLE.md` para el checklist completo con todos los "confirmar en producción")
 
 - Cargar el banco real de 30 preguntas de Diagnóstico (15 Excel + 15 Power BI) — Bloque 1, en curso.
-- Encuestas: Fases 1 y 2 construidas 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage, pestaña Resultados con filtros/orden/fuera de sesión/borrar, html público pulido) — **falta correr `sql/020_encuesta_envio_id.sql` antes del push de Fase 2**, cargar las 15 preguntas definitivas, y la Fase 3 (Reporte dirigido por filtros, luego al Dashboard) — Bloque 1.
+- Encuestas: Fases 1, 2 y 3 construidas 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage, Resultados con filtros/orden/fuera de sesión/borrar, y Reporte visual por filtros con link + pestaña Reportes) — `sql/020` ya corrido y desplegado; falta cargar las 15 preguntas definitivas; el Reporte se incluirá en el Dashboard (Bloque 4) — Bloque 1.
 - Ambigüedad de nombres sin resolver: "Temario Estándar" vs. "Curso" (Recursos) vs. "Grupo" — ya se resolvió Grupo, falta Temario/Curso — Bloque 2.
 - Sitio público a afinar: CSS hardcodeado, navegación, link LinkedIn, socios comerciales, conferencias — Bloque 2.
 - Tracking propio de Solicitudes + Proyectos + Notificaciones/Seguimiento afinados + Resumen semanal — Bloque 3.

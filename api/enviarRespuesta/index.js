@@ -61,6 +61,11 @@ module.exports = async function (context, req) {
   const token = (body.token || "").trim();
   const nombre = (body.nombre || "").trim().slice(0, 200) || null;
   const correo = (body.correo || "").trim().slice(0, 200) || null;
+  // llave anti-duplicado (sql/020): la genera el navegador UNA vez por clic en
+  // "Enviar" y la reusa en cada reintento — si el primer intento sí se guardó
+  // pero la confirmación se perdió, el reintento choca contra el índice único
+  // y se responde ok sin volver a insertar ni contar.
+  const envioId = /^[A-Za-z0-9_-]{8,40}$/.test(String(body.envioId || "")) ? String(body.envioId) : null;
 
   try {
     if (correo && !CORREO_RE.test(correo)) throw errorSeguro("El correo no se ve válido — revísalo o déjalo en blanco.");
@@ -89,10 +94,12 @@ module.exports = async function (context, req) {
     const clienteId = link ? Number(link.clienteId) : (await resolverCliente(pool, body.empresa || {})).id;
 
     const transaction = new sql.Transaction(pool);
+    let duplicado = false;
     try {
       await transaction.begin();
 
       const insertRespuesta = await new sql.Request(transaction)
+        .input("envioId", sql.NVarChar, envioId)
         .input("nombre", sql.NVarChar, nombre)
         .input("clienteId", sql.Int, clienteId)
         .input("curso", sql.NVarChar, curso.slice(0, 200))
@@ -105,9 +112,9 @@ module.exports = async function (context, req) {
         .input("horas", sql.Decimal(6, 1), link ? link.horas : null)
         .input("linkGeneradoEn", sql.DateTime2, link ? new Date(link.generadoEn) : null)
         .query(
-          `INSERT INTO EncuestaRespuesta (nombre, cliente_id, curso, instructor, fecha, grupo_id, correo, herramientas, modalidad, horas, link_generado_en)
+          `INSERT INTO EncuestaRespuesta (nombre, cliente_id, curso, instructor, fecha, grupo_id, correo, herramientas, modalidad, horas, link_generado_en, envio_id)
            OUTPUT INSERTED.id
-           VALUES (@nombre, @clienteId, @curso, @instructor, @fecha, @grupoId, @correo, @herramientas, @modalidad, @horas, @linkGeneradoEn)`
+           VALUES (@nombre, @clienteId, @curso, @instructor, @fecha, @grupoId, @correo, @herramientas, @modalidad, @horas, @linkGeneradoEn, @envioId)`
         );
       const respuestaId = insertRespuesta.recordset[0].id;
 
@@ -132,13 +139,19 @@ module.exports = async function (context, req) {
       } catch (rollbackErr) {
         context.log.error("Error haciendo rollback:", rollbackErr.message);
       }
-      throw err;
+      // 2601/2627 = violación de índice/constraint único → ese envio_id ya se
+      // guardó en un intento anterior: se responde ok (no es un error para
+      // quien contestó) y NO se vuelve a contar.
+      if (envioId && (err.number === 2601 || err.number === 2627)) duplicado = true;
+      else throw err;
     }
 
-    try {
-      await ajustarContadores(getEncuestaLinksTable(), { token: link ? token : null, delta: 1 });
-    } catch (err) {
-      context.log.warn("La respuesta se guardó pero no se pudo sumar al contador en vivo:", err.message);
+    if (!duplicado) {
+      try {
+        await ajustarContadores(getEncuestaLinksTable(), { token: link ? token : null, delta: 1 });
+      } catch (err) {
+        context.log.warn("La respuesta se guardó pero no se pudo sumar al contador en vivo:", err.message);
+      }
     }
 
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };

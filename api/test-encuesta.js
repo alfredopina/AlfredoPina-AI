@@ -4,7 +4,7 @@
 // que imita lo que usa el SDK: getEntity/createEntity/updateEntity con etag
 // → 412/upsertEntity/listEntities). Mismo patrón que test-backup.js.
 const assert = require("assert");
-const { validarRespuestas, cabeOtraEscala, fechaMexico } = require("./src/encuesta-logic");
+const { validarRespuestas, cabeOtraEscala, fechaMexico, promediosDeRespuesta, medianaMs, fueraDeSesion } = require("./src/encuesta-logic");
 const { leerEscala, guardarEscala, ESCALA_DEFAULT } = require("./src/encuesta-tables");
 const { guardarLinkDeGrupo, buscarLinkPorGrupo, cambiarEstadoLink, leerLink, ajustarContadores, leerContadores } = require("./src/encuesta-links");
 
@@ -222,6 +222,80 @@ function respuestasCompletas(banco, valor) {
   await prueba("sin ningún envío todavía → contadores en 0 (la tabla ni existe)", async () => {
     const c = await leerContadores(tablaFalsa());
     assert.deepStrictEqual(c, { total: 0, hoy: 0, links: [] });
+  });
+
+  console.log("\ncontador al borrar (Fase 2)");
+  await prueba("borrar una respuesta de hoy resta del total Y del hoy", async () => {
+    const t = tablaFalsa();
+    await ajustarContadores(t, { token: null, delta: 1 });
+    await ajustarContadores(t, { token: null, delta: 1 });
+    await ajustarContadores(t, { token: null, delta: -1, descontarHoy: true });
+    const c = await leerContadores(t);
+    assert.strictEqual(c.total, 1);
+    assert.strictEqual(c.hoy, 1);
+  });
+  await prueba("borrar una respuesta de hace días resta del total pero NO del hoy", async () => {
+    const t = tablaFalsa();
+    await ajustarContadores(t, { token: null, delta: 1 });
+    await ajustarContadores(t, { token: null, delta: 1 });
+    await ajustarContadores(t, { token: null, delta: -1, descontarHoy: false });
+    const c = await leerContadores(t);
+    assert.strictEqual(c.total, 1);
+    assert.strictEqual(c.hoy, 2);
+  });
+  await prueba("al borrar también baja el conteo del link de su grupo", async () => {
+    const t = tablaFalsa();
+    const l = await guardarLinkDeGrupo(t, snapshot());
+    await ajustarContadores(t, { token: l.token, delta: 1 });
+    await ajustarContadores(t, { token: l.token, delta: 1 });
+    await ajustarContadores(t, { token: l.token, delta: -1, descontarHoy: false });
+    assert.strictEqual((await leerLink(t, l.token)).respuestas, 1);
+  });
+
+  console.log("\npromedios por respuesta (Resultados)");
+  const filasDe = (cat, vals, tipo = "escala") => vals.map((v) => ({ categoria: cat, tipo, valor: String(v) }));
+  const respuestaTipo = [
+    ...filasDe("Curso y Materiales", [5, 4, 4, 5]), ...filasDe("Instructor", [3, 3, 4, 2]),
+    ...filasDe("Aprendizaje y Aplicación", [4, 4, 4, 4]), ...filasDe("Globales", [5, 3]),
+    { categoria: "Globales", tipo: "texto", valor: "Buen curso" },
+  ];
+  await prueba("promedio por dimensión y general (14 de escala; el comentario no entra)", () => {
+    const p = promediosDeRespuesta(respuestaTipo);
+    assert.strictEqual(p.curso, 4.5);
+    assert.strictEqual(p.instructor, 3);
+    assert.strictEqual(p.aprendizaje, 4);
+    assert.strictEqual(p.general, 3.86); // 54 / 14
+  });
+  await prueba("Globales cuentan en el general pero no tienen promedio propio", () => {
+    const p = promediosDeRespuesta(filasDe("Globales", [5, 1]));
+    assert.strictEqual(p.general, 3);
+    assert.strictEqual(p.curso, null);
+  });
+  await prueba("sin filas → todo null (sin dividir entre 0)", () => assert.deepStrictEqual(promediosDeRespuesta([]), { curso: null, instructor: null, aprendizaje: null, general: null }));
+  await prueba("valores no numéricos se ignoran", () => assert.strictEqual(promediosDeRespuesta([{ categoria: "Instructor", tipo: "escala", valor: "x" }, { categoria: "Instructor", tipo: "escala", valor: "4" }]).instructor, 4));
+
+  console.log("\nfuera de sesión (mediana del grupo)");
+  const H = 3600 * 1000;
+  await prueba("mediana de cantidad impar y par", () => {
+    assert.strictEqual(medianaMs([5, 1, 3]), 3);
+    assert.strictEqual(medianaMs([1, 2, 3, 4]), 3); // (2+3)/2 = 2.5 → redondea a 3
+    assert.strictEqual(medianaMs([]), null);
+  });
+  const clase = [0, 1 * H, 2 * H, 3 * H, 4 * H]; // todo el grupo en una mañana
+  const med = medianaMs(clase);
+  await prueba("quien contesta dentro de 12 h de la mediana NO se marca", () => assert.strictEqual(fueraDeSesion(4 * H, med, 5), null));
+  await prueba("quien contesta 3 días después SÍ se marca, con la diferencia", () => {
+    const f = fueraDeSesion(med + 72 * H, med, 5);
+    assert.ok(f && f.difMs === 72 * H);
+  });
+  await prueba("también se marca quien contestó mucho ANTES de la sesión", () => assert.ok(fueraDeSesion(med - 30 * H, med, 5)));
+  await prueba("con menos de 3 respuestas en el grupo no hay referencia → sin marca", () => assert.strictEqual(fueraDeSesion(med + 72 * H, med, 2), null));
+  await prueba("sin mediana (link genérico, sin grupo) → sin marca", () => assert.strictEqual(fueraDeSesion(0, null, 0), null));
+  await prueba("link generado con días de anticipación NO marca a todo el grupo (la mediana es la de las respuestas)", () => {
+    const generadoHaceDias = -96 * H; // el link se creó 4 días antes; no interviene en el cálculo
+    const m = medianaMs([0, H, 2 * H]);
+    assert.strictEqual(fueraDeSesion(H, m, 3), null);
+    void generadoHaceDias;
   });
 
   console.log(fallos ? `\n${fallos} PRUEBA(S) FALLARON` : "\nTODO OK");

@@ -411,6 +411,10 @@
     {
       "route": "/api/cambiarEstadoLinkEncuesta",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarRespuestaEncuesta",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

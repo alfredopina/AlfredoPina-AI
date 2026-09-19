@@ -643,26 +643,8 @@
   .enc-kpi-row .dkpi-card{ flex:1; min-width:150px; }
   .dip-paso-head #encContadorRefresh{ margin-left:auto; }
 
-  /* Preguntas (Fase 1, 2026-09-19): franja de metodología con 4 bloques —
-     cada uno con su contador n/tope y un estado con ícono+texto (Completa /
-     Faltan N), nunca solo color (deuteranomalía). */
+  /* Preguntas: solo se conserva la nota de metodología (los scorecards por categoría se quitaron en la Fase 2 — los contadores n/tope viven en el título de cada sección). */
   .enc-metodo{ margin-bottom:22px; }
-  .enc-metodo-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
-  @media (max-width:900px){ .enc-metodo-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
-  .enc-metodo-cell{
-    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--line);
-    border-radius:8px; padding:12px 14px; min-width:0;
-  }
-  .enc-metodo-cell.ok{ border-left-color:#14b8a6; }
-  .enc-metodo-cell.falta{ border-left-color:#dfb35a; }
-  .enc-metodo-name{ font-family:var(--display); font-weight:600; font-size:13.5px; margin-bottom:6px; }
-  .enc-metodo-count{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
-  .enc-metodo-count .num{ font-weight:700; font-size:16px; color:var(--text); }
-  .enc-metodo-estado{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; margin-left:auto; }
-  .enc-metodo-estado svg{ width:12px; height:12px; flex:none; }
-  .enc-metodo-estado.ok{ color:#14b8a6; }
-  .enc-metodo-estado.falta{ color:#dfb35a; }
-  .enc-metodo-desc{ font-size:11.5px; color:var(--text-dim); margin-top:6px; line-height:1.45; }
   .enc-metodo-regla{ margin-top:12px; font-size:12px; color:var(--text-dim); line-height:1.6; max-width:820px; }
   .enc-escala-row{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px; }
   @media (max-width:760px){ .enc-escala-row{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
@@ -725,6 +707,36 @@
   }
   .enc-fase.cerrado{ color:var(--text-faint); }
   tr.enc-fila-activa td{ background:var(--blue-soft); }
+
+  /* Resultados (Fase 2) */
+  .enc-pronto{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-dim); border:1px solid var(--line);
+    border-radius:20px; padding:3px 10px;
+  }
+  /* "Fuera de sesión": ícono + texto (nunca solo color) */
+  .enc-fuera{
+    display:flex; align-items:center; gap:5px; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:#dfb35a; white-space:nowrap;
+  }
+  .enc-fuera svg{ width:12px; height:12px; flex:none; }
+  /* Gral: pill con el número (mismo lenguaje que el "Total" de Diagnósticos, pero
+     coloreado por umbral — el valor siempre visible dentro) */
+  .enc-gral-pill{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-weight:700; font-size:12.5px;
+    border-radius:20px; padding:4px 11px; color:var(--text-dim); background:var(--panel-2);
+  }
+  .enc-gral-pill.bien{ color:#14b8a6; background:rgba(20,184,166,.14); }
+  .enc-gral-pill.medio{ color:#dfb35a; background:rgba(223,179,90,.14); }
+  .enc-gral-pill.mal{ color:#dc2626; background:rgba(220,38,38,.14); }
+  .enc-coment{
+    display:block; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-size:12px; color:var(--text-dim);
+  }
+  .enc-anonimo{ color:var(--text-faint); font-style:italic; }
+  .enc-desglose-meta{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:14px; }
+  .enc-desglose-grid{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:22px; }
+  @media (max-width:1100px){ .enc-desglose-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width:640px){ .enc-desglose-grid{ grid-template-columns:1fr; } }
+  .enc-desglose-coment{ margin-top:16px; padding-top:12px; border-top:1px solid var(--line-soft); font-size:12.5px; line-height:1.55; white-space:pre-wrap; }
   .enc-btn-gen:disabled{ opacity:.45; cursor:not-allowed; }
 
   /* ---- PANEL CLIENTES ---- */
@@ -2931,7 +2943,6 @@
             <div class="dip-paso-head" style="margin-bottom:10px;">
               <span class="dip-paso-title" style="font-size:12px;">Metodología</span>
             </div>
-            <div class="enc-metodo-grid" id="encMetodoGrid"></div>
             <p class="enc-metodo-regla">Encuesta de cierre · 15 preguntas fijas, todas de 1 a 5 salvo un comentario abierto opcional. Curso y Materiales, Instructor y Aprendizaje y Aplicación: 4 preguntas cada una. Globales: 2 preguntas más y el comentario. El banco es fijo para que la encuesta sea corta y los promedios comparables entre grupos.</p>
           </div>
 
@@ -3099,50 +3110,78 @@
         </div>
 
         <div class="dip-tabpanel" id="encTab-resultados">
-          <div class="dip-filters">
-            <div class="radm-field dip-autocomplete-wrap" style="min-width:200px;">
-              <label>EMPRESA</label>
-              <input type="text" id="encFEmpresaNombre">
-              <div class="dip-autocomplete-list" id="encFEmpresaLista" hidden></div>
+          <div class="sol-toolbar">
+            <div class="dip-filters" style="margin-bottom:0;">
+              <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div class="radm-field">
+                <label>INSTRUCTOR</label>
+                <select id="encFInstructor"><option value="">Todos</option></select>
+              </div>
+              <div class="radm-field">
+                <label>HERRAMIENTA</label>
+                <select id="encFHerramienta">
+                  <option value="">Todas</option>
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                  <option value="powerapps">Power Apps</option>
+                  <option value="powerautomate">Power Automate</option>
+                  <option value="ia">IA Aplicada</option>
+                  <option value="ofimatica">Ofimática Básica</option>
+                </select>
+              </div>
+              <div class="radm-field" style="min-width:170px;">
+                <label>CURSO</label>
+                <select id="encFCurso"><option value="">Todos</option></select>
+              </div>
+              <div class="radm-field">
+                <label>MODALIDAD</label>
+                <select id="encFModalidad">
+                  <option value="">Todas</option>
+                  <option value="Online">Online</option>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Híbrido">Híbrido</option>
+                </select>
+              </div>
+              <div class="radm-field">
+                <label>DESDE</label>
+                <input type="date" id="encFDesde">
+              </div>
+              <div class="radm-field">
+                <label>HASTA</label>
+                <input type="date" id="encFHasta">
+              </div>
+              <div class="dip-filter-actions">
+                <button type="button" class="cot-icon-btn" id="encActualizar" title="Actualizar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn" id="encLimpiarFiltros" title="Limpiar filtros y mostrar todos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+                </button>
+              </div>
             </div>
-            <div class="radm-field">
-              <label>CURSO</label>
-              <input type="text" id="encFCurso">
+          </div>
+          <span class="radm-hint" style="display:block; margin:8px 0 12px;">Se busca solo, en cuanto cambias cualquier filtro — y esta pestaña se vuelve a cargar cada vez que entras aquí. Herramienta y Modalidad solo existen en las respuestas del link por grupo (las del link genérico no aparecen al filtrar por ellas).</span>
+
+          <div class="dip-paso" style="margin-bottom:18px;">
+            <div class="dip-paso-head" style="margin-bottom:8px;">
+              <span class="dip-paso-title">Reporte</span>
+              <span class="enc-pronto">Próximamente</span>
             </div>
-            <div class="radm-field">
-              <label>INSTRUCTOR</label>
-              <select id="encFInstructor">
-                <option value="">Todos</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>DESDE</label>
-              <input type="date" id="encFDesde">
-            </div>
-            <div class="radm-field">
-              <label>HASTA</label>
-              <input type="date" id="encFHasta">
-            </div>
-            <div class="dip-filter-actions">
-              <button type="button" class="radm-btn dip-btn-icon" id="encBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-                Buscar
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="encLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Limpiar filtros
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="encVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las respuestas">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-                Ver todos
-              </button>
-            </div>
+            <span class="radm-hint" style="display:block; margin-bottom:12px;">Se generará con los filtros de arriba (por instructor, curso, herramienta, modalidad o fechas): promedios por dimensión (Curso, Instructor, Aprendizaje), distribución de respuestas y comentarios, con un link para compartir. Se construye en la siguiente fase.</span>
+            <button type="button" class="radm-btn radm-btn-ghost" id="encGenerarReporte" style="min-width:auto;" disabled title="Disponible en la siguiente fase">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Generar reporte
+            </button>
           </div>
 
           <div class="dip-table-wrap">
             <table class="dip-table" id="encResultadosTable">
               <thead id="encResultadosHead"></thead>
-              <tbody id="encResultadosBody"></tbody>
+              <tbody id="encResultadosBody">
+                <tr><td class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -5344,7 +5383,7 @@
     // ── pestañas — Resultados se carga perezosa, solo la primera vez; QR / Link
     // se refresca CADA vez que se entra (grupos y links pueden haber cambiado,
     // y esa consulta de grupos es además el "despertar" de la base) ──
-    let encResultadosCargados = false, encQrTabActiva = false, encQrIniciado = false;
+    let encQrTabActiva = false, encQrIniciado = false;
     document.getElementById('encTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
@@ -5353,7 +5392,7 @@
       document.querySelectorAll('#panel-encuestas .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'encTab-' + key));
       encQrTabActiva = (key === 'qr');
       if(key === 'qr') entrarQr();
-      if(key === 'resultados' && !encResultadosCargados){ encResultadosCargados = true; cargarInstructoresFiltro(); buscarResultados(); }
+      if(key === 'resultados') buscarResultados();
     });
 
     // ══ PREGUNTAS ══
@@ -5363,22 +5402,6 @@
 
     function escalasDe(cat){ return encPreguntas.filter(p => p.seccion === cat.key && p.tipo === 'escala'); }
     function seccionEl(cat){ return document.querySelector(`#encSecciones .radm-section[data-cat="${cat.key}"]`); }
-
-    function renderMetodo(){
-      document.getElementById('encMetodoGrid').innerHTML = CATS.map(cat => {
-        const n = escalasDe(cat).length;
-        const completa = n >= cat.cap;
-        const estado = completa
-          ? `<span class="enc-metodo-estado ok">${ICO.check}Completa</span>`
-          : `<span class="enc-metodo-estado falta">${ICO.alerta}Faltan ${cat.cap - n}</span>`;
-        return `
-          <div class="enc-metodo-cell ${completa ? 'ok' : 'falta'}">
-            <div class="enc-metodo-name">${cat.key}</div>
-            <div class="enc-metodo-count"><span class="num">${n}/${cat.cap}</span>${cat.comentario ? '<span class="enc-metodo-mas">+ comentario</span>' : ''}${estado}</div>
-            <div class="enc-metodo-desc">${cat.desc}</div>
-          </div>`;
-      }).join('');
-    }
 
     function renderEscala(){
       document.getElementById('encEscalaRow').innerHTML = encEscala.map((t, i) => `
@@ -5429,7 +5452,7 @@
           <span class="radm-drag">${ICO.drag}</span>
           <div class="radm-row-body">
             <div class="radm-row-title">${escapeHtml(p.texto)}</div>
-            <div class="radm-row-sub">Escala 1-5</div>
+            <div class="radm-row-sub">Escala 1-5${cat.comentario ? ` · Columna en Resultados: ${escapeHtml(p.nombreCorto || 'sin nombre corto')}` : ''}</div>
           </div>
           <button type="button" class="radm-icon-btn" data-action="edit" title="Editar">${ICO.edit}</button>
           <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del" title="Eliminar">${ICO.trash}</button>
@@ -5491,6 +5514,11 @@
             <label>${esComentario ? 'TEXTO DE LA PREGUNTA DE COMENTARIOS' : 'TEXTO DE LA PREGUNTA (ESCALA 1-5)'}</label>
             <input type="text" class="enc-f-texto" maxlength="300" value="${item ? escapeHtml(item.texto) : ''}">
           </div>
+          ${cat.comentario && !esComentario ? `
+          <div class="radm-field" style="max-width:220px;">
+            <label>NOMBRE CORTO (COLUMNA EN RESULTADOS)</label>
+            <input type="text" class="enc-f-corto" maxlength="16" placeholder="Ej. Satisfacción" value="${item ? escapeHtml(item.nombreCorto || '') : ''}">
+          </div>` : ''}
         </div>
         <div class="radm-actions">
           <div></div>
@@ -5506,8 +5534,9 @@
       form.querySelector('.enc-f-guardar').addEventListener('click', async () => {
         const texto = form.querySelector('.enc-f-texto').value.trim();
         if(!texto){ toast('Falta el texto de la pregunta.', false); return; }
+        const cortoEl = form.querySelector('.enc-f-corto');
         try {
-          await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion: cat.key, texto });
+          await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion: cat.key, texto, nombreCorto: cortoEl ? cortoEl.value.trim() : undefined });
           toast('Pregunta guardada.', true);
           await cargarPreguntas();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
@@ -5540,7 +5569,6 @@
         encPreguntas = [];
         toast('No se pudieron cargar las preguntas: ' + e.message, false);
       }
-      renderMetodo();
       renderEscala();
       renderSecciones();
     }
@@ -6053,127 +6081,224 @@
       ctx.textAlign = 'right';
       ctx.font = 'bold 18px "JetBrains Mono", monospace';
       ctx.fillStyle = '#5b6472';
-      ctx.fillText('2 min', cardX + cardW - 52, curY);
+      ctx.fillText('menos de 5 min', cardX + cardW - 52, curY);
 
       await new Promise(res => canvas.toBlob(blob => { descargarBlob(blob, filename); res(); }, 'image/png'));
     }
 
-    // ══ RESULTADOS ══
-    function crearAutocompleteFiltro({ inputId, listId }){
-      const input = document.getElementById(inputId);
-      const lista = document.getElementById(listId);
-      let seleccionado = null;
-      let timer = null;
+    // ══ RESULTADOS ══ (Fase 2, 2026-09-19) — misma estructura que Resultados de
+    // Diagnósticos: toolbar con búsqueda automática, encabezados ordenables
+    // (orden en el navegador), desglose en el Nombre, número coloreado con su
+    // valor siempre visible, y Borrar con confirmación. Los promedios los
+    // calcula listRespuestasEncuesta (servidor, al leer).
+    const TOOL_NOMBRE = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
+    const CATS_RES = [
+      { key:'Curso y Materiales', prom:'curso', etiqueta:'Curso y Materiales' },
+      { key:'Instructor', prom:'instructor', etiqueta:'Instructor' },
+      { key:'Aprendizaje y Aplicación', prom:'aprendizaje', etiqueta:'Aprendizaje y Aplicación' },
+      { key:'Globales', prom:null, etiqueta:'Globales' },
+    ];
+    let encResultadosRaw = [], encEscalaRes = ESCALA_DEFAULT.slice(), encGlobalesMeta = [];
+    let encResSort = { campo:'fecha', dir:'desc' };
+    const N_COLS_RES = 12;
 
-      input.addEventListener('input', () => {
-        seleccionado = null;
-        const q = input.value.trim();
-        clearTimeout(timer);
-        if(!q){ lista.hidden = true; return; }
-        timer = setTimeout(async () => {
-          try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
-            if(!clientes.length){ lista.hidden = true; return; }
-            lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
-            ).join('');
-            lista.hidden = false;
-          } catch(e){ /* silencioso, no bloquea seguir capturando */ }
-        }, 250);
-      });
-
-      lista.addEventListener('click', e => {
-        const item = e.target.closest('.dip-autocomplete-item');
-        if(!item) return;
-        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre };
-        input.value = item.dataset.nombre;
-        lista.hidden = true;
-      });
-
-      document.addEventListener('click', e => {
-        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
-      });
-
-      return {
-        getSeleccionado: () => seleccionado,
-        reset: () => { seleccionado = null; input.value = ''; lista.hidden = true; },
-      };
+    // El color se decide con el valor YA redondeado a 1 decimal (3.96 se ve
+    // "4.0" y por eso pinta como 4.0, no como 3.x) — y el número siempre va
+    // visible, el color nunca es lo único que dice algo.
+    function redond(n){ return n == null ? null : Math.round(n * 10) / 10; }
+    function fmtProm(n){ return n == null ? '—' : redond(n).toFixed(1); }
+    function claseProm(n){
+      const r = redond(n);
+      if(r == null) return '';
+      if(r >= 4) return 'bien';
+      if(r >= 3) return 'medio';
+      return 'mal';
+    }
+    function difTexto(ms){
+      const h = Math.abs(ms) / 3600000;
+      const t = h >= 48 ? Math.round(h / 24) + ' d' : Math.round(h) + ' h';
+      return t + (ms > 0 ? ' después' : ' antes');
     }
 
-    const encFEmpresaAuto = crearAutocompleteFiltro({ inputId:'encFEmpresaNombre', listId:'encFEmpresaLista' });
-
-    async function cargarInstructoresFiltro(){
-      try {
-        const data = await apiGet('/api/getInstructores');
-        const sel = document.getElementById('encFInstructor');
-        (data.instructores || []).forEach(nombre => {
-          const opt = document.createElement('option');
-          opt.value = nombre; opt.textContent = nombre;
-          sel.appendChild(opt);
-        });
-      } catch(e){ /* silencioso — el filtro sigue funcionando sin la lista */ }
+    function columnasRes(){
+      return [
+        { key:'fecha', label:'Fecha y hora' }, { key:'empresa', label:'Empresa' }, { key:'curso', label:'Curso' }, { key:'nombre', label:'Nombre' },
+        { key:'pCurso', label:'Prom. Curso' }, { key:'pInstructor', label:'Prom. Instructor' }, { key:'pAprendizaje', label:'Prom. Aprendizaje' },
+        { key:'g0', label: (encGlobalesMeta[0] && encGlobalesMeta[0].nombreCorto) || 'Global 1' },
+        { key:'g1', label: (encGlobalesMeta[1] && encGlobalesMeta[1].nombreCorto) || 'Global 2' },
+        { key:'gral', label:'Gral' }, { key:'comentario', label:'Comentario' }, { label:'Acciones', sinOrden:true },
+      ];
+    }
+    const RES_SORT = {
+      fecha: r => new Date(r.fecha_envio).getTime(), empresa: r => r.cliente || '', curso: r => r.curso || '', nombre: r => r.nombre || '',
+      pCurso: r => r.promedios.curso, pInstructor: r => r.promedios.instructor, pAprendizaje: r => r.promedios.aprendizaje,
+      g0: r => r.globales[0], g1: r => r.globales[1], gral: r => r.promedios.general, comentario: r => r.comentario || '',
+    };
+    // vacíos siempre al final, sin importar la dirección
+    function ordenarResultados(lista){
+      const extraer = RES_SORT[encResSort.campo];
+      if(!extraer) return lista;
+      const factor = encResSort.dir === 'asc' ? 1 : -1;
+      return lista.slice().sort((a, b) => {
+        const va = extraer(a), vb = extraer(b);
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
     }
 
-    function construirColumnas(lista){
-      const mapa = new Map();
-      lista.forEach(r => (r.respuestas || []).forEach(x => { if(!mapa.has(x.texto)) mapa.set(x.texto, x.tipo); }));
-      return Array.from(mapa.keys());
+    function celdaProm(n){ return `<td class="radm-mono diag-puntaje ${claseProm(n)}">${fmtProm(n)}</td>`; }
+
+    function desgloseHtml(r){
+      const meta = [];
+      if(r.herramientas && r.herramientas.length) meta.push(r.herramientas.map(h => TOOL_NOMBRE[h] || h).join(', '));
+      if(r.modalidad) meta.push(r.modalidad);
+      if(r.horas != null) meta.push(r.horas + ' h');
+      meta.push(r.grupo_id != null ? 'Link por grupo' : 'Link genérico (sin grupo)');
+      if(r.link_generado_en) meta.push('Link generado ' + fmtFechaHora(r.link_generado_en));
+      if(r.fuera_sesion) meta.push('Mediana de su grupo: ' + fmtFechaHora(r.fuera_sesion.mediana));
+
+      const columnas = CATS_RES.map(cat => {
+        const filas = r.respuestas.filter(x => x.categoria === cat.key && x.tipo === 'escala');
+        if(!filas.length) return '';
+        const prom = cat.prom ? r.promedios[cat.prom] : null;
+        return `
+          <div class="diag-nivel-col">
+            <div class="diag-nivel-titulo">${cat.etiqueta}${prom != null ? ` · <span class="diag-puntaje ${claseProm(prom)}">${fmtProm(prom)}</span>` : ''}</div>
+            ${filas.map((x, i) => {
+              const v = Number(x.valor);
+              return `
+                <div class="diag-resp-row">
+                  <div class="diag-resp-linea">
+                    <span class="diag-resp-num">${i + 1}</span>
+                    <span class="diag-resp-texto" title="${escapeHtml(x.texto)}">${escapeHtml(x.texto)}</span>
+                  </div>
+                  <div class="diag-resp-sub"><b class="diag-puntaje ${claseProm(v)}">${v}</b> · ${escapeHtml(encEscalaRes[v - 1] || '')}</div>
+                </div>`;
+            }).join('')}
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="enc-desglose-meta">${meta.map(escapeHtml).join(' · ')}</div>
+        <div class="enc-desglose-grid">${columnas}</div>
+        <div class="enc-desglose-coment"><span class="diag-nivel-titulo" style="border:none; padding:0;">Comentario</span><div>${r.comentario ? escapeHtml(r.comentario) : '<span class="enc-anonimo">Sin comentario</span>'}</div></div>`;
+    }
+
+    function renderResultados(){
+      const head = document.getElementById('encResultadosHead');
+      const body = document.getElementById('encResultadosBody');
+      const cols = columnasRes();
+      head.innerHTML = `<tr>${cols.map(c => c.sinOrden ? `<th>${c.label}</th>` : `<th data-sort="${c.key}">${escapeHtml(c.label)}<span class="th-sort-ico"></span></th>`).join('')}</tr>`;
+      head.querySelectorAll('th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === encResSort.campo;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (encResSort.dir === 'asc' ? ICO.sortAsc : ICO.sortDesc) : '';
+      });
+
+      const lista = ordenarResultados(encResultadosRaw);
+      if(!lista.length){ body.innerHTML = `<tr><td colspan="${N_COLS_RES}" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
+
+      body.innerHTML = lista.map(r => `
+        <tr>
+          <td class="radm-mono">${fmtFechaHora(r.fecha_envio)}${r.fuera_sesion ? `<div class="enc-fuera" title="Llegó ${difTexto(r.fuera_sesion.dif_ms)} de la mediana de las respuestas de su grupo (${fmtFechaHora(r.fuera_sesion.mediana)})">${ICO.alerta}Fuera de sesión · ${difTexto(r.fuera_sesion.dif_ms)}</div>` : ''}</td>
+          <td>${escapeHtml(r.cliente)}</td>
+          <td>${escapeHtml(r.curso)}<div class="diag-nombre-sub">${escapeHtml(r.instructor)}</div></td>
+          <td>
+            <button type="button" class="sol-temario-toggle" data-id="${r.id}" title="Ver el desglose de respuestas">
+              <span class="sol-temario-nombre ${r.nombre ? '' : 'enc-anonimo'}">${r.nombre ? escapeHtml(r.nombre) : 'Anónimo'}</span>
+              <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            ${r.correo ? `<div class="diag-nombre-sub">${escapeHtml(r.correo)}</div>` : ''}
+          </td>
+          ${celdaProm(r.promedios.curso)}${celdaProm(r.promedios.instructor)}${celdaProm(r.promedios.aprendizaje)}
+          ${celdaProm(r.globales[0])}${celdaProm(r.globales[1])}
+          <td><span class="enc-gral-pill ${claseProm(r.promedios.general)}">${fmtProm(r.promedios.general)}</span></td>
+          <td>${r.comentario ? `<span class="enc-coment" title="${escapeHtml(r.comentario)}">${escapeHtml(r.comentario)}</span>` : '—'}</td>
+          <td>
+            <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-id="${r.id}" title="Eliminar esta respuesta — borrado real, no se puede deshacer">${ICO.trash}</button>
+          </td>
+        </tr>
+        <tr class="sol-desglose-row" id="enc-desglose-${r.id}" hidden>
+          <td colspan="${N_COLS_RES}"><div class="sol-desglose">${desgloseHtml(r)}</div></td>
+        </tr>
+      `).join('');
+    }
+
+    // las listas de Instructor/Curso salen de lo que de verdad existe en las
+    // respuestas (son texto libre en el link genérico) — se conserva la
+    // selección actual al repoblarlas
+    function poblarOpciones(selectId, valores){
+      const sel = document.getElementById(selectId);
+      const actual = sel.value;
+      const primera = sel.options[0];
+      sel.innerHTML = '';
+      sel.appendChild(primera);
+      valores.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+      sel.value = valores.includes(actual) ? actual : '';
     }
 
     async function buscarResultados(){
       const params = new URLSearchParams();
-      const curso = document.getElementById('encFCurso').value.trim();
-      const instructor = document.getElementById('encFInstructor').value;
-      const desde = document.getElementById('encFDesde').value;
-      const hasta = document.getElementById('encFHasta').value;
-      const seleccionado = encFEmpresaAuto.getSeleccionado();
+      [['instructor','encFInstructor'], ['herramienta','encFHerramienta'], ['curso','encFCurso'], ['modalidad','encFModalidad'], ['desde','encFDesde'], ['hasta','encFHasta']]
+        .forEach(([k, id]) => { const v = document.getElementById(id).value; if(v) params.set(k, v); });
 
-      if(curso) params.set('curso', curso);
-      if(instructor) params.set('instructor', instructor);
-      if(desde) params.set('desde', desde);
-      if(hasta) params.set('hasta', hasta);
-      if(seleccionado) params.set('clienteId', seleccionado.id);
-
-      const head = document.getElementById('encResultadosHead');
-      const body = document.getElementById('encResultadosBody');
-      head.innerHTML = '';
-      body.innerHTML = `<tr><td class="radm-empty-row">Buscando...</td></tr>`;
-
+      document.getElementById('encResultadosBody').innerHTML = `<tr><td colspan="${N_COLS_RES}" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGetConReintento('/api/listRespuestasEncuesta?' + params.toString());
-        if(!lista.length){ body.innerHTML = `<tr><td class="radm-empty-row">Sin resultados.</td></tr>`; return; }
-
-        const columnas = construirColumnas(lista);
-        head.innerHTML = `<tr><th>Fecha</th><th>Nombre</th><th>Empresa</th><th>Curso</th><th>Instructor</th>${columnas.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
-        body.innerHTML = lista.map(r => {
-          const porTexto = new Map((r.respuestas || []).map(x => [x.texto, x.valor]));
-          return `
-            <tr>
-              <td>${fmtFecha(r.fecha)}</td>
-              <td>${escapeHtml(r.nombre || '—')}</td>
-              <td>${escapeHtml(r.cliente)}</td>
-              <td>${escapeHtml(r.curso)}</td>
-              <td>${escapeHtml(r.instructor)}</td>
-              ${columnas.map(c => `<td>${escapeHtml(porTexto.has(c) ? porTexto.get(c) : '—')}</td>`).join('')}
-            </tr>
-          `;
-        }).join('');
+        const data = await apiGetConReintento('/api/listRespuestasEncuesta?' + params.toString());
+        encResultadosRaw = data.respuestas || [];
+        encEscalaRes = data.escala && data.escala.length === 5 ? data.escala : ESCALA_DEFAULT.slice();
+        encGlobalesMeta = data.globales || [];
+        poblarOpciones('encFInstructor', (data.opciones && data.opciones.instructores) || []);
+        poblarOpciones('encFCurso', (data.opciones && data.opciones.cursos) || []);
+        renderResultados();
       } catch(e){
-        body.innerHTML = `<tr><td class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        document.getElementById('encResultadosBody').innerHTML = `<tr><td colspan="${N_COLS_RES}" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
-    document.getElementById('encBuscar').addEventListener('click', buscarResultados);
+    document.getElementById('encResultadosHead').addEventListener('click', e => {
+      const th = e.target.closest('th[data-sort]');
+      if(!th) return;
+      if(encResSort.campo === th.dataset.sort) encResSort.dir = encResSort.dir === 'asc' ? 'desc' : 'asc';
+      else { encResSort.campo = th.dataset.sort; encResSort.dir = th.dataset.sort === 'fecha' ? 'desc' : 'asc'; }
+      renderResultados();
+    });
 
-    function limpiarFiltrosResultados(){
-      document.getElementById('encFCurso').value = '';
-      document.getElementById('encFInstructor').value = '';
-      document.getElementById('encFDesde').value = '';
-      document.getElementById('encFHasta').value = '';
-      encFEmpresaAuto.reset();
-    }
-    document.getElementById('encLimpiarFiltros').addEventListener('click', limpiarFiltrosResultados);
-    document.getElementById('encVerTodos').addEventListener('click', () => { limpiarFiltrosResultados(); buscarResultados(); });
+    document.getElementById('encResultadosBody').addEventListener('click', async e => {
+      const toggle = e.target.closest('.sol-temario-toggle');
+      if(toggle){
+        const fila = document.getElementById('enc-desglose-' + toggle.dataset.id);
+        if(fila){ fila.hidden = !fila.hidden; toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden); }
+        return;
+      }
+      const btnDel = e.target.closest('[data-action="eliminar"]');
+      if(btnDel){
+        const id = Number(btnDel.dataset.id);
+        const r = encResultadosRaw.find(x => x.id === id);
+        // 3ra excepción del proyecto a "nunca borrar de verdad" (junto con
+        // eliminarGrupo y eliminarRespuestaDiagnostico), pedida explícita por
+        // Alfredo para limpiar pruebas/duplicados.
+        if(!confirm(`¿Eliminar la respuesta de "${r && r.nombre ? r.nombre : 'Anónimo'}"? Es un borrado real y no se puede deshacer — también se descuenta del contador en vivo.`)) return;
+        try {
+          await apiPostJson('/api/eliminarRespuestaEncuesta', { id });
+          toast('Respuesta eliminada.', true);
+          await buscarResultados();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+      }
+    });
+
+    // Búsqueda automática: cambiar cualquier filtro dispara buscarResultados
+    // solo — sin botón "Buscar" (mismo criterio que Diagnósticos).
+    ['encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta']
+      .forEach(id => document.getElementById(id).addEventListener('change', buscarResultados));
+    document.getElementById('encActualizar').addEventListener('click', buscarResultados);
+    document.getElementById('encLimpiarFiltros').addEventListener('click', () => {
+      ['encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta'].forEach(id => { document.getElementById(id).value = ''; });
+      buscarResultados();
+    });
   })();
 
   // ═══════════════════════════════════════════════════════════════

@@ -74,4 +74,56 @@ function cabeOtraEscala(categoria, existentes, excluirId) {
 
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-module.exports = { errorSeguro, fechaMexico, validarRespuestas, cabeOtraEscala, CORREO_RE, COMENTARIO_MAX };
+// ── Resultados (Fase 2) — todo calculado al LEER (listRespuestasEncuesta), a
+// partir de las respuestas congeladas: nada de promedios guardados que luego
+// haya que migrar si cambia un criterio. ──
+
+const CLAVE_PROMEDIO = { "Curso y Materiales": "curso", Instructor: "instructor", "Aprendizaje y Aplicación": "aprendizaje" };
+
+function promedioDe(valores) {
+  if (!valores.length) return null;
+  return Math.round((valores.reduce((a, b) => a + b, 0) / valores.length) * 100) / 100;
+}
+
+// filas = renglones de UNA respuesta: { categoria, tipo, valor }. Promedio por
+// dimensión (cada pregunta pesa igual dentro de su categoría) y general = las
+// 14 de escala (Globales incluidas). El comentario nunca entra.
+function promediosDeRespuesta(filas) {
+  const porClave = { curso: [], instructor: [], aprendizaje: [] };
+  const todas = [];
+  for (const f of filas) {
+    if (f.tipo !== "escala") continue;
+    const v = Number(f.valor);
+    if (!Number.isFinite(v)) continue;
+    todas.push(v);
+    const clave = CLAVE_PROMEDIO[f.categoria];
+    if (clave) porClave[clave].push(v);
+  }
+  return { curso: promedioDe(porClave.curso), instructor: promedioDe(porClave.instructor), aprendizaje: promedioDe(porClave.aprendizaje), general: promedioDe(todas) };
+}
+
+function medianaMs(lista) {
+  if (!lista.length) return null;
+  const s = lista.slice().sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+}
+
+// "Fuera de sesión": un link por grupo se puede generar con días de
+// anticipación (no es lo estándar, pero pasa), así que comparar contra la hora
+// en que se generó el link marcaría TODO. En cambio se compara cada respuesta
+// contra la MEDIANA de las respuestas de su propio grupo: en clase contestan
+// casi todos juntos, y quien llega horas o días después es el que se sale. Con
+// menos de 3 respuestas en el grupo no hay referencia confiable → sin marca.
+const FUERA_SESION_MS = 12 * 3600 * 1000;
+const FUERA_SESION_MIN_RESPUESTAS = 3;
+function fueraDeSesion(envioMs, medianaGrupoMs, nGrupo) {
+  if (medianaGrupoMs == null || nGrupo < FUERA_SESION_MIN_RESPUESTAS) return null;
+  const difMs = envioMs - medianaGrupoMs;
+  return Math.abs(difMs) > FUERA_SESION_MS ? { difMs } : null;
+}
+
+module.exports = {
+  errorSeguro, fechaMexico, validarRespuestas, cabeOtraEscala, CORREO_RE, COMENTARIO_MAX,
+  promediosDeRespuesta, medianaMs, fueraDeSesion, FUERA_SESION_MS, FUERA_SESION_MIN_RESPUESTAS,
+};

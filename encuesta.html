@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
-<title>Encuesta de Cierre — Alfredo Piña</title>
+<title>Encuesta de Satisfacción — Alfredo Piña</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
@@ -106,12 +106,20 @@
 
   .enc-block{ margin-bottom:40px; }
   .enc-block-title{
-    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--blue-bright); margin-bottom:16px; padding-bottom:9px; border-bottom:1px solid var(--line);
   }
+  /* contador de preguntas calificadas por categoría — texto (n/total), nunca solo color */
+  .enc-cat-cont{
+    margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500;
+    letter-spacing:0; text-transform:none; color:var(--text-dim);
+  }
+  .enc-cat-cont svg{ width:13px; height:13px; }
+  .enc-cat-cont.completa{ color:var(--text); }
 
   .enc-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
-  .enc-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
+  .enc-field label{ font-family:var(--mono); font-size:12px; font-weight:500; color:var(--text); letter-spacing:.3px; }
   .enc-req{ color:var(--bad); }
   .enc-opt{ color:var(--text-faint); text-transform:none; letter-spacing:0; }
 
@@ -122,7 +130,7 @@
     display:flex; flex-direction:column; gap:3px; background:var(--panel); border:1px solid var(--line);
     border-radius:7px; padding:10px 14px;
   }
-  .enc-lock-tile span{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.3px; display:flex; align-items:center; gap:6px; }
+  .enc-lock-tile span{ font-family:var(--mono); font-size:11px; font-weight:500; color:var(--text-dim); letter-spacing:.3px; display:flex; align-items:center; gap:6px; }
   .enc-lock-tile span svg{ width:11px; height:11px; }
   .enc-lock-tile b{ font-weight:500; font-size:14.5px; color:var(--text); }
   .enc-lock-nota{ margin-bottom:22px; }
@@ -224,6 +232,23 @@
   .enc-readout b{ color:var(--text); font-weight:600; }
   .enc-slide-hint{ font-size:10.5px; color:var(--text-faint); margin-top:6px; }
 
+  /* nota previa a las preguntas — mismo criterio que la de Diagnósticos, un poco
+     más presente porque explica cómo contestar */
+  .enc-nota{
+    font-size:13.5px; color:var(--text-dim); line-height:1.65; border:1px solid var(--line);
+    background:var(--panel); border-radius:8px; padding:16px 18px; margin:0 0 20px;
+  }
+  .enc-nota b{ display:block; color:var(--text); font-family:var(--display); font-weight:600; font-size:15px; margin-bottom:4px; }
+
+  /* avance: pegado bajo el nav mientras se contesta — texto + barra */
+  .enc-progreso{
+    position:sticky; top:64px; z-index:40; background:rgba(10,13,18,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft); padding:10px 0 9px; margin-bottom:22px;
+  }
+  .enc-progreso-texto{ font-family:var(--mono); font-size:11.5px; color:var(--text); margin-bottom:7px; }
+  .enc-progreso-barra{ height:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; }
+  .enc-progreso-fill{ height:100%; width:0%; background:var(--blue-bright); border-radius:2px; transition:width .25s ease; }
+
   .enc-privacy{
     font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
     padding-top:18px; margin:24px 0 20px; line-height:1.6;
@@ -268,7 +293,13 @@
   /* footer mínimo a propósito — sin el bloque "Hablemos"/contacto del resto
      del sitio, para no competir con el formulario (pedido explícito) */
   footer{border-top:1px solid var(--line-soft); padding:30px 0 40px; margin-top:10px;}
-  .enc-footer-copy{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); }
+  .enc-contact-meta{
+    display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12.5px;
+    color:var(--text-faint); font-family:var(--mono);
+  }
+  .enc-contact-meta a{ color:var(--text-dim); }
+  .enc-contact-meta a:hover{ color:var(--blue-bright); }
+  .enc-contact-meta > *:not(:last-child)::after{ content:'·'; margin-left:14px; color:var(--line); }
 
   @media (max-width:480px){
     .wrap{padding:0 18px;}
@@ -303,7 +334,7 @@
 <main id="contenido">
 
 <header class="wrap enc-header">
-  <h2 class="section-title">Cuéntame cómo estuvo el curso.</h2>
+  <h2 class="section-title">Encuesta de Satisfacción</h2>
 </header>
 
 <section class="wrap">
@@ -360,6 +391,16 @@
       </div>
     </div>
 
+    <div class="enc-nota">
+      <b>Ayúdanos a seguir mejorando.</b>
+      Evalúa tu experiencia con sinceridad. La encuesta es confidencial, toma menos de 5 minutos y sus resultados se utilizarán para mejorar futuras ediciones del curso. Desliza (o toca) la barra para calificar cada frase en una escala de 1 a 5, donde 1 es la calificación más baja y 5 la más alta.
+    </div>
+
+    <div class="enc-progreso" id="encProgreso">
+      <div class="enc-progreso-texto"><span id="encProgresoTxt">0 de 0 calificadas</span></div>
+      <div class="enc-progreso-barra"><div class="enc-progreso-fill" id="encProgresoFill"></div></div>
+    </div>
+
     <div id="encPreguntasArea"></div>
 
     <p class="enc-privacy">Tus respuestas se usan solo para mejorar la calidad del servicio, no se comparten con terceros.</p>
@@ -381,7 +422,7 @@
   <div class="enc-thanks" id="encThanks">
     <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
     <h2>¡Listo, ya quedó registrada!</h2>
-    <p>Gracias por tomarte los 2 minutos — nos ayuda a mejorar el siguiente curso.</p>
+    <p>Gracias por tomarte unos minutos — nos ayuda a mejorar el siguiente curso.</p>
     <div class="enc-thanks-fx"><span>fx</span> =GRACIAS()</div>
   </div>
 </section>
@@ -390,7 +431,16 @@
 
 <footer>
   <div class="wrap">
-    <span class="enc-footer-copy">© 2026 Alfredo Piña</span>
+    <div class="enc-contact-meta">
+      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
+      <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
+      <a href="#" target="_blank">YouTube ↗</a>
+      <span style="display:inline-flex;align-items:center;gap:7px;">
+        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:14px; width:auto; display:block; opacity:.6;">
+        © 2026 Alfredo Piña
+      </span>
+    </div>
   </div>
 </footer>
 
@@ -474,6 +524,25 @@
     return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
   }
 
+  const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function actualizarAvance(){
+    const todas = document.querySelectorAll('.enc-question');
+    let hechas = 0;
+    todas.forEach(q => { if(Number(q.querySelector('.xcell').dataset.value) > 0) hechas++; });
+    document.getElementById('encProgresoTxt').textContent = hechas + ' de ' + todas.length + ' calificadas';
+    document.getElementById('encProgresoFill').style.width = (todas.length ? hechas / todas.length * 100 : 0) + '%';
+    document.querySelectorAll('.enc-block[data-cat-escalas]').forEach(b => {
+      const qs = b.querySelectorAll('.enc-question');
+      let n = 0;
+      qs.forEach(q => { if(Number(q.querySelector('.xcell').dataset.value) > 0) n++; });
+      const cont = b.querySelector('.enc-cat-cont');
+      if(!cont) return;
+      const completa = qs.length > 0 && n === qs.length;
+      cont.classList.toggle('completa', completa);
+      cont.innerHTML = (completa ? ICONO_CHECK : '') + '<span>' + n + '/' + qs.length + '</span>';
+    });
+  }
+
   // ── celda de escala: data-bar de Excel, tocable y deslizable en un solo
   // control (pointerdown fija el valor de inmediato, pointermove mientras se
   // arrastra lo va actualizando) — más natural que 5 botones separados ──
@@ -510,6 +579,7 @@
       valueEl.textContent = v;
       readout.textContent = v + ' · ' + LABELS[v - 1];
       wrap.classList.remove('sin-calificar');
+      actualizarAvance();
     }
 
     function valueFromClientX(clientX){
@@ -626,7 +696,13 @@
         bloque.className = 'enc-block';
         const titulo = document.createElement('div');
         titulo.className = 'enc-block-title';
-        titulo.textContent = cat;
+        titulo.appendChild(document.createTextNode(cat));
+        if(escalas.length){
+          bloque.dataset.catEscalas = '1';
+          const cont = document.createElement('span');
+          cont.className = 'enc-cat-cont';
+          titulo.appendChild(cont);
+        }
         bloque.appendChild(titulo);
         escalas.forEach(p => {
           bloque.appendChild(renderXcell(p, 'B' + refRow));
@@ -648,6 +724,7 @@
       document.getElementById('encLoading').hidden = true;
       document.getElementById('encError').hidden = true;
       document.getElementById('encForm').hidden = false;
+      actualizarAvance();
 
       // aviso suave: si este dispositivo ya envió esta encuesta, se avisa pero
       // NO se bloquea (puede haber un error legítimo o un equipo compartido)
@@ -676,6 +753,12 @@
     const el = document.getElementById('encSubmitError');
     el.textContent = msg;
     el.classList.add('show');
+  }
+
+  let envioId = null;
+  function nuevoEnvioId(){
+    try { if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){ /* sigue al respaldo */ }
+    return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
   }
 
   document.getElementById('encForm').addEventListener('submit', async e => {
@@ -724,7 +807,8 @@
     const body = document.getElementById('encSubmitBody');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
 
-    const payload = { nombre: document.getElementById('encNombre').value.trim(), correo, respuestas };
+    if(!envioId) envioId = nuevoEnvioId();
+    const payload = { nombre: document.getElementById('encNombre').value.trim(), correo, respuestas, envioId };
     if(TOKEN) payload.token = TOKEN;
     else Object.assign(payload, { empresa, curso, instructor });
 

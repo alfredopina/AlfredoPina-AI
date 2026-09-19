@@ -52,7 +52,7 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 - El atributo `hidden` pierde contra una clase que fija su propio `display` — cualquier clase nueva con `display` propio que alguna vez se oculte con `hidden` necesita `.clase[hidden]{display:none}` desde que se escribe.
 - No mezcles `border-color`/`background` shorthand con `color-mix()` o un long-hand de un solo lado — usa `background-color`/long-hands explícitos (puede colapsar a transparente/vacío sin error visible).
 - Antes de un `ALTER COLUMN` en un script SQL, revisa constraints existentes de esa columna (`sys.key_constraints`/`check_constraints`/`default_constraints`) — no asumas que el script de referencia que estás calcando ya los cubrió.
-- Nunca borres datos de verdad — todo es reversible (archivar/cambiar estatus), salvo `eliminarGrupo` y `eliminarRespuestaDiagnostico`, excepciones pedidas explícitas por Alfredo (siempre con `confirm()` fuerte antes).
+- Nunca borres datos de verdad — todo es reversible (archivar/cambiar estatus), salvo `eliminarGrupo`, `eliminarRespuestaDiagnostico` y `eliminarRespuestaEncuesta`, excepciones pedidas explícitas por Alfredo (siempre con `confirm()` fuerte antes).
 - Un panel que carga datos solo al abrir `/admin` necesita refrescar también al navegar ahí desde el sidebar, no solo al cargar la página completa.
 - Nunca reproduzcas contenido con copyright de terceros; nunca inventes URLs.
 
@@ -82,7 +82,7 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 ## Pendientes generales (los de más peso — ver `CLAUDE_DETALLE.md` para el checklist completo con todos los "confirmar en producción")
 
 - Cargar el banco real de 30 preguntas de Diagnóstico (15 Excel + 15 Power BI) — Bloque 1, en curso.
-- Encuestas: Fase 1 construida 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage) — **falta correr `sql/019_encuesta_grupo.sql` antes del push**, cargar las 15 preguntas definitivas, y las Fases 2 (Resultados + pulido del html) y 3 (Reporte por Grupo) — Bloque 1.
+- Encuestas: Fases 1 y 2 construidas 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage, pestaña Resultados con filtros/orden/fuera de sesión/borrar, html público pulido) — **falta correr `sql/020_encuesta_envio_id.sql` antes del push de Fase 2**, cargar las 15 preguntas definitivas, y la Fase 3 (Reporte dirigido por filtros, luego al Dashboard) — Bloque 1.
 - Ambigüedad de nombres sin resolver: "Temario Estándar" vs. "Curso" (Recursos) vs. "Grupo" — ya se resolvió Grupo, falta Temario/Curso — Bloque 2.
 - Sitio público a afinar: CSS hardcodeado, navegación, link LinkedIn, socios comerciales, conferencias — Bloque 2.
 - Tracking propio de Solicitudes + Proyectos + Notificaciones/Seguimiento afinados + Resumen semanal — Bloque 3.

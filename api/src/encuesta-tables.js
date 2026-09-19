@@ -75,6 +75,9 @@ function entidadAPregunta(e) {
     tipo: e.tipo || "escala",
     orden: typeof e.orden === "number" ? e.orden : 0,
     activa: !!e.activa,
+    // solo las 2 de escala de Globales lo usan: el encabezado de su columna en
+    // Resultados (el texto de la pregunta es largo y editable)
+    nombreCorto: e.nombreCorto || "",
   };
 }
 

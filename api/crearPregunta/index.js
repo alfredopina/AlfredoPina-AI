@@ -21,12 +21,17 @@ const { cabeOtraEscala } = require("../src/encuesta-logic");
 const { JSON_HEADERS } = require("../src/http");
 
 const TEXTO_MAX = 300;
+const NOMBRE_CORTO_MAX = 16;
 
 module.exports = async function (context, req) {
   const body = req.body || {};
   const id = (body.id || "").trim() || null;
   const categoria = (body.seccion || "").trim();
   const texto = (body.texto || "").trim();
+  // "nombre corto" = encabezado de columna en Resultados; solo tiene sentido
+  // para las 2 preguntas de escala de Globales (las otras 12 se promedian por
+  // categoría), en cualquier otra se ignora.
+  const nombreCorto = categoria === COMENTARIO_CATEGORIA ? String(body.nombreCorto || "").trim().slice(0, NOMBRE_CORTO_MAX) : "";
 
   if (!CATEGORIAS.includes(categoria)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Categoría inválida." } };
@@ -65,7 +70,9 @@ module.exports = async function (context, req) {
         context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };
         return;
       }
-      await table.updateEntity({ partitionKey: categoria, rowKey: id, texto }, "Merge");
+      const cambios = { partitionKey: categoria, rowKey: id, texto };
+      if (categoria === COMENTARIO_CATEGORIA) cambios.nombreCorto = nombreCorto;
+      await table.updateEntity(cambios, "Merge");
       context.res = { status: 200, headers: JSON_HEADERS, body: { id } };
       return;
     }
@@ -78,7 +85,9 @@ module.exports = async function (context, req) {
     const ordenes = existentes.filter((e) => e.rowKey !== COMENTARIO_ID).map((e) => (typeof e.orden === "number" ? e.orden : 0));
     const orden = ordenes.length ? Math.max(...ordenes) + 10 : 0;
     const idNuevo = crypto.randomUUID();
-    await table.upsertEntity({ partitionKey: categoria, rowKey: idNuevo, texto, tipo: "escala", orden, activa: true }, "Replace");
+    const nueva = { partitionKey: categoria, rowKey: idNuevo, texto, tipo: "escala", orden, activa: true };
+    if (categoria === COMENTARIO_CATEGORIA) nueva.nombreCorto = nombreCorto;
+    await table.upsertEntity(nueva, "Replace");
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: idNuevo } };
   } catch (err) {
     context.log.error("Error guardando la pregunta:", err.message);

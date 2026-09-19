@@ -148,19 +148,22 @@ async function actualizarConReintento(table, pk, rk, mutar, crear) {
   throw new Error("No se pudo actualizar el contador tras varios intentos.");
 }
 
-// delta = +1 al enviar una respuesta, -1 al borrarla (Fase 2). token = null
-// para el link genérico (solo cuenta en el global).
-async function ajustarContadores(table, { token, delta }) {
+// delta = +1 al enviar una respuesta, -1 al borrarla. token = null para el
+// link genérico (solo cuenta en el global). `descontarHoy` (solo aplica al
+// restar): borrar una respuesta de hace días NO debe bajar el "hoy" — solo se
+// resta de "hoy" si la respuesta borrada fue de hoy.
+async function ajustarContadores(table, { token, delta, descontarHoy = true }) {
   await ensureTable(table);
   const hoyFecha = fechaMexico(new Date());
+  const deltaHoy = delta > 0 || descontarHoy ? delta : 0;
 
   await actualizarConReintento(
     table, "contador", "global",
     (e) => {
       const mismoDia = e.hoyFecha === hoyFecha;
-      return { total: Math.max(0, (e.total || 0) + delta), hoyFecha, hoy: Math.max(0, (mismoDia ? e.hoy || 0 : 0) + delta) };
+      return { total: Math.max(0, (e.total || 0) + delta), hoyFecha, hoy: Math.max(0, (mismoDia ? e.hoy || 0 : 0) + deltaHoy) };
     },
-    () => ({ total: Math.max(0, delta), hoyFecha, hoy: Math.max(0, delta) })
+    () => ({ total: Math.max(0, delta), hoyFecha, hoy: Math.max(0, deltaHoy) })
   );
 
   if (token) {

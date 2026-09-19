@@ -4,6 +4,18 @@ Bitácora completa, sesión por sesión, movida aquí desde `CLAUDE.md` el 2026-
 
 Formato de cada entrada: `Fecha Módulo: Acciones` — un título corto por sesión de trabajo, con el detalle en bullets debajo. Agregar una entrada nueva (más reciente arriba) al cerrar cada sesión.
 
+### 2026-09-19 alfredo.pina: Diagnóstico y Encuestas — Reporte de Diagnóstico pulido, Encuestas Fases 1-3 y contador en vivo sin SQL
+
+Sesión larga que cerró Bloque 1 casi por completo (falta cargar preguntas reales). Detalle y "por qué" de cada decisión en `CLAUDE_DETALLE.md` (bloques "Encuestas — Fase 2", "Diagnóstico — contador…" y "Encuestas — Fase 3").
+
+- **Reporte de Diagnóstico:** rondas de pulido (insights coherentes por persona, impresión/PDF con identidad de marca en versión clara, pestañas Excel/Power BI por color, botón "Comenzar" antes del cuestionario tras un bug real de respuestas perdidas).
+- **Encuestas Fase 1:** estructura fija de 15 preguntas (4 categorías), link por Grupo con token, contador en vivo desde Table Storage, tabla de grupos con estado del link y secciones plegables (`sql/019`).
+- **Encuestas Fase 2:** Resultados con filtros (Instructor/Herramienta/Curso/Modalidad/fechas), encabezados ordenables, marca "fuera de sesión" (mediana del grupo), Borrar (3ª excepción a "nunca borrar") y anti-duplicado `envio_id` (`sql/020`); html público con nota, footer homologado y avance "X de N calificadas". Ajuste posterior: columna Curso ancha (curso/instructor en 2 líneas), promedios angostos con título en 2 líneas, Globales por default Satisfacción/Recomendación.
+- **Diagnóstico — contador en vivo migrado a Table Storage** (10 s / 10 min, sin tocar SQL) con candado `sembrado` y botón "Recalcular desde SQL".
+- **Encuestas Fase 3:** Reporte visual por filtros (generar desde Resultados, link público `/reporte-encuesta?token=…`, pestaña Reportes) — comentarios siempre incluidos, sin exclusión de fuera de sesión, sin comparativos, sin impresión; lista "por debajo de 4.0" solo si aplica; snapshot en Table Storage partido en trozos.
+- **Estado al cerrar:** todo en `main` y desplegado (último commit `0e67af2`). Alfredo lo prueba en producción; quedan por confirmar los flujos con SQL/Storage reales, cargar las 15 preguntas definitivas de Encuestas y borrar las 3 respuestas de prueba.
+- **Nota para Bloque 4 (Dashboard):** reutilizar los reportes de Diagnósticos y Encuestas (ver `CLAUDE.md`).
+
 ### 2026-09-15 alfredo.pina: Notificaciones — campana + Configuración, teorizado, mockeado y construido en la misma sesión
 
 Sesión de director de proyecto que terminó en construcción directa (Alfredo: "ejecútalo tú bro") en vez de generar un prompt para una sesión constructora aparte — 5 decisiones cerradas en texto primero (solo umbral urgente configurable, mismo número en todos lados, Table Storage no SQL, badge visible, clic navega al Tracking), luego 3 mockups de popover (Artifact, ver "Estado del proyecto" → Notificaciones para el link), Alfredo eligió "agrupado por módulo", y de ahí el prompt se convirtió en la lista de trabajo de esta misma sesión. Detalle técnico completo ya integrado en CLAUDE.md → "Estado del proyecto" → Notificaciones, no repetido aquí.

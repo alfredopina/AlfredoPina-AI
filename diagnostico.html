@@ -486,7 +486,12 @@
   function renderPregunta(pregunta, indice, total, onAvanzar){
     const wrap = document.createElement('div');
     wrap.className = 'diag-question';
-    wrap.hidden = indice !== 1;
+    // TODAS nacen ocultas, incluida la 1 — solo "Comenzar" revela la primera.
+    // Antes la 1 nacía visible bajo el formulario de datos y se podía
+    // contestar y dar "Siguiente" sin haber dado "Comenzar": se recorría todo
+    // el cuestionario sin identidad guardada y el envío final fallaba sin
+    // forma de recuperar las respuestas (bug real, reportado por Alfredo).
+    wrap.hidden = true;
     wrap.dataset.preguntaId = pregunta.id;
     const opciones = opcionesMostradas(pregunta);
     const esUltima = indice === total;
@@ -660,6 +665,7 @@
 
     document.getElementById('diagPasoIdentidad').hidden = true;
     document.getElementById('diagProgress').hidden = false;
+    document.querySelector('.diag-question').hidden = false;
     actualizarBarra();
     window.scrollTo({ top:0, behavior:'smooth' });
   });

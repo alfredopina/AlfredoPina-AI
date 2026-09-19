@@ -697,6 +697,35 @@
   .enc-estado.abierta{ color:#14b8a6; background:rgba(20,184,166,.12); }
   .enc-estado.cerrada{ color:#dfb35a; background:rgba(223,179,90,.12); }
   .enc-falta{ color:#dfb35a !important; }
+  .enc-estado.sinlink{ color:var(--text-dim); background:var(--panel-2); }
+
+  /* secciones plegables de QR / Link — el encabezado entero es el botón
+     (título + resumen + "Mostrar/Ocultar" con chevron: texto explícito, no
+     solo un ícono) */
+  .enc-plegable-btn{
+    display:flex; align-items:center; gap:12px; width:100%; background:none; border:none;
+    padding:0; cursor:pointer; color:inherit; font:inherit; text-align:left;
+  }
+  .enc-plegable-res{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .enc-plegable-acc{
+    margin-left:auto; display:inline-flex; align-items:center; gap:6px; flex:none;
+    font-family:var(--mono); font-size:11px; color:var(--blue-bright);
+    border:1px solid var(--line); border-radius:6px; padding:5px 10px;
+  }
+  .enc-plegable-btn:hover .enc-plegable-acc{ border-color:var(--blue-bright); }
+  .enc-plegable-acc svg{ width:12px; height:12px; transition:transform .15s; }
+  .enc-plegable-btn[aria-expanded="true"] .enc-plegable-acc svg{ transform:rotate(180deg); }
+  .enc-plegable-cuerpo{ margin-top:18px; }
+  .enc-plegable-cuerpo[hidden]{ display:none; }
+
+  /* tabla de grupos: Fase neutra (no es un semáforo, solo dice en qué paso va) */
+  .enc-fase{
+    display:inline-block; font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    border:1px solid var(--line); border-radius:20px; padding:3px 10px; white-space:nowrap;
+  }
+  .enc-fase.cerrado{ color:var(--text-faint); }
+  tr.enc-fila-activa td{ background:var(--blue-soft); }
+  .enc-btn-gen:disabled{ opacity:.45; cursor:not-allowed; }
 
   /* ---- PANEL CLIENTES ---- */
   /* Rediseño 2026-09-12: scorecard compacto tipo header, toolbar/tabla
@@ -2944,93 +2973,127 @@
           </div>
 
           <div class="dip-paso">
-            <div class="dip-paso-head">
+            <button type="button" class="enc-plegable-btn" data-plegable="grupo" aria-expanded="true">
               <span class="dip-paso-title">Link por grupo</span>
-            </div>
-            <span class="radm-hint" style="display:block; margin-bottom:14px;">Elige un grupo activo (cualquier fase) — el link ya trae empresa, curso e instructor, y las respuestas quedan ligadas al grupo. Un solo link por grupo, siempre el mismo: volver a generarlo solo refresca sus datos.</span>
-            <div class="radm-form-row">
-              <div class="radm-field dip-autocomplete-wrap" style="flex:1; min-width:260px;">
-                <label>GRUPO</label>
-                <input type="text" id="encGrupoBuscar" placeholder="Busca por cliente, curso, instructor o código..." autocomplete="off">
-                <div class="dip-autocomplete-list" id="encGrupoLista" hidden></div>
-              </div>
-              <div class="radm-field" style="flex:none; min-width:0; justify-content:flex-end;">
-                <button type="button" class="radm-btn" id="encGrupoGenerar" style="min-width:auto;" disabled>Generar link</button>
-              </div>
-            </div>
-            <span class="radm-hint" id="encGrupoHint" style="display:block; margin-bottom:6px;"></span>
+              <span class="enc-plegable-res" id="encResumenGrupo"></span>
+              <span class="enc-plegable-acc"><span class="enc-plegable-txt">Ocultar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <div class="enc-plegable-cuerpo" data-plegable-cuerpo="grupo">
+              <span class="radm-hint" style="display:block; margin-bottom:14px;">Todos tus grupos activos (cualquier fase) — genera el link de uno y las respuestas quedan ligadas a ese grupo, con empresa, curso e instructor ya resueltos. Un solo link por grupo, siempre el mismo: "actualizar" solo refresca sus datos.</span>
 
-            <div id="encGrupoResultado" hidden>
-              <div class="enc-grupo-resumen">
-                <div>
-                  <div class="enc-grupo-titulo" id="encGrupoTitulo"></div>
-                  <div class="diag-nombre-sub" id="encGrupoSub"></div>
-                </div>
-                <div class="enc-grupo-meta">
-                  <span class="enc-estado" id="encGrupoEstado"></span>
-                  <span class="diag-total-pill" title="Respuestas de este grupo"><span id="encGrupoCuenta">0</span>&nbsp;respuestas</span>
-                  <button type="button" class="radm-btn radm-btn-ghost" id="encGrupoToggle" style="min-width:auto;"></button>
+              <div class="sol-toolbar">
+                <div class="dip-filters" style="margin-bottom:0;">
+                  <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                  <div class="radm-field" style="min-width:230px;">
+                    <label>BUSCAR</label>
+                    <input type="text" id="encGrupoQ" placeholder="Empresa, curso, instructor o código..." autocomplete="off">
+                  </div>
+                  <div class="radm-field">
+                    <label>FASE</label>
+                    <select id="encGrupoFase">
+                      <option value="">Todas</option>
+                      <option value="Por iniciar">Por iniciar</option>
+                      <option value="En curso">En curso</option>
+                      <option value="Proyecto">Proyecto</option>
+                      <option value="Calificaciones">Calificaciones</option>
+                      <option value="Diplomas">Diplomas</option>
+                    </select>
+                  </div>
+                  <div class="radm-field" style="flex:none; min-width:0;">
+                    <label>CERRADOS</label>
+                    <div class="radm-switch-row" style="height:38px;">
+                      <label class="radm-switch">
+                        <input type="checkbox" id="encGrupoCerrados">
+                        <span class="radm-switch-track"></span>
+                      </label>
+                      <span class="radm-switch-label">Incluir links de grupos cerrados</span>
+                    </div>
+                  </div>
+                  <div class="dip-filter-actions">
+                    <button type="button" class="cot-icon-btn" id="encGruposRefresh" title="Actualizar grupos y links">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
+              <span class="radm-hint" id="encGruposCuenta" style="display:block; margin:8px 0 12px;"></span>
+
+              <div class="dip-table-wrap">
+                <table class="dip-table" id="encGruposTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="empresa">Empresa<span class="th-sort-ico"></span></th>
+                      <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
+                      <th data-sort="fase">Fase<span class="th-sort-ico"></span></th>
+                      <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
+                      <th data-sort="modalidad">Modalidad<span class="th-sort-ico"></span></th>
+                      <th data-sort="inicio">Fechas<span class="th-sort-ico"></span></th>
+                      <th data-sort="link">Link<span class="th-sort-ico"></span></th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="encGruposBody">
+                    <tr><td colspan="8" class="radm-empty-row">Cargando grupos...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div id="encGrupoResultado" hidden>
+                <div class="enc-grupo-resumen">
+                  <div>
+                    <div class="enc-grupo-titulo" id="encGrupoTitulo"></div>
+                    <div class="diag-nombre-sub" id="encGrupoSub"></div>
+                  </div>
+                  <div class="enc-grupo-meta">
+                    <span class="enc-estado" id="encGrupoEstado"></span>
+                    <span class="diag-total-pill" title="Respuestas de este grupo"><span id="encGrupoCuenta">0</span>&nbsp;respuestas</span>
+                    <button type="button" class="radm-btn radm-btn-ghost" id="encGrupoToggle" style="min-width:auto;"></button>
+                  </div>
+                </div>
+                <div class="diag-qr-card-body">
+                  <div class="diag-qr-card-left">
+                    <div class="radm-field">
+                      <label>LINK</label>
+                      <input type="text" id="encLinkGrupo" readonly>
+                    </div>
+                    <div class="diag-qr-actions">
+                      <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                      <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
+                      <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                      <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
+                    </div>
+                  </div>
+                  <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQrGrupo"></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dip-paso">
+            <button type="button" class="enc-plegable-btn" data-plegable="generico" aria-expanded="false">
+              <span class="dip-paso-title">Link genérico</span>
+              <span class="enc-plegable-res">Respaldo, sin grupo · siempre abierto</span>
+              <span class="enc-plegable-acc"><span class="enc-plegable-txt">Mostrar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <div class="enc-plegable-cuerpo" data-plegable-cuerpo="generico" hidden>
+              <span class="radm-hint" style="display:block; margin-bottom:14px;">Respaldo, sin grupo: la persona teclea empresa, curso e instructor, y esas respuestas no entran al reporte por grupo. Siempre abierto.</span>
               <div class="diag-qr-card-body">
                 <div class="diag-qr-card-left">
                   <div class="radm-field">
                     <label>LINK</label>
-                    <input type="text" id="encLinkGrupo" readonly>
+                    <input type="text" id="encLinkInput" readonly>
                   </div>
                   <div class="diag-qr-actions">
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
                   </div>
                 </div>
-                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQrGrupo"></div></div></div>
+                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQr"></div></div></div>
               </div>
-            </div>
-          </div>
-
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-title">Link genérico</span>
-            </div>
-            <span class="radm-hint" style="display:block; margin-bottom:14px;">Respaldo, sin grupo: la persona teclea empresa, curso e instructor, y esas respuestas no entran al reporte por grupo. Siempre abierto.</span>
-            <div class="diag-qr-card-body">
-              <div class="diag-qr-card-left">
-                <div class="radm-field">
-                  <label>LINK</label>
-                  <input type="text" id="encLinkInput" readonly>
-                </div>
-                <div class="diag-qr-actions">
-                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
-                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
-                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
-                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
-                </div>
-              </div>
-              <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQr"></div></div></div>
-            </div>
-          </div>
-
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-title">Links por grupo generados</span>
-            </div>
-            <div class="dip-table-wrap">
-              <table class="dip-table" id="encLinksTable">
-                <thead>
-                  <tr>
-                    <th>Grupo</th>
-                    <th>Generado</th>
-                    <th>Respuestas</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="encLinksBody">
-                  <tr><td colspan="5" class="radm-empty-row">Todavía no has generado ningún link por grupo.</td></tr>
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
@@ -5225,6 +5288,9 @@
       unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortAsc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      sortDesc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -5484,7 +5550,10 @@
     const urlGenerico = () => new URL('encuesta', location.origin + '/').href;
     const urlGrupo = token => new URL('encuesta?t=' + encodeURIComponent(token), location.origin + '/').href;
     let encQrGenerico = null, encQrGrupoInst = null;
-    let encGrupos = [], encGrupoSel = null, encLinks = [], encLinkActual = null;
+    let encGrupos = [], encGruposCargados = false, encLinks = [], encLinkActual = null;
+    let encFiltro = { q:'', fase:'', cerrados:false };
+    let encSort = { campo:'inicio', dir:'desc' };
+    const FASE_ORDEN = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado', 'Eliminado'];
 
     function crearQr(contenedorId, data){
       const inst = new QRCodeStyling({
@@ -5501,81 +5570,222 @@
       return inst;
     }
 
+    // ── secciones plegables (Link por grupo / Link genérico) — cada quien
+    // decide qué desplegar, y se recuerda su elección en este navegador.
+    // Por default: por grupo desplegado (es el flujo principal), genérico
+    // plegado (es el respaldo). ──
+    const PLEGABLES_KEY = 'enc_qr_plegables';
+    let encPlegables = { grupo:true, generico:false };
+    try { Object.assign(encPlegables, JSON.parse(localStorage.getItem(PLEGABLES_KEY) || '{}')); } catch(e){ /* sin localStorage: valores por default */ }
+
+    function aplicarPlegables(){
+      document.querySelectorAll('#encTab-qr [data-plegable]').forEach(btn => {
+        const abierto = !!encPlegables[btn.dataset.plegable];
+        btn.setAttribute('aria-expanded', String(abierto));
+        btn.querySelector('.enc-plegable-txt').textContent = abierto ? 'Ocultar' : 'Mostrar';
+        document.querySelector(`#encTab-qr [data-plegable-cuerpo="${btn.dataset.plegable}"]`).hidden = !abierto;
+      });
+    }
+    document.getElementById('encTab-qr').addEventListener('click', e => {
+      const btn = e.target.closest('[data-plegable]');
+      if(!btn) return;
+      encPlegables[btn.dataset.plegable] = !encPlegables[btn.dataset.plegable];
+      try { localStorage.setItem(PLEGABLES_KEY, JSON.stringify(encPlegables)); } catch(err){ /* no crítico */ }
+      aplicarPlegables();
+    });
+
     function entrarQr(){
       if(!encQrIniciado){
         encQrIniciado = true;
         document.getElementById('encLinkInput').value = urlGenerico();
         encQrGenerico = crearQr('encQr', urlGenerico());
+        aplicarPlegables();
       }
       cargarGrupos();   // única lectura de SQL de esta pestaña — también "despierta" la base para cuando el grupo empiece a enviar
       cargarLinks();
       reanudarContador();
     }
 
-    // ── buscador de Grupo activo (cualquier fase, todo lo que no esté Cerrado —
-    // listGruposAdmin?vista=activos). Se filtra en el navegador. ──
+    // ── tabla de grupos + links (fundidas): todos los grupos NO cerrados de
+    // listGruposAdmin (cualquier fase), cada uno con el estado de su link
+    // (que vive en Table Storage, se cruza aquí por grupoId). Con el
+    // interruptor "cerrados" también entran los links de grupos ya cerrados o
+    // eliminados, para poder seguir abriéndolos/cerrándolos. ──
     async function cargarGrupos(){
-      const hint = document.getElementById('encGrupoHint');
-      hint.textContent = 'Cargando grupos activos… (si la base estaba dormida puede tardar unos segundos)';
+      const cuenta = document.getElementById('encGruposCuenta');
+      if(!encGruposCargados) cuenta.textContent = 'Cargando grupos… (si la base estaba dormida puede tardar unos segundos)';
       try {
-        encGrupos = await apiGetConReintento('/api/listGruposAdmin?vista=activos');
-        hint.textContent = encGrupos.length ? '' : 'No hay grupos activos todavía — créalos primero en Grupos.';
+        encGrupos = await apiGetConReintento('/api/listGruposAdmin');
+        encGruposCargados = true;
+        renderGrupos();
       } catch(e){
-        hint.textContent = 'No se pudieron cargar los grupos: ' + e.message + ' — cambia de pestaña y vuelve a entrar para reintentar.';
+        cuenta.textContent = 'No se pudieron cargar los grupos: ' + e.message + ' — usa el ícono de actualizar para reintentar.';
       }
     }
 
-    function nombreGrupo(g){ return (g.cliente_final || g.cliente || '—') + ' · ' + (g.nombre_curso || 'Sin nombre de curso'); }
-
-    function renderListaGrupos(){
-      const lista = document.getElementById('encGrupoLista');
-      const q = norm(document.getElementById('encGrupoBuscar').value.trim());
-      const res = encGrupos
-        .filter(g => !q || norm([g.cliente, g.cliente_final, g.nombre_curso, g.instructor, g.grupo_codigo].join(' ')).includes(q))
-        .slice(0, 8);
-      if(!res.length){ lista.hidden = true; return; }
-      lista.innerHTML = res.map(g => {
-        const faltan = [!(g.nombre_curso || '').trim() ? 'curso' : '', !(g.instructor || '').trim() ? 'instructor' : ''].filter(Boolean);
-        const partes = [g.instructor || 'sin instructor', `${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}`, g.grupo_codigo].filter(Boolean);
-        return `<div class="dip-autocomplete-item" data-id="${g.id}"><b>${escapeHtml(nombreGrupo(g))}</b><span>${escapeHtml(partes.join(' · '))}</span>${faltan.length ? `<span class="enc-falta">falta ${faltan.join(' y ')}</span>` : ''}</div>`;
-      }).join('');
-      lista.hidden = false;
+    function filasGrupos(){
+      const linkPorGrupo = new Map(encLinks.map(l => [String(l.grupoId), l]));
+      const idsGrupos = new Set(encGrupos.map(g => String(g.id)));
+      const filas = [];
+      encGrupos.forEach(g => {
+        const cerrado = g.fase === 'Cerrado';
+        const link = linkPorGrupo.get(String(g.id)) || null;
+        if(cerrado && !(encFiltro.cerrados && link)) return;
+        filas.push({
+          tipo: 'grupo', id: String(g.id), link, cerrado,
+          empresa: g.cliente_final || g.cliente || '—', via: g.cliente_final ? (g.cliente || '') : '',
+          curso: g.nombre_curso || '', fase: g.fase || '', instructor: g.instructor || '',
+          modalidad: g.modalidad || '', inicio: g.fecha_inicio, fin: g.fecha_fin, codigo: g.grupo_codigo || '',
+        });
+      });
+      if(encFiltro.cerrados){
+        encLinks.filter(l => !idsGrupos.has(String(l.grupoId))).forEach(l => filas.push({
+          tipo: 'huerfano', id: String(l.grupoId), link: l, cerrado: true,
+          empresa: l.clienteNombre, via: '', curso: l.curso, fase: 'Eliminado', instructor: l.instructor,
+          modalidad: l.modalidad || '', inicio: l.fechaInicio, fin: l.fechaFin, codigo: '',
+        }));
+      }
+      return filas;
     }
 
-    const encGrupoInput = document.getElementById('encGrupoBuscar');
-    encGrupoInput.addEventListener('input', () => {
-      encGrupoSel = null;
-      document.getElementById('encGrupoGenerar').disabled = true;
-      renderListaGrupos();
-    });
-    encGrupoInput.addEventListener('focus', renderListaGrupos);
-    document.getElementById('encGrupoLista').addEventListener('click', e => {
-      const item = e.target.closest('.dip-autocomplete-item');
-      if(!item) return;
-      encGrupoSel = encGrupos.find(g => String(g.id) === item.dataset.id) || null;
-      if(!encGrupoSel) return;
-      encGrupoInput.value = nombreGrupo(encGrupoSel);
-      document.getElementById('encGrupoLista').hidden = true;
-      document.getElementById('encGrupoGenerar').disabled = false;
-    });
-    document.addEventListener('click', e => {
-      if(!encGrupoInput.contains(e.target) && !document.getElementById('encGrupoLista').contains(e.target)) document.getElementById('encGrupoLista').hidden = true;
+    function rangoLink(f){ return f.link ? (f.link.abierta ? 1 : 2) : 0; }
+    const ORDEN_CAMPOS = {
+      empresa: f => f.empresa, curso: f => f.curso, instructor: f => f.instructor, modalidad: f => f.modalidad,
+      fase: f => { const i = FASE_ORDEN.indexOf(f.fase); return i < 0 ? 99 : i; },
+      inicio: f => f.inicio ? new Date(f.inicio).getTime() : null,
+      link: f => rangoLink(f) * 100000 + (f.link ? f.link.respuestas : 0),
+    };
+    // vacíos siempre al final, sin importar la dirección
+    function ordenarFilas(lista){
+      const extraer = ORDEN_CAMPOS[encSort.campo];
+      const factor = encSort.dir === 'asc' ? 1 : -1;
+      return lista.slice().sort((a, b) => {
+        const va = extraer(a), vb = extraer(b);
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
+    }
+
+    function pillEstado(abierta){
+      return abierta
+        ? `<span class="enc-estado abierta">${ICO.unlock}Abierta</span>`
+        : `<span class="enc-estado cerrada">${ICO.lock}Cerrada</span>`;
+    }
+    function pillLink(l){
+      if(!l) return '<span class="enc-estado sinlink">Sin link</span>';
+      return l.abierta
+        ? `<span class="enc-estado abierta">${ICO.unlock}Abierta · ${l.respuestas}</span>`
+        : `<span class="enc-estado cerrada">${ICO.lock}Cerrada · ${l.respuestas}</span>`;
+    }
+
+    function renderGrupos(){
+      const body = document.getElementById('encGruposBody');
+      const linkPorGrupo = new Map(encLinks.map(l => [String(l.grupoId), l]));
+      const activos = encGrupos.filter(g => g.fase !== 'Cerrado');
+      const cerrados = encGrupos.length - activos.length;
+      const conLink = activos.filter(g => linkPorGrupo.has(String(g.id))).length;
+
+      const q = norm(encFiltro.q.trim());
+      const todas = filasGrupos();
+      const filas = ordenarFilas(todas.filter(f =>
+        (!encFiltro.fase || f.fase === encFiltro.fase) &&
+        (!q || norm([f.empresa, f.via, f.curso, f.instructor, f.codigo, f.fase, f.modalidad].join(' ')).includes(q))
+      ));
+
+      let cuenta = `${activos.length} grupo${activos.length === 1 ? '' : 's'} activo${activos.length === 1 ? '' : 's'} · ${conLink} con link`;
+      if(cerrados && !encFiltro.cerrados) cuenta += ` · ${cerrados} cerrado${cerrados === 1 ? '' : 's'} no mostrado${cerrados === 1 ? '' : 's'}`;
+      if(filas.length !== todas.length) cuenta += ` — mostrando ${filas.length} con estos filtros`;
+      document.getElementById('encGruposCuenta').textContent = encGruposCargados ? cuenta : document.getElementById('encGruposCuenta').textContent;
+      document.getElementById('encResumenGrupo').textContent = encGruposCargados ? `${activos.length} activos · ${conLink} con link` : '';
+
+      document.querySelectorAll('#encGruposTable th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === encSort.campo;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (encSort.dir === 'asc' ? ICO.sortAsc : ICO.sortDesc) : '';
+      });
+
+      if(!encGruposCargados) return;
+      if(!filas.length){
+        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">${activos.length || todas.length ? 'Sin grupos con estos filtros.' : 'No hay grupos activos todavía — créalos primero en Grupos.'}</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = filas.map(f => {
+        const faltan = f.tipo === 'grupo' ? [!f.curso.trim() ? 'curso' : '', !f.instructor.trim() ? 'instructor' : ''].filter(Boolean) : [];
+        const seleccionada = encLinkActual && f.link && f.link.token === encLinkActual.token;
+        let acciones;
+        if(f.link){
+          acciones = `
+            <button type="button" class="radm-icon-btn" data-g="qr" data-token="${f.link.token}" title="Mostrar su link y QR abajo">${ICO.qr}</button>
+            <button type="button" class="radm-icon-btn" data-g="copiar" data-token="${f.link.token}" title="Copiar el link">${ICO.copiar}</button>
+            ${f.tipo === 'grupo' && !f.cerrado ? `<button type="button" class="radm-icon-btn" data-g="refrescar" data-id="${f.id}" title="Actualizar los datos del link con los actuales del grupo (el link no cambia)">${ICO.refresh}</button>` : ''}
+            <button type="button" class="radm-icon-btn" data-g="estado" data-token="${f.link.token}" title="${f.link.abierta ? 'Cerrar la encuesta de este grupo' : 'Reabrir la encuesta de este grupo'}">${f.link.abierta ? ICO.lock : ICO.unlock}</button>`;
+        } else {
+          acciones = `<button type="button" class="radm-btn radm-btn-ghost enc-btn-gen" data-g="generar" data-id="${f.id}" ${faltan.length ? `disabled title="Completa en Grupos: ${faltan.join(' y ')}"` : 'title="Generar el link de este grupo"'}>Generar link</button>`;
+        }
+        return `
+          <tr class="${seleccionada ? 'enc-fila-activa' : ''}">
+            <td><b>${escapeHtml(f.empresa)}</b>${f.via ? `<div class="diag-nombre-sub">vía ${escapeHtml(f.via)}</div>` : ''}${f.codigo ? `<div class="diag-nombre-sub">${escapeHtml(f.codigo)}</div>` : ''}</td>
+            <td>${f.curso ? escapeHtml(f.curso) : '—'}${faltan.includes('curso') ? '<div class="enc-falta diag-nombre-sub">falta el curso</div>' : ''}</td>
+            <td><span class="enc-fase ${f.cerrado ? 'cerrado' : ''}">${escapeHtml(f.fase || '—')}</span></td>
+            <td>${f.instructor ? escapeHtml(f.instructor) : '—'}${faltan.includes('instructor') ? '<div class="enc-falta diag-nombre-sub">falta el instructor</div>' : ''}</td>
+            <td>${f.modalidad ? escapeHtml(f.modalidad) : '—'}</td>
+            <td class="radm-mono">${fmtFecha(f.inicio)} – ${fmtFecha(f.fin)}</td>
+            <td>${pillLink(f.link)}</td>
+            <td><div class="diag-row-actions">${acciones}</div></td>
+          </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('encGrupoQ').addEventListener('input', e => { encFiltro.q = e.target.value; renderGrupos(); });
+    document.getElementById('encGrupoFase').addEventListener('change', e => { encFiltro.fase = e.target.value; renderGrupos(); });
+    document.getElementById('encGrupoCerrados').addEventListener('change', e => { encFiltro.cerrados = e.target.checked; renderGrupos(); });
+    document.getElementById('encGruposRefresh').addEventListener('click', () => { cargarGrupos(); cargarLinks(); });
+    document.querySelectorAll('#encGruposTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        if(encSort.campo === th.dataset.sort) encSort.dir = encSort.dir === 'asc' ? 'desc' : 'asc';
+        else { encSort.campo = th.dataset.sort; encSort.dir = th.dataset.sort === 'inicio' ? 'desc' : 'asc'; }
+        renderGrupos();
+      });
     });
 
-    document.getElementById('encGrupoGenerar').addEventListener('click', async () => {
-      if(!encGrupoSel) return;
-      const btn = document.getElementById('encGrupoGenerar');
-      btn.disabled = true;
-      try {
-        const link = await apiPostJson('/api/generarLinkEncuesta', { grupoId: encGrupoSel.id });
-        toast('Link listo.', true);
-        await cargarLinks();
-        mostrarLinkGrupo(encLinks.find(l => l.token === link.token) || link);
-      } catch(e){ toast(e.message, false); }
-      finally { btn.disabled = !encGrupoSel; }
+    document.getElementById('encGruposBody').addEventListener('click', async e => {
+      const b = e.target.closest('[data-g]');
+      if(!b || b.disabled) return;
+      const acc = b.dataset.g;
+      if(acc === 'generar' || acc === 'refrescar'){
+        b.disabled = true;
+        try {
+          const link = await apiPostJson('/api/generarLinkEncuesta', { grupoId: Number(b.dataset.id) });
+          await cargarLinks();
+          const l = encLinks.find(x => x.token === link.token) || link;
+          if(acc === 'generar'){
+            toast('Link listo.', true);
+            mostrarLinkGrupo(l);
+            document.getElementById('encGrupoResultado').scrollIntoView({ behavior:'smooth', block:'center' });
+          } else {
+            toast('Datos del link actualizados con los del grupo.', true);
+            if(encLinkActual && encLinkActual.token === l.token) mostrarLinkGrupo(l);
+          }
+        } catch(err){
+          toast(err.message, false);
+          b.disabled = false;
+        }
+      } else if(acc === 'qr'){
+        const l = encLinks.find(x => x.token === b.dataset.token);
+        if(l){ mostrarLinkGrupo(l); document.getElementById('encGrupoResultado').scrollIntoView({ behavior:'smooth', block:'center' }); }
+      } else if(acc === 'copiar'){
+        try { await navigator.clipboard.writeText(urlGrupo(b.dataset.token)); toast('Link copiado.', true); }
+        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+      } else if(acc === 'estado'){
+        cambiarEstado(b.dataset.token);
+      }
     });
 
-    // ── tarjeta "Link por grupo" ──
+    // ── tarjeta de detalle "Link por grupo" (link + QR + acciones) ──
     function linkVigente(){
       if(!encLinkActual) return null;
       return encLinks.find(l => l.token === encLinkActual.token) || encLinkActual;
@@ -5591,12 +5801,7 @@
       if(encQrGrupoInst) encQrGrupoInst.update({ data: url });
       else encQrGrupoInst = crearQr('encQrGrupo', url);
       pintarEstadoGrupo();
-    }
-
-    function pillEstado(abierta){
-      return abierta
-        ? `<span class="enc-estado abierta">${ICO.unlock}Abierta</span>`
-        : `<span class="enc-estado cerrada">${ICO.lock}Cerrada</span>`;
+      renderGrupos();
     }
 
     function pintarEstadoGrupo(){
@@ -5616,56 +5821,22 @@
         await apiPostJson('/api/cambiarEstadoLinkEncuesta', { token, abierta: abrir });
         l.abierta = abrir;
         toast(abrir ? 'Encuesta reabierta.' : 'Encuesta cerrada.', true);
-        renderLinks();
+        renderGrupos();
         pintarEstadoGrupo();
       } catch(e){ toast('No se pudo cambiar el estado: ' + e.message, false); }
     }
     document.getElementById('encGrupoToggle').addEventListener('click', () => { if(encLinkActual) cambiarEstado(encLinkActual.token); });
 
-    // ── tabla de links generados (Table Storage — sin SQL) ──
+    // links (Table Storage — sin SQL)
     async function cargarLinks(){
       try {
         encLinks = await apiGet('/api/listLinksEncuestaAdmin');
-        renderLinks();
+        renderGrupos();
         pintarEstadoGrupo();
       } catch(e){
-        document.getElementById('encLinksBody').innerHTML = `<tr><td colspan="5" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        toast('No se pudieron cargar los links: ' + e.message, false);
       }
     }
-
-    function renderLinks(){
-      const body = document.getElementById('encLinksBody');
-      if(!encLinks.length){ body.innerHTML = `<tr><td colspan="5" class="radm-empty-row">Todavía no has generado ningún link por grupo.</td></tr>`; return; }
-      body.innerHTML = encLinks.map(l => `
-        <tr data-token="${l.token}">
-          <td>${escapeHtml(l.clienteNombre)} · ${escapeHtml(l.curso)}<div class="diag-nombre-sub">${escapeHtml(l.instructor)}</div></td>
-          <td class="radm-mono">${fmtFechaHora(l.generadoEn)}</td>
-          <td class="radm-mono">${l.respuestas}</td>
-          <td>${pillEstado(l.abierta)}</td>
-          <td>
-            <div class="diag-row-actions">
-              <button type="button" class="radm-icon-btn" data-lk="mostrar" data-token="${l.token}" title="Mostrar su QR y link arriba">${ICO.qr}</button>
-              <button type="button" class="radm-icon-btn" data-lk="copiar" data-token="${l.token}" title="Copiar el link">${ICO.copiar}</button>
-              <button type="button" class="radm-icon-btn" data-lk="estado" data-token="${l.token}" title="${l.abierta ? 'Cerrar la encuesta de este grupo' : 'Reabrir la encuesta de este grupo'}">${l.abierta ? ICO.lock : ICO.unlock}</button>
-            </div>
-          </td>
-        </tr>`).join('');
-    }
-
-    document.getElementById('encLinksBody').addEventListener('click', async e => {
-      const b = e.target.closest('[data-lk]');
-      if(!b) return;
-      const token = b.dataset.token;
-      if(b.dataset.lk === 'mostrar'){
-        const l = encLinks.find(x => x.token === token);
-        if(l){ mostrarLinkGrupo(l); document.getElementById('encGrupoResultado').scrollIntoView({ behavior:'smooth', block:'center' }); }
-      } else if(b.dataset.lk === 'copiar'){
-        try { await navigator.clipboard.writeText(urlGrupo(token)); toast('Link copiado.', true); }
-        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
-      } else if(b.dataset.lk === 'estado'){
-        cambiarEstado(token);
-      }
-    });
 
     // ── Respuestas en vivo — lee de Table Storage (ver getContadorRespuestas),
     // no despierta la base: por eso puede consultar cada 10 s. Sigue teniendo
@@ -5702,7 +5873,7 @@
           const l = encLinks.find(t => t.token === x.token);
           if(l){ l.respuestas = x.respuestas; l.abierta = x.abierta; }
         });
-        renderLinks();
+        renderGrupos();
         pintarEstadoGrupo();
       } catch(e){
         document.getElementById('encContadorTotal').textContent = '—';

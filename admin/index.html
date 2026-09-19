@@ -631,19 +631,72 @@
   .dip-firma-add svg{ color:inherit; }
 
   /* ---- PANEL ENCUESTAS — pestaña Preguntas y pestaña QR / Link ---- */
-  .enc-preguntas-guia{ margin-bottom:20px; max-width:720px; line-height:1.6; }
   .enc-link-row{ display:flex; gap:8px; }
   .enc-link-row input{ flex:1; }
-  .enc-qr-preview-row{ display:flex; justify-content:center; margin:20px 0; }
   .enc-qr-card{
     background:#f7f8fb; border:1px solid #dfe3ec; border-radius:10px; padding:20px;
     display:flex; align-items:center; justify-content:center;
   }
-  .enc-qr-card #encQr svg, .enc-qr-card #encQr canvas{ display:block; }
-  .enc-qr-actions-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  .enc-qr-card #encQr svg, .enc-qr-card #encQr canvas,
+  .enc-qr-card #encQrGrupo svg, .enc-qr-card #encQrGrupo canvas{ display:block; }
   .enc-kpi-row{ display:flex; gap:14px; flex-wrap:wrap; }
   .enc-kpi-row .dkpi-card{ flex:1; min-width:150px; }
   .dip-paso-head #encContadorRefresh{ margin-left:auto; }
+
+  /* Preguntas (Fase 1, 2026-09-19): franja de metodología con 4 bloques —
+     cada uno con su contador n/tope y un estado con ícono+texto (Completa /
+     Faltan N), nunca solo color (deuteranomalía). */
+  .enc-metodo{ margin-bottom:22px; }
+  .enc-metodo-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
+  @media (max-width:900px){ .enc-metodo-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .enc-metodo-cell{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--line);
+    border-radius:8px; padding:12px 14px; min-width:0;
+  }
+  .enc-metodo-cell.ok{ border-left-color:#14b8a6; }
+  .enc-metodo-cell.falta{ border-left-color:#dfb35a; }
+  .enc-metodo-name{ font-family:var(--display); font-weight:600; font-size:13.5px; margin-bottom:6px; }
+  .enc-metodo-count{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .enc-metodo-count .num{ font-weight:700; font-size:16px; color:var(--text); }
+  .enc-metodo-estado{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; margin-left:auto; }
+  .enc-metodo-estado svg{ width:12px; height:12px; flex:none; }
+  .enc-metodo-estado.ok{ color:#14b8a6; }
+  .enc-metodo-estado.falta{ color:#dfb35a; }
+  .enc-metodo-desc{ font-size:11.5px; color:var(--text-dim); margin-top:6px; line-height:1.45; }
+  .enc-metodo-regla{ margin-top:12px; font-size:12px; color:var(--text-dim); line-height:1.6; max-width:820px; }
+  .enc-escala-row{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px; }
+  @media (max-width:760px){ .enc-escala-row{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .enc-escala-cell{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .enc-escala-cell input[type=text]{
+    font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:6px; padding:9px 11px; outline:none; width:100%;
+  }
+  .enc-escala-cell input[type=text]:focus{ border-color:var(--blue-bright); }
+  .enc-escala-num{
+    font-family:var(--mono); font-weight:700; font-size:12px; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:4px; padding:2px 8px; align-self:flex-start;
+  }
+  .enc-cont{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-left:10px; letter-spacing:0; }
+  .enc-lock{ display:flex; align-items:center; color:var(--text-faint); flex:none; }
+  .enc-lock svg{ width:14px; height:14px; }
+  .radm-list.enc-fija{ margin-top:8px; }
+  .radm-btn-add:disabled{ opacity:.45; cursor:not-allowed; }
+
+  /* QR / Link por grupo */
+  .enc-grupo-resumen{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    padding:12px 0 16px; border-top:1px solid var(--line-soft); margin-top:10px;
+  }
+  .enc-grupo-titulo{ font-family:var(--display); font-weight:600; font-size:15px; }
+  .enc-grupo-meta{ display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .enc-estado{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-weight:600;
+    font-size:11.5px; border-radius:20px; padding:4px 11px;
+  }
+  .enc-estado svg{ width:13px; height:13px; flex:none; }
+  .enc-estado.abierta{ color:#14b8a6; background:rgba(20,184,166,.12); }
+  .enc-estado.cerrada{ color:#dfb35a; background:rgba(223,179,90,.12); }
+  .enc-falta{ color:#dfb35a !important; }
 
   /* ---- PANEL CLIENTES ---- */
   /* Rediseño 2026-09-12: scorecard compacto tipo header, toolbar/tabla
@@ -2845,70 +2898,140 @@
         </div>
 
         <div class="dip-tabpanel active" id="encTab-preguntas">
-          <div class="radm-hint enc-preguntas-guia">
-            <b>Activa/Inactiva</b> (el interruptor) es el control del día a día — solo decide si la pregunta aparece en la encuesta pública, no borra nada ni afecta respuestas ya guardadas. El ícono de lápiz edita el texto/tipo/estado. El ícono de bote de basura <b>sí elimina la pregunta de verdad</b> (con confirmación, no se puede deshacer) — las respuestas que ya la usaron se conservan como historial en Resultados, solo dejan de mostrar su texto ("pregunta eliminada"). Para uso normal, prefiere desactivar en vez de eliminar.
-          </div>
-          <div class="radm-section">
-            <div class="radm-section-head">
-              <span class="radm-section-title">INSTRUCTOR</span>
-              <button type="button" class="radm-btn-add" id="encBtnAddInstructor">+ Agregar</button>
+          <div class="enc-metodo">
+            <div class="dip-paso-head" style="margin-bottom:10px;">
+              <span class="dip-paso-title" style="font-size:12px;">Metodología</span>
             </div>
-            <div class="radm-list" id="encListaInstructor"></div>
+            <div class="enc-metodo-grid" id="encMetodoGrid"></div>
+            <p class="enc-metodo-regla">Encuesta de cierre · 15 preguntas fijas, todas de 1 a 5 salvo un comentario abierto opcional. Curso y Materiales, Instructor y Aprendizaje y Aplicación: 4 preguntas cada una. Globales: 2 preguntas más y el comentario. El banco es fijo para que la encuesta sea corta y los promedios comparables entre grupos.</p>
           </div>
-          <div class="radm-section">
-            <div class="radm-section-head">
-              <span class="radm-section-title">CURSO Y MATERIALES</span>
-              <button type="button" class="radm-btn-add" id="encBtnAddCurso">+ Agregar</button>
+
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Textos de la escala</span>
             </div>
-            <div class="radm-list" id="encListaCurso"></div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Los mismos 5 textos para las 14 preguntas de escala. En cada respuesta se guarda solo el número (1 a 5) — cambiar un texto no altera lo ya contestado.</span>
+            <div class="enc-escala-row" id="encEscalaRow"></div>
+            <div style="margin-top:14px;">
+              <button type="button" class="radm-btn" id="encEscalaGuardar" style="min-width:auto;">Guardar textos</button>
+            </div>
           </div>
+
+          <div id="encSecciones"></div>
         </div>
 
         <div class="dip-tabpanel" id="encTab-qr">
-          <div class="dip-paso">
-            <div class="dip-paso-head">
-              <span class="dip-paso-title">Link y QR</span>
+          <div class="cli-scorecard-block">
+            <div class="dip-paso-head" style="margin-bottom:10px;">
+              <span class="dip-paso-title" style="font-size:12px;">Respuestas en vivo</span>
+              <button type="button" class="cot-icon-btn" id="encContadorRefresh" title="Actualizar ahora">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
             </div>
-            <div class="radm-field">
-              <label>LINK DE LA ENCUESTA</label>
-              <div class="enc-link-row">
-                <input type="text" id="encLinkInput" readonly>
-                <button type="button" class="radm-btn radm-btn-ghost" id="encBtnCopiar" style="min-width:auto">Copiar link</button>
+            <div class="enc-kpi-row diag-kpi-row-chica">
+              <div class="dkpi-card" title="Total de respuestas recibidas desde siempre">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></div>
+                <div class="dkpi-value" id="encContadorTotal">—</div>
+                <div class="dkpi-label">Total</div>
+              </div>
+              <div class="dkpi-card" title="Respuestas recibidas hoy (día en hora de México)">
+                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"/></svg></div>
+                <div class="dkpi-value" id="encContadorHoy">—</div>
+                <div class="dkpi-label">Hoy</div>
               </div>
             </div>
-            <div class="enc-qr-preview-row">
-              <div class="enc-qr-card">
-                <div id="encQr"></div>
-              </div>
-            </div>
-            <div class="enc-qr-actions-row">
-              <button type="button" class="radm-btn" id="encBtnVer" style="min-width:auto">Ver encuesta</button>
-              <button type="button" class="radm-btn radm-btn-ghost" id="encBtnDescargarQr" style="min-width:auto">Descargar QR (PNG)</button>
-              <button type="button" class="radm-btn radm-btn-ghost" id="encBtnDescargarTarjeta" style="min-width:auto">Descargar tarjeta para imprimir</button>
-            </div>
-            <span class="radm-hint" style="display:block; text-align:center; margin-top:14px;">Escanéalo para probar el flujo completo tú mismo antes de mostrarlo en clase.</span>
+            <span class="radm-hint" id="encContadorHint"></span>
           </div>
 
           <div class="dip-paso">
             <div class="dip-paso-head">
-              <span class="dip-paso-title">Respuestas en vivo</span>
-              <button type="button" class="radm-icon-btn" id="encContadorRefresh" title="Actualizar ahora">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
+              <span class="dip-paso-title">Link por grupo</span>
             </div>
-            <div class="enc-kpi-row">
-              <div class="dkpi-card" title="Total de respuestas recibidas desde siempre">
-                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></div>
-                <div class="dkpi-value" id="encContadorTotal">—</div>
-                <div class="dkpi-label">Respuestas totales</div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Elige un grupo activo (cualquier fase) — el link ya trae empresa, curso e instructor, y las respuestas quedan ligadas al grupo. Un solo link por grupo, siempre el mismo: volver a generarlo solo refresca sus datos.</span>
+            <div class="radm-form-row">
+              <div class="radm-field dip-autocomplete-wrap" style="flex:1; min-width:260px;">
+                <label>GRUPO</label>
+                <input type="text" id="encGrupoBuscar" placeholder="Busca por cliente, curso, instructor o código..." autocomplete="off">
+                <div class="dip-autocomplete-list" id="encGrupoLista" hidden></div>
               </div>
-              <div class="dkpi-card" title="Respuestas recibidas hoy — útil para ver cuántos del grupo ya la llenaron">
-                <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"/></svg></div>
-                <div class="dkpi-value" id="encContadorHoy">—</div>
-                <div class="dkpi-label">Respuestas de hoy</div>
+              <div class="radm-field" style="flex:none; min-width:0; justify-content:flex-end;">
+                <button type="button" class="radm-btn" id="encGrupoGenerar" style="min-width:auto;" disabled>Generar link</button>
               </div>
             </div>
-            <span class="radm-hint" id="encContadorHint">Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.</span>
+            <span class="radm-hint" id="encGrupoHint" style="display:block; margin-bottom:6px;"></span>
+
+            <div id="encGrupoResultado" hidden>
+              <div class="enc-grupo-resumen">
+                <div>
+                  <div class="enc-grupo-titulo" id="encGrupoTitulo"></div>
+                  <div class="diag-nombre-sub" id="encGrupoSub"></div>
+                </div>
+                <div class="enc-grupo-meta">
+                  <span class="enc-estado" id="encGrupoEstado"></span>
+                  <span class="diag-total-pill" title="Respuestas de este grupo"><span id="encGrupoCuenta">0</span>&nbsp;respuestas</span>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="encGrupoToggle" style="min-width:auto;"></button>
+                </div>
+              </div>
+              <div class="diag-qr-card-body">
+                <div class="diag-qr-card-left">
+                  <div class="radm-field">
+                    <label>LINK</label>
+                    <input type="text" id="encLinkGrupo" readonly>
+                  </div>
+                  <div class="diag-qr-actions">
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="grupo" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
+                  </div>
+                </div>
+                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQrGrupo"></div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Link genérico</span>
+            </div>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Respaldo, sin grupo: la persona teclea empresa, curso e instructor, y esas respuestas no entran al reporte por grupo. Siempre abierto.</span>
+            <div class="diag-qr-card-body">
+              <div class="diag-qr-card-left">
+                <div class="radm-field">
+                  <label>LINK</label>
+                  <input type="text" id="encLinkInput" readonly>
+                </div>
+                <div class="diag-qr-actions">
+                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
+                </div>
+              </div>
+              <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQr"></div></div></div>
+            </div>
+          </div>
+
+          <div class="dip-paso">
+            <div class="dip-paso-head">
+              <span class="dip-paso-title">Links por grupo generados</span>
+            </div>
+            <div class="dip-table-wrap">
+              <table class="dip-table" id="encLinksTable">
+                <thead>
+                  <tr>
+                    <th>Grupo</th>
+                    <th>Generado</th>
+                    <th>Respuestas</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="encLinksBody">
+                  <tr><td colspan="5" class="radm-empty-row">Todavía no has generado ningún link por grupo.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -5069,22 +5192,39 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL ENCUESTAS — 3 pestañas: "Preguntas" (banco por sección, drag & drop
-  // de orden, activar/desactivar, borrado real con confirmación explícita),
-  // "QR / Link" (link fijo + QR + tarjeta imprimible + contador en vivo,
-  // cargados perezosamente la primera vez que se entra a la pestaña) y
-  // "Resultados" (filtros + tabla con una columna por cada pregunta distinta
-  // que aparezca en el resultado). Helpers duplicados a propósito — mismo
-  // criterio que el resto del admin: cada sección vive encapsulada en su
-  // propio IIFE, sin acoplarse a Diplomas ni a Cursos/Recursos.
+  // PANEL ENCUESTAS — 3 pestañas. Fase 1 (2026-09-19) rehizo Preguntas y
+  // QR / Link (Resultados sigue igual hasta la Fase 2):
+  // - "Preguntas": estructura FIJA de 15 (Curso y Materiales / Instructor /
+  //   Aprendizaje y Aplicación: hasta 4 de escala 1-5 c/u; Globales: hasta 2
+  //   de escala + 1 comentario fijo), franja de metodología con contadores,
+  //   editor de los 5 textos de la escala, drag & drop de orden, sin
+  //   Activa/Inactiva. Los topes se validan también en el servidor.
+  // - "QR / Link": Respuestas en vivo (Table Storage, NO SQL — se puede
+  //   consultar cada 10 s sin despertar la base) → Link por grupo (token,
+  //   un QR por grupo) → Link genérico → tabla de links generados con
+  //   Cerrar/Reabrir.
+  // - "Resultados": filtros + tabla con una columna por cada pregunta.
+  // Helpers duplicados a propósito — mismo criterio que el resto del admin:
+  // cada sección vive encapsulada en su propio IIFE.
   (function(){
-    const SECCIONES = { Instructor: 'encListaInstructor', 'Curso y Materiales': 'encListaCurso' };
+    const CATS = [
+      { key:'Curso y Materiales', cap:4, desc:'Contenido, duración y materiales del curso.' },
+      { key:'Instructor', cap:4, desc:'Desempeño de quien impartió el curso.' },
+      { key:'Aprendizaje y Aplicación', cap:4, desc:'Qué se llevan y qué van a aplicar.' },
+      { key:'Globales', cap:2, desc:'Visión general del curso, más el comentario abierto.', comentario:true },
+    ];
+    const COMENTARIO_ID = 'comentarios';
+    const ESCALA_DEFAULT = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
     const ICO = {
       drag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      dotFull: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>',
-      dotEmpty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      alerta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.01" stroke-linecap="round"/></svg>',
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -5108,8 +5248,9 @@
       if(!res.ok) throw new Error(body.error || 'Error de red');
       return body;
     }
-    // Reintento con pausas crecientes — la base SQL serverless apcweb-backoffice
-    // se autopausa por inactividad y la primera consulta tras una pausa puede
+    // Reintento con pausas crecientes — solo lo usan las lecturas que SÍ tocan
+    // la base SQL serverless (listGruposAdmin, Resultados); la base se
+    // autopausa por inactividad y la primera consulta tras una pausa puede
     // tardar hasta ~60s en despertar (mismo patrón que Clientes/Solicitudes/
     // Cotizaciones, duplicado a propósito, este IIFE no comparte estado con esos).
     const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
@@ -5128,9 +5269,16 @@
       const d = new Date(iso);
       return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
     }
+    function fmtFechaHora(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
-    // ── pestañas — QR y Resultados se cargan perezosos, solo la primera vez ──
-    let encQrCargado = false, encResultadosCargados = false, encQrTabActiva = false;
+    // ── pestañas — Resultados se carga perezosa, solo la primera vez; QR / Link
+    // se refresca CADA vez que se entra (grupos y links pueden haber cambiado,
+    // y esa consulta de grupos es además el "despertar" de la base) ──
+    let encResultadosCargados = false, encQrTabActiva = false, encQrIniciado = false;
     document.getElementById('encTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
@@ -5138,181 +5286,403 @@
       document.querySelectorAll('#encTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('#panel-encuestas .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'encTab-' + key));
       encQrTabActiva = (key === 'qr');
-      if(key === 'qr' && !encQrCargado){ encQrCargado = true; cargarQr(); }
+      if(key === 'qr') entrarQr();
       if(key === 'resultados' && !encResultadosCargados){ encResultadosCargados = true; cargarInstructoresFiltro(); buscarResultados(); }
     });
 
     // ══ PREGUNTAS ══
     let encPreguntas = [];
+    let encEscala = ESCALA_DEFAULT.slice();
+    let encPreguntasOk = false;
 
-    // Deshabilita "+ Agregar" mientras carga — la base SQL serverless puede
-    // tardar hasta 60s en despertar tras el auto-pause (ver backoffice-db.js);
-    // sin este candado, agregar una pregunta antes de que termine el fetch
-    // inicial calcula su "orden" contra un encPreguntas todavía vacío.
-    async function cargarPreguntas(){
-      document.getElementById('encBtnAddInstructor').disabled = true;
-      document.getElementById('encBtnAddCurso').disabled = true;
-      try {
-        encPreguntas = await apiGetConReintento('/api/listPreguntasAdmin');
-      } catch(e){
-        encPreguntas = [];
-        toast('No se pudieron cargar las preguntas: ' + e.message, false);
-      }
-      renderListaPreguntas('Instructor');
-      renderListaPreguntas('Curso y Materiales');
-      document.getElementById('encBtnAddInstructor').disabled = false;
-      document.getElementById('encBtnAddCurso').disabled = false;
+    function escalasDe(cat){ return encPreguntas.filter(p => p.seccion === cat.key && p.tipo === 'escala'); }
+    function seccionEl(cat){ return document.querySelector(`#encSecciones .radm-section[data-cat="${cat.key}"]`); }
+
+    function renderMetodo(){
+      document.getElementById('encMetodoGrid').innerHTML = CATS.map(cat => {
+        const n = escalasDe(cat).length;
+        const completa = n >= cat.cap;
+        const estado = completa
+          ? `<span class="enc-metodo-estado ok">${ICO.check}Completa</span>`
+          : `<span class="enc-metodo-estado falta">${ICO.alerta}Faltan ${cat.cap - n}</span>`;
+        return `
+          <div class="enc-metodo-cell ${completa ? 'ok' : 'falta'}">
+            <div class="enc-metodo-name">${cat.key}</div>
+            <div class="enc-metodo-count"><span class="num">${n}/${cat.cap}</span>${cat.comentario ? '<span class="enc-metodo-mas">+ comentario</span>' : ''}${estado}</div>
+            <div class="enc-metodo-desc">${cat.desc}</div>
+          </div>`;
+      }).join('');
     }
 
-    function renderListaPreguntas(seccion){
-      const cont = document.getElementById(SECCIONES[seccion]);
-      const items = encPreguntas.filter(p => p.seccion === seccion).sort((a, b) => (a.orden || 0) - (b.orden || 0));
-      if(!items.length){ cont.innerHTML = '<div class="radm-empty-row">Sin preguntas todavía.</div>'; return; }
+    function renderEscala(){
+      document.getElementById('encEscalaRow').innerHTML = encEscala.map((t, i) => `
+        <div class="enc-escala-cell">
+          <span class="enc-escala-num">${i + 1}</span>
+          <input type="text" maxlength="20" value="${escapeHtml(t)}" data-i="${i}" aria-label="Texto de la calificación ${i + 1}">
+        </div>`).join('');
+    }
 
-      cont.innerHTML = items.map(p => `
+    document.getElementById('encEscalaGuardar').addEventListener('click', async () => {
+      const textos = Array.from(document.querySelectorAll('#encEscalaRow input')).map(i => i.value.trim());
+      if(textos.some(t => !t)){ toast('Los 5 textos son obligatorios.', false); return; }
+      const btn = document.getElementById('encEscalaGuardar');
+      btn.disabled = true;
+      try {
+        const r = await apiPostJson('/api/guardarEscalaEncuesta', { escala: textos });
+        encEscala = r.escala;
+        toast('Textos de la escala guardados.', true);
+      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+      finally { btn.disabled = false; }
+    });
+
+    function renderSecciones(){
+      document.getElementById('encSecciones').innerHTML = CATS.map(cat => `
+        <div class="radm-section" data-cat="${cat.key}">
+          <div class="radm-section-head">
+            <span class="radm-section-title">${cat.key.toUpperCase()}<span class="enc-cont" data-cont></span></span>
+            <button type="button" class="radm-btn-add" data-add>+ Agregar</button>
+          </div>
+          <div class="radm-list" data-lista></div>
+          ${cat.comentario ? '<div class="radm-list enc-fija" data-fija></div>' : ''}
+        </div>`).join('');
+      CATS.forEach(renderLista);
+    }
+
+    function renderLista(cat){
+      const sec = seccionEl(cat);
+      const lista = sec.querySelector('[data-lista]');
+      const items = escalasDe(cat).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const n = items.length;
+      sec.querySelector('[data-cont]').textContent = `${n}/${cat.cap}`;
+      const add = sec.querySelector('[data-add]');
+      add.disabled = !encPreguntasOk || n >= cat.cap;
+      add.title = n >= cat.cap ? `Ya tienes las ${cat.cap} preguntas permitidas — edita o elimina una para cambiarla` : '';
+
+      lista.innerHTML = items.length ? items.map(p => `
         <div class="radm-row" data-id="${p.id}">
           <span class="radm-drag">${ICO.drag}</span>
-          <span class="radm-status-dot ${p.activa ? 'pub' : 'draft'}" title="${p.activa ? 'Activa — aparece en la encuesta pública' : 'Inactiva — no aparece en la encuesta pública'}">${p.activa ? ICO.dotFull : ICO.dotEmpty}</span>
           <div class="radm-row-body">
             <div class="radm-row-title">${escapeHtml(p.texto)}</div>
-            <div class="radm-row-sub">${p.tipo === 'escala' ? 'Escala 1-5' : 'Texto libre'} · ${p.activa ? 'Activa' : 'Inactiva'}</div>
+            <div class="radm-row-sub">Escala 1-5</div>
           </div>
-          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
-          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
-        </div>
-      `).join('');
+          <button type="button" class="radm-icon-btn" data-action="edit" title="Editar">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del" title="Eliminar">${ICO.trash}</button>
+        </div>`).join('') : '<div class="radm-empty-row">Sin preguntas todavía.</div>';
 
-      cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormPregunta(seccion, encPreguntas.find(p => p.id === b.closest('.radm-row').dataset.id)));
-      });
-      cont.querySelectorAll('[data-action="del"]').forEach(b => {
-        b.addEventListener('click', () => eliminarPregunta(b.closest('.radm-row').dataset.id, seccion));
-      });
-
-      if(window.Sortable){
-        Sortable.create(cont, {
+      if(lista._sortable){ lista._sortable.destroy(); lista._sortable = null; }
+      if(window.Sortable && items.length > 1){
+        lista._sortable = Sortable.create(lista, {
           handle: '.radm-drag', animation:150,
           onEnd: async () => {
-            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
-              id: el.dataset.id, orden: i * 10,
-            }));
-            try { await apiPostJson('/api/reordenarPreguntas', { seccion, items: items2 }); await cargarPreguntas(); }
+            const items2 = Array.from(lista.querySelectorAll('.radm-row')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
+            try { await apiPostJson('/api/reordenarPreguntas', { seccion: cat.key, items: items2 }); await cargarPreguntas(); }
             catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
           },
         });
       }
+
+      if(cat.comentario){
+        const c = encPreguntas.find(p => p.id === COMENTARIO_ID);
+        sec.querySelector('[data-fija]').innerHTML = c ? `
+          <div class="radm-row" data-id="${COMENTARIO_ID}">
+            <span class="enc-lock" title="Fija — siempre al final">${ICO.lock}</span>
+            <div class="radm-row-body">
+              <div class="radm-row-title">${escapeHtml(c.texto)}</div>
+              <div class="radm-row-sub">Comentario abierto · opcional · fijo (solo se edita el texto)</div>
+            </div>
+            <button type="button" class="radm-icon-btn" data-action="edit" title="Editar el texto">${ICO.edit}</button>
+          </div>` : '';
+      }
     }
 
-    function abrirFormPregunta(seccionFija, item){
-      const cont = document.getElementById(SECCIONES[seccionFija]);
-      const existing = cont.querySelector('.radm-inline-form');
-      if(existing) existing.remove();
+    // un solo listener delegado para todas las secciones (se reconstruyen
+    // completas en cada render)
+    document.getElementById('encSecciones').addEventListener('click', e => {
+      const sec = e.target.closest('.radm-section');
+      if(!sec) return;
+      const cat = CATS.find(c => c.key === sec.dataset.cat);
+      if(e.target.closest('[data-add]')){ abrirFormPregunta(cat, null); return; }
+      const fila = e.target.closest('.radm-row');
+      if(!fila) return;
+      const accion = e.target.closest('[data-action]');
+      if(!accion) return;
+      const p = encPreguntas.find(x => x.id === fila.dataset.id);
+      if(accion.dataset.action === 'edit') abrirFormPregunta(cat, p);
+      else if(accion.dataset.action === 'del') eliminarPregunta(p, cat);
+    });
+
+    function abrirFormPregunta(cat, item){
+      const sec = seccionEl(cat);
+      const esComentario = !!item && item.id === COMENTARIO_ID;
+      const cont = sec.querySelector(esComentario ? '[data-fija]' : '[data-lista]');
+      sec.querySelectorAll('.radm-inline-form').forEach(f => f.remove());
 
       const form = document.createElement('div');
       form.className = 'radm-inline-form';
       form.innerHTML = `
         <div class="radm-form-row">
           <div class="radm-field" style="flex:2">
-            <label>TEXTO DE LA PREGUNTA</label>
-            <input type="text" class="enc-f-texto" value="${item ? escapeHtml(item.texto) : ''}">
-          </div>
-          <div class="radm-field" style="max-width:160px;">
-            <label>TIPO</label>
-            <select class="enc-f-tipo">
-              <option value="escala" ${item && item.tipo === 'escala' ? 'selected' : ''}>Escala 1-5</option>
-              <option value="texto" ${item && item.tipo === 'texto' ? 'selected' : ''}>Texto libre</option>
-            </select>
+            <label>${esComentario ? 'TEXTO DE LA PREGUNTA DE COMENTARIOS' : 'TEXTO DE LA PREGUNTA (ESCALA 1-5)'}</label>
+            <input type="text" class="enc-f-texto" maxlength="300" value="${item ? escapeHtml(item.texto) : ''}">
           </div>
         </div>
         <div class="radm-actions">
-          <div class="radm-switch-row">
-            <label class="radm-switch">
-              <input type="checkbox" class="enc-f-activa" ${!item || item.activa ? 'checked' : ''}>
-              <span class="radm-switch-track"></span>
-            </label>
-            <span class="radm-switch-label enc-f-activa-label">${!item || item.activa ? 'Activa' : 'Inactiva'}</span>
-          </div>
+          <div></div>
           <div class="radm-actions-buttons">
             <button type="button" class="radm-btn enc-f-guardar">Guardar</button>
             <button type="button" class="radm-btn radm-btn-ghost enc-f-cancelar">Cancelar</button>
           </div>
         </div>`;
       cont.appendChild(form);
+      form.querySelector('.enc-f-texto').focus();
 
-      form.querySelector('.enc-f-activa').addEventListener('change', e => {
-        form.querySelector('.enc-f-activa-label').textContent = e.target.checked ? 'Activa' : 'Inactiva';
-      });
       form.querySelector('.enc-f-cancelar').addEventListener('click', () => form.remove());
       form.querySelector('.enc-f-guardar').addEventListener('click', async () => {
         const texto = form.querySelector('.enc-f-texto').value.trim();
-        const tipo = form.querySelector('.enc-f-tipo').value;
-        const activa = form.querySelector('.enc-f-activa').checked;
         if(!texto){ toast('Falta el texto de la pregunta.', false); return; }
-
-        const itemsSeccion = encPreguntas.filter(p => p.seccion === seccionFija);
-        const orden = item ? item.orden : itemsSeccion.length * 10;
-
         try {
-          await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion:seccionFija, texto, tipo, orden, activa });
+          await apiPostJson('/api/crearPregunta', { id: item ? item.id : undefined, seccion: cat.key, texto });
           toast('Pregunta guardada.', true);
           await cargarPreguntas();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
-    document.getElementById('encBtnAddInstructor').addEventListener('click', () => abrirFormPregunta('Instructor', null));
-    document.getElementById('encBtnAddCurso').addEventListener('click', () => abrirFormPregunta('Curso y Materiales', null));
-
-    async function eliminarPregunta(id, seccion){
-      const p = encPreguntas.find(x => x.id === id);
-      if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial, solo dejan de mostrar su texto en Resultados. Si solo quieres que deje de aparecer en la encuesta, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
+    async function eliminarPregunta(p, cat){
+      if(!p) return;
+      if(!confirm(`¿Eliminar la pregunta "${p.texto}"? Es un borrado real y no se puede deshacer. Las respuestas que ya la contestaron se conservan completas (cada respuesta guarda su propia copia del texto), solo desaparece del cuestionario.`)) return;
       try {
-        await apiPostJson('/api/eliminarPregunta', { id, seccion });
+        await apiPostJson('/api/eliminarPregunta', { id: p.id, seccion: cat.key });
         toast('Pregunta eliminada.', true);
         await cargarPreguntas();
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
     }
 
+    // "+ Agregar" queda deshabilitado hasta que llegue la lista (o cuando la
+    // categoría ya está completa) — sin ese candado se podría intentar agregar
+    // contra un banco todavía vacío en pantalla (el servidor igual valida el
+    // tope, esto es solo para no dar falsas esperanzas).
+    async function cargarPreguntas(){
+      encPreguntasOk = false;
+      document.querySelectorAll('#encSecciones [data-add]').forEach(b => { b.disabled = true; });
+      try {
+        const data = await apiGet('/api/listPreguntasAdmin');
+        encPreguntas = data.preguntas || [];
+        encEscala = data.escala && data.escala.length === 5 ? data.escala : ESCALA_DEFAULT.slice();
+        encPreguntasOk = true;
+      } catch(e){
+        encPreguntas = [];
+        toast('No se pudieron cargar las preguntas: ' + e.message, false);
+      }
+      renderMetodo();
+      renderEscala();
+      renderSecciones();
+    }
     cargarPreguntas();
 
     // ══ QR / LINK ══
-    let encQrInstance = null;
+    const urlGenerico = () => new URL('encuesta', location.origin + '/').href;
+    const urlGrupo = token => new URL('encuesta?t=' + encodeURIComponent(token), location.origin + '/').href;
+    let encQrGenerico = null, encQrGrupoInst = null;
+    let encGrupos = [], encGrupoSel = null, encLinks = [], encLinkActual = null;
 
-    function cargarQr(){
-      const link = new URL('encuesta', location.origin + '/').href;
-      document.getElementById('encLinkInput').value = link;
-
-      encQrInstance = new QRCodeStyling({
-        width: 220, height: 220, type: 'svg', data: link, margin: 0,
+    function crearQr(contenedorId, data){
+      const inst = new QRCodeStyling({
+        width: 200, height: 200, type: 'svg', data, margin: 0,
         qrOptions: { errorCorrectionLevel: 'M' },
         backgroundOptions: { color: '#ffffff' },
         dotsOptions: { type: 'extra-rounded', gradient: { type:'linear', rotation:45, colorStops:[{offset:0,color:'#3d7fff'},{offset:1,color:'#6b9fff'}] } },
         cornersSquareOptions: { type: 'extra-rounded', color: '#2f66d1' },
         cornersDotOptions: { type: 'dot', color: '#3d7fff' },
       });
-      document.getElementById('encQr').innerHTML = '';
-      encQrInstance.append(document.getElementById('encQr'));
-
-      reanudarContador();
-      // el intervalo se queda armado, pero cada tick se autofiltra (ver
-      // cargarContador) — solo pega a la base si esta pestaña QR sigue siendo
-      // la visible ahora mismo. Sin ese filtro, dejar el admin abierto en otra
-      // sección (o en otra pestaña de Encuestas) mantendría la base SQL
-      // serverless despierta sin necesidad, gastando su cupo gratis de
-      // vCore-segundos/mes más rápido de lo que conviene.
+      const cont = document.getElementById(contenedorId);
+      cont.innerHTML = '';
+      inst.append(cont);
+      return inst;
     }
 
+    function entrarQr(){
+      if(!encQrIniciado){
+        encQrIniciado = true;
+        document.getElementById('encLinkInput').value = urlGenerico();
+        encQrGenerico = crearQr('encQr', urlGenerico());
+      }
+      cargarGrupos();   // única lectura de SQL de esta pestaña — también "despierta" la base para cuando el grupo empiece a enviar
+      cargarLinks();
+      reanudarContador();
+    }
+
+    // ── buscador de Grupo activo (cualquier fase, todo lo que no esté Cerrado —
+    // listGruposAdmin?vista=activos). Se filtra en el navegador. ──
+    async function cargarGrupos(){
+      const hint = document.getElementById('encGrupoHint');
+      hint.textContent = 'Cargando grupos activos… (si la base estaba dormida puede tardar unos segundos)';
+      try {
+        encGrupos = await apiGetConReintento('/api/listGruposAdmin?vista=activos');
+        hint.textContent = encGrupos.length ? '' : 'No hay grupos activos todavía — créalos primero en Grupos.';
+      } catch(e){
+        hint.textContent = 'No se pudieron cargar los grupos: ' + e.message + ' — cambia de pestaña y vuelve a entrar para reintentar.';
+      }
+    }
+
+    function nombreGrupo(g){ return (g.cliente_final || g.cliente || '—') + ' · ' + (g.nombre_curso || 'Sin nombre de curso'); }
+
+    function renderListaGrupos(){
+      const lista = document.getElementById('encGrupoLista');
+      const q = norm(document.getElementById('encGrupoBuscar').value.trim());
+      const res = encGrupos
+        .filter(g => !q || norm([g.cliente, g.cliente_final, g.nombre_curso, g.instructor, g.grupo_codigo].join(' ')).includes(q))
+        .slice(0, 8);
+      if(!res.length){ lista.hidden = true; return; }
+      lista.innerHTML = res.map(g => {
+        const faltan = [!(g.nombre_curso || '').trim() ? 'curso' : '', !(g.instructor || '').trim() ? 'instructor' : ''].filter(Boolean);
+        const partes = [g.instructor || 'sin instructor', `${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}`, g.grupo_codigo].filter(Boolean);
+        return `<div class="dip-autocomplete-item" data-id="${g.id}"><b>${escapeHtml(nombreGrupo(g))}</b><span>${escapeHtml(partes.join(' · '))}</span>${faltan.length ? `<span class="enc-falta">falta ${faltan.join(' y ')}</span>` : ''}</div>`;
+      }).join('');
+      lista.hidden = false;
+    }
+
+    const encGrupoInput = document.getElementById('encGrupoBuscar');
+    encGrupoInput.addEventListener('input', () => {
+      encGrupoSel = null;
+      document.getElementById('encGrupoGenerar').disabled = true;
+      renderListaGrupos();
+    });
+    encGrupoInput.addEventListener('focus', renderListaGrupos);
+    document.getElementById('encGrupoLista').addEventListener('click', e => {
+      const item = e.target.closest('.dip-autocomplete-item');
+      if(!item) return;
+      encGrupoSel = encGrupos.find(g => String(g.id) === item.dataset.id) || null;
+      if(!encGrupoSel) return;
+      encGrupoInput.value = nombreGrupo(encGrupoSel);
+      document.getElementById('encGrupoLista').hidden = true;
+      document.getElementById('encGrupoGenerar').disabled = false;
+    });
+    document.addEventListener('click', e => {
+      if(!encGrupoInput.contains(e.target) && !document.getElementById('encGrupoLista').contains(e.target)) document.getElementById('encGrupoLista').hidden = true;
+    });
+
+    document.getElementById('encGrupoGenerar').addEventListener('click', async () => {
+      if(!encGrupoSel) return;
+      const btn = document.getElementById('encGrupoGenerar');
+      btn.disabled = true;
+      try {
+        const link = await apiPostJson('/api/generarLinkEncuesta', { grupoId: encGrupoSel.id });
+        toast('Link listo.', true);
+        await cargarLinks();
+        mostrarLinkGrupo(encLinks.find(l => l.token === link.token) || link);
+      } catch(e){ toast(e.message, false); }
+      finally { btn.disabled = !encGrupoSel; }
+    });
+
+    // ── tarjeta "Link por grupo" ──
+    function linkVigente(){
+      if(!encLinkActual) return null;
+      return encLinks.find(l => l.token === encLinkActual.token) || encLinkActual;
+    }
+
+    function mostrarLinkGrupo(link){
+      encLinkActual = link;
+      const url = urlGrupo(link.token);
+      document.getElementById('encGrupoResultado').hidden = false;
+      document.getElementById('encGrupoTitulo').textContent = `${link.clienteNombre} · ${link.curso}`;
+      document.getElementById('encGrupoSub').textContent = `${link.instructor} · link generado ${fmtFechaHora(link.generadoEn)}`;
+      document.getElementById('encLinkGrupo').value = url;
+      if(encQrGrupoInst) encQrGrupoInst.update({ data: url });
+      else encQrGrupoInst = crearQr('encQrGrupo', url);
+      pintarEstadoGrupo();
+    }
+
+    function pillEstado(abierta){
+      return abierta
+        ? `<span class="enc-estado abierta">${ICO.unlock}Abierta</span>`
+        : `<span class="enc-estado cerrada">${ICO.lock}Cerrada</span>`;
+    }
+
+    function pintarEstadoGrupo(){
+      const l = linkVigente();
+      if(!l) return;
+      document.getElementById('encGrupoEstado').innerHTML = pillEstado(l.abierta);
+      document.getElementById('encGrupoCuenta').textContent = l.respuestas;
+      document.getElementById('encGrupoToggle').textContent = l.abierta ? 'Cerrar encuesta' : 'Reabrir encuesta';
+    }
+
+    async function cambiarEstado(token){
+      const l = encLinks.find(x => x.token === token) || (encLinkActual && encLinkActual.token === token ? encLinkActual : null);
+      if(!l) return;
+      const abrir = !l.abierta;
+      if(!abrir && !confirm(`¿Cerrar la encuesta de "${l.clienteNombre} · ${l.curso}"? Dejará de aceptar respuestas hasta que la reabras (no se borra nada).`)) return;
+      try {
+        await apiPostJson('/api/cambiarEstadoLinkEncuesta', { token, abierta: abrir });
+        l.abierta = abrir;
+        toast(abrir ? 'Encuesta reabierta.' : 'Encuesta cerrada.', true);
+        renderLinks();
+        pintarEstadoGrupo();
+      } catch(e){ toast('No se pudo cambiar el estado: ' + e.message, false); }
+    }
+    document.getElementById('encGrupoToggle').addEventListener('click', () => { if(encLinkActual) cambiarEstado(encLinkActual.token); });
+
+    // ── tabla de links generados (Table Storage — sin SQL) ──
+    async function cargarLinks(){
+      try {
+        encLinks = await apiGet('/api/listLinksEncuestaAdmin');
+        renderLinks();
+        pintarEstadoGrupo();
+      } catch(e){
+        document.getElementById('encLinksBody').innerHTML = `<tr><td colspan="5" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    function renderLinks(){
+      const body = document.getElementById('encLinksBody');
+      if(!encLinks.length){ body.innerHTML = `<tr><td colspan="5" class="radm-empty-row">Todavía no has generado ningún link por grupo.</td></tr>`; return; }
+      body.innerHTML = encLinks.map(l => `
+        <tr data-token="${l.token}">
+          <td>${escapeHtml(l.clienteNombre)} · ${escapeHtml(l.curso)}<div class="diag-nombre-sub">${escapeHtml(l.instructor)}</div></td>
+          <td class="radm-mono">${fmtFechaHora(l.generadoEn)}</td>
+          <td class="radm-mono">${l.respuestas}</td>
+          <td>${pillEstado(l.abierta)}</td>
+          <td>
+            <div class="diag-row-actions">
+              <button type="button" class="radm-icon-btn" data-lk="mostrar" data-token="${l.token}" title="Mostrar su QR y link arriba">${ICO.qr}</button>
+              <button type="button" class="radm-icon-btn" data-lk="copiar" data-token="${l.token}" title="Copiar el link">${ICO.copiar}</button>
+              <button type="button" class="radm-icon-btn" data-lk="estado" data-token="${l.token}" title="${l.abierta ? 'Cerrar la encuesta de este grupo' : 'Reabrir la encuesta de este grupo'}">${l.abierta ? ICO.lock : ICO.unlock}</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('encLinksBody').addEventListener('click', async e => {
+      const b = e.target.closest('[data-lk]');
+      if(!b) return;
+      const token = b.dataset.token;
+      if(b.dataset.lk === 'mostrar'){
+        const l = encLinks.find(x => x.token === token);
+        if(l){ mostrarLinkGrupo(l); document.getElementById('encGrupoResultado').scrollIntoView({ behavior:'smooth', block:'center' }); }
+      } else if(b.dataset.lk === 'copiar'){
+        try { await navigator.clipboard.writeText(urlGrupo(token)); toast('Link copiado.', true); }
+        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+      } else if(b.dataset.lk === 'estado'){
+        cambiarEstado(token);
+      }
+    });
+
+    // ── Respuestas en vivo — lee de Table Storage (ver getContadorRespuestas),
+    // no despierta la base: por eso puede consultar cada 10 s. Sigue teniendo
+    // sus candados (pestaña QR a la vista, panel activo, ventana visible) y un
+    // tope de 10 min seguidos por si se queda abierta y olvidada. ──
     let encContadorInterval = null;
     let encContadorInicio = 0;
-    const ENC_CONTADOR_MAX_MS = 25 * 60 * 1000; // tope: una pestaña olvidada abierta no debe quemar vCore-seconds toda la jornada
-    const ENC_CONTADOR_HINT_NORMAL = 'Se actualiza solo cada 20s mientras esta pestaña esté abierta — el ícono de arriba fuerza una actualización inmediata.';
-    const ENC_CONTADOR_HINT_PAUSADO = 'Actualización automática pausada tras 25 min seguidos (para no dejar la base despierta de más) — usa el ícono de arriba para reanudar.';
+    const ENC_CONTADOR_MS = 10000;
+    const ENC_CONTADOR_MAX_MS = 10 * 60 * 1000;
+    const ENC_CONTADOR_HINT_NORMAL = 'Se actualiza solo cada 10 s mientras esta pestaña esté a la vista (máx. 10 min seguidos) — lee de Table Storage, no despierta la base. El ícono de arriba fuerza una actualización.';
+    const ENC_CONTADOR_HINT_PAUSADO = 'Actualización automática pausada tras 10 min seguidos — usa el ícono de arriba para reanudar.';
 
     function reanudarContador(){
-      cargarContador();
       encContadorInicio = Date.now();
       document.getElementById('encContadorHint').textContent = ENC_CONTADOR_HINT_NORMAL;
-      if(!encContadorInterval) encContadorInterval = setInterval(cargarContador, 20000);
+      if(!encContadorInterval) encContadorInterval = setInterval(cargarContador, ENC_CONTADOR_MS);
+      cargarContador();
     }
 
     async function cargarContador(){
@@ -5325,28 +5695,23 @@
         return;
       }
       try {
-        const data = await apiGetConReintento('/api/getContadorRespuestas');
+        const data = await apiGet('/api/getContadorRespuestas');
         document.getElementById('encContadorTotal').textContent = data.total;
         document.getElementById('encContadorHoy').textContent = data.hoy;
+        (data.links || []).forEach(x => {
+          const l = encLinks.find(t => t.token === x.token);
+          if(l){ l.respuestas = x.respuestas; l.abierta = x.abierta; }
+        });
+        renderLinks();
+        pintarEstadoGrupo();
       } catch(e){
         document.getElementById('encContadorTotal').textContent = '—';
         document.getElementById('encContadorHoy').textContent = '—';
       }
     }
-
     document.getElementById('encContadorRefresh').addEventListener('click', reanudarContador);
 
-    document.getElementById('encBtnCopiar').addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(document.getElementById('encLinkInput').value);
-        toast('Link copiado.', true);
-      } catch(e){ toast('No se pudo copiar — cópialo manualmente.', false); }
-    });
-
-    document.getElementById('encBtnVer').addEventListener('click', () => {
-      window.open(document.getElementById('encLinkInput').value, '_blank');
-    });
-
+    // ── acciones de las 2 tarjetas de link (grupo / genérico) ──
     function descargarBlob(blob, filename){
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -5354,13 +5719,36 @@
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     }
+    function slug(s){ return norm(s).replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40) || 'grupo'; }
 
-    document.getElementById('encBtnDescargarQr').addEventListener('click', async () => {
-      if(!encQrInstance) return;
+    document.getElementById('encTab-qr').addEventListener('click', async e => {
+      const b = e.target.closest('[data-qr]');
+      if(!b) return;
+      const esGrupo = b.dataset.qr === 'grupo';
+      const l = esGrupo ? linkVigente() : null;
+      const url = esGrupo ? (l ? urlGrupo(l.token) : null) : urlGenerico();
+      const inst = esGrupo ? encQrGrupoInst : encQrGenerico;
+      if(!url || !inst) return;
+
       try {
-        const blob = await encQrInstance.getRawData('png');
-        descargarBlob(blob, 'qr-encuesta.png');
-      } catch(e){ toast('No se pudo descargar el QR: ' + e.message, false); }
+        if(b.dataset.accion === 'copiar'){
+          await navigator.clipboard.writeText(url);
+          toast('Link copiado.', true);
+        } else if(b.dataset.accion === 'ver'){
+          window.open(url, '_blank');
+        } else if(b.dataset.accion === 'qr'){
+          descargarBlob(await inst.getRawData('png'), esGrupo ? `qr-encuesta-${slug(l.curso)}.png` : 'qr-encuesta.png');
+        } else if(b.dataset.accion === 'tarjeta'){
+          const lbl = b.querySelector('span');
+          const orig = lbl.textContent;
+          b.disabled = true; lbl.textContent = 'Generando...';
+          try {
+            await dibujarTarjeta(inst, esGrupo ? `${l.curso} · ${l.clienteNombre}` : '', esGrupo ? `Tarjeta_Encuesta_${slug(l.curso)}.png` : 'Tarjeta_Encuesta.png');
+          } finally { b.disabled = false; lbl.textContent = orig; }
+        }
+      } catch(err){
+        toast('No se pudo completar la acción: ' + err.message, false);
+      }
     });
 
     function drawRoundedRect(ctx, x, y, w, h, r){
@@ -5372,135 +5760,132 @@
       ctx.arcTo(x, y, x + w, y, r);
       ctx.closePath();
     }
+    function ajustarTexto(ctx, texto, maxW){
+      if(ctx.measureText(texto).width <= maxW) return texto;
+      while(texto.length > 1 && ctx.measureText(texto + '…').width > maxW) texto = texto.slice(0, -1);
+      return texto + '…';
+    }
 
     // Tarjeta imprimible — replica del mockup aprobado (fondo tipo hoja de
-    // cuadrícula, barra fx, título, chiste, QR centrado, pie de página) pero
+    // cuadrícula, barra fx, título, subtítulo, QR centrado, pie de página) pero
     // dibujada con Canvas 2D en vez de HTML, para poder exportarla como un
-    // solo PNG descargable. Reusa el mismo QR ya generado arriba (getRawData)
-    // en vez de crear una instancia aparte.
-    document.getElementById('encBtnDescargarTarjeta').addEventListener('click', async () => {
-      if(!encQrInstance) return;
-      const btn = document.getElementById('encBtnDescargarTarjeta');
-      btn.disabled = true; btn.textContent = 'Generando...';
-      try {
-        await document.fonts.ready;
-        const qrBlob = await encQrInstance.getRawData('png');
-        const qrUrl = URL.createObjectURL(qrBlob);
-        const qrImg = new Image();
-        await new Promise((res, rej) => { qrImg.onload = res; qrImg.onerror = rej; qrImg.src = qrUrl; });
-        URL.revokeObjectURL(qrUrl);
+    // solo PNG descargable. Reusa el QR ya generado (getRawData) en vez de
+    // crear una instancia aparte. En la tarjeta de un grupo, el chiste del
+    // subtítulo se reemplaza por "curso · cliente".
+    async function dibujarTarjeta(qrInstance, subtitulo, filename){
+      await document.fonts.ready;
+      const qrBlob = await qrInstance.getRawData('png');
+      const qrUrl = URL.createObjectURL(qrBlob);
+      const qrImg = new Image();
+      await new Promise((res, rej) => { qrImg.onload = res; qrImg.onerror = rej; qrImg.src = qrUrl; });
+      URL.revokeObjectURL(qrUrl);
 
-        const W = 840, H = 1060;
-        const canvas = document.createElement('canvas');
-        canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d');
+      const W = 840, H = 1060;
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = '#dde2ea';
-        ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#dde2ea';
+      ctx.fillRect(0, 0, W, H);
 
-        const cardX = 40, cardY = 40, cardW = W - 80, cardH = H - 80, cardR = 12;
-        drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
-        ctx.save();
-        ctx.clip();
-        ctx.fillStyle = '#f7f8fb';
-        ctx.fillRect(cardX, cardY, cardW, cardH);
-        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
-        for(let gy = cardY + 92; gy < cardY + cardH; gy += 44){
-          ctx.beginPath(); ctx.moveTo(cardX, gy); ctx.lineTo(cardX + cardW, gy); ctx.stroke();
-        }
-        for(let gx = cardX; gx < cardX + cardW; gx += 40){
-          ctx.beginPath(); ctx.moveTo(gx, cardY); ctx.lineTo(gx, cardY + cardH); ctx.stroke();
-        }
-        ctx.restore();
-        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
-        drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
-        ctx.stroke();
-
-        const padX = cardX + 52;
-        let curY = cardY + 60;
-
-        ctx.font = '18px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#8b93a3';
-        ctx.textAlign = 'center';
-        const letras = ['A','B','C','D','E','F','G','H','I'];
-        const colW = cardW / letras.length;
-        letras.forEach((l, i) => ctx.fillText(l, cardX + colW * (i + 0.5), curY));
-        curY += 20;
-        ctx.strokeStyle = '#dfe3ec';
-        ctx.beginPath(); ctx.moveTo(cardX, curY); ctx.lineTo(cardX + cardW, curY); ctx.stroke();
-        curY += 46;
-
-        ctx.textAlign = 'left';
-        ctx.font = 'italic bold 20px "JetBrains Mono", monospace';
-        const fxW = ctx.measureText('fx').width + 24;
-        ctx.fillStyle = 'rgba(61,127,255,.10)';
-        drawRoundedRect(ctx, padX, curY - 22, fxW, 32, 4);
-        ctx.fill();
-        ctx.fillStyle = '#3d7fff';
-        ctx.fillText('fx', padX + 12, curY);
-        ctx.font = '19px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#5b6472';
-        ctx.fillText('=', padX + fxW + 12, curY);
-        const eqW = ctx.measureText('=').width;
-        ctx.fillStyle = '#3d7fff';
-        ctx.fillText('CALIFICAR_INSTRUCTOR', padX + fxW + 12 + eqW, curY);
-        const fnW = ctx.measureText('CALIFICAR_INSTRUCTOR').width;
-        ctx.fillStyle = '#5b6472';
-        ctx.fillText('()', padX + fxW + 12 + eqW + fnW, curY);
-        curY += 60;
-
-        ctx.font = '700 48px "Space Grotesk", sans-serif';
-        ctx.fillStyle = '#1c2430';
-        ctx.fillText('Califica el curso', padX, curY);
-        curY += 50;
-
-        ctx.font = '24px "Inter", sans-serif';
-        ctx.fillStyle = '#5b6472';
-        ctx.fillText('Ni una celda combinada. Lo prometemos.', padX, curY);
-        curY += 48;
-
-        const qrSize = 352;
-        const qrX = cardX + (cardW - qrSize) / 2 - 32;
-        drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.strokeStyle = '#3d7fff'; ctx.lineWidth = 3;
-        drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
-        ctx.stroke();
-        ctx.drawImage(qrImg, qrX + 32, curY + 32, qrSize, qrSize);
-        ctx.fillStyle = '#f7f8fb';
-        ctx.fillRect(qrX + 16, curY - 10, 34, 20);
-        ctx.font = '17px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#8b93a3';
-        ctx.fillText('A1', qrX + 18, curY + 5);
-        curY += qrSize + 64 + 36;
-
-        ctx.textAlign = 'center';
-        ctx.font = '22px "Inter", sans-serif';
-        ctx.fillStyle = '#5b6472';
-        ctx.fillText('Escanea con tu cámara y cuéntanos qué tal estuvo.', cardX + cardW / 2, curY);
-        curY += 40;
-
-        ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(padX, curY); ctx.lineTo(cardX + cardW - 52, curY); ctx.stroke();
-        curY += 34;
-
-        ctx.textAlign = 'left';
-        ctx.font = '18px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#8b93a3';
-        ctx.fillText('alfredopina.ai', padX, curY);
-        ctx.textAlign = 'right';
-        ctx.font = 'bold 18px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#5b6472';
-        ctx.fillText('2 min', cardX + cardW - 52, curY);
-
-        canvas.toBlob(blob => { descargarBlob(blob, 'Tarjeta_Encuesta.png'); }, 'image/png');
-      } catch(e){
-        toast('No se pudo generar la tarjeta: ' + e.message, false);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Descargar tarjeta para imprimir';
+      const cardX = 40, cardY = 40, cardW = W - 80, cardH = H - 80, cardR = 12;
+      drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
+      ctx.save();
+      ctx.clip();
+      ctx.fillStyle = '#f7f8fb';
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+      ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+      for(let gy = cardY + 92; gy < cardY + cardH; gy += 44){
+        ctx.beginPath(); ctx.moveTo(cardX, gy); ctx.lineTo(cardX + cardW, gy); ctx.stroke();
       }
-    });
+      for(let gx = cardX; gx < cardX + cardW; gx += 40){
+        ctx.beginPath(); ctx.moveTo(gx, cardY); ctx.lineTo(gx, cardY + cardH); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+      drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardR);
+      ctx.stroke();
+
+      const padX = cardX + 52;
+      let curY = cardY + 60;
+
+      ctx.font = '18px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#8b93a3';
+      ctx.textAlign = 'center';
+      const letras = ['A','B','C','D','E','F','G','H','I'];
+      const colW = cardW / letras.length;
+      letras.forEach((l, i) => ctx.fillText(l, cardX + colW * (i + 0.5), curY));
+      curY += 20;
+      ctx.strokeStyle = '#dfe3ec';
+      ctx.beginPath(); ctx.moveTo(cardX, curY); ctx.lineTo(cardX + cardW, curY); ctx.stroke();
+      curY += 46;
+
+      ctx.textAlign = 'left';
+      ctx.font = 'italic bold 20px "JetBrains Mono", monospace';
+      const fxW = ctx.measureText('fx').width + 24;
+      ctx.fillStyle = 'rgba(61,127,255,.10)';
+      drawRoundedRect(ctx, padX, curY - 22, fxW, 32, 4);
+      ctx.fill();
+      ctx.fillStyle = '#3d7fff';
+      ctx.fillText('fx', padX + 12, curY);
+      ctx.font = '19px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#5b6472';
+      ctx.fillText('=', padX + fxW + 12, curY);
+      const eqW = ctx.measureText('=').width;
+      ctx.fillStyle = '#3d7fff';
+      ctx.fillText('CALIFICAR_INSTRUCTOR', padX + fxW + 12 + eqW, curY);
+      const fnW = ctx.measureText('CALIFICAR_INSTRUCTOR').width;
+      ctx.fillStyle = '#5b6472';
+      ctx.fillText('()', padX + fxW + 12 + eqW + fnW, curY);
+      curY += 60;
+
+      ctx.font = '700 48px "Space Grotesk", sans-serif';
+      ctx.fillStyle = '#1c2430';
+      ctx.fillText('Califica el curso', padX, curY);
+      curY += 50;
+
+      ctx.font = '24px "Inter", sans-serif';
+      ctx.fillStyle = '#5b6472';
+      ctx.fillText(ajustarTexto(ctx, subtitulo || 'Ni una celda combinada. Lo prometemos.', cardW - 104), padX, curY);
+      curY += 48;
+
+      const qrSize = 352;
+      const qrX = cardX + (cardW - qrSize) / 2 - 32;
+      drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#3d7fff'; ctx.lineWidth = 3;
+      drawRoundedRect(ctx, qrX, curY, qrSize + 64, qrSize + 64, 10);
+      ctx.stroke();
+      ctx.drawImage(qrImg, qrX + 32, curY + 32, qrSize, qrSize);
+      ctx.fillStyle = '#f7f8fb';
+      ctx.fillRect(qrX + 16, curY - 10, 34, 20);
+      ctx.font = '17px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#8b93a3';
+      ctx.fillText('A1', qrX + 18, curY + 5);
+      curY += qrSize + 64 + 36;
+
+      ctx.textAlign = 'center';
+      ctx.font = '22px "Inter", sans-serif';
+      ctx.fillStyle = '#5b6472';
+      ctx.fillText('Escanea con tu cámara y cuéntanos qué tal estuvo.', cardX + cardW / 2, curY);
+      curY += 40;
+
+      ctx.strokeStyle = '#dfe3ec'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(padX, curY); ctx.lineTo(cardX + cardW - 52, curY); ctx.stroke();
+      curY += 34;
+
+      ctx.textAlign = 'left';
+      ctx.font = '18px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#8b93a3';
+      ctx.fillText('alfredopina.ai', padX, curY);
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 18px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#5b6472';
+      ctx.fillText('2 min', cardX + cardW - 52, curY);
+
+      await new Promise(res => canvas.toBlob(blob => { descargarBlob(blob, filename); res(); }, 'image/png'));
+    }
 
     // ══ RESULTADOS ══
     function crearAutocompleteFiltro({ inputId, listId }){

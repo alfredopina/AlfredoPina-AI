@@ -113,6 +113,45 @@
   .enc-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
   .enc-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
   .enc-req{ color:var(--bad); }
+  .enc-opt{ color:var(--text-faint); text-transform:none; letter-spacing:0; }
+
+  /* datos del grupo ya resueltos por el link (empresa/curso/instructor) —
+     de solo lectura, con candado, para que no se puedan escribir mal */
+  .enc-lock-grid{ display:grid; gap:10px; margin-bottom:8px; }
+  .enc-lock-tile{
+    display:flex; flex-direction:column; gap:3px; background:var(--panel); border:1px solid var(--line);
+    border-radius:7px; padding:10px 14px;
+  }
+  .enc-lock-tile span{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.3px; display:flex; align-items:center; gap:6px; }
+  .enc-lock-tile span svg{ width:11px; height:11px; }
+  .enc-lock-tile b{ font-weight:500; font-size:14.5px; color:var(--text); }
+  .enc-lock-nota{ margin-bottom:22px; }
+
+  /* aviso suave de "ya contestaste" — nunca bloquea, solo avisa */
+  .enc-aviso{
+    display:none; align-items:flex-start; gap:12px; border:1px solid var(--blue-dim); background:var(--blue-soft);
+    border-radius:8px; padding:12px 14px; margin-bottom:24px; font-size:13px; line-height:1.55; color:var(--text);
+  }
+  .enc-aviso.show{ display:flex; }
+  .enc-aviso button{
+    flex:none; font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); background:none;
+    border:1px solid var(--blue-dim); border-radius:5px; padding:5px 10px; cursor:pointer;
+  }
+
+  /* encuesta cerrada por el instructor */
+  .enc-cerrada{ display:none; text-align:center; padding:60px 0 40px; }
+  .enc-cerrada.show{ display:block; }
+  .enc-cerrada svg{ width:48px; height:48px; color:var(--text-dim); margin:0 auto 18px; }
+  .enc-cerrada h2{ font-family:var(--display); font-weight:600; font-size:24px; margin-bottom:10px; }
+  .enc-cerrada p{ color:var(--text-dim); font-size:14px; max-width:420px; margin:0 auto; }
+
+  /* pregunta de escala sin calificar tras intentar enviar — borde + texto
+     (nunca solo color, por la deuteranomalía) */
+  .enc-falta-msg{ display:none; margin-top:8px; font-family:var(--mono); font-size:12px; color:#dfb35a; }
+  .enc-question.sin-calificar{ border-left:3px solid #dfb35a; padding-left:14px; }
+  .enc-question.sin-calificar .enc-falta-msg{ display:block; }
+  .enc-submit-error{ display:none; margin:0 0 14px; font-family:var(--mono); font-size:12.5px; color:#dfb35a; }
+  .enc-submit-error.show{ display:block; }
   .enc-field input[type=text], .enc-field input[type=date], .enc-field select, .enc-field textarea{
     font-family:var(--body); font-size:14.5px; color:var(--text); background:var(--panel);
     border:1px solid var(--line); border-radius:7px; padding:12px 14px; outline:none;
@@ -272,32 +311,52 @@
   <div class="enc-error" id="encError" hidden></div>
 
   <form id="encForm" hidden>
+    <div class="enc-aviso" id="encAviso">
+      <span>Ya enviaste una respuesta a esta encuesta desde este dispositivo. Si fue un error o quieres enviar otra, puedes continuar.</span>
+      <button type="button" id="encAvisoCerrar">Entendido</button>
+    </div>
+
     <div class="enc-block">
       <div class="enc-block-title">Acerca de ti</div>
-      <div class="enc-field">
-        <label>NOMBRE</label>
-        <input type="text" id="encNombre" placeholder="Tu nombre">
+
+      <!-- con link por grupo: empresa/curso/instructor ya vienen resueltos -->
+      <div id="encLockBloque" hidden>
+        <div class="enc-lock-grid">
+          <div class="enc-lock-tile"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>EMPRESA</span><b id="encLockEmpresa"></b></div>
+          <div class="enc-lock-tile"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>CURSO</span><b id="encLockCurso"></b></div>
+          <div class="enc-lock-tile"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>INSTRUCTOR</span><b id="encLockInstructor"></b></div>
+        </div>
+        <p class="enc-hint enc-lock-nota">Ya identificados por tu link — no hace falta que los escribas.</p>
       </div>
-      <div class="enc-field enc-autocomplete-wrap">
-        <label>EMPRESA <span class="enc-req">*</span></label>
-        <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
-        <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
-      </div>
-      <div class="enc-row">
+
+      <!-- link genérico: la persona los teclea -->
+      <div id="encGenericoCampos" hidden>
+        <div class="enc-field enc-autocomplete-wrap">
+          <label>EMPRESA <span class="enc-req">*</span></label>
+          <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
+          <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
+        </div>
         <div class="enc-field">
           <label>CURSO <span class="enc-req">*</span></label>
           <input type="text" id="encCurso" placeholder="Ej. Excel Core Tools">
         </div>
         <div class="enc-field">
-          <label>FECHA <span class="enc-req">*</span></label>
-          <input type="date" id="encFecha">
+          <label>INSTRUCTOR <span class="enc-req">*</span></label>
+          <select id="encInstructor">
+            <option value="">Selecciona...</option>
+          </select>
         </div>
       </div>
-      <div class="enc-field">
-        <label>INSTRUCTOR <span class="enc-req">*</span></label>
-        <select id="encInstructor">
-          <option value="">Selecciona...</option>
-        </select>
+
+      <div class="enc-row">
+        <div class="enc-field">
+          <label>NOMBRE <span class="enc-opt">(opcional)</span></label>
+          <input type="text" id="encNombre" placeholder="Tu nombre">
+        </div>
+        <div class="enc-field">
+          <label>CORREO <span class="enc-opt">(opcional)</span></label>
+          <input type="text" id="encCorreo" placeholder="tu@empresa.com" autocomplete="email">
+        </div>
       </div>
     </div>
 
@@ -305,11 +364,19 @@
 
     <p class="enc-privacy">Tus respuestas se usan solo para mejorar la calidad del servicio, no se comparten con terceros.</p>
 
+    <p class="enc-submit-error" id="encSubmitError"></p>
+
     <button type="submit" class="enc-submit-fx" id="encSubmit">
       <span class="enc-submit-fx-tag">fx</span>
       <span class="enc-submit-fx-body" id="encSubmitBody">=ENVIAR_ENCUESTA()</span>
     </button>
   </form>
+
+  <div class="enc-cerrada" id="encCerrada">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h2>Esta encuesta ya cerró</h2>
+    <p>Gracias por tu interés — si crees que es un error, avísale a tu instructor.</p>
+  </div>
 
   <div class="enc-thanks" id="encThanks">
     <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
@@ -328,24 +395,35 @@
 </footer>
 
 <script>
-  const LABELS = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+  // los 5 textos de la escala vienen del servidor (editables en el admin);
+  // estos son solo el respaldo mientras carga
+  let LABELS = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+
+  // "?t=TOKEN" = link por grupo (empresa/curso/instructor resueltos por el
+  // servidor); sin token = link genérico, la persona los teclea.
+  const TOKEN = (new URLSearchParams(location.search).get('t') || '').trim();
+  const CLAVE_ENVIADA = 'enc_enviada_' + (TOKEN || 'generica');
 
   function escapeHtml(s){
     return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // el error lleva el status HTTP para poder distinguir "el servidor dijo que
+  // no" (4xx: link inválido, cerrada, validación — no tiene caso reintentar)
+  // de una falla pasajera de red/servidor (sí se reintenta).
   async function apiGet(url){
     const res = await fetch(url);
     const body = await res.json().catch(() => ({}));
-    if(!res.ok) throw new Error(body.error || 'Error de red');
+    if(!res.ok){ const err = new Error(body.error || 'Error de red'); err.status = res.status; throw err; }
     return body;
   }
   async function apiPostJson(url, data){
     const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
     const body = await res.json().catch(() => ({}));
-    if(!res.ok) throw new Error(body.error || 'Error de red');
+    if(!res.ok){ const err = new Error(body.error || 'Error de red'); err.status = res.status; throw err; }
     return body;
   }
+  const esErrorDefinitivo = e => e && e.status >= 400 && e.status < 500;
 
   // ── autocompletado de Empresa — mismo patrón que crearAutocomplete del
   // admin (Diplomas), duplicado aquí a propósito: esta página no carga nada
@@ -396,8 +474,6 @@
     return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
   }
 
-  document.getElementById('encFecha').value = new Date().toISOString().slice(0, 10);
-
   // ── celda de escala: data-bar de Excel, tocable y deslizable en un solo
   // control (pointerdown fija el valor de inmediato, pointermove mientras se
   // arrastra lo va actualizando) — más natural que 5 botones separados ──
@@ -415,6 +491,7 @@
         <div class="xcell-value">–</div>
       </div>
       <div class="enc-readout">Calificación: <b>Sin responder</b></div>
+      <div class="enc-falta-msg">Falta calificar esta pregunta</div>
     `;
     const xcell = wrap.querySelector('.xcell');
     const fill = wrap.querySelector('.xcell-fill');
@@ -432,6 +509,7 @@
       handle.style.left = 'calc(' + pct + '% - 1.5px)';
       valueEl.textContent = v;
       readout.textContent = v + ' · ' + LABELS[v - 1];
+      wrap.classList.remove('sin-calificar');
     }
 
     function valueFromClientX(clientX){
@@ -464,11 +542,13 @@
   }
 
   // Reintento con pausas crecientes — ya no protege la CARGA de datos contra
-  // la base SQL (2026-09-16: getPreguntasEncuesta vive en Table Storage,
-  // nunca se pausa, y getInstructores siempre fue Blob Storage) pero se deja
-  // el mismo mecanismo por si un fetch falla por una razón de red pasajera
-  // cualquiera, y se reusa tal cual para el envío final (enviarRespuesta),
-  // que sí sigue en SQL — ver más abajo, cerca de "despertarEncuesta".
+  // la base SQL (getPreguntasEncuesta y getLinkEncuestaPublico viven en Table
+  // Storage, nunca se pausan, y getInstructores siempre fue Blob Storage) pero
+  // se deja el mismo mecanismo por si un fetch falla por una razón de red
+  // pasajera, y se reusa tal cual para el envío final (enviarRespuesta), que
+  // sí sigue en SQL — ver más abajo, cerca de "despertarEncuesta". Los errores
+  // 4xx (link inválido, encuesta cerrada, validación) NO se reintentan: el
+  // servidor ya contestó que no, esperar 27s no lo va a cambiar.
   const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
 
   async function pedirDatosEncuesta(){
@@ -476,61 +556,89 @@
       try {
         return await Promise.all([
           apiGet('/api/getPreguntasEncuesta'),
-          apiGet('/api/getInstructores'),
+          TOKEN ? apiGet('/api/getLinkEncuestaPublico?t=' + encodeURIComponent(TOKEN)) : apiGet('/api/getInstructores'),
         ]);
       } catch(e){
-        if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+        if(esErrorDefinitivo(e) || intento >= REINTENTO_PAUSAS_MS.length) throw e;
         document.getElementById('encLoading').textContent = 'Cargando encuesta… (puede tardar unos segundos)';
         await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
       }
     }
   }
 
+  function mostrarCerrada(){
+    document.getElementById('encLoading').hidden = true;
+    document.getElementById('encForm').hidden = true;
+    document.getElementById('encCerrada').classList.add('show');
+  }
+
   async function cargarEncuesta(){
     try {
-      const [preguntas, instructoresData] = await pedirDatosEncuesta();
+      const [datos, extra] = await pedirDatosEncuesta();
+      const preguntas = datos.preguntas || [];
+      if(datos.escala && datos.escala.length === 5) LABELS = datos.escala;
 
-      const selInstructor = document.getElementById('encInstructor');
-      (instructoresData.instructores || []).forEach(nombre => {
-        const opt = document.createElement('option');
-        opt.value = nombre; opt.textContent = nombre;
-        selInstructor.appendChild(opt);
-      });
+      if(TOKEN){
+        // link por grupo: empresa/curso/instructor bloqueados, tal como los
+        // resolvió el servidor al generar el link
+        if(!extra.abierta){ mostrarCerrada(); return; }
+        document.getElementById('encLockEmpresa').textContent = extra.clienteNombre;
+        document.getElementById('encLockCurso').textContent = extra.curso;
+        document.getElementById('encLockInstructor').textContent = extra.instructor;
+        document.getElementById('encLockBloque').hidden = false;
+      } else {
+        const selInstructor = document.getElementById('encInstructor');
+        (extra.instructores || []).forEach(nombre => {
+          const opt = document.createElement('option');
+          opt.value = nombre; opt.textContent = nombre;
+          selInstructor.appendChild(opt);
+        });
+        document.getElementById('encGenericoCampos').hidden = false;
+      }
 
-      // Curso y Materiales primero, Instructor después, y los comentarios
-      // (tipo "texto") se agregan al final del bloque de Instructor sin
-      // repetir su título — se sienten parte de la misma sección.
-      const ORDEN_SECCIONES = ['Curso y Materiales', 'Instructor'];
-      const porSeccion = {};
-      let comentarios = null;
+      if(!preguntas.length){
+        document.getElementById('encLoading').hidden = true;
+        const err = document.getElementById('encError');
+        err.textContent = 'Todavía no hay preguntas publicadas. Avísale a tu instructor.';
+        err.hidden = false;
+        return;
+      }
+
+      // El servidor ya manda las preguntas en el orden de despliegue (Curso y
+      // Materiales → Instructor → Aprendizaje y Aplicación → Globales) — aquí
+      // solo se agrupan por categoría respetando ese orden. La pregunta de
+      // comentarios (tipo "texto", fija, en Globales) se pinta al final de su
+      // bloque, sin repetir título.
+      const categorias = [];
+      const porCategoria = {};
       preguntas.forEach(p => {
-        if(p.tipo === 'texto'){ comentarios = p; return; }
-        (porSeccion[p.seccion] = porSeccion[p.seccion] || []).push(p);
+        if(!porCategoria[p.seccion]){ porCategoria[p.seccion] = { escalas:[], comentario:null }; categorias.push(p.seccion); }
+        if(p.tipo === 'texto') porCategoria[p.seccion].comentario = p;
+        else porCategoria[p.seccion].escalas.push(p);
       });
 
       const preguntasArea = document.getElementById('encPreguntasArea');
       preguntasArea.innerHTML = '';
       let refRow = 4;
-      ORDEN_SECCIONES.forEach(seccion => {
-        const items = porSeccion[seccion];
-        if(!items || !items.length) return;
+      categorias.forEach(cat => {
+        const { escalas, comentario } = porCategoria[cat];
         const bloque = document.createElement('div');
         bloque.className = 'enc-block';
         const titulo = document.createElement('div');
         titulo.className = 'enc-block-title';
-        titulo.textContent = seccion;
+        titulo.textContent = cat;
         bloque.appendChild(titulo);
-        items.forEach(p => {
+        escalas.forEach(p => {
           bloque.appendChild(renderXcell(p, 'B' + refRow));
           refRow++;
         });
-        if(comentarios && comentarios.seccion === seccion){
+        if(comentario){
           const campo = document.createElement('div');
           campo.className = 'enc-field';
-          campo.style.marginTop = '20px';
+          if(escalas.length) campo.style.marginTop = '20px';
           campo.innerHTML = `
-            <label>${escapeHtml(comentarios.texto)}</label>
-            <textarea id="encComentarios" data-pregunta-id="${comentarios.id}"></textarea>
+            <label>${escapeHtml(comentario.texto)} <span class="enc-opt">(opcional)</span></label>
+            <textarea id="encComentarios" data-pregunta-id="${comentario.id}" maxlength="500"></textarea>
           `;
           bloque.appendChild(campo);
         }
@@ -540,6 +648,19 @@
       document.getElementById('encLoading').hidden = true;
       document.getElementById('encError').hidden = true;
       document.getElementById('encForm').hidden = false;
+
+      // aviso suave: si este dispositivo ya envió esta encuesta, se avisa pero
+      // NO se bloquea (puede haber un error legítimo o un equipo compartido)
+      try { if(localStorage.getItem(CLAVE_ENVIADA)) document.getElementById('encAviso').classList.add('show'); } catch(e){ /* sin localStorage: sin aviso, no pasa nada */ }
+
+      // Prewarm silencioso de apcweb-backoffice — solo cuando el link es
+      // válido y está abierto (un link inválido o cerrado no tiene por qué
+      // despertar la base). El banco de preguntas y el link ya no dependen de
+      // SQL, pero enviarRespuesta (el envío final) sí. Se dispara en paralelo,
+      // sin bloquear ni avisar nada si falla: para cuando el alumno termine de
+      // contestar (varios minutos), la base ya tuvo tiempo de sobra para
+      // despertar sola.
+      fetch('/api/despertarEncuesta').catch(() => {});
     } catch(e){
       document.getElementById('encLoading').hidden = true;
       const err = document.getElementById('encError');
@@ -549,34 +670,43 @@
   }
   cargarEncuesta();
 
-  // Prewarm silencioso de apcweb-backoffice — el banco de preguntas ya no
-  // depende de SQL (ver arriba), pero enviarRespuesta (el envío final) sí
-  // sigue tocándola. Se dispara en paralelo, sin bloquear ni avisar nada si
-  // falla: para cuando el alumno termine de contestar (varios minutos), la
-  // base ya tuvo tiempo de sobra para despertar sola.
-  fetch('/api/despertarEncuesta').catch(() => {});
+  document.getElementById('encAvisoCerrar').addEventListener('click', () => document.getElementById('encAviso').classList.remove('show'));
+
+  function mostrarErrorEnvio(msg){
+    const el = document.getElementById('encSubmitError');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
 
   document.getElementById('encForm').addEventListener('submit', async e => {
     e.preventDefault();
+    document.getElementById('encSubmitError').classList.remove('show');
 
-    const curso = document.getElementById('encCurso').value.trim();
-    const instructor = document.getElementById('encInstructor').value;
-    const fecha = document.getElementById('encFecha').value;
-    if(!curso || !instructor || !fecha){
-      alert('Completa curso, instructor y fecha antes de enviar.');
-      return;
+    let empresa, curso, instructor;
+    if(!TOKEN){
+      curso = document.getElementById('encCurso').value.trim();
+      instructor = document.getElementById('encInstructor').value;
+      if(!curso || !instructor){
+        alert('Completa curso e instructor antes de enviar.');
+        return;
+      }
+      const seleccionado = empresaAuto.getSeleccionado();
+      const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
+      if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
+      else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
+      else { alert('Escribe el nombre de tu empresa.'); return; }
     }
 
-    const seleccionado = empresaAuto.getSeleccionado();
-    const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
-    let empresa;
-    if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
-    else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
-    else { alert('Escribe el nombre de tu empresa.'); return; }
+    const correo = document.getElementById('encCorreo').value.trim();
+    if(correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ alert('El correo no se ve válido — revísalo o déjalo en blanco.'); return; }
 
-    const sinResponder = Array.from(document.querySelectorAll('.xcell')).filter(x => Number(x.dataset.value) === 0);
+    // sin calificar: se marca cada una con borde + texto "Falta calificar" (no
+    // solo color) y se salta a la primera
+    const sinResponder = Array.from(document.querySelectorAll('.enc-question')).filter(q => Number(q.querySelector('.xcell').dataset.value) === 0);
+    document.querySelectorAll('.enc-question').forEach(q => q.classList.remove('sin-calificar'));
     if(sinResponder.length){
-      alert('Te falta calificar ' + sinResponder.length + ' pregunta(s).');
+      sinResponder.forEach(q => q.classList.add('sin-calificar'));
+      mostrarErrorEnvio('Te falta calificar ' + sinResponder.length + ' pregunta(s) — están marcadas arriba.');
       sinResponder[0].scrollIntoView({ behavior:'smooth', block:'center' });
       return;
     }
@@ -594,22 +724,25 @@
     const body = document.getElementById('encSubmitBody');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
 
+    const payload = { nombre: document.getElementById('encNombre').value.trim(), correo, respuestas };
+    if(TOKEN) payload.token = TOKEN;
+    else Object.assign(payload, { empresa, curso, instructor });
+
     // Reintento con las mismas pausas crecientes que la carga (ver
     // pedirDatosEncuesta arriba) — despertarEncuesta() ya se disparó al
     // cargar la página, pero si de todos modos la base seguía dormida al
     // momento de enviar (una encuesta larga puede tardar varios minutos en
-    // contestarse), el envío no debe morir en el primer intento.
+    // contestarse), el envío no debe morir en el primer intento. Un 4xx (la
+    // encuesta cerró, el banco cambió, validación) no se reintenta.
     let ultimoError;
     let enviado = false;
     for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length && !enviado; intento++){
       try {
-        await apiPostJson('/api/enviarRespuesta', {
-          nombre: document.getElementById('encNombre').value.trim(),
-          empresa, curso, instructor, fecha, respuestas,
-        });
+        await apiPostJson('/api/enviarRespuesta', payload);
         enviado = true;
-      } catch(e){
-        ultimoError = e;
+      } catch(err){
+        ultimoError = err;
+        if(esErrorDefinitivo(err)) break;
         if(intento < REINTENTO_PAUSAS_MS.length){
           body.textContent = '=ENVIANDO...() reintentando';
           await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
@@ -618,8 +751,11 @@
     }
 
     if(enviado){
+      try { localStorage.setItem(CLAVE_ENVIADA, new Date().toISOString()); } catch(err){ /* sin localStorage: sin aviso la próxima vez */ }
       document.getElementById('encForm').hidden = true;
       document.getElementById('encThanks').classList.add('show');
+    } else if(ultimoError && ultimoError.status === 403){
+      mostrarCerrada();
     } else {
       alert('No se pudo enviar tu respuesta: ' + ultimoError.message);
       btn.disabled = false; body.textContent = '=ENVIAR_ENCUESTA()';

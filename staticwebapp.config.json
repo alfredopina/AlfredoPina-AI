@@ -395,6 +395,22 @@
     {
       "route": "/api/eliminarReporteDiagnostico",
       "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/guardarEscalaEncuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/generarLinkEncuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listLinksEncuestaAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/cambiarEstadoLinkEncuesta",
+      "allowedRoles": ["admin"]
     }
   ],
   "responseOverrides": {

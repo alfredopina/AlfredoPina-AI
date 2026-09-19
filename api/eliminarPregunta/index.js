@@ -1,30 +1,36 @@
 // eliminarPregunta/index.js
-// Function protegida (rol "admin"): borra una pregunta de verdad (no es un
-// simple desactivar). Las respuestas históricas que ya la usaron NO se tocan
-// — ver el comentario en sql/003_encuestas.sql sobre por qué pregunta_id no
-// tiene FK: se vuelve un id huérfano a propósito, y listRespuestasEncuesta lo
-// muestra como "(pregunta eliminada)".
+// Function protegida (rol "admin"): borra una pregunta de verdad. Las
+// respuestas históricas que ya la usaron NO se tocan — pregunta_id no tiene FK
+// (ver sql/003_encuestas.sql) y, desde la Fase 1 de Encuestas, cada respuesta
+// guarda además una copia congelada del texto/categoría de la pregunta
+// (sql/019), así que el histórico conserva su significado aunque la pregunta
+// desaparezca del banco. La pregunta de comentarios es FIJA: no se puede
+// borrar (solo editar su texto).
 //
-// Vive en Table Storage, no en SQL (2026-09-16) — necesita seccion
+// Vive en Table Storage, no en SQL (2026-09-16) — necesita la categoría
 // (PartitionKey) además del id (RowKey) para poder borrar sin recorrer toda
-// la tabla; el admin ya conoce la sección de la lista desde donde se llama.
-const { getEncuestaPreguntasTable, SECCIONES } = require("../src/encuesta-tables");
+// la tabla; el admin ya conoce la categoría de la lista desde donde se llama.
+const { getEncuestaPreguntasTable, CATEGORIAS, COMENTARIO_ID } = require("../src/encuesta-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const body = req.body || {};
   const id = (body.id || "").trim();
-  const seccion = (body.seccion || "").trim();
+  const categoria = (body.seccion || "").trim();
 
-  if (!id || !SECCIONES.includes(seccion)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id o la sección de la pregunta." } };
+  if (!id || !CATEGORIAS.includes(categoria)) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id o la categoría de la pregunta." } };
+    return;
+  }
+  if (id === COMENTARIO_ID) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "La pregunta de comentarios es fija — solo se puede editar su texto." } };
     return;
   }
 
   try {
     const table = getEncuestaPreguntasTable();
     try {
-      await table.deleteEntity(seccion, id);
+      await table.deleteEntity(categoria, id);
     } catch (err) {
       if (err.statusCode === 404) {
         context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa pregunta ya no existe." } };

@@ -39,13 +39,33 @@ function isTableNotFound(err) {
   return /TableNotFound/i.test(err.code || "") || /table.*not.*found/i.test(err.message || "");
 }
 
-// PartitionKey = sección, RowKey = id (uuid). A diferencia de la tabla SQL
+// PartitionKey = categoría, RowKey = id (uuid). A diferencia de la tabla SQL
 // vieja (un solo "orden" con offset reservado por sección para que Instructor
-// y Curso y Materiales nunca se entrelazaran al arrastrar), aquí cada sección
-// es su propia partición — el "orden" solo importa relativo a las demás
-// preguntas de la MISMA sección, sin ningún truco de offset que mantener.
-const SECCIONES = ["Instructor", "Curso y Materiales"];
+// y Curso y Materiales nunca se entrelazaran al arrastrar), aquí cada
+// categoría es su propia partición — el "orden" solo importa relativo a las
+// demás preguntas de la MISMA categoría, sin ningún truco de offset.
+//
+// Estructura FIJA de la encuesta (Fase 1, 2026-09-19, definida por Alfredo):
+// 15 preguntas — 3 categorías de hasta 4 preguntas de escala 1-5 + Globales
+// (hasta 2 de escala 1-5 y 1 comentario abierto FIJO). El orden de este
+// arreglo es el orden en que se muestran en la encuesta pública Y en el
+// admin (homologados a propósito). Sin Activa/Inactiva: con una estructura
+// fija, apagar una pregunta rompería la comparabilidad entre grupos.
+const CATEGORIAS = ["Curso y Materiales", "Instructor", "Aprendizaje y Aplicación", "Globales"];
+const TOPE_ESCALA = { "Curso y Materiales": 4, Instructor: 4, "Aprendizaje y Aplicación": 4, Globales: 2 };
 const TIPOS = ["escala", "texto"];
+
+// La pregunta de comentarios es una sola, fija, vive en Globales con este
+// RowKey (no un uuid) — el admin solo puede editar su texto, nunca agregar
+// otra ni borrarla ("puedes dejarlo fijo para evitar errores").
+const COMENTARIO_ID = "comentarios";
+const COMENTARIO_CATEGORIA = "Globales";
+const COMENTARIO_TEXTO_DEFAULT = "¿Algún comentario adicional que quieras compartir?";
+const COMENTARIO_ORDEN = 1000;
+
+// Textos de la escala 1-5 — los mismos para las 14 preguntas de escala,
+// editables desde el admin (tabla aparte EncuestaConfig).
+const ESCALA_DEFAULT = ["Malo", "Regular", "Bueno", "Muy bueno", "Excelente"];
 
 function entidadAPregunta(e) {
   return {
@@ -56,6 +76,56 @@ function entidadAPregunta(e) {
     orden: typeof e.orden === "number" ? e.orden : 0,
     activa: !!e.activa,
   };
+}
+
+function getEncuestaConfigTable() {
+  return TableClient.fromConnectionString(getConnectionString(), "EncuestaConfig");
+}
+
+async function leerEscala(configTable) {
+  try {
+    const e = await configTable.getEntity("config", "escala");
+    return ESCALA_DEFAULT.map((def, i) => ((e["e" + (i + 1)] || "").toString().trim() || def));
+  } catch (err) {
+    if (err.statusCode === 404 || isTableNotFound(err)) return ESCALA_DEFAULT.slice();
+    throw err;
+  }
+}
+
+async function guardarEscala(configTable, textos) {
+  await ensureTable(configTable);
+  const entidad = { partitionKey: "config", rowKey: "escala" };
+  textos.forEach((t, i) => { entidad["e" + (i + 1)] = t; });
+  await configTable.upsertEntity(entidad, "Replace");
+}
+
+// Crea la pregunta de comentarios si todavía no existe (idempotente) — solo la
+// llama listPreguntasAdmin, para que el admin siempre la vea disponible sin
+// tener que "crearla" ni poder crear una segunda.
+async function asegurarComentario(table) {
+  await ensureTable(table);
+  try {
+    await table.getEntity(COMENTARIO_CATEGORIA, COMENTARIO_ID);
+  } catch (err) {
+    if (err.statusCode !== 404) throw err;
+    await table.upsertEntity(
+      { partitionKey: COMENTARIO_CATEGORIA, rowKey: COMENTARIO_ID, texto: COMENTARIO_TEXTO_DEFAULT, tipo: "texto", orden: COMENTARIO_ORDEN, activa: true },
+      "Replace"
+    );
+  }
+}
+
+// El banco "vigente" — solo las categorías de la estructura fija (cualquier
+// partición vieja que haya quedado de la estructura anterior se ignora).
+function bancoVigente(entidades) {
+  return entidades.filter((e) => CATEGORIAS.includes(e.partitionKey) && e.activa !== false);
+}
+
+// Orden de despliegue: categoría (CATEGORIAS) y dentro de ella "orden".
+function compararPreguntas(a, b) {
+  const ca = CATEGORIAS.indexOf(a.seccion), cb = CATEGORIAS.indexOf(b.seccion);
+  if (ca !== cb) return ca - cb;
+  return a.orden - b.orden;
 }
 
 // Todas las preguntas de una sección (activas e inactivas) — quien llama
@@ -87,11 +157,22 @@ async function listarTodas(table) {
 
 module.exports = {
   getEncuestaPreguntasTable,
+  getEncuestaConfigTable,
   ensureTable,
   isTableNotFound,
-  SECCIONES,
+  CATEGORIAS,
+  TOPE_ESCALA,
   TIPOS,
+  COMENTARIO_ID,
+  COMENTARIO_CATEGORIA,
+  COMENTARIO_ORDEN,
+  ESCALA_DEFAULT,
   entidadAPregunta,
+  bancoVigente,
+  compararPreguntas,
+  leerEscala,
+  guardarEscala,
+  asegurarComentario,
   listarPreguntas,
   listarTodas,
 };

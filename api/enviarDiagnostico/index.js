@@ -22,6 +22,7 @@
 // en DiagnosticoRespuestaDetalle pasó de INT a NVARCHAR (sql/015).
 const { getPool, sql } = require("../src/backoffice-db");
 const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagnostico-tables");
+const { getDiagnosticoContadorTable, ajustarContadorDiagnostico } = require("../src/diagnostico-contador");
 const { JSON_HEADERS } = require("../src/http");
 
 const HERRAMIENTAS = ["excel", "powerbi"];
@@ -155,6 +156,16 @@ module.exports = async function (context, req) {
     }
 
     await transaction.commit();
+
+    // contador en vivo del admin (Table Storage, ver diagnostico-contador.js) —
+    // best-effort: el diagnóstico ya quedó guardado; si esto falla, el contador
+    // queda 1 abajo y el botón "Recalcular desde SQL" lo corrige.
+    try {
+      await ajustarContadorDiagnostico(getDiagnosticoContadorTable(), herramienta, 1);
+    } catch (errContador) {
+      context.log.error("No se pudo sumar al contador de diagnósticos:", errContador.message);
+    }
+
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
     try {

@@ -344,6 +344,17 @@ Alcance acordado con Alfredo por iteración en texto ("solo antes del reporte"):
 
 **Consideración estratégica, sin acción inmediata:** el correo `alfredo.pina@lifezen.com.mx` (dominio de otra empresa) sostiene todo el login de `/admin` — riesgo de bus factor a tener en el radar, no urgente.
 
+### Diagnóstico — contador en vivo migrado a Table Storage (2026-09-19)
+
+Mismo patrón que Encuestas Fase 1: el contador de "Respuestas en vivo" (Total/Excel/Power BI) ya no hace `COUNT(*)` a SQL en cada tick, así que refresca cada **10 s / tope 10 min** (antes 20 s / 25 min, que eran conservadores solo por el costo en vCore-seconds del incidente del 2026-09-17). Sin migración SQL.
+
+- **Dónde se escribe:** solo hay 2 puntos que cambian `DiagnosticoRespuesta` (verificado con grep en `api/`): `enviarDiagnostico` suma 1 después del `commit` y `eliminarRespuestaDiagnostico` resta 1 (lee la `herramienta` de la fila dentro de la misma transacción, antes de borrar). Ambos en `try/catch` best-effort: la respuesta ya quedó guardada/borrada, el contador es solo un espejo.
+- **Módulos:** `api/src/diagnostico-contador.js` (tabla `DiagnosticoContador`, una entidad `contador/global` con `total/excel/powerbi/sembrado`) y `api/src/table-contador.js` (`actualizarConReintento`, con ETag + jitter, extraído de `encuesta-links.js` para que lo compartan los dos módulos; Encuestas sigue con sus pruebas en verde).
+- **Candado `sembrado` (el "por qué" no obvio):** si el primer envío tras el deploy creara la entidad con `{total:1}`, el contador diría 1 en vez de los N históricos y nadie lo notaría. Solo cuenta como válido si sus números salieron de un `COUNT` real de SQL; mientras no, `getContadorDiagnosticoAdmin` lo calcula desde SQL (una sola vez) y lo siembra, descartando lo acumulado antes.
+- **Botón "Recalcular desde SQL"** (ícono de base de datos junto al de actualizar): `?recalcular=1` re-siembra con el conteo real. Es la única consulta a SQL del contador y solo ocurre cuando Alfredo la pide — para cuando el contador se desfase (query manual contra la base, o un fallo de Storage justo después de un envío).
+- **Riesgo aceptado:** si Storage falla tras un INSERT exitoso, el contador queda 1 abajo hasta el siguiente recálculo manual. A cambio ya no se mantiene despierta la base mientras la pestaña está abierta.
+- **Probado:** `api/test-diagnostico-contador.js` nuevo (conectado a `npm test`): no válido antes de sembrar, sembrar reemplaza lo acumulado, sumar/restar por herramienta, nunca baja de 0, herramienta nula/desconocida ignorada, 20 envíos simultáneos sin pisarse. Navegador con `fetch` mockeado: recalcular pinta las cifras nuevas, actualizar lee sin `recalcular`, tick automático a los 10 s. Sin confirmar en producción con Storage/SQL reales.
+
 ## Estado del proyecto (puede desactualizarse — confirmar contra el repo real)
 
 **Publicado y en producción:**

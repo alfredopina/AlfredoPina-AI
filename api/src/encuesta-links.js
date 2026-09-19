@@ -15,6 +15,7 @@ const { TableClient } = require("@azure/data-tables");
 const crypto = require("crypto");
 const { ensureTable, isTableNotFound } = require("./encuesta-tables");
 const { fechaMexico } = require("./encuesta-logic");
+const { actualizarConReintento } = require("./table-contador");
 
 function getConnectionString() {
   const conn = process.env.RECURSOS_STORAGE_CONNECTION;
@@ -113,39 +114,6 @@ async function guardarLinkDeGrupo(table, snapshot) {
 
 async function cambiarEstadoLink(table, token, abierta) {
   await table.updateEntity({ partitionKey: "link", rowKey: token, abierta: !!abierta }, "Merge");
-}
-
-// Lectura-modificación-escritura con ETag y reintento: 2 envíos casi
-// simultáneos (todo el grupo escaneando el QR a la vez) no deben pisarse el
-// conteo. `crear` arma la entidad inicial si todavía no existe.
-// Tras cada conflicto se espera un tiempo aleatorio corto (jitter) — con todo
-// un grupo enviando en el mismo segundo, reintentar de inmediato haría que
-// choquen otra vez en cada ronda; el jitter los desfasa.
-async function actualizarConReintento(table, pk, rk, mutar, crear) {
-  for (let intento = 0; intento < 12; intento++) {
-    if (intento > 0) await new Promise((r) => setTimeout(r, Math.random() * 40));
-    let entidad;
-    try {
-      entidad = await table.getEntity(pk, rk);
-    } catch (err) {
-      if (err.statusCode !== 404) throw err;
-      try {
-        await table.createEntity({ partitionKey: pk, rowKey: rk, ...crear() });
-        return;
-      } catch (err2) {
-        if (err2.statusCode === 409) continue; // alguien la creó justo antes — reintenta como actualización
-        throw err2;
-      }
-    }
-    try {
-      await table.updateEntity({ partitionKey: pk, rowKey: rk, ...mutar(entidad) }, "Merge", { etag: entidad.etag });
-      return;
-    } catch (err) {
-      if (err.statusCode === 412) continue; // conflicto de ETag — otro envío escribió primero
-      throw err;
-    }
-  }
-  throw new Error("No se pudo actualizar el contador tras varios intentos.");
 }
 
 // delta = +1 al enviar una respuesta, -1 al borrarla. token = null para el

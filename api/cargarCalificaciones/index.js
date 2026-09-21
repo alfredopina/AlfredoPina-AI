@@ -52,17 +52,20 @@ module.exports = async function (context, req) {
       await nuevoRequest().input("grupoId", sql.Int, grupoId).query("DELETE FROM Calificacion WHERE grupo_id = @grupoId");
 
       for (const f of filas) {
-        const alumnoId = await resolverAlumno(nuevoRequest, clienteId, f.nombreCompleto);
+        const alumnoId = await resolverAlumno(nuevoRequest, clienteId, f.nombreCompleto, f.correo);
         await nuevoRequest()
           .input("grupoId", sql.Int, grupoId)
           .input("alumnoId", sql.Int, alumnoId)
-          .input("participacion", sql.Int, f.participacion)
-          .input("asistencia", sql.Int, f.asistencia)
-          .input("proyecto", sql.Int, f.proyecto)
+          .input("puntos", sql.Decimal(5, 1), f.puntos)
+          .input("asistencias", sql.Int, f.asistencias)
+          .input("frecuencias", sql.Int, f.frecuencias)
+          .input("proyecto", sql.Decimal(5, 1), f.proyecto)
+          .input("calificacion", sql.Decimal(5, 1), f.calificacion)
           .input("resultado", sql.NVarChar, f.resultado)
+          .input("notas", sql.NVarChar, f.notas)
           .query(
-            `INSERT INTO Calificacion (grupo_id, alumno_id, participacion, asistencia, proyecto, resultado)
-             VALUES (@grupoId, @alumnoId, @participacion, @asistencia, @proyecto, @resultado)`
+            `INSERT INTO Calificacion (grupo_id, alumno_id, puntos, asistencias, frecuencias, proyecto, calificacion, resultado, notas)
+             VALUES (@grupoId, @alumnoId, @puntos, @asistencias, @frecuencias, @proyecto, @calificacion, @resultado, @notas)`
           );
       }
       await transaction.commit();
@@ -80,9 +83,16 @@ module.exports = async function (context, req) {
       throw err;
     }
 
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, alumnos: filas.length, fase } };
+    const conteo = (r) => filas.filter((f) => f.resultado === r).length;
+    context.res = {
+      status: 200,
+      headers: JSON_HEADERS,
+      body: { ok: true, alumnos: filas.length, fase, aprobados: conteo("Aprobado"), participaron: conteo("Participó"), no_aprobados: conteo("No Aprobado") },
+    };
   } catch (err) {
     context.log.error("Error cargando calificaciones:", err.message);
-    fallo(context, 500, "No se pudieron guardar las calificaciones.");
+    // endpoint solo de admin: se devuelve el mensaje real de la base para poder
+    // diagnosticar sin abrir los logs (ej. "Invalid object name" = falta correr el SQL)
+    fallo(context, 500, "Error de base de datos: " + err.message);
   }
 };

@@ -74,7 +74,7 @@ module.exports = async function (context, req) {
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
       SELECT g.id, g.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo, c.tipo_cliente,
-             g.cliente_final_id, cf.nombre AS cliente_final,
+             g.cliente_final_id, cf.nombre AS cliente_final, cf.codigo AS cliente_final_codigo,
              g.contacto_id, ct.nombre AS contacto,
              g.modalidad, g.grupo_codigo, g.herramientas, g.nombre_curso, g.niveles,
              g.horas, g.sesiones, g.fecha_inicio, g.fecha_fin, g.instructor,

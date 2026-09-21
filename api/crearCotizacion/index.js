@@ -50,7 +50,7 @@ async function resolverCliente(pool, empresa) {
     .request()
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo)");
+    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
   return insert.recordset[0];
 }
 

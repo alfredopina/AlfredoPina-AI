@@ -93,6 +93,7 @@ async function clientesInactivos(pool, umbral) {
            (SELECT MAX(fecha_cierre) FROM Grupo
               WHERE (cliente_id = c.id OR cliente_final_id = c.id) AND estatus_cierre = 'Cerrado') AS ultimo_grupo_cerrado_fecha
     FROM Cliente c
+    WHERE c.tipo_cliente <> 'Prospecto'
   `);
   const ahora = new Date();
   const items = [];

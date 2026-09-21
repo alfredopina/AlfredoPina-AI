@@ -477,9 +477,8 @@
 
   // ── autocompletado de Empresa — mismo patrón que crearAutocomplete del
   // admin (Diplomas), duplicado aquí a propósito: esta página no carga nada
-  // del admin, vive completamente sola. Sin campo de código visible — es un
-  // dato interno; si la empresa no existe todavía, se deriva un código corto
-  // del nombre al enviar (ver codigoDesdeNombre más abajo). ──
+  // del admin, vive completamente sola. Solo acepta una empresa que ya existe
+  // (la Encuesta abierta ya no crea empresas nuevas). ──
   function crearAutocomplete({ inputId, listId }){
     const input = document.getElementById(inputId);
     const lista = document.getElementById(listId);
@@ -519,10 +518,6 @@
   }
 
   const empresaAuto = crearAutocomplete({ inputId:'encEmpresaNombre', listId:'encEmpresaLista' });
-
-  function codigoDesdeNombre(nombre){
-    return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
-  }
 
   const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function actualizarAvance(){
@@ -776,7 +771,7 @@
       const seleccionado = empresaAuto.getSeleccionado();
       const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
       if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
-      else if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
+      else if(empresaNombre){ alert('Elige tu empresa de la lista que aparece al escribir. Si no aparece, pídele el link o el QR a tu instructor.'); return; }
       else { alert('Escribe el nombre de tu empresa.'); return; }
     }
 

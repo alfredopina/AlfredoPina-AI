@@ -22,14 +22,19 @@ function numeroONull(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+const MSG_PROSPECTO = "Ese cliente todavía es Prospecto — los Diplomas solo se emiten a clientes (asciende al dar de alta su Grupo).";
+
 // Da de alta el Cliente si no existe (por código), o reutiliza el que ya
-// seleccionaron del autocompletado (por id).
+// seleccionaron del autocompletado (por id). NOTA pendiente (Bloque 1,
+// Diplomas): esta ruta no debería crear empresas nuevas, solo usar clientes
+// existentes — se quita cuando se trabaje Diplomas.
 async function resolverCliente(pool, empresa) {
   const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
 
   if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
+    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo, tipo_cliente FROM Cliente WHERE id = @id");
     if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
+    if (r.recordset[0].tipo_cliente === "Prospecto") throw new Error(MSG_PROSPECTO);
     return r.recordset[0];
   }
 
@@ -37,8 +42,11 @@ async function resolverCliente(pool, empresa) {
   const codigo = limpiarCodigo(empresa.codigo);
   if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
 
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
+  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo, tipo_cliente FROM Cliente WHERE codigo = @codigo");
+  if (existente.recordset.length) {
+    if (existente.recordset[0].tipo_cliente === "Prospecto") throw new Error(MSG_PROSPECTO);
+    return existente.recordset[0];
+  }
 
   const insert = await pool
     .request()

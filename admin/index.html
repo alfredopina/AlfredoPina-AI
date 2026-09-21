@@ -2301,7 +2301,7 @@
                 </div>
                 <div class="dkpi-label">Clientes Activos</div>
               </div>
-              <div class="dkpi-card" style="--c:var(--blue-bright)" title="(Directo + Intermediario) / total — clientes con quienes tienes una relación comercial directa (contratan o revenden), a diferencia de Indirecto (solo llega vía un intermediario)">
+              <div class="dkpi-card" style="--c:var(--blue-bright)" title="(Directo + Intermediario) / total — clientes con quienes tienes una relación comercial directa (contratan o revenden), a diferencia de Indirecto (solo llega vía un intermediario). No cuenta a los Prospectos">
                 <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1" stroke-linecap="round"/><path d="M10 21v-4h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="dkpi-value"><span id="cliKpiDirectos">—</span>%</div>
                 <div class="dkpi-label">Clientes Directos</div>
@@ -2330,6 +2330,7 @@
                   <option value="Directo">Directo</option>
                   <option value="Intermediario">Intermediario</option>
                   <option value="Indirecto">Indirecto</option>
+                  <option value="Prospecto">Prospecto</option>
                 </select>
               </div>
               <div class="radm-field">
@@ -3151,11 +3152,11 @@
               <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <div class="radm-field">
               <div class="radm-field" style="min-width:150px;">
                 <label>CLIENTE</label>
                 <select id="encFCliente"><option value="">Todos</option></select>
               </div>
+              <div class="radm-field">
                 <label>INSTRUCTOR</label>
                 <select id="encFInstructor"><option value="">Todos</option></select>
               </div>
@@ -6335,8 +6336,8 @@
         encResultadosRaw = data.respuestas || [];
         encEscalaRes = data.escala && data.escala.length === 5 ? data.escala : ESCALA_DEFAULT.slice();
         encGlobalesMeta = data.globales || [];
-        poblarOpciones('encFInstructor', (data.opciones && data.opciones.instructores) || []);
         poblarOpciones('encFCliente', (data.opciones && data.opciones.clientes) || []);
+        poblarOpciones('encFInstructor', (data.opciones && data.opciones.instructores) || []);
         poblarOpciones('encFCurso', (data.opciones && data.opciones.cursos) || []);
         renderResultados();
       } catch(e){
@@ -6449,8 +6450,8 @@
 
     function chipsFiltrosReporte(f){
       const chips = [];
-      if(f.instructor) chips.push('Instructor: ' + f.instructor);
       if(f.cliente) chips.push('Cliente: ' + f.cliente);
+      if(f.instructor) chips.push('Instructor: ' + f.instructor);
       if(f.herramienta) chips.push(TOOL_NOMBRE[f.herramienta] || f.herramienta);
       if(f.curso) chips.push('Curso: ' + f.curso);
       if(f.modalidad) chips.push(f.modalidad);
@@ -7658,10 +7659,10 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientesAdmin?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
             ).join('');
             lista.hidden = false;
           } catch(e){ /* silencioso, no bloquea seguir capturando */ }
@@ -8085,7 +8086,7 @@
       // largo que ya vive en "Modificar Cliente".
       notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
-    const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto'];
+    const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto', 'Prospecto'];
     // completado/dias_inactivo no los ordena el backend (no son columnas
     // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
     // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
@@ -8140,12 +8141,14 @@
       if(!iso) return '—';
       return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
     }
-    const TIPO_COLOR = { Intermediario: '#a78bfa', Indirecto: '#f97316' };
+    const TIPO_COLOR = { Intermediario: '#a78bfa', Indirecto: '#f97316', Prospecto: 'var(--blue-bright)' };
     function tipoBadge(tipo){
       const color = TIPO_COLOR[tipo] || 'var(--text-faint)';
       return `<span class="sol-temario-tipo-tag" style="border-color:${color}; color:${color};">${escapeHtml(tipo || 'Directo')}</span>`;
     }
     function completadoHtml(completado, tipoCliente){
+      // Un Prospecto todavía no es cliente: no se le mide Completado.
+      if(tipoCliente === 'Prospecto') return '<span class="radm-mono" style="color:var(--text-faint);" title="Un Prospecto no se mide como cliente todavía">—</span>';
       // color en el span exterior (no solo en el texto) para que el ícono
       // (stroke="currentColor") y la palabra siempre compartan el mismo tono.
       const color = completado ? 'var(--good)' : '#dc2626';
@@ -8157,6 +8160,7 @@
     // .cli-semaforo (además de .cot-semaforo) es lo que hace pulsar el punto
     // verde con animación (ver CSS) — solo aquí, no en Cotizaciones/Grupos.
     function semaforoHtml(semaforo){
+      if(!semaforo) return '<span class="radm-mono" style="color:var(--text-faint);" title="Un Prospecto no tiene semáforo — su seguimiento vive en Solicitudes y Cotizaciones">—</span>';
       const map = { verde: { cls: 'ok', texto: 'Activo' }, amarillo: { cls: 'warn', texto: 'Tibio' }, rojo: { cls: 'hot', texto: 'Inactivo' } };
       const m = map[semaforo] || map.rojo;
       return `<span class="cot-semaforo cli-semaforo ${m.cls}"><span class="cot-semaforo-dot"></span>${m.texto}</span>`;
@@ -8599,16 +8603,19 @@
             <span class="radm-hint">
               ${item ? `
                 <ul style="list-style-type:square; margin:0 0 0 16px; padding:0;">
-                  <li>Los Clientes no se eliminan, solo se modifican si la información cambia en el tiempo.</li>
+                  <li>Solo se puede eliminar un cliente o prospecto sin historial (sin Solicitudes, Cotizaciones, Grupos, Diplomas ni respuestas) — si tiene algo, el sistema te dice qué es.</li>
+                  <li>Un Prospecto asciende solo a Directo (o Indirecto, si es el cliente final) cuando se le da de alta un Grupo.</li>
                 </ul>` : `
                 <ul style="list-style-type:square; margin:0 0 0 16px; padding:0;">
                   <li>Escribe el nombre comercial del cliente y define un Código, idealmente en 3 caracteres mayúsculas.</li>
                   <li>Define si el Cliente es Intermediario (nos subcontrata) o Indirecto (llega por un intermediario, pero ya hay comunicación directa) — si no, se considera Directo.</li>
+                  <li>Prospecto = empresa que aún no es cliente (solo la estás cotizando o atendiendo). No entra en los indicadores de Clientes.</li>
                 </ul>`}
             </span>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn clf-guardar">Guardar</button>
               <button type="button" class="radm-btn radm-btn-ghost clf-cancelar">Cancelar</button>
+              ${item ? '<button type="button" class="radm-btn radm-btn-ghost clf-eliminar">Eliminar</button>' : ''}
             </div>
           </div>
         </div>
@@ -8617,6 +8624,18 @@
       if(item) renderContactosSeccion(item.id);
 
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
+      const btnEliminar = wrap.querySelector('.clf-eliminar');
+      if(btnEliminar) btnEliminar.addEventListener('click', async () => {
+        if(!confirm('¿Eliminar "' + item.nombre + '"? Es un borrado real y no se puede deshacer. Sus contactos se borran con él. Solo se permite si no tiene Solicitudes, Cotizaciones, Grupos, Diplomas ni respuestas.')) return;
+        try {
+          await apiPostJson('/api/eliminarCliente', { id: item.id });
+          toast('Cliente eliminado.', true);
+          document.getElementById('cliModificarWrap').innerHTML = '';
+          await cargarClientes(document.getElementById('cliBuscar').value.trim());
+          cargarKpis();
+          activarTabCliente('consultar');
+        } catch(e){ alert(e.message); }
+      });
       wrap.querySelector('.clf-guardar').addEventListener('click', async () => {
         const nombre = wrap.querySelector('.clf-nombre').value.trim();
         const codigo = wrap.querySelector('.clf-codigo').value.trim();
@@ -9059,10 +9078,10 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientesAdmin?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
             ).join('');
             lista.hidden = false;
           } catch(e){ /* silencioso, no bloquea seguir capturando */ }
@@ -10248,10 +10267,10 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento('/api/buscarClientesAdmin?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
             ).join('');
             lista.hidden = false;
           } catch(e){ /* silencioso, no bloquea seguir capturando */ }
@@ -10993,7 +11012,7 @@
     function nivelesDe(g){ try { return JSON.parse(g.niveles || '[]'); } catch(e){ return []; } }
 
     // ── autocompletado de Cliente (copia propia, con set() para prellenar en edición) ──
-    function crearAutocomplete({ inputId, listId, codigoId, onChange }){
+    function crearAutocomplete({ inputId, listId, codigoId, onChange, incluirProspectos }){
       const input = document.getElementById(inputId);
       const lista = document.getElementById(listId);
       let seleccionado = null;
@@ -11008,10 +11027,10 @@
         if(!q){ lista.hidden = true; return; }
         timer = setTimeout(async () => {
           try {
-            const clientes = await apiGetConReintento('/api/buscarClientes?q=' + encodeURIComponent(q));
+            const clientes = await apiGetConReintento((incluirProspectos ? '/api/buscarClientesAdmin?q=' : '/api/buscarClientes?q=') + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
             lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}</span></div>`
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
             ).join('');
             lista.hidden = false;
           } catch(e){ /* silencioso, no bloquea seguir capturando */ }
@@ -11599,14 +11618,14 @@
       }
 
       const gruClienteAuto = crearAutocomplete({
-        inputId: 'gruClienteNombre', listId: 'gruClienteLista', codigoId: 'gruClienteCodigo',
+        inputId: 'gruClienteNombre', listId: 'gruClienteLista', codigoId: 'gruClienteCodigo', incluirProspectos: true,
         onChange: (sel) => {
           cargarCotizacionesCliente(sel);
           refrescarEstadoContacto();
         },
       });
       const gruClienteFinalAuto = crearAutocomplete({
-        inputId: 'gruClienteFinalNombre', listId: 'gruClienteFinalLista', codigoId: 'gruClienteFinalCodigo',
+        inputId: 'gruClienteFinalNombre', listId: 'gruClienteFinalLista', codigoId: 'gruClienteFinalCodigo', incluirProspectos: true,
         onChange: () => refrescarEstadoContacto(),
       });
       // Capturar nombre+código a mano (cliente nuevo, sin dar clic en ninguna
@@ -12649,7 +12668,7 @@
           f('codigo','NVARCHAR(20)',{badge:'UNIQUE'}),
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('cliente_desde','INT',{opt:true,extra:'año de antigüedad'}),
-          f('tipo_cliente','NVARCHAR(20)',{extra:'Directo|Intermediario|Indirecto, default Directo'}),
+          f('tipo_cliente','NVARCHAR(20)',{extra:'Directo|Intermediario|Indirecto|Prospecto, default Directo'}),
         ]},
       { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id', x:410, y:100,
         fields:[

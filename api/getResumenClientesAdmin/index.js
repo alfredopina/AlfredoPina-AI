@@ -14,7 +14,7 @@ module.exports = async function (context, req) {
     const pool = await getPool();
     const umbrales = await getUmbrales();
     const [totales, filas] = await Promise.all([
-      pool.request().query("SELECT COUNT(*) AS total_contactos FROM Contacto"),
+      pool.request().query("SELECT COUNT(*) AS total_contactos FROM Contacto ct JOIN Cliente c ON c.id = ct.cliente_id WHERE c.tipo_cliente <> 'Prospecto'"),
       pool.request().query(`
         SELECT c.id, c.codigo, c.cliente_desde, c.tipo_cliente,
                cp.correo AS principal_correo, cp.telefono AS principal_telefono,
@@ -37,6 +37,7 @@ module.exports = async function (context, req) {
                ) THEN 1 ELSE 0 END AS algun_contacto_con_correo
         FROM Cliente c
         OUTER APPLY (SELECT TOP 1 correo, telefono FROM Contacto WHERE cliente_id = c.id AND es_principal = 1) cp
+        WHERE c.tipo_cliente <> 'Prospecto'
       `),
     ]);
 

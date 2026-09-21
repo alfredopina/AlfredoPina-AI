@@ -28,32 +28,19 @@ const { getEncuestaLinksTable, leerLink, ajustarContadores } = require("../src/e
 const { validarRespuestas, errorSeguro, fechaMexico, CORREO_RE } = require("../src/encuesta-logic");
 const { JSON_HEADERS } = require("../src/http");
 
-function limpiarCodigo(codigo) {
-  return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
+// La Encuesta abierta (sin link de Grupo) ya NO crea empresas: solo acepta un
+// Cliente que ya existe (y que no sea Prospecto). Una empresa nueva solo puede
+// nacer desde Solicitud/Cotización o un Diagnóstico abierto.
 async function resolverCliente(pool, empresa) {
   const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
+  if (!clienteId) throw errorSeguro("Selecciona tu empresa de la lista — si no aparece, pídele el link o el QR a tu instructor.");
 
-  if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw errorSeguro("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
-
-  const insert = await pool
+  const r = await pool
     .request()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo)");
-  return insert.recordset[0];
+    .input("id", sql.Int, clienteId)
+    .query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id AND tipo_cliente <> 'Prospecto'");
+  if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
+  return r.recordset[0];
 }
 
 module.exports = async function (context, req) {

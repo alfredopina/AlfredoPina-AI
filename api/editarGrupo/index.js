@@ -17,13 +17,16 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase, registrarCambioFase } = require("../src/grupo-fase");
+const { ascenderProspecto } = require("../src/cliente-tipo");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
 const ESTATUS_CURSO = ["Por iniciar", "En proceso", "Terminado"];
 const ESTATUS_CIERRE = ["Proyecto", "Calificaciones", "Diplomas", "Cerrado"];
 
-async function resolverCliente(pool, empresa) {
+// tipoNuevo: tipo con el que nace una empresa que NO existía — Directo si es
+// el contratante, Indirecto si es el cliente final (ya tiene Grupo, no es Prospecto).
+async function resolverCliente(pool, empresa, tipoNuevo) {
   if (!empresa) return null;
   const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
 
@@ -44,7 +47,8 @@ async function resolverCliente(pool, empresa) {
     .request()
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo)");
+    .input("tipo", sql.NVarChar, tipoNuevo)
+    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, @tipo)");
   return insert.recordset[0];
 }
 
@@ -117,9 +121,9 @@ module.exports = async function (context, req) {
   let pool, cliente, clienteFinal;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, body.cliente);
+    cliente = await resolverCliente(pool, body.cliente, "Directo");
     if (!cliente) throw new Error("Falta el cliente.");
-    clienteFinal = body.cliente_final ? await resolverCliente(pool, body.cliente_final) : null;
+    clienteFinal = body.cliente_final ? await resolverCliente(pool, body.cliente_final, "Indirecto") : null;
   } catch (err) {
     context.log.error("Error resolviendo el cliente:", err.message);
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: err.message } };
@@ -154,6 +158,8 @@ module.exports = async function (context, req) {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      await ascenderProspecto(transaction, cliente.id, "Directo");
+      if (clienteFinal) await ascenderProspecto(transaction, clienteFinal.id, "Indirecto");
       if (contactoNuevo) {
         const clienteContactoId = (clienteFinal || cliente).id;
         const insertContacto = await new sql.Request(transaction)

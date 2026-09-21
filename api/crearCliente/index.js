@@ -6,7 +6,7 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
-const TIPOS_VALIDOS = ["Directo", "Intermediario", "Indirecto"];
+const TIPOS_VALIDOS = ["Directo", "Intermediario", "Indirecto", "Prospecto"];
 
 function limpiarCodigo(codigo) {
   return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");

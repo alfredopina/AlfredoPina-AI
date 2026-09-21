@@ -83,14 +83,20 @@ module.exports = async function (context, req) {
         ahora,
         { diasVerde: umbrales.clientesSeguimientoDias, diasAmarillo: umbrales.clientesDias }
       );
-      const completado = calcularCompletado({
-        codigo: c.codigo,
-        clienteDesde: c.cliente_desde,
-        tipoCliente: c.tipo_cliente,
-        principalCorreo: c.principal_correo,
-        principalTelefono: c.principal_telefono,
-        algunContactoConCorreo: !!c.algun_contacto_con_correo,
-      });
+      // Un Prospecto no es cliente todavía: sin Completado, Días Inactivo ni
+      // semáforo (su seguimiento vive en Solicitudes/Cotizaciones) — el front
+      // los pinta como "—".
+      const esProspecto = c.tipo_cliente === "Prospecto";
+      const completado = esProspecto
+        ? null
+        : calcularCompletado({
+            codigo: c.codigo,
+            clienteDesde: c.cliente_desde,
+            tipoCliente: c.tipo_cliente,
+            principalCorreo: c.principal_correo,
+            principalTelefono: c.principal_telefono,
+            algunContactoConCorreo: !!c.algun_contacto_con_correo,
+          });
       return {
         id: c.id,
         nombre: c.nombre,
@@ -100,8 +106,8 @@ module.exports = async function (context, req) {
         tipo_cliente: c.tipo_cliente,
         num_contactos: c.num_contactos,
         completado,
-        dias_inactivo: actividad.dias,
-        semaforo: actividad.semaforo,
+        dias_inactivo: esProspecto ? null : actividad.dias,
+        semaforo: esProspecto ? null : actividad.semaforo,
         fechas_actividad: {
           solicitud_pendiente: c.solicitud_pendiente_fecha,
           cotizacion_activa: c.cotizacion_activa_fecha,

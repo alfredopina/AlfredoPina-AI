@@ -41,11 +41,16 @@ function errorSeguro(mensaje) {
   return err;
 }
 
-async function resolverCliente(pool, empresa) {
+// nuevaRequest() devuelve un Request ligado a la transacción del envío: si el
+// guardado de las respuestas falla, la empresa nueva (Prospecto) se revierte
+// también — antes se insertaba fuera de la transacción y un envío fallido
+// dejaba un Cliente huérfano sin ninguna respuesta. Una empresa que no existe
+// nace SIEMPRE como Prospecto, nunca como cliente.
+async function resolverCliente(nuevaRequest, empresa) {
   const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
 
   if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
+    const r = await nuevaRequest().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
     if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
     return r.recordset[0];
   }
@@ -54,14 +59,13 @@ async function resolverCliente(pool, empresa) {
   const codigo = limpiarCodigo(empresa.codigo);
   if (!nombre || !codigo) throw errorSeguro("Falta el nombre o el código de la empresa nueva.");
 
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
+  const existente = await nuevaRequest().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
   if (existente.recordset.length) return existente.recordset[0];
 
-  const insert = await pool
-    .request()
+  const insert = await nuevaRequest()
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo)");
+    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
   return insert.recordset[0];
 }
 
@@ -90,17 +94,12 @@ module.exports = async function (context, req) {
     return;
   }
 
-  let pool, cliente;
+  let pool;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, empresa);
   } catch (err) {
-    context.log.error("Error resolviendo el cliente:", err.message);
-    context.res = {
-      status: 400,
-      headers: JSON_HEADERS,
-      body: { error: err.safe ? err.message : "No se pudo procesar la empresa. Intenta de nuevo." },
-    };
+    context.log.error("Error conectando a la base:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo procesar tu envío en este momento." } };
     return;
   }
 
@@ -120,6 +119,8 @@ module.exports = async function (context, req) {
   const transaction = new sql.Transaction(pool);
   try {
     await transaction.begin();
+
+    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa);
 
     const insertRespuesta = await new sql.Request(transaction)
       .input("nombre", sql.NVarChar, nombre)
@@ -174,6 +175,8 @@ module.exports = async function (context, req) {
       context.log.error("Error haciendo rollback:", rollbackErr.message);
     }
     context.log.error("Error guardando el diagnóstico:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar tu diagnóstico en este momento." } };
+    context.res = err.safe
+      ? { status: 400, headers: JSON_HEADERS, body: { error: err.message } }
+      : { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar tu diagnóstico en este momento." } };
   }
 };

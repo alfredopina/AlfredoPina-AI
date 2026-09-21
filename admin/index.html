@@ -713,6 +713,18 @@
   .enc-gen-stats{ display:flex; gap:8px; flex-wrap:wrap; }
   .enc-gen-chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background-color:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
   .enc-gen-chip b{ color:var(--text); font-weight:600; }
+  .enc-gen-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+  .enc-gen-stats{ display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .enc-gen-stat{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:96px; padding:7px 14px; background-color:var(--blue-soft); border:1px solid var(--blue); border-radius:8px; }
+  .enc-gen-stat b{ font-family:var(--display); font-weight:700; font-size:21px; line-height:1.1; color:var(--text); }
+  .enc-gen-stat span{ font-family:var(--mono); font-size:10.5px; letter-spacing:.3px; color:var(--blue-bright); }
+  .enc-gen-fila{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .enc-gen-etq{ flex:1 1 260px; max-width:440px; margin:0; }
+  .enc-gen-btn{ margin-left:auto; min-width:190px; height:44px; display:inline-flex; align-items:center; justify-content:center; gap:9px; font-weight:700; }
+  /* relleno sólido (el .radm-btn base es solo contorno) para que sea la acción principal de la tarjeta */
+  .enc-gen-btn{ background-color:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 0 0 3px var(--blue-soft); }
+  .enc-gen-btn:hover:not(:disabled){ background-color:var(--blue-bright); border-color:var(--blue-bright); }
+  .enc-gen-btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; }
   .enc-rep-filtros{ display:flex; flex-wrap:wrap; gap:5px; max-width:340px; }
   .enc-rep-filtros .enc-gen-chip{ padding:3px 8px; font-size:10.5px; }
   /* "Fuera de sesión": ícono + texto (nunca solo color) */
@@ -3003,7 +3015,7 @@
               <span class="enc-plegable-acc"><span class="enc-plegable-txt">Ocultar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </button>
             <div class="enc-plegable-cuerpo" data-plegable-cuerpo="grupo">
-              <span class="radm-hint" style="display:block; margin-bottom:14px;">Todos tus grupos activos (cualquier fase) — genera el link de uno y las respuestas quedan ligadas a ese grupo, con empresa, curso e instructor ya resueltos. Un solo link por grupo, siempre el mismo: "actualizar" solo refresca sus datos.</span>
+              <span class="radm-hint" style="display:block; margin-bottom:14px;">Solo grupos activos de cualquier fase. Genera el link para compartir con alumnos del Grupo.</span>
 
               <div class="sol-toolbar">
                 <div class="dip-filters" style="margin-bottom:0;">
@@ -3026,13 +3038,23 @@
                     </select>
                   </div>
                   <div class="radm-field" style="flex:none; min-width:0;">
+                    <label>ABIERTOS</label>
+                    <div class="radm-switch-row" style="height:38px;">
+                      <label class="radm-switch">
+                        <input type="checkbox" id="encGrupoAbiertos" checked>
+                        <span class="radm-switch-track"></span>
+                      </label>
+                      <span class="radm-switch-label">Incluir Links Abiertos</span>
+                    </div>
+                  </div>
+                  <div class="radm-field" style="flex:none; min-width:0;">
                     <label>CERRADOS</label>
                     <div class="radm-switch-row" style="height:38px;">
                       <label class="radm-switch">
                         <input type="checkbox" id="encGrupoCerrados">
                         <span class="radm-switch-track"></span>
                       </label>
-                      <span class="radm-switch-label">Incluir links de grupos cerrados</span>
+                      <span class="radm-switch-label">Incluir Grupos Cerrados</span>
                     </div>
                   </div>
                   <div class="dip-filter-actions">
@@ -3175,21 +3197,22 @@
               </div>
             </div>
           </div>
-          <span class="radm-hint" style="display:block; margin:8px 0 12px;">Se busca solo, en cuanto cambias cualquier filtro — y esta pestaña se vuelve a cargar cada vez que entras aquí. Herramienta y Modalidad solo existen en las respuestas del link por grupo (las del link genérico no aparecen al filtrar por ellas).</span>
 
           <div class="dip-paso" style="margin-bottom:18px;">
-            <div class="dip-paso-head" style="margin-bottom:8px;">
+            <div class="enc-gen-head">
               <span class="dip-paso-title">Reporte con los filtros de arriba</span>
+              <div class="enc-gen-stats" id="encGenStats"></div>
             </div>
-            <div class="enc-gen-stats" id="encGenStats"></div>
-            <div class="radm-field" style="max-width:420px; margin:14px 0;">
-              <label>ETIQUETA (OPCIONAL) — para reconocerlo en la pestaña Reportes</label>
-              <input type="text" id="encGenEtiqueta" maxlength="80" placeholder="Ej. Excel Core Tools — septiembre">
+            <div class="enc-gen-fila">
+              <div class="radm-field enc-gen-etq">
+                <label>ETIQUETA</label>
+                <input type="text" id="encGenEtiqueta" maxlength="80" placeholder="Ej. Grupo EXIA - KMT -0926">
+              </div>
+              <button type="button" class="radm-btn enc-gen-btn" id="encGenerarReporte" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Generar reporte
+              </button>
             </div>
-            <button type="button" class="radm-btn radm-btn-ghost" id="encGenerarReporte" style="min-width:auto;" disabled>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span id="encGenerarTxt">Generar reporte</span>
-            </button>
             <span class="radm-hint" style="display:block; margin-top:10px;">Incluye todas las respuestas y todos los comentarios (sin nombres ni correos). Si alguno es ofensivo, elimina esa respuesta aquí abajo ANTES de generar — un reporte ya generado no cambia.</span>
             <div class="radm-field" id="encReporteLinkWrap" style="margin-top:12px;" hidden>
               <label>LINK DEL REPORTE</label>
@@ -3212,7 +3235,7 @@
         </div>
 
       <div class="dip-tabpanel" id="encTab-reportes">
-          <span class="radm-hint" style="display:block; margin:0 0 12px;">Reportes ya generados (se generan desde Resultados). Esta pestaña se vuelve a cargar cada vez que entras aquí. Eliminar un reporte solo quita su link — las respuestas no se tocan y se puede volver a generar.</span>
+          <span class="radm-hint" style="display:block; margin:0 0 12px;">Los Reportes se generan en Resultados por grupo y filtros</span>
           <div class="dip-table-wrap">
             <table class="dip-table" id="encReportesTable">
               <thead>
@@ -5627,7 +5650,7 @@
     const urlGrupo = token => new URL('encuesta?t=' + encodeURIComponent(token), location.origin + '/').href;
     let encQrGenerico = null, encQrGrupoInst = null;
     let encGrupos = [], encGruposCargados = false, encLinks = [], encLinkActual = null;
-    let encFiltro = { q:'', fase:'', cerrados:false };
+    let encFiltro = { q:'', fase:'', cerrados:false, abiertos:true };
     let encSort = { campo:'inicio', dir:'desc' };
     const FASE_ORDEN = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado', 'Eliminado'];
 
@@ -5707,6 +5730,8 @@
         const cerrado = g.fase === 'Cerrado';
         const link = linkPorGrupo.get(String(g.id)) || null;
         if(cerrado && !(encFiltro.cerrados && link)) return;
+        // "Incluir Links Abiertos" apagado: se esconden los grupos activos cuya encuesta ya está abierta (quedan los que aún no tienen link o lo tienen cerrado)
+        if(!cerrado && link && link.abierta && !encFiltro.abiertos) return;
         filas.push({
           tipo: 'grupo', id: String(g.id), link, cerrado,
           empresa: g.cliente_final || g.cliente || '—', via: g.cliente_final ? (g.cliente || '') : '',
@@ -5772,6 +5797,8 @@
       ));
 
       let cuenta = `${activos.length} grupo${activos.length === 1 ? '' : 's'} activo${activos.length === 1 ? '' : 's'} · ${conLink} con link`;
+      const abiertosOcultos = encFiltro.abiertos ? 0 : activos.filter(g => { const l = linkPorGrupo.get(String(g.id)); return l && l.abierta; }).length;
+      if(abiertosOcultos) cuenta += ` · ${abiertosOcultos} con link abierto no mostrado${abiertosOcultos === 1 ? '' : 's'}`;
       if(cerrados && !encFiltro.cerrados) cuenta += ` · ${cerrados} cerrado${cerrados === 1 ? '' : 's'} no mostrado${cerrados === 1 ? '' : 's'}`;
       if(filas.length !== todas.length) cuenta += ` — mostrando ${filas.length} con estos filtros`;
       document.getElementById('encGruposCuenta').textContent = encGruposCargados ? cuenta : document.getElementById('encGruposCuenta').textContent;
@@ -5818,6 +5845,7 @@
 
     document.getElementById('encGrupoQ').addEventListener('input', e => { encFiltro.q = e.target.value; renderGrupos(); });
     document.getElementById('encGrupoFase').addEventListener('change', e => { encFiltro.fase = e.target.value; renderGrupos(); });
+    document.getElementById('encGrupoAbiertos').addEventListener('change', e => { encFiltro.abiertos = e.target.checked; renderGrupos(); });
     document.getElementById('encGrupoCerrados').addEventListener('change', e => { encFiltro.cerrados = e.target.checked; renderGrupos(); });
     document.getElementById('encGruposRefresh').addEventListener('click', () => { cargarGrupos(); cargarLinks(); });
     document.querySelectorAll('#encGruposTable th[data-sort]').forEach(th => {
@@ -6362,13 +6390,9 @@
       const n = encResultadosRaw.length;
       const grupos = new Set(encResultadosRaw.filter(r => r.grupo_id != null).map(r => r.grupo_id)).size;
       const conComentario = encResultadosRaw.filter(r => r.comentario).length;
-      document.getElementById('encGenStats').innerHTML =
-        `<span class="enc-gen-chip"><b>${n}</b> respuestas coinciden</span>` +
-        `<span class="enc-gen-chip"><b>${grupos}</b> ${grupos === 1 ? 'grupo' : 'grupos'}</span>` +
-        `<span class="enc-gen-chip"><b>${conComentario}</b> con comentario</span>`;
-      const btn = document.getElementById('encGenerarReporte');
-      btn.disabled = n === 0;
-      document.getElementById('encGenerarTxt').textContent = n ? `Generar reporte con ${n} ${n === 1 ? 'respuesta' : 'respuestas'}` : 'Generar reporte';
+      const stat = (valor, etiqueta) => `<div class="enc-gen-stat"><b>${valor}</b><span>${etiqueta}</span></div>`;
+      document.getElementById('encGenStats').innerHTML = stat(n, '# Registros') + stat(grupos, '# Grupos') + stat(conComentario, '# Comentarios');
+      document.getElementById('encGenerarReporte').disabled = n === 0;
     }
 
     // generarReporteEncuesta SÍ lee SQL — mismo reintento con pausas crecientes

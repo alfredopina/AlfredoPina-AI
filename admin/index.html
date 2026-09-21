@@ -747,7 +747,8 @@
   }
   .enc-anonimo{ color:var(--text-faint); font-style:italic; }
   /* Curso más ancho (curso arriba, instructor abajo) y promedios angostos con el título en 2 líneas */
-  .dip-table .enc-col-curso{ min-width:240px; }
+  /* Curso autoajustable: el ancho lo da el texto más largo (curso arriba, instructor abajo, sin cortar líneas) */
+  .dip-table td.enc-col-curso{ white-space:nowrap; }
   .enc-curso-nombre{ font-weight:500; color:var(--text); }
   .dip-table th.th-2l{ white-space:normal !important; line-height:1.3; vertical-align:bottom; }
   .dip-table th.th-2l .th-sort-ico{ margin-left:3px; }
@@ -3151,6 +3152,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
               <div class="radm-field">
+              <div class="radm-field" style="min-width:150px;">
+                <label>CLIENTE</label>
+                <select id="encFCliente"><option value="">Todos</option></select>
+              </div>
                 <label>INSTRUCTOR</label>
                 <select id="encFInstructor"><option value="">Todos</option></select>
               </div>
@@ -6320,7 +6325,7 @@
 
     async function buscarResultados(){
       const params = new URLSearchParams();
-      [['instructor','encFInstructor'], ['herramienta','encFHerramienta'], ['curso','encFCurso'], ['modalidad','encFModalidad'], ['desde','encFDesde'], ['hasta','encFHasta']]
+      [['cliente','encFCliente'], ['instructor','encFInstructor'], ['herramienta','encFHerramienta'], ['curso','encFCurso'], ['modalidad','encFModalidad'], ['desde','encFDesde'], ['hasta','encFHasta']]
         .forEach(([k, id]) => { const v = document.getElementById(id).value; if(v) params.set(k, v); });
       encFiltrosBuscados = Object.fromEntries(params.entries());
 
@@ -6331,6 +6336,7 @@
         encEscalaRes = data.escala && data.escala.length === 5 ? data.escala : ESCALA_DEFAULT.slice();
         encGlobalesMeta = data.globales || [];
         poblarOpciones('encFInstructor', (data.opciones && data.opciones.instructores) || []);
+        poblarOpciones('encFCliente', (data.opciones && data.opciones.clientes) || []);
         poblarOpciones('encFCurso', (data.opciones && data.opciones.cursos) || []);
         renderResultados();
       } catch(e){
@@ -6371,11 +6377,11 @@
 
     // Búsqueda automática: cambiar cualquier filtro dispara buscarResultados
     // solo — sin botón "Buscar" (mismo criterio que Diagnósticos).
-    ['encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta']
+    ['encFCliente', 'encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta']
       .forEach(id => document.getElementById(id).addEventListener('change', buscarResultados));
     document.getElementById('encActualizar').addEventListener('click', buscarResultados);
     document.getElementById('encLimpiarFiltros').addEventListener('click', () => {
-      ['encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta'].forEach(id => { document.getElementById(id).value = ''; });
+      ['encFCliente', 'encFInstructor', 'encFHerramienta', 'encFCurso', 'encFModalidad', 'encFDesde', 'encFHasta'].forEach(id => { document.getElementById(id).value = ''; });
       buscarResultados();
     });
 
@@ -6444,6 +6450,7 @@
     function chipsFiltrosReporte(f){
       const chips = [];
       if(f.instructor) chips.push('Instructor: ' + f.instructor);
+      if(f.cliente) chips.push('Cliente: ' + f.cliente);
       if(f.herramienta) chips.push(TOOL_NOMBRE[f.herramienta] || f.herramienta);
       if(f.curso) chips.push('Curso: ' + f.curso);
       if(f.modalidad) chips.push(f.modalidad);

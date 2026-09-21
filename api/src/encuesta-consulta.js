@@ -17,8 +17,10 @@ const HERRAMIENTA_RE = /^[a-z]{2,20}$/;
 // no les puso "nombre corto" (Resultados y Reporte usan los mismos).
 const GLOBALES_DEFAULT = ["Satisfacción", "Recomendación"];
 
-function construirFiltros(sql, { instructor, curso, modalidad, herramienta, desde, hasta } = {}) {
+function construirFiltros(sql, { cliente, instructor, curso, modalidad, herramienta, desde, hasta } = {}) {
   const condiciones = [];
+  // r.cliente_id → Cliente: las consultas que usan estas condiciones deben hacer JOIN Cliente c
+  if (cliente) condiciones.push("c.nombre = @cliente");
   if (instructor) condiciones.push("r.instructor = @instructor");
   if (curso) condiciones.push("r.curso = @curso");
   if (modalidad) condiciones.push("r.modalidad = @modalidad");
@@ -32,6 +34,7 @@ function construirFiltros(sql, { instructor, curso, modalidad, herramienta, desd
     where: condiciones.length ? "WHERE " + condiciones.join(" AND ") : "",
     whereGrupos: "WHERE " + condiciones.concat("r.grupo_id IS NOT NULL").join(" AND "),
     aplicar(request) {
+      if (cliente) request.input("cliente", sql.NVarChar, cliente);
       if (instructor) request.input("instructor", sql.NVarChar, instructor);
       if (curso) request.input("curso", sql.NVarChar, curso);
       if (modalidad) request.input("modalidad", sql.NVarChar, modalidad);

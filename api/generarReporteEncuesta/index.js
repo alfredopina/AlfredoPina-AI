@@ -23,6 +23,7 @@ module.exports = async function (context, req) {
   const body = req.body || {};
   const texto = (v) => (typeof v === "string" ? v.trim() : "");
   const filtros = {
+    cliente: texto(body.cliente),
     instructor: texto(body.instructor),
     curso: texto(body.curso),
     modalidad: texto(body.modalidad),

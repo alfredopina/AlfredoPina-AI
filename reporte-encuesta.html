@@ -210,6 +210,7 @@
 
     // filtros aplicados (o, sin filtros, el rango real de las respuestas)
     const chips = [];
+    if(f.cliente) chips.push(`<span class="chip">Cliente: <b>${esc(f.cliente)}</b></span>`);
     if(f.instructor) chips.push(`<span class="chip">${SVG.person}Instructor: <b>${esc(f.instructor)}</b></span>`);
     if(f.herramienta) chips.push(`<span class="chip">Herramienta: <b>${esc(TOOL_NOMBRE[f.herramienta] || f.herramienta)}</b></span>`);
     if(f.curso) chips.push(`<span class="chip">Curso: <b>${esc(f.curso)}</b></span>`);

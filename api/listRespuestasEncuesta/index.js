@@ -19,16 +19,16 @@ const { leerRespuestasFiltradas } = require("../src/encuesta-consulta");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
-  const { instructor, curso, modalidad, herramienta, desde, hasta } = req.query;
+  const { cliente, instructor, curso, modalidad, herramienta, desde, hasta } = req.query;
 
   try {
     const pool = await getPool();
-    const { respuestas, globales, filtrosSql } = await leerRespuestasFiltradas(pool, sql, { instructor, curso, modalidad, herramienta, desde, hasta });
+    const { respuestas, globales, filtrosSql } = await leerRespuestasFiltradas(pool, sql, { cliente, instructor, curso, modalidad, herramienta, desde, hasta });
 
     // hora de envío de TODAS las respuestas de los grupos presentes → mediana por grupo
     const grupos = await filtrosSql.aplicar(pool.request()).query(`
       SELECT grupo_id, fecha_envio FROM EncuestaRespuesta
-      WHERE grupo_id IN (SELECT DISTINCT r.grupo_id FROM EncuestaRespuesta r ${filtrosSql.whereGrupos})
+      WHERE grupo_id IN (SELECT DISTINCT r.grupo_id FROM EncuestaRespuesta r JOIN Cliente c ON c.id = r.cliente_id ${filtrosSql.whereGrupos})
     `);
     const tiemposPorGrupo = new Map();
     for (const g of grupos.recordset) {
@@ -37,7 +37,8 @@ module.exports = async function (context, req) {
     }
 
     // opciones de los filtros de Instructor/Curso: los valores que existen de verdad
-    const [instrs, cursos] = await Promise.all([
+    const [clientes, instrs, cursos] = await Promise.all([
+      pool.request().query("SELECT DISTINCT c.nombre FROM EncuestaRespuesta r JOIN Cliente c ON c.id = r.cliente_id ORDER BY c.nombre"),
       pool.request().query("SELECT DISTINCT instructor FROM EncuestaRespuesta WHERE instructor IS NOT NULL ORDER BY instructor"),
       pool.request().query("SELECT DISTINCT curso FROM EncuestaRespuesta WHERE curso IS NOT NULL ORDER BY curso"),
     ]);
@@ -65,7 +66,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: JSON_HEADERS,
-      body: { respuestas: lista, escala, globales, opciones: { instructores: instrs.recordset.map((x) => x.instructor), cursos: cursos.recordset.map((x) => x.curso) } },
+      body: { respuestas: lista, escala, globales, opciones: { clientes: clientes.recordset.map((x) => x.nombre), instructores: instrs.recordset.map((x) => x.instructor), cursos: cursos.recordset.map((x) => x.curso) } },
     };
   } catch (err) {
     if (err.safe) {

@@ -3,6 +3,7 @@
 // Storage partido en trozos (encuesta-reportes.js), contra una tabla de memoria.
 const assert = require("assert");
 const { calcularSnapshot } = require("./src/encuesta-reporte-calc");
+const { construirFiltros } = require("./src/encuesta-consulta");
 const { guardarReporteEncuesta, leerReporteEncuesta, listarReportesEncuesta, eliminarReporteEncuesta, partirEnTrozos, TROZO } = require("./src/encuesta-reportes");
 
 let fallos = 0;
@@ -168,6 +169,20 @@ const snap = (respuestas, extra = {}) => calcularSnapshot({ respuestas, globales
     await guardarReporteEncuesta(t, { token: "d".repeat(32), snapshot: snap([resp(1, todos(5))]) });
     await eliminarReporteEncuesta(t, "d".repeat(32));
     assert.strictEqual(await leerReporteEncuesta(t, "d".repeat(32)), null);
+  });
+
+  console.log("\nfiltros de la consulta");
+
+  await prueba("Cliente entra como condición parametrizada (con JOIN a Cliente) y en la consulta de grupos", () => {
+    const sql = { NVarChar: "nvarchar", Date: "date" };
+    const usados = [];
+    const f = construirFiltros(sql, { cliente: "KEMET", instructor: "Alfredo" });
+    assert.ok(f.where.includes("c.nombre = @cliente") && f.where.includes("r.instructor = @instructor"));
+    assert.ok(f.whereGrupos.includes("c.nombre = @cliente") && f.whereGrupos.includes("r.grupo_id IS NOT NULL"));
+    f.aplicar({ input(nombre) { usados.push(nombre); return this; } });
+    assert.deepStrictEqual(usados.sort(), ["cliente", "instructor"]);
+    assert.ok(!construirFiltros(sql, {}).where, "sin filtros no hay WHERE");
+    assert.ok(!f.where.includes("KEMET"), "el valor nunca se concatena al SQL");
   });
 
   console.log(fallos ? "\n" + fallos + " FALLO(S)" : "\nTODO OK");

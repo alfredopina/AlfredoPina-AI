@@ -667,7 +667,7 @@ function buildDemoData() {
   const daysSinceMonday = (now.getDay() + 6) % 7;
   const monday = new Date(now); monday.setDate(monday.getDate() - daysSinceMonday);
   const days = [];
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 120; i++) {
     const d = new Date(monday); d.setDate(d.getDate() + i);
     const weekday = d.getDay();
     if (weekday === 0 || weekday === 6) continue;

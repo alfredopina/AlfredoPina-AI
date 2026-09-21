@@ -19,7 +19,8 @@
     "_nota": "Categoría de Outlook (no la etiqueta entre corchetes) que Alfredo asigna a eventos que implican traslado."
   },
 
-  "icsFetchWindowDays": 60,
+  "icsFetchWindowDays": 120,
+  "_icsFetchWindowDaysNota": "Cuántos días hacia adelante muestra /agenda (contados desde hoy). Era 60 y solo alcanzaba ~2 meses — subido a 120 el 2026-09-21. Si algún día se ve raro un mes lejano, revisar también hasta dónde publica Outlook su .ics.",
 
   "defaultBusyLabel": "Ocupado",
   "defaultBusyColor": "#4c5462",

@@ -121,6 +121,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/cargarCalificaciones",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listCalificacionesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getCalificacionesGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getDiplomaPdf",
       "allowedRoles": ["admin"]
     },

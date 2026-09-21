@@ -700,6 +700,29 @@
   .enc-plegable-cuerpo{ margin-top:18px; }
   .enc-plegable-cuerpo[hidden]{ display:none; }
 
+  /* Calificaciones — selector de grupo simple + tarjeta de solo lectura */
+  .cal-atajos{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+  .cal-atajos[hidden]{ display:none; }
+  .cal-atajos-label{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); }
+  .cal-atajo{
+    font-family:var(--body); font-size:12px; color:var(--text); background-color:var(--panel-2);
+    border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
+  }
+  .cal-atajo:hover{ border-color:var(--c); }
+  .cal-atajo small{ color:var(--text-faint); font-family:var(--mono); font-size:10.5px; margin-left:6px; }
+  .cal-card{ border:1px solid var(--line); background-color:var(--panel); border-radius:8px; padding:16px 18px; margin:0 0 22px; }
+  .cal-card[hidden]{ display:none; }
+  .cal-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .cal-card-acciones{ display:flex; align-items:center; gap:10px; }
+  .cal-datos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:12px 22px; }
+  .cal-dato-k{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; }
+  .cal-dato-v{ font-size:13px; color:var(--text); }
+  .cal-dato-v.falta{ color:#dfb35a; }
+  .cal-aviso{ display:flex; align-items:flex-start; gap:8px; margin-top:14px; padding:9px 12px; font-size:12px; color:var(--text-dim); border-left:3px solid #dfb35a; background-color:var(--panel-2); border-radius:0 6px 6px 0; }
+  .cal-aviso[hidden]{ display:none; }
+  .cal-aviso svg{ width:15px; height:15px; flex:none; margin-top:1px; color:#dfb35a; }
+  #calGridSection[hidden]{ display:none; }
+
   /* tabla de grupos: Fase neutra (no es un semáforo, solo dice en qué paso va) */
   .enc-fase{
     display:inline-block; font-family:var(--mono); font-size:11px; color:var(--text-dim);
@@ -1586,13 +1609,17 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 6 4-14 2 8h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diagnósticos
       </button>
-      <button class="admin-nav-item" data-panel="encuestas">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
-        Encuestas
+      <button class="admin-nav-item" data-panel="calificaciones">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        Calificaciones
       </button>
       <button class="admin-nav-item" data-panel="diplomas">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diplomas
+      </button>
+      <button class="admin-nav-item" data-panel="encuestas">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6M9 9h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
+        Encuestas
       </button>
 
       <div class="admin-nav-group">PRODUCTOS</div>
@@ -3261,139 +3288,129 @@
             </table>
           </div>
         </div>      </div>
-      <div class="admin-panel" id="panel-diplomas" style="--c:var(--blue-bright)">
-        <div id="dipToast" class="radm-toast" hidden></div>
+      <div class="admin-panel" id="panel-calificaciones" style="--c:var(--blue-bright)">
+        <div id="calToast" class="radm-toast" hidden></div>
 
-        <div class="dash-etabs" id="dipTabs">
-          <button type="button" class="dash-etab active" data-diptab="crear">Crear Diplomas</button>
-          <button type="button" class="dash-etab" data-diptab="consultar">Consultar Diplomas</button>
-          <button type="button" class="dash-etab" data-diptab="plantillas">Plantilla</button>
+        <div class="dash-etabs" id="calTabs">
+          <button type="button" class="dash-etab active" data-caltab="cargar">Cargar</button>
+          <button type="button" class="dash-etab" data-caltab="resultados">Resultados</button>
+          <button type="button" class="dash-etab" data-caltab="reportes">Reportes</button>
         </div>
 
-        <div class="dip-tabpanel active" id="dipTab-crear">
-          <datalist id="dipResultadosList">
+        <div class="dip-tabpanel active" id="calTab-cargar">
+          <datalist id="calResultadosList">
             <option value="Aprobado">
             <option value="Participó">
             <option value="No Aprobado">
           </datalist>
+
           <div class="radm-form">
             <div class="radm-form-row">
-              <div class="radm-field">
-                <label>INSTRUCTOR <span class="dip-req">*</span></label>
-                <select id="dipInstructor">
-                  <option value="">Selecciona...</option>
-                </select>
-              </div>
-              <div class="radm-field">
-                <label>HERRAMIENTA <span class="dip-req">*</span></label>
-                <select id="dipHerramienta">
-                  <option value="">Selecciona...</option>
-                  <option value="excel">Excel</option>
-                  <option value="powerbi">Power BI</option>
-                  <option value="powerapps">Power Apps</option>
-                  <option value="powerautomate">Power Automate</option>
-                  <option value="ia">IA Aplicada</option>
-                  <option value="ofimatica">Ofimática Básica</option>
-                </select>
-              </div>
-              <div class="radm-field">
-                <label>GRUPO <span class="dip-req">*</span></label>
-                <input type="text" id="dipGrupo" placeholder="Ej. Grupo1, Grupo2, NA">
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>CURSO <span class="dip-req">*</span></label>
-                <input type="text" id="dipCurso" placeholder="Ej. Excel Core Tools">
-                <span class="radm-hint">Nombre comercial del curso — es el que aparece impreso en el diploma.</span>
-              </div>
-              <div class="radm-field">
-                <label>NIVEL <span class="dip-req">*</span></label>
-                <select id="dipNivel">
-                  <option value="">Selecciona...</option>
-                  <option value="Básico">Básico</option>
-                  <option value="Intermedio">Intermedio</option>
-                  <option value="Avanzado">Avanzado</option>
-                  <option value="Básico-Intermedio">Básico-Intermedio</option>
-                  <option value="Intermedio-Avanzado">Intermedio-Avanzado</option>
-                  <option value="Básico, Intermedio y Avanzado">Básico, Intermedio y Avanzado</option>
-                </select>
-              </div>
-              <div class="radm-field">
-                <label>HORAS <span class="dip-req">*</span></label>
-                <input type="number" id="dipHoras" placeholder="20">
-              </div>
-            </div>
-            <div class="radm-form-row">
-              <div class="radm-field">
-                <label>FECHA INICIO <span class="dip-req">*</span></label>
-                <input type="date" id="dipFechaInicio">
-              </div>
-              <div class="radm-field">
-                <label>FECHA FIN <span class="dip-req">*</span></label>
-                <input type="date" id="dipFechaFin">
-              </div>
-            </div>
-            <div class="radm-form-row">
               <div class="radm-field dip-autocomplete-wrap">
-                <label>EMPRESA <span class="dip-req">*</span></label>
-                <input type="text" id="dipEmpresaNombre" placeholder="Escribe para buscar o crear...">
-                <div class="dip-autocomplete-list" id="dipEmpresaLista" hidden></div>
-              </div>
-              <div class="radm-field">
-                <label>CÓDIGO <span class="dip-req">* si es empresa nueva</span></label>
-                <input type="text" id="dipEmpresaCodigo" placeholder="ACME">
-                <span class="radm-hint">Alias corto del cliente — con él se arma el folio de cada diploma (ej. AP_EXCEL_ACME_26-1). Se bloquea si ya elegiste una empresa existente.</span>
+                <label>GRUPO <span class="dip-req">*</span></label>
+                <input type="text" id="calGrupoQ" placeholder="Busca por empresa, curso o código..." autocomplete="off">
+                <div class="dip-autocomplete-list" id="calGrupoLista" hidden></div>
+                <span class="radm-hint" id="calGruposHint">Cargando grupos… (si la base estaba dormida puede tardar unos segundos)</span>
               </div>
             </div>
           </div>
 
-          <div class="radm-section">
-            <div class="radm-section-head">
-              <span class="radm-section-title">ALUMNOS — PEGA DIRECTO DESDE EXCEL (Nombre, Participación, Asistencia, Proyecto, Resultado)</span>
-            </div>
-            <div class="dip-table-wrap">
-              <table class="dip-table">
-                <thead>
-                  <tr>
-                    <th>Nombre completo <span class="dip-req">*</span></th>
-                    <th>Participación % <span class="dip-req">*</span></th>
-                    <th>Asistencia % <span class="dip-req">*</span></th>
-                    <th>Proyecto % <span class="dip-req">*</span></th>
-                    <th>Resultado <span class="dip-req">*</span></th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="dipGridBody"></tbody>
-              </table>
-            </div>
-            <div class="dip-grid-actions">
-              <button type="button" class="radm-btn-add" id="dipAgregarFila">+ Agregar fila</button>
-              <span class="radm-hint">Resultado debe ser exactamente: Aprobado, Participó o No Aprobado — si no coincide se marca en rojo. Enter en cualquier celda baja a la siguiente fila (la crea si no existe).</span>
-            </div>
+          <div class="cal-atajos" id="calAtajos" hidden>
+            <span class="cal-atajos-label">Por calificar</span>
+            <div id="calAtajosLista" style="display:contents;"></div>
           </div>
 
-          <div class="radm-actions">
-            <button type="button" class="radm-btn" id="dipGenerar">Generar diplomas</button>
+          <div class="cal-card" id="calGrupoCard" hidden>
+            <div class="cal-card-head">
+              <div>
+                <div class="enc-grupo-titulo" id="calCardTitulo"></div>
+                <div class="diag-nombre-sub" id="calCardSub"></div>
+              </div>
+              <div class="cal-card-acciones">
+                <span class="enc-fase" id="calCardFase"></span>
+                <button type="button" class="radm-btn radm-btn-ghost" id="calCardCambiar" style="min-width:auto;">Cambiar grupo</button>
+              </div>
+            </div>
+            <div class="cal-datos" id="calCardDatos"></div>
+            <div class="cal-aviso" id="calCardAviso" hidden></div>
           </div>
 
-          <div class="radm-section" id="dipResultadosSection" hidden>
-            <div class="radm-section-head"><span class="radm-section-title">RESULTADOS DEL LOTE</span></div>
-            <div class="dip-table-wrap">
-              <table class="dip-table">
-                <thead>
-                  <tr><th>Folio</th><th>Nombre</th><th>Resultado</th><th>Estado</th><th></th></tr>
-                </thead>
-                <tbody id="dipResultadosBody"></tbody>
-              </table>
+          <div id="calGridSection" hidden>
+            <div class="radm-section">
+              <div class="radm-section-head">
+                <span class="radm-section-title">ALUMNOS — PEGA DIRECTO DESDE EXCEL (Nombre, Participación, Asistencia, Proyecto, Resultado)</span>
+              </div>
+              <div class="dip-table-wrap">
+                <table class="dip-table">
+                  <thead>
+                    <tr>
+                      <th>Nombre completo <span class="dip-req">*</span></th>
+                      <th>Participación % <span class="dip-req">*</span></th>
+                      <th>Asistencia % <span class="dip-req">*</span></th>
+                      <th>Proyecto % <span class="dip-req">*</span></th>
+                      <th>Resultado <span class="dip-req">*</span></th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="calGridBody"></tbody>
+                </table>
+              </div>
+              <div class="dip-grid-actions">
+                <button type="button" class="radm-btn-add" id="calAgregarFila">+ Agregar fila</button>
+                <span class="radm-hint">Porcentajes de 0 a 100 (85 u 85%). Resultado exacto: Aprobado, Participó o No Aprobado — si no coincide se marca en rojo. Enter baja a la siguiente fila.</span>
+              </div>
             </div>
-            <div class="dip-results-actions">
-              <button type="button" class="radm-btn radm-btn-ghost" id="dipDescargarZip">Descargar todo (.zip)</button>
+
+            <div class="radm-actions">
+              <button type="button" class="radm-btn" id="calCargar">Cargar calificaciones</button>
             </div>
           </div>
         </div>
 
-        <div class="dip-tabpanel" id="dipTab-consultar">
+        <div class="dip-tabpanel" id="calTab-resultados">
+          <span class="radm-hint" id="calResultadosCuenta" style="display:block; margin:0 0 12px;"></span>
+          <div class="dip-table-wrap">
+            <table class="dip-table">
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>Curso</th>
+                  <th>Fase</th>
+                  <th>Alumnos</th>
+                  <th>Aprobado</th>
+                  <th>Participó</th>
+                  <th>No aprobado</th>
+                  <th>Asistencia</th>
+                  <th>Participación</th>
+                  <th>Proyecto</th>
+                  <th>Cargado</th>
+                </tr>
+              </thead>
+              <tbody id="calResultadosBody">
+                <tr><td colspan="11" class="radm-empty-row">Cargando resultados...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dip-tabpanel" id="calTab-reportes">
+          <div class="admin-empty">
+            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 16v-4M12 16V8M16 16v-6" stroke-linecap="round"/></svg></div>
+            <div class="admin-empty-title">Reportes — próximamente</div>
+            <div class="admin-empty-text">El reporte por grupo para el cliente se construirá sobre los resultados cargados.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-diplomas" style="--c:var(--blue-bright)">
+        <div id="dipToast" class="radm-toast" hidden></div>
+
+        <div class="dash-etabs" id="dipTabs">
+          <button type="button" class="dash-etab active" data-diptab="consultar">Consultar Diplomas</button>
+          <button type="button" class="dash-etab" data-diptab="plantillas">Plantilla</button>
+        </div>
+
+        <div class="dip-tabpanel active" id="dipTab-consultar">
           <div class="dip-filters">
             <div class="radm-field">
               <label>ALUMNO</label>
@@ -3439,7 +3456,7 @@
             </div>
             <div class="radm-field">
               <label>ESTATUS</label>
-              <select id="dipFEstatus" title="Anulado = diploma con un error, ya no vigente. El registro nunca se borra; la corrección es generar uno nuevo desde 'Crear Diplomas'.">
+              <select id="dipFEstatus" title="Anulado = diploma con un error, ya no vigente. El registro nunca se borra; la corrección es generar uno nuevo (los diplomas se generarán desde el grupo ya calificado).">
                 <option value="">Todos</option>
                 <option value="vigente">Vigente</option>
                 <option value="anulado">Anulado</option>
@@ -3623,7 +3640,7 @@
   const TITLES = {
     'tracking-view': 'Tracking View',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
-    diagnosticos: 'Diagnósticos', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
+    diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     modelo: 'Modelo', config: 'Configuración',
@@ -6547,20 +6564,482 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL DIPLOMAS — dos pestañas: "Crear Diplomas" (formulario de lote +
-  // grid pegable desde Excel + generación) y "Consultar Diplomas" (filtros +
-  // listado, ver PDF, anular). El buscador de Empresa es un componente
-  // reutilizado en ambas pestañas (crearAutocomplete) para no aprender dos
-  // interacciones distintas. La lista de "Consultar" se carga perezosa, solo
-  // la primera vez que se entra a esa pestaña, para no despertar la base
-  // serverless si Alfredo solo va a usar "Crear".
+  // PANEL CALIFICACIONES — tres pestañas: "Cargar" (elegir un grupo activo →
+  // tarjeta de solo lectura con sus datos → grid pegable desde Excel →
+  // registrar en la base), "Resultados" (una fila por grupo ya calificado,
+  // resumen calculado en el servidor) y "Reportes" (placeholder). Los alumnos
+  // NACEN aquí y siempre de un grupo — no hay forma de crear clientes ni
+  // prospectos desde este panel. Cargar es un solo paso (sin borrador): se
+  // registra y, si el grupo aún no está en Diplomas, se pide confirmar el
+  // cambio de fase. Volver a elegir un grupo ya calificado precarga lo
+  // guardado, y cargar de nuevo lo REEMPLAZA (con confirmación).
   (function(){
     const TOOL_NAMES = {
       excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
       powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
     };
+    const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
     const RESULTADOS = ['Aprobado', 'Participó', 'No Aprobado'];
     const COLS = ['nombre', 'participacion', 'asistencia', 'proyecto', 'resultado'];
+    const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
+    // Por iniciar y Cerrado no se califican; el orden es la prioridad en la
+    // lista (lo que más urge calificar primero)
+    const FASES_CALIFICABLES = ['Calificaciones', 'Proyecto', 'En curso', 'Diplomas'];
+    const FILAS_INICIALES = 10;
+    const MAX_SUGERENCIAS = 8;
+    const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>';
+
+    function escapeHtml(s){
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+    function toast(msg, ok){
+      const el = document.getElementById('calToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 6000);
+    }
+
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok){ const e = new Error(body.error || 'Error de red'); e.status = res.status; throw e; }
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok){ const e = new Error(body.error || 'Error de red'); e.status = res.status; throw e; }
+      return body;
+    }
+    // Reintento con pausas crecientes — la base SQL serverless apcweb-backoffice
+    // se autopausa y la primera consulta tras una pausa puede tardar hasta ~60s
+    // (mismo patrón que Clientes/Solicitudes/Cotizaciones/Encuestas/Diplomas,
+    // duplicado a propósito, este IIFE no comparte estado con esos módulos).
+    // El POST también reintenta porque cargarCalificaciones es idempotente
+    // (reemplaza el set del grupo), pero solo ante fallos de red/servidor (5xx),
+    // nunca ante un 4xx de validación — reintentarlo no lo arreglaría.
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function conReintento(fn){
+      for(let intento = 0; ; intento++){
+        try { return await fn(); }
+        catch(e){
+          if((e.status && e.status < 500) || intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+    const apiGetConReintento = url => conReintento(() => apiGet(url));
+    const apiPostConReintento = (url, data) => conReintento(() => apiPostJson(url, data));
+
+    function fmtFecha(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
+    }
+    function fmtFechaLocal(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+    function listaJson(s){
+      try { const v = JSON.parse(s || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; }
+    }
+    const nombreHerramientas = s => listaJson(s).map(h => TOOL_NAMES[h] || h).join(' + ');
+    const nombreNiveles = s => listaJson(s).map(n => NIVEL_LABEL[n] || n).join(', ');
+
+    // ── pestañas — Resultados se recarga SIEMPRE al entrar (no solo la
+    // primera vez), y Cargar refresca sus grupos al entrar al panel desde el
+    // sidebar, ver más abajo ──
+    let calTabActiva = 'cargar';
+    document.getElementById('calTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if(!btn) return;
+      calTabActiva = btn.dataset.caltab;
+      document.querySelectorAll('#calTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#panel-calificaciones .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'calTab-' + calTabActiva));
+      if(calTabActiva === 'resultados') cargarResultados();
+      if(calTabActiva === 'cargar') cargarGrupos();
+    });
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(!b || b.dataset.panel !== 'calificaciones') return;
+      if(calTabActiva === 'cargar') cargarGrupos();
+      if(calTabActiva === 'resultados') cargarResultados();
+    });
+
+    // ══ CARGAR ══
+    let grupos = [];           // solo los calificables (En curso … Diplomas)
+    let gruposCargados = false;
+    let grupoSel = null;
+    let existentes = 0;        // alumnos ya guardados del grupo elegido
+    let tokenSeleccion = 0;    // descarta respuestas viejas si se cambia de grupo a media carga
+
+    const inputQ = document.getElementById('calGrupoQ');
+    const lista = document.getElementById('calGrupoLista');
+    const hint = document.getElementById('calGruposHint');
+
+    const empresaDe = g => g.cliente_final || g.cliente || '—';
+    const rangoFase = g => { const i = FASES_CALIFICABLES.indexOf(g.fase); return i < 0 ? 99 : i; };
+
+    async function cargarGrupos(){
+      try {
+        const todos = await apiGetConReintento('/api/listGruposAdmin?vista=activos');
+        grupos = todos.filter(g => FASES_CALIFICABLES.includes(g.fase));
+        gruposCargados = true;
+        hint.textContent = grupos.length
+          ? `${grupos.length} grupo${grupos.length === 1 ? '' : 's'} en curso o cerrando — escribe para filtrar, o haz clic para ver los que más urgen.`
+          : 'No hay grupos en curso o cerrando — créalos primero en Grupos.';
+        renderAtajos();
+      } catch(e){
+        hint.textContent = 'No se pudieron cargar los grupos: ' + e.message + ' — cambia de pestaña y vuelve para reintentar.';
+      }
+    }
+
+    // grupos ya terminados de dar (Proyecto / Calificaciones) — lo que de
+    // verdad toca calificar hoy, a un clic
+    function renderAtajos(){
+      const pendientes = grupos.filter(g => g.fase === 'Calificaciones' || g.fase === 'Proyecto')
+        .sort((a, b) => rangoFase(a) - rangoFase(b) || new Date(b.fecha_fin || 0) - new Date(a.fecha_fin || 0))
+        .slice(0, 6);
+      document.getElementById('calAtajos').hidden = !pendientes.length || !!grupoSel;
+      document.getElementById('calAtajosLista').innerHTML = pendientes.map(g =>
+        `<button type="button" class="cal-atajo" data-id="${g.id}">${escapeHtml(empresaDe(g))}${g.nombre_curso ? ' · ' + escapeHtml(g.nombre_curso) : ''}<small>${escapeHtml(g.fase)}</small></button>`
+      ).join('');
+    }
+    document.getElementById('calAtajosLista').addEventListener('click', e => {
+      const b = e.target.closest('.cal-atajo');
+      if(b) elegirGrupo(b.dataset.id);
+    });
+
+    function mostrarSugerencias(){
+      if(!gruposCargados){ lista.hidden = true; return; }
+      const q = norm(inputQ.value.trim());
+      const coincidencias = grupos
+        .filter(g => !q || norm([empresaDe(g), g.cliente, g.nombre_curso, g.grupo_codigo, g.instructor, g.fase].join(' ')).includes(q))
+        .sort((a, b) => rangoFase(a) - rangoFase(b) || new Date(b.fecha_fin || 0) - new Date(a.fecha_fin || 0));
+      if(!coincidencias.length){
+        lista.innerHTML = '<div class="dip-autocomplete-new">Ningún grupo activo coincide.</div>';
+        lista.hidden = false;
+        return;
+      }
+      lista.innerHTML = coincidencias.slice(0, MAX_SUGERENCIAS).map(g =>
+        `<div class="dip-autocomplete-item" data-id="${g.id}"><b>${escapeHtml(empresaDe(g))}</b><span>${escapeHtml(g.nombre_curso || 'sin curso')} · ${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}</span><span class="enc-fase">${escapeHtml(g.fase)}</span></div>`
+      ).join('') + (coincidencias.length > MAX_SUGERENCIAS ? `<div class="dip-autocomplete-new">…y ${coincidencias.length - MAX_SUGERENCIAS} más — sigue escribiendo para acotar.</div>` : '');
+      lista.hidden = false;
+    }
+    inputQ.addEventListener('input', mostrarSugerencias);
+    inputQ.addEventListener('focus', mostrarSugerencias);
+    lista.addEventListener('click', e => {
+      const item = e.target.closest('.dip-autocomplete-item');
+      if(item) elegirGrupo(item.dataset.id);
+    });
+    document.addEventListener('click', e => {
+      if(!inputQ.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+    });
+
+    // ── tarjeta de solo lectura: si algo está mal se corrige en Grupos ──
+    function renderCard(g){
+      const empresa = empresaDe(g);
+      document.getElementById('calCardTitulo').textContent = empresa;
+      document.getElementById('calCardSub').textContent = [g.cliente_final ? 'vía ' + g.cliente : '', g.grupo_codigo || ''].filter(Boolean).join(' · ');
+      document.getElementById('calCardFase').textContent = g.fase;
+
+      const herramienta = nombreHerramientas(g.herramientas);
+      const horas = g.horas != null ? Number(g.horas) : null;
+      const fechas = g.fecha_inicio || g.fecha_fin ? `${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}` : '';
+      const datos = [
+        ['Herramienta', herramienta, true],
+        ['Curso', g.nombre_curso, true],
+        ['Nivel', nombreNiveles(g.niveles), false],
+        ['Horas', horas ? horas + ' h' : '', true],
+        ['Modalidad', g.modalidad, false],
+        ['Instructor', g.instructor, true],
+        ['Fechas', fechas, true],
+      ];
+      document.getElementById('calCardDatos').innerHTML = datos.map(([k, v, requerido]) =>
+        `<div><div class="cal-dato-k">${k}</div><div class="cal-dato-v ${!v && requerido ? 'falta' : ''}">${v ? escapeHtml(v) : (requerido ? 'falta' : '—')}</div></div>`
+      ).join('');
+
+      const faltan = datos.filter(([, v, requerido]) => requerido && !v).map(([k]) => k.toLowerCase());
+      avisoCard(faltan.length ? `Faltan datos del grupo: ${faltan.join(', ')}. No bloquea la carga, pero los diplomas los necesitarán — complétalos en Grupos.` : '');
+    }
+    function avisoCard(texto){
+      const el = document.getElementById('calCardAviso');
+      el.hidden = !texto;
+      el.innerHTML = texto ? ICO_INFO + '<span>' + escapeHtml(texto) + '</span>' : '';
+    }
+
+    // ── grid de alumnos, pegable desde Excel ──
+    const gridBody = document.getElementById('calGridBody');
+
+    function crearFilaVacia(){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="dip-col-nombre"><input type="text" data-col="nombre"></td>
+        <td class="dip-col-num"><input type="text" data-col="participacion"></td>
+        <td class="dip-col-num"><input type="text" data-col="asistencia"></td>
+        <td class="dip-col-num"><input type="text" data-col="proyecto"></td>
+        <td class="dip-col-resultado"><input type="text" data-col="resultado" list="calResultadosList"></td>
+        <td><button type="button" class="radm-icon-btn radm-icon-danger cal-row-del" title="Quitar fila">${ICO_TRASH}</button></td>
+      `;
+      return tr;
+    }
+    function vaciarGrid(n){
+      gridBody.innerHTML = '';
+      for(let i = 0; i < Math.max(n || 0, FILAS_INICIALES); i++) gridBody.appendChild(crearFilaVacia());
+    }
+    const celda = (tr, col) => tr.querySelector(`input[data-col="${col}"]`);
+    const gridSucio = () => Array.from(gridBody.querySelectorAll('input')).some(i => i.value.trim());
+
+    // mismo criterio que calificaciones-calc.js (el servidor es el que manda);
+    // aquí solo para marcar la celda en rojo mientras se captura/pega
+    function errorPct(v){
+      const t = String(v || '').trim();
+      if(!t) return 'falta';
+      const n = Number(t.replace('%', '').replace(',', '.').trim());
+      if(!Number.isFinite(n)) return 'no es un número';
+      if(n < 0 || n > 100) return 'fuera de 0-100';
+      if(!t.endsWith('%') && n > 0 && n < 1) return 'parece fracción (usa 85 u 85%)';
+      return '';
+    }
+    function marcar(input){
+      const col = input.dataset.col;
+      const v = input.value.trim();
+      let malo = false;
+      if(col === 'resultado') malo = v !== '' && !RESULTADOS.includes(v);
+      else if(col !== 'nombre') malo = v !== '' && !!errorPct(v);
+      input.classList.toggle('dip-invalid', malo);
+    }
+
+    document.getElementById('calAgregarFila').addEventListener('click', () => gridBody.appendChild(crearFilaVacia()));
+
+    gridBody.addEventListener('click', e => {
+      const del = e.target.closest('.cal-row-del');
+      if(!del) return;
+      const tr = del.closest('tr');
+      if(gridBody.children.length > 1) tr.remove();
+      else tr.querySelectorAll('input').forEach(i => { i.value = ''; i.classList.remove('dip-invalid'); });
+    });
+    gridBody.addEventListener('input', e => marcar(e.target));
+
+    // Enter baja a la misma columna de la siguiente fila (la crea si hace falta)
+    gridBody.addEventListener('keydown', e => {
+      if(e.key !== 'Enter') return;
+      const input = e.target.closest('input');
+      if(!input) return;
+      e.preventDefault();
+      const filas = Array.from(gridBody.children);
+      let siguiente = filas[filas.indexOf(input.closest('tr')) + 1];
+      if(!siguiente){ siguiente = crearFilaVacia(); gridBody.appendChild(siguiente); }
+      const sig = celda(siguiente, input.dataset.col);
+      if(sig) sig.focus();
+    });
+
+    // pegar tipo hoja de cálculo: reparte filas/columnas sobre la cuadrícula
+    // a partir de la celda donde se hizo Ctrl+V, creando filas si hacen falta
+    gridBody.addEventListener('paste', e => {
+      const input = e.target.closest('input');
+      if(!input) return;
+      e.preventDefault();
+      const texto = (e.clipboardData || window.clipboardData).getData('text');
+      const filas = texto.split(/\r\n|\n|\r/).filter((f, i, arr) => !(i === arr.length - 1 && f === ''));
+      const inicio = Array.from(gridBody.children).indexOf(input.closest('tr'));
+      const colInicial = COLS.indexOf(input.dataset.col);
+
+      filas.forEach((filaTexto, i) => {
+        let tr = gridBody.children[inicio + i];
+        if(!tr){ tr = crearFilaVacia(); gridBody.appendChild(tr); }
+        filaTexto.split('\t').forEach((valor, j) => {
+          const col = COLS[colInicial + j];
+          if(!col) return;
+          const c = celda(tr, col);
+          if(!c) return;
+          c.value = valor.trim();
+          marcar(c);
+        });
+      });
+    });
+
+    function leerFilas(){
+      return Array.from(gridBody.querySelectorAll('tr')).map(tr => {
+        const get = col => celda(tr, col).value.trim();
+        return { nombreCompleto:get('nombre'), participacion:get('participacion'), asistencia:get('asistencia'), proyecto:get('proyecto'), resultado:get('resultado') };
+      }).filter(f => f.nombreCompleto || f.resultado || f.participacion || f.asistencia || f.proyecto);
+    }
+
+    // ── elegir / cambiar / limpiar el grupo ──
+    function limpiarSeleccion(){
+      tokenSeleccion++;
+      grupoSel = null; existentes = 0;
+      inputQ.value = '';
+      document.getElementById('calGrupoCard').hidden = true;
+      document.getElementById('calGridSection').hidden = true;
+      vaciarGrid();
+      renderAtajos();
+    }
+
+    async function elegirGrupo(id){
+      const g = grupos.find(x => String(x.id) === String(id));
+      if(!g) return;
+      if(grupoSel && grupoSel.id === g.id){ lista.hidden = true; return; }
+      if(grupoSel && grupoSel.id !== g.id && gridSucio() && !confirm('Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?')) return;
+
+      const mio = ++tokenSeleccion;
+      grupoSel = g; existentes = 0;
+      inputQ.value = `${empresaDe(g)}${g.nombre_curso ? ' · ' + g.nombre_curso : ''}`;
+      lista.hidden = true;
+      document.getElementById('calAtajos').hidden = true;
+      renderCard(g);
+      document.getElementById('calGrupoCard').hidden = false;
+      vaciarGrid();
+      document.getElementById('calGridSection').hidden = false;
+
+      // ¿ya tiene calificaciones guardadas? entonces el grid muestra lo guardado
+      try {
+        const previas = await apiGetConReintento('/api/getCalificacionesGrupo?grupoId=' + g.id);
+        if(mio !== tokenSeleccion) return;
+        if(previas.length){
+          existentes = previas.length;
+          vaciarGrid(previas.length);
+          previas.forEach((p, i) => {
+            const tr = gridBody.children[i];
+            celda(tr, 'nombre').value = p.nombre || '';
+            celda(tr, 'participacion').value = p.participacion ?? '';
+            celda(tr, 'asistencia').value = p.asistencia ?? '';
+            celda(tr, 'proyecto').value = p.proyecto ?? '';
+            celda(tr, 'resultado').value = p.resultado || '';
+          });
+          const cuando = fmtFechaLocal(previas[0].fecha_carga);
+          const extra = document.getElementById('calCardAviso').textContent;
+          avisoCard(`Este grupo ya tiene ${previas.length} alumno${previas.length === 1 ? '' : 's'} cargado${previas.length === 1 ? '' : 's'} (${cuando}). El grid muestra lo guardado; al cargar de nuevo se reemplaza.` + (extra ? ' ' + extra : ''));
+        }
+      } catch(e){
+        if(mio === tokenSeleccion) toast('No se pudo revisar si el grupo ya tenía calificaciones: ' + e.message, false);
+      }
+    }
+
+    document.getElementById('calCardCambiar').addEventListener('click', () => {
+      if(gridSucio() && !confirm('Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?')) return;
+      limpiarSeleccion();
+      inputQ.focus();
+    });
+
+    // ── cargar ──
+    document.getElementById('calCargar').addEventListener('click', async () => {
+      if(!grupoSel){ toast('Elige un grupo primero.', false); return; }
+      const g = grupoSel;
+      const filas = leerFilas();
+      if(!filas.length){ toast('Pega o captura al menos un alumno.', false); return; }
+
+      const problemas = [];
+      filas.forEach((f, i) => {
+        const n = i + 1;
+        if(!f.nombreCompleto) problemas.push(`fila ${n}: falta el nombre`);
+        if(!RESULTADOS.includes(f.resultado)) problemas.push(`fila ${n}: resultado inválido`);
+        ['participacion', 'asistencia', 'proyecto'].forEach(c => { const err = errorPct(f[c]); if(err) problemas.push(`fila ${n}: ${c === 'participacion' ? 'participación' : c} ${err}`); });
+      });
+      if(problemas.length){
+        toast('Revisa el grid — ' + problemas.slice(0, 3).join(' · ') + (problemas.length > 3 ? ` (y ${problemas.length - 3} más)` : ''), false);
+        return;
+      }
+
+      if(existentes && !confirm(`Este grupo ya tiene ${existentes} alumno${existentes === 1 ? '' : 's'} cargado${existentes === 1 ? '' : 's'}. Se reemplazarán por los ${filas.length} del grid. ¿Continuar?`)) return;
+
+      const btn = document.getElementById('calCargar');
+      btn.disabled = true; btn.textContent = 'Cargando...';
+      try {
+        const r = await apiPostConReintento('/api/cargarCalificaciones', { grupoId: g.id, alumnos: filas });
+        const descripcion = `${empresaDe(g)}${g.nombre_curso ? ' · ' + g.nombre_curso : ''}`;
+        let msg = `${r.alumnos} calificaci${r.alumnos === 1 ? 'ón cargada' : 'ones cargadas'} de ${descripcion}. Ya aparece en Resultados.`;
+        let ok = true;
+
+        // ventana de confirmación del cambio de fase — nunca se mueve sola
+        const idxActual = FASES.indexOf(r.fase);
+        const idxDiplomas = FASES.indexOf('Diplomas');
+        if(idxActual >= 0 && idxActual < idxDiplomas){
+          if(confirm(`Calificaciones cargadas (${r.alumnos} alumno${r.alumnos === 1 ? '' : 's'}).\n\n¿Mover el grupo de "${r.fase}" a "Diplomas"?`)){
+            try {
+              // avanzarFaseGrupo solo permite la fase inmediata siguiente: se
+              // avanza de una en una y cada paso queda en el historial del grupo
+              for(let i = idxActual + 1; i <= idxDiplomas; i++){
+                await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: FASES[i] });
+              }
+              msg += ' Grupo movido a Diplomas.';
+            } catch(e){
+              ok = false;
+              msg = `Las calificaciones sí se guardaron, pero no se pudo mover la fase: ${e.message} Muévela desde Grupos.`;
+            }
+          } else {
+            msg += ` El grupo sigue en "${r.fase}".`;
+          }
+        }
+        toast(msg, ok);
+        limpiarSeleccion();
+        cargarGrupos(); // las fases cambiaron: refresca lista y atajos
+      } catch(e){
+        toast('No se pudieron cargar las calificaciones: ' + e.message, false);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Cargar calificaciones';
+      }
+    });
+
+    // ══ RESULTADOS ══ — una fila por grupo calificado; el resumen lo calcula
+    // el servidor con GROUP BY (no se guarda). El detalle por alumno, con
+    // pill por registro, queda para la 2ª fase.
+    const pct = v => v == null ? '—' : Math.round(v) + '%';
+    const conPct = (n, total) => total ? `${n} <span class="diag-nombre-sub" style="display:inline;">(${Math.round(n * 100 / total)}%)</span>` : String(n);
+
+    async function cargarResultados(){
+      const body = document.getElementById('calResultadosBody');
+      const cuenta = document.getElementById('calResultadosCuenta');
+      body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Cargando resultados... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
+      try {
+        const filas = await apiGetConReintento('/api/listCalificacionesAdmin');
+        cuenta.textContent = filas.length ? `${filas.length} grupo${filas.length === 1 ? '' : 's'} calificado${filas.length === 1 ? '' : 's'}` : '';
+        if(!filas.length){
+          body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar.</td></tr>';
+          return;
+        }
+        body.innerHTML = filas.map(r => `
+          <tr>
+            <td><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}</td>
+            <td>${r.nombre_curso ? escapeHtml(r.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))} · ${fmtFecha(r.fecha_inicio)} – ${fmtFecha(r.fecha_fin)}</div></td>
+            <td><span class="enc-fase">${escapeHtml(r.fase)}</span></td>
+            <td class="radm-mono">${r.alumnos}</td>
+            <td class="radm-mono">${conPct(r.aprobados, r.alumnos)}</td>
+            <td class="radm-mono">${conPct(r.participaron, r.alumnos)}</td>
+            <td class="radm-mono">${conPct(r.no_aprobados, r.alumnos)}</td>
+            <td class="radm-mono">${pct(r.prom_asistencia)}</td>
+            <td class="radm-mono">${pct(r.prom_participacion)}</td>
+            <td class="radm-mono">${pct(r.prom_proyecto)}</td>
+            <td class="radm-mono">${fmtFechaLocal(r.ultima_carga)}</td>
+          </tr>`).join('');
+      } catch(e){
+        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    vaciarGrid();
+    // Cargar es la pestaña de entrada, pero los grupos no se piden hasta que
+    // Alfredo entra al panel (ver el listener del sidebar arriba) — no al
+    // cargar /admin, para no despertar la base por un panel que ni se ve.
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PANEL DIPLOMAS — pestañas "Consultar Diplomas" (filtros + listado, ver
+  // PDF, anular) y "Plantilla" (fondo, firmas, PDF de prueba). "Crear Diplomas"
+  // se quitó (2026-09-21): los alumnos ahora nacen en Calificaciones, y los
+  // diplomas se generarán desde el grupo ya calificado (falta reconstruir esa
+  // parte — el backend generarDiplomas sigue desplegado, sin uso en el panel).
+  (function(){
+    const TOOL_NAMES = {
+      excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
+      powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
+    };
     const ICO_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
     const ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>';
     const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -6614,14 +7093,22 @@
     }
 
     // ── pestañas ──
-    let dipListaCargada = false;
+    let dipConsultarActiva = true; // Consultar es la pestaña de entrada
     document.getElementById('dipTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
       const key = btn.dataset.diptab;
       document.querySelectorAll('#dipTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('#panel-diplomas .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dipTab-' + key));
-      if(key === 'consultar' && !dipListaCargada){ dipListaCargada = true; buscarDiplomas(); }
+      dipConsultarActiva = (key === 'consultar');
+      if(dipConsultarActiva) buscarDiplomas();
+    });
+
+    // al entrar al panel desde el sidebar la lista se refresca (no solo al
+    // cargar /admin) — si Alfredo estaba en otra pestaña del panel, no se toca
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(b && b.dataset.panel === 'diplomas' && dipConsultarActiva) buscarDiplomas();
     });
 
     // ── autocompletado de Empresa, reutilizado en Crear y Consultar ──
@@ -6680,208 +7167,7 @@
       };
     }
 
-    const dipEmpresaAuto = crearAutocomplete({ inputId:'dipEmpresaNombre', listId:'dipEmpresaLista', codigoId:'dipEmpresaCodigo' });
     const dipFEmpresaAuto = crearAutocomplete({ inputId:'dipFEmpresaNombre', listId:'dipFEmpresaLista' });
-
-    // ── grid de alumnos, pegable desde Excel ──
-    function crearFilaVacia(){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="dip-col-nombre"><input type="text" data-col="nombre"></td>
-        <td class="dip-col-num"><input type="text" data-col="participacion"></td>
-        <td class="dip-col-num"><input type="text" data-col="asistencia"></td>
-        <td class="dip-col-num"><input type="text" data-col="proyecto"></td>
-        <td class="dip-col-resultado"><input type="text" data-col="resultado" list="dipResultadosList"></td>
-        <td><button type="button" class="radm-icon-btn radm-icon-danger dip-row-del" title="Quitar fila">${ICO_TRASH}</button></td>
-      `;
-      return tr;
-    }
-
-    const dipGridBody = document.getElementById('dipGridBody');
-    document.getElementById('dipAgregarFila').addEventListener('click', () => dipGridBody.appendChild(crearFilaVacia()));
-    dipGridBody.appendChild(crearFilaVacia()); // arranca con una fila vacía
-
-    dipGridBody.addEventListener('click', e => {
-      const del = e.target.closest('.dip-row-del');
-      if(!del) return;
-      const tr = del.closest('tr');
-      if(dipGridBody.children.length > 1) tr.remove();
-      else tr.querySelectorAll('input').forEach(i => i.value = '');
-    });
-
-    dipGridBody.addEventListener('input', e => {
-      if(e.target.dataset.col === 'resultado'){
-        const v = e.target.value.trim();
-        e.target.classList.toggle('dip-invalid', v !== '' && !RESULTADOS.includes(v));
-      }
-    });
-
-    // Enter baja a la misma columna de la siguiente fila (la crea si hace falta) —
-    // para capturar rápido sin usar el mouse, sin depender de pegar desde Excel
-    dipGridBody.addEventListener('keydown', e => {
-      if(e.key !== 'Enter') return;
-      const input = e.target.closest('input');
-      if(!input) return;
-      e.preventDefault();
-      const filas = Array.from(dipGridBody.children);
-      const filaIdx = filas.indexOf(input.closest('tr'));
-      let siguienteTr = filas[filaIdx + 1];
-      if(!siguienteTr){ siguienteTr = crearFilaVacia(); dipGridBody.appendChild(siguienteTr); }
-      const siguienteInput = siguienteTr.querySelector(`input[data-col="${input.dataset.col}"]`);
-      if(siguienteInput) siguienteInput.focus();
-    });
-
-    // pegar tipo hoja de cálculo: reparte filas/columnas sobre la cuadrícula
-    // a partir de la celda donde se hizo Ctrl+V, creando filas nuevas si hacen falta
-    dipGridBody.addEventListener('paste', e => {
-      const input = e.target.closest('input');
-      if(!input) return;
-      e.preventDefault();
-      const texto = (e.clipboardData || window.clipboardData).getData('text');
-      const filas = texto.split(/\r\n|\n|\r/).filter((f, i, arr) => !(i === arr.length - 1 && f === ''));
-      const trInicial = input.closest('tr');
-      const filaInicialIdx = Array.from(dipGridBody.children).indexOf(trInicial);
-      const colInicialIdx = COLS.indexOf(input.dataset.col);
-
-      filas.forEach((filaTexto, i) => {
-        let tr = dipGridBody.children[filaInicialIdx + i];
-        if(!tr){ tr = crearFilaVacia(); dipGridBody.appendChild(tr); }
-        filaTexto.split('\t').forEach((valor, j) => {
-          const colIdx = colInicialIdx + j;
-          if(colIdx >= COLS.length) return;
-          const celda = tr.querySelector(`input[data-col="${COLS[colIdx]}"]`);
-          if(!celda) return;
-          celda.value = valor.trim();
-          if(COLS[colIdx] === 'resultado'){
-            celda.classList.toggle('dip-invalid', valor.trim() !== '' && !RESULTADOS.includes(valor.trim()));
-          }
-        });
-      });
-    });
-
-    // ── generar lote ──
-    let dipUltimosResultados = [];
-    let dipUltimoCliente = null;
-    let dipUltimaHerramienta = '';
-
-    document.getElementById('dipGenerar').addEventListener('click', async () => {
-      const instructor = document.getElementById('dipInstructor').value.trim();
-      const herramienta = document.getElementById('dipHerramienta').value;
-      const curso = document.getElementById('dipCurso').value.trim();
-      const nivel = document.getElementById('dipNivel').value.trim();
-      const horas = document.getElementById('dipHoras').value;
-      const grupo = document.getElementById('dipGrupo').value.trim();
-      const fechaInicio = document.getElementById('dipFechaInicio').value;
-      const fechaFin = document.getElementById('dipFechaFin').value;
-
-      if(!instructor || !herramienta || !curso || !nivel || !horas || !grupo || !fechaInicio || !fechaFin){
-        toast('Completa todos los datos del lote.', false);
-        return;
-      }
-
-      const seleccionado = dipEmpresaAuto.getSeleccionado();
-      const empresaNombre = document.getElementById('dipEmpresaNombre').value.trim();
-      const empresaCodigo = document.getElementById('dipEmpresaCodigo').value.trim();
-      let empresa;
-      if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
-      else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
-      else { toast('Selecciona una empresa existente o captura nombre + código para una nueva.', false); return; }
-
-      const filas = Array.from(dipGridBody.querySelectorAll('tr')).map(tr => {
-        const get = col => tr.querySelector(`input[data-col="${col}"]`).value.trim();
-        return { nombreCompleto:get('nombre'), participacion:get('participacion'), asistencia:get('asistencia'), proyecto:get('proyecto'), resultado:get('resultado') };
-      }).filter(f => f.nombreCompleto || f.resultado);
-
-      if(!filas.length){ toast('Agrega al menos un alumno.', false); return; }
-
-      const invalidas = filas.filter(f => !f.nombreCompleto || !f.participacion || !f.asistencia || !f.proyecto || !RESULTADOS.includes(f.resultado));
-      if(invalidas.length){ toast('Revisa las filas: faltan datos o el resultado no coincide exacto (Aprobado / Participó / No Aprobado).', false); return; }
-
-      const btn = document.getElementById('dipGenerar');
-      btn.disabled = true; btn.textContent = 'Generando...';
-      try {
-        const data = await apiPostJson('/api/generarDiplomas', {
-          instructor, herramienta, curso, nivel, fechaInicio, fechaFin, horas:Number(horas), grupo, empresa,
-          alumnos: filas.map(f => ({
-            nombreCompleto: f.nombreCompleto, resultado: f.resultado,
-            proyecto: f.proyecto ? Number(f.proyecto) : null,
-            asistencia: f.asistencia ? Number(f.asistencia) : null,
-            participacion: f.participacion ? Number(f.participacion) : null,
-          })),
-        });
-        dipUltimosResultados = data.resultados || [];
-        dipUltimoCliente = data.cliente || null;
-        dipUltimaHerramienta = herramienta;
-        renderResultados();
-        const ok = dipUltimosResultados.filter(r => !r.error).length;
-        toast(`Lote generado: ${ok} de ${dipUltimosResultados.length} diplomas.`, ok === dipUltimosResultados.length);
-      } catch(e){
-        toast('No se pudo generar el lote: ' + e.message, false);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Generar diplomas';
-      }
-    });
-
-    function renderResultados(){
-      const body = document.getElementById('dipResultadosBody');
-      body.innerHTML = dipUltimosResultados.map(r => `
-        <tr>
-          <td class="radm-mono">${escapeHtml(r.folio || '—')}</td>
-          <td>${escapeHtml(r.nombre)}</td>
-          <td>${escapeHtml(r.resultado || '—')}</td>
-          <td>${r.error ? `<span style="color:var(--bad)">${escapeHtml(r.error)}</span>` : (r.pdfGenerado ? 'OK' : 'Sin PDF (No Aprobado)')}</td>
-          <td>${r.pdfGenerado ? `<button type="button" class="radm-icon-btn dip-ver-btn" data-folio="${escapeHtml(r.folio)}" title="Ver PDF">${ICO_EYE}</button>` : ''}</td>
-        </tr>
-      `).join('');
-      document.getElementById('dipResultadosSection').hidden = false;
-    }
-
-    document.getElementById('dipResultadosBody').addEventListener('click', e => {
-      const btn = e.target.closest('.dip-ver-btn');
-      if(!btn) return;
-      window.open('/api/getDiplomaPdf?folio=' + encodeURIComponent(btn.dataset.folio), '_blank');
-    });
-
-    // Diplomas_{codigo cliente}_{herramienta}_{consecutivo min}_{consecutivo max} —
-    // el consecutivo se extrae del propio folio (formato AP_HERRAMIENTA_CODIGO_AA-N),
-    // sobre TODOS los folios del lote (incluye los "No Aprobado" sin PDF, para que el
-    // rango refleje el lote completo aunque el zip no traiga todos los archivos).
-    function nombreZip(){
-      const consecutivos = dipUltimosResultados
-        .map(r => { const m = /-(\d+)$/.exec(r.folio || ''); return m ? Number(m[1]) : null; })
-        .filter(n => n !== null);
-      const min = consecutivos.length ? Math.min(...consecutivos) : '';
-      const max = consecutivos.length ? Math.max(...consecutivos) : '';
-      const codigo = (dipUltimoCliente && dipUltimoCliente.codigo) || 'CLIENTE';
-      const herramienta = (dipUltimaHerramienta || '').toUpperCase() || 'DIPLOMAS';
-      const rango = min === max ? `${min}` : `${min}_${max}`;
-      return `Diplomas_${codigo}_${herramienta}_${rango}.zip`;
-    }
-
-    document.getElementById('dipDescargarZip').addEventListener('click', async () => {
-      const generados = dipUltimosResultados.filter(r => r.pdfGenerado);
-      if(!generados.length){ toast('No hay PDFs para descargar en este lote.', false); return; }
-      const btn = document.getElementById('dipDescargarZip');
-      btn.disabled = true; btn.textContent = 'Preparando zip...';
-      try {
-        const zip = new JSZip();
-        for(const r of generados){
-          const resp = await fetch('/api/getDiplomaPdf?folio=' + encodeURIComponent(r.folio));
-          if(!resp.ok) continue;
-          zip.file(r.folio + '.pdf', await resp.blob());
-        }
-        const zipBlob = await zip.generateAsync({ type:'blob' });
-        const url = URL.createObjectURL(zipBlob);
-        const a = document.createElement('a');
-        a.href = url; a.download = nombreZip();
-        document.body.appendChild(a); a.click(); a.remove();
-        URL.revokeObjectURL(url);
-      } catch(e){
-        toast('No se pudo armar el zip: ' + e.message, false);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Descargar todo (.zip)';
-      }
-    });
 
     // ── consultar diplomas ──
     async function buscarDiplomas(){
@@ -6921,7 +7207,7 @@
             <td><span class="dip-status ${d.estatus}"><span class="dip-status-dot"></span>${d.estatus === 'anulado' ? 'Anulado' : 'Vigente'}</span></td>
             <td>
               ${d.blob_path ? `<button type="button" class="radm-icon-btn dip-lista-ver" title="Ver PDF">${ICO_EYE}</button>` : ''}
-              ${d.estatus === 'vigente' ? `<button type="button" class="radm-icon-btn radm-icon-danger dip-lista-anular" title="Anular: marca el registro como no vigente sin borrarlo. Para corregirlo, genera un diploma nuevo desde 'Crear Diplomas'.">${ICO_X}</button>` : ''}
+              ${d.estatus === 'vigente' ? `<button type="button" class="radm-icon-btn radm-icon-danger dip-lista-anular" title="Anular: marca el registro como no vigente sin borrarlo. Para corregirlo, genera un diploma nuevo.">${ICO_X}</button>` : ''}
             </td>
           </tr>
         `).join('');
@@ -6963,13 +7249,12 @@
 
     // ── plantillas (fondo, firmas por instructor, PDF de prueba) ──
     // la lista de instructores ya no está hardcodeada — se carga de
-    // getInstructores y alimenta los 2 selectores (Crear Diplomas y esta
-    // pestaña) más la cuadrícula de firmas, todo desde un solo lugar
+    // getInstructores y alimenta el selector del PDF de prueba más la
+    // cuadrícula de firmas, todo desde un solo lugar
     let dipInstructores = [];
 
     function actualizarSelectsInstructor(){
       const opciones = dipInstructores.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-      document.getElementById('dipInstructor').innerHTML = '<option value="">Selecciona...</option>' + opciones;
       document.getElementById('dipPruebaInstructor').innerHTML = opciones;
     }
 

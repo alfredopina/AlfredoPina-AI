@@ -1340,7 +1340,9 @@
     font-family:var(--mono); font-size:11px; font-weight:600; color:#fca5a5;
     background-color:rgba(220,38,38,.15); border-radius:5px; padding:2px 6px; white-space:nowrap; flex:none;
   }
-  .int-track .step-item.next .step-node{ cursor:pointer; border-style:dashed; border-color:var(--blue-bright); }
+  .int-track .step-item.movible .step-node{ cursor:pointer; }
+  .int-track .step-item.movible:not(.next) .step-node:hover{ background:var(--blue-soft); border-color:var(--blue-bright); }
+  .int-track .step-item.next .step-node{ border-style:dashed; border-color:var(--blue-bright); }
   .int-track .step-item.next .step-node:hover{ background:var(--blue-soft); }
   .step-next-hint{
     position:absolute; top:-26px; left:50%; transform:translateX(-50%); white-space:nowrap;
@@ -11273,11 +11275,11 @@
   // (Consultar/Crear) y Tracking Operación, mismo criterio que
   // window.TemarioSelector arriba. render({fase, historial, variant}) regresa
   // el HTML de las 3 variantes del mockup (mini/expandido/interactivo);
-  // wireInteractivo(containerEl, onAvanzar) engancha el clic del único nodo
-  // clicable (el inmediato siguiente a la fase actual) después de insertar
-  // ese HTML en el DOM — nunca dispara la llamada a la API él mismo, deja que
-  // quien lo use decida qué hacer tras el confirm() (avanzarFaseGrupo + toast
-  // + refrescar).
+  // wireInteractivo(containerEl, onMover) engancha el clic de CUALQUIER nodo
+  // que no sea la fase actual (avanzar una o varias fases, o regresar) después
+  // de insertar ese HTML en el DOM — nunca dispara la llamada a la API él
+  // mismo, deja que quien lo use decida qué hacer tras el confirm()
+  // (avanzarFaseGrupo + toast + refrescar).
   window.FaseStepper = (function(){
     const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
     const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -11339,29 +11341,42 @@
         const done = i < idxActual;
         const current = i === idxActual;
         const esSiguiente = variant === 'interactivo' && i === idxActual + 1;
-        const clases = ['step-item', done ? 'done' : '', current ? 'current' : '', esSiguiente ? 'next' : ''].filter(Boolean).join(' ');
+        const esMovible = variant === 'interactivo' && i !== idxActual;
+        const clases = ['step-item', done ? 'done' : '', current ? 'current' : '', esSiguiente ? 'next' : '', esMovible ? 'movible' : ''].filter(Boolean).join(' ');
         const claseNodo = ['step-node', done ? 'done' : '', current ? 'current' : ''].filter(Boolean).join(' ');
         const fecha = fechaPorFase[f];
         return `<div class="${clases}" style="position:relative">
           ${esSiguiente ? '<span class="step-next-hint">Toca para avanzar</span>' : ''}
-          <span class="${claseNodo}"${esSiguiente ? ` data-fase-siguiente="${f}"` : ''}>${done ? ICO_CHECK : ''}</span>
+          <span class="${claseNodo}"${esMovible ? ` data-fase-destino="${f}" title="${i < idxActual ? 'Regresar el grupo a' : 'Mover el grupo a'} ${f}"` : ''}>${done ? ICO_CHECK : ''}</span>
           ${variant !== 'mini' ? `<div class="step-label">${f}</div>` : ''}
           ${variant === 'expandido' && fecha ? `<div class="step-date">${fmtFechaCorta(fecha)}</div>` : ''}
         </div>`;
       }).join('');
 
-      return `<div class="step-track ${claseTrack}">${nodos}</div>` + (variant === 'mini' ? `<div class="mini-caption">${fase}</div>` : '');
+      return `<div class="step-track ${claseTrack}" data-fase-actual="${fase}">${nodos}</div>` + (variant === 'mini' ? `<div class="mini-caption">${fase}</div>` : '');
     }
 
-    // Engancha el clic del nodo "siguiente" dentro de containerEl (debe
+    // Engancha el clic de cada nodo movible dentro de containerEl (debe
     // llamarse después de insertar el HTML de render({variant:'interactivo'})
-    // en el DOM). onAvanzar(faseNueva) se llama solo tras confirmar.
-    function wireInteractivo(containerEl, onAvanzar){
-      containerEl.querySelectorAll('.step-item.next .step-node[data-fase-siguiente]').forEach(node => {
+    // en el DOM). onMover(faseNueva) se llama solo tras confirmar; el texto
+    // del confirm() distingue avanzar 1 fase, saltar varias y regresar (y avisa
+    // lo que cambia al regresar o al reabrir un grupo Cerrado).
+    function wireInteractivo(containerEl, onMover){
+      const track = containerEl.querySelector('.step-track');
+      const faseActual = track ? track.dataset.faseActual : '';
+      containerEl.querySelectorAll('.step-node[data-fase-destino]').forEach(node => {
         node.addEventListener('click', () => {
-          const faseNueva = node.dataset.faseSiguiente;
-          if(!confirm(`¿Avanzar el grupo a la fase "${faseNueva}"?`)) return;
-          onAvanzar(faseNueva);
+          const faseNueva = node.dataset.faseDestino;
+          const delta = FASES.indexOf(faseNueva) - FASES.indexOf(faseActual);
+          let pregunta;
+          if(delta === 1) pregunta = `¿Avanzar el grupo a la fase "${faseNueva}"?`;
+          else if(delta > 1) pregunta = `¿Avanzar el grupo de "${faseActual}" a "${faseNueva}", saltando ${delta - 1} fase${delta - 1 === 1 ? '' : 's'}? Las fases saltadas no quedan registradas en el historial.`;
+          else {
+            pregunta = `¿Regresar el grupo de "${faseActual}" a "${faseNueva}"? Los días en fase volverán a contar desde hoy.`;
+            if(faseActual === 'Cerrado') pregunta += ' Se quitará la fecha de cierre (queda en el historial) y el grupo volverá a Tracking.';
+          }
+          if(!confirm(pregunta)) return;
+          onMover(faseNueva);
         });
       });
     }
@@ -12317,7 +12332,7 @@
         <h3 class="radm-form-title">Mover fase: ${escapeHtml(g.grupo_codigo || g.cliente)}</h3>
         <div class="detail-card" style="border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:20px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:18px;">
-            <div style="font-size:12.5px; color:var(--text-dim);">Toca el siguiente cuadro para avanzar de fase.</div>
+            <div style="font-size:12.5px; color:var(--text-dim);">Toca cualquier fase para mover el grupo: avanzar, saltar varias o regresar.</div>
             <span class="detail-tag" style="font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 10px;">${g.dias_en_fase != null ? g.dias_en_fase + ' día' + (g.dias_en_fase === 1 ? '' : 's') + ' en esta fase' : ''}</span>
           </div>
           <div id="gruStepperInteractivo"></div>
@@ -12341,9 +12356,10 @@
             g.estatus_curso = mapa.estatus_curso;
             g.estatus_cierre = mapa.estatus_cierre;
             g.dias_en_fase = 0;
+            if(faseNueva !== 'Cerrado') g.fecha_cierre = null; // reabrir limpia la fecha de cierre (ver avanzarFaseGrupo)
             if(tagEl) tagEl.textContent = '0 días en esta fase';
             pintarStepperInteractivo();
-          } catch(e){ toast('No se pudo avanzar la fase: ' + e.message, false); }
+          } catch(e){ toast('No se pudo mover la fase: ' + e.message, false); }
         });
       }
       pintarStepperInteractivo();

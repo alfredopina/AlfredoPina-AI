@@ -1979,17 +1979,17 @@
         <div id="diagToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="diagTabs">
-          <button type="button" class="dash-etab active" data-diagtab="excel">Excel</button>
+          <button type="button" class="dash-etab active" data-diagtab="qr">QR / Link</button>
+          <button type="button" class="dash-etab" data-diagtab="excel">Excel</button>
           <button type="button" class="dash-etab" data-diagtab="powerbi">Power BI</button>
-          <button type="button" class="dash-etab" data-diagtab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-diagtab="resultados">Resultados</button>
           <button type="button" class="dash-etab" data-diagtab="reportes">Reportes</button>
         </div>
 
-        <div class="dip-tabpanel active" id="diagTab-excel"></div>
+        <div class="dip-tabpanel" id="diagTab-excel"></div>
         <div class="dip-tabpanel" id="diagTab-powerbi"></div>
 
-        <div class="dip-tabpanel" id="diagTab-qr">
+        <div class="dip-tabpanel active" id="diagTab-qr">
           <div class="cli-scorecard-block">
             <div class="dip-paso-head" style="margin-bottom:10px;">
               <span class="dip-paso-title" style="font-size:12px;">Respuestas en vivo</span>
@@ -2959,13 +2959,13 @@
         <div id="encToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="encTabs">
-          <button type="button" class="dash-etab active" data-enctab="preguntas">Preguntas</button>
-          <button type="button" class="dash-etab" data-enctab="qr">QR / Link</button>
+          <button type="button" class="dash-etab active" data-enctab="qr">QR / Link</button>
+          <button type="button" class="dash-etab" data-enctab="preguntas">Preguntas</button>
           <button type="button" class="dash-etab" data-enctab="resultados">Resultados</button>
           <button type="button" class="dash-etab" data-enctab="reportes">Reportes</button>
         </div>
 
-        <div class="dip-tabpanel active" id="encTab-preguntas">
+        <div class="dip-tabpanel" id="encTab-preguntas">
           <div class="enc-metodo">
             <div class="dip-paso-head" style="margin-bottom:10px;">
               <span class="dip-paso-title" style="font-size:12px;">Metodología</span>
@@ -2987,7 +2987,7 @@
           <div id="encSecciones"></div>
         </div>
 
-        <div class="dip-tabpanel" id="encTab-qr">
+        <div class="dip-tabpanel active" id="encTab-qr">
           <div class="cli-scorecard-block">
             <div class="dip-paso-head" style="margin-bottom:10px;">
               <span class="dip-paso-title" style="font-size:12px;">Respuestas en vivo</span>
@@ -5456,10 +5456,11 @@
     }
     function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
-    // ── pestañas — Resultados se carga perezosa, solo la primera vez; QR / Link
-    // se refresca CADA vez que se entra (grupos y links pueden haber cambiado,
+    // ── pestañas — QR / Link es la primera y la de entrada (al entrar al panel
+    // desde el sidebar se refresca, ver listener de adminNav abajo); Resultados y
+    // Reportes recargan CADA vez que se entra; QR / Link se refresca CADA vez que se entra (grupos y links pueden haber cambiado,
     // y esa consulta de grupos es además el "despertar" de la base) ──
-    let encQrTabActiva = false, encQrIniciado = false;
+    let encQrTabActiva = true, encQrIniciado = false; // QR / Link es la pestaña de entrada
     document.getElementById('encTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
@@ -5470,6 +5471,11 @@
       if(key === 'qr') entrarQr();
       if(key === 'resultados') buscarResultados();
       if(key === 'reportes') cargarReportes();
+    });
+
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(b && b.dataset.panel === 'encuestas' && encQrTabActiva) entrarQr();
     });
 
     // ══ PREGUNTAS ══
@@ -7210,9 +7216,10 @@
     }
 
     // ── pestañas — cada herramienta y Resultados se cargan perezosos, solo la
-    // primera vez que se abren; Excel es la pestaña activa por default, se
-    // carga en el arranque del IIFE (ver abajo) ──
-    let diagQrCargado = false, diagQrTabActiva = false;
+    // primera vez que se abren; QR / Link es la pestaña de entrada (se arma al
+    // entrar al panel desde el sidebar, ver abajo) y Excel se carga en el
+    // arranque del IIFE aunque no esté a la vista (Table Storage, no toca SQL) ──
+    let diagQrCargado = false, diagQrTabActiva = true; // QR / Link es la pestaña de entrada
     const diagCargado = { excel: false, powerbi: false };
     document.getElementById('diagTabs').addEventListener('click', e => {
       const btn = e.target.closest('.dash-etab');
@@ -7229,6 +7236,16 @@
       // (sin auto-pause de SQL de por medio), recargar siempre sale gratis.
       if(key === 'resultados') buscarResultados();
       if(key === 'reportes') cargarReportesLista();
+    });
+
+    // QR / Link es la primera pestaña: al entrar al panel desde el sidebar hay
+    // que armarla (primera vez) y reanudar el contador — no al cargar /admin,
+    // para no consultar nada de un panel que ni se está viendo. Si Alfredo ya
+    // estaba en otra pestaña del panel, no se toca nada.
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(!b || b.dataset.panel !== 'diagnosticos' || !diagQrTabActiva) return;
+      if(!diagQrCargado){ diagQrCargado = true; cargarQr(); } else reanudarContador();
     });
 
     // ══ PREGUNTAS ══ — una sola página por herramienta (ya no hay grid de

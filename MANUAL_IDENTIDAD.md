@@ -128,7 +128,34 @@ Las tres son de licencia abierta (SIL OFL) y ya son las del sitio:
 
 ---
 
-## 7. Aplicaciones — mapa de uso
+## 7. Íconos de herramienta
+
+Archivos en `assets/img/brand/iconos/`, generados con `node tools/build-iconos.js` (nunca a mano). Por herramienta salen tres:
+`{tool}.svg` (hereda el color: para el sitio, donde el CSS lo pinta), `{tool}-claro.svg` (con la **tinta**, para papel claro) y `{tool}-oscuro.svg` (con el color **puro**, para fondos oscuros).
+
+| Herramienta | Qué dibuja |
+|---|---|
+| **Excel** | Un rango seleccionado con su cuadro de autorrelleno: repetir y calcular por ti |
+| **Power BI** | Una gráfica armada con celdas; la de arriba de cada columna va llena (los puntos del dato) |
+| **Power Apps** | El tablero: una pantalla con bloques; el bloque lleno sale del marco (arrastrar y soltar) |
+| **Power Automate** | La bifurcación: un paso que se abre en dos caminos y termina en el cuadrito lleno |
+| **IA Aplicada** | La chispa de cuatro puntas con puntas rectas, rellena; el cuadrito queda hueco |
+| **Ofimática Básica** | Mosaicos de la suite con el dibujo recortado (texto, diapositiva, correo) y el cuarto hueco con el cuadrito |
+
+**Reglas de la familia:** cuadrícula de 24, trazo de 1.75, remates cuadrados y esquinas rectas; diagonales solo a 45°; nada de círculos; y **un cuadrito lleno** (el cuadro de autorrelleno del logo) que en cada ícono significa algo distinto. Cada ícono dibuja lo que la herramienta *hace por ti*, no un objeto suelto ni el logo de Microsoft. Ofimática se construye con formas compuestas (evenodd), **no con máscara**: PowerPoint, Word y el correo soportan mal las máscaras SVG.
+
+**Color:** sobre papel claro se usa la tinta; sobre oscuro, el color puro. El nombre de la herramienta siempre acompaña al ícono (el color nunca es el único dato).
+
+**Varias herramientas en un curso (hasta 3).** Los sellos crecen desde la esquina inferior derecha del diploma:
+- **1:** la herramienta sola en la esquina.
+- **2:** la principal queda en la esquina y la segunda se suma **a su izquierda** (horizontal, recomendado por alinearse con la firma). En vertical, arriba de la principal.
+- **3:** la principal en la esquina, la segunda a su izquierda y la tercera **arriba de la principal**: una L invertida.
+- La **principal** es la primera herramienta del curso: la línea bajo el nombre, el curso y los puntos usan su color; la barra lateral se parte en tramos, uno por herramienta y en el mismo orden (de arriba abajo).
+- Por decidir en el módulo: qué segmento lleva el **folio** (hoy toma la principal) y qué se hace con más de 3.
+
+---
+
+## 8. Aplicaciones — mapa de uso
 
 | Dónde | Logo | Descriptor | Tagline | Firma |
 |---|---|---|---|---|
@@ -141,18 +168,19 @@ Las tres son de licencia abierta (SIL OFL) y ya son las del sitio:
 | **Diploma** | Compacto + by LifeZenTraining | — | — | Solo la del instructor |
 | Cotización (PDF) | Compacto | Sí | — | Su firma |
 
-**Diploma (decidido 2026-09-21):** logo **compacto** arriba, con **`by LifeZenTraining`** debajo del nombre (mono chico, marca de transición durante **un año**: retirarla hacia **septiembre 2027**); firma solo el instructor; **sin REG. STPS** (queda solo en los DC-3); pie limpio. Color por herramienta: banda con trama y detalles en el color puro; texto de color con la tinta.
+**Diploma (decidido 2026-09-21):** logo **compacto** arriba, con **`by LifeZenTraining`** debajo del nombre (mono chico, marca de transición durante **un año**: retirarla hacia **septiembre 2027**); firma solo el instructor; **sin REG. STPS** (queda solo en los DC-3); pie limpio. Barra lateral con **relieve y sombra** (degradado del color de la herramienta a su tono profundo, borde de luz a la izquierda y sombra sobre el papel); sello = íconos de herramienta con su nombre, sin borde ni relleno; en la frase de mérito van en negrita "participación" y "aprobación". Tonos profundos: `#16a34a` Excel, `#e0a800` Power BI, `#9b1aab` Power Apps, `#0891b2` Power Automate, `#7c5cf0` IA, `#ea580c` Ofimática. Texto de color con la tinta.
 
 ---
 
-## 8. Transición desde LifeZenTraining
+## 9. Transición desde LifeZenTraining
 
 Se reemplaza la marca por completo, con un puente de un año: `by LifeZenTraining` aparece solo en el logo del diploma, debajo del nombre. No va en el encabezado ni en el sitio nuevo. Al cumplirse el año se quita esa línea (función `logoDiploma` de `tools/build-logos.js`), se regenera y el diploma queda con el compacto solo.
 
-## 9. Pendientes de la identidad
+## 10. Pendientes de la identidad
 
 - [ ] **IMPI** (tarea de Alfredo): revisar registro de "Alfredo Piña" / "alfredopina" y disponibilidad de usuarios en redes, antes de imprimir.
 - [ ] **Sitio** (otro chat, cuando se afinen sitio y productos): encabezado con el logo principal (sin la firma), pie con "Created by" + firma, favicon nuevo (`favicon.svg`), `og:image`, tagline en el hero.
-- [ ] **Diplomas** (chat de Diplomas): rehacer el diploma con este sistema (ver mapa de uso), tinta nueva de Ofimática, sin REG. STPS, logo compacto con `by LifeZenTraining`.
+- [x] **Formato del diploma cerrado** (mockup: `https://claude.ai/artifact/D6gMJ7GjPRdtZTqPSNHaUd`). Falta construirlo en la sección Diplomas del admin.
+- [ ] **Íconos de herramienta en el sitio y el admin** (después de Diplomas, al actualizar Productos y Recursos): hoy hay ~12 copias inline de los íconos viejos (landing, cursos, recursos, diagnóstico y 5 en `admin/index.html`). Centralizar en un solo `assets/js/herramientas.js` (nombre, color, tinta, ícono). Ojo: en la landing el ícono de la línea de gráfica también se usa en "Experiencia" con otro significado; no reemplazarlo.
 - [ ] `fx` en cursiva real: hoy se genera inclinando el glifo recto ~12°. Si se agrega `api/assets/fonts/JetBrainsMono-MediumItalic.ttf` y se corre `node tools/build-logos.js`, se usa la cursiva verdadera.
 - [ ] Correo de contacto `@alfredopina.ai`: aún no existe (arrastrado del manual v1).

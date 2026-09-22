@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Reporte de Resultados — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#10141b; --panel-2:#141a23; --line:#1d2530; --line-soft:#161c26;
+    --blue:#3d7fff; --blue-bright:#6b9fff; --blue-soft:rgba(61,127,255,.14);
+    --text:#edf0f4; --text-dim:#8991a1; --text-faint:#4c5462;
+    --rojo:#dc2626; --ambar:#dfb35a; --teal:#14b8a6;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;}
+  svg{display:block;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+  [hidden]{display:none !important;}
+
+  .rep-loading, .rep-error{ font-family:var(--mono); font-size:13px; padding:60px 0; text-align:center; color:var(--text-faint); }
+  .rep-error{ color:var(--rojo); }
+
+  .lbl{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-dim); }
+  .card{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; }
+
+  /* semáforo: siempre número + ícono + texto, nunca solo color (verde=Aprobado,
+     ámbar=por debajo de 80, rojo=0 exacto — mismo criterio que el panel) */
+  .pill{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:20px; padding:5px 11px; white-space:nowrap; border:1px solid; }
+  .pill svg{ width:12px; height:12px; }
+  .pill.verde{ color:var(--teal); background:rgba(20,184,166,.14); border-color:var(--teal); }
+  .pill.ambar{ color:var(--ambar); background:rgba(223,179,90,.14); border-color:var(--ambar); }
+  .pill.rojo{ color:var(--rojo); background:rgba(220,38,38,.14); border-color:var(--rojo); }
+  .num.verde{ color:var(--teal); } .num.ambar{ color:var(--ambar); } .num.rojo{ color:var(--rojo); }
+
+  /* punto "en vivo" — mismo lenguaje que el admin: no es que el dato cambie
+     solo, es la firma visual de "esto es del sistema en este momento" */
+  @keyframes repPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .rep-live-dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); flex:none; animation:repPulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .rep-live-dot{ animation:none; } }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  .chip b{ color:var(--text); font-weight:600; }
+  .chip svg{ width:12px; height:12px; }
+
+  header.rep-header{ border-bottom:1px solid var(--line); padding:18px 0 16px; }
+  .rep-brand{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .rep-brand-id{ display:flex; align-items:center; gap:10px; }
+  .rep-brand-id img{ height:22px; width:auto; display:block; }
+  .rep-brand-descriptor{ font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; color:var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
+  .rep-generado{ display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
+  .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(21px,3vw,27px); margin-bottom:6px; }
+  .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
+  .rep-filtros{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
+  .rep-tabsrow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .rep-tab{ font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--text-dim); background:none; border:1px solid var(--line); border-radius:7px; padding:8px 14px; cursor:pointer; }
+  .rep-tab.active{ color:var(--blue-bright); border-color:var(--blue); background:var(--blue-soft); }
+  .rep-actions{ display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap; }
+  .abtn{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; border-radius:6px; padding:7px 11px; cursor:pointer; color:var(--blue-bright); background-color:var(--blue-soft); border:1px solid var(--blue); }
+  .abtn svg{ width:12px; height:12px; }
+  .info-panel{ margin:14px 0 0; padding:16px 18px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; font-size:12.5px; line-height:1.7; color:var(--text-dim); }
+  .info-panel b{ color:var(--text); }
+  .info-panel .legend{ display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; }
+
+  main{ padding:24px 0 60px; }
+  .rep-view[hidden]{ display:none; }
+  .sec-title{ font-family:var(--display); font-weight:600; font-size:15px; margin:30px 0 12px; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .sec-title svg{ width:16px; height:16px; color:var(--blue-bright); }
+  .sec-title small{ font-family:var(--mono); font-weight:400; font-size:11px; color:var(--text-dim); }
+
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; }
+  .kpi{ position:relative; padding:16px 18px 16px 24px; overflow:hidden; }
+  .kpi-head{ display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .kpi-head svg{ width:12px; height:12px; color:var(--text-faint); }
+  .kpi-val{ font-family:var(--display); font-weight:700; font-size:26px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .kpi-val small{ font-family:var(--mono); font-size:11px; font-weight:500; color:var(--text-dim); }
+  .kpi-accent{ position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--blue-bright); }
+  .kpi-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px; }
+
+  /* barra apilada Aprobado/Participó/No aprobado — mismo componente visual
+     que la distribución de Encuestas, aplicado a 3 categorías en vez de 5 */
+  .stack-card{ padding:20px 20px 16px; }
+  .stack{ display:flex; height:34px; border-radius:7px; overflow:hidden; background:var(--panel); }
+  .stack-seg{ display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; color:#0a0d12; min-width:0; cursor:default; transition:filter .15s; }
+  .stack-seg:hover{ filter:brightness(1.12); }
+  .stack-seg.rojo{ color:#fff; }
+  .stack-legend{ display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; }
+  .stack-legend .lg{ display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .stack-legend .dot{ width:9px; height:9px; border-radius:50%; }
+
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .duo.solo{ grid-template-columns:1fr; }
+  .rank{ padding:16px 18px; }
+  .rank-title{ display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:600; font-size:13.5px; margin-bottom:12px; }
+  .rank-title svg{ width:15px; height:15px; }
+  .rank-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line-soft); }
+  .rank-item:first-of-type{ border-top:none; }
+  .rank-pos{ font-family:var(--mono); font-size:11px; color:var(--text-faint); width:16px; }
+  .rank-txt{ flex:1; font-size:12.5px; line-height:1.4; }
+  .rank-cat{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .rank-prom{ font-family:var(--mono); font-weight:700; font-size:14px; }
+  .rank-ok{ display:flex; align-items:center; gap:10px; font-size:13px; line-height:1.5; color:var(--text-dim); }
+  .rank-ok svg{ width:18px; height:18px; color:var(--teal); flex:none; }
+
+  .grp-table-wrap{ overflow-x:auto; }
+  table.grp-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  table.grp-table th{ text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:.3px; text-transform:uppercase; color:var(--text-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.grp-table td{ padding:11px 14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  table.grp-table tr:last-child td{ border-bottom:none; }
+  .grp-curso-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:2px; }
+
+  .nota-card{ padding:16px 18px; margin-bottom:10px; }
+  .nota-card b{ font-family:var(--display); font-size:12.5px; }
+  .nota-card p{ font-size:12.5px; line-height:1.6; color:var(--text-dim); margin-top:6px; white-space:pre-wrap; }
+
+  /* ── Por alumno: buscador + 3 columnas (Aprobado/Participó/No aprobado) + tarjeta ── */
+  .rep-ind-layout{ display:flex; gap:22px; align-items:flex-start; }
+  .rep-ind-left{ width:330px; flex:none; display:flex; flex-direction:column; gap:14px; }
+  .rep-ind-search{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 13px; }
+  .rep-ind-search svg{ width:14px; height:14px; color:var(--text-dim); flex:none; }
+  .rep-ind-search input{ border:none; background:none; outline:none; color:var(--text); font-size:12.5px; font-family:var(--body); width:100%; }
+  .rep-ind-lists{ display:flex; flex-direction:column; gap:10px; max-height:560px; overflow-y:auto; }
+  .rep-ind-col{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .rep-ind-col-title{ font-family:var(--mono); font-size:9.5px; letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px; padding:0 4px; display:flex; align-items:center; gap:6px; }
+  .rep-ind-col-title .dot{ width:7px; height:7px; border-radius:50%; }
+  .rep-persona-item{ padding:8px 9px; border-radius:6px; font-size:12px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rep-persona-item:hover{ background:var(--panel); }
+  .rep-persona-item.activo{ background:var(--blue-soft); color:var(--blue-bright); font-weight:600; }
+  .rep-empty{ font-size:12px; color:var(--text-faint); padding:10px 4px; }
+
+  .rep-ind-right{ flex:1; min-width:0; display:flex; flex-direction:column; gap:16px; }
+  .rep-profile-head{ padding:20px 22px; display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
+  .rep-profile-name{ font-family:var(--display); font-weight:700; font-size:19px; max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rep-profile-meta{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .rep-profile-datos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px 22px; padding:18px 20px; }
+  .rep-dato-k{ font-family:var(--mono); font-size:10px; letter-spacing:.3px; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; }
+  .rep-dato-v{ font-size:13px; }
+  .rep-profile-notas{ padding:16px 20px; font-size:12.5px; line-height:1.6; color:var(--text-dim); white-space:pre-wrap; }
+  .rep-download{ display:inline-flex; align-items:center; gap:7px; align-self:flex-start; font-family:var(--mono); font-size:11px; font-weight:600; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:7px; padding:9px 14px; cursor:pointer; }
+  .rep-download svg{ width:13px; height:13px; }
+  .rep-download:hover{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .rep-gauge-wrap{ position:relative; width:170px; height:100px; flex:none; }
+  @keyframes repRingFill{ from{ stroke-dashoffset:var(--full,565); } to{ stroke-dashoffset:var(--end); } }
+  .rep-gauge-fill{ animation:repRingFill 1.2s cubic-bezier(.2,.8,.2,1) forwards; }
+  @media (prefers-reduced-motion:reduce){ .rep-gauge-fill{ animation:none; stroke-dashoffset:var(--end); } }
+
+  footer.rep-footer{ border-top:1px solid var(--line); padding:26px 0 34px; }
+  .rep-tagline{ font-family:var(--display); font-weight:600; font-size:15px; margin-bottom:14px; }
+  .rep-footer-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .rep-created{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .rep-created img{ height:16px; width:auto; filter:brightness(1.3); }
+  .rep-footer-nota{ font-family:var(--mono); font-size:10px; color:var(--text-faint); line-height:1.7; max-width:520px; }
+
+  @media (max-width:820px){
+    .kpi-grid{ grid-template-columns:1fr 1fr; } .duo{ grid-template-columns:1fr; }
+    .rep-ind-layout{ flex-direction:column; } .rep-ind-left{ width:100%; }
+    .rep-actions{ margin-left:0; }
+  }
+
+  @media print{
+    body{ background:#fff; color:#0d1424; }
+    .rep-tabsrow, .rep-actions, .rep-ind-left, .rep-download, .info-panel, .abtn{ display:none !important; }
+    .card{ border-color:#ccc; background:#fafafa; }
+    .rep-ind-right{ width:100%; }
+    body:not(.imprimir-alumno) .rep-view#repViewAlumno{ display:block !important; }
+    body.imprimir-alumno .rep-view#repViewGeneral,
+    body.imprimir-alumno #repIndBuscar,
+    body.imprimir-alumno .rep-ind-lists{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="rep-loading" id="repLoading">Cargando reporte…</div>
+  <div class="rep-error" id="repError" hidden></div>
+</div>
+
+<div id="repApp" hidden>
+  <header class="rep-header"><div class="wrap">
+    <div class="rep-brand">
+      <div class="rep-brand-id">
+        <img src="assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai">
+        <span class="rep-brand-descriptor">Productividad con Datos · Automatización · IA</span>
+      </div>
+      <span class="rep-generado"><span class="rep-live-dot"></span><span id="repGenerado"></span></span>
+    </div>
+    <h1 class="rep-title" id="repTitle">Reporte de Resultados</h1>
+    <div class="rep-etiqueta" id="repEtiqueta" hidden></div>
+    <div class="rep-filtros" id="repFiltros"></div>
+    <div class="rep-tabsrow">
+      <button type="button" class="rep-tab active" data-tab="general">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;display:inline;vertical-align:-2px;margin-right:5px;"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>General
+      </button>
+      <button type="button" class="rep-tab" data-tab="alumno">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;display:inline;vertical-align:-2px;margin-right:5px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>Por alumno
+      </button>
+      <div class="rep-actions">
+        <button type="button" class="abtn" id="repInfoBtn" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1" stroke-linecap="round" stroke-linejoin="round"/></svg>Cómo se calcula
+        </button>
+      </div>
+    </div>
+    <div class="info-panel" id="repInfoPanel" hidden>
+      <b>Calificación</b> = 80% Proyecto + 20% Asistencia (Asistencias ÷ Frecuencias) + Puntos extra. Puede pasar de 100 con puntos — se muestra como "100+" y el promedio del grupo la toma como 100.<br>
+      <b>Resultado.</b> Aprobado con 80 o más de calificación. Si no, Participó con 80% o más de asistencia. Si no, No Aprobado. Se puede aprobar solo con el proyecto, sin asistencia mínima.<br>
+      <b>Qué entra.</b> Todos los alumnos que coinciden con los filtros de este reporte. Es un snapshot: se calculó una sola vez y no cambia si después se editan las calificaciones en el sistema.
+      <div class="legend">
+        <span class="pill verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>80 o más</span>
+        <span class="pill ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2" stroke-linecap="round"/></svg>Por debajo de 80</span>
+        <span class="pill rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4l9 16H3L12 4Z" stroke-linejoin="round"/><path d="M12 10v4M12 17h.01" stroke-linecap="round"/></svg>0 — sin evidencia</span>
+      </div>
+    </div>
+  </div></header>
+
+  <main><div class="wrap">
+    <section class="rep-view" id="repViewGeneral">
+      <div class="kpi-grid" id="repKpis"></div>
+
+      <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 16v-4M12 16V8M16 16v-6" stroke-linecap="round"/></svg>Resultado del grupo <small>pasa el cursor sobre la barra</small></div>
+      <div class="card stack-card" id="repStackCard"></div>
+
+      <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>Mejor calificados y quienes quedaron por debajo de 80</div>
+      <div class="duo" id="repRank"></div>
+
+      <div id="repGruposBlock" hidden>
+        <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>Grupos incluidos <small id="repGruposN"></small></div>
+        <div class="card grp-table-wrap">
+          <table class="grp-table"><thead><tr>
+            <th>Grupo</th><th>Empresa</th><th>Instructor</th><th>Fechas</th><th>Alumnos</th><th>Aprobado</th><th>Participó</th><th>No aprob.</th><th>Calificación</th><th>Asistencia</th>
+          </tr></thead><tbody id="repGruposBody"></tbody></table>
+        </div>
+      </div>
+
+      <div id="repNotasBlock"></div>
+    </section>
+
+    <section class="rep-view" id="repViewAlumno" hidden>
+      <div class="rep-ind-layout">
+        <div class="rep-ind-left">
+          <div class="rep-ind-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+            <input type="text" id="repIndBuscar" placeholder="Buscar por nombre o correo...">
+          </div>
+          <div class="rep-ind-lists">
+            <div class="rep-ind-col">
+              <div class="rep-ind-col-title"><span class="dot" style="background:var(--teal)"></span><span id="repColVerdeTitulo">Aprobado</span></div>
+              <div id="repColVerde"></div>
+            </div>
+            <div class="rep-ind-col">
+              <div class="rep-ind-col-title"><span class="dot" style="background:var(--ambar)"></span><span id="repColAmbarTitulo">Participó</span></div>
+              <div id="repColAmbar"></div>
+            </div>
+            <div class="rep-ind-col">
+              <div class="rep-ind-col-title"><span class="dot" style="background:var(--rojo)"></span><span id="repColRojoTitulo">No aprobado</span></div>
+              <div id="repColRojo"></div>
+            </div>
+          </div>
+        </div>
+        <div class="rep-ind-right" id="repIndRight"></div>
+      </div>
+    </section>
+  </div></main>
+
+  <footer class="rep-footer"><div class="wrap">
+    <div class="rep-tagline">Tu productividad tiene fórmula.</div>
+    <div class="rep-footer-row">
+      <div class="rep-footer-nota">Reporte calculado el <span id="repFooterFecha"></span> con las calificaciones disponibles en ese momento — no cambia si después se editan. Se generó desde el sistema de Alfredo Piña.</div>
+      <div class="rep-created"><span>Created by</span><img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña"></div>
+    </div>
+  </div></footer>
+</div>
+
+<script>
+(function(){
+  const TOOL_NOMBRE = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
+  const TOOL_COLOR = { excel:'#22c55e', powerbi:'#f2c94c', powerapps:'#c026d3', powerautomate:'#06b6d4', ia:'#a78bfa', ofimatica:'#f97316' };
+  const SEM_COLOR = { verde:'var(--teal)', ambar:'var(--ambar)', rojo:'var(--rojo)' };
+  const SEM_TXT = { verde:'Aprobado', ambar:'Por debajo de 80', rojo:'Sin evidencia' };
+  const SVG = {
+    ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    up:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    down:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--ambar)" stroke-width="2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.5 2.3 3.5 5.2" stroke-linecap="round"/></svg>',
+    grp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>',
+    star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" stroke-linejoin="round"/></svg>',
+    cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>',
+    person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>',
+  };
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function escAttr(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtDia(iso){ if(!iso) return ''; const [a, m, d] = String(iso).slice(0, 10).split('-'); return `${d}/${m}/${a}`; }
+  function fmtFechaHora(iso){ return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  const fmtCalif = c => c > 100 ? '100+' : (Number.isInteger(c) ? String(c) : c.toFixed(1));
+  const pill = (sem, textoExtra) => `<span class="pill ${sem}">${SVG[sem === 'verde' ? 'ok' : sem === 'ambar' ? 'down' : 'ok']}${textoExtra || SEM_TXT[sem]}</span>`;
+
+  function mostrarError(msg){
+    document.getElementById('repLoading').hidden = true;
+    const e = document.getElementById('repError');
+    e.textContent = msg; e.hidden = false;
+  }
+
+  // ── gauge semicircular (0-100), color según semáforo — mismo trazo que el
+  // gauge de reporte-diagnostico.html, coloreado con el semáforo real ──
+  function gaugeSvg({ p, color }){
+    const c = Math.PI * 70;
+    const end = c * (1 - Math.min(p || 0, 100) / 100);
+    return `<svg viewBox="0 0 180 100" width="170" height="100">
+      <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"></path>
+      <path class="rep-gauge-fill" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${c}" style="stroke-dashoffset:${c}; --end:${end};"></path>
+      <text x="90" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="26" fill="var(--text)">${p == null ? '—' : fmtCalif(p)}</text>
+    </svg>`;
+  }
+
+  let REPORTE = null;
+  let tabActiva = 'general';
+  let alumnoActivoId = null;
+
+  function render(s){
+    document.title = (s.etiqueta ? s.etiqueta + ' — ' : '') + 'Reporte de Resultados — Alfredo Piña';
+    document.getElementById('repGenerado').textContent = 'GENERADO ' + fmtFechaHora(s.generadoEn).toUpperCase();
+    document.getElementById('repFooterFecha').textContent = fmtFechaHora(s.generadoEn);
+    document.getElementById('repTitle').textContent = 'Reporte de Resultados' + (s.nGrupos === 1 && s.porGrupo[0] ? ' · ' + s.porGrupo[0].curso : '');
+    if(s.etiqueta){ const e = document.getElementById('repEtiqueta'); e.textContent = s.etiqueta; e.hidden = false; }
+
+    const f = s.filtros || {};
+    const chips = [];
+    if(f.empresa) chips.push(`<span class="chip">Empresa: <b>${esc(f.empresa)}</b></span>`);
+    if(f.instructor) chips.push(`<span class="chip">${SVG.person}Instructor: <b>${esc(f.instructor)}</b></span>`);
+    if(f.herramienta) chips.push(`<span class="chip">Herramienta: <b>${esc(TOOL_NOMBRE[f.herramienta] || f.herramienta)}</b></span>`);
+    if(f.curso) chips.push(`<span class="chip">Curso: <b>${esc(f.curso)}</b></span>`);
+    if(f.desde || f.hasta) chips.push(`<span class="chip">${SVG.cal}<b>${f.desde ? fmtDia(f.desde) : '…'} – ${f.hasta ? fmtDia(f.hasta) : '…'}</b></span>`);
+    else if(s.rango && s.rango.desde) chips.push(`<span class="chip">${SVG.cal}Del <b>${fmtDia(s.rango.desde)}</b> al <b>${fmtDia(s.rango.hasta)}</b></span>`);
+    if(!Object.keys(f).length) chips.push(`<span class="chip">${s.nGrupos === 1 ? '1 grupo' : s.nGrupos + ' grupos'}</span>`);
+    document.getElementById('repFiltros').innerHTML = chips.join('');
+
+    renderKpis(s);
+    renderStack(s);
+    renderRank(s);
+    renderGrupos(s);
+    renderNotas(s);
+    renderAlumnoTab(s);
+
+    document.getElementById('repLoading').hidden = true;
+    document.getElementById('repApp').hidden = false;
+  }
+
+  function renderKpis(s){
+    const semProm = s.promedioCalificacion === 0 ? 'rojo' : (s.promedioCalificacion >= 80 ? 'verde' : 'ambar');
+    const kpis = [
+      ['users', 'Alumnos', s.n, '<small>' + (s.n === 1 ? 'persona' : 'personas') + '</small>', ''],
+      ['grp', 'Grupos', s.nGrupos, '<small>' + (s.nGrupos === 1 ? 'grupo' : 'grupos') + '</small>', 'incluidos en este reporte'],
+      ['star', 'Calificación promedio', s.promedioCalificacion == null ? '—' : fmtCalif(s.promedioCalificacion), s.promedioCalificacion != null ? pill(semProm) : '', 'topada a 100 por alumno'],
+      ['cal', 'Asistencia', s.asistenciaPct == null ? '—' : s.asistenciaPct + '%', '', 'asistencias sobre las posibles'],
+    ];
+    document.getElementById('repKpis').innerHTML = kpis.map(k => `<div class="card kpi" title="${escAttr(k[4])}"><span class="kpi-accent"></span><div class="kpi-head">${SVG[k[0]]}<span class="lbl">${k[1]}</span></div><div class="kpi-val">${k[2]}${k[3]}</div><div class="kpi-sub">${k[4]}</div></div>`).join('');
+  }
+
+  function renderStack(s){
+    const total = s.n || 1;
+    const partes = [
+      ['verde', s.aprobados, 'Aprobado'],
+      ['ambar', s.participaron, 'Participó'],
+      ['rojo', s.noAprobados, 'No aprobado'],
+    ];
+    const segs = partes.filter(p => p[1] > 0).map(([sem, n, txt]) =>
+      `<div class="stack-seg ${sem}" style="flex:${n}; background:${SEM_COLOR[sem]};" title="${txt}: ${n} de ${total} (${Math.round(100 * n / total)}%)">${n}</div>`
+    ).join('');
+    const leyenda = partes.map(([sem, n, txt]) =>
+      `<span class="lg"><span class="dot" style="background:${SEM_COLOR[sem]}"></span>${txt} <b style="color:var(--text)">${n}</b> <span>(${total ? Math.round(100 * n / total) : 0}%)</span></span>`
+    ).join('');
+    document.getElementById('repStackCard').innerHTML = `<div class="stack">${segs}</div><div class="stack-legend">${leyenda}</div>`;
+  }
+
+  function itemRank(p, i){
+    return `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(p.nombre)}<span class="rank-cat">${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</span></span><span class="rank-prom num ${p.semaforo}">${p.excede100 ? '100+' : fmtCalif(p.calificacion)}</span></div>`;
+  }
+  function renderRank(s){
+    const mejores = `<div class="card rank"><div class="rank-title">${SVG.up}Los mejor calificados</div>${(s.mejores || []).map(itemRank).join('') || '<div class="rank-ok">Sin datos suficientes.</div>'}</div>`;
+    const bajos = s.bajoOchenta || [];
+    const debajo = bajos.length
+      ? `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 80 (${bajos.length})</div>${bajos.slice(0, 10).map(itemRank).join('')}${bajos.length > 10 ? `<div class="rep-empty">…y ${bajos.length - 10} más — ver pestaña Por alumno.</div>` : ''}</div>`
+      : `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 80</div><div class="rank-ok">${SVG.ok}Nadie quedó por debajo de 80 — todo el grupo está en verde.</div></div>`;
+    document.getElementById('repRank').innerHTML = mejores + debajo;
+  }
+
+  function renderGrupos(s){
+    if(s.nGrupos <= 1){ document.getElementById('repGruposBlock').hidden = true; return; }
+    document.getElementById('repGruposBlock').hidden = false;
+    document.getElementById('repGruposN').textContent = `${s.nGrupos} grupos`;
+    document.getElementById('repGruposBody').innerHTML = s.porGrupo.map(g => `
+      <tr>
+        <td><b>${esc(g.curso || '—')}</b><div class="grp-curso-sub">${esc((g.herramientas || []).map(h => TOOL_NOMBRE[h] || h).join(' + '))}</div></td>
+        <td>${esc(g.cliente)}${g.clienteVia ? `<div class="grp-curso-sub">vía ${esc(g.clienteVia)}</div>` : ''}</td>
+        <td>${esc(g.instructor || '—')}</td>
+        <td class="num" style="color:var(--text-dim); font-family:var(--mono); font-size:11px;">${fmtDia(g.fechaInicio)} – ${fmtDia(g.fechaFin)}</td>
+        <td class="num">${g.alumnos}</td>
+        <td class="num" style="color:var(--teal)">${g.aprobados}</td>
+        <td class="num" style="color:var(--ambar)">${g.participaron}</td>
+        <td class="num" style="color:var(--rojo)">${g.noAprobados}</td>
+        <td class="num">${g.promCalificacion == null ? '—' : fmtCalif(g.promCalificacion)}</td>
+        <td class="num">${g.asistenciaPct == null ? '—' : g.asistenciaPct + '%'}</td>
+      </tr>`).join('');
+  }
+
+  function renderNotas(s){
+    const conNota = s.porGrupo.filter(g => g.notaGeneral);
+    const el = document.getElementById('repNotasBlock');
+    if(!conNota.length){ el.innerHTML = ''; return; }
+    el.innerHTML = `<div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4V5Z" stroke-linejoin="round"/></svg>Nota general</div>`
+      + conNota.map(g => `<div class="card nota-card"><b>${esc(g.curso || 'Grupo')}${g.cliente ? ' · ' + esc(g.cliente) : ''}</b><p>${esc(g.notaGeneral)}</p></div>`).join('');
+  }
+
+  // ── Por alumno ──
+  function renderAlumnoTab(s){
+    document.getElementById('repColVerdeTitulo').textContent = `Aprobado (${s.aprobados})`;
+    document.getElementById('repColAmbarTitulo').textContent = `Participó (${s.participaron})`;
+    document.getElementById('repColRojoTitulo').textContent = `No aprobado (${s.noAprobados})`;
+    if(!alumnoActivoId && s.participantes.length) alumnoActivoId = s.participantes[0].id;
+    pintarListasAlumnos();
+    renderPerfilAlumno();
+  }
+  function pintarListasAlumnos(){
+    const q = (document.getElementById('repIndBuscar').value || '').trim().toLowerCase();
+    const parts = REPORTE.participantes.filter(p => !q || (p.nombre || '').toLowerCase().includes(q) || (p.correo || '').toLowerCase().includes(q));
+    const itemHtml = p => `<div class="rep-persona-item ${p.id === alumnoActivoId ? 'activo' : ''}" data-id="${p.id}" title="${escAttr(p.nombre)}">${esc(p.nombre)}</div>`;
+    document.getElementById('repColVerde').innerHTML = parts.filter(p => p.semaforo === 'verde').map(itemHtml).join('') || '<div class="rep-empty">Sin resultados.</div>';
+    document.getElementById('repColAmbar').innerHTML = parts.filter(p => p.semaforo === 'ambar').map(itemHtml).join('') || '<div class="rep-empty">Sin resultados.</div>';
+    document.getElementById('repColRojo').innerHTML = parts.filter(p => p.semaforo === 'rojo').map(itemHtml).join('') || '<div class="rep-empty">Sin resultados.</div>';
+  }
+  function renderPerfilAlumno(){
+    const p = REPORTE.participantes.find(x => x.id === alumnoActivoId);
+    const right = document.getElementById('repIndRight');
+    if(!p){ right.innerHTML = '<div class="rep-empty">Elige a alguien de la lista.</div>'; return; }
+    right.innerHTML = `
+      <div class="card rep-profile-head">
+        <div style="flex:1; min-width:200px;">
+          <div class="rep-profile-name" title="${escAttr(p.nombre)}">${esc(p.nombre)}</div>
+          <div class="rep-profile-meta">${esc(p.correo || 'Sin correo')} · ${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</div>
+        </div>
+        <div class="rep-gauge-wrap" title="Calificación: 80% Proyecto + 20% Asistencia + Puntos">${gaugeSvg({ p: p.calificacionTopada, color: SEM_COLOR[p.semaforo] })}</div>
+        ${pill(p.semaforo, p.resultado)}
+      </div>
+      <div class="card rep-profile-datos">
+        <div><div class="rep-dato-k">Puntos</div><div class="rep-dato-v">${p.puntos}</div></div>
+        <div><div class="rep-dato-k">Asistencias</div><div class="rep-dato-v" title="${p.asistencias} de ${p.frecuencias} sesiones">${p.asistencias} / ${p.frecuencias}${p.asistenciaPct != null ? ' · ' + p.asistenciaPct + '%' : ''}</div></div>
+        <div><div class="rep-dato-k">Proyecto</div><div class="rep-dato-v">${p.proyecto}</div></div>
+        <div><div class="rep-dato-k">Calificación real</div><div class="rep-dato-v" title="${p.excede100 ? 'Pasa de 100 por los puntos extra' : ''}">${fmtCalif(p.calificacion)}${p.excede100 ? ' 🔼' : ''}</div></div>
+      </div>
+      ${p.notas ? `<div class="card rep-profile-notas"><span class="lbl">Notas</span><br>${esc(p.notas)}</div>` : ''}
+      <button type="button" class="rep-download" data-imprimir-alumno="${p.id}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Imprimir boleta individual
+      </button>`;
+  }
+
+  // ── pestañas ──
+  document.querySelectorAll('.rep-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabActiva = btn.dataset.tab;
+      document.querySelectorAll('.rep-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('repViewGeneral').hidden = tabActiva !== 'general';
+      document.getElementById('repViewAlumno').hidden = tabActiva !== 'alumno';
+    });
+  });
+  document.getElementById('repInfoBtn').addEventListener('click', e => {
+    const panel = document.getElementById('repInfoPanel');
+    panel.hidden = !panel.hidden;
+    e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
+  });
+  document.getElementById('repIndBuscar').addEventListener('input', pintarListasAlumnos);
+  // delegado en TODO el layout (lista a la izquierda, tarjeta a la derecha) —
+  // no solo en repIndRight, que solo es la mitad derecha
+  document.querySelector('.rep-ind-layout').addEventListener('click', e => {
+    const item = e.target.closest('.rep-persona-item');
+    if(item){ alumnoActivoId = Number(item.dataset.id); pintarListasAlumnos(); renderPerfilAlumno(); return; }
+    const btnImp = e.target.closest('[data-imprimir-alumno]');
+    if(btnImp) imprimirAlumno();
+  });
+  // Imprimir boleta individual: se apoya en @media print (arriba) para
+  // mostrar SOLO la tarjeta del alumno activo — más simple que armar un DOM
+  // de impresión aparte (como hace reporte-diagnostico.html), suficiente
+  // para una boleta de una persona.
+  function imprimirAlumno(){
+    document.querySelector('.rep-tab[data-tab="alumno"]').click();
+    document.body.classList.add('imprimir-alumno');
+    window.print();
+    setTimeout(() => document.body.classList.remove('imprimir-alumno'), 300);
+  }
+
+  async function cargar(){
+    const token = new URLSearchParams(location.search).get('token');
+    if(!token){ mostrarError('Falta el link completo — pide de nuevo el link del reporte.'); return; }
+    try {
+      const res = await fetch('/api/getReporteCalificacionesPublico?token=' + encodeURIComponent(token));
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || 'No se pudo cargar el reporte.');
+      REPORTE = data;
+      render(data);
+    } catch(err){ mostrarError(err.message); }
+  }
+  cargar();
+})();
+</script>
+</body>
+</html>

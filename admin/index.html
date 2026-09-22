@@ -355,6 +355,11 @@
 
   .radm-switch-row{ display:flex; align-items:center; gap:10px; }
   .radm-actions-buttons{ display:flex; align-items:center; gap:10px; }
+  /* display:flex propio le gana al [hidden] por defecto del navegador
+     (misma especificidad, esta regla de autor entra después) — cualquier
+     .radm-actions-buttons que se oculte con hidden (Calificaciones →
+     Cargar/Editar) necesita este override desde que se escribe. */
+  .radm-actions-buttons[hidden]{ display:none; }
   .radm-switch{ position:relative; width:38px; height:21px; flex:none; }
   .radm-switch input{ opacity:0; width:100%; height:100%; margin:0; cursor:pointer; position:absolute; z-index:1; }
   .radm-switch-track{
@@ -756,8 +761,25 @@
   .cal-chevron{ width:13px; height:13px; transition:transform .15s; }
   .cal-alumnos-btn.abierto .cal-chevron{ transform:rotate(180deg); }
   .cal-detalle-row td{ background-color:var(--panel-2); padding:14px 18px; }
+  .cal-detalle-meta{ display:flex; align-items:baseline; flex-wrap:wrap; gap:6px 18px; font-size:12px; color:var(--text-dim); margin-bottom:10px; }
+  .cal-detalle-nota{ color:var(--text); }
   .cal-detalle-table{ font-size:12px; }
   .cal-detalle-table th, .cal-detalle-table td{ padding:6px 10px; }
+
+  /* tarjeta "Generar reporte" de Resultados y tabla de Reportes — mismo
+     patrón visual que Encuestas (.enc-gen-*), prefijo propio por módulo */
+  .cal-gen-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+  .cal-gen-stats{ display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .cal-gen-stat{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:96px; padding:7px 14px; background-color:var(--blue-soft); border:1px solid var(--blue); border-radius:8px; }
+  .cal-gen-stat b{ font-family:var(--display); font-size:15px; }
+  .cal-gen-stat span{ font-family:var(--mono); font-size:9.5px; color:var(--text-dim); text-transform:uppercase; }
+  .cal-gen-fila{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .cal-gen-etq{ flex:1 1 260px; max-width:440px; margin:0; }
+  .cal-gen-btn{ margin-left:auto; min-width:190px; height:44px; display:inline-flex; align-items:center; justify-content:center; gap:9px; font-weight:700; background-color:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 0 0 3px var(--blue-soft); }
+  .cal-gen-chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background-color:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  .cal-rep-filtros{ display:flex; flex-wrap:wrap; gap:5px; max-width:340px; }
+  .cal-rep-filtros .cal-gen-chip{ padding:3px 8px; font-size:10.5px; }
+  .cal-anonimo{ color:var(--text-faint); font-style:italic; }
 
   /* tabla de grupos: Fase neutra (no es un semáforo, solo dice en qué paso va) */
   .enc-fase{
@@ -3372,6 +3394,13 @@
             <div class="radm-section">
               <div class="radm-section-head">
                 <span class="radm-section-title">ALUMNOS — PEGA DIRECTO DESDE EXCEL (Nombre, Correo, Puntos, Asistencias, Frecuencias, Proyecto, Calificación, Resultado, Notas)</span>
+                <div class="cli-info-wrap">
+                  <button type="button" class="cli-info-btn" id="calInfoBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                    Cómo se califica
+                  </button>
+                  <div class="cli-info-popover" id="calInfoPopover" hidden></div>
+                </div>
               </div>
               <div class="dip-table-wrap">
                 <table class="dip-table">
@@ -3465,32 +3494,62 @@
               <input type="date" id="calRFHasta">
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="calRFQuitar" style="min-width:auto" title="Borra los filtros">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Quitar filtros
+              <button type="button" class="radm-btn dip-btn-icon" id="calRFBuscar" style="min-width:auto" title="Aplica los filtros que hayas llenado arriba">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+                Buscar
               </button>
-              <button type="button" class="radm-btn dip-btn-icon" id="calRFActualizar" style="min-width:auto" title="Vuelve a pedir los resultados al servidor">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Actualizar
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="calRFLimpiar" style="min-width:auto" title="Borra los filtros sin buscar todavía">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar filtros
+              </button>
+              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="calRFVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todos los grupos calificados">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
+                Ver todos
               </button>
             </div>
           </div>
+          <div class="radm-section" style="margin-bottom:22px;">
+            <div class="cal-gen-head">
+              <span class="dip-paso-title">Reporte con los filtros de arriba</span>
+              <div class="cal-gen-stats" id="calGenStats"></div>
+            </div>
+            <div class="cal-gen-fila">
+              <div class="radm-field cal-gen-etq">
+                <label>ETIQUETA</label>
+                <input type="text" id="calGenEtiqueta" maxlength="80" placeholder="Ej. Follatti Casinos - Excel Intermedio">
+              </div>
+              <button type="button" class="radm-btn cal-gen-btn" id="calGenerarReporte" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Generar reporte
+              </button>
+            </div>
+            <span class="radm-hint" style="display:block; margin-top:10px;">Incluye a todos los alumnos que coinciden con los filtros de arriba (o todos, si no hay filtros). Es un snapshot — no cambia si después editas calificaciones; genera uno nuevo cuando quieras una versión actualizada.</span>
+            <div class="radm-field" id="calReporteLinkWrap" style="margin-top:12px;" hidden>
+              <label>LINK DEL REPORTE</label>
+              <div class="enc-link-row">
+                <input type="text" id="calReporteLinkInput" readonly>
+                <button type="button" class="radm-btn radm-btn-ghost" id="calReporteAbrir" style="min-width:auto">Abrir</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="calReporteCopiar" style="min-width:auto">Copiar</button>
+              </div>
+            </div>
+          </div>
+
           <span class="radm-hint" id="calResultadosCuenta" style="display:block; margin:0 0 12px;"></span>
           <div class="dip-table-wrap">
             <table class="dip-table">
               <thead>
                 <tr>
-                  <th>Empresa</th>
-                  <th>Curso</th>
-                  <th>Fase</th>
-                  <th title="Clic para ver el detalle de cada alumno">Alumnos</th>
-                  <th>Aprobado</th>
-                  <th>Participó</th>
-                  <th>No aprobado</th>
-                  <th title="Promedio de la calificación de los alumnos, cada una topada a 100. Verde ≥80 · Ámbar &lt;80 · Rojo en 0.">Calificación</th>
-                  <th title="Asistencias totales ÷ asistencias posibles (alumnos × sesiones)">Asistencia</th>
-                  <th>Nota general</th>
-                  <th>Cargado</th>
+                  <th data-sort="empresa">Empresa<span class="th-sort-ico"></span></th>
+                  <th data-sort="fase">Fase<span class="th-sort-ico"></span></th>
+                  <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
+                  <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
+                  <th data-sort="fecha">Fechas<span class="th-sort-ico"></span></th>
+                  <th data-sort="alumnos" title="Clic en el número para ver el detalle de cada alumno">Alumnos<span class="th-sort-ico"></span></th>
+                  <th data-sort="aprobados">Aprobado<span class="th-sort-ico"></span></th>
+                  <th data-sort="participaron">Participó<span class="th-sort-ico"></span></th>
+                  <th data-sort="no_aprobados">No aprobado<span class="th-sort-ico"></span></th>
+                  <th data-sort="asistencia" title="Asistencias totales ÷ asistencias posibles (alumnos × sesiones)">Asistencia<span class="th-sort-ico"></span></th>
+                  <th data-sort="calificacion" title="Promedio de la calificación de los alumnos, cada una topada a 100. Verde ≥80 · Ámbar &lt;80 · Rojo en 0.">Calificación<span class="th-sort-ico"></span></th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -3502,10 +3561,23 @@
         </div>
 
         <div class="dip-tabpanel" id="calTab-reportes">
-          <div class="admin-empty">
-            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 16v-4M12 16V8M16 16v-6" stroke-linecap="round"/></svg></div>
-            <div class="admin-empty-title">Reportes — próximamente</div>
-            <div class="admin-empty-text">El reporte por grupo para el cliente se construirá sobre los resultados cargados.</div>
+          <span class="radm-hint" style="display:block; margin:0 0 12px;">Los reportes se generan en Resultados (con los filtros de arriba, o directo desde el ícono de una fila).</span>
+          <div class="dip-table-wrap">
+            <table class="dip-table" id="calReportesTable">
+              <thead>
+                <tr>
+                  <th data-sort="generadoEn">Creado<span class="th-sort-ico"></span></th>
+                  <th data-sort="etiqueta">Etiqueta<span class="th-sort-ico"></span></th>
+                  <th>Filtros aplicados</th>
+                  <th data-sort="n">Alumnos<span class="th-sort-ico"></span></th>
+                  <th data-sort="promedioCalificacion">Calificación<span class="th-sort-ico"></span></th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="calReportesBody">
+                <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -6726,6 +6798,10 @@
     const ICO_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_REPORTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 16v-4M12 16V8M16 16v-6" stroke-linecap="round"/></svg>';
     const ICO_CHEVRON = '<svg class="cal-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_ABRIR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_COPIAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function escapeHtml(s){
       return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -6814,12 +6890,14 @@
       activarTabCal(btn.dataset.caltab);
       if(calTabActiva === 'resultados') cargarResultados();
       if(calTabActiva === 'cargar') cargarGrupos();
+      if(calTabActiva === 'reportes') cargarReportesCal();
     });
     document.getElementById('adminNav').addEventListener('click', e => {
       const b = e.target.closest('.admin-nav-item');
       if(!b || b.dataset.panel !== 'calificaciones') return;
       if(calTabActiva === 'cargar') cargarGrupos();
       if(calTabActiva === 'resultados') cargarResultados();
+      if(calTabActiva === 'reportes') cargarReportesCal();
     });
 
     // ══ CARGAR ══
@@ -7359,6 +7437,56 @@
       }
     });
 
+    // ── popover "Cómo se califica" (Cargar) — mismo patrón que el popover
+    // "Fase y Días en fase" de Grupos: pasos numerados + leyenda de semáforo
+    // con los pills reales de la tabla (.cot-semaforo, nunca un color aparte) ──
+    function renderInfoCalificacionPopover(popoverEl){
+      popoverEl.innerHTML = `
+        <div class="cli-info-pop-title">Cómo se califica</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">1</span>
+            <div class="cli-info-step-body">
+              <strong>Calificación</strong> = 80% Proyecto + 20% Asistencia + Puntos
+              <span class="cli-info-step-sub">Asistencia es Asistencias ÷ Frecuencias. Puntos son extra y pueden pasar la calificación de 100 ("100+").</span>
+            </div>
+          </li>
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">2</span>
+            <div class="cli-info-step-body">
+              <strong>Resultado</strong> se calcula solo, no se captura
+              <span class="cli-info-step-sub">Aprobado con 80 o más de calificación. Si no, Participó con 80% o más de asistencia. Si no, No Aprobado. Se puede aprobar solo con el proyecto, sin asistencia mínima.</span>
+            </div>
+          </li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Semáforo de calificación (Resultados)</div>
+          <div class="cli-info-semaforo-legend">
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>80+</span><span>Aprobado</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>1–79</span><span>Por debajo de 80</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>0</span><span>Sin evidencia</span></div>
+          </div>
+        </div>`;
+    }
+    function wireInfoPopoverCal(btnId, popoverId){
+      const btn = document.getElementById(btnId);
+      const pop = document.getElementById(popoverId);
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const abrir = pop.hidden;
+        if(abrir) renderInfoCalificacionPopover(pop);
+        pop.hidden = !abrir;
+        btn.classList.toggle('active', abrir);
+      });
+      document.addEventListener('click', e => {
+        if(!pop.hidden && !e.target.closest('#' + btnId) && !e.target.closest('#' + popoverId)){
+          pop.hidden = true;
+          btn.classList.remove('active');
+        }
+      });
+    }
+    wireInfoPopoverCal('calInfoBtn', 'calInfoPopover');
+
     // ══ RESULTADOS ══ — una fila por grupo calificado; el resumen lo calcula
     // el servidor con GROUP BY (no se guarda). Filtros Empresa/Herramienta/
     // Curso/Instructor/Fechas son del lado del cliente, sobre lo ya cargado —
@@ -7366,13 +7494,57 @@
     let resultadosCache = [];
     let detalleCache = new Map();   // grupoId -> filas de getCalificacionesGrupo
     let detalleAbiertos = new Set(); // grupoId con el desglose desplegado
+    let calSort = { campo: null, dir: 'asc' }; // null = orden del servidor (última carga primero)
 
     const conPct = (n, total) => total ? `${n} <span class="diag-nombre-sub" style="display:inline;">(${Math.round(n * 100 / total)}%)</span>` : String(n);
 
-    function notaCelda(nota){
-      if(!nota) return '<span class="radm-mono" style="color:var(--text-faint)">—</span>';
-      return `<span class="cal-nota-cell" title="${escapeHtml(nota)}">${escapeHtml(nota)}</span>`;
+    // ── orden por encabezado, mismo criterio que Consultar Grupos/Encuestas:
+    // vacíos siempre al final, sin importar la dirección ──
+    const ORDEN_CAMPOS = {
+      empresa: r => norm(r.cliente_final || r.cliente),
+      fase: r => { const i = FASES.indexOf(r.fase); return i < 0 ? 99 : i; },
+      curso: r => norm(r.nombre_curso || ''),
+      instructor: r => norm(r.instructor || ''),
+      fecha: r => r.fecha_inicio ? new Date(r.fecha_inicio).getTime() : null,
+      alumnos: r => r.alumnos,
+      aprobados: r => r.aprobados,
+      participaron: r => r.participaron,
+      no_aprobados: r => r.no_aprobados,
+      asistencia: r => r.asistencias_posibles ? r.asistencias_total / r.asistencias_posibles : null,
+      calificacion: r => r.prom_calificacion,
+    };
+    const SORT_DEFAULT_DIR = {
+      empresa: 'asc', fase: 'asc', curso: 'asc', instructor: 'asc', fecha: 'desc', alumnos: 'desc',
+      aprobados: 'desc', participaron: 'desc', no_aprobados: 'desc', asistencia: 'desc', calificacion: 'desc',
+    };
+    function ordenarFilas(lista){
+      if(!calSort.campo) return lista;
+      const extraer = ORDEN_CAMPOS[calSort.campo];
+      const factor = calSort.dir === 'asc' ? 1 : -1;
+      return lista.slice().sort((a, b) => {
+        const va = extraer(a), vb = extraer(b);
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
     }
+    function renderCabecerasOrden(){
+      document.querySelectorAll('#calTab-resultados th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === calSort.campo;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (calSort.dir === 'asc' ? ICO_SORT_ASC : ICO_SORT_DESC) : '';
+      });
+    }
+    document.querySelectorAll('#calTab-resultados th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const sort = th.dataset.sort;
+        if(calSort.campo === sort) calSort.dir = calSort.dir === 'asc' ? 'desc' : 'asc';
+        else { calSort.campo = sort; calSort.dir = SORT_DEFAULT_DIR[sort] || 'asc'; }
+        renderResultados();
+      });
+    });
 
     function poblarInstructores(){
       const sel = document.getElementById('calRFInstructor');
@@ -7406,8 +7578,10 @@
       return `
       <tr>
         <td><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}</td>
-        <td>${r.nombre_curso ? escapeHtml(r.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))} · ${fmtFecha(r.fecha_inicio)} – ${fmtFecha(r.fecha_fin)}${r.sesiones ? ' · ' + r.sesiones + ' sesiones' : ''}</div></td>
         <td><span class="enc-fase">${escapeHtml(r.fase)}</span></td>
+        <td>${r.nombre_curso ? escapeHtml(r.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))}</div></td>
+        <td>${r.instructor ? escapeHtml(r.instructor) : '—'}</td>
+        <td class="radm-mono">${fmtFecha(r.fecha_inicio)} – ${fmtFecha(r.fecha_fin)}</td>
         <td>
           <button type="button" class="cal-alumnos-btn${abierto ? ' abierto' : ''}" data-id="${r.grupo_id}" title="Ver el detalle de cada alumno">
             <span class="radm-mono">${r.alumnos}</span>${ICO_CHEVRON}
@@ -7416,18 +7590,16 @@
         <td class="radm-mono">${conPct(r.aprobados, r.alumnos)}</td>
         <td class="radm-mono">${conPct(r.participaron, r.alumnos)}</td>
         <td class="radm-mono">${conPct(r.no_aprobados, r.alumnos)}</td>
-        <td>${semaforoCalifHtml(r.prom_calificacion)}</td>
         <td class="radm-mono">${asist}</td>
-        <td>${notaCelda(r.nota_general)}</td>
-        <td class="radm-mono">${fmtFechaLocal(r.ultima_carga)}</td>
+        <td>${semaforoCalifHtml(r.prom_calificacion)}</td>
         <td>
           <div class="diag-row-actions">
-            <button type="button" class="radm-icon-btn cal-reporte-btn" data-id="${r.grupo_id}" title="Reporte del grupo (próximamente)">${ICO_REPORTE}</button>
+            <button type="button" class="radm-icon-btn cal-reporte-btn" data-id="${r.grupo_id}" title="Generar el Reporte de Resultados de este grupo y abrirlo">${ICO_REPORTE}</button>
             <button type="button" class="radm-icon-btn cal-editar-btn" data-id="${r.grupo_id}" title="Editar las calificaciones de este grupo">${ICO_EDIT}</button>
             <button type="button" class="radm-icon-btn radm-icon-danger cal-eliminar-btn" data-id="${r.grupo_id}" title="Eliminar las calificaciones de este grupo (borrado real)">${ICO_TRASH}</button>
           </div>
         </td>
-      </tr>` + (abierto ? filaDetalleHtml(r.grupo_id) : '');
+      </tr>` + (abierto ? filaDetalleHtml(r) : '');
     }
 
     function detalleTablaHtml(detalle){
@@ -7447,20 +7619,25 @@
           <td>${a.notas ? escapeHtml(a.notas) : '—'}</td>
         </tr>`).join('')}</tbody></table>`;
     }
-    function filaDetalleHtml(grupoId){
-      const detalle = detalleCache.get(grupoId);
+    // nota general y fecha de carga (mismas para todo el grupo) van aquí, no
+    // como columnas propias de la tabla — pedido de Alfredo para no saturarla
+    function filaDetalleHtml(r){
+      const detalle = detalleCache.get(r.grupo_id);
+      const meta = `<div class="cal-detalle-meta"><span>Cargado: ${fmtFechaLocal(r.ultima_carga)}</span>${r.nota_general ? `<span class="cal-detalle-nota">Nota general: ${escapeHtml(r.nota_general)}</span>` : ''}</div>`;
       const cuerpo = detalle ? detalleTablaHtml(detalle) : '<span class="radm-hint">Cargando alumnos…</span>';
-      return `<tr class="cal-detalle-row" data-detalle="${grupoId}"><td colspan="12">${cuerpo}</td></tr>`;
+      return `<tr class="cal-detalle-row" data-detalle="${r.grupo_id}"><td colspan="12">${meta}${cuerpo}</td></tr>`;
     }
 
     function renderResultados(){
       const body = document.getElementById('calResultadosBody');
       const cuenta = document.getElementById('calResultadosCuenta');
-      const filas = filasFiltradas();
+      const filas = ordenarFilas(filasFiltradas());
       const filtrado = filas.length !== resultadosCache.length;
       cuenta.textContent = resultadosCache.length
         ? `${resultadosCache.length} grupo${resultadosCache.length === 1 ? '' : 's'} calificado${resultadosCache.length === 1 ? '' : 's'}` + (filtrado ? ` — mostrando ${filas.length} con estos filtros` : '')
         : '';
+      renderCabecerasOrden();
+      actualizarGenStats(filas);
       if(!resultadosCache.length){
         body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar.</td></tr>';
         return;
@@ -7484,22 +7661,159 @@
       }
     }
 
-    document.getElementById('calRFEmpresa').addEventListener('input', renderResultados);
-    document.getElementById('calRFHerramienta').addEventListener('change', renderResultados);
-    document.getElementById('calRFCurso').addEventListener('input', renderResultados);
-    document.getElementById('calRFInstructor').addEventListener('change', renderResultados);
-    document.getElementById('calRFDesde').addEventListener('change', renderResultados);
-    document.getElementById('calRFHasta').addEventListener('change', renderResultados);
-    document.getElementById('calRFQuitar').addEventListener('click', () => {
+    // Buscar/Limpiar filtros/Ver todos — mismo patrón que Consultar Diplomas:
+    // los filtros son del lado del cliente (sobre lo ya cargado), Buscar
+    // aplica lo que esté en los campos, Limpiar filtros los vacía SIN volver
+    // a mostrar todo (hasta que se dé Buscar o Ver todos).
+    function limpiarFiltrosResultadosForm(){
       document.getElementById('calRFEmpresa').value = '';
       document.getElementById('calRFHerramienta').value = '';
       document.getElementById('calRFCurso').value = '';
       document.getElementById('calRFInstructor').value = '';
       document.getElementById('calRFDesde').value = '';
       document.getElementById('calRFHasta').value = '';
-      renderResultados();
+    }
+    document.getElementById('calRFBuscar').addEventListener('click', renderResultados);
+    document.getElementById('calRFLimpiar').addEventListener('click', limpiarFiltrosResultadosForm);
+    document.getElementById('calRFVerTodos').addEventListener('click', () => { limpiarFiltrosResultadosForm(); renderResultados(); });
+
+    // ── Reporte de Resultados — snapshot en Table Storage, mismo patrón que
+    // Encuestas (generarReporteEncuesta): "Generar reporte" usa los filtros de
+    // arriba (Empresa/Herramienta/Curso/Instructor/Fechas); el ícono de cada
+    // fila de Resultados es el acceso directo, genera SOLO ese grupo sin
+    // pasar por el formulario. Cada clic crea un token nuevo — el reporte ya
+    // generado no cambia si después se edita una calificación. ──
+    function urlReporteCal(token){ return new URL('reporte-resultados?token=' + token, location.origin + '/').href; }
+
+    function actualizarGenStats(filas){
+      const alumnos = filas.reduce((a, r) => a + r.alumnos, 0);
+      const stat = (valor, etiqueta) => `<div class="cal-gen-stat"><b>${valor}</b><span>${etiqueta}</span></div>`;
+      document.getElementById('calGenStats').innerHTML = stat(filas.length, filas.length === 1 ? 'GRUPO' : 'GRUPOS') + stat(alumnos, alumnos === 1 ? 'ALUMNO' : 'ALUMNOS');
+      document.getElementById('calGenerarReporte').disabled = !filas.length;
+    }
+
+    document.getElementById('calGenerarReporte').addEventListener('click', async () => {
+      const filas = ordenarFilas(filasFiltradas());
+      if(!filas.length) return;
+      const btn = document.getElementById('calGenerarReporte');
+      btn.disabled = true;
+      try {
+        const payload = {
+          empresa: document.getElementById('calRFEmpresa').value.trim(),
+          herramienta: document.getElementById('calRFHerramienta').value,
+          curso: document.getElementById('calRFCurso').value.trim(),
+          instructor: document.getElementById('calRFInstructor').value,
+          desde: document.getElementById('calRFDesde').value,
+          hasta: document.getElementById('calRFHasta').value,
+          etiqueta: document.getElementById('calGenEtiqueta').value.trim(),
+        };
+        const r = await apiPostConReintento('/api/generarReporteCalificaciones', payload);
+        document.getElementById('calReporteLinkInput').value = urlReporteCal(r.token);
+        document.getElementById('calReporteLinkWrap').hidden = false;
+        toast(`Reporte generado con ${r.n} ${r.n === 1 ? 'alumno' : 'alumnos'} de ${r.nGrupos} ${r.nGrupos === 1 ? 'grupo' : 'grupos'}.`, true);
+      } catch(err){ toast('No se pudo generar el reporte: ' + err.message, false); }
+      finally { actualizarGenStats(ordenarFilas(filasFiltradas())); }
     });
-    document.getElementById('calRFActualizar').addEventListener('click', cargarResultados);
+    document.getElementById('calReporteAbrir').addEventListener('click', () => {
+      const v = document.getElementById('calReporteLinkInput').value;
+      if(v) window.open(v, '_blank');
+    });
+    document.getElementById('calReporteCopiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(document.getElementById('calReporteLinkInput').value); toast('Link copiado.', true); }
+      catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+    });
+
+    // ══ REPORTES — solo consulta de lo ya generado (Table Storage, sin SQL) ══
+    let calReportesRaw = [];
+    const calRepSort = { campo:'generadoEn', dir:'desc' };
+    const N_COLS_REP_CAL = 6;
+
+    function chipsFiltrosReporteCal(f){
+      const chips = [];
+      if(f.empresa) chips.push('Empresa: ' + f.empresa);
+      if(f.instructor) chips.push('Instructor: ' + f.instructor);
+      if(f.herramienta) chips.push(TOOL_NAMES[f.herramienta] || f.herramienta);
+      if(f.curso) chips.push('Curso: ' + f.curso);
+      if(f.desde || f.hasta){
+        const dia = iso => iso.split('-').reverse().join('/');
+        chips.push((f.desde ? dia(f.desde) : '…') + ' – ' + (f.hasta ? dia(f.hasta) : '…'));
+      }
+      if(!chips.length) chips.push('Todos los grupos');
+      return `<div class="cal-rep-filtros">${chips.map(c => `<span class="cal-gen-chip">${escapeHtml(c)}</span>`).join('')}</div>`;
+    }
+
+    function renderReportesCal(){
+      const body = document.getElementById('calReportesBody');
+      document.querySelectorAll('#calReportesTable th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === calRepSort.campo;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (calRepSort.dir === 'asc' ? ICO_SORT_ASC : ICO_SORT_DESC) : '';
+      });
+      if(!calReportesRaw.length){ body.innerHTML = `<tr><td colspan="${N_COLS_REP_CAL}" class="radm-empty-row">Todavía no has generado reportes — se generan desde Resultados.</td></tr>`; return; }
+      const factor = calRepSort.dir === 'asc' ? 1 : -1;
+      const lista = calReportesRaw.slice().sort((a, b) => {
+        const va = a[calRepSort.campo], vb = b[calRepSort.campo];
+        const aVacio = va == null || va === '', bVacio = vb == null || vb === '';
+        if(aVacio && bVacio) return 0;
+        if(aVacio) return 1;
+        if(bVacio) return -1;
+        return typeof va === 'string' ? va.localeCompare(vb) * factor : (va - vb) * factor;
+      });
+      body.innerHTML = lista.map(r => `
+        <tr>
+          <td class="radm-mono">${fmtFechaLocal(r.generadoEn)}</td>
+          <td>${r.etiqueta ? escapeHtml(r.etiqueta) : '<span class="cal-anonimo">Sin etiqueta</span>'}</td>
+          <td>${chipsFiltrosReporteCal(r.filtros || {})}</td>
+          <td class="radm-mono">${r.n}${r.nGrupos ? `<div class="diag-nombre-sub">${r.nGrupos} ${r.nGrupos === 1 ? 'grupo' : 'grupos'}</div>` : ''}</td>
+          <td>${semaforoCalifHtml(r.promedioCalificacion)}</td>
+          <td>
+            <div class="diag-row-actions">
+              <button type="button" class="radm-icon-btn" data-action="abrir" data-token="${r.token}" title="Abrir el reporte">${ICO_ABRIR}</button>
+              <button type="button" class="radm-icon-btn" data-action="copiar" data-token="${r.token}" title="Copiar el link">${ICO_COPIAR}</button>
+              <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-token="${r.token}" title="Eliminar este reporte — el link deja de funcionar">${ICO_TRASH}</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function cargarReportesCal(){
+      document.getElementById('calReportesBody').innerHTML = `<tr><td colspan="${N_COLS_REP_CAL}" class="radm-empty-row">Cargando...</td></tr>`;
+      try {
+        calReportesRaw = await apiGetConReintento('/api/listReportesCalificacionesAdmin');
+        renderReportesCal();
+      } catch(e){
+        document.getElementById('calReportesBody').innerHTML = `<tr><td colspan="${N_COLS_REP_CAL}" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+    }
+
+    document.querySelectorAll('#calReportesTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        if(calRepSort.campo === th.dataset.sort) calRepSort.dir = calRepSort.dir === 'asc' ? 'desc' : 'asc';
+        else { calRepSort.campo = th.dataset.sort; calRepSort.dir = th.dataset.sort === 'etiqueta' ? 'asc' : 'desc'; }
+        renderReportesCal();
+      });
+    });
+
+    document.getElementById('calReportesBody').addEventListener('click', async e => {
+      const btn = e.target.closest('[data-action]');
+      if(!btn) return;
+      const token = btn.dataset.token;
+      if(btn.dataset.action === 'abrir'){ window.open(urlReporteCal(token), '_blank'); return; }
+      if(btn.dataset.action === 'copiar'){
+        try { await navigator.clipboard.writeText(urlReporteCal(token)); toast('Link copiado.', true); }
+        catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
+        return;
+      }
+      if(btn.dataset.action === 'eliminar'){
+        const r = calReportesRaw.find(x => x.token === token);
+        if(!confirm(`¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las calificaciones NO se borran y se puede volver a generar.`)) return;
+        try {
+          await apiPostJson('/api/eliminarReporteCalificaciones', { token });
+          toast('Reporte eliminado.', true);
+          cargarReportesCal();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+      }
+    });
 
     document.getElementById('calResultadosBody').addEventListener('click', async e => {
       const btnAlumnos = e.target.closest('.cal-alumnos-btn');
@@ -7526,7 +7840,21 @@
       }
 
       const btnReporte = e.target.closest('.cal-reporte-btn');
-      if(btnReporte){ toast('Reportes — próximamente. Se construirá sobre estos resultados.', true); return; }
+      if(btnReporte){
+        const r = resultadosCache.find(x => x.grupo_id === Number(btnReporte.dataset.id));
+        if(!r) return;
+        btnReporte.disabled = true;
+        try {
+          const resp = await apiPostConReintento('/api/generarReporteCalificaciones', { grupoId: r.grupo_id });
+          window.open(urlReporteCal(resp.token), '_blank');
+          toast(`Reporte generado con ${resp.n} ${resp.n === 1 ? 'alumno' : 'alumnos'} — se abrió en una pestaña nueva.`, true);
+        } catch(err){
+          toast('No se pudo generar el reporte: ' + err.message, false);
+        } finally {
+          btnReporte.disabled = false;
+        }
+        return;
+      }
 
       const btnEditar = e.target.closest('.cal-editar-btn');
       if(btnEditar){

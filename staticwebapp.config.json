@@ -137,6 +137,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/generarReporteCalificaciones",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listReportesCalificacionesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarReporteCalificaciones",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getDiplomaPdf",
       "allowedRoles": ["admin"]
     },

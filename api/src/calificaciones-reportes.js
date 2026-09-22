@@ -6,6 +6,7 @@
 // token opaco (uuid sin guiones) que viaja en el link.
 const { TableClient } = require("@azure/data-tables");
 const crypto = require("crypto");
+const { actualizarConReintento } = require("./table-contador");
 
 const TROZO = 30000; // caracteres por propiedad, con margen bajo el tope de 32 K
 const MAX_TROZOS = 30; // ~900 K de JSON; el tope de la entidad completa es 1 MB
@@ -62,10 +63,25 @@ async function guardarReporteCalificaciones(table, { token, snapshot }) {
       nGrupos: snapshot.nGrupos,
       aprobados: snapshot.aprobados,
       promedioCalificacion: snapshot.promedioCalificacion,
+      vistas: 0,
       snapPartes: n,
       ...partes,
     },
     "Replace"
+  );
+}
+
+// Contador "en vivo" de aperturas del link público — mismo patrón que los
+// contadores de Diagnóstico/Encuestas (lectura-modificación-escritura con
+// ETag y reintento, ver table-contador.js). No es crítico si se pierde una
+// vista por una carrera rarísima; nunca debe tumbar la carga del reporte.
+async function registrarVistaReporte(table, token) {
+  await actualizarConReintento(
+    table,
+    "reporte",
+    token,
+    (entidad) => ({ vistas: (entidad.vistas || 0) + 1 }),
+    () => ({ vistas: 1 })
   );
 }
 
@@ -85,7 +101,7 @@ async function listarReportesCalificaciones(table) {
   const entidades = table.listEntities({
     queryOptions: {
       filter: "PartitionKey eq 'reporte'",
-      select: ["rowKey", "generadoEn", "etiqueta", "filtrosJson", "n", "nGrupos", "aprobados", "promedioCalificacion"],
+      select: ["rowKey", "generadoEn", "etiqueta", "filtrosJson", "n", "nGrupos", "aprobados", "promedioCalificacion", "vistas"],
     },
   });
   for await (const e of entidades) {
@@ -100,6 +116,7 @@ async function listarReportesCalificaciones(table) {
       nGrupos: e.nGrupos,
       aprobados: e.aprobados,
       promedioCalificacion: e.promedioCalificacion,
+      vistas: e.vistas || 0,
     });
   }
   return items;
@@ -116,4 +133,5 @@ module.exports = {
   leerReporteCalificaciones,
   listarReportesCalificaciones,
   eliminarReporteCalificaciones,
+  registrarVistaReporte,
 };

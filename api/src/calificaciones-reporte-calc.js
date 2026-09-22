@@ -115,7 +115,10 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
   const asistPosible = participantes.reduce((a, p) => a + p.frecuencias, 0);
 
   const porCalifDesc = participantes.slice().sort((a, b) => b.calificacion - a.calificacion || a.nombre.localeCompare(b.nombre));
-  const resumenPersona = (p) => ({ id: p.id, nombre: p.nombre, empresa: p.empresa, curso: p.curso, calificacion: p.calificacion, calificacionTopada: p.calificacionTopada, excede100: p.excede100, semaforo: p.semaforo });
+  // puntos va en el resumen para poder explicar en "Los mejor calificados" por
+  // qué alguien pasa de 100 (si no, varios se ven iguales en "100+" sin poder
+  // distinguir quién sacó más puntos extra)
+  const resumenPersona = (p) => ({ id: p.id, nombre: p.nombre, empresa: p.empresa, curso: p.curso, puntos: p.puntos, calificacion: p.calificacion, calificacionTopada: p.calificacionTopada, excede100: p.excede100, semaforo: p.semaforo });
   const mejores = porCalifDesc.slice(0, 3).map(resumenPersona);
   const bajoOchenta = participantes
     .filter((p) => p.calificacion < UMBRAL_APROBADO)

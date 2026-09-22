@@ -3458,57 +3458,56 @@
         </div>
 
         <div class="dip-tabpanel" id="calTab-resultados">
-          <div class="dip-filters">
-            <div class="radm-field">
-              <label>EMPRESA</label>
-              <input type="text" id="calRFEmpresa">
-            </div>
-            <div class="radm-field">
-              <label>HERRAMIENTA</label>
-              <select id="calRFHerramienta">
-                <option value="">Todas</option>
-                <option value="excel">Excel</option>
-                <option value="powerbi">Power BI</option>
-                <option value="powerapps">Power Apps</option>
-                <option value="powerautomate">Power Automate</option>
-                <option value="ia">IA Aplicada</option>
-                <option value="ofimatica">Ofimática Básica</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>CURSO</label>
-              <input type="text" id="calRFCurso">
-            </div>
-            <div class="radm-field">
-              <label>INSTRUCTOR</label>
-              <select id="calRFInstructor">
-                <option value="">Todos</option>
-              </select>
-            </div>
-            <div class="radm-field">
-              <label>DESDE</label>
-              <input type="date" id="calRFDesde">
-            </div>
-            <div class="radm-field">
-              <label>HASTA</label>
-              <input type="date" id="calRFHasta">
-            </div>
-            <div class="dip-filter-actions">
-              <button type="button" class="radm-btn dip-btn-icon" id="calRFBuscar" style="min-width:auto" title="Aplica los filtros que hayas llenado arriba">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-                Buscar
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="calRFLimpiar" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Limpiar filtros
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="calRFVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todos los grupos calificados">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-                Ver todos
-              </button>
+          <div class="sol-toolbar">
+            <div class="dip-filters" style="margin-bottom:0;">
+              <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div class="radm-field">
+                <label>EMPRESA</label>
+                <input type="text" id="calRFEmpresa" placeholder="Escribe para buscar...">
+              </div>
+              <div class="radm-field">
+                <label>HERRAMIENTA</label>
+                <select id="calRFHerramienta">
+                  <option value="">Todas</option>
+                  <option value="excel">Excel</option>
+                  <option value="powerbi">Power BI</option>
+                  <option value="powerapps">Power Apps</option>
+                  <option value="powerautomate">Power Automate</option>
+                  <option value="ia">IA Aplicada</option>
+                  <option value="ofimatica">Ofimática Básica</option>
+                </select>
+              </div>
+              <div class="radm-field">
+                <label>CURSO</label>
+                <input type="text" id="calRFCurso" placeholder="Escribe para buscar...">
+              </div>
+              <div class="radm-field">
+                <label>INSTRUCTOR</label>
+                <select id="calRFInstructor">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="radm-field">
+                <label>DESDE</label>
+                <input type="date" id="calRFDesde">
+              </div>
+              <div class="radm-field">
+                <label>HASTA</label>
+                <input type="date" id="calRFHasta">
+              </div>
+              <div class="dip-filter-actions">
+                <button type="button" class="cot-icon-btn" id="calRFActualizar" title="Actualizar la lista">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="cot-icon-btn" id="calRFLimpiar" title="Limpiar filtros y mostrar todos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+                </button>
+              </div>
             </div>
           </div>
-          <div class="radm-section" style="margin-bottom:22px;">
+          <div class="dip-paso" style="margin-bottom:22px;">
             <div class="cal-gen-head">
               <span class="dip-paso-title">Reporte con los filtros de arriba</span>
               <div class="cal-gen-stats" id="calGenStats"></div>
@@ -3516,7 +3515,7 @@
             <div class="cal-gen-fila">
               <div class="radm-field cal-gen-etq">
                 <label>ETIQUETA</label>
-                <input type="text" id="calGenEtiqueta" maxlength="80" placeholder="Ej. Follatti Casinos - Excel Intermedio">
+                <input type="text" id="calGenEtiqueta" maxlength="80" placeholder="Ej. Cliente - Curso - MesAño">
               </div>
               <button type="button" class="radm-btn cal-gen-btn" id="calGenerarReporte" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3571,11 +3570,12 @@
                   <th>Filtros aplicados</th>
                   <th data-sort="n">Alumnos<span class="th-sort-ico"></span></th>
                   <th data-sort="promedioCalificacion">Calificación<span class="th-sort-ico"></span></th>
+                  <th data-sort="vistas" title="Veces que se abrió el link del reporte">Vistas<span class="th-sort-ico"></span></th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="calReportesBody">
-                <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -7661,21 +7661,27 @@
       }
     }
 
-    // Buscar/Limpiar filtros/Ver todos — mismo patrón que Consultar Diplomas:
-    // los filtros son del lado del cliente (sobre lo ya cargado), Buscar
-    // aplica lo que esté en los campos, Limpiar filtros los vacía SIN volver
-    // a mostrar todo (hasta que se dé Buscar o Ver todos).
-    function limpiarFiltrosResultadosForm(){
+    // Filtros en vivo — mismo patrón que Tracking Grupos (.sol-toolbar +
+    // cot-icon-btn): se filtra al escribir/elegir, sin botón "Buscar" aparte.
+    // Actualizar vuelve a pedir la lista al servidor; Limpiar filtros vacía
+    // los campos Y muestra todo de inmediato (equivalente a "Ver todos").
+    let calFiltroDebounce = null;
+    function renderResultadosDebounced(){
+      clearTimeout(calFiltroDebounce);
+      calFiltroDebounce = setTimeout(renderResultados, 200);
+    }
+    ['calRFEmpresa', 'calRFCurso'].forEach(id => document.getElementById(id).addEventListener('input', renderResultadosDebounced));
+    ['calRFHerramienta', 'calRFInstructor', 'calRFDesde', 'calRFHasta'].forEach(id => document.getElementById(id).addEventListener('change', renderResultados));
+    document.getElementById('calRFActualizar').addEventListener('click', cargarResultados);
+    document.getElementById('calRFLimpiar').addEventListener('click', () => {
       document.getElementById('calRFEmpresa').value = '';
       document.getElementById('calRFHerramienta').value = '';
       document.getElementById('calRFCurso').value = '';
       document.getElementById('calRFInstructor').value = '';
       document.getElementById('calRFDesde').value = '';
       document.getElementById('calRFHasta').value = '';
-    }
-    document.getElementById('calRFBuscar').addEventListener('click', renderResultados);
-    document.getElementById('calRFLimpiar').addEventListener('click', limpiarFiltrosResultadosForm);
-    document.getElementById('calRFVerTodos').addEventListener('click', () => { limpiarFiltrosResultadosForm(); renderResultados(); });
+      renderResultados();
+    });
 
     // ── Reporte de Resultados — snapshot en Table Storage, mismo patrón que
     // Encuestas (generarReporteEncuesta): "Generar reporte" usa los filtros de
@@ -7726,7 +7732,7 @@
     // ══ REPORTES — solo consulta de lo ya generado (Table Storage, sin SQL) ══
     let calReportesRaw = [];
     const calRepSort = { campo:'generadoEn', dir:'desc' };
-    const N_COLS_REP_CAL = 6;
+    const N_COLS_REP_CAL = 7;
 
     function chipsFiltrosReporteCal(f){
       const chips = [];
@@ -7766,6 +7772,7 @@
           <td>${chipsFiltrosReporteCal(r.filtros || {})}</td>
           <td class="radm-mono">${r.n}${r.nGrupos ? `<div class="diag-nombre-sub">${r.nGrupos} ${r.nGrupos === 1 ? 'grupo' : 'grupos'}</div>` : ''}</td>
           <td>${semaforoCalifHtml(r.promedioCalificacion)}</td>
+          <td class="radm-mono">${r.vistas || 0}</td>
           <td>
             <div class="diag-row-actions">
               <button type="button" class="radm-icon-btn" data-action="abrir" data-token="${r.token}" title="Abrir el reporte">${ICO_ABRIR}</button>

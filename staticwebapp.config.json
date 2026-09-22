@@ -133,6 +133,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarCalificacionesGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getDiplomaPdf",
       "allowedRoles": ["admin"]
     },

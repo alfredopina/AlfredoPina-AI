@@ -2,7 +2,7 @@
 // Prueba local, sin red (mismo patrón que test-cliente-actividad.js): verifica
 // las reglas de evaluación y la validación pura de las filas del grid de
 // Calificaciones (api/src/calificaciones-calc.js).
-const { parsearNumero, calcularEvaluacion, validarFilas, FASES_CALIFICABLES } = require("./src/calificaciones-calc");
+const { parsearNumero, calcularEvaluacion, validarFilas, validarNotaGeneral, MAX_NOTA_GENERAL, FASES_CALIFICABLES } = require("./src/calificaciones-calc");
 
 let failures = 0;
 function check(nombre, condicion) {
@@ -117,7 +117,14 @@ const base = { puntos: "", asistencias: "5", frecuencias: "5", proyecto: "90" };
 }
 check("entrada que no es arreglo → sin filas", validarFilas(null).filas.length === 0);
 
-// 4) Fases
+// 4) Nota general (del grupo, no del alumno)
+check("nota general vacía → null", validarNotaGeneral("").valor === null);
+check("nota general solo espacios → null", validarNotaGeneral("   ").valor === null);
+check("nota general normal → recortada y conservada", validarNotaGeneral("  Buen grupo, muy participativo.  ").valor === "Buen grupo, muy participativo.");
+check("nota general al límite exacto pasa", !validarNotaGeneral("x".repeat(MAX_NOTA_GENERAL)).error);
+check("nota general de más del límite se rechaza", !!validarNotaGeneral("x".repeat(MAX_NOTA_GENERAL + 1)).error);
+
+// 5) Fases
 check("Por iniciar y Cerrado no se califican", !FASES_CALIFICABLES.includes("Por iniciar") && !FASES_CALIFICABLES.includes("Cerrado"));
 check("En curso a Diplomas sí", ["En curso", "Proyecto", "Calificaciones", "Diplomas"].every((f) => FASES_CALIFICABLES.includes(f)));
 

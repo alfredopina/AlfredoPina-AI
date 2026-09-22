@@ -59,6 +59,15 @@ function parsearNumero(v, { entero = false, min = 0, max = Infinity, pct = false
 
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NOTAS = 500;
+const MAX_NOTA_GENERAL = 2000;
+
+// Nota de texto libre del GRUPO (no de un alumno) — se replica igual en cada
+// fila de Calificacion al guardar (ver sql/024). Vacía o solo espacios → null.
+function validarNotaGeneral(texto) {
+  const t = String(texto || "").trim();
+  if (t.length > MAX_NOTA_GENERAL) return { error: `no puede pasar de ${MAX_NOTA_GENERAL} caracteres` };
+  return { valor: t || null };
+}
 
 // Devuelve { filas, errores }: filas limpias con la evaluación ya calculada,
 // y errores con el número de fila (1-based, contando solo filas con
@@ -140,8 +149,10 @@ module.exports = {
   PESO_ASISTENCIA,
   UMBRAL_APROBADO,
   UMBRAL_ASISTENCIA,
+  MAX_NOTA_GENERAL,
   limpiarNombre,
   parsearNumero,
   calcularEvaluacion,
   validarFilas,
+  validarNotaGeneral,
 };

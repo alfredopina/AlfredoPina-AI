@@ -1,17 +1,24 @@
 // cargarCalificaciones/index.js
 // Function protegida (rol "admin"): registra las calificaciones de un Grupo
-// (lo que se pega del Excel en Calificaciones → Cargar). Por cada fila da de
-// alta o reutiliza el Alumno (ligado al cliente FINAL del grupo si lo tiene,
-// si no al cliente que contrató) y REEMPLAZA el set completo del grupo — todo
-// en una transacción, o entra todo o no entra nada. Es idempotente, así que
-// el front puede reintentar sin miedo si la base estaba dormida. NO mueve la
-// fase del grupo: eso lo confirma Alfredo en una ventana y lo hace
-// avanzarFaseGrupo, una fase a la vez (queda todo en el historial).
+// (lo que se pega del Excel en Calificaciones → Cargar, o el flujo de Editar
+// desde Resultados). Por cada fila da de alta o reutiliza el Alumno (ligado
+// al cliente FINAL del grupo si lo tiene, si no al cliente que contrató) y
+// REEMPLAZA el set completo del grupo — todo en una transacción, o entra todo
+// o no entra nada. Es idempotente, así que el front puede reintentar sin
+// miedo si la base estaba dormida. NO mueve la fase del grupo: eso lo
+// confirma Alfredo en una ventana y lo hace avanzarFaseGrupo (ver esa
+// Function; ya acepta moverse a cualquier fase, no solo la siguiente).
+// `soloActualizar: true` (modo Editar, ver Resultados → Editar) se salta la
+// validación de fase calificable — Editar debe poder tocar un grupo ya en
+// Diplomas o Cerrado, que el flujo normal de Cargar ni siquiera deja elegir.
+// `notaGeneral` es un texto del GRUPO (no de un alumno) que se replica igual
+// en cada fila (ver sql/024 — decisión de no crear una tabla aparte solo
+// para esto).
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase } = require("../src/grupo-fase");
 const { resolverAlumno } = require("../src/alumnos");
-const { validarFilas, FASES_CALIFICABLES } = require("../src/calificaciones-calc");
+const { validarFilas, validarNotaGeneral, FASES_CALIFICABLES } = require("../src/calificaciones-calc");
 
 function fallo(context, status, error, extra) {
   context.res = { status, headers: JSON_HEADERS, body: { error, ...extra } };
@@ -29,6 +36,11 @@ module.exports = async function (context, req) {
   }
   if (!filas.length) return fallo(context, 400, "El grid no trae alumnos.");
 
+  const notaGeneralR = validarNotaGeneral(body.notaGeneral);
+  if (notaGeneralR.error) return fallo(context, 400, "La nota general " + notaGeneralR.error + ".");
+  const notaGeneral = notaGeneralR.valor;
+  const soloActualizar = body.soloActualizar === true;
+
   try {
     const pool = await getPool();
     const g = await pool
@@ -38,7 +50,7 @@ module.exports = async function (context, req) {
     if (!g.recordset.length) return fallo(context, 404, "Ese grupo ya no existe.");
 
     const fase = derivarFase(g.recordset[0].estatus_curso, g.recordset[0].estatus_cierre);
-    if (!FASES_CALIFICABLES.includes(fase)) {
+    if (!soloActualizar && !FASES_CALIFICABLES.includes(fase)) {
       return fallo(context, 400, `Un grupo en fase "${fase}" no se califica — solo de En curso a Diplomas.`);
     }
     // los alumnos son del cliente FINAL (la empresa donde trabajan); si el
@@ -63,9 +75,10 @@ module.exports = async function (context, req) {
           .input("calificacion", sql.Decimal(5, 1), f.calificacion)
           .input("resultado", sql.NVarChar, f.resultado)
           .input("notas", sql.NVarChar, f.notas)
+          .input("notaGeneral", sql.NVarChar, notaGeneral)
           .query(
-            `INSERT INTO Calificacion (grupo_id, alumno_id, puntos, asistencias, frecuencias, proyecto, calificacion, resultado, notas)
-             VALUES (@grupoId, @alumnoId, @puntos, @asistencias, @frecuencias, @proyecto, @calificacion, @resultado, @notas)`
+            `INSERT INTO Calificacion (grupo_id, alumno_id, puntos, asistencias, frecuencias, proyecto, calificacion, resultado, notas, nota_general)
+             VALUES (@grupoId, @alumnoId, @puntos, @asistencias, @frecuencias, @proyecto, @calificacion, @resultado, @notas, @notaGeneral)`
           );
       }
       await transaction.commit();

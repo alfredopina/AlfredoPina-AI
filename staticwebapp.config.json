@@ -157,11 +157,11 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/getDiplomaPdf",
+      "route": "/api/listDiplomas",
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/listDiplomas",
+      "route": "/api/getDiplomasGrupo",
       "allowedRoles": ["admin"]
     },
     {
@@ -174,14 +174,6 @@
     },
     {
       "route": "/api/subirPlantillaAsset",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarDiplomaPrueba",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getGuiaCoordenadas",
       "allowedRoles": ["admin"]
     },
     {

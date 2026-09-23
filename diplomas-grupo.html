@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Diplomas — Alfredo Piña</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#10141b; --panel-2:#141a23; --line:#1d2530; --line-soft:#161c26;
+    --blue:#3d7fff; --blue-bright:#6b9fff; --blue-soft:rgba(61,127,255,.14);
+    --text:#edf0f4; --text-dim:#8991a1; --text-faint:#4c5462;
+    --rojo:#dc2626; --ambar:#dfb35a; --teal:#14b8a6;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;}
+  svg{display:block;}
+  .wrap{max-width:900px; margin:0 auto; padding:0 28px;}
+  [hidden]{display:none !important;}
+
+  .dg-loading, .dg-error{ font-family:var(--mono); font-size:13px; padding:60px 0; text-align:center; color:var(--text-faint); }
+  .dg-error{ color:var(--rojo); }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  .chip b{ color:var(--text); font-weight:600; }
+
+  @keyframes dgPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .dg-live-dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); flex:none; animation:dgPulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .dg-live-dot{ animation:none; } }
+
+  header.dg-header{ border-bottom:1px solid var(--line); padding:18px 0 16px; }
+  .dg-brand{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .dg-brand-id{ display:flex; align-items:center; gap:10px; }
+  .dg-brand-id img{ height:22px; width:auto; display:block; }
+  .dg-brand-descriptor{ font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; color:var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
+  .dg-generado{ display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
+  .dg-title{ font-family:var(--display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin-bottom:10px; }
+  .dg-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  main{ padding:24px 0 60px; }
+  .dg-actions{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:22px 0 16px; }
+  .dg-hint{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  .abtn{ display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; font-weight:600; border-radius:7px; padding:9px 14px; cursor:pointer; color:#fff; background-color:var(--blue); border:1px solid var(--blue); }
+  .abtn svg{ width:13px; height:13px; }
+  .abtn:disabled{ opacity:.5; cursor:default; }
+  .abtn-ghost{ color:var(--blue-bright); background-color:var(--blue-soft); border-color:var(--blue); }
+
+  .dg-list{ display:flex; flex-direction:column; gap:10px; }
+  .dg-row{ display:flex; align-items:center; gap:14px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .dg-row.destacado{ border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
+  .dg-row-body{ flex:1; min-width:0; }
+  .dg-row-nombre{ font-family:var(--display); font-weight:600; font-size:15px; }
+  .dg-row-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:3px; }
+  .dg-pill{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:700; border-radius:20px; padding:4px 10px; white-space:nowrap; border:1px solid; flex:none; }
+  .dg-pill svg{ width:11px; height:11px; }
+  .dg-pill.verde{ color:var(--teal); background:rgba(20,184,166,.14); border-color:var(--teal); }
+  .dg-pill.ambar{ color:var(--ambar); background:rgba(223,179,90,.14); border-color:var(--ambar); }
+  .dg-pill.anulado{ color:var(--text-faint); background:none; border-color:var(--line); }
+  .dg-row-dl{ flex:none; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:7px; border:1px solid var(--line); color:var(--text-dim); background:none; cursor:pointer; }
+  .dg-row-dl svg{ width:15px; height:15px; }
+  .dg-row-dl:hover{ color:var(--blue-bright); border-color:var(--blue); }
+  .dg-row-dl:disabled{ opacity:.4; cursor:default; }
+  .dg-motivo{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:3px; }
+
+  .dg-tpl-host{ position:fixed; left:-9999px; top:0; width:1100px; }
+
+  footer{ border-top:1px solid var(--line); padding:20px 0 40px; text-align:center; }
+  footer p{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div id="dgLoading" class="dg-loading">Cargando…</div>
+<div id="dgError" class="dg-error" hidden></div>
+
+<div id="dgApp" hidden>
+  <header class="dg-header"><div class="wrap">
+    <div class="dg-brand">
+      <div class="dg-brand-id">
+        <img src="assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai">
+        <span class="dg-brand-descriptor">Productividad con Datos · Automatización · IA</span>
+      </div>
+      <span class="dg-generado"><span class="dg-live-dot"></span><span id="dgActualizado"></span></span>
+    </div>
+    <div class="dg-title" id="dgTitulo"></div>
+    <div class="dg-chips" id="dgChips"></div>
+  </div></header>
+
+  <main><div class="wrap">
+    <div class="dg-actions">
+      <span class="dg-hint">Cada quien puede descargar el suyo, o bájalos todos juntos.</span>
+      <button type="button" class="abtn" id="dgDescargarTodos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>
+        Descargar todos (.zip)
+      </button>
+    </div>
+    <div class="dg-list" id="dgLista"></div>
+  </div></main>
+
+  <footer><p>alfredopina.ai — Productividad con Datos · Automatización · IA</p></footer>
+</div>
+
+<div class="dg-tpl-host"><div class="dip-tpl-stage dip-tpl-frame" id="dgFrame"></div></div>
+
+<script src="assets/js/diploma-template.js"></script>
+<script>
+(function(){
+  const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>';
+  const ICO_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 21h14" stroke-linecap="round"/></svg>';
+
+  function esc(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function herramientasArr(json){ try { return JSON.parse(json || '[]'); } catch(e){ return []; } }
+  const TOOL_NAMES = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
+
+  function fmtFechaHora(iso){
+    if(!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) + ' ' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function datosDiploma(snapshot, alumno){
+    return {
+      nombre: alumno.nombre, correo: alumno.correo, folio: alumno.folio,
+      cliente: snapshot.cliente, curso: snapshot.curso, nivel: snapshot.nivel,
+      herramientas: herramientasArr(snapshot.herramientas), resultado: alumno.resultado,
+      fechaInicio: snapshot.fechaInicio, fechaFin: snapshot.fechaFin, horas: snapshot.horas,
+      instructor: snapshot.instructor,
+      firmaUrl: snapshot.instructor ? ('/api/getFirmaPublica?instructor=' + encodeURIComponent(snapshot.instructor)) : null,
+    };
+  }
+  function nombreArchivo(alumno){
+    return (alumno.nombre || 'diploma').replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '') + '.pdf';
+  }
+
+  async function init(){
+    const params = new URLSearchParams(location.search);
+    const token = (params.get('token') || '').trim();
+    const folioDestacado = params.get('alumno') || '';
+    if(!/^[a-f0-9]{32}$/.test(token)){
+      document.getElementById('dgLoading').hidden = true;
+      document.getElementById('dgError').hidden = false;
+      document.getElementById('dgError').textContent = 'Este link no es válido.';
+      return;
+    }
+
+    let snapshot;
+    try {
+      const res = await fetch('/api/getDiplomasGrupoPublico?token=' + encodeURIComponent(token));
+      const body = await res.json();
+      if(!res.ok) throw new Error(body.error || 'No se pudo cargar.');
+      snapshot = body;
+    } catch(e){
+      document.getElementById('dgLoading').hidden = true;
+      document.getElementById('dgError').hidden = false;
+      document.getElementById('dgError').textContent = e.message;
+      return;
+    }
+
+    document.getElementById('dgLoading').hidden = true;
+    document.getElementById('dgApp').hidden = false;
+    document.getElementById('dgActualizado').textContent = 'ACTUALIZADO ' + fmtFechaHora(snapshot.actualizadoEn).toUpperCase();
+    document.getElementById('dgTitulo').textContent = 'Diplomas · ' + (snapshot.cliente || '') + (snapshot.curso ? ' · ' + snapshot.curso : '');
+
+    const herr = herramientasArr(snapshot.herramientas).map(h => TOOL_NAMES[h] || h).join(' + ');
+    const chips = [
+      snapshot.clienteVia ? ('Vía ' + snapshot.clienteVia) : null,
+      herr, snapshot.nivel ? ('Nivel ' + snapshot.nivel) : null,
+      snapshot.instructor ? ('Instructor: ' + snapshot.instructor) : null,
+      (snapshot.alumnos || []).length + ' alumno(s)',
+    ].filter(Boolean);
+    document.getElementById('dgChips').innerHTML = chips.map(c => `<span class="chip">${esc(c)}</span>`).join('');
+
+    const alumnos = snapshot.alumnos || [];
+    const vigentes = alumnos.filter(a => a.estatus === 'vigente');
+    document.getElementById('dgDescargarTodos').disabled = !vigentes.length;
+
+    const frame = document.getElementById('dgFrame');
+    document.getElementById('dgLista').innerHTML = alumnos.map(a => {
+      const destacado = folioDestacado && a.folio === folioDestacado;
+      const anulado = a.estatus === 'anulado';
+      const pillClass = anulado ? 'anulado' : (a.resultado === 'Aprobado' ? 'verde' : 'ambar');
+      const pillTexto = anulado ? 'Anulado' : a.resultado;
+      const pillIco = anulado ? ICO_X : ICO_OK;
+      return `<div class="dg-row${destacado ? ' destacado' : ''}" data-folio="${esc(a.folio)}">
+        <div class="dg-row-body">
+          <div class="dg-row-nombre">${esc(a.nombre)}</div>
+          <div class="dg-row-sub">${a.correo ? esc(a.correo) : '—'} · ${esc(a.folio)}</div>
+          ${anulado && a.motivo_anulacion ? `<div class="dg-motivo">Motivo: ${esc(a.motivo_anulacion)}</div>` : ''}
+        </div>
+        <span class="dg-pill ${pillClass}">${pillIco}${esc(pillTexto)}</span>
+        <button type="button" class="dg-row-dl" data-folio="${esc(a.folio)}" ${anulado ? 'disabled' : ''} title="${anulado ? 'Este diploma fue anulado' : 'Descargar diploma'}">${ICO_DL}</button>
+      </div>`;
+    }).join('') || '<p class="dg-hint">Todavía no hay diplomas en este grupo.</p>';
+
+    if(folioDestacado){
+      const el = document.querySelector(`.dg-row[data-folio="${CSS.escape(folioDestacado)}"]`);
+      if(el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+
+    document.getElementById('dgLista').addEventListener('click', async e => {
+      const btn = e.target.closest('.dg-row-dl');
+      if(!btn || btn.disabled) return;
+      const alumno = alumnos.find(a => a.folio === btn.dataset.folio);
+      if(!alumno) return;
+      btn.disabled = true;
+      try {
+        await DiplomaTemplate.montar(frame, datosDiploma(snapshot, alumno));
+        const blob = await DiplomaTemplate.capturarPDF(frame);
+        DiplomaTemplate.descargarBlob(nombreArchivo(alumno), blob);
+      } catch(err){ alert('No se pudo generar el PDF: ' + err.message); }
+      finally { btn.disabled = false; }
+    });
+
+    document.getElementById('dgDescargarTodos').addEventListener('click', async () => {
+      const btn = document.getElementById('dgDescargarTodos');
+      btn.disabled = true;
+      const textoOriginal = btn.textContent;
+      try {
+        const lista = vigentes.map(a => ({ datos: datosDiploma(snapshot, a), nombreArchivo: nombreArchivo(a) }));
+        await DiplomaTemplate.descargarZip(lista, 'diplomas-' + (snapshot.curso || 'grupo').replace(/[^a-z0-9]+/gi, '-') + '.zip', (i, n) => {
+          btn.textContent = `Generando ${i + 1}/${n}…`;
+        });
+      } catch(err){ alert('No se pudo generar el zip: ' + err.message); }
+      finally { btn.disabled = false; btn.textContent = textoOriginal; }
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

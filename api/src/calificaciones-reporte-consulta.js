@@ -46,8 +46,8 @@ async function leerCalificacionesFiltradas(pool, { grupoId, empresa, herramienta
   const result = await request.query(`
     SELECT c.id, c.grupo_id, c.puntos, c.asistencias, c.frecuencias, c.proyecto, c.calificacion, c.resultado,
            c.notas, c.nota_general, c.fecha_carga,
-           a.nombre_completo AS alumno, a.correo,
-           g.nombre_curso, g.herramientas, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin,
+           a.id AS alumno_id, a.nombre_completo AS alumno, a.correo,
+           g.cliente_id, g.nombre_curso, g.herramientas, g.niveles, g.horas, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin,
            cli.nombre AS cliente, cli.codigo AS cliente_codigo, clf.nombre AS cliente_final, clf.codigo AS cliente_final_codigo
     FROM Calificacion c
     JOIN Alumno a ON a.id = c.alumno_id

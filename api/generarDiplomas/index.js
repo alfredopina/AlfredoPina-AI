@@ -1,232 +1,144 @@
 // generarDiplomas/index.js
-// Function protegida (rol "admin"): genera un lote de diplomas. Por cada
-// alumno: da de alta o reutiliza Cliente/Alumno, calcula el folio, genera el
-// PDF (si el resultado no es "No Aprobado") y sube todo a SQL + Blob. Un error
-// en una fila no debe tumbar el resto del lote — se reporta por separado en el
-// resultado, igual que cuando "No Aprobado" consume folio pero no genera PDF.
+// Function protegida (rol "admin"): genera los diplomas de UN grupo ya
+// calificado (botón "Crear Diplomas" de la fila en Resultados de
+// Calificaciones) — un diploma por cada alumno con resultado Aprobado o
+// Participó (No Aprobado nunca lleva diploma). Reintentable: si un alumno ya
+// tiene un diploma vigente para ese grupo, se omite (no duplica folio); así
+// un segundo clic solo genera lo que falte (ej. alguien que se corrigió de
+// "No Aprobado" a "Aprobado" después del primer lote).
+//
+// El diploma CONGELA los datos del grupo/alumno al momento de generar
+// (folio, herramientas, curso, nivel, fechas, instructor, horas, resultado) —
+// no es un JOIN en vivo. Si luego editas la calificación, el diploma ya
+// emitido no cambia solo; la corrección es anularlo y volver a generar.
+//
+// El link público es UNO por grupo (Grupo.diploma_token), no por alumno — se
+// crea la primera vez y se reusa siempre. Cada vez que se generan diplomas
+// nuevos se reescribe el snapshot completo en Table Storage (todos los
+// vigentes del grupo), para que ese mismo link refleje lo último.
+const crypto = require("crypto");
 const { getPool, sql } = require("../src/backoffice-db");
-const { getDiplomasContainer } = require("../src/diplomas-storage");
-const { getFondoBuffer, getFirmaBuffer, slugify } = require("../src/plantillas-storage");
-const { generarDiplomaPdf } = require("../src/diploma-pdf");
-const { HERRAMIENTAS } = require("../src/herramientas");
+const { leerCalificacionesFiltradas } = require("../src/calificaciones-reporte-consulta");
+const { siguienteConsecutivo, anioCorto, nivelTexto } = require("../src/diploma-folio");
+const { getDiplomasGrupoTable, guardarDiplomasGrupo } = require("../src/diplomas-reportes");
 const { JSON_HEADERS } = require("../src/http");
 
-const RESULTADOS_VALIDOS = ["Aprobado", "Participó", "No Aprobado"];
-
-function limpiarCodigo(codigo) {
-  return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-function numeroONull(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-const MSG_PROSPECTO = "Ese cliente todavía es Prospecto — los Diplomas solo se emiten a clientes (asciende al dar de alta su Grupo).";
-
-// Da de alta el Cliente si no existe (por código), o reutiliza el que ya
-// seleccionaron del autocompletado (por id). NOTA pendiente (Bloque 1,
-// Diplomas): esta ruta no debería crear empresas nuevas, solo usar clientes
-// existentes — se quita cuando se trabaje Diplomas.
-async function resolverCliente(pool, empresa) {
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-
-  if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo, tipo_cliente FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
-    if (r.recordset[0].tipo_cliente === "Prospecto") throw new Error(MSG_PROSPECTO);
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo, tipo_cliente FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) {
-    if (existente.recordset[0].tipo_cliente === "Prospecto") throw new Error(MSG_PROSPECTO);
-    return existente.recordset[0];
-  }
-
-  const insert = await pool
-    .request()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo)");
-  return insert.recordset[0];
-}
-
-// Un Alumno se identifica por nombre completo + cliente (mismo nombre en
-// clientes distintos son personas distintas).
-async function resolverAlumno(pool, clienteId, nombreCompleto) {
-  const existente = await pool
-    .request()
-    .input("clienteId", sql.Int, clienteId)
-    .input("nombre", sql.NVarChar, nombreCompleto)
-    .query("SELECT id FROM Alumno WHERE cliente_id = @clienteId AND nombre_completo = @nombre");
-  if (existente.recordset.length) return existente.recordset[0].id;
-
-  const insert = await pool
-    .request()
-    .input("clienteId", sql.Int, clienteId)
-    .input("nombre", sql.NVarChar, nombreCompleto)
-    .query("INSERT INTO Alumno (nombre_completo, cliente_id) OUTPUT INSERTED.id VALUES (@nombre, @clienteId)");
-  return insert.recordset[0].id;
-}
-
-// El consecutivo es por Cliente+Año, sin importar herramienta — se calcula
-// leyendo los folios ya usados por ese cliente en el año actual (formato
-// "..._AA-N") y tomando el máximo N + 1.
-async function siguienteConsecutivo(pool, clienteId, yy) {
-  const r = await pool.request().input("clienteId", sql.Int, clienteId).query("SELECT folio FROM Diploma WHERE cliente_id = @clienteId");
-  const patron = new RegExp(`_${yy}-(\\d+)$`);
-  let max = 0;
-  for (const row of r.recordset) {
-    const m = patron.exec(row.folio || "");
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  }
-  return max + 1;
-}
+const RESULTADOS_CON_DIPLOMA = ["Aprobado", "Participó"];
 
 module.exports = async function (context, req) {
-  const body = req.body || {};
-  const instructor = (body.instructor || "").trim();
-  const herramienta = (body.herramienta || "").trim().toLowerCase();
-  const curso = (body.curso || "").trim();
-  const nivel = (body.nivel || "").trim();
-  const fechaInicio = (body.fechaInicio || "").trim();
-  const fechaFin = (body.fechaFin || "").trim();
-  const grupo = (body.grupo || "").trim();
-  const horas = numeroONull(body.horas);
-  const empresa = body.empresa || {};
-  const alumnos = Array.isArray(body.alumnos) ? body.alumnos : [];
-
-  if (!instructor || !HERRAMIENTAS.includes(herramienta) || !curso || !nivel || !fechaInicio || !fechaFin || !grupo || !horas) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos del lote (instructor, herramienta, curso, nivel, fechas, horas o grupo)." } };
-    return;
-  }
-  if (!alumnos.length) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El lote no trae alumnos." } };
+  const grupoId = Number((req.body || {}).grupoId);
+  if (!grupoId) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el grupo." } };
     return;
   }
 
-  let pool, cliente;
+  let pool;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, empresa);
   } catch (err) {
-    context.log.error("Error resolviendo el cliente:", err.message);
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: err.message } };
+    context.log.error("Error conectando a la base:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo conectar a la base: " + err.message } };
     return;
   }
 
-  const yy = String(new Date().getFullYear()).slice(-2);
-  let consecutivo;
+  let filas;
   try {
-    consecutivo = await siguienteConsecutivo(pool, cliente.id, yy);
+    filas = await leerCalificacionesFiltradas(pool, { grupoId });
   } catch (err) {
-    context.log.error("Error calculando el folio:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo calcular el folio: " + err.message } };
+    context.log.error("Error leyendo calificaciones del grupo:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo leer el grupo: " + err.message } };
     return;
   }
 
-  // el fondo y la firma no cambian entre alumnos de un mismo lote — se piden
-  // una sola vez en vez de una vez por alumno
-  let fondoBuffer, firmaBuffer;
+  if (!filas.length) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Este grupo no tiene calificaciones cargadas." } };
+    return;
+  }
+
+  const elegibles = filas.filter((f) => RESULTADOS_CON_DIPLOMA.includes(f.resultado));
+  if (!elegibles.length) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Ningún alumno de este grupo aprobó o participó — no hay diplomas que generar." } };
+    return;
+  }
+
+  const g = filas[0];
+  const yy = anioCorto();
+
   try {
-    [fondoBuffer, firmaBuffer] = await Promise.all([getFondoBuffer(), getFirmaBuffer(slugify(instructor))]);
-  } catch (err) {
-    context.log.error("Error cargando la plantilla:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: err.message } };
-    return;
-  }
+    const yaVigentes = await pool.request().input("grupoId", sql.Int, grupoId).query("SELECT alumno_id FROM Diploma WHERE grupo_id = @grupoId AND estatus = 'vigente'");
+    const alumnosConDiploma = new Set(yaVigentes.recordset.map((r) => r.alumno_id));
 
-  const container = getDiplomasContainer();
-  const resultados = [];
+    const pendientes = elegibles.filter((f) => !alumnosConDiploma.has(f.alumno_id));
+    let consecutivo = pendientes.length ? await siguienteConsecutivo(pool, g.cliente_id, yy) : 0;
+    const nivel = nivelTexto(g.niveles);
+    const generados = [];
 
-  for (const alumno of alumnos) {
-    const nombreCompleto = (alumno.nombreCompleto || "").trim();
-    const resultado = (alumno.resultado || "").trim();
-    const proyecto = numeroONull(alumno.proyecto);
-    const asistencia = numeroONull(alumno.asistencia);
-    const participacion = numeroONull(alumno.participacion);
-
-    if (!nombreCompleto) {
-      resultados.push({ nombre: "(sin nombre)", error: "Falta el nombre del alumno." });
-      continue;
-    }
-    if (!RESULTADOS_VALIDOS.includes(resultado)) {
-      resultados.push({ nombre: nombreCompleto, error: `Resultado inválido: "${resultado}".` });
-      continue;
-    }
-
-    const folio = `AP_${herramienta.toUpperCase()}_${cliente.codigo}_${yy}-${consecutivo}`;
-    consecutivo += 1;
-
-    try {
-      const alumnoId = await resolverAlumno(pool, cliente.id, nombreCompleto);
-
-      let blobPath = null;
-      if (resultado !== "No Aprobado") {
-        const pdfBuffer = await generarDiplomaPdf({
-          alumno: nombreCompleto,
-          curso,
-          resultado,
-          fechaInicio,
-          fechaFin,
-          horas,
-          instructor,
-          folio,
-          fondoBuffer,
-          firmaBuffer,
-        });
-        blobPath = `${folio}.pdf`;
-        await container.getBlockBlobClient(blobPath).uploadData(pdfBuffer, {
-          blobHTTPHeaders: { blobContentType: "application/pdf" },
-        });
-      }
-
+    for (const f of pendientes) {
+      const folio = `AP_${g.cliente_codigo}_${yy}-${consecutivo}`;
+      consecutivo += 1;
       await pool
         .request()
         .input("folio", sql.NVarChar, folio)
-        .input("alumnoId", sql.Int, alumnoId)
-        .input("clienteId", sql.Int, cliente.id)
-        .input("herramienta", sql.NVarChar, herramienta)
-        .input("curso", sql.NVarChar, curso)
+        .input("alumnoId", sql.Int, f.alumno_id)
+        .input("clienteId", sql.Int, g.cliente_id)
+        .input("grupoId", sql.Int, grupoId)
+        .input("herramientas", sql.NVarChar, g.herramientas)
+        .input("curso", sql.NVarChar, g.nombre_curso || "")
         .input("nivel", sql.NVarChar, nivel)
-        .input("fechaInicio", sql.Date, new Date(fechaInicio))
-        .input("fechaFin", sql.Date, new Date(fechaFin))
-        .input("resultado", sql.NVarChar, resultado)
-        .input("instructor", sql.NVarChar, instructor)
-        .input("grupo", sql.NVarChar, grupo)
-        .input("horas", sql.Int, horas)
-        .input("proyecto", sql.Int, proyecto)
-        .input("asistencia", sql.Int, asistencia)
-        .input("participacion", sql.Int, participacion)
-        .input("blobPath", sql.NVarChar, blobPath)
+        .input("fechaInicio", sql.Date, g.fecha_inicio)
+        .input("fechaFin", sql.Date, g.fecha_fin)
+        .input("resultado", sql.NVarChar, f.resultado)
+        .input("instructor", sql.NVarChar, g.instructor || "")
+        .input("horas", sql.Int, g.horas ? Math.round(g.horas) : null)
         .query(
-          `INSERT INTO Diploma
-            (folio, alumno_id, cliente_id, herramienta, curso, nivel, fecha_inicio, fecha_fin, resultado, instructor, grupo, horas, proyecto, asistencia, participacion, blob_path)
-           VALUES
-            (@folio, @alumnoId, @clienteId, @herramienta, @curso, @nivel, @fechaInicio, @fechaFin, @resultado, @instructor, @grupo, @horas, @proyecto, @asistencia, @participacion, @blobPath)`
+          `INSERT INTO Diploma (folio, alumno_id, cliente_id, grupo_id, herramientas, curso, nivel, fecha_inicio, fecha_fin, resultado, instructor, horas)
+           VALUES (@folio, @alumnoId, @clienteId, @grupoId, @herramientas, @curso, @nivel, @fechaInicio, @fechaFin, @resultado, @instructor, @horas)`
         );
-
-      resultados.push({ folio, nombre: nombreCompleto, resultado, pdfGenerado: blobPath !== null });
-    } catch (err) {
-      context.log.error(`Error generando el diploma de ${nombreCompleto}:`, err.message);
-      // 2627/2601 = violación de PRIMARY KEY / UNIQUE en SQL Server — el folio ya
-      // existe, típicamente porque dos lotes casi simultáneos calcularon el mismo
-      // consecutivo (ver siguienteConsecutivo). No hay locking real (el volumen no
-      // lo justifica), solo un mensaje que no confunda con el error crudo del driver.
-      const folioColisiono = err.number === 2627 || err.number === 2601;
-      resultados.push({
-        folio,
-        nombre: nombreCompleto,
-        resultado,
-        error: folioColisiono ? "Ese folio ya se generó, intenta de nuevo." : err.message,
-      });
+      generados.push({ folio, alumno: f.alumno, resultado: f.resultado });
     }
-  }
 
-  context.res = { status: 200, headers: JSON_HEADERS, body: { cliente, resultados } };
+    // token del grupo: se crea una sola vez, se reusa siempre
+    const grupoRow = await pool.request().input("grupoId", sql.Int, grupoId).query("SELECT diploma_token FROM Grupo WHERE id = @grupoId");
+    let token = grupoRow.recordset[0] && grupoRow.recordset[0].diploma_token;
+    if (!token) {
+      token = crypto.randomUUID().replace(/-/g, "");
+      await pool.request().input("grupoId", sql.Int, grupoId).input("token", sql.NVarChar, token).query("UPDATE Grupo SET diploma_token = @token WHERE id = @grupoId");
+    }
+
+    // snapshot completo de todos los diplomas vigentes/anulados del grupo, para el link público
+    const todos = await pool
+      .request()
+      .input("grupoId", sql.Int, grupoId)
+      .query(
+        `SELECT d.folio, a.nombre_completo AS nombre, a.correo, d.resultado, d.estatus, d.motivo_anulacion, d.fecha_generacion
+         FROM Diploma d JOIN Alumno a ON a.id = d.alumno_id
+         WHERE d.grupo_id = @grupoId ORDER BY a.nombre_completo`
+      );
+
+    const snapshot = {
+      grupoId,
+      actualizadoEn: new Date().toISOString(),
+      cliente: g.cliente_final || g.cliente,
+      clienteVia: g.cliente_final ? g.cliente : null,
+      curso: g.nombre_curso || "",
+      herramientas: g.herramientas,
+      nivel,
+      instructor: g.instructor || "",
+      modalidad: g.modalidad || "",
+      fechaInicio: g.fecha_inicio,
+      fechaFin: g.fecha_fin,
+      horas: g.horas,
+      alumnos: todos.recordset,
+    };
+    await guardarDiplomasGrupo(getDiplomasGrupoTable(), { token, snapshot });
+
+    context.res = {
+      status: 200,
+      headers: JSON_HEADERS,
+      body: { token, generados: generados.length, yaExistian: elegibles.length - pendientes.length, detalle: generados },
+    };
+  } catch (err) {
+    context.log.error("Error generando diplomas:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron generar los diplomas: " + err.message } };
+  }
 };

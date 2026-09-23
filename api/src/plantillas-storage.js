@@ -1,9 +1,12 @@
 // Contenedor Blob "plantillas" — reusa el Storage Account apcwebrecursos
 // (misma Application Setting RECURSOS_STORAGE_CONNECTION que Cursos/Recursos/
 // Diplomas). Privado: nadie fuera del admin necesita verlo directo.
-// Guarda el fondo del diploma (fondo.png) y una firma por instructor
-// (firmas/{slug-del-instructor}.png) — así Alfredo puede actualizarlos desde
-// el panel "Plantillas" sin depender de un redeploy.
+// Guarda una firma por instructor (firmas/{slug-del-instructor}.png) — así
+// Alfredo puede actualizarlas desde el panel Diplomas → Firmas sin depender
+// de un redeploy. Ya NO guarda un fondo.png: el diploma dejó de ser una
+// imagen de fondo con coordenadas fijas, ahora es HTML/CSS (ver
+// assets/js/diploma-template.js) que se captura con html2canvas + jsPDF en
+// el navegador — el diseño completo vive en ese archivo, no en Blob.
 const { BlobServiceClient } = require("@azure/storage-blob");
 
 function getConnectionString() {
@@ -29,18 +32,6 @@ function slugify(texto) {
     .replace(/(^-|-$)/g, "");
 }
 
-async function getFondoBuffer() {
-  const container = getPlantillasContainer();
-  try {
-    return await container.getBlockBlobClient("fondo.png").downloadToBuffer();
-  } catch (err) {
-    if (err.statusCode === 404) {
-      throw new Error("No hay una plantilla de fondo configurada todavía — súbela desde Plantillas.");
-    }
-    throw err;
-  }
-}
-
 // null si el instructor todavía no tiene firma — el diploma se genera igual, sin firma
 async function getFirmaBuffer(instructorSlug) {
   const container = getPlantillasContainer();
@@ -50,13 +41,6 @@ async function getFirmaBuffer(instructorSlug) {
     if (err.statusCode === 404) return null;
     throw err;
   }
-}
-
-async function uploadFondo(buffer, contentType) {
-  const container = getPlantillasContainer();
-  await container.getBlockBlobClient("fondo.png").uploadData(buffer, {
-    blobHTTPHeaders: { blobContentType: contentType },
-  });
 }
 
 async function uploadFirma(instructorSlug, buffer, contentType) {
@@ -117,9 +101,7 @@ async function eliminarFirma(instructorSlug) {
 module.exports = {
   getPlantillasContainer,
   slugify,
-  getFondoBuffer,
   getFirmaBuffer,
-  uploadFondo,
   uploadFirma,
   getInstructores,
   agregarInstructor,

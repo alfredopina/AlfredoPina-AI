@@ -5,7 +5,7 @@
 // = ahora; al pasar a false la limpia. Nunca borra — mismo criterio de
 // "nunca borrar de verdad" que ya usa todo el proyecto (Cliente/Diploma/
 // Solicitud/Grupo).
-const { getPendientesTable, CATEGORIAS } = require("../src/pendientes-tables");
+const { getPendientesTable } = require("../src/pendientes-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -14,7 +14,7 @@ module.exports = async function (context, req) {
   const id = (body.id || "").trim();
   const archivado = !!body.archivado;
 
-  if (!CATEGORIAS.includes(categoria) || !id) {
+  if (!categoria || !id) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta la categoría o el id del pendiente." } };
     return;
   }

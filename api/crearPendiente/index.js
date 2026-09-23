@@ -1,12 +1,14 @@
 // crearPendiente/index.js
-// Function protegida (rol "admin"): alta de una nota rápida en una de las 5
-// categorías fijas. RowKey es un UUID. `orden` nace en -Date.now() para que
-// la nota nueva aparezca siempre arriba de la columna (mismo criterio que ya
-// usan Temas/Proyectos con Date.now() positivo) — en cuanto Alfredo arrastre
-// cualquier tarjeta de esa columna, TODAS se reindexan a 0,10,20… vía
-// updateOrdenPendientes, sin importar qué valor traían antes.
+// Function protegida (rol "admin"): alta de una nota rápida en un contenedor
+// (categoría — ahora dinámica, ver pendientes-tables.js). RowKey es un UUID.
+// `orden` nace en -Date.now() para que la nota nueva aparezca siempre arriba
+// de la columna (mismo criterio que ya usan Temas/Proyectos con Date.now()
+// positivo) — en cuanto Alfredo arrastre cualquier tarjeta de esa columna,
+// TODAS se reindexan a 0,10,20… vía updateOrdenPendientes, sin importar qué
+// valor traían antes. No se valida contra una lista fija de categorías (ya
+// no existe) — el front solo manda categorías que ya cargó de listPendientes.
 const crypto = require("crypto");
-const { getPendientesTable, ensureTable, CATEGORIAS } = require("../src/pendientes-tables");
+const { getPendientesTable, ensureTable, CAT_PARTITION } = require("../src/pendientes-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -14,8 +16,8 @@ module.exports = async function (context, req) {
   const categoria = (body.categoria || "").trim().toLowerCase();
   const texto = (body.texto || "").trim();
 
-  if (!CATEGORIAS.includes(categoria)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Categoría inválida." } };
+  if (!categoria || categoria === CAT_PARTITION) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta la categoría." } };
     return;
   }
   if (!texto) {

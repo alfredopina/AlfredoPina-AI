@@ -35,7 +35,31 @@ function isTableNotFound(err) {
   return /TableNotFound/i.test(err.code || "") || /table.*not.*found/i.test(err.message || "");
 }
 
-// 5 categorías fijas — PartitionKey. Sin más por ahora, a propósito.
-const CATEGORIAS = ["comercial", "operacion", "productos", "marca", "sitio"];
+// Las categorías (contenedores) ahora son dinámicas — Alfredo las crea/edita/
+// borra desde el panel (2026-09-23). Antes eran 5 fijas hardcodeadas en el
+// código; esas 5 quedan como DEFAULT_CATEGORIAS para sembrar la partición
+// especial "_cat" la primera vez que alguien lee el panel después de este
+// cambio, así las notas que ya existían con esas 5 categorías no quedan
+// huérfanas. "icono" es una CLAVE (no SVG/HTML) — el front tiene el mapa
+// clave→SVG, nunca se guarda ni se inyecta markup que venga del backend.
+const CAT_PARTITION = "_cat";
+const DEFAULT_CATEGORIAS = [
+  { id: "comercial", nombre: "Comercial", icono: "maletin", orden: 0 },
+  { id: "operacion", nombre: "Operación", icono: "engrane", orden: 1 },
+  { id: "productos", nombre: "Productos", icono: "caja", orden: 2 },
+  { id: "marca", nombre: "Marca Personal", icono: "persona", orden: 3 },
+  { id: "sitio", nombre: "Sitio", icono: "globo", orden: 4 },
+];
 
-module.exports = { getPendientesTable, ensureTable, isTableNotFound, CATEGORIAS };
+// Se llama desde listPendientes con las entidades YA leídas de la partición
+// "_cat" (evita una segunda vuelta a la tabla) — si viene vacía (primera vez
+// que se lee el panel tras este cambio), siembra las 5 de siempre.
+async function ensureCategorias(table, categoriasExistentes) {
+  if (categoriasExistentes.length) return categoriasExistentes;
+  for (const c of DEFAULT_CATEGORIAS) {
+    await table.upsertEntity({ partitionKey: CAT_PARTITION, rowKey: c.id, nombre: c.nombre, icono: c.icono, orden: c.orden }, "Replace");
+  }
+  return DEFAULT_CATEGORIAS.map((c) => ({ ...c }));
+}
+
+module.exports = { getPendientesTable, ensureTable, isTableNotFound, CAT_PARTITION, DEFAULT_CATEGORIAS, ensureCategorias };

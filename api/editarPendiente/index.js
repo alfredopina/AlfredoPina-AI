@@ -1,7 +1,7 @@
 // editarPendiente/index.js
 // Function protegida (rol "admin"): actualiza solo el texto de una nota ya
 // existente — categoria+id identifican la fila (PartitionKey+RowKey).
-const { getPendientesTable, CATEGORIAS } = require("../src/pendientes-tables");
+const { getPendientesTable } = require("../src/pendientes-tables");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -10,7 +10,7 @@ module.exports = async function (context, req) {
   const id = (body.id || "").trim();
   const texto = (body.texto || "").trim();
 
-  if (!CATEGORIAS.includes(categoria) || !id) {
+  if (!categoria || !id) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta la categoría o el id del pendiente." } };
     return;
   }

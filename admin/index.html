@@ -1331,7 +1331,7 @@
      junto a btnNotificaciones (el botón no vive dentro de un wrapper
      position:relative que sirva de ancla para un position:absolute). */
   .notif-badge{
-    position:absolute; top:2px; right:2px; min-width:15px; height:15px; padding:0 4px;
+    position:absolute; top:-5px; right:-5px; min-width:15px; height:15px; padding:0 4px;
     background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:9.5px; font-weight:700;
     border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
     box-shadow:0 0 0 2px var(--panel);
@@ -1532,6 +1532,41 @@
   .pend-archived-link:hover{ color:var(--text-dim); }
 
   .pend-empty{ text-align:center; padding:18px 6px; color:var(--text-faint); font-size:12px; line-height:1.5; margin-bottom:10px; }
+
+  /* Contenedores dinámicos (crear/editar/eliminar) — 2026-09-23 */
+  .pend-col-actions{ display:flex; gap:2px; margin-left:auto; opacity:0; transition:opacity .15s; }
+  .pend-col:hover .pend-col-actions{ opacity:1; }
+  .pend-col-count + .pend-col-actions{ margin-left:6px; }
+  .pend-col-action-btn{
+    flex:none; width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid transparent; color:var(--text-faint); cursor:pointer; padding:0;
+  }
+  .pend-col-action-btn svg{ width:12px; height:12px; }
+  .pend-col-action-btn:hover{ color:var(--blue-bright); border-color:var(--line); background:var(--panel-2); }
+  .pend-col-name-input{
+    width:100%; background:var(--panel); border:1px solid var(--blue-bright); border-radius:6px;
+    color:var(--text); font-family:var(--body); font-size:13.5px; font-weight:600; padding:7px 9px; outline:none;
+    margin-bottom:10px;
+  }
+  .pend-icon-picker{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .pend-icon-swatch{
+    width:26px; height:26px; flex:none; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); cursor:pointer; padding:0;
+  }
+  .pend-icon-swatch svg{ width:13px; height:13px; }
+  .pend-icon-swatch:hover{ border-color:var(--blue-bright); color:var(--text); }
+  .pend-icon-swatch.selected{ background:var(--blue-soft); border-color:var(--blue-bright); color:var(--blue-bright); }
+  .pend-col-head-edit .pend-edit-actions{ margin-top:0; margin-bottom:14px; }
+
+  .pend-col-new{ display:flex; align-items:stretch; }
+  .pend-newcol-btn{
+    width:100%; min-height:64px; display:flex; align-items:center; justify-content:center; gap:6px;
+    background:transparent; border:1.5px dashed var(--line); border-radius:12px;
+    color:var(--text-faint); font-family:var(--body); font-weight:600; font-size:13px; cursor:pointer;
+  }
+  .pend-newcol-btn:hover{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .pend-newcol-btn svg{ width:14px; height:14px; }
+  .pend-col-form{ width:100%; }
 
   /* ── Panel Modelo — visor interactivo del modelo de datos completo del
      sitio (Azure SQL + Table Storage), herramienta personal de Alfredo para
@@ -1769,7 +1804,7 @@
         Solicitudes
       </button>
 
-      <div class="admin-nav-group">FORMATOS</div>
+      <div class="admin-nav-group">REPORTES</div>
       <button class="admin-nav-item" data-panel="diagnosticos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 6 4-14 2 8h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         Diagnósticos
@@ -1797,14 +1832,10 @@
         Recursos
       </button>
 
-      <div class="admin-nav-group">HERRAMIENTAS</div>
+      <div class="admin-nav-group">SITIO</div>
       <button class="admin-nav-item" data-panel="dashboard">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7" stroke-linecap="round"/></svg></span>
         Dashboard
-      </button>
-      <button class="admin-nav-item" data-panel="pendientes">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
-        Pendientes
       </button>
       <button class="admin-nav-item" data-panel="marca">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z"/></svg></span>
@@ -1854,6 +1885,9 @@
             </a>
           </div>
         </div>
+        <button type="button" class="admin-icon-btn" id="btnPendientes" title="Pendientes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <button type="button" class="admin-icon-btn" id="btnConfig" title="Configuración">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -4059,6 +4093,7 @@
     activarPanel(btn.dataset.panel);
   });
 
+  document.getElementById('btnPendientes').addEventListener('click', () => activarPanel('pendientes'));
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
   document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
 
@@ -13757,25 +13792,41 @@
   // (tabla `Pendientes`, misma cuenta que Cursos/Recursos/Temas) y no en la
   // base SQL, a propósito: el punto de esta herramienta es capturar al
   // instante, sin el auto-pause de 20-60s que sí se tolera en el resto del
-  // backoffice. 5 categorías fijas (PartitionKey), sin más por ahora. Calca
-  // el mockup aprobado: grid de 5 contenedores, tarjeta con checkbox
-  // (archivar, reversible, sin confirm()) + lápiz de editar que solo aparece
-  // al hover, "+ Agregar" inline y "ver archivados" expandible por columna.
+  // backoffice. Contenedores (categorías) dinámicos desde 2026-09-23 — crear/
+  // editar/eliminar, y arrastrar tarjetas entre columnas (antes 5 fijas, ver
+  // pendientes-tables.js para la migración de las que ya existían). Calca el
+  // mockup aprobado: grid de contenedores, tarjeta con checkbox (archivar,
+  // reversible, sin confirm()) + lápiz de editar que solo aparece al hover,
+  // "+ Agregar" inline y "ver archivados" expandible por columna.
   (function(){
-    const CATEGORIAS = [
-      { id: 'comercial', nombre: 'Comercial', icono: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      { id: 'operacion', nombre: 'Operación', icono: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      { id: 'productos', nombre: 'Productos', icono: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      { id: 'marca', nombre: 'Marca Personal', icono: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke-linecap="round"/></svg>' },
-      { id: 'sitio', nombre: 'Sitio', icono: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z"/></svg>' },
-    ];
+    // Claves fijas del picker de íconos — el backend solo guarda la CLAVE
+    // (nunca SVG/HTML) para no tener que confiar en markup ajeno al pintar.
+    const ICONS = {
+      maletin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      engrane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      caja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      persona: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke-linecap="round"/></svg>',
+      globo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z"/></svg>',
+      estrella: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3L3 9.5l6.4-.6L12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      bandera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4M5 4h13l-3 4 3 4H5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      rayo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke-linecap="round"/></svg>',
+      diana: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
+      calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"/></svg>',
+    };
     const ICO_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m3 0-.8 12.1A2 2 0 0 1 15.2 21H8.8a2 2 0 0 1-2-1.9L6 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>';
     const ICO_DRAG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
     const ICO_SORT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function iconSwatchesHtml(seleccionado){
+      return Object.keys(ICONS).map(key =>
+        `<button type="button" class="pend-icon-swatch${key === seleccionado ? ' selected' : ''}" data-accion="elegir-icono" data-icono="${key}" title="${key}">${ICONS[key]}</button>`
+      ).join('');
+    }
     function toast(msg, ok){
       const el = document.getElementById('pendToast');
       el.textContent = msg;
@@ -13803,8 +13854,16 @@
     }
 
     let pendCache = [];
+    let pendCategorias = [];
     const uiState = {};
-    CATEGORIAS.forEach(c => { uiState[c.id] = { addOpen: false, archivedOpen: false, editingId: null, ultimoOrdenFecha: null }; });
+    const uiGlobal = { nuevoContenedorAbierto: false };
+    // Crea el estado de una categoría si todavía no existe (categorías
+    // nuevas creadas en esta sesión, o la primera carga) — evita tener que
+    // reconstruir uiState entero cada vez que cambia la lista.
+    function estadoDe(catId){
+      if(!uiState[catId]) uiState[catId] = { addOpen: false, archivedOpen: false, editingId: null, ultimoOrdenFecha: null, editandoContenedor: false };
+      return uiState[catId];
+    }
 
     // Prioridad manual (drag & drop) para las activas: menor `orden` = más
     // arriba. Las notas creadas antes de que este campo existiera (o
@@ -13863,10 +13922,26 @@
         </div>`;
     }
 
+    function colHeadEditHtml(cat){
+      return `
+        <div class="pend-col-head-edit">
+          <input type="text" class="pend-col-name-input" id="pendColNombre-${cat.id}" value="${escapeHtml(cat.nombre)}" maxlength="40">
+          <div class="pend-icon-picker" id="pendColIconos-${cat.id}">${iconSwatchesHtml(cat.icono)}</div>
+          <div class="pend-edit-actions">
+            <button type="button" class="pend-edit-btn primary" data-accion="guardar-contenedor" data-cat="${cat.id}">Guardar</button>
+            <button type="button" class="pend-edit-btn" data-accion="cancelar-contenedor" data-cat="${cat.id}">Cancelar</button>
+          </div>
+        </div>`;
+    }
+
     function columnaHtml(cat){
-      const estado = uiState[cat.id];
+      const estado = estadoDe(cat.id);
       const activas = porCategoria(cat.id, false);
       const archivadas = porCategoria(cat.id, true);
+
+      if(estado.editandoContenedor){
+        return `<div class="pend-col" data-cat="${cat.id}">${colHeadEditHtml(cat)}</div>`;
+      }
 
       const listaActivas = activas.length
         ? `<div class="pend-list">${activas.map(p => cardHtml(p, estado.editingId === p.id)).join('')}</div>`
@@ -13882,9 +13957,13 @@
       return `
         <div class="pend-col" data-cat="${cat.id}">
           <div class="pend-col-head">
-            <span class="pend-col-ico">${cat.icono}</span>
-            <span class="pend-col-title">${cat.nombre}</span>
+            <span class="pend-col-ico">${ICONS[cat.icono] || ICONS.globo}</span>
+            <span class="pend-col-title">${escapeHtml(cat.nombre)}</span>
             <span class="pend-col-count">${activas.length}</span>
+            <span class="pend-col-actions">
+              <button type="button" class="pend-col-action-btn" data-accion="editar-contenedor" data-cat="${cat.id}" title="Editar contenedor">${ICO_EDIT}</button>
+              <button type="button" class="pend-col-action-btn" data-accion="eliminar-contenedor" data-cat="${cat.id}" title="Eliminar contenedor">${ICO_TRASH}</button>
+            </span>
             ${activas.length > 1 ? `<button type="button" class="pend-sort-btn" data-accion="ordenar-fecha" data-cat="${cat.id}" title="Ordenar por fecha de creación">${ICO_SORT}</button>` : ''}
           </div>
           ${listaActivas}
@@ -13894,27 +13973,76 @@
         </div>`;
     }
 
+    function nuevoContenedorHtml(){
+      if(!uiGlobal.nuevoContenedorAbierto){
+        return `
+          <div class="pend-col pend-col-new">
+            <button type="button" class="pend-newcol-btn" data-accion="abrir-nuevo-contenedor">${ICO_PLUS} Nuevo contenedor</button>
+          </div>`;
+      }
+      return `
+        <div class="pend-col pend-col-new">
+          <div class="pend-col-form">
+            <input type="text" class="pend-col-name-input" id="pendNewColNombre" placeholder="Nombre del contenedor" maxlength="40">
+            <div class="pend-icon-picker" id="pendNewColIconos">${iconSwatchesHtml('globo')}</div>
+            <div class="pend-edit-actions">
+              <button type="button" class="pend-edit-btn primary" data-accion="guardar-nuevo-contenedor">Guardar</button>
+              <button type="button" class="pend-edit-btn" data-accion="cancelar-nuevo-contenedor">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
     function render(){
-      document.getElementById('pendGrid').innerHTML = CATEGORIAS.map(columnaHtml).join('');
+      const cats = pendCategorias.slice().sort((a, b) => a.orden - b.orden);
+      document.getElementById('pendGrid').innerHTML = cats.map(columnaHtml).join('') + nuevoContenedorHtml();
       attachSortables();
     }
-    // Sortable reordena por drag & drop dentro de una sola columna (nunca
-    // entre categorías — el handle .pend-drag solo existe en las tarjetas
-    // activas). render() reconstruye el grid completo en cada acción, así
-    // que hay que reenganchar Sortable cada vez — las instancias viejas
-    // quedan huérfanas sobre nodos ya reemplazados, sin necesidad de
-    // destruirlas a mano.
+    // Sortable con `group` compartido entre TODAS las columnas — permite
+    // arrastrar una tarjeta a otro contenedor, no solo reordenar dentro de la
+    // misma. `preventOnFilter:false` es el fix real de 2026-09-23: sin esto,
+    // Sortable llama preventDefault() en el mousedown de CUALQUIER tarjeta
+    // (incluida la que está en modo edición, cubierta por `filter`), lo que
+    // rompía la selección de texto con mouse dentro del textarea — no era un
+    // bug del textarea, era Sortable interceptando el clic antes de que
+    // llegara. render() reconstruye el grid completo en cada acción, así que
+    // hay que reenganchar Sortable cada vez — las instancias viejas quedan
+    // huérfanas sobre nodos ya reemplazados, sin necesidad de destruirlas a mano.
     function attachSortables(){
       if(!window.Sortable) return;
       document.querySelectorAll('#pendGrid .pend-list').forEach(list => {
-        const catId = list.closest('.pend-col').dataset.cat;
         Sortable.create(list, {
-          handle: '.pend-drag', animation: 150, filter: '.pend-card.editing',
-          onEnd: async () => {
-            const items = Array.from(list.querySelectorAll('.pend-card')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
-            items.forEach(it => { const p = pendCache.find(x => x.id === it.id); if(p) p.orden = it.orden; });
-            try { await apiPostJson('/api/updateOrdenPendientes', { categoria: catId, items }); }
-            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+          group: 'pendientes', handle: '.pend-drag', animation: 150,
+          filter: '.pend-card.editing', preventOnFilter: false,
+          onEnd: async (evt) => {
+            const fromCat = evt.from.closest('.pend-col').dataset.cat;
+            const toCat = evt.to.closest('.pend-col').dataset.cat;
+            const id = evt.item.dataset.id;
+            const movioColumna = fromCat !== toCat;
+
+            if(movioColumna){
+              const p = pendCache.find(x => x.id === id);
+              if(p) p.categoria = toCat;
+              try {
+                await apiPostJson('/api/moverPendiente', { id, categoria: fromCat, categoriaDestino: toCat });
+              } catch(e){
+                if(p) p.categoria = fromCat;
+                toast('No se pudo mover: ' + e.message, false);
+                render();
+                return;
+              }
+            }
+
+            const reindexar = async (listEl, catId) => {
+              const items = Array.from(listEl.querySelectorAll('.pend-card')).map((el, i) => ({ id: el.dataset.id, orden: i * 10 }));
+              items.forEach(it => { const p = pendCache.find(x => x.id === it.id); if(p) p.orden = it.orden; });
+              if(!items.length) return;
+              try { await apiPostJson('/api/updateOrdenPendientes', { categoria: catId, items }); }
+              catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+            };
+            await reindexar(evt.to, toCat);
+            if(movioColumna) await reindexar(evt.from, fromCat);
+            if(movioColumna) render();
           },
         });
       });
@@ -13930,16 +14058,25 @@
 
     async function cargarPendientes(){
       try {
-        pendCache = await apiGet('/api/listPendientes');
+        const data = await apiGet('/api/listPendientes');
+        pendCategorias = data.categorias || [];
+        pendCache = data.pendientes || [];
         render();
       } catch(e){
         // No bloquea el panel con una pantalla de error sin salida — deja la
         // rejilla vacía y usable (se puede seguir agregando notas) mientras
         // avisa del problema; recargar la página vuelve a intentar solo.
+        pendCategorias = [];
         pendCache = [];
         render();
         toast('No se pudieron cargar los pendientes: ' + e.message, false);
       }
+    }
+    // deja el cursor listo en el input de nombre recién abierto (nuevo
+    // contenedor o editar contenedor) — mismo criterio que enfocarAreaAbierta.
+    function enfocarNombreAbierto(){
+      const input = document.querySelector('#pendGrid .pend-col-name-input');
+      if(input){ input.focus(); input.select(); }
     }
 
     document.getElementById('pendGrid').addEventListener('click', async e => {
@@ -13948,14 +14085,18 @@
       const accion = btn.dataset.accion;
       const catId = btn.dataset.cat;
 
+      if(accion === 'elegir-icono'){
+        btn.parentElement.querySelectorAll('.pend-icon-swatch').forEach(s => s.classList.toggle('selected', s === btn));
+        return;
+      }
       if(accion === 'abrir-agregar'){
-        uiState[catId].addOpen = true;
+        estadoDe(catId).addOpen = true;
         render();
         enfocarAreaAbierta();
         return;
       }
       if(accion === 'cancelar-agregar'){
-        uiState[catId].addOpen = false;
+        estadoDe(catId).addOpen = false;
         render();
         return;
       }
@@ -13966,20 +14107,20 @@
         try {
           const nuevo = await apiPostJson('/api/crearPendiente', { categoria: catId, texto });
           pendCache.push(nuevo);
-          uiState[catId].addOpen = false;
+          estadoDe(catId).addOpen = false;
           render();
           toast('Pendiente guardado.', true);
         } catch(err){ toast('No se pudo guardar: ' + err.message, false); }
         return;
       }
       if(accion === 'editar'){
-        uiState[catId].editingId = btn.dataset.id;
+        estadoDe(catId).editingId = btn.dataset.id;
         render();
         enfocarAreaAbierta();
         return;
       }
       if(accion === 'cancelar-editar'){
-        uiState[catId].editingId = null;
+        estadoDe(catId).editingId = null;
         render();
         return;
       }
@@ -13992,7 +14133,7 @@
           await apiPostJson('/api/editarPendiente', { categoria: catId, id, texto });
           const p = pendCache.find(x => x.id === id);
           if(p) p.texto = texto;
-          uiState[catId].editingId = null;
+          estadoDe(catId).editingId = null;
           render();
           toast('Pendiente actualizado.', true);
         } catch(err){ toast('No se pudo guardar: ' + err.message, false); }
@@ -14011,25 +14152,91 @@
         return;
       }
       if(accion === 'toggle-archivados'){
-        uiState[catId].archivedOpen = !uiState[catId].archivedOpen;
+        estadoDe(catId).archivedOpen = !estadoDe(catId).archivedOpen;
         render();
         return;
       }
       if(accion === 'ordenar-fecha'){
         const activas = porCategoria(catId, false);
-        const direccion = uiState[catId].ultimoOrdenFecha === 'asc' ? 'desc' : 'asc';
+        const estado = estadoDe(catId);
+        const direccion = estado.ultimoOrdenFecha === 'asc' ? 'desc' : 'asc';
         const ordenadas = activas.slice().sort((a, b) => {
           const da = new Date(a.fecha_creacion).getTime(), db = new Date(b.fecha_creacion).getTime();
           return direccion === 'asc' ? da - db : db - da;
         });
         const items = ordenadas.map((p, i) => ({ id: p.id, orden: i * 10 }));
         items.forEach(it => { const p = pendCache.find(x => x.id === it.id); if(p) p.orden = it.orden; });
-        uiState[catId].ultimoOrdenFecha = direccion;
+        estado.ultimoOrdenFecha = direccion;
         render();
         try {
           await apiPostJson('/api/updateOrdenPendientes', { categoria: catId, items });
           toast(direccion === 'asc' ? 'Ordenado: más antiguo primero.' : 'Ordenado: más reciente primero.', true);
         } catch(err){ toast('No se pudo guardar el nuevo orden: ' + err.message, false); }
+        return;
+      }
+
+      // ── Contenedores (categorías): crear/editar/eliminar ──
+      if(accion === 'editar-contenedor'){
+        estadoDe(catId).editandoContenedor = true;
+        render();
+        enfocarNombreAbierto();
+        return;
+      }
+      if(accion === 'cancelar-contenedor'){
+        estadoDe(catId).editandoContenedor = false;
+        render();
+        return;
+      }
+      if(accion === 'guardar-contenedor'){
+        const nombre = document.getElementById('pendColNombre-' + catId).value.trim();
+        const swatch = document.querySelector('#pendColIconos-' + catId + ' .pend-icon-swatch.selected');
+        const icono = swatch ? swatch.dataset.icono : 'globo';
+        if(!nombre){ toast('El nombre no puede quedar vacío.', false); return; }
+        try {
+          await apiPostJson('/api/editarPendientesCategoria', { id: catId, nombre, icono });
+          const cat = pendCategorias.find(c => c.id === catId);
+          if(cat){ cat.nombre = nombre; cat.icono = icono; }
+          estadoDe(catId).editandoContenedor = false;
+          render();
+          toast('Contenedor actualizado.', true);
+        } catch(err){ toast('No se pudo guardar: ' + err.message, false); }
+        return;
+      }
+      if(accion === 'eliminar-contenedor'){
+        const cat = pendCategorias.find(c => c.id === catId);
+        if(!confirm(`¿Eliminar el contenedor "${cat ? cat.nombre : catId}"? No se puede deshacer.`)) return;
+        try {
+          await apiPostJson('/api/eliminarPendientesCategoria', { id: catId });
+          pendCategorias = pendCategorias.filter(c => c.id !== catId);
+          delete uiState[catId];
+          render();
+          toast('Contenedor eliminado.', true);
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+        return;
+      }
+      if(accion === 'abrir-nuevo-contenedor'){
+        uiGlobal.nuevoContenedorAbierto = true;
+        render();
+        enfocarNombreAbierto();
+        return;
+      }
+      if(accion === 'cancelar-nuevo-contenedor'){
+        uiGlobal.nuevoContenedorAbierto = false;
+        render();
+        return;
+      }
+      if(accion === 'guardar-nuevo-contenedor'){
+        const nombre = document.getElementById('pendNewColNombre').value.trim();
+        const swatch = document.querySelector('#pendNewColIconos .pend-icon-swatch.selected');
+        const icono = swatch ? swatch.dataset.icono : 'globo';
+        if(!nombre){ toast('Escribe un nombre para el contenedor.', false); return; }
+        try {
+          const nuevo = await apiPostJson('/api/crearPendientesCategoria', { nombre, icono });
+          pendCategorias.push(nuevo);
+          uiGlobal.nuevoContenedorAbierto = false;
+          render();
+          toast('Contenedor creado.', true);
+        } catch(err){ toast('No se pudo crear: ' + err.message, false); }
         return;
       }
     });
@@ -14289,15 +14496,17 @@
           f('fallos','number'), f('ventanaInicio','ISO datetime'), f('bloqueadoHasta','ISO datetime',{opt:true}),
         ]},
       { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1960,
-        note:'Deliberadamente en Table Storage, no en la base SQL — evita el auto-pause de 20-60s para una herramienta que necesita capturar al instante. Sin eliminarPendiente — el checkbox archiva, nunca borra.',
+        note:'Deliberadamente en Table Storage, no en la base SQL — evita el auto-pause de 20-60s para una herramienta que necesita capturar al instante. Sin eliminarPendiente — el checkbox archiva, nunca borra. Contenedores dinámicos desde 2026-09-23 (crear/editar/eliminar): la partición especial "_cat" guarda la definición de cada uno (nombre/icono/orden), separada de las notas reales — eliminarPendientesCategoria solo borra un contenedor vacío.',
         fields:[
-          f('PartitionKey','string',{pk:true,extra:'1 de 5 categorías fijas'}),
-          f('RowKey','string',{pk:true,extra:'uuid'}),
-          f('texto','string'),
-          f('fecha_creacion','ISO datetime'),
-          f('archivado','boolean'),
-          f('fecha_archivado','ISO datetime',{opt:true}),
-          f('orden','number',{opt:true,extra:'-Date.now() al crear · se reindexa 0,10,20… al reordenar'}),
+          f('PartitionKey','string',{pk:true,extra:'id del contenedor (dinámico) — o "_cat" para las filas que definen los contenedores'}),
+          f('RowKey','string',{pk:true,extra:'uuid de la nota · o el id del contenedor en la partición "_cat"'}),
+          f('texto','string',{opt:true,extra:'solo en notas'}),
+          f('fecha_creacion','ISO datetime',{opt:true,extra:'solo en notas'}),
+          f('archivado','boolean',{opt:true,extra:'solo en notas'}),
+          f('fecha_archivado','ISO datetime',{opt:true,extra:'solo en notas'}),
+          f('orden','number',{opt:true,extra:'notas: -Date.now() al crear, reindexa 0,10,20… al reordenar/mover · contenedores: Date.now() al crear'}),
+          f('nombre','string',{opt:true,extra:'solo en contenedores ("_cat")'}),
+          f('icono','string',{opt:true,extra:'solo en contenedores — clave del picker, nunca SVG/HTML'}),
         ]},
       { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:750, y:1960,
         note:'Un renglón por administrador — el correo sale del header x-ms-client-principal que Azure ya verificó, nunca del cliente.',

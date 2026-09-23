@@ -429,6 +429,22 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/crearPendientesCategoria",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/editarPendientesCategoria",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarPendientesCategoria",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/moverPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getModeloEstadisticas",
       "allowedRoles": ["admin"]
     },

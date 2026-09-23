@@ -1,8 +1,10 @@
 // Reportes generados de Encuestas — Table Storage (tabla "EncuestaReportes"),
 // mismo patrón que diagnostico-reporte-tables.js: cada fila es un snapshot YA
 // CALCULADO, así la página pública nunca depende de que apcweb-backoffice
-// esté despierta. PartitionKey fijo "reporte", RowKey = token opaco (uuid) que
-// viaja en el link.
+// esté despierta. PartitionKey fijo "reporte", RowKey = código corto opaco
+// (ver codigo-corto.js) que viaja en el link — NO el mismo `nuevoToken` de
+// encuesta-links.js (ese es del link de INVITACIÓN por grupo, QR impreso que
+// nunca debe cambiar de formato).
 //
 // Diferencia con el de Diagnóstico: un string de Table Storage aguanta como
 // máximo 64 KB (32 K caracteres), y este snapshot lleva TODOS los comentarios
@@ -10,7 +12,6 @@
 // el JSON se parte en trozos (snap0, snap1, …) y se vuelve a unir al leer.
 const { TableClient } = require("@azure/data-tables");
 const { ensureTable, isTableNotFound } = require("./encuesta-tables");
-const { nuevoToken } = require("./encuesta-links");
 
 const TROZO = 30000; // caracteres por propiedad, con margen bajo el tope de 32 K
 const MAX_TROZOS = 30; // ~900 K de JSON; el tope de la entidad completa es 1 MB
@@ -100,7 +101,6 @@ async function eliminarReporteEncuesta(table, token) {
 
 module.exports = {
   getEncuestaReportesTable,
-  nuevoToken,
   partirEnTrozos,
   unirTrozos,
   guardarReporteEncuesta,

@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>Reporte de Diagnóstico — Alfredo Piña</title>
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicon/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,11 +29,20 @@
   .rep-error{ color:var(--rojo); }
 
   header.rep-header{ border-bottom:1px solid var(--line); padding:18px 0; }
-  .rep-brand{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .rep-brand{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
   .rep-brand-id{ display:flex; align-items:center; gap:10px; }
-  .rep-brand-id img{ height:24px; width:auto; display:block; }
-  .rep-brand-name{ font-family:var(--display); font-weight:600; font-size:14.5px; }
-  .rep-generado{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
+  .rep-brand-id img{ height:22px; width:auto; display:block; }
+  .rep-brand-descriptor{ font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; color:var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
+  .rep-generado{ display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
+  @keyframes repPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .rep-live-dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); flex:none; animation:repPulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .rep-live-dot{ animation:none; } }
+  footer.rep-footer{ border-top:1px solid var(--line); padding:26px 0 34px; margin-top:20px; }
+  .rep-tagline{ font-family:var(--display); font-weight:600; font-size:15px; margin-bottom:14px; }
+  .rep-footer-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .rep-created{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .rep-created img{ height:16px; width:auto; filter:brightness(1.3); }
+  .rep-footer-nota{ font-family:var(--mono); font-size:10px; color:var(--text-faint); line-height:1.7; max-width:520px; }
   .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(21px,3vw,27px); margin-bottom:5px; }
   .rep-title .tool{ }
   .rep-subtitle{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:18px; }
@@ -250,10 +259,10 @@
     <div class="wrap">
       <div class="rep-brand">
         <div class="rep-brand-id">
-          <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña">
-          <span class="rep-brand-name">Alfredo Piña</span>
+          <img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai">
+          <span class="rep-brand-descriptor">Productividad con Datos · Automatización · IA</span>
         </div>
-        <span class="rep-generado" id="repGenerado"></span>
+        <span class="rep-generado"><span class="rep-live-dot"></span><span id="repGenerado"></span></span>
       </div>
       <h1 class="rep-title" id="repTitle"></h1>
       <p class="rep-subtitle" id="repSubtitle"></p>
@@ -343,6 +352,14 @@
     </section>
 
   </main>
+
+  <footer class="rep-footer"><div class="wrap">
+    <div class="rep-tagline">Tu productividad tiene fórmula.</div>
+    <div class="rep-footer-row">
+      <div class="rep-footer-nota">Reporte calculado el <span id="repFooterFecha"></span> con las respuestas disponibles en ese momento — no cambia si después llegan más. Se generó desde el sistema de Alfredo Piña.</div>
+      <div class="rep-created"><span>Created by</span><img src="/assets/img/firma-ap.png" alt="Firma Alfredo Piña"></div>
+    </div>
+  </div></footer>
 </div>
 
 <div id="repPrintArea"></div>
@@ -452,6 +469,7 @@
     else if(hasta) sub = `Muestra hasta ${fmtFechaCorta(hasta)}`;
     document.getElementById('repSubtitle').textContent = sub;
     document.getElementById('repGenerado').textContent = 'GENERADO EL ' + fmtFechaHora(REPORTE.generadoEn).toUpperCase();
+    document.getElementById('repFooterFecha').textContent = fmtFechaHora(REPORTE.generadoEn);
   }
 
   function renderGeneral(){
@@ -686,7 +704,7 @@
     const meta = REPORTE.snapshot.meta;
     const toolMeta = TOOL_META[meta.herramienta] || {};
     return `<div class="p-header">
-        <div class="p-brand"><img src="assets/img/firma-ap.png" alt=""> Alfredo Piña</div>
+        <div class="p-brand"><img src="/assets/img/firma-ap.png" alt=""> Alfredo Piña</div>
         <span class="p-meta">GENERADO EL ${fmtFechaHora(REPORTE.generadoEn).toUpperCase()}</span>
       </div>
       <h1 class="p-title">Reporte de Diagnóstico · <span style="color:${toolMeta.color || '#181c24'};">${(toolMeta.nombre || meta.herramienta || '').toUpperCase()}</span> — ${escapeHtml(meta.clienteNombre || '')}</h1>

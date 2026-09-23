@@ -41,6 +41,10 @@
       "rewrite": "/reporte-encuesta.html"
     },
     {
+      "route": "/satisfaccion/*",
+      "rewrite": "/reporte-encuesta.html"
+    },
+    {
       "route": "/resultados/*",
       "rewrite": "/reporte-resultados.html"
     },

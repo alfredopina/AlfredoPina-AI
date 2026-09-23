@@ -13,7 +13,8 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { leerRespuestasFiltradas } = require("../src/encuesta-consulta");
 const { getEncuestaConfigTable, leerEscala } = require("../src/encuesta-tables");
 const { calcularSnapshot } = require("../src/encuesta-reporte-calc");
-const { getEncuestaReportesTable, nuevoToken, guardarReporteEncuesta } = require("../src/encuesta-reportes");
+const { getEncuestaReportesTable, leerReporteEncuesta, guardarReporteEncuesta } = require("../src/encuesta-reportes");
+const { codigoCortoUnico } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -51,8 +52,9 @@ module.exports = async function (context, req) {
     const filtrosLimpios = Object.fromEntries(Object.entries(filtros).filter(([, v]) => v));
     const snapshot = calcularSnapshot({ respuestas, globales, escala, filtros: filtrosLimpios, etiqueta, ahora: new Date() });
 
-    const token = nuevoToken();
-    await guardarReporteEncuesta(getEncuestaReportesTable(), { token, snapshot });
+    const table = getEncuestaReportesTable();
+    const token = await codigoCortoUnico(async (candidato) => Boolean(await leerReporteEncuesta(table, candidato)));
+    await guardarReporteEncuesta(table, { token, snapshot });
     context.res = { status: 200, headers: JSON_HEADERS, body: { token, n: snapshot.n } };
   } catch (err) {
     if (err.safe) {

@@ -4,13 +4,12 @@
 // su token opaco — nunca toca SQL, así la página carga al instante sin
 // depender del auto-pause de apcweb-backoffice.
 const { getEncuestaReportesTable, leerReporteEncuesta } = require("../src/encuesta-reportes");
+const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
-
-const TOKEN_RE = /^[a-f0-9]{32}$/;
 
 module.exports = async function (context, req) {
   const token = String(req.query.token || "").trim();
-  if (!TOKEN_RE.test(token)) {
+  if (!CODIGO_CORTO_RE.test(token)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el token del reporte." } };
     return;
   }

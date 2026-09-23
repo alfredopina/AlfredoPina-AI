@@ -6836,7 +6836,7 @@
     // Entran TODAS las respuestas y TODOS los comentarios: si uno es ofensivo,
     // se elimina esa respuesta ANTES de generar (el reporte es un snapshot). ══
     let encFiltrosBuscados = {};
-    function urlReporte(token){ return new URL('reporte-encuesta?token=' + token, location.origin + '/').href; }
+    function urlReporte(token){ return new URL('satisfaccion/' + token, location.origin + '/').href; }
 
     function actualizarGenerar(){
       const n = encResultadosRaw.length;

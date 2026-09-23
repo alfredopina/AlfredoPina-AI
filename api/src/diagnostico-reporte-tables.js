@@ -7,12 +7,11 @@
 // lo guarda aquí; getReporteDiagnosticoPublico solo lee esta tabla.
 //
 // PartitionKey fijo "reporte" (volumen esperado bajo — reportes generados a
-// mano, no uno por envío) — RowKey = token opaco (uuid), el mismo valor que
-// viaja en el link público. No se expone clienteId en la URL a propósito
-// (ver getReporteDiagnosticoPublico) para no permitir enumerar reportes de
-// otros clientes.
+// mano, no uno por envío) — RowKey = código corto opaco (ver codigo-corto.js),
+// el mismo valor que viaja en el link público. No se expone clienteId en la
+// URL a propósito (ver getReporteDiagnosticoPublico) para no permitir
+// enumerar reportes de otros clientes.
 const { TableClient } = require("@azure/data-tables");
-const crypto = require("crypto");
 
 function getConnectionString() {
   const conn = process.env.RECURSOS_STORAGE_CONNECTION;
@@ -31,10 +30,6 @@ async function ensureTable(tableClient) {
 
 function getDiagnosticoReportesTable() {
   return TableClient.fromConnectionString(getConnectionString(), "DiagnosticoReportes");
-}
-
-function nuevoToken() {
-  return crypto.randomUUID().replace(/-/g, "");
 }
 
 async function guardarReporte(table, { token, herramienta, clienteId, clienteNombre, desde, hasta, snapshot }) {
@@ -127,7 +122,6 @@ async function eliminarReporte(table, token) {
 
 module.exports = {
   getDiagnosticoReportesTable,
-  nuevoToken,
   guardarReporte,
   leerReporte,
   incrementarVisitas,

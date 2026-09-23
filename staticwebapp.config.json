@@ -33,8 +33,20 @@
       "rewrite": "/reporte-diagnostico.html"
     },
     {
+      "route": "/reporte/*",
+      "rewrite": "/reporte-diagnostico.html"
+    },
+    {
       "route": "/reporte-encuesta",
       "rewrite": "/reporte-encuesta.html"
+    },
+    {
+      "route": "/resultados/*",
+      "rewrite": "/reporte-resultados.html"
+    },
+    {
+      "route": "/diploma/*",
+      "rewrite": "/diplomas-grupo.html"
     },
     {
       "route": "/admin",

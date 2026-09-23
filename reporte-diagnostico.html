@@ -400,8 +400,16 @@
 
   let REPORTE = null;
 
+  // el código corto va en la ruta (/reporte/{codigo}) — ?token= se acepta
+  // igual por si alguien comparte el link viejo de 32 caracteres
+  function leerCodigo(){
+    const m = location.pathname.match(/\/reporte\/([a-z0-9]{8})$/i);
+    if(m) return m[1];
+    return new URLSearchParams(location.search).get('token');
+  }
+
   async function cargar(){
-    const token = new URLSearchParams(location.search).get('token');
+    const token = leerCodigo();
     if(!token){
       document.getElementById('repLoading').hidden = true;
       const err = document.getElementById('repError');

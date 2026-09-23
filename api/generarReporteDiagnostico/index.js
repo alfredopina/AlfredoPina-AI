@@ -9,7 +9,8 @@
 // adelante, se agrega ahí.
 const { getPool, sql } = require("../src/backoffice-db");
 const { calcularReporte } = require("../src/diagnostico-reporte-calc");
-const { getDiagnosticoReportesTable, nuevoToken, guardarReporte } = require("../src/diagnostico-reporte-tables");
+const { getDiagnosticoReportesTable, leerReporte, guardarReporte } = require("../src/diagnostico-reporte-tables");
+const { codigoCortoUnico } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
 const HERRAMIENTAS = ["excel", "powerbi"];
@@ -37,8 +38,8 @@ module.exports = async function (context, req) {
       hasta: hasta || null,
     });
 
-    const token = nuevoToken();
     const table = getDiagnosticoReportesTable();
+    const token = await codigoCortoUnico(async (candidato) => Boolean(await leerReporte(table, candidato)));
     await guardarReporte(table, {
       token,
       herramienta,

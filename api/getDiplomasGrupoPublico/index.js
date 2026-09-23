@@ -6,13 +6,12 @@
 // clic de "Generar"), así que si Alfredo anula un diploma o genera uno
 // nuevo, el mismo link ya compartido con el cliente refleja el cambio.
 const { getDiplomasGrupoTable, leerDiplomasGrupo, registrarVistaDiplomasGrupo } = require("../src/diplomas-reportes");
+const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
-
-const TOKEN_RE = /^[a-f0-9]{32}$/;
 
 module.exports = async function (context, req) {
   const token = String(req.query.token || "").trim();
-  if (!TOKEN_RE.test(token)) {
+  if (!CODIGO_CORTO_RE.test(token)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el token." } };
     return;
   }

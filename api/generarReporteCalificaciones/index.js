@@ -10,7 +10,8 @@
 const { getPool } = require("../src/backoffice-db");
 const { leerCalificacionesFiltradas } = require("../src/calificaciones-reporte-consulta");
 const { calcularSnapshot } = require("../src/calificaciones-reporte-calc");
-const { getCalificacionesReportesTable, nuevoToken, guardarReporteCalificaciones } = require("../src/calificaciones-reportes");
+const { getCalificacionesReportesTable, leerReporteCalificaciones, guardarReporteCalificaciones } = require("../src/calificaciones-reportes");
+const { codigoCortoUnico } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -49,8 +50,9 @@ module.exports = async function (context, req) {
     const filtrosLimpios = Object.fromEntries(Object.entries(filtros).filter(([, v]) => v));
     const snapshot = calcularSnapshot({ filas, filtros: filtrosLimpios, etiqueta, ahora: new Date() });
 
-    const token = nuevoToken();
-    await guardarReporteCalificaciones(getCalificacionesReportesTable(), { token, snapshot });
+    const table = getCalificacionesReportesTable();
+    const token = await codigoCortoUnico(async (candidato) => Boolean(await leerReporteCalificaciones(table, candidato)));
+    await guardarReporteCalificaciones(table, { token, snapshot });
     context.res = { status: 200, headers: JSON_HEADERS, body: { token, n: snapshot.n, nGrupos: snapshot.nGrupos } };
   } catch (err) {
     context.log.error("Error generando el reporte de calificaciones:", err.message);

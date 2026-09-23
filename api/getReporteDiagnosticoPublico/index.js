@@ -4,11 +4,12 @@
 // su token opaco — nunca toca SQL, así la página carga instantáneo sin
 // depender del auto-pause de apcweb-backoffice (ver diagnostico-reporte-tables.js).
 const { getDiagnosticoReportesTable, leerReporte, incrementarVisitas } = require("../src/diagnostico-reporte-tables");
+const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const token = (req.query.token || "").trim();
-  if (!token) {
+  if (!CODIGO_CORTO_RE.test(token)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el token del reporte." } };
     return;
   }

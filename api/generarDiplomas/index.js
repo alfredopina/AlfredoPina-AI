@@ -16,11 +16,11 @@
 // crea la primera vez y se reusa siempre. Cada vez que se generan diplomas
 // nuevos se reescribe el snapshot completo en Table Storage (todos los
 // vigentes del grupo), para que ese mismo link refleje lo último.
-const crypto = require("crypto");
 const { getPool, sql } = require("../src/backoffice-db");
 const { leerCalificacionesFiltradas } = require("../src/calificaciones-reporte-consulta");
 const { siguienteConsecutivo, anioCorto, nivelTexto } = require("../src/diploma-folio");
 const { reconstruirSnapshotGrupo } = require("../src/diplomas-snapshot");
+const { codigoCortoUnico, CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
 const RESULTADOS_CON_DIPLOMA = ["Aprobado", "Participó"];
@@ -97,11 +97,17 @@ module.exports = async function (context, req) {
       generados.push({ folio, alumno: f.alumno, resultado: f.resultado });
     }
 
-    // token del grupo: se crea una sola vez, se reusa siempre
+    // token del grupo: se crea una sola vez, se reusa siempre — si ya tenía
+    // uno del formato viejo (32 caracteres, antes de acortarlo) se reemplaza
+    // por uno corto nuevo, no se queda atorado
     const grupoRow = await pool.request().input("grupoId", sql.Int, grupoId).query("SELECT diploma_token FROM Grupo WHERE id = @grupoId");
     let token = grupoRow.recordset[0] && grupoRow.recordset[0].diploma_token;
+    if (token && !CODIGO_CORTO_RE.test(token)) token = null;
     if (!token) {
-      token = crypto.randomUUID().replace(/-/g, "");
+      token = await codigoCortoUnico(async (candidato) => {
+        const r = await pool.request().input("t", sql.NVarChar, candidato).query("SELECT 1 FROM Grupo WHERE diploma_token = @t");
+        return r.recordset.length > 0;
+      });
       await pool.request().input("grupoId", sql.Int, grupoId).input("token", sql.NVarChar, token).query("UPDATE Grupo SET diploma_token = @token WHERE id = @grupoId");
     }
 

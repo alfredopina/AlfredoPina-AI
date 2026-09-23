@@ -667,8 +667,16 @@
     if(REPORTE && REPORTE.participantes.length) imprimirPerfiles(REPORTE.participantes);
   });
 
+  // el código corto va en la ruta (/resultados/{codigo}) — ?token= se acepta
+  // igual por si alguien comparte el link viejo de 32 caracteres
+  function leerCodigo(){
+    const m = location.pathname.match(/\/resultados\/([a-z0-9]{8})$/i);
+    if(m) return m[1];
+    return new URLSearchParams(location.search).get('token');
+  }
+
   async function cargar(){
-    const token = new URLSearchParams(location.search).get('token');
+    const token = leerCodigo();
     if(!token){ mostrarError('Falta el link completo — pide de nuevo el link del reporte.'); return; }
     try {
       const res = await fetch('/api/getReporteCalificacionesPublico?token=' + encodeURIComponent(token));

@@ -3,9 +3,8 @@
 // "CalificacionesReportes"), mismo patrón que encuesta-reportes.js: cada fila
 // es un snapshot YA CALCULADO, así la página pública nunca depende de que
 // apcweb-backoffice esté despierta. PartitionKey fijo "reporte", RowKey =
-// token opaco (uuid sin guiones) que viaja en el link.
+// código corto opaco (ver codigo-corto.js) que viaja en el link.
 const { TableClient } = require("@azure/data-tables");
-const crypto = require("crypto");
 const { actualizarConReintento } = require("./table-contador");
 
 const TROZO = 30000; // caracteres por propiedad, con margen bajo el tope de 32 K
@@ -18,9 +17,6 @@ function getConexion() {
 }
 function getCalificacionesReportesTable() {
   return TableClient.fromConnectionString(getConexion(), "CalificacionesReportes");
-}
-function nuevoToken() {
-  return crypto.randomUUID().replace(/-/g, "");
 }
 
 async function ensureTable(table) {
@@ -128,7 +124,6 @@ async function eliminarReporteCalificaciones(table, token) {
 
 module.exports = {
   getCalificacionesReportesTable,
-  nuevoToken,
   guardarReporteCalificaciones,
   leerReporteCalificaciones,
   listarReportesCalificaciones,

@@ -171,11 +171,18 @@
     };
   }
 
+  // el código corto va en la ruta (/diploma/{codigo}) — ?token= se acepta
+  // igual por si alguien comparte el link viejo de 32 caracteres
+  function leerCodigo(){
+    const m = location.pathname.match(/\/diploma\/([a-z0-9]{8})$/i);
+    if(m) return m[1];
+    return (new URLSearchParams(location.search).get('token') || '').trim();
+  }
+
   async function init(){
-    const params = new URLSearchParams(location.search);
-    const token = (params.get('token') || '').trim();
-    const folioDestacado = params.get('alumno') || '';
-    if(!/^[a-f0-9]{32}$/.test(token)){
+    const token = leerCodigo();
+    const folioDestacado = new URLSearchParams(location.search).get('alumno') || '';
+    if(!/^[a-z0-9]{8}$/i.test(token)){
       document.getElementById('dgLoading').hidden = true;
       document.getElementById('dgError').hidden = false;
       document.getElementById('dgError').textContent = 'Este link no es válido.';

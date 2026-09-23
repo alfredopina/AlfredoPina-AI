@@ -7933,9 +7933,9 @@
     // fila de Resultados es el acceso directo, genera SOLO ese grupo sin
     // pasar por el formulario. Cada clic crea un token nuevo — el reporte ya
     // generado no cambia si después se edita una calificación. ──
-    function urlReporteCal(token){ return new URL('reporte-resultados?token=' + token, location.origin + '/').href; }
+    function urlReporteCal(token){ return new URL('resultados/' + token, location.origin + '/').href; }
     function urlDiplomasGrupo(token, folio){
-      const u = new URL('diplomas-grupo?token=' + token, location.origin + '/');
+      const u = new URL('diploma/' + token, location.origin + '/');
       if(folio) u.searchParams.set('alumno', folio);
       return u.href;
     }
@@ -8273,7 +8273,7 @@
     function herramientasArr(json){ try { return JSON.parse(json || '[]'); } catch(e){ return []; } }
     function nombreHerramientas(json){ return herramientasArr(json).map(h => TOOL_NAMES[h] || h).join(' + '); }
     function urlDiplomasGrupo(token, folio){
-      const u = new URL('diplomas-grupo?token=' + token, location.origin + '/');
+      const u = new URL('diploma/' + token, location.origin + '/');
       if(folio) u.searchParams.set('alumno', folio);
       return u.href;
     }
@@ -9563,7 +9563,7 @@
         const r = await apiPostJson('/api/generarReporteDiagnostico', {
           herramienta, clienteId: cliente.id, clienteNombre: cliente.nombre, desde: desde || null, hasta: hasta || null,
         });
-        const link = new URL(`reporte?token=${r.token}`, location.origin + '/').href;
+        const link = new URL(`reporte/${r.token}`, location.origin + '/').href;
         document.getElementById('diagReporteLinkInput').value = link;
         document.getElementById('diagReporteLinkWrap').hidden = false;
         toast('Reporte generado.', true);
@@ -9698,7 +9698,7 @@
       const btn = e.target.closest('[data-action]');
       if(!btn) return;
       const token = btn.dataset.token;
-      const link = new URL(`reporte?token=${token}`, location.origin + '/').href;
+      const link = new URL(`reporte/${token}`, location.origin + '/').href;
       if(btn.dataset.action === 'abrir'){ window.open(link, '_blank'); return; }
       if(btn.dataset.action === 'copiar'){
         try { await navigator.clipboard.writeText(link); toast('Link copiado.', true); }

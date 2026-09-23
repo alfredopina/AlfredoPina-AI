@@ -14904,14 +14904,15 @@
     function tpl(nombre, formato, soon){
       return '<div class="mk-tpl-card">' + tplIco + '<b>' + nombre + '</b><span>' + formato + '</span><span class="mk-tpl-badge">' + (soon ? 'Próximamente' : 'Listo') + '</span></div>';
     }
-    function tplAuto(nombre, nota, listo){
+    function tplAuto(nombre, nota, listo, pdfUrl){
       const badge = listo
         ? '<span class="mk-tpl-badge" style="color:var(--good); border-color:var(--good)">Diseño listo</span>'
         : '<span class="mk-tpl-badge">Por diseñar</span>';
-      return '<div class="mk-tpl-card">' + tplIco + '<b>' + nombre + '</b><span>' + nota + '</span>' + badge + '</div>';
+      const boton = pdfUrl ? '<div style="margin-top:6px">' + dlBtn('Descargar ejemplo (PDF)', pdfUrl) + '</div>' : '';
+      return '<div class="mk-tpl-card">' + tplIco + '<b>' + nombre + '</b><span>' + nota + '</span>' + badge + boton + '</div>';
     }
     document.getElementById('mkPlantillas').innerHTML =
-      tplAuto('Diploma', 'Diseño aprobado — se genera dentro del módulo Diplomas, no aquí', true) +
+      tplAuto('Diploma', 'Diseño aprobado — se genera dentro del módulo Diplomas, no aquí', true, '../assets/plantillas/diploma-ejemplo.pdf') +
       tplAuto('Cotización', 'Se genera dentro del módulo Cotizaciones, no aquí', false) +
       tpl('Presentación de curso', 'PowerPoint · .potx', true) +
       tpl('Caso práctico', 'Excel · .xltx', true) +

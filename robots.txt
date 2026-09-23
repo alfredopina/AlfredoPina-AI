@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://alfredopina.ai/sitemap.xml
+Sitemap: https://www.alfredopina.ai/sitemap.xml

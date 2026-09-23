@@ -25,7 +25,7 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;}
   svg{display:block;}
-  .wrap{max-width:900px; margin:0 auto; padding:0 28px;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 28px;}
   [hidden]{display:none !important;}
 
   .dg-loading, .dg-error{ font-family:var(--mono); font-size:13px; padding:60px 0; text-align:center; color:var(--text-faint); }
@@ -78,17 +78,24 @@
 
   .dg-tpl-host{ position:fixed; left:-9999px; top:0; width:1100px; }
 
-  /* ── Visualización: buscador + lista compacta + visor grande ── */
-  .dg-vis-search{ margin-bottom:14px; }
+  /* ── Visualización: buscador+lista a la izquierda, diploma a la derecha —
+     mismo patrón que "Por alumno" en Resultados, para ver sin descargar ── */
+  .dg-vis-layout{ display:flex; gap:22px; align-items:flex-start; }
+  .dg-vis-left{ width:270px; flex:none; display:flex; flex-direction:column; gap:12px; }
   .dg-vis-search input{ width:100%; font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:7px; padding:9px 12px; outline:none; }
   .dg-vis-search input:focus{ border-color:var(--blue); }
-  .dg-vis-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:20px; max-height:260px; overflow-y:auto; }
+  .dg-vis-list{ display:flex; flex-direction:column; gap:6px; max-height:640px; overflow-y:auto; }
   .dg-vis-item{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:9px 12px; cursor:pointer; text-align:left; width:100%; font-family:var(--body); color:var(--text); }
   .dg-vis-item:hover{ border-color:var(--text-dim); }
   .dg-vis-item.activo{ border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
   .dg-vis-item-nombre{ flex:1; font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .dg-vis-visor{ max-width:640px; margin:0 auto; }
+  .dg-vis-right{ flex:1; min-width:0; }
   .dg-vis-visor-empty{ font-family:var(--mono); font-size:12px; color:var(--text-faint); text-align:center; padding:40px 0; }
+  @media (max-width:820px){
+    .dg-vis-layout{ flex-direction:column; }
+    .dg-vis-left{ width:100%; }
+    .dg-vis-list{ max-height:280px; }
+  }
 
   footer{ border-top:1px solid var(--line); padding:20px 0 40px; text-align:center; }
   footer p{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
@@ -129,11 +136,15 @@
     </div>
 
     <div class="dg-view" id="dgViewVisualizacion" hidden>
-      <div class="dg-vis-search"><input type="text" id="dgVisBuscar" placeholder="Buscar alumno..."></div>
-      <div class="dg-vis-list" id="dgVisLista"></div>
-      <div class="dg-vis-visor">
-        <div class="dip-tpl-stage dip-tpl-frame" id="dgVisFrame" hidden></div>
-        <p class="dg-vis-visor-empty" id="dgVisVacio">Elige un alumno de la lista para ver su diploma.</p>
+      <div class="dg-vis-layout">
+        <div class="dg-vis-left">
+          <div class="dg-vis-search"><input type="text" id="dgVisBuscar" placeholder="Buscar alumno..."></div>
+          <div class="dg-vis-list" id="dgVisLista"></div>
+        </div>
+        <div class="dg-vis-right">
+          <div class="dip-tpl-stage dip-tpl-frame" id="dgVisFrame" hidden></div>
+          <p class="dg-vis-visor-empty" id="dgVisVacio">Elige un alumno de la lista para ver su diploma.</p>
+        </div>
       </div>
     </div>
   </div></main>
@@ -314,6 +325,10 @@
       if(btn) mostrarVisor(btn.dataset.folio);
     });
     renderVisLista();
+    // se muestra un diploma desde que se abre la pestaña, sin esperar un clic
+    // (el alumno destacado del link si viene, si no el primero vigente)
+    const primero = alumnos.find(a => a.folio === folioDestacado) || alumnos.find(a => a.estatus === 'vigente') || alumnos[0];
+    if(primero) mostrarVisor(primero.folio);
   }
 
   init();

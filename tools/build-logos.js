@@ -89,8 +89,18 @@ function manija(x, y, t, color, tam = 20, anillo = 5) {
   return `<rect x="${f2(x - anillo)}" y="${f2(y - anillo)}" width="${tam + anillo * 2}" height="${tam + anillo * 2}" fill="${t.bg}"/><rect x="${f2(x)}" y="${f2(y)}" width="${tam}" height="${tam}" fill="${color}"/>`;
 }
 
+// cursor de texto parpadeante — solo para la variante "-cursor.svg" que alimenta
+// el GIF animado (ver build-logo-gif.js). El SVG normal nunca lo lleva.
+function caretRect(t, xEnd, baseRow) {
+  const gap = MONO_S * 0.16;
+  const w = MONO_S * 0.11;
+  const h = MONO_S * 1.05;
+  const yTop = baseRow - h * 0.88;
+  return `<rect x="${f2(xEnd + gap)}" y="${f2(yTop)}" width="${f2(w)}" height="${f2(h)}" fill="${t.azul}"/>`;
+}
+
 // barra de fórmula: caja + "fx" + divisor + contenido. `formula(x0)` devuelve {cuerpo, ancho}
-function barra(t, { alto = 216, borde = 7, colorBorde, colorFx, seleccionada = true, formula }) {
+function barra(t, { alto = 216, borde = 7, colorBorde, colorFx, seleccionada = true, formula, cursor = false }) {
   const azul = colorBorde || t.azul;
   const fx = colorFx || t.azul;
   const fxW = medir(FX_FONT, "fx", FX_S);
@@ -106,6 +116,7 @@ function barra(t, { alto = 216, borde = 7, colorBorde, colorFx, seleccionada = t
   cuerpo += relleno(trazo(FX_FONT, "fx", FX_S, borde + 68, 141, { skew: FX_SKEW }), fx);
   cuerpo += `<rect x="${f2(divX)}" y="${borde}" width="3" height="${alto - borde * 2}" fill="${t.linea}" fill-opacity="${t.lineaOp}"/>`;
   cuerpo += f.cuerpo;
+  if (cursor) cuerpo += caretRect(t, x0 + f.ancho, 145);
   if (seleccionada) cuerpo += manija(ancho - 21, alto - 21, t, azul);
   return { cuerpo, ancho, alto };
 }
@@ -253,5 +264,11 @@ for (const [nombreTema, t] of Object.entries(TEMAS)) {
 escribir("logo-diploma-claro.svg", "alfredopina.ai", logoDiploma(TEMAS.claro));
 escribir("icono-app.svg", "fx", iconoApp());
 escribir("favicon.svg", "fx", iconoApp());
+
+// variantes "-cursor" — el cuadro que SÍ lleva el cursor parpadeante. No son un
+// logo más: son el fotograma "encendido" del GIF animado (ver build-logo-gif.js).
+for (const [nombreTema, t] of Object.entries(TEMAS)) {
+  escribir(`logo-principal-${nombreTema}-cursor.svg`, "alfredopina.ai", logoPrincipal(t, { cursor: true }));
+}
 
 console.log(`${salidas.length} archivos en ${path.relative(process.cwd(), OUT_DIR)}${FX_SKEW ? " (fx inclinado, sin fuente cursiva)" : " (fx con cursiva real)"}`);

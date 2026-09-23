@@ -13,6 +13,14 @@
       "rewrite": "/recursos.html"
     },
     {
+      "route": "/aviso-privacidad",
+      "rewrite": "/aviso-privacidad.html"
+    },
+    {
+      "route": "/terminos-uso",
+      "rewrite": "/terminos-uso.html"
+    },
+    {
       "route": "/encuesta",
       "rewrite": "/encuesta.html"
     },

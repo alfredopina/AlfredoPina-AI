@@ -8413,6 +8413,7 @@
             <button type="button" class="radm-icon-btn dip-ver-btn" data-id="${g.grupo_id}" title="Ver diplomas — abre el link público">${ICO_EYE}</button>
             <button type="button" class="radm-icon-btn dip-copiar-btn" data-id="${g.grupo_id}" title="Copiar el link de diplomas">${ICO_COPIAR}</button>
             <button type="button" class="cal-action-btn cal-action-diploma dip-zip-btn" data-id="${g.grupo_id}" title="Descargar todos los diplomas vigentes en un .zip">${ICO_DESCARGAR}Descargar todos</button>
+            <button type="button" class="radm-icon-btn radm-icon-danger dip-eliminar-btn" data-id="${g.grupo_id}" title="Eliminar TODOS los diplomas de este grupo — borrado real, no se puede deshacer">${ICO_TRASH}</button>
           </div>
         </td>
       </tr>` + (abierto ? filaDetalleHtml(g) : '');
@@ -8525,11 +8526,26 @@
               herramientas: herramientasArr(snapshot.herramientas), resultado: a.resultado, fechaInicio: snapshot.fechaInicio, fechaFin: snapshot.fechaFin,
               horas: snapshot.horas, instructor: snapshot.instructor, firmaUrl: snapshot.instructor ? ('/api/getPlantillaAsset?instructor=' + encodeURIComponent(snapshot.instructor)) : null,
             },
-            nombreArchivo: (a.nombre || 'diploma').replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '') + '.pdf',
+            nombreArchivo: DiplomaTemplate.nombreArchivoDiploma(a.folio),
           }));
-          await DiplomaTemplate.descargarZip(lista, 'diplomas-' + (r.nombre_curso || 'grupo').replace(/[^a-z0-9]+/gi, '-') + '.zip', (i, n) => { btnZip.innerHTML = `Generando ${i + 1}/${n}…`; });
+          await DiplomaTemplate.descargarZip(lista, DiplomaTemplate.nombreZipDiplomas(snapshot), (i, n) => { btnZip.innerHTML = `Generando ${i + 1}/${n}…`; });
         } catch(err){ toast('No se pudo generar el zip: ' + err.message, false); }
         finally { btnZip.disabled = false; btnZip.innerHTML = original; }
+        return;
+      }
+
+      const btnEliminarGrupo = e.target.closest('.dip-eliminar-btn');
+      if(btnEliminarGrupo){
+        const r = g(Number(btnEliminarGrupo.dataset.id));
+        if(!r) return;
+        if(!confirm(`¿Eliminar los ${r.total} diploma${r.total === 1 ? '' : 's'} de ${empresaDe(r)}? Esta acción no se puede deshacer y el link público dejará de funcionar.`)) return;
+        btnEliminarGrupo.disabled = true;
+        try {
+          await apiPostConReintento('/api/eliminarDiplomasGrupo', { grupoId: r.grupo_id });
+          toast('Diplomas eliminados.', true);
+          detalleCache.delete(r.grupo_id); detalleAbiertos.delete(r.grupo_id);
+          cargarLista();
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); btnEliminarGrupo.disabled = false; }
         return;
       }
 
@@ -8567,8 +8583,8 @@
     // ── Plantilla — vista previa interactiva de assets/js/diploma-template.js ──
     const ORDEN_TOOLS = ['excel', 'powerapps', 'powerbi', 'powerautomate', 'ia', 'ofimatica'];
     const dipTplState = { tool:'excel', n:1, resultado:'Aprobado', largo:false, instructor:'' };
-    const NOMBRE_CORTO = 'Juan Pérez López';
-    const NOMBRE_LARGO = 'José Alberto Domínguez de la Cruz Martínez';
+    const NOMBRE_CORTO = 'Alfredo Piña Cortez';
+    const NOMBRE_LARGO = 'Alfredo Misael Axel Ricardo Piña Garza';
 
     function tplHerramientas(){
       const i = ORDEN_TOOLS.indexOf(dipTplState.tool);
@@ -8577,7 +8593,7 @@
     function tplDatos(){
       const herramientas = tplHerramientas();
       return {
-        nombre: dipTplState.largo ? NOMBRE_LARGO : NOMBRE_CORTO, correo: 'alumno@empresa.com', folio: 'AP_ACME_' + String(new Date().getFullYear()).slice(-2) + '-1',
+        nombre: dipTplState.largo ? NOMBRE_LARGO : NOMBRE_CORTO, correo: 'alumno@empresa.com', folio: 'APACM-' + String(new Date().getFullYear()).slice(-2) + '01',
         cliente: 'Empresa ACME', curso: herramientas.map(h => TOOL_NAMES[h]).join(' + ') + ' — Curso de ejemplo', nivel: 'Intermedio',
         herramientas, resultado: dipTplState.resultado, fechaInicio: '2026-09-01', fechaFin: '2026-09-10', horas: 20,
         instructor: dipTplState.instructor || 'Ing. Alfredo Piña',

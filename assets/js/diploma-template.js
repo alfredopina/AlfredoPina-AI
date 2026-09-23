@@ -81,7 +81,7 @@
     return `<div class="sheet" style="--acc-ink:${principal.tinta}">
       <div class="m-grid"></div>${barraHtml(herramientas)}
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*58)"><img src="/assets/img/brand/logo-diploma-claro.svg" alt="alfredopina.ai" style="display:block;width:calc(var(--u)*245);height:auto"></div>
-      <div class="abs" style="right:calc(var(--u)*80);top:calc(var(--u)*66);text-align:right"><div class="folio-l">Constancia No.</div><div class="folio-v">${esc(datos.folio)}</div></div>
+      <div class="abs" style="right:calc(var(--u)*80);top:calc(var(--u)*66);text-align:right"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div></div>
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*214);width:calc(var(--u)*900)">
         <div class="eyebrow">Otorga el presente diploma a</div>
         <div class="name fit" style="margin-top:calc(var(--u)*14)">${esc(datos.nombre)}</div>
@@ -141,6 +141,21 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  // el diploma individual se guarda con su folio tal cual (ya es un
+  // identificador corto y sin caracteres raros, ej. "APACM-2601.pdf")
+  function nombreArchivoDiploma(folio) {
+    return folio + ".pdf";
+  }
+  function limpioArchivo(s) {
+    return String(s || "").replace(/[\\/:*?"<>|]/g, "").trim();
+  }
+  // "Diplomas-{codigoCliente}-{curso}{AAMM del cierre del curso}.zip"
+  function nombreZipDiplomas(snapshot) {
+    const f = snapshot.fechaFin ? new Date(snapshot.fechaFin) : null;
+    const aamm = f ? String(f.getUTCFullYear()).slice(-2) + String(f.getUTCMonth() + 1).padStart(2, "0") : "";
+    return `Diplomas-${limpioArchivo(snapshot.clienteCodigo)}-${limpioArchivo(snapshot.curso)}${aamm}.zip`;
   }
 
   // genera el PDF de cada diploma de `lista` ([{datos, nombreArchivo}]) en un
@@ -214,5 +229,5 @@
   }
   inyectarCss();
 
-  global.DiplomaTemplate = { TOOLS, render, montar, fitAll, capturarJPG, capturarPDF, descargarBlob, descargarZip, fechasLarga };
+  global.DiplomaTemplate = { TOOLS, render, montar, fitAll, capturarJPG, capturarPDF, descargarBlob, descargarZip, fechasLarga, nombreArchivoDiploma, nombreZipDiplomas };
 })(window);

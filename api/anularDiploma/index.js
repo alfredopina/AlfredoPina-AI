@@ -5,8 +5,7 @@
 // "Crear Diplomas" solo genera lo que falte). Si el grupo ya tiene link
 // público, se reescribe el snapshot para que ese mismo link refleje la baja.
 const { getPool, sql } = require("../src/backoffice-db");
-const { getDiplomasGrupoTable, guardarDiplomasGrupo } = require("../src/diplomas-reportes");
-const { nivelTexto } = require("../src/diploma-folio");
+const { reconstruirSnapshotGrupo } = require("../src/diplomas-snapshot");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -37,29 +36,7 @@ module.exports = async function (context, req) {
     if (grupoId) {
       const grupoRow = await pool.request().input("grupoId", sql.Int, grupoId).query("SELECT diploma_token FROM Grupo WHERE id = @grupoId");
       const token = grupoRow.recordset[0] && grupoRow.recordset[0].diploma_token;
-      if (token) {
-        const g = (await pool.request().input("grupoId", sql.Int, grupoId).query(
-          `SELECT cli.nombre AS cliente, clf.nombre AS cliente_final, g.nombre_curso, g.herramientas, g.niveles, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin, g.horas
-           FROM Grupo g JOIN Cliente cli ON cli.id = g.cliente_id LEFT JOIN Cliente clf ON clf.id = g.cliente_final_id WHERE g.id = @grupoId`
-        )).recordset[0];
-        const todos = await pool
-          .request()
-          .input("grupoId", sql.Int, grupoId)
-          .query(
-            `SELECT d.folio, a.nombre_completo AS nombre, a.correo, d.resultado, d.estatus, d.motivo_anulacion, d.fecha_generacion
-             FROM Diploma d JOIN Alumno a ON a.id = d.alumno_id WHERE d.grupo_id = @grupoId ORDER BY a.nombre_completo`
-          );
-        await guardarDiplomasGrupo(getDiplomasGrupoTable(), {
-          token,
-          snapshot: {
-            grupoId, actualizadoEn: new Date().toISOString(),
-            cliente: g.cliente_final || g.cliente, clienteVia: g.cliente_final ? g.cliente : null,
-            curso: g.nombre_curso || "", herramientas: g.herramientas, nivel: nivelTexto(g.niveles), instructor: g.instructor || "",
-            modalidad: g.modalidad || "", fechaInicio: g.fecha_inicio, fechaFin: g.fecha_fin, horas: g.horas,
-            alumnos: todos.recordset,
-          },
-        });
-      }
+      if (token) await reconstruirSnapshotGrupo(pool, grupoId, token);
     }
 
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };

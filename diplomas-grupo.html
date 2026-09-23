@@ -45,9 +45,13 @@
   .dg-brand-descriptor{ font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; color:var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
   .dg-generado{ display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
   .dg-title{ font-family:var(--display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin-bottom:10px; }
-  .dg-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .dg-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .dg-tabsrow{ display:flex; gap:8px; flex-wrap:wrap; }
+  .dg-tab{ font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--text-dim); background:none; border:1px solid var(--line); border-radius:7px; padding:8px 14px; cursor:pointer; }
+  .dg-tab.active{ color:var(--blue-bright); border-color:var(--blue); background:var(--blue-soft); }
 
   main{ padding:24px 0 60px; }
+  .dg-view[hidden]{ display:none; }
   .dg-actions{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:22px 0 16px; }
   .dg-hint{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
   .abtn{ display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; font-weight:600; border-radius:7px; padding:9px 14px; cursor:pointer; color:#fff; background-color:var(--blue); border:1px solid var(--blue); }
@@ -74,6 +78,18 @@
 
   .dg-tpl-host{ position:fixed; left:-9999px; top:0; width:1100px; }
 
+  /* ── Visualización: buscador + lista compacta + visor grande ── */
+  .dg-vis-search{ margin-bottom:14px; }
+  .dg-vis-search input{ width:100%; font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:7px; padding:9px 12px; outline:none; }
+  .dg-vis-search input:focus{ border-color:var(--blue); }
+  .dg-vis-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:20px; max-height:260px; overflow-y:auto; }
+  .dg-vis-item{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:9px 12px; cursor:pointer; text-align:left; width:100%; font-family:var(--body); color:var(--text); }
+  .dg-vis-item:hover{ border-color:var(--text-dim); }
+  .dg-vis-item.activo{ border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
+  .dg-vis-item-nombre{ flex:1; font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dg-vis-visor{ max-width:640px; margin:0 auto; }
+  .dg-vis-visor-empty{ font-family:var(--mono); font-size:12px; color:var(--text-faint); text-align:center; padding:40px 0; }
+
   footer{ border-top:1px solid var(--line); padding:20px 0 40px; text-align:center; }
   footer p{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
 </style>
@@ -94,17 +110,32 @@
     </div>
     <div class="dg-title" id="dgTitulo"></div>
     <div class="dg-chips" id="dgChips"></div>
+    <div class="dg-tabsrow" id="dgTabs">
+      <button type="button" class="dg-tab active" data-tab="descarga">Descarga</button>
+      <button type="button" class="dg-tab" data-tab="visualizacion">Visualización</button>
+    </div>
   </div></header>
 
   <main><div class="wrap">
-    <div class="dg-actions">
-      <span class="dg-hint">Cada quien puede descargar el suyo, o bájalos todos juntos.</span>
-      <button type="button" class="abtn" id="dgDescargarTodos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>
-        Descargar todos (.zip)
-      </button>
+    <div class="dg-view" id="dgViewDescarga">
+      <div class="dg-actions">
+        <span class="dg-hint">Cada quien puede descargar el suyo, o bájalos todos juntos.</span>
+        <button type="button" class="abtn" id="dgDescargarTodos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>
+          Descargar todos (.zip)
+        </button>
+      </div>
+      <div class="dg-list" id="dgLista"></div>
     </div>
-    <div class="dg-list" id="dgLista"></div>
+
+    <div class="dg-view" id="dgViewVisualizacion" hidden>
+      <div class="dg-vis-search"><input type="text" id="dgVisBuscar" placeholder="Buscar alumno..."></div>
+      <div class="dg-vis-list" id="dgVisLista"></div>
+      <div class="dg-vis-visor">
+        <div class="dip-tpl-stage dip-tpl-frame" id="dgVisFrame" hidden></div>
+        <p class="dg-vis-visor-empty" id="dgVisVacio">Elige un alumno de la lista para ver su diploma.</p>
+      </div>
+    </div>
   </div></main>
 
   <footer><p>alfredopina.ai — Productividad con Datos · Automatización · IA</p></footer>
@@ -138,9 +169,6 @@
       instructor: snapshot.instructor,
       firmaUrl: snapshot.instructor ? ('/api/getFirmaPublica?instructor=' + encodeURIComponent(snapshot.instructor)) : null,
     };
-  }
-  function nombreArchivo(alumno){
-    return (alumno.nombre || 'diploma').replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '') + '.pdf';
   }
 
   async function init(){
@@ -217,7 +245,7 @@
       try {
         await DiplomaTemplate.montar(frame, datosDiploma(snapshot, alumno));
         const blob = await DiplomaTemplate.capturarPDF(frame);
-        DiplomaTemplate.descargarBlob(nombreArchivo(alumno), blob);
+        DiplomaTemplate.descargarBlob(DiplomaTemplate.nombreArchivoDiploma(alumno.folio), blob);
       } catch(err){ alert('No se pudo generar el PDF: ' + err.message); }
       finally { btn.disabled = false; }
     });
@@ -227,13 +255,58 @@
       btn.disabled = true;
       const textoOriginal = btn.textContent;
       try {
-        const lista = vigentes.map(a => ({ datos: datosDiploma(snapshot, a), nombreArchivo: nombreArchivo(a) }));
-        await DiplomaTemplate.descargarZip(lista, 'diplomas-' + (snapshot.curso || 'grupo').replace(/[^a-z0-9]+/gi, '-') + '.zip', (i, n) => {
+        const lista = vigentes.map(a => ({ datos: datosDiploma(snapshot, a), nombreArchivo: DiplomaTemplate.nombreArchivoDiploma(a.folio) }));
+        await DiplomaTemplate.descargarZip(lista, DiplomaTemplate.nombreZipDiplomas(snapshot), (i, n) => {
           btn.textContent = `Generando ${i + 1}/${n}…`;
         });
       } catch(err){ alert('No se pudo generar el zip: ' + err.message); }
       finally { btn.disabled = false; btn.textContent = textoOriginal; }
     });
+
+    // ── pestañas Descarga / Visualización ──
+    document.getElementById('dgTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dg-tab');
+      if(!btn) return;
+      const key = btn.dataset.tab;
+      document.querySelectorAll('#dgTabs .dg-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('dgViewDescarga').hidden = key !== 'descarga';
+      document.getElementById('dgViewVisualizacion').hidden = key !== 'visualizacion';
+    });
+
+    // ── Visualización: buscador + lista + visor en vivo (para revisar que
+    // cada diploma se vea bien antes de compartir el link) ──
+    let visAlumnoActivo = null;
+    const visFrame = document.getElementById('dgVisFrame');
+    const visVacio = document.getElementById('dgVisVacio');
+
+    function renderVisLista(){
+      const q = document.getElementById('dgVisBuscar').value.trim().toLowerCase();
+      const filtrados = q ? alumnos.filter(a => (a.nombre || '').toLowerCase().includes(q)) : alumnos;
+      document.getElementById('dgVisLista').innerHTML = filtrados.map(a => {
+        const anulado = a.estatus === 'anulado';
+        const pillClass = anulado ? 'anulado' : (a.resultado === 'Aprobado' ? 'verde' : 'ambar');
+        const activo = visAlumnoActivo === a.folio;
+        return `<button type="button" class="dg-vis-item${activo ? ' activo' : ''}" data-folio="${esc(a.folio)}">
+          <span class="dg-vis-item-nombre">${esc(a.nombre)}</span>
+          <span class="dg-pill ${pillClass}">${anulado ? ICO_X : ICO_OK}${anulado ? 'Anulado' : esc(a.resultado)}</span>
+        </button>`;
+      }).join('') || '<p class="dg-hint">Sin resultados.</p>';
+    }
+    async function mostrarVisor(folio){
+      const alumno = alumnos.find(a => a.folio === folio);
+      if(!alumno) return;
+      visAlumnoActivo = folio;
+      renderVisLista();
+      visVacio.hidden = true;
+      visFrame.hidden = false;
+      await DiplomaTemplate.montar(visFrame, datosDiploma(snapshot, alumno));
+    }
+    document.getElementById('dgVisBuscar').addEventListener('input', renderVisLista);
+    document.getElementById('dgVisLista').addEventListener('click', e => {
+      const btn = e.target.closest('.dg-vis-item');
+      if(btn) mostrarVisor(btn.dataset.folio);
+    });
+    renderVisLista();
   }
 
   init();

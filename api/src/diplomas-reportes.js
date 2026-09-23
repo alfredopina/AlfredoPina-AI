@@ -82,4 +82,14 @@ async function registrarVistaDiplomasGrupo(table, token) {
   );
 }
 
-module.exports = { getDiplomasGrupoTable, guardarDiplomasGrupo, leerDiplomasGrupo, registrarVistaDiplomasGrupo };
+// usado por eliminarDiplomasGrupo: si se borran todos los diplomas del grupo,
+// el link viejo debe dejar de servir datos en vez de quedar huérfano
+async function eliminarDiplomasGrupoSnapshot(table, token) {
+  try {
+    await table.deleteEntity("diplomas", token);
+  } catch (err) {
+    if (err.statusCode !== 404 && !isTableNotFound(err)) throw err;
+  }
+}
+
+module.exports = { getDiplomasGrupoTable, guardarDiplomasGrupo, leerDiplomasGrupo, registrarVistaDiplomasGrupo, eliminarDiplomasGrupoSnapshot };

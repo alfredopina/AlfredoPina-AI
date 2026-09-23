@@ -20,7 +20,7 @@ const crypto = require("crypto");
 const { getPool, sql } = require("../src/backoffice-db");
 const { leerCalificacionesFiltradas } = require("../src/calificaciones-reporte-consulta");
 const { siguienteConsecutivo, anioCorto, nivelTexto } = require("../src/diploma-folio");
-const { getDiplomasGrupoTable, guardarDiplomasGrupo } = require("../src/diplomas-reportes");
+const { reconstruirSnapshotGrupo } = require("../src/diplomas-snapshot");
 const { JSON_HEADERS } = require("../src/http");
 
 const RESULTADOS_CON_DIPLOMA = ["Aprobado", "Participó"];
@@ -74,7 +74,7 @@ module.exports = async function (context, req) {
     const generados = [];
 
     for (const f of pendientes) {
-      const folio = `AP_${g.cliente_codigo}_${yy}-${consecutivo}`;
+      const folio = `AP${g.cliente_codigo}-${yy}${String(consecutivo).padStart(2, "0")}`;
       consecutivo += 1;
       await pool
         .request()
@@ -106,31 +106,7 @@ module.exports = async function (context, req) {
     }
 
     // snapshot completo de todos los diplomas vigentes/anulados del grupo, para el link público
-    const todos = await pool
-      .request()
-      .input("grupoId", sql.Int, grupoId)
-      .query(
-        `SELECT d.folio, a.nombre_completo AS nombre, a.correo, d.resultado, d.estatus, d.motivo_anulacion, d.fecha_generacion
-         FROM Diploma d JOIN Alumno a ON a.id = d.alumno_id
-         WHERE d.grupo_id = @grupoId ORDER BY a.nombre_completo`
-      );
-
-    const snapshot = {
-      grupoId,
-      actualizadoEn: new Date().toISOString(),
-      cliente: g.cliente_final || g.cliente,
-      clienteVia: g.cliente_final ? g.cliente : null,
-      curso: g.nombre_curso || "",
-      herramientas: g.herramientas,
-      nivel,
-      instructor: g.instructor || "",
-      modalidad: g.modalidad || "",
-      fechaInicio: g.fecha_inicio,
-      fechaFin: g.fecha_fin,
-      horas: g.horas,
-      alumnos: todos.recordset,
-    };
-    await guardarDiplomasGrupo(getDiplomasGrupoTable(), { token, snapshot });
+    await reconstruirSnapshotGrupo(pool, grupoId, token);
 
     context.res = {
       status: 200,

@@ -5,13 +5,12 @@
 // tocan y se puede volver a generar. El front pide confirmación igualmente,
 // porque el link ya compartido deja de funcionar.
 const { getEncuestaReportesTable, eliminarReporteEncuesta } = require("../src/encuesta-reportes");
+const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
-
-const TOKEN_RE = /^[a-f0-9]{32}$/;
 
 module.exports = async function (context, req) {
   const token = String((req.body || {}).token || "").trim();
-  if (!TOKEN_RE.test(token)) {
+  if (!CODIGO_CORTO_RE.test(token)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el token del reporte." } };
     return;
   }

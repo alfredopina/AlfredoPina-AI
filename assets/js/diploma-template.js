@@ -68,7 +68,7 @@
   }
   function barraHtml(herramientas) {
     const segs = herramientas.length > 1 ? herramientas : [herramientas[0]];
-    return `<div class="m-band">${segs.map((k) => { const t = TOOLS[k] || TOOLS.excel; return `<div class="seg" style="--acc:${t.acc};--acc-deep:${t.deep}"></div>`; }).join("")}</div>`;
+    return `<div class="m-band">${segs.map((k) => { const t = TOOLS[k] || TOOLS.excel; return `<div class="seg" style="--acc:${t.acc}"></div>`; }).join("")}</div>`;
   }
 
   function render(datos) {
@@ -192,7 +192,7 @@
   .dip-tpl-frame .abs{ position:absolute }
   .dip-tpl-frame .m-grid{ position:absolute; inset:0; background-image:linear-gradient(rgba(13,20,36,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(13,20,36,.055) 1px,transparent 1px); background-size:calc(var(--u)*50) calc(var(--u)*50); -webkit-mask-image:linear-gradient(135deg,#000 5%,transparent 68%); mask-image:linear-gradient(135deg,#000 5%,transparent 68%) }
   .dip-tpl-frame .m-band{ position:absolute; left:0; top:0; bottom:0; width:calc(var(--u)*34); display:flex; flex-direction:column; box-shadow:calc(var(--u)*4) 0 calc(var(--u)*12) rgba(13,20,36,.22) }
-  .dip-tpl-frame .m-band .seg{ flex:1; background-color:var(--acc); background-image:linear-gradient(180deg,var(--acc) 0%,var(--acc-deep) 100%) }
+  .dip-tpl-frame .m-band .seg{ flex:1; background-color:var(--acc) }
   .dip-tpl-frame .m-band .seg + .seg{ box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.6) }
   .dip-tpl-frame .m-band::after{ content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset calc(var(--u)*2) 0 0 rgba(255,255,255,.42), inset calc(var(--u)*-2) 0 0 rgba(0,0,0,.14) }
   .dip-tpl-frame .eyebrow{ font-size:calc(var(--u)*14); line-height:1.2; letter-spacing:.24em; text-transform:uppercase; color:var(--dmuted); font-weight:500 }

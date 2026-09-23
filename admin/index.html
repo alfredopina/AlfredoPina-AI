@@ -1626,6 +1626,111 @@
   .mdl-legend svg{ width:30px; height:9px; flex:none; }
 
   .mdl-hint{ position:absolute; left:12px; bottom:12px; font-size:10.5px; color:var(--text-faint); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 9px; max-width:210px; line-height:1.35; }
+
+  /* ══ Marca (kit de marca) ══ */
+  .mk-phead{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:22px; }
+  .mk-phead h1{ font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.01em; }
+  .mk-phead p{ color:var(--text-dim); font-size:13px; margin-top:5px; max-width:60ch; }
+  .mk-zip-btn{
+    font-family:var(--mono); font-size:12px; font-weight:600; border-radius:6px; padding:11px 18px; cursor:pointer;
+    border:1px solid var(--blue-bright); color:var(--blue-bright); background-color:var(--blue-dim);
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  .mk-zip-btn svg{ width:15px; height:15px; }
+  .mk-zip-btn:disabled{ opacity:.5; cursor:default; }
+
+  .mk-sec{ margin-bottom:34px; }
+  .mk-sec-title{ font:600 11px/1 var(--mono); color:var(--text-faint); letter-spacing:.6px; text-transform:uppercase; margin-bottom:14px; }
+  .mk-sec-note{ color:var(--text-dim); font-size:12.5px; margin-top:10px; max-width:74ch; }
+
+  .mk-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .mk-card{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; overflow:hidden; display:flex; flex-direction:column; }
+  .mk-card-prev{ background-color:#fbfcff; padding:26px 14px; display:flex; align-items:center; justify-content:center; min-height:96px; }
+  .mk-card-prev.dark{ background-color:#0a0d12; border-bottom:1px solid var(--line); }
+  .mk-card-prev img{ max-width:100%; height:auto; display:block; }
+  .mk-card-body{ padding:12px 14px 14px; display:flex; flex-direction:column; gap:9px; }
+  .mk-card-name{ font-family:var(--display); font-weight:600; font-size:13.5px; }
+  .mk-card-use{ font-size:11.5px; color:var(--text-faint); line-height:1.4; min-height:30px; }
+  .mk-card-btns{ display:flex; gap:6px; flex-wrap:wrap; }
+  .mk-btn{
+    font:600 10.5px/1 var(--mono); border:1px solid var(--line); color:var(--text-dim); background:none;
+    border-radius:5px; padding:7px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+    text-decoration:none;
+  }
+  .mk-btn:hover{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .mk-btn svg{ width:11px; height:11px; }
+  .mk-btn.soon{ opacity:.45; cursor:default; }
+  .mk-btn.soon:hover{ border-color:var(--line); color:var(--text-dim); }
+
+  .mk-swatches{ display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:10px; }
+  .mk-sw{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .mk-sw-fill{ height:58px; }
+  .mk-sw-i{ padding:10px 12px; }
+  .mk-sw-name{ font-size:12.5px; font-weight:600; }
+  .mk-sw-hex{ font:500 11.5px var(--mono); color:var(--text-faint); margin-top:2px; display:flex; align-items:center; gap:6px; }
+  .mk-sw-hex button{ background:none; border:none; color:var(--text-faint); cursor:pointer; padding:2px; }
+  .mk-sw-hex button:hover{ color:var(--blue-bright); }
+  .mk-sw-hex button svg{ width:12px; height:12px; display:block; }
+  .mk-sw-use{ font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.4; }
+
+  .mk-tool-row{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .mk-tool-sw{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:14px 12px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; }
+  .mk-tool-sw img{ width:34px; height:34px; }
+  .mk-tool-sw .n{ font-size:12px; font-weight:600; }
+  .mk-tool-sw .hexes{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .mk-tool-sw code{ font:500 10px var(--mono); color:var(--text-faint); border:1px solid var(--line); border-radius:4px; padding:2px 5px; }
+
+  .mk-spec{ border:1px solid var(--line); background-color:var(--panel); border-radius:9px; padding:20px 22px; margin-bottom:12px; }
+  .mk-spec-tag{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .mk-spec-name{ font:600 11px var(--mono); color:var(--text-faint); letter-spacing:.4px; }
+  .mk-spec-use{ font-size:11.5px; color:var(--text-faint); }
+  .mk-spec-sample.display{ font-family:var(--display); font-weight:600; font-size:30px; }
+  .mk-spec-sample.body{ font-family:var(--body); font-size:14.5px; color:var(--text-dim); max-width:60ch; }
+  .mk-spec-sample.mono{ font-family:var(--mono); font-size:16px; color:var(--blue-bright); }
+  .mk-spec-dl{ margin-top:12px; }
+
+  .mk-tpl-card{ background-color:var(--panel); border:1px dashed var(--line); border-radius:9px; padding:30px 20px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+  .mk-tpl-card svg{ width:30px; height:30px; color:var(--text-faint); }
+  .mk-tpl-card b{ font-family:var(--display); font-size:13.5px; }
+  .mk-tpl-card span{ font-size:11.5px; color:var(--text-faint); }
+  .mk-tpl-badge{ font:600 9.5px var(--mono); color:var(--text-faint); border:1px solid var(--line); border-radius:8px; padding:3px 8px; margin-top:2px; }
+
+  .mk-hero{ position:relative; padding:34px 30px; border-radius:10px; border:1px solid var(--line); background-color:var(--panel); overflow:hidden; }
+  .mk-hero::before{
+    content:""; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:36px 36px; -webkit-mask-image:linear-gradient(120deg,transparent 25%,#000 100%); mask-image:linear-gradient(120deg,transparent 25%,#000 100%);
+  }
+  .mk-hero > *{ position:relative; }
+  .mk-hero h2{ font-family:var(--display); font-weight:700; font-size:clamp(22px,3.2vw,32px); letter-spacing:-.015em; line-height:1.15; max-width:16em; }
+  .mk-hero h2 em{ font-style:normal; color:var(--blue-bright); }
+  .mk-hero p{ margin-top:10px; font:500 12.5px var(--mono); letter-spacing:.02em; color:var(--text-dim); }
+
+  .mk-why-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .mk-why{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:16px 18px; display:flex; flex-direction:column; gap:6px; }
+  .mk-why .k{ font:600 10.5px/1 var(--mono); letter-spacing:.5px; text-transform:uppercase; color:var(--blue-bright); }
+  .mk-why p{ font-size:12.5px; color:var(--text-dim); line-height:1.5; }
+  .mk-why b{ color:var(--text); font-weight:600; }
+
+  .mk-glos{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .mk-glos-i{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:14px 16px; }
+  .mk-glos-i b{ display:block; font-family:var(--display); font-weight:600; font-size:14px; margin-bottom:4px; }
+  .mk-glos-i span{ font-size:11.5px; color:var(--text-faint); line-height:1.4; }
+
+  .mk-arch4{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .mk-arch-c{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .mk-arch-c .k{ font:600 10.5px/1 var(--mono); letter-spacing:.5px; text-transform:uppercase; color:var(--text-faint); }
+  .mk-arch-c .ex{ min-height:52px; display:flex; align-items:center; }
+  .mk-arch-c p{ font-size:12px; color:var(--text-dim); line-height:1.4; }
+  .mk-arch-c p b{ color:var(--text); }
+
+  .mk-firma-box{ display:grid; grid-template-columns:1fr 1.3fr; gap:16px; }
+  @media (max-width:760px){ .mk-firma-box{ grid-template-columns:1fr; } }
+  .mk-firma-rules{ display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .mk-rule-ok,.mk-rule-no{ display:flex; gap:8px; font-size:12.5px; color:var(--text-dim); line-height:1.4; }
+  .mk-rule-ok svg,.mk-rule-no svg{ width:15px; height:15px; flex:none; margin-top:1px; }
+  .mk-rule-ok svg{ color:var(--good); } .mk-rule-no svg{ color:var(--bad); }
+  .mk-rule-ok b,.mk-rule-no b{ color:var(--text); }
 </style>
 </head>
 <body>
@@ -1700,6 +1805,10 @@
       <button class="admin-nav-item" data-panel="pendientes">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg></span>
         Pendientes
+      </button>
+      <button class="admin-nav-item" data-panel="marca">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z"/></svg></span>
+        Marca
       </button>
       <button class="admin-nav-item" data-panel="modelo">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="7" height="5" rx="1"/><rect x="14" y="4" width="7" height="5" rx="1"/><rect x="8.5" y="15" width="7" height="5" rx="1"/><path d="M6.5 9v2a2 2 0 0 0 2 2h1M17.5 9v2a2 2 0 0 1-2 2h-1" stroke-linecap="round"/></svg></span>
@@ -3732,6 +3841,110 @@
         <div class="pend-grid" id="pendGrid"></div>
       </div>
 
+      <div class="admin-panel" id="panel-marca" style="--c:var(--blue-bright)">
+        <div id="mkToast" class="radm-toast" hidden></div>
+        <div class="mk-phead">
+          <div>
+            <h1>Marca</h1>
+            <p>Logos, colores, íconos y plantillas — listos para bajar y usar en cualquier documento o publicación.</p>
+          </div>
+          <button class="mk-zip-btn" id="mkZipBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>Descargar todo (.zip)</button>
+        </div>
+
+        <div class="dash-etabs" id="marcaTabs">
+          <button type="button" class="dash-etab active" data-marcatab="identidad">Identidad</button>
+          <button type="button" class="dash-etab" data-marcatab="logo">Logo</button>
+          <button type="button" class="dash-etab" data-marcatab="color">Color y tipografía</button>
+          <button type="button" class="dash-etab" data-marcatab="iconos">Íconos</button>
+          <button type="button" class="dash-etab" data-marcatab="plantillas">Plantillas</button>
+        </div>
+
+        <!-- ══ IDENTIDAD ══ -->
+        <div class="dash-tabpanel active" id="marcaTab-identidad">
+          <div class="mk-sec">
+            <div class="mk-hero">
+              <h2>Tu productividad tiene <em>fórmula</em>.</h2>
+              <p>Productividad con Datos · Automatización · IA</p>
+            </div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Por qué esta marca</div>
+            <div class="mk-why-grid" id="mkWhy"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Las palabras que la sostienen</div>
+            <div class="mk-glos" id="mkGlosario"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Arquitectura de marca — 4 piezas, cada una con su trabajo</div>
+            <div class="mk-arch4" id="mkArch"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Firma — submarca</div>
+            <div class="mk-firma-box" id="mkFirma"></div>
+          </div>
+        </div>
+
+        <!-- ══ LOGO ══ -->
+        <div class="dash-tabpanel" id="marcaTab-logo">
+          <div class="mk-sec">
+            <div class="mk-sec-title">Versión principal y compacta</div>
+            <div class="mk-grid" id="mkLogoA"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Con tooltip, literal y para diploma</div>
+            <div class="mk-grid" id="mkLogoB"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Ícono, favicon y avatar</div>
+            <div class="mk-grid" id="mkLogoC"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Animado — cursor de texto parpadeante</div>
+            <div class="mk-grid" id="mkLogoD"></div>
+            <p class="mk-sec-note">Para donde no hay CSS: firma de correo, Slack, redes. Formato GIF, 2 fotogramas en loop.</p>
+          </div>
+        </div>
+
+        <!-- ══ COLOR Y TIPOGRAFÍA ══ -->
+        <div class="dash-tabpanel" id="marcaTab-color">
+          <div class="mk-sec">
+            <div class="mk-sec-title">Marca</div>
+            <div class="mk-swatches" id="mkSwMarca"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Base</div>
+            <div class="mk-swatches" id="mkSwBase"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Por herramienta — puro (decorar) y tinta (texto sobre papel)</div>
+            <div class="mk-tool-row" id="mkSwTool"></div>
+          </div>
+          <div class="mk-sec">
+            <div class="mk-sec-title">Tipografía</div>
+            <div id="mkSpecs"></div>
+          </div>
+        </div>
+
+        <!-- ══ ÍCONOS ══ -->
+        <div class="dash-tabpanel" id="marcaTab-iconos">
+          <div class="mk-sec">
+            <div class="mk-sec-title">Las 6 herramientas</div>
+            <div class="mk-grid" id="mkIconos"></div>
+            <p class="mk-sec-note">Cada uno trae 3 archivos: uno que hereda el color (para tu CSS), uno con la tinta (papel claro) y uno con el color puro (fondo oscuro).</p>
+          </div>
+        </div>
+
+        <!-- ══ PLANTILLAS ══ -->
+        <div class="dash-tabpanel" id="marcaTab-plantillas">
+          <div class="mk-sec">
+            <div class="mk-sec-title">Documentos con la marca ya aplicada</div>
+            <div class="mk-grid" id="mkPlantillas"></div>
+            <p class="mk-sec-note">Se van agregando por lote. Lo que ya está listo se puede bajar; lo demás muestra "Próximamente" y no bloquea el resto del kit.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-panel" id="panel-modelo" style="--c:var(--blue-bright)">
         <div id="mdlToast" class="radm-toast" hidden></div>
 
@@ -3823,7 +4036,7 @@
     diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
     'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
-    modelo: 'Modelo', config: 'Configuración',
+    marca: 'Marca', modelo: 'Modelo', config: 'Configuración',
   };
 
   // activarPanel es la única puerta para cambiar de sección — la usan el
@@ -14566,6 +14779,209 @@
 
     // ── arranque ──
     requestAnimationFrame(() => { updateLines(); fitView(); });
+  })();
+
+  // ══ Marca (kit de marca) ══
+  (() => {
+    const BRAND = '../assets/img/brand/';
+    const FIRMA = '../assets/img/firma-ap.png';
+    const ICO_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v10m0 0 3.5-3.5M12 13l-3.5-3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/></svg>';
+    const ICO_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+    const ICO_NO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
+    function toast(msg, ok){
+      const el = document.getElementById('mkToast');
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    const dlBtn = (label, href) => '<a class="mk-btn" href="' + href + '" download>' + ICO_DL + label + '</a>';
+    const soonBtn = (label) => '<button type="button" class="mk-btn soon" disabled>' + ICO_DL + label + '</button>';
+
+    function card(prevClass, imgSrc, imgW, name, use, btns){
+      return '<div class="mk-card"><div class="mk-card-prev ' + prevClass + '"><img src="' + imgSrc + '" style="width:' + imgW + 'px" alt=""></div>' +
+        '<div class="mk-card-body"><div class="mk-card-name">' + name + '</div><div class="mk-card-use">' + use + '</div><div class="mk-card-btns">' + btns + '</div></div></div>';
+    }
+
+    // ── Identidad ──
+    document.getElementById('mkWhy').innerHTML = [
+      ['La fórmula', 'Excel, DAX y Power Fx son <b>lenguajes de fórmula</b> — tus 15 años caben en un solo signo: <b>=</b>. Por eso el logo no dibuja un ícono, escribe una función.'],
+      ['.ai, sin decirlo', 'El dominio ya dice <b>IA</b> — <b>alfredopina.ai</b> no necesita explicarse ni encasillarse en Excel.'],
+      ['El cuadro de autorrelleno', 'El cuadrito de la esquina es el que arrastras en Excel para <b>continuar la serie</b>. Es tu guiño a las posibilidades infinitas — el detalle que hace el logo tuyo y no de librería.'],
+      ['Resolver, no vender', 'La marca no promete "transformación digital" — promete <b>una fórmula para tu problema</b>. Directo, práctico, sin relleno: como tú.'],
+    ].map(w => '<div class="mk-why"><div class="k">' + w[0] + '</div><p>' + w[1] + '</p></div>').join('');
+
+    document.getElementById('mkGlosario').innerHTML = [
+      ['Fórmula', 'La marca entera: tu nombre escrito como una función.'],
+      ['Resolver', 'El tagline lo dice: no enseñas software, resuelves problemas.'],
+      ['Productividad', 'La palabra al frente — abre consultoría y capacitación por igual.'],
+      ['Datos', 'La materia prima de Excel y Power BI: medir antes de decidir.'],
+      ['Automatización', 'Power Automate y las fórmulas que dejan de hacerse a mano.'],
+      ['IA', 'Lo que ya está en tu dominio, sin ser la única herramienta.'],
+    ].map(g => '<div class="mk-glos-i"><b>' + g[0] + '</b><span>' + g[1] + '</span></div>').join('');
+
+    document.getElementById('mkArch').innerHTML =
+      '<div class="mk-arch-c"><span class="k">Nombre</span><div class="ex" style="font:600 22px var(--display)"><span>alfredopina<em style="font-style:normal;color:var(--blue-bright)">.ai</em></span></div><p><b>Cómo te encuentran.</b> Dominio, correo, usuario de redes.</p></div>' +
+      '<div class="mk-arch-c"><span class="k">Marca · logo</span><div class="ex"><img src="' + BRAND + 'logo-principal-oscuro.svg" style="width:150px" alt=""></div><p><b>Cómo te reconocen.</b> La barra de fórmula, en todos lados.</p></div>' +
+      '<div class="mk-arch-c"><span class="k">Firma · submarca</span><div class="ex"><img src="' + FIRMA + '" style="height:46px" alt=""></div><p><b>Cómo firmas.</b> Solo el pie del sitio, con "Created by". Nunca el logo.</p></div>' +
+      '<div class="mk-arch-c"><span class="k">Frase</span><div class="ex" style="font:600 16px/1.25 var(--display)">Tu productividad<br>tiene fórmula.</div><p><b>Qué prometes.</b> El tagline es suelto; el descriptor viaja con el logo.</p></div>';
+
+    document.getElementById('mkFirma').innerHTML =
+      card('dark', FIRMA, 200, 'Firma · Alfredo Piña', 'Sello de autoría, no logo. Va donde algo termina.', dlBtn('PNG', FIRMA)) +
+      '<div class="mk-firma-rules">' +
+        '<div class="mk-rule-ok">' + ICO_OK + '<span><b>Dónde:</b> pie del sitio, con el texto "Created by".</span></div>' +
+        '<div class="mk-rule-no">' + ICO_NO + '<span><b>Dónde no:</b> nunca en el encabezado ni en diplomas — ahí firma solo el instructor.</span></div>' +
+        '<div class="mk-rule-ok">' + ICO_OK + '<span><b>Cómo:</b> siempre con un texto que la acompañe. Sola parece adorno.</span></div>' +
+      '</div>';
+
+    // ── Logo ──
+    document.getElementById('mkLogoA').innerHTML =
+      card('', BRAND + 'logo-principal-claro.svg', 180, 'Principal · claro', 'Encabezado, portadas, documentos', dlBtn('SVG', BRAND + 'logo-principal-claro.svg') + dlBtn('PNG', BRAND + 'logo-principal-claro.png')) +
+      card('dark', BRAND + 'logo-principal-oscuro.svg', 180, 'Principal · oscuro', 'Sobre fondo oscuro', dlBtn('SVG', BRAND + 'logo-principal-oscuro.svg') + dlBtn('PNG', BRAND + 'logo-principal-oscuro.png')) +
+      card('', BRAND + 'logo-compacto-claro.svg', 130, 'Compacto · claro', 'Pie de página, firma de correo, cotización', dlBtn('SVG', BRAND + 'logo-compacto-claro.svg') + dlBtn('PNG', BRAND + 'logo-compacto-claro.png')) +
+      card('dark', BRAND + 'logo-compacto-oscuro.svg', 130, 'Compacto · oscuro', 'Sobre fondo oscuro', dlBtn('SVG', BRAND + 'logo-compacto-oscuro.svg') + dlBtn('PNG', BRAND + 'logo-compacto-oscuro.png'));
+
+    document.getElementById('mkLogoB').innerHTML =
+      card('', BRAND + 'logo-tooltip-claro.svg', 210, 'Con tooltip', 'Portadas grandes, redes, presentaciones', dlBtn('SVG', BRAND + 'logo-tooltip-claro.svg') + dlBtn('PNG', BRAND + 'logo-tooltip-claro.png')) +
+      card('', BRAND + 'logo-literal-claro.svg', 220, 'Literal (mayúsculas)', 'Materiales técnicos de Excel/DAX/Power Fx', dlBtn('SVG', BRAND + 'logo-literal-claro.svg') + dlBtn('PNG', BRAND + 'logo-literal-claro.png')) +
+      card('', BRAND + 'logo-diploma-claro.svg', 150, 'Para diploma', 'Compacto + "by LifeZenTraining"', dlBtn('SVG', BRAND + 'logo-diploma-claro.svg') + dlBtn('PNG', BRAND + 'logo-diploma-claro.png'));
+
+    document.getElementById('mkLogoC').innerHTML =
+      card('', BRAND + 'icono-claro.svg', 52, 'Ícono · claro', 'Sello, detalle chico', dlBtn('SVG', BRAND + 'icono-claro.svg') + dlBtn('PNG', BRAND + 'icono-claro.png')) +
+      card('dark', BRAND + 'icono-oscuro.svg', 52, 'Ícono · oscuro', 'Sobre fondo oscuro', dlBtn('SVG', BRAND + 'icono-oscuro.svg') + dlBtn('PNG', BRAND + 'icono-oscuro.png')) +
+      card('dark', BRAND + 'icono-app.svg', 64, 'Avatar / favicon', 'Fondo sólido — LinkedIn, favicon del sitio', dlBtn('SVG', BRAND + 'icono-app.svg') + dlBtn('PNG', BRAND + 'icono-app.png'));
+
+    document.getElementById('mkLogoD').innerHTML =
+      card('', BRAND + 'logo-principal-claro.gif', 180, 'Animado · claro', 'Firma de correo, Slack, redes', dlBtn('GIF', BRAND + 'logo-principal-claro.gif')) +
+      card('dark', BRAND + 'logo-principal-oscuro.gif', 180, 'Animado · oscuro', 'Sobre fondo oscuro', dlBtn('GIF', BRAND + 'logo-principal-oscuro.gif'));
+
+    // ── Color y tipografía ──
+    const swatch = (n, hex, use) => '<div class="mk-sw"><div class="mk-sw-fill" style="background-color:' + hex + '"></div><div class="mk-sw-i"><div class="mk-sw-name">' + n + '</div><div class="mk-sw-hex"><span>' + hex + '</span><button type="button" title="Copiar" data-hex="' + hex + '">' + ICO_COPY + '</button></div><div class="mk-sw-use">' + use + '</div></div></div>';
+
+    document.getElementById('mkSwMarca').innerHTML =
+      swatch('Azul de marca', '#3d7fff', 'Monograma, detalles grandes, fondos') +
+      swatch('Azul claro', '#6b9fff', 'Texto y detalles sobre fondo oscuro') +
+      swatch('Azul sobre papel', '#1f5fe0', 'Texto azul sobre fondo claro (diplomas, documentos)');
+
+    document.getElementById('mkSwBase').innerHTML =
+      swatch('Fondo oscuro', '#0a0d12', 'Sitio y admin') +
+      swatch('Papel', '#fbfcff', 'Diplomas y documentos') +
+      swatch('Tinta', '#0d1424', 'Texto principal sobre claro') +
+      swatch('Gris sobre claro', '#586277', 'Texto secundario en papel') +
+      swatch('Gris sobre oscuro', '#a4acb9', 'Texto secundario en el sitio');
+
+    const HERR = [
+      ['Excel', 'excel', '#22c55e', '#15803d'],
+      ['Power BI', 'powerbi', '#f2c94c', '#8a6a00'],
+      ['Power Apps', 'powerapps', '#c026d3', '#a21caf'],
+      ['Power Automate', 'powerautomate', '#06b6d4', '#0e7490'],
+      ['IA Aplicada', 'ia', '#a78bfa', '#6d3fd8'],
+      ['Ofimática', 'ofimatica', '#f97316', '#b8500a'],
+    ];
+    document.getElementById('mkSwTool').innerHTML = HERR.map(h =>
+      '<div class="mk-tool-sw"><img src="' + BRAND + 'iconos/' + h[1] + '-claro.svg" alt=""><div class="n">' + h[0] + '</div><div class="hexes"><code>' + h[2] + '</code><code>' + h[3] + '</code></div></div>'
+    ).join('');
+
+    document.getElementById('mkSpecs').innerHTML =
+      '<div class="mk-spec"><div class="mk-spec-tag"><span class="mk-spec-name">SPACE GROTESK · 500 y 600</span><span class="mk-spec-use">Display: nombre, titulares</span></div><div class="mk-spec-sample display">alfredopina.ai</div><div class="mk-spec-dl">' + soonBtn('Descargar familia (.zip)') + '</div></div>' +
+      '<div class="mk-spec"><div class="mk-spec-tag"><span class="mk-spec-name">INTER · 400, 500 y 600</span><span class="mk-spec-use">Cuerpo: párrafos, menús, tablas</span></div><div class="mk-spec-sample body">Tu productividad tiene fórmula. Texto corrido y datos en pantalla.</div><div class="mk-spec-dl">' + soonBtn('Descargar familia (.zip)') + '</div></div>' +
+      '<div class="mk-spec"><div class="mk-spec-tag"><span class="mk-spec-name">JETBRAINS MONO · 400 a 600</span><span class="mk-spec-use">Fórmula y datos: fx, folios, etiquetas</span></div><div class="mk-spec-sample mono">fx =alfredopina.ai()</div><div class="mk-spec-dl">' + soonBtn('Descargar familia (.zip)') + '</div></div>';
+
+    // ── Íconos ──
+    document.getElementById('mkIconos').innerHTML = HERR.map(h =>
+      card('', BRAND + 'iconos/' + h[1] + '-claro.svg', 46, h[0], 'Claro (tinta) · oscuro (puro) · currentColor',
+        dlBtn('SVG claro', BRAND + 'iconos/' + h[1] + '-claro.svg') +
+        dlBtn('SVG oscuro', BRAND + 'iconos/' + h[1] + '-oscuro.svg') +
+        dlBtn('PNG', BRAND + 'iconos/' + h[1] + '-claro.png'))
+    ).join('');
+
+    // ── Plantillas ──
+    const tplIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg>';
+    function tpl(nombre, formato, soon){
+      return '<div class="mk-tpl-card">' + tplIco + '<b>' + nombre + '</b><span>' + formato + '</span><span class="mk-tpl-badge">' + (soon ? 'Próximamente' : 'Listo') + '</span></div>';
+    }
+    function tplAuto(nombre, nota, listo){
+      const badge = listo
+        ? '<span class="mk-tpl-badge" style="color:var(--good); border-color:var(--good)">Diseño listo</span>'
+        : '<span class="mk-tpl-badge">Por diseñar</span>';
+      return '<div class="mk-tpl-card">' + tplIco + '<b>' + nombre + '</b><span>' + nota + '</span>' + badge + '</div>';
+    }
+    document.getElementById('mkPlantillas').innerHTML =
+      tplAuto('Diploma', 'Diseño aprobado — se genera dentro del módulo Diplomas, no aquí', true) +
+      tplAuto('Cotización', 'Se genera dentro del módulo Cotizaciones, no aquí', false) +
+      tpl('Presentación de curso', 'PowerPoint · .potx', true) +
+      tpl('Caso práctico', 'Excel · .xltx', true) +
+      tpl('Firma de correo', 'HTML / imagen', true);
+
+    // ── pestañas ──
+    document.getElementById('marcaTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.dash-etab');
+      if (!btn) return;
+      const key = btn.dataset.marcatab;
+      document.querySelectorAll('#marcaTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#panel-marca .dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'marcaTab-' + key));
+    });
+
+    // ── copiar hex ──
+    document.getElementById('panel-marca').addEventListener('click', async e => {
+      const btn = e.target.closest('.mk-sw-hex button');
+      if (!btn) return;
+      try {
+        await navigator.clipboard.writeText(btn.dataset.hex);
+        toast('Copiado: ' + btn.dataset.hex, true);
+      } catch (err) {
+        toast('No se pudo copiar el color.', false);
+      }
+    });
+
+    // ── descargar todo (.zip) ──
+    document.getElementById('mkZipBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('mkZipBtn');
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = ICO_DL + 'Armando .zip…';
+      try {
+        const archivos = [
+          'logo-principal-claro.svg', 'logo-principal-claro.png', 'logo-principal-oscuro.svg', 'logo-principal-oscuro.png',
+          'logo-principal-claro.gif', 'logo-principal-oscuro.gif',
+          'logo-compacto-claro.svg', 'logo-compacto-claro.png', 'logo-compacto-oscuro.svg', 'logo-compacto-oscuro.png',
+          'logo-tooltip-claro.svg', 'logo-tooltip-claro.png', 'logo-tooltip-oscuro.svg', 'logo-tooltip-oscuro.png',
+          'logo-literal-claro.svg', 'logo-literal-claro.png', 'logo-literal-oscuro.svg', 'logo-literal-oscuro.png',
+          'logo-diploma-claro.svg', 'logo-diploma-claro.png',
+          'icono-claro.svg', 'icono-claro.png', 'icono-oscuro.svg', 'icono-oscuro.png',
+          'icono-app.svg', 'icono-app.png', 'favicon.svg', 'favicon.png',
+        ];
+        HERR.forEach(h => {
+          archivos.push('iconos/' + h[1] + '.svg', 'iconos/' + h[1] + '-claro.svg', 'iconos/' + h[1] + '-claro.png', 'iconos/' + h[1] + '-oscuro.svg', 'iconos/' + h[1] + '-oscuro.png');
+        });
+
+        const zip = new JSZip();
+        for (const ruta of archivos) {
+          const resp = await fetch(BRAND + ruta);
+          if (!resp.ok) continue;
+          zip.file(ruta, await resp.blob());
+        }
+        const respFirma = await fetch(FIRMA);
+        if (respFirma.ok) zip.file('firma-ap.png', await respFirma.blob());
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'marca-alfredopina-ai.zip';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        toast('Descarga lista: marca-alfredopina-ai.zip', true);
+      } catch (err) {
+        toast('No se pudo armar el .zip: ' + err.message, false);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    });
   })();
 </script>
 

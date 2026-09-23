@@ -17,6 +17,13 @@
 // cachea este archivo agresivamente y un cambio aquí no se ve reflejado sin
 // eso (ya pasó una vez: un fix de color no llegaba a producción). Sube el
 // número ?v= en AMBOS <script> cada vez que edites este archivo.
+//
+// El color de acento (barra lateral, texto del curso) se fija con un color
+// literal en el style inline de cada elemento, NUNCA con una custom property
+// CSS (var(--algo)) — html2canvas no siempre resuelve bien las custom
+// properties puestas por style inline y el color sale mal SOLO al exportar
+// a PDF/JPG (en pantalla, con CSS nativo, se veía perfecto — por eso costó
+// encontrarlo). Si necesitas un color dinámico nuevo aquí, ponlo literal.
 (function (global) {
   const TOOLS = {
     excel: { n: "Excel", acc: "#22c55e", deep: "#16a34a", tinta: "#15803d" },
@@ -74,7 +81,7 @@
   }
   function barraHtml(herramientas) {
     const segs = herramientas.length > 1 ? herramientas : [herramientas[0]];
-    return `<div class="m-band">${segs.map((k) => { const t = TOOLS[k] || TOOLS.excel; return `<div class="seg" style="--acc:${t.acc}"></div>`; }).join("")}</div>`;
+    return `<div class="m-band">${segs.map((k) => { const t = TOOLS[k] || TOOLS.excel; return `<div class="seg" style="background-color:${t.acc}"></div>`; }).join("")}</div>`;
   }
 
   function render(datos) {
@@ -84,7 +91,7 @@
       ? `<img src="${esc(datos.firmaUrl)}" alt="" style="display:block; width:calc(var(--u)*160); height:auto; max-height:calc(var(--u)*70); object-fit:contain; object-position:left bottom; margin-bottom:calc(var(--u)*4)">`
       : "";
     const principal = TOOLS[herramientas[0]] || TOOLS.excel;
-    return `<div class="sheet" style="--acc-ink:${principal.tinta}">
+    return `<div class="sheet">
       <div class="m-grid"></div>${barraHtml(herramientas)}
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*58)"><img src="/assets/img/brand/logo-diploma-claro.svg" alt="alfredopina.ai" style="display:block;width:calc(var(--u)*245);height:auto"></div>
       <div class="abs" style="right:calc(var(--u)*80);top:calc(var(--u)*66);text-align:right"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div></div>
@@ -93,7 +100,7 @@
         <div class="name fit" style="margin-top:calc(var(--u)*14)">${esc(datos.nombre)}</div>
         <div class="a-rule" style="margin-top:calc(var(--u)*22)"></div>
         <div class="lead" style="margin-top:calc(var(--u)*28)">${lead}</div>
-        <div class="curso fit" style="margin-top:calc(var(--u)*12)">${esc(datos.curso)}</div>
+        <div class="curso fit" style="margin-top:calc(var(--u)*12);color:${principal.tinta}">${esc(datos.curso)}</div>
         <div class="meta" style="margin-top:calc(var(--u)*26)"><span>Nivel ${esc(datos.nivel)}</span><i></i><span>${esc(fechasLarga(datos.fechaInicio, datos.fechaFin))}</span><i></i><span>${esc(datos.horas || "")} horas</span></div>
       </div>
       <div class="abs" style="left:calc(var(--u)*96);bottom:calc(var(--u)*70)"><div class="sign">${firma}<div class="ln"></div><div class="sn">${esc(datos.instructor)}</div><div class="sr">Instructor</div></div></div>
@@ -198,14 +205,14 @@
   .dip-tpl-frame .abs{ position:absolute }
   .dip-tpl-frame .m-grid{ position:absolute; inset:0; background-image:linear-gradient(rgba(13,20,36,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(13,20,36,.055) 1px,transparent 1px); background-size:calc(var(--u)*50) calc(var(--u)*50); -webkit-mask-image:linear-gradient(135deg,#000 5%,transparent 68%); mask-image:linear-gradient(135deg,#000 5%,transparent 68%) }
   .dip-tpl-frame .m-band{ position:absolute; left:0; top:0; bottom:0; width:calc(var(--u)*34); display:flex; flex-direction:column; box-shadow:calc(var(--u)*4) 0 calc(var(--u)*12) rgba(13,20,36,.22) }
-  .dip-tpl-frame .m-band .seg{ flex:1; background-color:var(--acc) }
+  .dip-tpl-frame .m-band .seg{ flex:1 }
   .dip-tpl-frame .m-band .seg + .seg{ box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.6) }
   .dip-tpl-frame .m-band::after{ content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset calc(var(--u)*2) 0 0 rgba(255,255,255,.42), inset calc(var(--u)*-2) 0 0 rgba(0,0,0,.14) }
   .dip-tpl-frame .eyebrow{ font-size:calc(var(--u)*14); line-height:1.2; letter-spacing:.24em; text-transform:uppercase; color:var(--dmuted); font-weight:500 }
   .dip-tpl-frame .name{ font-family:'Space Grotesk',Inter,sans-serif; font-weight:600; font-size:calc(calc(var(--u)*68)*var(--fit,1)); line-height:1.1; letter-spacing:-.02em; white-space:nowrap; color:var(--dink) }
   .dip-tpl-frame .lead{ font-size:calc(var(--u)*22); line-height:1.3; color:var(--dmuted) }
   .dip-tpl-frame .lead b{ font-weight:600; color:var(--dink) }
-  .dip-tpl-frame .curso{ font-family:'Space Grotesk',Inter,sans-serif; font-weight:600; font-size:calc(calc(var(--u)*46)*var(--fit,1)); line-height:1.15; letter-spacing:-.015em; white-space:nowrap; color:var(--acc-ink,var(--dink)) }
+  .dip-tpl-frame .curso{ font-family:'Space Grotesk',Inter,sans-serif; font-weight:600; font-size:calc(calc(var(--u)*46)*var(--fit,1)); line-height:1.15; letter-spacing:-.015em; white-space:nowrap; color:var(--dink) }
   .dip-tpl-frame .meta{ display:flex; align-items:center; gap:calc(var(--u)*16); font-family:'JetBrains Mono',ui-monospace,monospace; font-size:calc(var(--u)*15); color:var(--dmuted); white-space:nowrap }
   .dip-tpl-frame .meta i{ display:block; width:calc(var(--u)*5); height:calc(var(--u)*5); border-radius:50%; background:var(--dline) }
   .dip-tpl-frame .folio-l{ font-size:calc(var(--u)*11); letter-spacing:.22em; text-transform:uppercase; color:var(--dfaint); font-weight:500 }

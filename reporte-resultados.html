@@ -129,7 +129,9 @@
   .rank-pos{ font-family:var(--mono); font-size:11px; color:var(--text-faint); width:16px; }
   .rank-txt{ flex:1; font-size:12.5px; line-height:1.4; }
   .rank-cat{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .rank-prom-wrap{ display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
   .rank-prom{ font-family:var(--mono); font-weight:700; font-size:14px; }
+  .rank-extra{ font-family:var(--mono); font-weight:500; font-size:9.5px; color:var(--text-faint); }
   .rank-ok{ display:flex; align-items:center; gap:10px; font-size:13px; line-height:1.5; color:var(--text-dim); }
   .rank-ok svg{ width:18px; height:18px; color:var(--teal); flex:none; }
 
@@ -162,7 +164,9 @@
   .rep-ind-right{ flex:1; min-width:0; display:flex; flex-direction:column; gap:16px; }
   .rep-profile-head{ padding:20px 22px; display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
   .rep-profile-name{ font-family:var(--display); font-weight:700; font-size:19px; max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .rep-profile-meta{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .rep-profile-meta{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:3px; }
+  .rep-profile-meta li{ font-family:var(--mono); font-size:11px; color:var(--text-dim); padding-left:13px; position:relative; }
+  .rep-profile-meta li::before{ content:'•'; position:absolute; left:0; color:var(--text-faint); }
   .rep-profile-gauge-col{ display:flex; flex-direction:column; align-items:center; gap:6px; }
   .rep-gauge-wrap{ position:relative; width:170px; height:100px; flex:none; }
   .rep-profile-notas{ padding:16px 20px; font-size:12.5px; line-height:1.6; color:var(--text-dim); white-space:pre-wrap; }
@@ -202,16 +206,25 @@
     .rep-actions{ margin-left:0; }
   }
 
+  /* Área de impresión de perfiles (una boleta o todas juntas) — oculta en
+     pantalla siempre; en impresión reemplaza TODO #repApp (ver abajo). Cada
+     persona en su propia página (page-break), reutiliza .card/.rep-* tal
+     cual se ven en pantalla — nunca se rehace un diseño aparte. */
+  #repPrintTodos{ display:none; }
+  .rep-print-page{ padding:24px 0; }
+
   @media print{
     body{ background:#fff; color:#0d1424; }
     .rep-tabsrow, .rep-actions, .info-panel, .abtn{ display:none !important; }
     .card{ border-color:#ccc; background:#fafafa; }
     .rep-ind-right{ width:100%; }
     /* "Imprimir reporte" (General) no necesita ninguna clase especial: se
-       imprime lo que ya está visible. "Imprimir boleta individual" oculta
-       además la búsqueda/lista para dejar solo la tarjeta de esa persona. */
-    body.imprimir-uno-alumno .rep-ind-left,
-    body.imprimir-uno-alumno .rep-download{ display:none !important; }
+       imprime lo que ya está visible, tal cual. Imprimir una boleta o todas
+       juntas oculta #repApp entero y muestra solo #repPrintTodos. */
+    body.rep-imprimiendo #repApp{ display:none !important; }
+    body.rep-imprimiendo #repPrintTodos{ display:block !important; }
+    .rep-print-page{ page-break-after:always; }
+    .rep-print-page:last-child{ page-break-after:auto; }
   }
 </style>
 </head>
@@ -245,6 +258,9 @@
         <button type="button" class="abtn" id="repImprimirGeneral">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Imprimir reporte
         </button>
+        <button type="button" class="abtn" id="repImprimirTodos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="16.5" r="1"/><circle cx="12" cy="16.5" r="1"/></svg>Imprimir individuales
+        </button>
         <button type="button" class="abtn" id="repInfoBtn" aria-expanded="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1" stroke-linecap="round" stroke-linejoin="round"/></svg>Cómo se calcula
         </button>
@@ -267,8 +283,6 @@
 
   <main><div class="wrap">
     <section class="rep-view" id="repViewGeneral">
-      <div class="kpi-grid" id="repKpis"></div>
-
       <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="M12 9v3l2 1" stroke-linecap="round" stroke-linejoin="round"/></svg>Promedios del grupo <small>calificación y asistencia</small></div>
       <div class="card gauge-duo" id="repGaugesCard"></div>
 
@@ -329,6 +343,11 @@
   </div></footer>
 </div>
 
+<!-- Área de impresión (boleta individual o todas juntas) — se llena al
+     imprimir y se vacía después; #repApp se oculta por completo mientras
+     esta área está activa (ver @media print → body.rep-imprimiendo). -->
+<div id="repPrintTodos"></div>
+
 <script>
 (function(){
   const TOOL_NOMBRE = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
@@ -373,9 +392,17 @@
     const w = big ? 230 : 170, h = big ? 132 : 100, fontSize = big ? 28 : 24, stroke = big ? 16 : 14;
     let marcador = '';
     if(bench != null){
+      // la marca va perpendicular a la tangente del arco en ese punto, es
+      // decir a lo largo del radio (ux,uy) — un trazo "siempre vertical" solo
+      // queda bien arriba del todo (p=50); en cualquier otro punto se ve
+      // flotando sin relación con la curva (bug reportado por Alfredo)
       const theta = (180 - 1.8 * Math.min(bench, 100)) * Math.PI / 180;
-      const mx = 90 + 70 * Math.cos(theta), my = 90 - 70 * Math.sin(theta);
-      marcador = `<line x1="${mx}" y1="${(my - 9).toFixed(1)}" x2="${mx}" y2="${(my + 9).toFixed(1)}" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round"></line>`;
+      const ux = Math.cos(theta), uy = -Math.sin(theta);
+      const mx = 90 + 70 * ux, my = 90 + 70 * uy;
+      const dr = 9;
+      const x1 = (mx - dr * ux).toFixed(1), y1 = (my - dr * uy).toFixed(1);
+      const x2 = (mx + dr * ux).toFixed(1), y2 = (my + dr * uy).toFixed(1);
+      marcador = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round"></line>`;
     }
     const texto = p == null ? '—' : (suffix ? Math.round(p) + suffix : fmtCalif(p));
     return `<svg viewBox="0 0 180 100" width="${w}" height="${h}">
@@ -400,17 +427,20 @@
     if(s.etiqueta){ const e = document.getElementById('repEtiqueta'); e.textContent = s.etiqueta; e.hidden = false; }
 
     const f = s.filtros || {};
-    const chips = [];
+    // datos iniciales (alumnos/grupos): etiquetas simples aquí, no scorecards
+    // aparte — pedido de Alfredo para no duplicar lo mismo dos veces
+    const chips = [
+      `<span class="chip">${SVG.users}${s.n} ${s.n === 1 ? 'alumno' : 'alumnos'}</span>`,
+      `<span class="chip">${SVG.grp}${s.nGrupos} ${s.nGrupos === 1 ? 'grupo' : 'grupos'}</span>`,
+    ];
     if(f.empresa) chips.push(`<span class="chip">Empresa: <b>${esc(f.empresa)}</b></span>`);
     if(f.instructor) chips.push(`<span class="chip">${SVG.person}Instructor: <b>${esc(f.instructor)}</b></span>`);
     if(f.herramienta) chips.push(`<span class="chip">Herramienta: <b>${esc(TOOL_NOMBRE[f.herramienta] || f.herramienta)}</b></span>`);
     if(f.curso) chips.push(`<span class="chip">Curso: <b>${esc(f.curso)}</b></span>`);
     if(f.desde || f.hasta) chips.push(`<span class="chip">${SVG.cal}<b>${f.desde ? fmtDia(f.desde) : '…'} – ${f.hasta ? fmtDia(f.hasta) : '…'}</b></span>`);
     else if(s.rango && s.rango.desde) chips.push(`<span class="chip">${SVG.cal}Del <b>${fmtDia(s.rango.desde)}</b> al <b>${fmtDia(s.rango.hasta)}</b></span>`);
-    if(!Object.keys(f).length) chips.push(`<span class="chip">${s.nGrupos === 1 ? '1 grupo' : s.nGrupos + ' grupos'}</span>`);
     document.getElementById('repFiltros').innerHTML = chips.join('');
 
-    renderKpis(s);
     renderGauges(s);
     renderDonuts(s);
     renderStack(s);
@@ -421,14 +451,6 @@
 
     document.getElementById('repLoading').hidden = true;
     document.getElementById('repApp').hidden = false;
-  }
-
-  function renderKpis(s){
-    const kpis = [
-      ['users', 'Alumnos', s.n, '<small>' + (s.n === 1 ? 'persona' : 'personas') + '</small>', ''],
-      ['grp', 'Grupos', s.nGrupos, '<small>' + (s.nGrupos === 1 ? 'grupo' : 'grupos') + '</small>', 'incluidos en este reporte'],
-    ];
-    document.getElementById('repKpis').innerHTML = kpis.map(k => `<div class="card kpi" title="${escAttr(k[4])}"><span class="kpi-accent"></span><div class="kpi-head">${SVG[k[0]]}<span class="lbl">${k[1]}</span></div><div class="kpi-val">${k[2]}${k[3]}</div><div class="kpi-sub">${k[4]}</div></div>`).join('');
   }
 
   // resaltados: calificación y asistencia promedio, cada una en su propio
@@ -489,8 +511,10 @@
   // los puntos extra van visibles aquí: sin esto, varios "100+" se ven
   // idénticos y no se distingue quién sacó más puntos
   function itemRank(p, i){
-    const extra = p.excede100 && p.puntos ? `<span class="rank-cat" style="color:var(--teal)">+${r1(p.calificacion - 100)} pts extra</span>` : '';
-    return `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(p.nombre)}<span class="rank-cat">${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</span>${extra}</span><span class="rank-prom num ${p.semaforo}">${p.excede100 ? '100+' : fmtCalif(p.calificacion)}</span></div>`;
+    // los puntos extra van debajo del "100+", sutiles y en gris — no junto
+    // al nombre: así se distingue quién sacó más sin competir con el número
+    const extra = p.excede100 && p.puntos ? `<span class="rank-extra">+${r1(p.calificacion - 100)} pts</span>` : '';
+    return `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(p.nombre)}<span class="rank-cat">${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</span></span><span class="rank-prom-wrap"><span class="rank-prom num ${p.semaforo}">${p.excede100 ? '100+' : fmtCalif(p.calificacion)}</span>${extra}</span></div>`;
   }
   function renderRank(s){
     const mejores = `<div class="card rank"><div class="rank-title">${SVG.up}Los mejor calificados</div>${(s.mejores || []).map(itemRank).join('') || '<div class="rank-ok">Sin datos suficientes.</div>'}</div>`;
@@ -564,17 +588,21 @@
       </div>
     </div>`;
   }
-  function renderPerfilAlumno(){
-    const p = REPORTE.participantes.find(x => x.id === alumnoActivoId);
-    const right = document.getElementById('repIndRight');
-    if(!p){ right.innerHTML = '<div class="rep-empty">Elige a alguien de la lista.</div>'; return; }
+  // HTML del perfil de un alumno — un solo generador para la vista en
+  // pantalla Y para impresión (una boleta o todas juntas), así nunca se
+  // desincronizan dos versiones del mismo diseño. `paraImprimir` quita el
+  // botón de imprimir (no tiene caso dentro de la hoja ya impresa).
+  function perfilAlumnoHtml(p, paraImprimir){
     const grupoDeP = (REPORTE.porGrupo || []).find(g => g.grupoId === p.grupoId);
     const bench = grupoDeP ? grupoDeP.promCalificacion : null;
-    right.innerHTML = `
+    // correo/empresa/curso cada uno en su propia línea con viñeta — antes
+    // iban en una sola línea separados por "·", pedido de Alfredo
+    const metaItems = [p.correo || 'Sin correo', p.empresa, p.curso].filter(Boolean);
+    return `
       <div class="card rep-profile-head">
         <div style="flex:1; min-width:200px;">
           <div class="rep-profile-name" title="${escAttr(p.nombre)}">${esc(p.nombre)}</div>
-          <div class="rep-profile-meta">${esc(p.correo || 'Sin correo')} · ${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</div>
+          <ul class="rep-profile-meta">${metaItems.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
         </div>
         <div class="rep-profile-gauge-col">
           <div class="rep-gauge-wrap" title="Calificación: 80% Proyecto + 20% Asistencia + Puntos${bench != null ? ` · la línea marca la media del grupo (${fmtCalif(bench)})` : ''}">${gaugeSvg({ p: p.calificacionTopada, color: SEM_COLOR[p.semaforo], bench })}</div>
@@ -585,7 +613,13 @@
       </div>
       ${statLinesHtml(p)}
       ${p.notas ? `<div class="card rep-profile-notas"><span class="lbl">Notas</span><br>${esc(p.notas)}</div>` : ''}
-      <button type="button" class="rep-download" data-imprimir-alumno="${p.id}">${SVG.print}Imprimir boleta individual</button>`;
+      ${paraImprimir ? '' : `<button type="button" class="rep-download" data-imprimir-alumno="${p.id}">${SVG.print}Imprimir boleta individual</button>`}`;
+  }
+  function renderPerfilAlumno(){
+    const p = REPORTE.participantes.find(x => x.id === alumnoActivoId);
+    const right = document.getElementById('repIndRight');
+    if(!p){ right.innerHTML = '<div class="rep-empty">Elige a alguien de la lista.</div>'; return; }
+    right.innerHTML = perfilAlumnoHtml(p, false);
   }
 
   // ── pestañas ──
@@ -610,18 +644,28 @@
     const item = e.target.closest('.rep-persona-item');
     if(item){ alumnoActivoId = Number(item.dataset.id); pintarListasAlumnos(); renderPerfilAlumno(); return; }
     const btnImp = e.target.closest('[data-imprimir-alumno]');
-    if(btnImp) imprimirAlumno();
+    if(btnImp){
+      const p = REPORTE.participantes.find(x => x.id === alumnoActivoId);
+      if(p) imprimirPerfiles([p]);
+    }
   });
-  // Imprimir boleta individual: se apoya en @media print (arriba) para
-  // mostrar SOLO la tarjeta del alumno activo — más simple que armar un DOM
-  // de impresión aparte (como hace reporte-diagnostico.html), suficiente
-  // para una boleta de una persona. "Imprimir reporte" (General) no toca
-  // esta clase — imprime tal cual lo que ya está visible.
-  function imprimirAlumno(){
-    document.body.classList.add('imprimir-uno-alumno');
+  // Imprimir una boleta o todas juntas (como reporte-diagnostico.html): arma
+  // las páginas en #repPrintTodos, oculta #repApp entero mientras se
+  // imprime y limpia al terminar — un alumno por página (page-break-after,
+  // ver CSS). "Imprimir reporte" (General) es aparte y no pasa por aquí:
+  // imprime tal cual lo que ya está visible, sin armar nada extra.
+  function imprimirPerfiles(lista){
+    document.getElementById('repPrintTodos').innerHTML = lista.map(p => `<div class="rep-print-page">${perfilAlumnoHtml(p, true)}</div>`).join('');
+    document.body.classList.add('rep-imprimiendo');
     window.print();
-    setTimeout(() => document.body.classList.remove('imprimir-uno-alumno'), 300);
   }
+  window.addEventListener('afterprint', () => {
+    document.body.classList.remove('rep-imprimiendo');
+    document.getElementById('repPrintTodos').innerHTML = '';
+  });
+  document.getElementById('repImprimirTodos').addEventListener('click', () => {
+    if(REPORTE && REPORTE.participantes.length) imprimirPerfiles(REPORTE.participantes);
+  });
 
   async function cargar(){
     const token = new URLSearchParams(location.search).get('token');

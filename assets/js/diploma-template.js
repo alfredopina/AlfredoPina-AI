@@ -11,6 +11,12 @@
 // §7): logo compacto "by LifeZenTraining", barra lateral con relieve partida
 // en tramos (uno por herramienta), sello de íconos sin borde que crece en L
 // invertida hasta 3 herramientas, sin firma de marca, sin REG. STPS.
+//
+// IMPORTANTE: los <script src="...diploma-template.js?v=N"> (admin/index.html
+// y diplomas-grupo.html) llevan un query de versión a propósito — Azure SWA
+// cachea este archivo agresivamente y un cambio aquí no se ve reflejado sin
+// eso (ya pasó una vez: un fix de color no llegaba a producción). Sube el
+// número ?v= en AMBOS <script> cada vez que edites este archivo.
 (function (global) {
   const TOOLS = {
     excel: { n: "Excel", acc: "#22c55e", deep: "#16a34a", tinta: "#15803d" },

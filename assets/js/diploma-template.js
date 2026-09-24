@@ -94,7 +94,7 @@
     return `<div class="sheet">
       <div class="m-grid"></div>${barraHtml(herramientas)}
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*58)"><img src="/assets/img/brand/logo-diploma-claro.svg" alt="alfredopina.ai" style="display:block;width:calc(var(--u)*245);height:auto"></div>
-      <div class="abs" style="right:calc(var(--u)*80);top:calc(var(--u)*66);text-align:right"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div></div>
+      <div class="abs" style="right:calc(var(--u)*80);top:calc(var(--u)*60);text-align:right"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div></div>
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*214);width:calc(var(--u)*900)">
         <div class="eyebrow">Otorga el presente diploma a</div>
         <div class="name fit" style="margin-top:calc(var(--u)*14)">${esc(datos.nombre)}</div>

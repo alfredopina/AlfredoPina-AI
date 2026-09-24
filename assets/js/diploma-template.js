@@ -6,6 +6,9 @@
 // grupo — ambos cargan este mismo archivo para no mantener el diseño dos
 // veces. Requiere que la página que lo usa ya haya cargado html2canvas,
 // jsPDF y (solo si va a ofrecer "Descargar todos") JSZip por <script> aparte.
+// El QR de verificación se dibuja con assets/js/qrcode.js (opcional: si esa
+// librería no está cargada, o el diploma no trae codigoVerif, simplemente no
+// se pone QR).
 //
 // Diseño cerrado 2026-09-21 (ver CLAUDE.md → Identidad v2 / MANUAL_IDENTIDAD.md
 // §7): logo compacto "by LifeZenTraining", barra lateral con relieve partida
@@ -66,7 +69,49 @@
 
   // datos: { nombre, correo, cliente, clienteVia, curso, nivel, herramientas:[...],
   //          resultado:'Aprobado'|'Participó', fechaInicio, fechaFin, horas,
-  //          instructor, folio, firmaUrl }
+  //          instructor, folio, codigoVerif, firmaUrl }
+  // QR de verificación dibujado a mano desde la matriz de qrcode.js: módulos
+  // redondeados y "ojos" propios en tinta de marca, con una marca de
+  // verificado al centro. Solo rectángulos con color literal (nada de
+  // degradados ni custom properties, ver nota arriba: html2canvas). Corrección
+  // de errores H (30 %) para que el centro no estorbe al escanear.
+  const URL_VERIFICAR = "https://www.alfredopina.ai/verificar/";
+  function qrSvg(codigo) {
+    if (!codigo || typeof global.qrcode !== "function") return "";
+    const qr = global.qrcode(0, "H");
+    qr.addData(URL_VERIFICAR + codigo);
+    qr.make();
+    const n = qr.getModuleCount();
+    const tinta = "#0d1424";
+    const papel = "#fbfcff";
+    const centro = Math.floor(n * 0.22);
+    const c0 = Math.floor((n - centro) / 2);
+    const enOjo = (r, c) => (r < 7 && c < 7) || (r < 7 && c >= n - 7) || (r >= n - 7 && c < 7);
+    const enCentro = (r, c) => r >= c0 - 1 && r <= c0 + centro && c >= c0 - 1 && c <= c0 + centro;
+    let mod = "";
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (!qr.isDark(r, c) || enOjo(r, c) || enCentro(r, c)) continue;
+        mod += `<rect x="${c + 0.06}" y="${r + 0.06}" width="0.88" height="0.88" rx="0.15" fill="${tinta}"/>`;
+      }
+    }
+    const ojo = (x, y) =>
+      `<rect x="${x + 0.5}" y="${y + 0.5}" width="6" height="6" rx="1.7" fill="none" stroke="${tinta}" stroke-width="1"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" rx="0.9" fill="${tinta}"/>`;
+    const cx = c0 - 1, cs = centro + 2;
+    const marca =
+      `<rect x="${cx}" y="${cx}" width="${cs}" height="${cs}" rx="${cs * 0.28}" fill="${tinta}"/>` +
+      `<path d="M${cx + cs * 0.27} ${cx + cs * 0.52} L${cx + cs * 0.45} ${cx + cs * 0.7} L${cx + cs * 0.75} ${cx + cs * 0.32}" fill="none" stroke="${papel}" stroke-width="${cs * 0.11}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    return `<svg viewBox="-1 -1 ${n + 2} ${n + 2}" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100%"><rect x="-1" y="-1" width="${n + 2}" height="${n + 2}" fill="${papel}"/>${mod}${ojo(0, 0)}${ojo(n - 7, 0)}${ojo(0, n - 7)}${marca}</svg>`;
+  }
+  function verificarHtml(codigo) {
+    const svg = qrSvg(codigo);
+    if (!svg) return "";
+    return `<div class="abs vq" style="left:calc(var(--u)*430);bottom:calc(var(--u)*70)">
+        <div class="vq-box">${svg}</div>
+        <div class="vq-txt"><div class="vq-t">Validar diploma</div><div class="vq-d">Escanea el código o entra a</div><div class="vq-u">alfredopina.ai/verificar</div></div>
+      </div>`;
+  }
+
   function sellosHtml(herramientas) {
     const n = herramientas.length;
     const items = herramientas
@@ -104,6 +149,7 @@
         <div class="meta" style="margin-top:calc(var(--u)*26)"><span>Nivel ${esc(datos.nivel)}</span><i></i><span>${esc(fechasLarga(datos.fechaInicio, datos.fechaFin))}</span><i></i><span>${esc(datos.horas || "")} horas</span></div>
       </div>
       <div class="abs" style="left:calc(var(--u)*96);bottom:calc(var(--u)*70)"><div class="sign">${firma}<div class="ln"></div><div class="sn">${esc(datos.instructor)}</div><div class="sr">Instructor</div></div></div>
+      ${verificarHtml(datos.codigoVerif)}
       ${sellosHtml(herramientas)}
     </div>`;
   }
@@ -227,6 +273,12 @@
   .dip-tpl-frame .sign .ln{ height:calc(var(--u)*1.5); background:var(--dink); opacity:.55 }
   .dip-tpl-frame .sign .sn{ font-size:calc(var(--u)*17); font-weight:600; margin-top:calc(var(--u)*9) }
   .dip-tpl-frame .sign .sr{ font-size:calc(var(--u)*13); color:var(--dmuted); margin-top:calc(var(--u)*2) }
+  .dip-tpl-frame .vq{ display:flex; align-items:flex-end; gap:calc(var(--u)*16) }
+  .dip-tpl-frame .vq-box{ width:calc(var(--u)*120); height:calc(var(--u)*120); flex:none; border:calc(var(--u)*1.5) solid var(--dline); border-radius:calc(var(--u)*10); padding:calc(var(--u)*5); background:var(--paper) }
+  .dip-tpl-frame .vq-txt{ padding-bottom:calc(var(--u)*4) }
+  .dip-tpl-frame .vq-t{ font-family:'Space Grotesk',Inter,sans-serif; font-weight:600; font-size:calc(var(--u)*17); color:var(--dink) }
+  .dip-tpl-frame .vq-d{ font-size:calc(var(--u)*11.5); color:var(--dmuted); margin-top:calc(var(--u)*5); line-height:1.35 }
+  .dip-tpl-frame .vq-u{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:calc(var(--u)*11.5); font-weight:600; color:var(--dink); margin-top:calc(var(--u)*3); white-space:nowrap }
   .dip-tpl-frame .seals{ position:absolute; right:calc(var(--u)*80); bottom:calc(var(--u)*70); display:flex }
   .dip-tpl-frame .seals.h{ flex-direction:row-reverse; gap:calc(var(--u)*38) }
   .dip-tpl-frame .seals.l{ display:grid; grid-template-columns:auto auto; grid-template-rows:auto auto; gap:calc(var(--u)*24) calc(var(--u)*38); justify-items:center }

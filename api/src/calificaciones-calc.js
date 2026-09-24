@@ -69,6 +69,21 @@ function validarNotaGeneral(texto) {
   return { valor: t || null };
 }
 
+// "Lo que aprendió" — texto PÚBLICO del grupo para la página de verificar
+// diploma, un punto por renglón. Se limpia a máx. 5 renglones de 160
+// caracteres; vacío → null (la sección simplemente no aparece).
+const MAX_APRENDIZAJE_LINEAS = 5;
+const MAX_APRENDIZAJE_LINEA = 160;
+function validarAprendizaje(texto) {
+  const lineas = String(texto || "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lineas.length > MAX_APRENDIZAJE_LINEAS) return { error: `puede tener máximo ${MAX_APRENDIZAJE_LINEAS} renglones` };
+  if (lineas.some((l) => l.length > MAX_APRENDIZAJE_LINEA)) return { error: `no puede tener renglones de más de ${MAX_APRENDIZAJE_LINEA} caracteres` };
+  return { valor: lineas.length ? lineas.join("\n") : null };
+}
+
 // Devuelve { filas, errores }: filas limpias con la evaluación ya calculada,
 // y errores con el número de fila (1-based, contando solo filas con
 // contenido). Se validan también las reglas entre filas: mismo alumno dos
@@ -155,4 +170,5 @@ module.exports = {
   calcularEvaluacion,
   validarFilas,
   validarNotaGeneral,
+  validarAprendizaje,
 };

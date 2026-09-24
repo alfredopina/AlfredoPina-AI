@@ -16,7 +16,8 @@
 <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="../assets/js/diploma-template.js?v=5"></script>
+<script src="../assets/js/qrcode.js"></script>
+<script src="../assets/js/diploma-template.js?v=7"></script>
 <style>
   :root{
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
@@ -658,7 +659,15 @@
   }
   .dip-tpl-controls .chip[aria-pressed="true"]{ border-color:var(--c); color:var(--c); font-weight:600; background:color-mix(in srgb, var(--c) 12%, var(--panel-2)); }
   .dip-tpl-preview{ max-width:640px; }
-  .dip-firmas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px; }
+  .dip-firmas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
+  .dip-inst-sec{ border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
+  .dip-inst-sec > .lbl{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
+  .dip-inst-foto-row{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .dip-inst-foto{ width:64px; height:64px; border-radius:14px; object-fit:cover; border:1px solid var(--line); background:var(--panel-2); flex:none; }
+  .dip-inst-foto[hidden]{ display:none; }
+  .dip-inst-resena{ width:100%; min-height:84px; resize:vertical; font-family:var(--body); font-size:12.5px; line-height:1.5; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:9px 10px; box-sizing:border-box; outline:none; }
+  .dip-inst-resena:focus{ border-color:var(--c); }
+  .dip-inst-contador{ font-family:var(--mono); font-size:10px; color:var(--text-faint); text-align:right; margin:3px 0 8px; }
   .dip-firma-card{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--panel); }
   .dip-firma-nombre{
     font-family:var(--display); font-weight:600; font-size:13px; margin-bottom:10px;
@@ -3630,6 +3639,14 @@
               <span class="radm-hint">Se guarda con la carga y se ve también en Resultados.</span>
             </div>
 
+            <div class="radm-section">
+              <div class="radm-section-head">
+                <span class="radm-section-title">LO QUE APRENDIÓ EL GRUPO — PÚBLICO, VA EN LA VERIFICACIÓN DEL DIPLOMA</span>
+              </div>
+              <textarea id="calAprendizaje" class="cal-nota-general" rows="4" placeholder="Un punto por renglón, por ejemplo:&#10;El participante aprendió a modelar datos con relaciones&#10;El participante aprendió a crear medidas con DAX&#10;El participante aprendió a construir un tablero interactivo"></textarea>
+              <span class="radm-hint">Máximo 5 renglones de 160 caracteres, uno por punto. En la página se muestran como lista bajo "El participante aprendió a:", así que puedes escribir solo el verbo ("modelar datos con relaciones") o la frase completa. Es texto público: sin nombres de la empresa ni datos internos. Si el grupo ya tiene diplomas emitidos, al guardar se actualiza también lo que ven en la verificación.</span>
+            </div>
+
             <div class="radm-actions">
               <div class="radm-actions-buttons" id="calBotonesNormal">
                 <button type="button" class="radm-btn dip-btn-icon" id="calCargar" title="Registra las calificaciones y te propone mover el grupo a Diplomas">
@@ -3788,7 +3805,7 @@
         <div class="dash-etabs" id="dipTabs">
           <button type="button" class="dash-etab active" data-diptab="consultar">Consultar Diplomas</button>
           <button type="button" class="dash-etab" data-diptab="plantilla">Plantilla</button>
-          <button type="button" class="dash-etab" data-diptab="firmas">Firmas</button>
+          <button type="button" class="dash-etab" data-diptab="firmas">Instructores</button>
         </div>
 
         <div class="dip-tabpanel active" id="dipTab-consultar">
@@ -3884,7 +3901,7 @@
         <div class="dip-tabpanel" id="dipTab-firmas">
           <div class="dip-paso">
             <div class="dip-paso-head">
-              <span class="dip-paso-title">Firmas por instructor</span>
+              <span class="dip-paso-title">Instructores</span>
             </div>
             <div class="dip-firmas-grid" id="dipFirmasGrid"></div>
           </div>
@@ -7471,6 +7488,8 @@
 
     function leerNotaGeneral(){ return document.getElementById('calNotaGeneral').value.trim(); }
     function fijarNotaGeneral(v){ document.getElementById('calNotaGeneral').value = v || ''; }
+    function leerAprendizaje(){ return document.getElementById('calAprendizaje').value.trim(); }
+    function fijarAprendizaje(v){ document.getElementById('calAprendizaje').value = v || ''; }
 
     // valida el grid completo, usado por Cargar/Cargar y cerrar/Actualizar
     function validarProblemas(filas){
@@ -7495,7 +7514,7 @@
       document.getElementById('calGrupoCard').hidden = true;
       document.getElementById('calGridSection').hidden = true;
       vaciarGrid();
-      fijarNotaGeneral('');
+      fijarNotaGeneral(''); fijarAprendizaje('');
       renderAtajos();
     }
 
@@ -7517,7 +7536,7 @@
             celda(tr, 'notas').value = p.notas || '';
           });
           refrescarTodo();
-          fijarNotaGeneral(previas[0].nota_general);
+          fijarNotaGeneral(previas[0].nota_general); fijarAprendizaje(previas[0].aprendizaje);
         }
         return previas;
       } catch(e){
@@ -7540,7 +7559,7 @@
       renderCard(g);
       document.getElementById('calGrupoCard').hidden = false;
       vaciarGrid();
-      fijarNotaGeneral('');
+      fijarNotaGeneral(''); fijarAprendizaje('');
       document.getElementById('calGridSection').hidden = false;
 
       // ¿ya tiene calificaciones guardadas? entonces el grid muestra lo guardado
@@ -7581,7 +7600,7 @@
       btnCargar.disabled = true; btnCerrar.disabled = true;
       txt(cerrar ? btnCerrar : btnCargar).textContent = 'Cargando...';
       try {
-        const r = await apiPostConReintento('/api/cargarCalificaciones', { grupoId: g.id, alumnos: filas, notaGeneral: leerNotaGeneral() });
+        const r = await apiPostConReintento('/api/cargarCalificaciones', { grupoId: g.id, alumnos: filas, notaGeneral: leerNotaGeneral(), aprendizaje: leerAprendizaje() });
         const descripcion = `${empresaDe(g)}${g.nombre_curso ? ' · ' + g.nombre_curso : ''}`;
         const n = r.alumnos;
         let msg = `${n} calificaci${n === 1 ? 'ón cargada' : 'ones cargadas'} de ${descripcion}. Ya aparece en Resultados.`;
@@ -7625,7 +7644,7 @@
     // llega a grupos de cualquier fase (incluido Cerrado, que el buscador
     // normal ya no muestra) ──
     function snapshotGrid(){
-      return JSON.stringify(Array.from(gridBody.querySelectorAll('tr')).map(leerCeldas)) + '|' + leerNotaGeneral();
+      return JSON.stringify(Array.from(gridBody.querySelectorAll('tr')).map(leerCeldas)) + '|' + leerNotaGeneral() + '|' + leerAprendizaje();
     }
 
     async function entrarModoEdicion(r){
@@ -7651,7 +7670,7 @@
       renderCard(g);
       document.getElementById('calGrupoCard').hidden = false;
       vaciarGrid();
-      fijarNotaGeneral('');
+      fijarNotaGeneral(''); fijarAprendizaje('');
       document.getElementById('calGridSection').hidden = false;
 
       const mio = ++tokenSeleccion;
@@ -7695,7 +7714,7 @@
       const previo = txtEl.textContent;
       btn.disabled = true; txtEl.textContent = 'Actualizando...';
       try {
-        const r = await apiPostConReintento('/api/cargarCalificaciones', { grupoId: g.id, alumnos: filas, notaGeneral: leerNotaGeneral(), soloActualizar: true });
+        const r = await apiPostConReintento('/api/cargarCalificaciones', { grupoId: g.id, alumnos: filas, notaGeneral: leerNotaGeneral(), aprendizaje: leerAprendizaje(), soloActualizar: true });
         toast(`${r.alumnos} calificaci${r.alumnos === 1 ? 'ón actualizada' : 'ones actualizadas'}. La fase del grupo no cambió.`, true);
         detalleCache.delete(g.id);
         salirModoEdicion();
@@ -8202,8 +8221,8 @@
   // filtros del lado del cliente igual que Resultados de Calificaciones,
   // tabla por grupo con desglose de alumnos, anular), "Plantilla" (vista
   // previa interactiva de assets/js/diploma-template.js, la misma plantilla
-  // que usa el diploma real y diplomas-grupo.html) y "Firmas" (por
-  // instructor). "Crear Diplomas" vive en Calificaciones → Resultados: el
+  // que usa el diploma real y diplomas-grupo.html) y "Instructores" (firma,
+  // foto y reseña por instructor). "Crear Diplomas" vive en Calificaciones → Resultados: el
   // diploma nace del grupo ya calificado, ver CLAUDE_DETALLE.md → "Diplomas".
   (function(){
     const TOOL_NAMES = {
@@ -8543,7 +8562,7 @@
           const vigentes = (snapshot.alumnos || []).filter(a => a.estatus === 'vigente');
           const lista = vigentes.map(a => ({
             datos: {
-              nombre: a.nombre, correo: a.correo, folio: a.folio, cliente: snapshot.cliente, curso: snapshot.curso, nivel: snapshot.nivel,
+              nombre: a.nombre, correo: a.correo, folio: a.folio, codigoVerif: a.codigoVerif, cliente: snapshot.cliente, curso: snapshot.curso, nivel: snapshot.nivel,
               herramientas: herramientasArr(snapshot.herramientas), resultado: a.resultado, fechaInicio: snapshot.fechaInicio, fechaFin: snapshot.fechaFin,
               horas: snapshot.horas, instructor: snapshot.instructor, firmaUrl: snapshot.instructor ? ('/api/getPlantillaAsset?instructor=' + encodeURIComponent(snapshot.instructor)) : null,
             },
@@ -8614,7 +8633,7 @@
     function tplDatos(){
       const herramientas = tplHerramientas();
       return {
-        nombre: dipTplState.largo ? NOMBRE_LARGO : NOMBRE_CORTO, correo: 'alumno@empresa.com', folio: 'APACM-' + String(new Date().getFullYear()).slice(-2) + '01',
+        nombre: dipTplState.largo ? NOMBRE_LARGO : NOMBRE_CORTO, correo: 'alumno@empresa.com', codigoVerif: 'ab12cd34', folio: 'APACM-' + String(new Date().getFullYear()).slice(-2) + '01',
         cliente: 'Empresa ACME', curso: herramientas.map(h => TOOL_NAMES[h]).join(' + ') + ' — Curso de ejemplo', nivel: 'Intermedio',
         herramientas, resultado: dipTplState.resultado, fechaInicio: '2026-09-01', fechaFin: '2026-09-10', horas: 20,
         instructor: dipTplState.instructor || 'Ing. Alfredo Piña',
@@ -8660,7 +8679,26 @@
 
     // ── Firmas por instructor ──
     let dipInstructores = [];
+    let dipPerfiles = {};
     let dipTplRenderizada = false;
+    // mismo criterio que slugify de api/src/plantillas-storage.js
+    function slugInstructor(t){
+      return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+    // foto cuadrada de 480 px en JPEG: pesa poco y se ve nítida en la tarjeta
+    function fotoReducida(file){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const lado = Math.min(img.width, img.height), L = 480;
+          const c = document.createElement('canvas'); c.width = L; c.height = L;
+          c.getContext('2d').drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, L, L);
+          resolve(c.toDataURL('image/jpeg', 0.85).split(',')[1]);
+        };
+        img.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        img.src = URL.createObjectURL(file);
+      });
+    }
 
     async function cargarInstructores(){
       try {
@@ -8669,6 +8707,7 @@
       } catch(e){
         dipInstructores = [];
       }
+      try { dipPerfiles = (await apiGet('/api/getPerfilesInstructores')).perfiles || {}; } catch(e){ dipPerfiles = {}; }
       renderFirmasGrid();
       if(!dipTplRenderizada){ dipTplRenderizada = true; renderTplControles(); }
     }
@@ -8690,6 +8729,26 @@
       img.addEventListener('load', () => { img.hidden = false; fallbackEl.hidden = true; });
     }
 
+    function perfilInstructorHtml(nombre){
+      const p = dipPerfiles[slugInstructor(nombre)] || {};
+      const foto = p.foto ? `/api/getFotoInstructor?i=${encodeURIComponent(slugInstructor(nombre))}&t=${Date.now()}` : '';
+      return `
+        <div class="dip-inst-sec">
+          <span class="lbl">Foto y reseña (públicas, en la verificación del diploma)</span>
+          <div class="dip-inst-foto-row">
+            <img class="dip-inst-foto" ${foto ? `src="${foto}"` : 'hidden'} alt="Foto de ${escapeHtml(nombre)}">
+            <span class="radm-hint dip-inst-foto-vacio" ${foto ? 'hidden' : ''}>Sin foto todavía.</span>
+          </div>
+          <input type="file" accept="image/jpeg,image/png,image/webp" class="dip-firma-archivo dip-foto-archivo">
+          <textarea class="dip-inst-resena" maxlength="500" placeholder="Reseña breve: trayectoria, enfoque al enseñar…">${escapeHtml(p.resena || '')}</textarea>
+          <div class="dip-inst-contador"><span class="dip-resena-n">${(p.resena || '').length}</span>/500</div>
+          <div class="dip-firma-botones">
+            <button type="button" class="radm-btn radm-btn-ghost dip-perfil-guardar" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Guardar foto y reseña</button>
+            <button type="button" class="radm-icon-btn radm-icon-danger dip-foto-eliminar" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la foto"${p.foto ? '' : ' hidden'}>${ICO_TRASH}</button>
+          </div>
+        </div>`;
+    }
+
     function renderFirmasGrid(){
       const cont = document.getElementById('dipFirmasGrid');
       cont.innerHTML = dipInstructores.map(nombre => `
@@ -8698,6 +8757,7 @@
             <span>${escapeHtml(nombre)}</span>
             <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-instructor" data-instructor="${escapeHtml(nombre)}" title="Eliminar este instructor de la lista (su firma también se borra; los diplomas ya generados no cambian)">${ICO_TRASH}</button>
           </div>
+          <div class="dip-inst-sec" style="border-top:none; margin-top:0; padding-top:0;"><span class="lbl">Firma (solo va impresa en el diploma)</span></div>
           <div class="dip-firma-preview">
             <img class="dip-firma-img" src="/api/getPlantillaAsset?instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}">
             <span class="radm-hint dip-firma-vacio" hidden>Sin firma todavía.</span>
@@ -8707,6 +8767,7 @@
             <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Subir firma</button>
             <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-firma" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la firma (el instructor se queda en la lista)">${ICO_TRASH}</button>
           </div>
+          ${perfilInstructorHtml(nombre)}
         </div>
       `).join('') + `
         <div class="dip-firma-add" id="dipFirmaAddCard">
@@ -8757,6 +8818,11 @@
 
     cargarInstructores();
 
+    document.getElementById('dipFirmasGrid').addEventListener('input', e => {
+      const ta = e.target.closest('.dip-inst-resena');
+      if(ta) ta.closest('.dip-inst-sec').querySelector('.dip-resena-n').textContent = ta.value.length;
+    });
+
     document.getElementById('dipFirmasGrid').addEventListener('click', async e => {
       if(e.target.closest('#dipFirmaAddCard')){ mostrarFormAgregarInstructor(); return; }
       if(e.target.closest('#dipNuevoInstructorCancelar')){ renderFirmasGrid(); return; }
@@ -8772,6 +8838,41 @@
           renderFirmasGrid();
           if(dipTplRenderizada) renderTplControles();
           toast('Instructor eliminado.', true);
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+        return;
+      }
+
+      const btnPerfil = e.target.closest('.dip-perfil-guardar');
+      if(btnPerfil){
+        const nombre = btnPerfil.dataset.instructor;
+        const card = btnPerfil.closest('.dip-firma-card');
+        const file = card.querySelector('.dip-foto-archivo').files[0];
+        const resena = card.querySelector('.dip-inst-resena').value.trim();
+        btnPerfil.disabled = true; btnPerfil.textContent = 'Guardando...';
+        try {
+          const payload = { nombre, resena };
+          if(file){ payload.fotoBase64 = await fotoReducida(file); payload.contentType = 'image/jpeg'; }
+          const data = await apiPostJson('/api/guardarPerfilInstructor', payload);
+          dipPerfiles = data.perfiles || dipPerfiles;
+          renderFirmasGrid();
+          toast('Perfil guardado. La reseña llega a los diplomas ya emitidos cuando actualices las calificaciones de su grupo.', true);
+        } catch(err){
+          toast('No se pudo guardar: ' + err.message, false);
+          btnPerfil.disabled = false; btnPerfil.textContent = 'Guardar foto y reseña';
+        }
+        return;
+      }
+
+      const btnElimFoto = e.target.closest('.dip-foto-eliminar');
+      if(btnElimFoto){
+        const nombre = btnElimFoto.dataset.instructor;
+        if(!confirm('¿Eliminar la foto de "' + nombre + '"? La reseña y la firma se quedan.')) return;
+        try {
+          await apiPostJson('/api/eliminarFotoInstructor', { nombre });
+          const k = slugInstructor(nombre);
+          if(dipPerfiles[k]) dipPerfiles[k].foto = false;
+          renderFirmasGrid();
+          toast('Foto eliminada.', true);
         } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
         return;
       }

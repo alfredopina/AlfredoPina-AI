@@ -18,7 +18,8 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase } = require("../src/grupo-fase");
 const { resolverAlumno } = require("../src/alumnos");
-const { validarFilas, validarNotaGeneral, FASES_CALIFICABLES } = require("../src/calificaciones-calc");
+const { validarFilas, validarNotaGeneral, validarAprendizaje, FASES_CALIFICABLES } = require("../src/calificaciones-calc");
+const { reconstruirSnapshotGrupo } = require("../src/diplomas-snapshot");
 
 function fallo(context, status, error, extra) {
   context.res = { status, headers: JSON_HEADERS, body: { error, ...extra } };
@@ -39,6 +40,9 @@ module.exports = async function (context, req) {
   const notaGeneralR = validarNotaGeneral(body.notaGeneral);
   if (notaGeneralR.error) return fallo(context, 400, "La nota general " + notaGeneralR.error + ".");
   const notaGeneral = notaGeneralR.valor;
+  const aprendizajeR = validarAprendizaje(body.aprendizaje);
+  if (aprendizajeR.error) return fallo(context, 400, "Lo que aprendió " + aprendizajeR.error + ".");
+  const aprendizaje = aprendizajeR.valor;
   const soloActualizar = body.soloActualizar === true;
 
   try {
@@ -76,9 +80,10 @@ module.exports = async function (context, req) {
           .input("resultado", sql.NVarChar, f.resultado)
           .input("notas", sql.NVarChar, f.notas)
           .input("notaGeneral", sql.NVarChar, notaGeneral)
+          .input("aprendizaje", sql.NVarChar, aprendizaje)
           .query(
-            `INSERT INTO Calificacion (grupo_id, alumno_id, puntos, asistencias, frecuencias, proyecto, calificacion, resultado, notas, nota_general)
-             VALUES (@grupoId, @alumnoId, @puntos, @asistencias, @frecuencias, @proyecto, @calificacion, @resultado, @notas, @notaGeneral)`
+            `INSERT INTO Calificacion (grupo_id, alumno_id, puntos, asistencias, frecuencias, proyecto, calificacion, resultado, notas, nota_general, aprendizaje)
+             VALUES (@grupoId, @alumnoId, @puntos, @asistencias, @frecuencias, @proyecto, @calificacion, @resultado, @notas, @notaGeneral, @aprendizaje)`
           );
       }
       await transaction.commit();
@@ -96,11 +101,26 @@ module.exports = async function (context, req) {
       throw err;
     }
 
+    // si el grupo ya tiene diplomas emitidos, se refresca lo público (Lo que
+    // aprendió, estatus) para que no queden dos versiones; un fallo aquí no
+    // debe tumbar el guardado de las calificaciones, que ya se hizo
+    let diplomasActualizados = false;
+    try {
+      const tk = await pool.request().input("id", sql.Int, grupoId).query("SELECT diploma_token FROM Grupo WHERE id = @id");
+      const token = tk.recordset[0] && tk.recordset[0].diploma_token;
+      if (token) {
+        await reconstruirSnapshotGrupo(pool, grupoId, token);
+        diplomasActualizados = true;
+      }
+    } catch (err) {
+      context.log.error("No se pudo refrescar lo público de los diplomas:", err.message);
+    }
+
     const conteo = (r) => filas.filter((f) => f.resultado === r).length;
     context.res = {
       status: 200,
       headers: JSON_HEADERS,
-      body: { ok: true, alumnos: filas.length, fase, aprobados: conteo("Aprobado"), participaron: conteo("Participó"), no_aprobados: conteo("No Aprobado") },
+      body: { ok: true, diplomasActualizados, alumnos: filas.length, fase, aprobados: conteo("Aprobado"), participaron: conteo("Participó"), no_aprobados: conteo("No Aprobado") },
     };
   } catch (err) {
     context.log.error("Error cargando calificaciones:", err.message);

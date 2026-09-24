@@ -53,6 +53,14 @@
       "rewrite": "/diplomas-grupo.html"
     },
     {
+      "route": "/verificar",
+      "rewrite": "/verificar.html"
+    },
+    {
+      "route": "/verificar/*",
+      "rewrite": "/verificar.html"
+    },
+    {
       "route": "/admin",
       "allowedRoles": ["admin"]
     },
@@ -186,6 +194,18 @@
     },
     {
       "route": "/api/anularDiploma",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getPerfilesInstructores",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/guardarPerfilInstructor",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarFotoInstructor",
       "allowedRoles": ["admin"]
     },
     {

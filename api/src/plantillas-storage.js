@@ -88,6 +88,12 @@ async function eliminarInstructor(nombre) {
     blobHTTPHeaders: { blobContentType: "application/json" },
   });
   await container.getBlockBlobClient(`firmas/${slugify(nombre)}.png`).deleteIfExists();
+  await container.getBlockBlobClient(`fotos/${slugify(nombre)}`).deleteIfExists();
+  const perfiles = await getPerfilesInstructores();
+  if (perfiles[slugify(nombre)]) {
+    delete perfiles[slugify(nombre)];
+    await guardarPerfilesInstructores(perfiles);
+  }
   return lista;
 }
 
@@ -96,6 +102,81 @@ async function eliminarInstructor(nombre) {
 async function eliminarFirma(instructorSlug) {
   const container = getPlantillasContainer();
   await container.getBlockBlobClient(`firmas/${instructorSlug}.png`).deleteIfExists();
+}
+
+
+// Perfil público de cada instructor (reseña + foto) para la página de
+// verificar diploma — instructores-perfil.json { slug: { resena, foto } } y la
+// foto en fotos/{slug}. La lista de nombres sigue siendo instructores.json.
+async function getPerfilesInstructores() {
+  const container = getPlantillasContainer();
+  try {
+    const buffer = await container.getBlockBlobClient("instructores-perfil.json").downloadToBuffer();
+    const perfiles = JSON.parse(buffer.toString("utf8"));
+    return perfiles && typeof perfiles === "object" ? perfiles : {};
+  } catch (err) {
+    if (err.statusCode === 404) return {};
+    throw err;
+  }
+}
+
+async function guardarPerfilesInstructores(perfiles) {
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("instructores-perfil.json").uploadData(Buffer.from(JSON.stringify(perfiles)), {
+    blobHTTPHeaders: { blobContentType: "application/json" },
+  });
+}
+
+async function guardarPerfilInstructor(nombre, { resena, foto }) {
+  const perfiles = await getPerfilesInstructores();
+  const slug = slugify(nombre);
+  perfiles[slug] = { resena: resena || "", foto: foto === undefined ? Boolean(perfiles[slug] && perfiles[slug].foto) : foto };
+  await guardarPerfilesInstructores(perfiles);
+  return perfiles;
+}
+
+async function uploadFotoInstructor(slug, buffer, contentType) {
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("fotos/" + slug).uploadData(buffer, { blobHTTPHeaders: { blobContentType: contentType } });
+}
+
+// null si no tiene foto
+async function getFotoInstructor(slug) {
+  const container = getPlantillasContainer();
+  try {
+    const blob = container.getBlockBlobClient("fotos/" + slug);
+    const props = await blob.getProperties();
+    return { buffer: await blob.downloadToBuffer(), contentType: props.contentType || "image/jpeg" };
+  } catch (err) {
+    if (err.statusCode === 404) return null;
+    throw err;
+  }
+}
+
+async function eliminarFotoInstructor(slug) {
+  const container = getPlantillasContainer();
+  await container.getBlockBlobClient("fotos/" + slug).deleteIfExists();
+  const perfiles = await getPerfilesInstructores();
+  if (perfiles[slug]) {
+    perfiles[slug].foto = false;
+    await guardarPerfilesInstructores(perfiles);
+  }
+}
+
+// Perfil de un instructor por su nombre tal como está en Grupo.instructor —
+// { nombre, resena, fotoSlug } (fotoSlug null si no tiene foto). Nunca truena:
+// el perfil es un extra del registro de verificación, no debe frenar un diploma.
+async function getPerfilPublicoInstructor(nombre) {
+  const base = { nombre: nombre || "", resena: "", fotoSlug: null };
+  if (!nombre) return base;
+  try {
+    const slug = slugify(nombre);
+    const p = (await getPerfilesInstructores())[slug];
+    if (p) return { nombre, resena: p.resena || "", fotoSlug: p.foto ? slug : null };
+  } catch (err) {
+    // se ignora a propósito
+  }
+  return base;
 }
 
 module.exports = {
@@ -107,4 +188,10 @@ module.exports = {
   agregarInstructor,
   eliminarInstructor,
   eliminarFirma,
+  getPerfilesInstructores,
+  guardarPerfilInstructor,
+  uploadFotoInstructor,
+  getFotoInstructor,
+  eliminarFotoInstructor,
+  getPerfilPublicoInstructor,
 };

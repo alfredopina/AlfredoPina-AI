@@ -17,7 +17,7 @@ module.exports = async function (context, req) {
       .request()
       .input("grupoId", sql.Int, grupoId)
       .query(
-        `SELECT d.folio, a.nombre_completo AS nombre, a.correo, d.resultado, d.estatus, d.motivo_anulacion,
+        `SELECT d.folio, d.codigo_verif, a.nombre_completo AS nombre, a.correo, d.resultado, d.estatus, d.motivo_anulacion,
                 d.fecha_generacion, d.corrige_a_folio, c.calificacion
          FROM Diploma d
          JOIN Alumno a ON a.id = d.alumno_id

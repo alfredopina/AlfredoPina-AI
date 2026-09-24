@@ -154,7 +154,8 @@
 
 <div class="dg-tpl-host"><div class="dip-tpl-stage dip-tpl-frame" id="dgFrame"></div></div>
 
-<script src="/assets/js/diploma-template.js?v=5"></script>
+<script src="/assets/js/qrcode.js"></script>
+<script src="/assets/js/diploma-template.js?v=7"></script>
 <script>
 (function(){
   const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -173,7 +174,7 @@
 
   function datosDiploma(snapshot, alumno){
     return {
-      nombre: alumno.nombre, correo: alumno.correo, folio: alumno.folio,
+      nombre: alumno.nombre, correo: alumno.correo, folio: alumno.folio, codigoVerif: alumno.codigoVerif,
       cliente: snapshot.cliente, curso: snapshot.curso, nivel: snapshot.nivel,
       herramientas: herramientasArr(snapshot.herramientas), resultado: alumno.resultado,
       fechaInicio: snapshot.fechaInicio, fechaFin: snapshot.fechaFin, horas: snapshot.horas,

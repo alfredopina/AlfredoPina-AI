@@ -1,0 +1,220 @@
+/* diagnostico.css — estilos propios de diagnostico.html
+   Generado a partir de style.css + CSS inline de las páginas (rebrand v2). */
+
+:root{ --good: #4ade80; --bad: #ef4444; }
+
+.wrap{max-width:720px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+h2.section-title{
+    font-family:var(--display); font-weight:600; font-size:clamp(26px,5.5vw,36px);
+    letter-spacing:-.01em; line-height:1.18; max-width:520px;
+  }
+
+@media (max-width:480px){
+  .wrap{padding:0 18px;}
+}
+
+::selection{background:var(--blue);color:#fff;}
+
+header.diag-header{ padding:44px 0 8px; position:relative; z-index:1; }
+
+.diag-tool-badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px;
+    letter-spacing:.3px; border-radius:20px; padding:5px 12px; margin-bottom:16px;
+  }
+
+.diag-tool-badge svg{ width:14px; height:14px; }
+
+section{ padding:24px 0 80px; position:relative; z-index:1; }
+
+.diag-loading{ font-family:var(--mono); font-size:13px; color:var(--text-faint); padding:40px 0; }
+
+.diag-error{
+    border:1px solid var(--bad); border-radius:8px; background:rgba(239,68,68,.08);
+    color:var(--bad); font-size:13.5px; padding:18px 20px; margin:16px 0; line-height:1.6;
+  }
+
+/* ---- barra de avance — solo visible durante las preguntas, pequeña y sin
+     números (el número de pregunta ya vive en cada tarjeta) ---- */
+.diag-progress{ height:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; margin:0 0 28px; }
+
+.diag-progress-bar{ height:100%; width:0%; background:var(--blue-bright); border-radius:2px; transition:width .35s ease; }
+
+.diag-block{ margin-bottom:8px; }
+
+.diag-block-title{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-faint); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
+  }
+
+.diag-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+
+/* [hidden] pierde contra display:flex de la misma especificidad — mismo
+     bug ya documentado varias veces en CLAUDE.md → "Ya resueltos"
+     (.cot-alert, .radm-form-row, .radm-field), reaparece aquí porque es la
+     primera vez que un .diag-field se oculta dinámicamente. */
+.diag-field[hidden]{ display:none; }
+
+.diag-field label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.3px; }
+
+.diag-req{ color:var(--bad); }
+
+.diag-field input[type=text]{
+    font-family:var(--body); font-size:14.5px; color:var(--text); background:var(--panel);
+    border:1px solid var(--line); border-radius:7px; padding:12px 14px; outline:none;
+    transition:border-color .2s; width:100%;
+  }
+
+.diag-field input:focus{ border-color:var(--blue-bright); }
+
+.diag-empresa-lock{
+    font-size:14.5px; color:var(--text); background:var(--panel); border:1px solid var(--blue-dim);
+    border-radius:7px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+
+.diag-empresa-lock svg{ width:15px; height:15px; color:var(--blue-bright); flex:none; }
+
+.diag-empresa-lock-nota{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:6px; display:block; }
+
+.diag-autocomplete-wrap{ position:relative; }
+
+.diag-autocomplete-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    max-height:220px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.4);
+  }
+
+.diag-autocomplete-item{ padding:10px 14px; font-size:13.5px; cursor:pointer; }
+
+.diag-autocomplete-item:hover{ background:var(--panel); }
+
+.diag-autocomplete-item b{ color:var(--text); }
+
+/* ---- pregunta: número + fx arriba, texto encima de la imagen (para no
+     confundir el orden), imagen debajo, 5 opciones abajo (4 reales
+     barajadas + "No lo sé" fija al final, nunca aleatoria) ---- */
+.diag-question{ margin-bottom:0; }
+
+.diag-question-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+
+.diag-question-num{
+    font-family:var(--display); font-weight:700; font-size:20px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+
+.diag-question-fx{
+    font-family:var(--mono); font-size:11.5px; font-style:italic; font-weight:700; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:20px; padding:5px 12px;
+  }
+
+.diag-question-text{ font-size:16px; color:var(--text); margin-bottom:18px; line-height:1.5; font-weight:500; }
+
+.diag-question-media{
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel);
+    margin-bottom:20px;
+  }
+
+.diag-question-media img{ display:block; width:100%; height:auto; }
+
+.diag-options{ display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+
+.diag-option{
+    display:flex; align-items:center; gap:12px; border:1px solid rgba(237,240,244,.16); border-radius:8px;
+    background:var(--panel); padding:13px 14px; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+
+.diag-option:hover{ border-color:var(--text-dim); }
+
+.diag-option.selected{ border-color:var(--blue-bright); background:var(--blue-soft); }
+
+.diag-option-letra{
+    font-family:var(--mono); font-weight:700; font-size:13px; color:var(--text-dim); flex:none;
+    width:26px; height:26px; border:1px solid rgba(237,240,244,.35); border-radius:6px; display:flex;
+    align-items:center; justify-content:center;
+  }
+
+.diag-option.selected .diag-option-letra{ border-color:var(--blue-bright); color:var(--blue-bright); }
+
+.diag-option-texto{ flex:1; font-size:13.5px; color:var(--text); }
+
+.diag-option-fija .diag-option-texto{ color:var(--text-dim); font-style:italic; }
+
+/* Radio-dot en vez del checkbox de antes — comunica "elige una", no
+     "marca varias". Un solo círculo relleno cuando está seleccionada. */
+.diag-option-radio{
+    flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid rgba(237,240,244,.35);
+    display:flex; align-items:center; justify-content:center; transition:border-color .15s;
+  }
+
+.diag-option-radio::after{
+    content:''; width:10px; height:10px; border-radius:50%; background:var(--blue-bright);
+    opacity:0; transform:scale(.4); transition:all .15s;
+  }
+
+.diag-option.selected .diag-option-radio{ border-color:var(--blue-bright); }
+
+.diag-option.selected .diag-option-radio::after{ opacity:1; transform:scale(1); }
+
+.diag-privacy{
+    font-size:12px; color:var(--text-faint); border-top:1px solid var(--line-soft);
+    padding-top:18px; margin:8px 0 20px; line-height:1.6;
+  }
+
+/* Punto medio entre el pill de solo contorno de antes (se leía como
+     etiqueta) y un azul 100% sólido (Alfredo lo sintió "mucho color" para
+     un botón que se toca 15 veces seguidas) — relleno con la mitad de
+     intensidad del azul de marca, borde sólido para que el contorno del
+     botón siga leyéndose nítido. */
+.diag-submit-fx{
+    width:100%; display:flex; align-items:stretch; border:1px solid var(--blue);
+    border-radius:6px; background-color:color-mix(in srgb, var(--blue) 42%, var(--panel) 58%);
+    overflow:hidden; cursor:pointer; transition:background-color .2s, border-color .2s, transform .1s;
+  }
+
+.diag-submit-fx:hover:not(:disabled){ background-color:color-mix(in srgb, var(--blue) 62%, var(--panel) 38%); border-color:var(--blue-bright); }
+
+.diag-submit-fx:active:not(:disabled){ transform:scale(.99); }
+
+.diag-submit-fx:disabled{ opacity:.4; cursor:default; background-color:var(--panel); border-color:var(--blue-dim); }
+
+.diag-submit-fx:disabled .diag-submit-fx-tag{ color:var(--blue-bright); background-color:transparent; }
+
+.diag-submit-fx:disabled .diag-submit-fx-body{ color:var(--text-dim); }
+
+.diag-submit-fx-tag{
+    font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright);
+    background-color:rgba(10,13,18,.25); padding:18px 16px; border-right:1px solid rgba(10,13,18,.25); flex:none;
+    display:flex; align-items:center;
+  }
+
+.diag-submit-fx-body{
+    font-family:var(--mono); font-size:14px; font-weight:600; color:var(--text); padding:18px 20px;
+    display:flex; align-items:center; flex:1; justify-content:center;
+  }
+
+.diag-thanks{ display:none; text-align:center; padding:70px 0 40px; }
+
+.diag-thanks.show{ display:block; animation:diagThanksIn .4s ease forwards; }
+
+@keyframes diagThanksIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
+.diag-thanks-icon{ width:56px; height:56px; color:var(--good); margin:0 auto 20px; }
+
+.diag-thanks-icon path{ stroke-dasharray:1; stroke-dashoffset:1; animation:diagCheckDraw .6s .15s ease forwards; }
+
+@keyframes diagCheckDraw{ to{ stroke-dashoffset:0; } }
+
+.diag-thanks h2{ font-family:var(--display); font-weight:600; font-size:26px; margin-bottom:10px; }
+
+.diag-thanks p{ color:var(--text-dim); font-size:14px; max-width:440px; margin:0 auto; }
+
+.diag-thanks-fx{
+    display:inline-flex; align-items:center; gap:8px; margin-top:24px;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+
+.diag-thanks-fx span{
+    font-weight:700; font-style:italic; color:var(--blue-bright);
+    background:var(--blue-soft); border-radius:4px; padding:2px 7px;
+  }

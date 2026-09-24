@@ -1,0 +1,43 @@
+/* cards.css — tarjetas de herramienta (landing y recursos)
+   Generado a partir de style.css + CSS inline de las páginas (rebrand v2). */
+
+/* CURSOS — vista rápida por herramienta, color de marca de cada producto */
+.courses-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:48px;}
+
+.course-card{
+    display:block;
+    position:relative; border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    padding:26px 22px 22px; overflow:hidden; transition:transform .2s, border-color .2s;
+    opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease, border-color .2s, transform .2s;
+  }
+
+.course-card.in-view{ opacity:1; transform:translateY(0); }
+
+.course-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c);}
+
+.course-card:hover{border-color:var(--c); transform:translateY(-3px);}
+
+.course-card.excel{--c:#22c55e;}
+
+.course-card.pbi{--c:#f2c94c;}
+
+.course-card.apps{--c:#c026d3;}
+
+.course-card.automate{--c:#06b6d4;}
+
+.course-card.ia{--c:#a78bfa;}
+
+.course-card.ofimatica{--c:#f97316;}
+
+.course-icon{width:30px; height:30px; color:var(--c); margin-bottom:16px;}
+
+.course-icon svg{width:100%; height:100%;}
+
+.course-title{font-family:var(--display); font-weight:600; font-size:16.5px; margin-bottom:8px;}
+
+.course-text{font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-bottom:18px;}
+
+.course-tag{
+    display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.3px;
+    color:var(--c); border:1px solid var(--c); padding:4px 10px; border-radius:12px;
+  }

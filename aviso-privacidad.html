@@ -4,9 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aviso de Privacidad — Alfredo Piña</title>
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<!--layout:head-->
+<link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0d12">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/legal.css">
+<!--/layout:head-->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.alfredopina.ai/aviso-privacidad">
 <meta property="og:title" content="Aviso de Privacidad — Alfredo Piña">
@@ -14,45 +19,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
-<style>
-  .legal-wrap{ max-width:760px; margin:0 auto; padding:150px 32px 100px; }
-  .legal-version{
-    display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.4px;
-    color:var(--text-dim); border:1px solid var(--line); border-radius:20px;
-    padding:4px 12px; margin-bottom:14px;
-  }
-  .legal-title{ font-family:var(--display); font-weight:600; font-size:clamp(28px,4vw,38px); color:var(--text); margin:0 0 8px; }
-  .legal-updated{ font-family:var(--mono); font-size:12.5px; color:var(--text-faint); margin:0 0 40px; }
-  .legal-wrap h2{ font-family:var(--display); font-weight:600; font-size:19px; color:var(--text); margin:40px 0 12px; }
-  .legal-wrap p, .legal-wrap li{ font-family:var(--body); font-size:15px; line-height:1.75; color:var(--text-dim); }
-  .legal-wrap ul{ margin:0 0 16px; padding-left:20px; }
-  .legal-wrap a{ color:var(--blue-bright); text-decoration:none; }
-  .legal-wrap a:hover{ text-decoration:underline; }
-  .legal-wrap strong{ color:var(--text); }
-  .legal-table{ width:100%; border-collapse:collapse; margin:16px 0 24px; font-family:var(--body); font-size:14px; }
-  .legal-table th, .legal-table td{ text-align:left; padding:10px 12px; border:1px solid var(--line); color:var(--text-dim); vertical-align:top; }
-  .legal-table th{ color:var(--text); font-weight:600; background:var(--panel); }
-</style>
 </head>
 <body>
 
 <div class="grid-bg"></div>
 
-<nav>
+<!--layout:nav-->
+<nav aria-label="Principal">
   <div class="wrap">
-    <a href="/#top" class="nav-mark">
-      <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:34px; width:auto; display:block;">
-      <span class="nav-name">Alfredo Piña</span>
-    </a>
+    <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links">
-      <a href="/#acerca-nav" style="text-decoration:none;">Conóceme</a>
-      <a href="/cursos" style="text-decoration:none;">Cursos</a>
-      <a href="/recursos" style="text-decoration:none;">Recursos</a>
+      <a href="/#experiencia">Conóceme</a>
+      <a href="/cursos">Cursos</a>
+      <a href="/recursos">Recursos</a>
     </div>
     <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
+<!--/layout:nav-->
 
 <main class="legal-wrap">
   <span class="legal-version">VERSIÓN 1</span>
@@ -93,20 +77,28 @@
   <p>Si este aviso cambia de forma importante, lo publicaremos en esta misma página con su nueva fecha de actualización.</p>
 </main>
 
-<footer id="contacto" style="margin-top:60px;">
+<!--layout:footer-->
+<footer class="footer-min">
   <div class="wrap">
     <div class="contact-meta">
       <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
       <span>(+52) 811 725 5937</span>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" rel="noopener">LinkedIn ↗</a>
       <a href="/aviso-privacidad">Aviso de Privacidad</a>
       <a href="/terminos-uso">Términos de Uso</a>
-      <span style="display:inline-flex;align-items:center;gap:7px;">
-        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:16px; width:auto; display:block; opacity:.6;">
-        © 2026 Alfredo Piña
-      </span>
+      <a href="/verificar">Verificar diploma</a>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+    <div class="footer-brand">
+      <div class="footer-id">
+        <img src="/assets/img/brand/logo-compacto-oscuro.svg" alt="alfredopina.ai" loading="lazy">
+        <span>Productividad con Datos · Automatización · IA</span>
+      </div>
+      <div class="footer-created"><span>Created by</span><img src="/assets/img/firma-ap.png" alt="Firma de Alfredo Piña" loading="lazy"></div>
     </div>
   </div>
 </footer>
+<!--/layout:footer-->
 
 </body>
 </html>

@@ -1,0 +1,5 @@
+{
+  "embed": "",
+  "alto": 560,
+  "nota": "Pega en 'embed' la URL del iframe que da LinkedIn en la publicación (… > Insertar esta publicación), p. ej. https://www.linkedin.com/embed/feed/update/urn:li:share:1234567890. Vacío = la sección no se muestra."
+}

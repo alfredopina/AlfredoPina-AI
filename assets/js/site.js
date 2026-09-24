@@ -1,14 +1,12 @@
 // signature "active cell" selector
   const targets = [
-    { el: document.querySelector('h1.name'), label: 'A1' },
+    { el: document.querySelector('h1.hero-tagline'), label: 'A1' },
     { el: document.querySelectorAll('.stats-grid .cell')[1], label: 'B4' },
-    { el: document.querySelector('#acerca .section-title'), label: 'C2' },
     { el: document.querySelectorAll('.insight-card')[2], label: 'D6' },
     { el: document.querySelectorAll('.kpi-card')[1], label: 'E5' },
     { el: document.querySelector('.geo-panel'), label: 'E9' },
     { el: document.querySelectorAll('.cert-card')[0], label: 'F4' },
     { el: document.querySelector('.courses-grid'), label: 'G1' },
-    { el: document.querySelector('.clients-grid'), label: 'G3' },
   ].filter(t => t.el);
 
   const box = document.createElement('div');
@@ -98,18 +96,3 @@
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: .2 });
   document.querySelectorAll('.course-card').forEach(c => courseObs.observe(c));
-
-  // HABLEMOS — efecto de escritura en la fórmula al entrar a la sección
-  const contactFooter = document.querySelector('#contacto');
-  if(contactFooter){
-    let contactAnimated = false;
-    const contactObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if(e.isIntersecting && !contactAnimated){
-          contactAnimated = true;
-          document.getElementById('formulaBar')?.classList.add('in-view');
-        }
-      });
-    }, { threshold: .35 });
-    contactObs.observe(contactFooter);
-  }

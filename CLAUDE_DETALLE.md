@@ -983,3 +983,21 @@ Movido a HISTORIAL.md (2026-09-12) para no cargarlo completo en cada turno de Cl
 - Prefiere que se le proponga con 2-3 opciones y trade-offs antes de que se ejecute algo con impacto de diseño o arquitectura grande.
 - No asumas requerimientos nuevos — si algo no está en este documento ni fue pedido explícitamente en la sesión, pregunta antes de construir.
 - El Project de claude.ai (chat separado) tiene documentos `Memoria_...md` con el detalle completo de decisiones, historia y razones — este archivo es el resumen operativo, no el reemplazo de esos documentos.
+
+## Rebrand del sitio (2026-09-24)
+
+**Qué se hizo:** las 8 páginas públicas con shell (index, cursos, recursos, agenda, diagnóstico, encuesta, aviso, términos) pasaron a la identidad v2. Las de reportes/verificar/diplomas-grupo ya la traían; solo se les cambiaron los favicons.
+
+**Por qué un generador de layout (`tools/build-layout.js`) y no JS ni copiar-pegar:** el sitio es HTML puro sin build. Un include por JS parpadea y depende de JS; copiar-pegar en 8 páginas ya había producido drift (cursos/agenda/diagnóstico/encuesta tenían tokens de color viejos, `--text-dim:#8991a1` y `--text-faint:#4c5462`, con contraste bajo). El script corre en local, reescribe lo que hay entre `<!--layout:head|nav|footer-->` y se commitea el HTML resultante. Para tocar menú, pie o favicons: editar el script y correrlo. Lleva la config por página (CSS que carga, enlace activo, rótulo de página oculta, pie "full" o "min").
+
+**CSS:** `style.css` (498 líneas) y los `<style>` inline duplicados de cursos/agenda/diagnóstico/encuesta se repartieron en `base.css` (tokens, reset, nav, pie, fórmula de contacto), `cards.css` (tarjetas de herramienta: landing y recursos), `home.css` (solo landing) y un css por página. Se descartaron ~100 reglas muertas (dropdown de nav sin HTML, timeline/diff-grid/curso-* de cursos, chips flotantes...). cursos.html bajó de 99 KB a 30 KB (llevaba la firma en base64 inline). Las páginas de contenido angosto (diagnóstico/encuesta, wrap de 720 px) conservan su `.wrap`, pero el nav siempre mide 1120 px (si no, se desborda). Los tokens de texto quedaron unificados con los de mayor contraste.
+
+**Marca aplicada:** logo principal en el nav (sin nombre en texto ni firma); pie con logo compacto + descriptor + "Created by" + firma; tagline en el hero como h1 con cursor parpadeante (se apaga con prefers-reduced-motion); el descriptor sustituye al role-line viejo. El pie ya no lleva YouTube (era un `#` muerto) hasta que exista el canal. "Verificar diploma" va en el pie, no en el menú.
+
+**og:image / favicons:** `tools/build-og.js` (usa sharp, solo herramienta de build; instalarlo fuera del repo y apuntar NODE_PATH) genera `og-image.png` (1200×630), `favicon-32.png` y `apple-touch-icon.png` en `assets/img/brand/`. `assets/img/favicon/` se borró.
+
+**SEO:** index con title/description/canonical propios y JSON-LD (WebSite + Organization + Person; sameAs con LinkedIn personal y la página de empresa `company/146628648`). sitemap con lastmod; agenda/diagnóstico/encuesta/verificar siguen fuera (noindex).
+
+**LinkedIn:** no hay API gratuita para leer publicaciones de un perfil personal. Se usa el iframe "Insertar publicación" de LinkedIn: la URL va en `assets/data/linkedin.json` (`embed`), `assets/js/linkedin.js` la valida (solo `https://www.linkedin.com/embed/feed/update/...`) y muestra la sección #linkedin de la landing; vacío = oculta. Ojo privacidad: el iframe carga cookies de LinkedIn — mencionarlo en el Aviso de Privacidad al activarlo.
+
+**Pendiente/ideas:** menú móvil (bajo 600 px el nav solo muestra logo + Hablemos, sin Cursos/Recursos); íconos de herramienta nuevos aún sin aplicar en landing/cursos/recursos/diagnóstico (van con Productos y Recursos); og:image por página.

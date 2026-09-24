@@ -4,205 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Recursos — Alfredo Piña</title>
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon/apple-touch-icon.png">
+<!--layout:head-->
+<link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0d12">
+<meta property="og:image" content="https://www.alfredopina.ai/assets/img/brand/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="alfredopina.ai — Tu productividad tiene fórmula.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/cards.css">
+<link rel="stylesheet" href="/assets/css/recursos.css">
+<!--/layout:head-->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.alfredopina.ai/recursos">
 <meta property="og:title" content="Recursos — Alfredo Piña">
 <meta property="og:description" content="Manuales, casos de uso y material complementario de tus cursos de Excel, Power BI y más.">
-<meta property="og:image" content="https://www.alfredopina.ai/assets/img/firma-ap.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
-<style>
-  /* RECURSOS — específico de esta página */
-
-  .breadcrumb{
-    font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-top:16px; margin-bottom:18px;
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  }
-  .breadcrumb button{
-    font-family:var(--mono); font-size:12px; color:var(--text-dim); background:none; border:none;
-    cursor:pointer; padding:0;
-  }
-  .breadcrumb button:hover{color:var(--blue-bright);}
-  .breadcrumb .current{color:var(--text);}
-
-  .rec-view{display:none;}
-  .rec-view.active{display:block;}
-
-  /* nivel 1 — tarjeta "próximamente" (mismo patrón que cursos.html) */
-  .course-card.locked{cursor:default;}
-  .course-card.locked:hover{border-color:var(--line); transform:none;}
-  .course-badge-soon{
-    display:inline-flex; align-items:center; font-family:var(--mono); font-size:10px; letter-spacing:.5px;
-    color:var(--text-faint); border:1px solid var(--line); padding:4px 10px; border-radius:12px;
-  }
-
-  /* wrapper con el color de la herramienta activa */
-  .tool-scope{ margin-top:8px; }
-  .tool-scope-head{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
-  .tool-scope-icon{ width:26px; height:26px; color:var(--c); flex:none; }
-  .tool-scope-icon svg{ width:100%; height:100%; }
-  .tool-scope-title{ font-family:var(--display); font-weight:600; font-size:22px; }
-
-  /* pestañas estilo "hoja de Excel" */
-  .excel-tabs{
-    display:flex; align-items:flex-end; gap:3px; margin-top:32px;
-    border-bottom:2px solid var(--c);
-  }
-  .excel-tab{
-    position:relative; top:2px; font-family:var(--mono); font-size:13px; color:var(--text-dim);
-    background:var(--panel); border:1px solid var(--line); border-bottom:none;
-    border-radius:6px 6px 0 0; padding:10px 20px; cursor:pointer; transition:all .2s;
-    display:flex; align-items:center; gap:8px;
-  }
-  .excel-tab::before{
-    content:''; width:10px; height:10px; border-radius:2px; flex:none;
-    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size:5px 5px; border:1px solid var(--line);
-  }
-  .excel-tab:hover{color:var(--text);}
-  .excel-tab.active{
-    background:var(--panel-2); color:var(--c); border-color:var(--c); font-weight:600;
-  }
-  .excel-tab.active::before{ border-color:var(--c); }
-
-  /* candado de acceso */
-  .gate-wrap{ margin-top:36px; max-width:520px; transition:opacity .35s ease, transform .35s ease; }
-  .gate-wrap.gate-out{ opacity:0; transform:translateY(-8px); pointer-events:none; }
-  .gate-line{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
-  .gate-icon-inline{ width:19px; height:19px; color:var(--c); flex:none; }
-  .gate-icon-inline svg{ width:100%; height:100%; }
-  .gate-text-inline{ font-size:14px; color:var(--text-dim); line-height:1.6; }
-  .unlock-bar{
-    display:flex; align-items:stretch; border:1px solid var(--line); border-radius:6px;
-    background:var(--panel); overflow:hidden; transition:border-color .2s;
-  }
-  .unlock-bar.error{ border-color:#ef4444; }
-  @keyframes shake-x{
-    0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);}
-    60%{transform:translateX(-4px);} 80%{transform:translateX(4px);}
-  }
-  .unlock-bar.shake{ animation:shake-x .45s ease; }
-  .unlock-fx{
-    font-family:var(--mono); font-weight:700; font-style:italic; font-size:13px; color:var(--c);
-    background:color-mix(in srgb, var(--c) 14%, var(--panel)); padding:14px 16px;
-    border-right:1px solid var(--line); display:flex; align-items:center; flex:none;
-  }
-  .unlock-input{
-    flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text);
-    font-family:var(--mono); font-size:14px; padding:14px 16px; letter-spacing:.5px;
-  }
-  .unlock-input:disabled{ opacity:.6; }
-  .unlock-input::placeholder{ color:var(--text-faint); }
-  .unlock-submit{
-    font-family:var(--mono); font-size:12px; color:var(--text); background:var(--panel-2);
-    border:none; border-left:1px solid var(--line); padding:0 20px; cursor:pointer; transition:background .2s, color .2s;
-    display:flex; align-items:center; justify-content:center; white-space:nowrap;
-  }
-  .unlock-submit:hover{ background:color-mix(in srgb, var(--c) 20%, var(--panel-2)); }
-  .unlock-submit:disabled{ cursor:default; }
-  .unlock-submit.success{ background:color-mix(in srgb, var(--c) 30%, var(--panel-2)); color:var(--c); }
-  .btn-spinner{
-    display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:7px;
-    border:2px solid rgba(255,255,255,.28); border-top-color:currentColor;
-    animation:spin .7s linear infinite; flex:none;
-  }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-  .unlock-error-msg{
-    font-family:var(--mono); font-size:11.5px; color:#ef4444; margin-top:10px; min-height:1em; line-height:1.6;
-  }
-  .countdown b{
-    display:inline-block; color:#ef4444; font-weight:700; opacity:0; transform:scale(1.6);
-    animation:countdown-pop .35s ease forwards;
-  }
-  .countdown b:nth-child(1){animation-delay:.05s;}
-  .countdown b:nth-child(2){animation-delay:.35s;}
-  .countdown b:nth-child(3){animation-delay:.65s;}
-  @keyframes countdown-pop{ 0%{opacity:0; transform:scale(1.6);} 60%{opacity:1; transform:scale(1);} 100%{opacity:1; transform:scale(1);} }
-
-  /* nivel 3 — recursos */
-  #panelRecursos{ opacity:0; transform:translateY(8px); transition:opacity .4s ease, transform .4s ease; }
-  #panelRecursos.panel-in{ opacity:1; transform:translateY(0); }
-
-  .manual-card{
-    display:flex; align-items:center; gap:20px; border:1px solid var(--c); border-radius:10px;
-    background:color-mix(in srgb, var(--c) 8%, var(--panel)); padding:26px;
-  }
-  .manual-card + .manual-card{ margin-top:14px; }
-  .manual-icon{ width:38px; height:38px; color:var(--c); flex:none; }
-  .manual-icon svg{ width:100%; height:100%; }
-  .manual-body{ flex:1; min-width:0; }
-  .manual-title{ font-family:var(--display); font-weight:600; font-size:17px; margin-bottom:6px; }
-  .manual-text{ font-size:13px; color:var(--text-dim); line-height:1.6; }
-  .manual-btn{
-    font-family:var(--mono); font-size:12px; color:var(--c); border:1px solid var(--c);
-    padding:10px 18px; border-radius:6px; display:inline-flex; align-items:center; gap:8px;
-    flex:none; transition:background .2s;
-  }
-  .manual-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
-  .manual-btn svg{ width:14px; height:14px; }
-
-  .rec-subhead{
-    font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px;
-    margin-top:44px; margin-bottom:16px;
-  }
-
-  /* componente genérico de tarjeta — Casos Prácticos, Plantillas, Skills */
-  .res-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; }
-  .res-card{
-    display:flex; flex-direction:column; border:1px solid var(--line); border-radius:8px;
-    background:var(--panel); padding:18px; transition:border-color .2s;
-  }
-  .res-card:hover{ border-color:var(--c); }
-  .res-icon{ width:22px; height:22px; color:var(--c); margin-bottom:12px; flex:none; }
-  .res-icon svg{ width:100%; height:100%; }
-  .res-title{ font-family:var(--display); font-weight:600; font-size:14px; margin-bottom:6px; }
-  .res-text{ font-size:12.5px; color:var(--text-dim); line-height:1.6; flex:1; margin-bottom:14px; }
-  .res-btn{
-    font-family:var(--mono); font-size:11px; color:var(--c); border:1px solid var(--c);
-    padding:8px 14px; border-radius:6px; display:inline-flex; align-items:center; gap:7px;
-    align-self:flex-start; transition:background .2s;
-  }
-  .res-btn:hover{ background:color-mix(in srgb, var(--c) 16%, transparent); }
-  .res-btn svg{ width:12px; height:12px; }
-
-  .extra-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; }
-  .extra-card{
-    display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:8px;
-    background:var(--panel); padding:16px 18px; transition:border-color .2s;
-  }
-  .extra-card:hover{ border-color:#ef4444; }
-  .extra-icon{
-    width:30px; height:30px; flex:none; color:#ef4444; display:flex; align-items:center; justify-content:center;
-  }
-  .extra-icon svg{ width:100%; height:100%; }
-  .extra-title{ font-family:var(--display); font-weight:600; font-size:13px; }
-  .extra-tag{ font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:3px; }
-
-  .explora-strip{
-    margin-top:64px; padding-top:36px; border-top:1px solid var(--line);
-  }
-  .explora-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-top:20px; }
-  .explora-card{
-    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:8px;
-    background:var(--panel); padding:13px 15px; transition:all .2s;
-  }
-  .explora-card:hover{ border-color:var(--c); transform:translateY(-2px); }
-  .explora-icon{ width:18px; height:18px; color:var(--c); flex:none; }
-  .explora-icon svg{ width:100%; height:100%; }
-  .explora-label{ font-family:var(--display); font-weight:600; font-size:13px; }
-
-  @media (max-width:600px){
-    .manual-card{ flex-direction:column; align-items:flex-start; }
-    .unlock-bar{ flex-direction:column; }
-    .unlock-fx{ border-right:none; border-bottom:1px solid var(--line); }
-    .unlock-submit{ border-left:none; border-top:1px solid var(--line); padding:12px; }
-  }
-</style>
 </head>
 <body>
 
@@ -210,20 +32,19 @@
 
 <div class="grid-bg"></div>
 
-<nav>
+<!--layout:nav-->
+<nav aria-label="Principal">
   <div class="wrap">
-    <a href="/" class="nav-mark" style="text-decoration:none;">
-      <img src="assets/img/firma-ap.png" alt="Firma Alfredo Piña" style="height:34px; width:auto; display:block;">
-      <span class="nav-name">Alfredo Piña</span>
-    </a>
+    <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links">
-      <a href="/#experiencia" style="text-decoration:none;">Conóceme</a>
-      <a href="/cursos" style="text-decoration:none;">Cursos</a>
-      <a href="/recursos" style="text-decoration:none; color:var(--text);">Recursos</a>
+      <a href="/#experiencia">Conóceme</a>
+      <a href="/cursos">Cursos</a>
+      <a href="/recursos" aria-current="page">Recursos</a>
     </div>
     <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
   </div>
 </nav>
+<!--/layout:nav-->
 
 <main id="contenido">
 
@@ -291,31 +112,36 @@
 
 </main>
 
+<!--layout:footer-->
 <footer id="contacto">
   <div class="wrap">
     <div class="eyebrow">HABLEMOS</div>
     <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
 
-    <div class="formula-bar-big in-view" id="formulaBar">
+    <div class="formula-bar-big" id="formulaBar">
       <span class="formula-fx-big">fx</span>
-      <span class="formula-reveal" style="width:52ch;"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
     </div>
 
     <div class="contact-meta">
       <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
       <span>(+52) 811 725 5937</span>
-      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank">LinkedIn ↗</a>
-      <!-- TODO: reemplazar con el link real del canal de YouTube en cuanto exista -->
-      <a href="#" target="_blank">YouTube ↗</a>
+      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" rel="noopener">LinkedIn ↗</a>
       <a href="/aviso-privacidad">Aviso de Privacidad</a>
       <a href="/terminos-uso">Términos de Uso</a>
-      <span style="display:inline-flex;align-items:center;gap:7px;">
-        <img src="assets/img/firma-ap.png" alt="" loading="lazy" style="height:16px; width:auto; display:block; opacity:.6;">
-        © 2026 Alfredo Piña
-      </span>
+      <a href="/verificar">Verificar diploma</a>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+    <div class="footer-brand">
+      <div class="footer-id">
+        <img src="/assets/img/brand/logo-compacto-oscuro.svg" alt="alfredopina.ai" loading="lazy">
+        <span>Productividad con Datos · Automatización · IA</span>
+      </div>
+      <div class="footer-created"><span>Created by</span><img src="/assets/img/firma-ap.png" alt="Firma de Alfredo Piña" loading="lazy"></div>
     </div>
   </div>
 </footer>
+<!--/layout:footer-->
 
 <script>
   // ─────────────────────────────────────────────────────────────
@@ -661,5 +487,6 @@
   renderBreadcrumb();
 </script>
 
+<script src="/assets/js/footer.js"></script>
 </body>
 </html>

@@ -157,6 +157,7 @@
 
   /* acciones + emisor */
   .acciones{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center; }
+  .li-nota{ font-family:var(--mono); font-size:10.5px; line-height:1.6; color:var(--text-faint); margin-top:10px; max-width:640px; }
   .acciones .nota{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-left:auto; display:flex; align-items:center; gap:7px; }
   .emisor{ margin-top:16px; padding:20px 24px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
   .emisor img{ height:24px; width:auto; }
@@ -194,7 +195,6 @@
       <img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai">
       <span class="brand-desc">Productividad con Datos · Automatización · IA</span>
     </div>
-    <span class="live"><span class="live-dot"></span><span id="ahora"></span></span>
   </div>
 </div></header>
 
@@ -257,11 +257,13 @@
     </div>
 
     <div class="acciones rise r5">
-      <a class="btn linkedin" id="vLinkedin" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 20.5h-3.6v-5.6c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.7H9.4V9h3.4v1.6h.1c.5-.9 1.6-1.8 3.4-1.8 3.6 0 4.3 2.4 4.3 5.500v6.200ZM5.300 7.400a2.100 2.100 0 1 1 0-4.200 2.100 2.100 0 0 1 0 4.200ZM7.100 20.500H3.500V9h3.600v11.500Z"/></svg>Agregar a mi perfil de LinkedIn</a>
+      <a class="btn linkedin" id="vLinkedin" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 20.5h-3.6v-5.6c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.7H9.4V9h3.4v1.6h.1c.5-.9 1.6-1.8 3.4-1.8 3.6 0 4.3 2.4 4.3 5.500v6.200ZM5.300 7.400a2.100 2.100 0 1 1 0-4.200 2.100 2.100 0 0 1 0 4.200ZM7.100 20.500H3.500V9h3.600v11.500Z"/></svg>Es mi diploma: agregar a LinkedIn</a>
       <button type="button" class="btn ghost" id="vCopiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="vCopiarTxt">Copiar link de verificación</span></button>
       <button type="button" class="btn ghost" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Imprimir</button>
       <span class="nota"><span class="live-dot"></span><span id="vVerificadoEn"></span></span>
     </div>
+
+    <p class="li-nota rise r5">Si el diploma es tuyo, puedes agregarlo a tu perfil. Quien abra la credencial desde LinkedIn verá esta página y podrá comprobar que el nombre coincide con tu perfil.</p>
 
     <div class="card emisor rise r5">
       <img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai">
@@ -297,7 +299,6 @@
     return `${da.getDate()} ${mes(da)} – ${db.getDate()} ${mes(db)} ${db.getFullYear()}`;
   }
   const fmtAhora = d => d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' }).toUpperCase().replace(/\./g, '');
-  $('ahora').textContent = 'REGISTRO EN VIVO · ' + fmtAhora(new Date());
 
   const ICO = {
     check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',

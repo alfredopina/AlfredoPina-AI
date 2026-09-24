@@ -561,6 +561,29 @@
   .cal-action-diploma{ color:var(--good); border-color:var(--good); background-color:color-mix(in srgb, var(--good) 14%, transparent); }
   .cal-action-diploma:hover:not(:disabled){ background-color:color-mix(in srgb, var(--good) 24%, transparent); }
 
+  /* Tablas de Resultados/Reportes/Consultar Diplomas: Empresa y Curso con
+     ancho tope + puntos suspensivos (texto completo en el tooltip) para que
+     Acciones quepa sin scroll horizontal; columnas numéricas compactas. */
+  .dip-table td.cal-col-empresa, .dip-table th.cal-col-empresa{ max-width:128px; }
+  .dip-table td.cal-col-curso, .dip-table th.cal-col-curso{ max-width:118px; }
+  .dip-table td.cal-col-empresa > b, .dip-table td.cal-col-empresa > .diag-nombre-sub,
+  .dip-table td.cal-col-curso > .cal-curso-nombre, .dip-table td.cal-col-curso > .diag-nombre-sub{
+    display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .dip-table td.cal-col-num, .dip-table th.cal-col-num{ padding-left:4px; padding-right:4px; text-align:center; }
+  .dip-table th.cal-col-num{ font-size:10.5px; letter-spacing:0; }
+  #calTab-resultados .cal-action-btn{ padding:6px 8px; gap:5px; }
+  #calTab-resultados .diag-row-actions{ gap:4px; }
+  #calTab-resultados .dip-table td{ padding-left:5px; padding-right:5px; }
+  #calTab-resultados .dip-table th{ padding-left:7px; padding-right:7px; }
+  #calTab-resultados .dip-table th.cal-col-num{ padding-left:3px; padding-right:3px; }
+  .dip-table td.cal-col-fecha2{ white-space:nowrap; line-height:1.45; }
+
+  /* Tarjeta "Reporte con los filtros" plegable (arranca plegada) */
+  .cal-gen-toggle svg{ transition:transform .15s; }
+  .cal-gen-toggle.abierto svg{ transform:rotate(180deg); }
+  .cal-gen-body[hidden]{ display:none; }
+
   /* ───────────────────────── PANEL DIPLOMAS ───────────────────────── */
   .radm-field input[type=date], .radm-field input[type=number]{
     font-family:var(--body); font-size:13px; color:var(--text); background:var(--panel-2);
@@ -3524,7 +3547,7 @@
         <div id="calToast" class="radm-toast" hidden></div>
 
         <div class="dash-etabs" id="calTabs">
-          <button type="button" class="dash-etab active" data-caltab="cargar">Cargar</button>
+          <button type="button" class="dash-etab active" data-caltab="cargar">Cargar Calificaciones</button>
           <button type="button" class="dash-etab" data-caltab="resultados">Resultados</button>
           <button type="button" class="dash-etab" data-caltab="reportes">Reportes</button>
         </div>
@@ -3683,24 +3706,29 @@
             <div class="cal-gen-head">
               <span class="dip-paso-title">Reporte con los filtros de arriba</span>
               <div class="cal-gen-stats" id="calGenStats"></div>
-            </div>
-            <div class="cal-gen-fila">
-              <div class="radm-field cal-gen-etq">
-                <label>ETIQUETA</label>
-                <input type="text" id="calGenEtiqueta" maxlength="80" placeholder="Ej. Cliente - Curso - MesAño">
-              </div>
-              <button type="button" class="radm-btn cal-gen-btn" id="calGenerarReporte" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Generar reporte
+              <button type="button" class="cot-icon-btn cal-gen-toggle" id="calGenToggle" title="Mostrar u ocultar el generador de reporte por filtros" aria-expanded="false" aria-controls="calGenBody">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             </div>
-            <span class="radm-hint" style="display:block; margin-top:10px;">Incluye a todos los alumnos que coinciden con los filtros de arriba (o todos, si no hay filtros). Es un snapshot — no cambia si después editas calificaciones; genera uno nuevo cuando quieras una versión actualizada.</span>
-            <div class="radm-field" id="calReporteLinkWrap" style="margin-top:12px;" hidden>
-              <label>LINK DEL REPORTE</label>
-              <div class="enc-link-row">
-                <input type="text" id="calReporteLinkInput" readonly>
-                <button type="button" class="radm-btn radm-btn-ghost" id="calReporteAbrir" style="min-width:auto">Abrir</button>
-                <button type="button" class="radm-btn radm-btn-ghost" id="calReporteCopiar" style="min-width:auto">Copiar</button>
+            <div class="cal-gen-body" id="calGenBody" hidden>
+              <div class="cal-gen-fila">
+                <div class="radm-field cal-gen-etq">
+                  <label>ETIQUETA</label>
+                  <input type="text" id="calGenEtiqueta" maxlength="80" placeholder="Ej. Cliente - Curso - MesAño">
+                </div>
+                <button type="button" class="radm-btn cal-gen-btn" id="calGenerarReporte" disabled>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;"><path d="M9 12h6M9 16h6M9 8h2M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Generar reporte
+                </button>
+              </div>
+              <span class="radm-hint" style="display:block; margin-top:10px;">Incluye a todos los alumnos que coinciden con los filtros de arriba (o todos, si no hay filtros). Es un snapshot — no cambia si después editas calificaciones; genera uno nuevo cuando quieras una versión actualizada.</span>
+              <div class="radm-field" id="calReporteLinkWrap" style="margin-top:12px;" hidden>
+                <label>LINK DEL REPORTE</label>
+                <div class="enc-link-row">
+                  <input type="text" id="calReporteLinkInput" readonly>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="calReporteAbrir" style="min-width:auto">Abrir</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="calReporteCopiar" style="min-width:auto">Copiar</button>
+                </div>
               </div>
             </div>
           </div>
@@ -3710,22 +3738,21 @@
             <table class="dip-table">
               <thead>
                 <tr>
-                  <th data-sort="empresa">Empresa<span class="th-sort-ico"></span></th>
-                  <th data-sort="fase">Fase<span class="th-sort-ico"></span></th>
-                  <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
+                  <th data-sort="empresa" class="cal-col-empresa">Empresa<span class="th-sort-ico"></span></th>
+                  <th data-sort="curso" class="cal-col-curso">Curso<span class="th-sort-ico"></span></th>
                   <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
                   <th data-sort="fecha">Fechas<span class="th-sort-ico"></span></th>
-                  <th data-sort="alumnos" title="Clic en el número para ver el detalle de cada alumno">Alumnos<span class="th-sort-ico"></span></th>
-                  <th data-sort="aprobados">Aprobado<span class="th-sort-ico"></span></th>
-                  <th data-sort="participaron">Participó<span class="th-sort-ico"></span></th>
-                  <th data-sort="no_aprobados">No aprobado<span class="th-sort-ico"></span></th>
-                  <th data-sort="asistencia" title="Asistencias totales ÷ asistencias posibles (alumnos × sesiones)">Asistencia<span class="th-sort-ico"></span></th>
-                  <th data-sort="calificacion" title="Promedio de la calificación de los alumnos, cada una topada a 100. Verde ≥80 · Ámbar &lt;80 · Rojo en 0.">Calificación<span class="th-sort-ico"></span></th>
+                  <th data-sort="alumnos" class="cal-col-num" title="Clic en el número para ver el detalle de cada alumno">Alumnos<span class="th-sort-ico"></span></th>
+                  <th data-sort="aprobados" class="cal-col-num">Aprobado<span class="th-sort-ico"></span></th>
+                  <th data-sort="participaron" class="cal-col-num">Participó<span class="th-sort-ico"></span></th>
+                  <th data-sort="no_aprobados" class="cal-col-num th-2l">No<br>aprobado<span class="th-sort-ico"></span></th>
+                  <th data-sort="asistencia" class="cal-col-num" title="Asistencias totales ÷ asistencias posibles (alumnos × sesiones)">Asistencia<span class="th-sort-ico"></span></th>
+                  <th data-sort="calificacion" class="cal-col-num" title="Promedio de la calificación de los alumnos, cada una topada a 100. Verde ≥80 · Ámbar &lt;80 · Rojo en 0.">Calificación<span class="th-sort-ico"></span></th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="calResultadosBody">
-                <tr><td colspan="12" class="radm-empty-row">Cargando resultados...</td></tr>
+                <tr><td colspan="11" class="radm-empty-row">Cargando resultados...</td></tr>
               </tbody>
             </table>
           </div>
@@ -3738,8 +3765,9 @@
               <thead>
                 <tr>
                   <th data-sort="generadoEn">Creado<span class="th-sort-ico"></span></th>
-                  <th data-sort="etiqueta">Etiqueta<span class="th-sort-ico"></span></th>
-                  <th>Filtros aplicados</th>
+                  <th class="cal-col-empresa">Empresa</th>
+                  <th class="cal-col-curso">Curso</th>
+                  <th>Instructor</th>
                   <th data-sort="n">Alumnos<span class="th-sort-ico"></span></th>
                   <th data-sort="promedioCalificacion">Calificación<span class="th-sort-ico"></span></th>
                   <th data-sort="vistas" title="Veces que se abrió el link del reporte">Vistas<span class="th-sort-ico"></span></th>
@@ -3747,7 +3775,7 @@
                 </tr>
               </thead>
               <tbody id="calReportesBody">
-                <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -7739,7 +7767,7 @@
     let detalleAbiertos = new Set(); // grupoId con el desglose desplegado
     let calSort = { campo: null, dir: 'asc' }; // null = orden del servidor (última carga primero)
 
-    const conPct = (n, total) => total ? `${n} <span class="diag-nombre-sub" style="display:inline;">(${Math.round(n * 100 / total)}%)</span>` : String(n);
+    const conPct = (n, total) => total ? `${n}<span class="diag-nombre-sub" style="display:block;margin-top:0;">${Math.round(n * 100 / total)}%</span>` : String(n);
 
     // ── orden por encabezado, mismo criterio que Consultar Grupos/Encuestas:
     // vacíos siempre al final, sin importar la dirección ──
@@ -7820,21 +7848,20 @@
       const abierto = detalleAbiertos.has(r.grupo_id);
       return `
       <tr>
-        <td><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}</td>
-        <td><span class="enc-fase">${escapeHtml(r.fase)}</span></td>
-        <td>${r.nombre_curso ? escapeHtml(r.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))}</div></td>
+        <td class="cal-col-empresa" title="${escapeHtml(r.cliente_final || r.cliente)}"><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}${r.contacto ? `<div class="diag-nombre-sub">${escapeHtml(r.contacto)}</div>` : ''}</td>
+        <td class="cal-col-curso" title="${escapeHtml(r.nombre_curso || '')}">${r.nombre_curso ? `<span class="cal-curso-nombre">${escapeHtml(r.nombre_curso)}</span>` : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))}</div></td>
         <td>${r.instructor ? escapeHtml(r.instructor) : '—'}</td>
         <td class="radm-mono">${fmtFecha(r.fecha_inicio)} – ${fmtFecha(r.fecha_fin)}</td>
-        <td>
+        <td class="cal-col-num">
           <button type="button" class="cal-alumnos-btn${abierto ? ' abierto' : ''}" data-id="${r.grupo_id}" title="Ver el detalle de cada alumno">
             <span class="radm-mono">${r.alumnos}</span>${ICO_CHEVRON}
           </button>
         </td>
-        <td class="radm-mono">${conPct(r.aprobados, r.alumnos)}</td>
-        <td class="radm-mono">${conPct(r.participaron, r.alumnos)}</td>
-        <td class="radm-mono">${conPct(r.no_aprobados, r.alumnos)}</td>
-        <td class="radm-mono">${asist}</td>
-        <td>${semaforoCalifHtml(r.prom_calificacion)}</td>
+        <td class="radm-mono cal-col-num">${conPct(r.aprobados, r.alumnos)}</td>
+        <td class="radm-mono cal-col-num">${conPct(r.participaron, r.alumnos)}</td>
+        <td class="radm-mono cal-col-num">${conPct(r.no_aprobados, r.alumnos)}</td>
+        <td class="radm-mono cal-col-num">${asist}</td>
+        <td class="cal-col-num">${semaforoCalifHtml(r.prom_calificacion)}</td>
         <td>
           <div class="diag-row-actions">
             <button type="button" class="cal-action-btn cal-action-reporte cal-reporte-btn" data-id="${r.grupo_id}" title="Generar el Reporte de Resultados de este grupo y abrirlo">${ICO_REPORTE}Crear Reporte</button>
@@ -7869,7 +7896,7 @@
       const detalle = detalleCache.get(r.grupo_id);
       const meta = `<div class="cal-detalle-meta"><span>Cargado: ${fmtFechaLocal(r.ultima_carga)}</span>${r.nota_general ? `<span class="cal-detalle-nota">Nota general: ${escapeHtml(r.nota_general)}</span>` : ''}</div>`;
       const cuerpo = detalle ? detalleTablaHtml(detalle) : '<span class="radm-hint">Cargando alumnos…</span>';
-      return `<tr class="cal-detalle-row" data-detalle="${r.grupo_id}"><td colspan="12">${meta}${cuerpo}</td></tr>`;
+      return `<tr class="cal-detalle-row" data-detalle="${r.grupo_id}"><td colspan="11">${meta}${cuerpo}</td></tr>`;
     }
 
     function renderResultados(){
@@ -7883,11 +7910,11 @@
       renderCabecerasOrden();
       actualizarGenStats(filas);
       if(!resultadosCache.length){
-        body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar.</td></tr>';
+        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar Calificaciones.</td></tr>';
         return;
       }
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
+        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
         return;
       }
       body.innerHTML = filas.map(filaHtml).join('');
@@ -7895,13 +7922,13 @@
 
     async function cargarResultados(){
       const body = document.getElementById('calResultadosBody');
-      body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Cargando resultados... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
+      body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Cargando resultados... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
       try {
         resultadosCache = await apiGetConReintento('/api/listCalificacionesAdmin');
         poblarInstructores();
         renderResultados();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="12" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -7969,6 +7996,13 @@
       } catch(err){ toast('No se pudo generar el reporte: ' + err.message, false); }
       finally { actualizarGenStats(ordenarFilas(filasFiltradas())); }
     });
+    document.getElementById('calGenToggle').addEventListener('click', () => {
+      const cuerpo = document.getElementById('calGenBody');
+      const btn = document.getElementById('calGenToggle');
+      cuerpo.hidden = !cuerpo.hidden;
+      btn.classList.toggle('abierto', !cuerpo.hidden);
+      btn.setAttribute('aria-expanded', String(!cuerpo.hidden));
+    });
     document.getElementById('calReporteAbrir').addEventListener('click', () => {
       const v = document.getElementById('calReporteLinkInput').value;
       if(v) window.open(v, '_blank');
@@ -7981,21 +8015,7 @@
     // ══ REPORTES — solo consulta de lo ya generado (Table Storage, sin SQL) ══
     let calReportesRaw = [];
     const calRepSort = { campo:'generadoEn', dir:'desc' };
-    const N_COLS_REP_CAL = 7;
-
-    function chipsFiltrosReporteCal(f){
-      const chips = [];
-      if(f.empresa) chips.push('Empresa: ' + f.empresa);
-      if(f.instructor) chips.push('Instructor: ' + f.instructor);
-      if(f.herramienta) chips.push(TOOL_NAMES[f.herramienta] || f.herramienta);
-      if(f.curso) chips.push('Curso: ' + f.curso);
-      if(f.desde || f.hasta){
-        const dia = iso => iso.split('-').reverse().join('/');
-        chips.push((f.desde ? dia(f.desde) : '…') + ' – ' + (f.hasta ? dia(f.hasta) : '…'));
-      }
-      if(!chips.length) chips.push('Todos los grupos');
-      return `<div class="cal-rep-filtros">${chips.map(c => `<span class="cal-gen-chip">${escapeHtml(c)}</span>`).join('')}</div>`;
-    }
+    const N_COLS_REP_CAL = 8;
 
     function renderReportesCal(){
       const body = document.getElementById('calReportesBody');
@@ -8017,8 +8037,9 @@
       body.innerHTML = lista.map(r => `
         <tr>
           <td class="radm-mono">${fmtFechaLocal(r.generadoEn)}</td>
-          <td>${r.etiqueta ? escapeHtml(r.etiqueta) : '<span class="cal-anonimo">Sin etiqueta</span>'}</td>
-          <td>${chipsFiltrosReporteCal(r.filtros || {})}</td>
+          <td class="cal-col-empresa" title="${escapeHtml(r.empresaTexto)}">${r.empresaTexto ? `<b>${escapeHtml(r.empresaTexto)}</b>` : '—'}${r.contactoTexto ? `<div class="diag-nombre-sub">${escapeHtml(r.contactoTexto)}</div>` : ''}</td>
+          <td class="cal-col-curso" title="${escapeHtml(r.cursoTexto)}">${r.cursoTexto ? `<span class="cal-curso-nombre">${escapeHtml(r.cursoTexto)}</span>` : '—'}${(r.herramientas || []).length ? `<div class="diag-nombre-sub">${escapeHtml(r.herramientas.map(h => TOOL_NAMES[h] || h).join(' + '))}</div>` : ''}</td>
+          <td>${r.instructorTexto ? escapeHtml(r.instructorTexto) : '—'}</td>
           <td class="radm-mono">${r.n}${r.nGrupos ? `<div class="diag-nombre-sub">${r.nGrupos} ${r.nGrupos === 1 ? 'grupo' : 'grupos'}</div>` : ''}</td>
           <td>${semaforoCalifHtml(r.promedioCalificacion)}</td>
           <td class="radm-mono">${r.vistas || 0}</td>
@@ -8045,7 +8066,7 @@
     document.querySelectorAll('#calReportesTable th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
         if(calRepSort.campo === th.dataset.sort) calRepSort.dir = calRepSort.dir === 'asc' ? 'desc' : 'asc';
-        else { calRepSort.campo = th.dataset.sort; calRepSort.dir = th.dataset.sort === 'etiqueta' ? 'asc' : 'desc'; }
+        else { calRepSort.campo = th.dataset.sort; calRepSort.dir = 'desc'; }
         renderReportesCal();
       });
     });
@@ -8126,9 +8147,9 @@
           if(resp.yaExistian) msg += ` ${resp.yaExistian} ya existía${resp.yaExistian === 1 ? '' : 'n'}.`;
 
           const idxActual = FASES.indexOf(r.fase);
-          const idxDestino = FASES.indexOf('Diplomas');
-          if(idxActual >= 0 && idxActual < idxDestino && confirm(`${msg}\n\n¿Mover el grupo de "${r.fase}" a "Diplomas"?`)){
-            try { await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: r.grupo_id, faseNueva: 'Diplomas' }); msg += ' Grupo movido a Diplomas.'; }
+          const idxDestino = FASES.indexOf('Cerrado');
+          if(idxActual >= 0 && idxActual < idxDestino && confirm(`${msg}\n\n¿Mover el grupo de "${r.fase}" a "Cerrado" y cerrarlo?`)){
+            try { await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: r.grupo_id, faseNueva: 'Cerrado' }); msg += ' Grupo movido a Cerrado.'; }
             catch(e){ msg += ` No se pudo mover la fase: ${e.message}`; }
           }
 
@@ -8397,11 +8418,11 @@
       const participantes = g.anulados ? `${g.vigentes}/${g.total}` : `${g.vigentes}`;
       return `
       <tr>
-        <td><b>${escapeHtml(empresaDe(g))}</b>${g.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(g.cliente)}</div>` : ''}</td>
+        <td><b>${escapeHtml(empresaDe(g))}</b>${g.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(g.cliente)}</div>` : ''}${g.contacto ? `<div class="diag-nombre-sub">${escapeHtml(g.contacto)}</div>` : ''}</td>
         <td>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(g.herramientas))}</div></td>
         <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
         <td>${g.modalidad ? escapeHtml(g.modalidad) : '—'}</td>
-        <td class="radm-mono">${fmtFecha(g.fecha_inicio)} – ${fmtFecha(g.fecha_fin)}</td>
+        <td class="radm-mono cal-col-fecha2">${fmtFecha(g.fecha_inicio)}<br>${fmtFecha(g.fecha_fin)}</td>
         <td class="radm-mono">${g.horas || '—'}</td>
         <td>
           <button type="button" class="cal-alumnos-btn${abierto ? ' abierto' : ''}" data-id="${g.grupo_id}" title="Ver el detalle de cada alumno">

@@ -45,9 +45,22 @@ function unirTrozos(entidad) {
   return texto;
 }
 
+// Resumen liviano de Empresa/Curso/Instructor para la lista de Reportes del
+// admin (que no lee el snapshot completo, solo estas columnas de la tabla) —
+// un reporte puede juntar varios grupos (filtrable), así que si hay más de un
+// valor distinto se guarda el primero + cuántos hay, y el texto queda como
+// "Varios (N)" en vez de mostrar uno solo engañosamente.
+function resumenDistintos(valores) {
+  const distintos = [...new Set(valores.filter(Boolean))];
+  if (!distintos.length) return "";
+  if (distintos.length === 1) return distintos[0];
+  return `${distintos[0]} +${distintos.length - 1} más`;
+}
+
 async function guardarReporteCalificaciones(table, { token, snapshot }) {
   await ensureTable(table);
   const { partes, n } = partirEnTrozos(JSON.stringify(snapshot));
+  const porGrupo = snapshot.porGrupo || [];
   await table.upsertEntity(
     {
       partitionKey: "reporte",
@@ -59,6 +72,11 @@ async function guardarReporteCalificaciones(table, { token, snapshot }) {
       nGrupos: snapshot.nGrupos,
       aprobados: snapshot.aprobados,
       promedioCalificacion: snapshot.promedioCalificacion,
+      empresaTexto: resumenDistintos(porGrupo.map((g) => g.cliente)),
+      contactoTexto: porGrupo.length === 1 ? porGrupo[0].contacto || "" : "",
+      cursoTexto: resumenDistintos(porGrupo.map((g) => g.curso)),
+      herramientasJson: JSON.stringify([...new Set(porGrupo.flatMap((g) => g.herramientas || []))]),
+      instructorTexto: resumenDistintos(porGrupo.map((g) => g.instructor)),
       vistas: 0,
       snapPartes: n,
       ...partes,
@@ -97,12 +115,14 @@ async function listarReportesCalificaciones(table) {
   const entidades = table.listEntities({
     queryOptions: {
       filter: "PartitionKey eq 'reporte'",
-      select: ["rowKey", "generadoEn", "etiqueta", "filtrosJson", "n", "nGrupos", "aprobados", "promedioCalificacion", "vistas"],
+      select: ["rowKey", "generadoEn", "etiqueta", "filtrosJson", "n", "nGrupos", "aprobados", "promedioCalificacion", "empresaTexto", "contactoTexto", "cursoTexto", "herramientasJson", "instructorTexto", "vistas"],
     },
   });
   for await (const e of entidades) {
     let filtros = {};
     try { filtros = JSON.parse(e.filtrosJson || "{}"); } catch (err) { filtros = {}; }
+    let herramientas = [];
+    try { herramientas = JSON.parse(e.herramientasJson || "[]"); } catch (err) { herramientas = []; }
     items.push({
       token: e.rowKey,
       generadoEn: e.generadoEn,
@@ -112,6 +132,11 @@ async function listarReportesCalificaciones(table) {
       nGrupos: e.nGrupos,
       aprobados: e.aprobados,
       promedioCalificacion: e.promedioCalificacion,
+      empresaTexto: e.empresaTexto || "",
+      contactoTexto: e.contactoTexto || "",
+      cursoTexto: e.cursoTexto || "",
+      herramientas,
+      instructorTexto: e.instructorTexto || "",
       vistas: e.vistas || 0,
     });
   }

@@ -33,6 +33,7 @@ const PAGES = {
 
 const CAFE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const CAFE_BIG = CAFE.replace('viewBox', 'class="cafe-icon" viewBox').replace(' style="width:13px;height:13px;"', "").replace('stroke-width="1.8"', 'stroke-width="1.7"');
+const MENU = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`;
 const OCULTA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 4.24A9.5 9.5 0 0 1 12 4c5 0 9 4 10 8-.32 1.1-.86 2.17-1.6 3.14M6.6 6.6C4.4 8 2.9 10 2 12c1 4 5 8 10 8 1.26 0 2.45-.24 3.53-.68" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function head(cfg) {
@@ -52,6 +53,7 @@ function head(cfg) {
     );
   }
   cfg.css.forEach((c) => l.push(`<link rel="stylesheet" href="/assets/css/${c}.css">`));
+  l.push(`<script src="/assets/js/nav.js" defer></script>`);
   return l.join("\n");
 }
 
@@ -64,12 +66,13 @@ function nav(cfg) {
   return `<nav aria-label="Principal">
   <div class="wrap">
     <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="${BRAND}logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
-    <div class="nav-links">
+    <div class="nav-links" id="navLinks">
       <a href="${n.conoceme || "/#experiencia"}">Conóceme</a>
       <a href="/cursos"${cur("cursos")}>Cursos</a>
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>
     <a href="/#contacto" class="nav-cta">${CAFE} Hablemos</a>
+    <button type="button" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">${MENU}</button>
   </div>
 </nav>`;
 }

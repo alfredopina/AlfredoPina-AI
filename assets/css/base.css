@@ -175,6 +175,23 @@ section[id],header[id],footer[id]{scroll-margin-top:150px;}
   display:flex; align-items:center; gap:6px;
 }
 .nav-hidden-note svg{width:12px; height:12px; flex:none;}
+.nav-toggle{
+  display:none; width:38px; height:34px; align-items:center; justify-content:center; flex:none;
+  background:none; border:1px solid var(--line); border-radius:3px; color:var(--text); cursor:pointer;
+}
+.nav-toggle svg{width:18px; height:18px;}
+.nav-toggle:hover{border-color:var(--blue); background:var(--blue-soft);}
+@media (max-width:600px){
+  nav .wrap{gap:10px;}
+  .nav-logo{margin-right:auto;}
+  .nav-toggle{display:inline-flex;}
+  nav.open .nav-links{
+    display:flex; position:absolute; top:100%; left:0; right:0; flex-direction:column; align-items:stretch; gap:0;
+    background:var(--bg); border-bottom:1px solid var(--line); padding:6px 20px 12px;
+  }
+  nav.open .nav-links a,nav.open .nav-hidden-note{padding:13px 0; border-bottom:1px solid var(--line-soft); font-size:15px;}
+  nav.open .nav-links a:last-child{border-bottom:none;}
+}
 @media (max-width:420px){ .nav-logo img{height:24px;} .nav-cta{padding:7px 12px;} }
 
 /* ══ Marca v2 — pie ══ */

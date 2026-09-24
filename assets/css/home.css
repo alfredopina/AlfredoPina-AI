@@ -122,6 +122,10 @@ h1.hero-tagline .caret{
   }
 
 /* CTA disruptivo — barra de fórmula */
+.btn-primary{background:#1f5fe0; color:#fff; padding:14px 26px;}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 0 24px -6px var(--blue);}
+.btn-primary:focus-visible,.btn-formula:focus-visible{outline:2px solid var(--blue-bright); outline-offset:3px;}
+
 .btn-formula{
     background:var(--panel); border:1px solid var(--blue-dim); padding:0;
     overflow:hidden; box-shadow:0 0 0 0 var(--blue-soft);

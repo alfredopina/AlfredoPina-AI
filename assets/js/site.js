@@ -1,3 +1,31 @@
+// titular del hero: se escribe letra por letra (el texto completo queda en el DOM para lectores de pantalla y buscadores)
+{
+  const h = document.querySelector('h1.hero-tagline');
+  if (h && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const caret = h.querySelector('.caret');
+    h.setAttribute('aria-label', h.textContent);
+    const letras = [];
+    const recorrer = (nodo) => [...nodo.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const f = document.createDocumentFragment();
+        [...n.textContent].forEach((ch) => {
+          const sp = document.createElement('span');
+          sp.textContent = ch;
+          sp.style.visibility = 'hidden';
+          sp.setAttribute('aria-hidden', 'true');
+          f.appendChild(sp);
+          letras.push(sp);
+        });
+        n.replaceWith(f);
+      } else if (n.nodeType === 1 && n !== caret && n.tagName !== 'BR') recorrer(n);
+    });
+    recorrer(h);
+    let i = 0;
+    const paso = () => { if (i < letras.length) { letras[i++].style.visibility = 'visible'; setTimeout(paso, 42); } };
+    setTimeout(paso, 350);
+  }
+}
+
 // signature "active cell" selector
   const targets = [
     { el: document.querySelector('h1.hero-tagline'), label: 'A1' },

@@ -420,7 +420,18 @@ section{padding:96px 0; position:relative; z-index:1;}
 
 /* LINKEDIN — última publicación (se llena desde assets/data/linkedin.json) */
 #linkedin[hidden]{display:none;}
-.li-card{margin-top:40px; max-width:560px;}
-.li-embed iframe{width:100%; border:1px solid var(--line); border-radius:10px; background:var(--panel); display:block;}
-.li-link{display:inline-block; margin-top:16px; font-family:var(--mono); font-size:13px; color:var(--text-dim);}
-.li-link:hover{color:var(--blue-bright);}
+.li-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,540px); gap:56px; align-items:center;}
+.li-text{margin-top:18px; font-size:16.5px; line-height:1.7; color:var(--text-dim); max-width:420px;}
+.li-link{
+  display:inline-flex; align-items:center; gap:8px; margin-top:28px; padding:12px 20px;
+  font-family:var(--mono); font-size:13px; color:var(--text);
+  border:1px solid var(--line); border-radius:3px; transition:border-color .2s, background .2s;
+}
+.li-link:hover{border-color:var(--blue); background:var(--blue-soft);}
+.li-frame{
+  background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px;
+  display:flex; justify-content:center;
+}
+.li-embed{width:100%; max-width:504px;}
+.li-embed iframe{width:100%; border:0; border-radius:8px; display:block;}
+@media (max-width:860px){ .li-grid{grid-template-columns:1fr; gap:32px;} }

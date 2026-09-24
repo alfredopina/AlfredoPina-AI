@@ -21,7 +21,7 @@ const BRAND = "/assets/img/brand/";
 // nav.conoceme: destino de "Conóceme" · nav.active: enlace resaltado · nav.tag: rótulo de páginas ocultas
 // footer: "full" (invitación a contactar + fórmula) | "min" (solo datos y marca)
 const PAGES = {
-  "index.html": { css: ["base", "cards", "home"], nav: { conoceme: "#acerca-nav" }, footer: "full", social: true },
+  "index.html": { css: ["base", "cards", "home"], nav: { conoceme: "#" }, footer: "full", social: true },
   "cursos.html": { css: ["base", "cursos"], nav: { active: "cursos" }, footer: "full", social: true },
   "recursos.html": { css: ["base", "cards", "recursos"], nav: { active: "recursos" }, footer: "full", social: true },
   "agenda.html": { css: ["base", "agenda"], nav: { tag: "Agenda" }, footer: "full" },
@@ -67,7 +67,7 @@ function nav(cfg) {
   <div class="wrap">
     <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="${BRAND}logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links" id="navLinks">
-      <a href="${n.conoceme || "/#experiencia"}">Conóceme</a>
+      <a href="${n.conoceme || "/"}">Conóceme</a>
       <a href="/cursos"${cur("cursos")}>Cursos</a>
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>
@@ -79,9 +79,6 @@ function nav(cfg) {
 
 function footer(cfg) {
   const meta = `<div class="contact-meta">
-      <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>
-      <span>(+52) 811 725 5937</span>
-      <a href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" rel="noopener">LinkedIn ↗</a>
       <a href="/aviso-privacidad">Aviso de Privacidad</a>
       <a href="/terminos-uso">Términos de Uso</a>
       <a href="/verificar">Verificar diploma</a>

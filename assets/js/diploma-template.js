@@ -205,9 +205,14 @@
   .dip-tpl-frame .abs{ position:absolute }
   .dip-tpl-frame .m-grid{ position:absolute; inset:0; background-image:linear-gradient(rgba(13,20,36,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(13,20,36,.055) 1px,transparent 1px); background-size:calc(var(--u)*50) calc(var(--u)*50); -webkit-mask-image:linear-gradient(135deg,#000 5%,transparent 68%); mask-image:linear-gradient(135deg,#000 5%,transparent 68%) }
   .dip-tpl-frame .m-band{ position:absolute; left:0; top:0; bottom:0; width:calc(var(--u)*34); display:flex; flex-direction:column; box-shadow:calc(var(--u)*4) 0 calc(var(--u)*12) rgba(13,20,36,.22) }
-  .dip-tpl-frame .m-band .seg{ flex:1 }
-  .dip-tpl-frame .m-band .seg + .seg{ box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.6) }
-  .dip-tpl-frame .m-band::after{ content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset calc(var(--u)*2) 0 0 rgba(255,255,255,.42), inset calc(var(--u)*-2) 0 0 rgba(0,0,0,.14) }
+  .dip-tpl-frame .m-band .seg{ flex:1; position:relative }
+  /* el relieve NO puede ser box-shadow inset: html2canvas lo pinta como una
+     capa translúcida sobre TODA la barra (no solo el filo) y lava el color
+     de acento — con divs reales (background-color) sale exacto, ya probado
+     con lectura de pixel contra el color de marca. */
+  .dip-tpl-frame .m-band .seg + .seg::before{ content:""; position:absolute; top:0; left:0; right:0; height:calc(var(--u)*2); background-color:rgba(255,255,255,.6) }
+  .dip-tpl-frame .m-band::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:calc(var(--u)*2); background-color:rgba(255,255,255,.42); pointer-events:none }
+  .dip-tpl-frame .m-band::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:calc(var(--u)*2); background-color:rgba(0,0,0,.14); pointer-events:none }
   .dip-tpl-frame .eyebrow{ font-size:calc(var(--u)*14); line-height:1.2; letter-spacing:.24em; text-transform:uppercase; color:var(--dmuted); font-weight:500 }
   .dip-tpl-frame .name{ font-family:'Space Grotesk',Inter,sans-serif; font-weight:600; font-size:calc(calc(var(--u)*68)*var(--fit,1)); line-height:1.1; letter-spacing:-.02em; white-space:nowrap; color:var(--dink) }
   .dip-tpl-frame .lead{ font-size:calc(var(--u)*22); line-height:1.3; color:var(--dmuted) }

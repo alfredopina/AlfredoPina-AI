@@ -368,7 +368,7 @@
     // si se llegó tecleando el folio se comparte el del folio
     const url = d.porCodigo ? `${SITIO}/verificar/${d.codigo}` : `${SITIO}/verificar?f=${encodeURIComponent(d.folio)}`;
     const fin = d.fechaFin ? new Date(d.fechaFin + 'T12:00:00') : new Date();
-    const p = new URLSearchParams({ startTask:'CERTIFICATION_NAME', name:d.curso, organizationName:'alfredopina.ai', issueYear:fin.getFullYear(), issueMonth:fin.getMonth() + 1, certUrl:url, certId:d.folio });
+    const p = new URLSearchParams({ startTask:'CERTIFICATION_NAME', name:d.curso, organizationId:'146628648', issueYear:fin.getFullYear(), issueMonth:fin.getMonth() + 1, certUrl:url, certId:d.folio });
     $('vLinkedin').href = 'https://www.linkedin.com/profile/add?' + p.toString();
     $('vLinkedin').hidden = anulado;
     $('vCopiar').onclick = async () => {

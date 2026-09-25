@@ -314,7 +314,9 @@
   };
   function fact(ico, lbl, val){ return `<div class="fact"><div class="lbl">${ICO[ico]}${lbl}</div><b>${val}</b></div>`; }
 
+  let actual = null; // diploma que se está mostrando (para contar el clic de LinkedIn)
   function pintar(d){
+    actual = d;
     const principal = TOOLS[d.herramientas[0]] || TOOLS.excel;
     document.documentElement.style.setProperty('--acc', principal.acc);
     const anulado = d.estatus === 'anulado';
@@ -400,7 +402,9 @@
     $('vAviso').hidden = true;
     const btn = $('vBoton'); btn.disabled = true;
     try {
-      const res = await fetch('/api/verificarDiploma?' + param + '=' + encodeURIComponent(valor));
+      // si el visitante llegó desde LinkedIn (abrió la credencial de un perfil) el servidor lo cuenta aparte
+      const deLi = /linkedin.com|lnkd.in/i.test(document.referrer || '') ? '&r=li' : '';
+      const res = await fetch('/api/verificarDiploma?' + param + '=' + encodeURIComponent(valor) + deLi);
       const d = await res.json().catch(() => ({}));
       if(res.ok) { pintar(d); return; }
       if(res.status === 404) aviso('Diploma no encontrado', `No existe un diploma con ${param === 'c' ? 'ese código' : 'el folio <b style="font-family:var(--mono);">' + esc(valor) + '</b>'}. Revisa que esté completo y sin espacios. Si el problema continúa, escríbeme y lo revisamos.`);
@@ -410,6 +414,13 @@
       aviso('No pudimos verificar ahora', 'Hubo un problema de conexión. Intenta de nuevo en unos segundos.');
     } finally { btn.disabled = false; }
   }
+
+  // clic en "agregar a LinkedIn": solo un contador (sin datos personales); sendBeacon no frena la navegación
+  $('vLinkedin').addEventListener('click', () => {
+    if(!actual) return;
+    const cuerpo = JSON.stringify(actual.codigo ? { c: actual.codigo, e: 'linkedin' } : { f: actual.folio, e: 'linkedin' });
+    try { navigator.sendBeacon('/api/registrarEventoDiploma', new Blob([cuerpo], { type: 'application/json' })); } catch(e){}
+  });
 
   $('vForm').addEventListener('submit', e => {
     e.preventDefault();

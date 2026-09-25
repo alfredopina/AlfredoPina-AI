@@ -95,6 +95,7 @@ async function reconstruirSnapshotGrupo(pool, grupoId, token) {
     registros.push({
       folio: d.folio,
       codigo: d.codigo_verif,
+      grupoId,
       datos: {
         folio: d.folio,
         codigo: d.codigo_verif,

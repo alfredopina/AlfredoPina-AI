@@ -3871,11 +3871,12 @@
                   <th data-sort="fecha">Fechas<span class="th-sort-ico"></span></th>
                   <th data-sort="horas">Horas<span class="th-sort-ico"></span></th>
                   <th data-sort="participantes" title="Clic para ver el detalle de cada alumno">Participantes<span class="th-sort-ico"></span></th>
+                  <th data-sort="verificaciones" title="Veces que se abrió la verificación del diploma (QR o folio). No cuenta tus visitas desde /admin ni las vistas previas de WhatsApp/LinkedIn.">Verificaciones<span class="th-sort-ico"></span></th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="dipListaBody">
-                <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -8339,6 +8340,7 @@
 
     // ── Consultar Diplomas ──
     let gruposCache = [];
+    let verifCache = { porGrupo: {}, porFolio: {} }; // verificaciones de /verificar (Table Storage, no SQL)
     let detalleCache = new Map(), detalleAbiertos = new Set();
     let dipSort = { campo:'fecha', dir:'desc' };
 
@@ -8383,6 +8385,7 @@
           case 'modalidad': return g.modalidad || '';
           case 'horas': return g.horas || 0;
           case 'participantes': return g.vigentes || 0;
+          case 'verificaciones': return (verifCache.porGrupo[g.grupo_id] || {}).vistas || 0;
           case 'fecha': default: return g.ultima_generacion || '';
         }
       };
@@ -8408,15 +8411,24 @@
       });
     });
 
+    // "12 veces · QR 9 · folio 3" + LinkedIn + última visita, todo en texto (no solo color)
+    function fmtUltima(iso){ return iso ? new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short' }).replace('.', '') : ''; }
+    function verifHtml(v){
+      if(!v || !v.vistas && !v.clicsLinkedin) return '<span class="radm-hint">Sin verificaciones</span>';
+      const li = (v.clicsLinkedin || v.desdeLinkedin) ? `<div class="diag-nombre-sub">LinkedIn: ${v.clicsLinkedin} clic${v.clicsLinkedin === 1 ? '' : 's'} · ${v.desdeLinkedin} visita${v.desdeLinkedin === 1 ? '' : 's'}</div>` : '';
+      return `<b class="radm-mono">${v.vistas}</b> <span class="diag-nombre-sub" style="display:inline;">QR ${v.qr} · folio ${v.folio}</span>${li}${v.ultima ? `<div class="diag-nombre-sub">última: ${fmtUltima(v.ultima)}</div>` : ''}`;
+    }
+
     function detalleTablaHtml(detalle){
       return `<table class="dip-table cal-detalle-table"><thead><tr>
-        <th>Nombre</th><th>Correo</th><th>Calificación</th><th>Resultado</th><th>Acciones</th>
+        <th>Nombre</th><th>Correo</th><th>Calificación</th><th>Resultado</th><th>Verificaciones</th><th>Acciones</th>
       </tr></thead><tbody>${detalle.map(a => `
         <tr data-folio="${escapeHtml(a.folio)}">
           <td>${escapeHtml(a.nombre)}</td>
           <td>${a.correo ? escapeHtml(a.correo) : '—'}</td>
           <td>${semaforoCalifHtml(a.calificacion)}</td>
           <td>${a.estatus === 'anulado' ? `<span class="dip-status anulado" title="${a.motivo_anulacion ? escapeHtml(a.motivo_anulacion) : ''}">${ICO_X}Anulado</span>` : escapeHtml(a.resultado)}</td>
+          <td>${verifHtml(verifCache.porFolio[a.folio])}</td>
           <td>
             <div class="diag-row-actions">
               <button type="button" class="radm-icon-btn dip-alumno-ver" data-folio="${escapeHtml(a.folio)}" title="Ver este diploma">${ICO_EYE}</button>
@@ -8429,7 +8441,7 @@
     function filaDetalleHtml(g){
       const detalle = detalleCache.get(g.grupo_id);
       const cuerpo = detalle ? detalleTablaHtml(detalle) : '<span class="radm-hint">Cargando alumnos…</span>';
-      return `<tr class="cal-detalle-row" data-detalle="${g.grupo_id}"><td colspan="8">${cuerpo}</td></tr>`;
+      return `<tr class="cal-detalle-row" data-detalle="${g.grupo_id}"><td colspan="9">${cuerpo}</td></tr>`;
     }
 
     function filaHtml(g){
@@ -8448,6 +8460,7 @@
             <span class="radm-mono">${participantes}</span>${ICO_CHEVRON}
           </button>
         </td>
+        <td>${verifHtml(verifCache.porGrupo[g.grupo_id])}</td>
         <td>
           <div class="diag-row-actions">
             <button type="button" class="radm-icon-btn dip-ver-btn" data-id="${g.grupo_id}" title="Ver diplomas — abre el link público">${ICO_EYE}</button>
@@ -8469,11 +8482,11 @@
         : '';
       renderCabecerasOrden();
       if(!gruposCache.length){
-        body.innerHTML = '<tr><td colspan="8" class="radm-empty-row">Todavía no se ha generado ningún diploma — se generan desde Calificaciones → Resultados.</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Todavía no se ha generado ningún diploma — se generan desde Calificaciones → Resultados.</td></tr>';
         return;
       }
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="8" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
         return;
       }
       body.innerHTML = filas.map(filaHtml).join('');
@@ -8481,13 +8494,15 @@
 
     async function cargarLista(){
       const body = document.getElementById('dipListaBody');
-      body.innerHTML = '<tr><td colspan="8" class="radm-empty-row">Cargando diplomas... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
+      body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Cargando diplomas... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
       try {
         gruposCache = await apiGetConReintento('/api/listDiplomas');
+        // las verificaciones viven en Table Storage: si fallan no deben tumbar la lista
+        try { verifCache = await apiGet('/api/getVerifResumenDiplomas'); } catch(e){ verifCache = { porGrupo: {}, porFolio: {} }; }
         poblarInstructores();
         renderLista();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 

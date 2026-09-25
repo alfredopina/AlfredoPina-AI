@@ -197,6 +197,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/getVerifResumenDiplomas",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getPerfilesInstructores",
       "allowedRoles": ["admin"]
     },

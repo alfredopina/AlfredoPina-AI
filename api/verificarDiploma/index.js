@@ -8,6 +8,7 @@
 // viven en ese registro — no hay forma de exponerlas por aquí.
 const { getDiplomasVerifTable, getVerifLimiteTable, ensureTable, leerPorCodigo, leerPorFolio, registrarVista, abreviarNombre } = require("../src/diplomas-verif");
 const { checarBloqueo, registrarIntentoFallido } = require("../src/rate-limit");
+const { esAdmin, esBot } = require("../src/verif-cliente");
 const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -50,7 +51,10 @@ module.exports = async function (context, req) {
       return;
     }
 
-    registrarVista(table, r.datos.codigo).catch((err) => context.log.error("Error registrando verificación:", err.message));
+    // no cuenta al admin ni a robots; ?r=li lo manda la página cuando el visitante llegó desde LinkedIn
+    if (!esAdmin(req) && !esBot(req)) {
+      registrarVista(table, r.datos.codigo, { porCodigo, desdeLinkedin: String(req.query.r || "") === "li" }).catch((err) => context.log.error("Error registrando verificación:", err.message));
+    }
     const d = { ...r.datos };
     if (!porCodigo) {
       d.nombre = abreviarNombre(d.nombre);

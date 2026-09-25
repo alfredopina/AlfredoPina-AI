@@ -1647,15 +1647,18 @@
   .mdl-zoom-readout{ font-family:var(--mono); font-size:11px; color:var(--text-faint); width:36px; text-align:center; }
   .mdl-updated{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-left:auto; }
 
+  .mdl-main{ display:flex; gap:12px; align-items:stretch; }
   .mdl-viewport{
-    position:relative; height:min(70vh, 760px); border:1px solid var(--line); border-radius:12px;
-    overflow:hidden; cursor:grab; background-color:var(--bg);
+    position:relative; flex:1; min-width:0; height:min(78vh, 920px); min-height:480px; border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; cursor:grab; background-color:var(--bg); touch-action:none;
     background-image:radial-gradient(circle, var(--line) 1.2px, transparent 1.2px); background-size:26px 26px;
   }
   .mdl-viewport.panning{ cursor:grabbing; }
   .mdl-world{ position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+  .mdl-world.animating{ transition:transform .35s cubic-bezier(.2,.7,.2,1); }
+  @media (prefers-reduced-motion: reduce){ .mdl-world.animating{ transition:none; } }
   .mdl-svg{ position:absolute; left:0; top:0; overflow:visible; }
-  .mdl-zone-label{ font-family:var(--mono); font-size:11.5px; fill:var(--text-faint); }
+  .mdl-zone-label{ font-family:var(--display); font-weight:600; font-size:24px; fill:var(--text-dim); }
   .mdl-zone-rect{ fill:var(--panel-2); fill-opacity:.35; }
   /* Macro-región SQL vs Table Storage — el motor de datos es la separación
      visual dominante (borde grueso solid/dashed, mismo criterio que ya usa
@@ -1664,8 +1667,8 @@
   .mdl-macro-rect{ fill:none; stroke-width:2.5; }
   .mdl-macro-rect.sql{ stroke:var(--blue-bright); stroke-dasharray:none; }
   .mdl-macro-rect.storage{ stroke:var(--blue-bright); stroke-dasharray:18,9; }
-  .mdl-macro-title{ font-family:var(--display); font-weight:700; font-size:16px; fill:var(--text); }
-  .mdl-macro-sub{ font-family:var(--mono); font-size:11px; fill:var(--text-faint); }
+  .mdl-macro-title{ font-family:var(--display); font-weight:700; font-size:40px; fill:var(--text); }
+  .mdl-macro-sub{ font-family:var(--mono); font-size:18px; fill:var(--text-faint); }
   .mdl-rel-label-bg{ fill:var(--panel); stroke:var(--line); stroke-width:1; }
   .mdl-rel-label-txt{ font-family:var(--mono); font-size:9px; fill:var(--text-dim); }
 
@@ -1695,8 +1698,8 @@
   }
   .mdl-card-stats.loaded{ color:var(--blue-bright); }
 
-  .mdl-field-list{ max-height:220px; overflow-y:auto; padding:4px 0; }
-  .mdl-field{ display:flex; align-items:baseline; gap:6px; padding:3px 11px; font-family:var(--mono); font-size:10.5px; line-height:1.3; }
+  .mdl-field-list{ padding:4px 0 6px; }
+  .mdl-field{ display:flex; align-items:baseline; gap:6px; padding:3px 11px; font-family:var(--mono); font-size:11.5px; line-height:1.35; }
   .mdl-field-mark{ flex:none; width:7px; height:7px; margin-top:3px; border-radius:2px; border:1.3px solid var(--text-dim); }
   .mdl-field.pk .mdl-field-mark{ background:var(--text-dim); }
   .mdl-field.fk .mdl-field-mark{ border-radius:50%; background:transparent; }
@@ -1704,7 +1707,7 @@
   .mdl-field-name{ color:var(--text); font-weight:500; }
   .mdl-field.opt .mdl-field-name{ color:var(--text-dim); }
   .mdl-field-type{ color:var(--text-faint); margin-left:5px; }
-  .mdl-field-extra{ display:block; color:var(--text-faint); font-size:9px; margin-top:1px; word-break:break-word; }
+  .mdl-field-extra{ display:block; color:var(--text-faint); font-size:10px; margin-top:1px; word-break:break-word; }
   .mdl-field-extra b{ color:var(--blue-bright); font-weight:500; }
   .mdl-field-badge{ display:inline-block; font-size:8px; font-weight:600; color:var(--blue-bright); border:1px solid var(--line); border-radius:4px; padding:0 4px; margin-left:4px; }
 
@@ -1721,7 +1724,69 @@
   .mdl-legend hr{ border:none; border-top:1px solid var(--line); margin:8px 0; }
   .mdl-legend svg{ width:30px; height:9px; flex:none; }
 
-  .mdl-hint{ position:absolute; left:12px; bottom:12px; font-size:10.5px; color:var(--text-faint); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 9px; max-width:210px; line-height:1.35; }
+  .mdl-hint{ position:absolute; left:12px; bottom:12px; font-size:10.5px; color:var(--text-faint); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 9px; max-width:270px; line-height:1.4; pointer-events:none; }
+
+  /* Vista alejada (< 45%): solo nombre + motor de cada tabla, legibles de lejos —
+     al acercarte reaparecen los campos. */
+  .mdl-world.lod .mdl-field-list,
+  .mdl-world.lod .mdl-card-note,
+  .mdl-world.lod .mdl-card-stats,
+  .mdl-world.lod .mdl-pk-line{ display:none; }
+  .mdl-world.lod .mdl-card-head{ padding:14px 14px 12px; border-bottom:none; }
+  .mdl-world.lod .mdl-card-title{ font-size:34px; overflow-wrap:anywhere; line-height:1.15; }
+  .mdl-world.lod .mdl-engine-tag{ font-size:17px; padding:4px 8px; }
+  .mdl-world.lod .mdl-pillar-pill{ font-size:20px; }
+  .mdl-world.lod .mdl-pillar-dot{ width:14px; height:14px; }
+  .mdl-world.lod .mdl-card-accent{ height:8px; }
+  .mdl-world.lod .mdl-rel-label-bg, .mdl-world.lod .mdl-rel-label-txt{ display:none; }
+
+  /* Panel lateral: detalle de la tabla elegida + índice para saltar a cualquiera */
+  .mdl-side{
+    width:290px; flex:none; height:min(78vh, 920px); min-height:480px; overflow-y:auto;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px;
+  }
+  .mdl-side.closed{ display:none; }
+  .mdl-side-title{ font:600 10.5px/1 var(--mono); color:var(--text-faint); letter-spacing:.6px; text-transform:uppercase; margin:2px 0 8px; }
+  .mdl-side-empty{ color:var(--text-faint); font-size:11.5px; margin:4px 0 8px; }
+  #mdlDetail{ border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px; }
+  .mdl-det-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .mdl-det-title{ font-family:var(--display); font-weight:700; font-size:16px; overflow-wrap:anywhere; }
+  .mdl-det-sub{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+  .mdl-det-close{ flex:none; width:24px; height:24px; border-radius:6px; border:1px solid var(--line); background:var(--panel-2); color:var(--text-dim); font-size:16px; line-height:1; cursor:pointer; }
+  .mdl-det-close:hover{ color:var(--text); border-color:var(--blue-bright); }
+  .mdl-det-pk{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:8px; }
+  .mdl-det-stats{ font-family:var(--mono); font-size:10.5px; color:var(--blue-bright); margin-top:5px; }
+  .mdl-det-note{ font-size:11.5px; color:var(--text-dim); line-height:1.45; margin:8px 0 0; }
+  .mdl-det-h{ font:600 10.5px/1 var(--mono); color:var(--text-faint); letter-spacing:.5px; text-transform:uppercase; margin:14px 0 6px; }
+  .mdl-rel-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px; }
+  .mdl-rel-list li{ display:flex; align-items:baseline; flex-wrap:wrap; gap:6px; font-size:12px; }
+  .mdl-rel-list button{ background:none; border:none; padding:0; color:var(--blue-bright); font:600 12px var(--body); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .mdl-rel-list small{ flex-basis:100%; color:var(--text-faint); font-size:10.5px; line-height:1.35; }
+  .mdl-rel-tag{ font:600 9px/1 var(--mono); padding:2px 5px; border-radius:4px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; }
+  .mdl-rel-tag.fk{ border-color:var(--blue-bright); color:var(--blue-bright); }
+  .mdl-rel-tag.soft{ border-style:dashed; }
+  .mdl-rel-tag.snap{ border-style:dotted; }
+  .mdl-idx-macro{ display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer; font:700 12px/1 var(--display); color:var(--text); margin:14px 0 2px; padding:4px; letter-spacing:.4px; }
+  .mdl-idx-macro:hover{ color:var(--blue-bright); }
+  .mdl-idx-zone{
+    display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; cursor:pointer;
+    font:600 11px var(--mono); color:var(--text-faint); padding:7px 4px 3px; text-align:left;
+  }
+  .mdl-idx-zone:hover{ color:var(--blue-bright); }
+  .mdl-idx-zone em{ font-style:normal; font-weight:500; }
+  .mdl-idx-item{
+    display:flex; align-items:center; gap:8px; width:100%; background:none; border:1px solid transparent; border-radius:7px;
+    padding:5px 6px; cursor:pointer; color:var(--text-dim); font:500 12px var(--body); text-align:left;
+  }
+  .mdl-idx-item i{ width:8px; height:8px; border-radius:2px; flex:none; }
+  .mdl-idx-item b{ flex:1; min-width:0; font-weight:500; overflow-wrap:anywhere; }
+  .mdl-idx-item span{ font:600 9px var(--mono); color:var(--text-faint); }
+  .mdl-idx-item:hover{ background:var(--panel-2); color:var(--text); }
+  .mdl-idx-item.active{ background:var(--blue-soft); border-color:var(--blue-bright); color:var(--text); }
+  @media (max-width:900px){
+    .mdl-main{ flex-direction:column; }
+    .mdl-side{ width:auto; height:300px; min-height:0; }
+  }
 
   /* ══ Marca (kit de marca) ══ */
   .mk-phead{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:22px; }
@@ -4044,12 +4109,16 @@
           <button class="admin-icon-btn" id="mdlLegendBtn" title="Leyenda">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
           </button>
+          <button class="admin-icon-btn" id="mdlSideBtn" title="Mostrar u ocultar el panel de tablas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16M18 9h.01M18 13h.01" stroke-linecap="round"/></svg>
+          </button>
           <button class="admin-icon-btn" id="mdlActualizarBtn" title="Actualizar filas y última fecha de cada tabla">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.5-6.3M21 12a9 9 0 0 1-15.5 6.3M3 4v5h5M21 20v-5h-5"/></svg>
           </button>
           <span class="mdl-updated" id="mdlUpdated">Sin actualizar — pulsa el botón de refrescar</span>
         </div>
 
+        <div class="mdl-main">
         <div class="mdl-viewport" id="mdlViewport">
           <div class="mdl-world" id="mdlWorld">
             <svg class="mdl-svg" id="mdlSvg">
@@ -4077,7 +4146,13 @@
             <div class="lg-row"><svg viewBox="0 0 30 9"><line x1="0" y1="4.5" x2="26" y2="4.5" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#mdlArrowSoft)"/></svg> Sin FK (id/array)</div>
             <div class="lg-row"><svg viewBox="0 0 30 9"><line x1="0" y1="4.5" x2="26" y2="4.5" stroke="var(--mdl-snapshot)" stroke-width="1.3" stroke-dasharray="1,4" marker-end="url(#mdlArrowSnap)"/></svg> Foto/consulta, sin ref. viva</div>
           </div>
-          <div class="mdl-hint">Arrastra una tabla para moverla · arrastra el fondo para navegar · scroll para zoom · clic para resaltar relaciones</div>
+          <div class="mdl-hint">Rueda: mover · Ctrl + rueda: zoom · arrastra el fondo · arrastra el título de una tabla para moverla · clic en una tabla: ver sus relaciones · Esc: quitar selección</div>
+        </div>
+        <aside class="mdl-side" id="mdlSide" aria-label="Tablas del modelo">
+          <div id="mdlDetail" hidden></div>
+          <div class="mdl-side-title">Tablas</div>
+          <div id="mdlIndex"></div>
+        </aside>
         </div>
       </div>
     </div>
@@ -14643,7 +14718,7 @@
 
     const TABLES = [
       // ---------------- Azure SQL — Comercial ----------------
-      { id:'Cliente', engine:'sql', pillar:'comercial', pk:'id', x:70, y:100,
+      { id:'Cliente', engine:'sql', pillar:'comercial', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('nombre','NVARCHAR(200)'),
@@ -14652,7 +14727,7 @@
           f('cliente_desde','INT',{opt:true,extra:'año de antigüedad'}),
           f('tipo_cliente','NVARCHAR(20)',{extra:'Directo|Intermediario|Indirecto|Prospecto, default Directo'}),
         ]},
-      { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id', x:410, y:100,
+      { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('cliente_id','INT',{fk:'Cliente.id'}),
@@ -14665,13 +14740,13 @@
           f('es_principal','BIT',{extra:'máx. 1 por cliente'}),
           f('fecha_creacion','DATETIME2'),
         ]},
-      { id:'TarifaHerramienta', engine:'sql', pillar:'comercial', pk:'herramienta', x:750, y:100,
+      { id:'TarifaHerramienta', engine:'sql', pillar:'comercial', pk:'herramienta',
         note:'Lookup de precio/hora — se congela en Cotizacion.precio_final al crear, nunca queda como referencia viva.',
         fields:[
           f('herramienta','NVARCHAR(50)',{pk:true}),
           f('precio_hora','DECIMAL(10,2)'),
         ]},
-      { id:'Solicitud', engine:'sql', pillar:'comercial', pk:'id', x:70, y:500,
+      { id:'Solicitud', engine:'sql', pillar:'comercial', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('cliente_id','INT',{fk:'Cliente.id'}),
@@ -14690,7 +14765,7 @@
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('fecha_creacion','DATETIME2'),
         ]},
-      { id:'Cotizacion', engine:'sql', pillar:'comercial', pk:'id', x:410, y:500,
+      { id:'Cotizacion', engine:'sql', pillar:'comercial', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('folio','NVARCHAR(40)',{badge:'UNIQUE'}),
@@ -14719,7 +14794,7 @@
         ]},
 
       // ---------------- Azure SQL — Operación ----------------
-      { id:'Grupo', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:100,
+      { id:'Grupo', engine:'sql', pillar:'operacion', pk:'id',
         note:'cliente_id = quien contrató · cliente_final_id = quien recibe el curso, solo si hay reventa/intermediario (ej. Capacitanet→Clarios). Sin eliminarGrupo — se corrige con editarGrupo, nunca se borra.',
         fields:[
           f('id','INT',{pk:true}),
@@ -14744,7 +14819,7 @@
           f('fecha_creacion','DATETIME2'),
           f('diploma_token','NVARCHAR(64)',{opt:true,extra:'link público de Diplomas de este grupo — se crea al generar el primero'}),
         ]},
-      { id:'GrupoFaseHistorial', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:100,
+      { id:'GrupoFaseHistorial', engine:'sql', pillar:'operacion', pk:'id',
         note:'Se llena solo desde grupo-fase.js — la fase real se sigue derivando de estatus_curso/estatus_cierre en Grupo; esto solo guarda CUÁNDO se cruzó cada una (stepper con fechas, "días en esta fase").',
         fields:[
           f('id','INT',{pk:true}),
@@ -14752,14 +14827,31 @@
           f('fase','NVARCHAR(20)',{extra:'6 valores fijos, para el stepper'}),
           f('fecha','DATETIME2'),
         ]},
-      { id:'Alumno', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:100,
+      { id:'Alumno', engine:'sql', pillar:'operacion', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('nombre_completo','NVARCHAR(200)'),
           f('cliente_id','INT',{fk:'Cliente.id'}),
           f('correo','NVARCHAR(200)',{opt:true}),
         ]},
-      { id:'Diploma', engine:'sql', pillar:'operacion', pk:'folio', x:1170, y:500,
+      { id:'Calificacion', engine:'sql', pillar:'operacion', pk:'id',
+        note:'Una fila por alumno y Grupo (UNIQUE grupo_id+alumno_id). Se guarda la entrada Y la calificación/resultado ya calculados (foto): un cambio futuro de reglas no reescribe grupos cerrados. Calificación = 80% Proyecto + 20% (Asistencias/Frecuencias) + Puntos.',
+        fields:[
+          f('id','INT',{pk:true}),
+          f('grupo_id','INT',{fk:'Grupo.id'}),
+          f('alumno_id','INT',{fk:'Alumno.id'}),
+          f('puntos','DECIMAL(5,1)',{opt:true,extra:'extra sobre la calificación'}),
+          f('asistencias','INT',{opt:true,extra:'sesiones a las que asistió'}),
+          f('frecuencias','INT',{opt:true,extra:'sesiones que tuvo el curso'}),
+          f('proyecto','DECIMAL(5,1)',{opt:true,extra:'0-100'}),
+          f('calificacion','DECIMAL(5,1)',{opt:true,extra:'sin topar a 100'}),
+          f('resultado','NVARCHAR(20)',{extra:'Aprobado|Participó|No Aprobado — se calcula'}),
+          f('notas','NVARCHAR(500)',{opt:true,extra:'por alumno — van al reporte'}),
+          f('nota_general','NVARCHAR(2000)',{opt:true,extra:'texto del grupo, replicado en cada fila'}),
+          f('aprendizaje','NVARCHAR(600)',{opt:true,extra:'"lo que aprendió", público en /verificar'}),
+          f('fecha_carga','DATETIME2'),
+        ]},
+      { id:'Diploma', engine:'sql', pillar:'operacion', pk:'folio',
         fields:[
           f('folio','NVARCHAR(40)',{pk:true}),
           f('alumno_id','INT',{fk:'Alumno.id'}),
@@ -14776,45 +14868,59 @@
           f('estatus','vigente|anulado'),
           f('motivo_anulacion','NVARCHAR(300)',{opt:true}),
           f('corrige_a_folio','NVARCHAR(40)',{fk:'Diploma.folio',opt:true,extra:'auto-referencia · columna existe, sin UI aún'}),
+          f('codigo_verif','NVARCHAR(8)',{opt:true,badge:'UNIQUE',extra:'va en el QR de /verificar — no adivinable, a diferencia del folio'}),
           f('fecha_generacion','DATETIME2'),
         ]},
-      { id:'EncuestaRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:500,
+      { id:'EncuestaRespuesta', engine:'sql', pillar:'operacion', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('nombre','NVARCHAR(200)',{opt:true}),
           f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('grupo_id','INT',{fk:'Grupo.id',opt:true,extra:'ON DELETE SET NULL · sql/019'}),
+          f('correo','NVARCHAR(200)',{opt:true}),
           f('curso','NVARCHAR(200)'),
           f('instructor','NVARCHAR(120)'),
+          f('herramientas','NVARCHAR(200)',{opt:true,extra:'foto del grupo'}),
+          f('modalidad','NVARCHAR(30)',{opt:true}),
+          f('horas','DECIMAL(6,1)',{opt:true}),
           f('fecha','DATE'),
           f('fecha_envio','DATETIME2'),
+          f('link_generado_en','DATETIME2',{opt:true}),
+          f('envio_id','NVARCHAR(40)',{opt:true,badge:'UNIQUE',extra:'evita doble envío del mismo formulario · sql/020'}),
         ]},
-      { id:'EncuestaRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1170, y:900,
+      { id:'EncuestaRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('respuesta_id','INT',{fk:'EncuestaRespuesta.id'}),
-          f('pregunta_id','INT',{extra:'referencia SIN FK a propósito — conserva historial si se borra la pregunta'}),
+          f('pregunta_id','NVARCHAR(50)',{extra:'id de Table Storage — referencia SIN FK a propósito, conserva historial si se borra la pregunta'}),
           f('valor','NVARCHAR(500)'),
+          f('pregunta_texto','NVARCHAR(500)',{opt:true,extra:'foto del texto al responder'}),
+          f('categoria','NVARCHAR(60)',{opt:true}),
+          f('tipo','NVARCHAR(20)',{opt:true,extra:'escala|texto'}),
         ]},
-      { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id', x:1510, y:900,
+      { id:'DiagnosticoRespuesta', engine:'sql', pillar:'operacion', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('nombre','NVARCHAR(200)'),
           f('cliente_id','INT',{fk:'Cliente.id'}),
           f('herramienta','VARCHAR(20)',{extra:'excel|powerbi'}),
+          f('area','NVARCHAR(150)',{opt:true}),
+          f('correo','NVARCHAR(200)',{opt:true}),
+          f('tiempo_respuesta_seg','INT',{opt:true}),
           f('fecha_envio','DATETIME2'),
         ]},
-      { id:'DiagnosticoRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id', x:1850, y:900,
+      { id:'DiagnosticoRespuestaDetalle', engine:'sql', pillar:'operacion', pk:'id',
         fields:[
           f('id','INT',{pk:true}),
           f('respuesta_id','INT',{fk:'DiagnosticoRespuesta.id'}),
           f('pregunta_id','NVARCHAR(50)',{extra:'id de Table Storage — referencia SIN FK a propósito, mismo criterio que Encuestas'}),
           f('nivel','TINYINT'),
-          f('opcion_seleccionada','CHAR(1)'),
+          f('opcion_seleccionada','CHAR(1)',{extra:'A|B|C|D|N (N = no sé)'}),
           f('fue_correcta','BIT',{extra:'foto al momento de responder, no se recalcula'}),
         ]},
 
       // ---------------- Table Storage — Catálogo de Cursos ----------------
-      { id:'Temas', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:70, y:1460,
+      { id:'Temas', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
         note:'PartitionKey = herramienta · RowKey = temaId (slug). Banco compartido: alimenta tanto TemariosEstandar como el constructor personalizado.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -14826,7 +14932,7 @@
           f('estado','borrador|publicado'),
           f('orden','number'),
         ]},
-      { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:410, y:1460,
+      { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
         note:'= el "Curso" que ve el cliente en /cursos.html. Se auto-crea sola al primer escritura, sin paso de portal.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -14836,7 +14942,7 @@
           f('temaIds','JSON[]',{extra:'lista ordenada ⇢ Temas'}),
           f('estado','borrador|publicado'), f('orden','number'),
         ]},
-      { id:'Proyectos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:750, y:1460,
+      { id:'Proyectos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
         note:'Se desbloquea solo si TODOS sus temaIds están cubiertos — no basta con uno.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -14847,7 +14953,7 @@
         ]},
 
       // ---------------- Table Storage — Recursos ----------------
-      { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1170, y:1460,
+      { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
         note:'Código de descarga — módulo Recursos. No confundir con "Temario Estándar" (nombre distinto a propósito, ambigüedad ya documentada).',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
@@ -14856,7 +14962,7 @@
           f('estado','borrador|publicado'), f('orden','number'),
           f('temarioId','string',{opt:true,extra:'⇢ TemariosEstandar.RowKey, opcional'}),
         ]},
-      { id:'Recursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey', x:1510, y:1460,
+      { id:'Recursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta_cursoId'}),
           f('RowKey','string',{pk:true,extra:'uuid'}),
@@ -14866,14 +14972,14 @@
         ]},
 
       // ---------------- Table Storage — Infraestructura y herramientas propias ----------------
-      { id:'IntentosCodigo', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:70, y:1960,
+      { id:'IntentosCodigo', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey',
         note:'Candado genérico de intentos fallidos — 10 fallos en 15 min bloquean 5 min. Fail-open si Table Storage falla.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'definido por quien llama'}),
           f('RowKey','"contador"',{pk:true}),
           f('fallos','number'), f('ventanaInicio','ISO datetime'), f('bloqueadoHasta','ISO datetime',{opt:true}),
         ]},
-      { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:410, y:1960,
+      { id:'Pendientes', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey',
         note:'Deliberadamente en Table Storage, no en la base SQL — evita el auto-pause de 20-60s para una herramienta que necesita capturar al instante. Sin eliminarPendiente — el checkbox archiva, nunca borra. Contenedores dinámicos desde 2026-09-23 (crear/editar/eliminar): la partición especial "_cat" guarda la definición de cada uno (nombre/icono/orden), separada de las notas reales — eliminarPendientesCategoria solo borra un contenedor vacío.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'id del contenedor (dinámico) — o "_cat" para las filas que definen los contenedores'}),
@@ -14886,14 +14992,14 @@
           f('nombre','string',{opt:true,extra:'solo en contenedores ("_cat")'}),
           f('icono','string',{opt:true,extra:'solo en contenedores — clave del picker, nunca SVG/HTML'}),
         ]},
-      { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:750, y:1960,
+      { id:'AdminActividad', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey',
         note:'Un renglón por administrador — el correo sale del header x-ms-client-principal que Azure ya verificó, nunca del cliente.',
         fields:[
           f('PartitionKey','"admin"',{pk:true,extra:'fijo'}),
           f('RowKey','string',{pk:true,extra:'correo del administrador'}),
           f('veces','number'), f('ultimaVez','ISO datetime'),
         ]},
-      { id:'DiagnosticoPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:1090, y:1960,
+      { id:'DiagnosticoPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
         note:'Movido de SQL a Table Storage el 2026-09-13 — así cargar diagnostico.html nunca depende del auto-pause de la base. opcion_correcta nunca se manda al público (getPreguntasDiagnostico la filtra).',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta (excel|powerbi)'}),
@@ -14905,7 +15011,7 @@
           f('opcion_correcta','string',{extra:'nunca se manda al público'}),
           f('orden','number'), f('activa','boolean'),
         ]},
-      { id:'EncuestaPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey', x:1770, y:1960,
+      { id:'EncuestaPreguntas', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
         note:'Movido de SQL a Table Storage el 2026-09-16 (mismo criterio que DiagnosticoPreguntas) — así cargar encuesta.html nunca depende del auto-pause de la base.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'sección (Instructor|Curso y Materiales)'}),
@@ -14914,7 +15020,7 @@
           f('tipo','escala|texto'),
           f('orden','number'), f('activa','boolean'),
         ]},
-      { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey', x:1430, y:1960,
+      { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey',
         note:'Un solo renglón fijo — 3 umbrales "urgente" (disparan la campana) + sus 3 pares "seguimiento" (ámbar, agregados 2026-09-15, solo colorean el semáforo) — Cotizaciones/Grupos/Clientes, editables desde Configuración → Notificaciones. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
         fields:[
           f('PartitionKey','"config"',{pk:true,extra:'fijo'}),
@@ -14925,6 +15031,96 @@
           f('gruposSeguimientoDias','number',{extra:'ámbar, default 10'}),
           f('clientesDias','number',{extra:'urgente, default 90'}),
           f('clientesSeguimientoDias','number',{extra:'ámbar, default 30'}),
+        ]},
+
+      // ---------------- Table Storage — Formatos (Diagnósticos, Encuestas, Calificaciones, Diplomas) ----------------
+      { id:'DiagnosticoContador', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Contador en vivo del admin — así \"Respuestas en vivo\" no despierta la base SQL (incidente de vCore-seconds, 2026-09-17). Una sola fila; sembrado=true solo cuando salió de un COUNT real de SQL.",
+        fields:[
+          f('PartitionKey','"contador"',{pk:true,extra:'fijo'}),
+          f('RowKey','"global"',{pk:true,extra:'fijo'}),
+          f('total','number'), f('excel','number'), f('powerbi','number'),
+          f('sembrado','boolean',{extra:'true = viene de un COUNT real de SQL'}),
+        ]},
+      { id:'DiagnosticoReportes', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Snapshot YA CALCULADO del reporte (General/Grupos/Individual) — la página pública nunca depende de que SQL esté despierta. RowKey = código corto opaco que viaja en el link; no se expone clienteId.",
+        fields:[
+          f('PartitionKey','"reporte"',{pk:true,extra:'fijo'}),
+          f('RowKey','string',{pk:true,extra:'código corto del link'}),
+          f('herramienta','string'), f('clienteId','number'), f('clienteNombre','string'),
+          f('desde','string',{opt:true}), f('hasta','string',{opt:true}),
+          f('n','number'), f('promedioGeneral','number'),
+          f('visitas','number'), f('generadoEn','ISO datetime'),
+          f('snapshotJson','string',{extra:'el reporte completo'}),
+        ]},
+      { id:'EncuestaConfig', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Un solo renglón: los textos de la escala 1-5 (Malo…Excelente), iguales para las 14 preguntas de escala y editables desde el admin.",
+        fields:[
+          f('PartitionKey','"config"',{pk:true,extra:'fijo'}),
+          f('RowKey','"escala"',{pk:true,extra:'fijo'}),
+          f('etiquetas','string',{extra:'los 5 textos de la escala'}),
+        ]},
+      { id:'EncuestaLinks', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Link de encuesta por Grupo + contadores en vivo, todo en Table Storage: la página pública y el contador del admin nunca tocan SQL. El token no cambia aunque se vuelva a generar (el QR impreso no caduca).",
+        fields:[
+          f('PartitionKey','link|contador',{pk:true,extra:'"link" = uno por Grupo · "contador" = global'}),
+          f('RowKey','string',{pk:true,extra:'token opaco · o "global" en el contador'}),
+          f('grupoId','string',{opt:true,extra:'⇢ Grupo.id (sin FK, es otro motor)'}),
+          f('clienteNombre','string',{opt:true}), f('curso','string',{opt:true}), f('instructor','string',{opt:true}),
+          f('herramientas','JSON[]',{opt:true}), f('modalidad','string',{opt:true}), f('horas','number',{opt:true}),
+          f('abierta','boolean',{opt:true,extra:'cerrar el link = deja de recibir respuestas'}),
+          f('respuestas','number',{opt:true}),
+          f('total / hoy','number',{opt:true,extra:'solo en el contador global'}),
+        ]},
+      { id:'EncuestaReportes', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Snapshot del reporte de Encuestas. Lleva TODOS los comentarios, así que el JSON se parte en trozos (snap0, snap1…) porque un string de Table Storage aguanta 64 KB.",
+        fields:[
+          f('PartitionKey','"reporte"',{pk:true,extra:'fijo'}),
+          f('RowKey','string',{pk:true,extra:'código corto del link'}),
+          f('etiqueta','string',{opt:true}), f('filtrosJson','string'),
+          f('n','number'), f('nGrupos','number'), f('nComentarios','number'), f('promedioGeneral','number'),
+          f('generadoEn','ISO datetime'),
+          f('snap0…snapN','string',{extra:'el reporte completo, partido en trozos'}),
+        ]},
+      { id:'CalificacionesReportes', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Snapshot del Reporte de Resultados (reporte-resultados.html) — cada \"Generar\" crea un token nuevo e inmutable. Los campos chicos van duplicados para poder listar sin parsear el JSON.",
+        fields:[
+          f('PartitionKey','"reporte"',{pk:true,extra:'fijo'}),
+          f('RowKey','string',{pk:true,extra:'código corto del link'}),
+          f('etiqueta','string',{opt:true}), f('filtrosJson','string'),
+          f('n','number'), f('nGrupos','number'), f('aprobados','number'), f('promedioCalificacion','number'),
+          f('empresaTexto','string'), f('cursoTexto','string'), f('instructorTexto','string'),
+          f('herramientasJson','string'), f('contactoTexto','string',{opt:true}),
+          f('vistas','number'), f('generadoEn','ISO datetime'),
+          f('snap0…snapN','string',{extra:'el reporte completo, partido en trozos'}),
+        ]},
+      { id:'DiplomasGrupo', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Snapshot público de los diplomas de UN grupo. A diferencia de los reportes, el link es UNO por grupo y se reusa: el token vive en Grupo.diploma_token (SQL) y este snapshot se reescribe cada vez que se genera o anula un diploma, así el mismo link ya compartido siempre está al día.",
+        fields:[
+          f('PartitionKey','"diplomas"',{pk:true,extra:'fijo'}),
+          f('RowKey','string',{pk:true,extra:'= Grupo.diploma_token'}),
+          f('grupoId','number',{extra:'⇢ Grupo.id (sin FK, es otro motor)'}),
+          f('actualizadoEn','ISO datetime'),
+          f('snap0…snapN','string',{extra:'los diplomas del grupo, en trozos'}),
+        ]},
+      { id:'DiplomasVerif', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Registro público de verificación (/verificar) — funciona aunque SQL esté dormida. Dos tipos de fila: d/{código} con los datos y el contador de vistas, y f/{folio} que solo apunta al código. El QR lleva el código (no adivinable); buscar por folio muestra el nombre abreviado y tiene candado de intentos.",
+        fields:[
+          f('PartitionKey','d|f',{pk:true,extra:'d = datos por código · f = índice por folio'}),
+          f('RowKey','string',{pk:true,extra:'código de 8 caracteres · o folio'}),
+          f('folio','string',{opt:true,extra:'solo en filas d'}),
+          f('estatus','vigente|anulado',{opt:true,extra:'solo en filas d'}),
+          f('grupoId','number',{opt:true,extra:'⇢ Grupo.id, solo en filas d'}),
+          f('datos','string',{opt:true,extra:'JSON del diploma, solo en filas d'}),
+          f('vistas','number',{opt:true}),
+          f('codigo','string',{opt:true,extra:'solo en filas f — apunta a la fila d'}),
+        ]},
+      { id:'DiplomasVerifLimite', engine:'storage', pillar:'operacion', pk:'PartitionKey+RowKey',
+        note:"Candado de intentos de la búsqueda por folio en /verificar — evita enumerar los folios consecutivos.",
+        fields:[
+          f('PartitionKey','string',{pk:true,extra:'definido por quien llama'}),
+          f('RowKey','string',{pk:true}),
+          f('fallos','number'), f('ventanaInicio','ISO datetime'), f('bloqueadoHasta','ISO datetime',{opt:true}),
         ]},
     ];
 
@@ -14961,38 +15157,60 @@
       { from:'DiagnosticoRespuesta', to:'Cliente', kind:'fk' },
       { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoRespuesta', kind:'fk' },
       { from:'DiagnosticoRespuestaDetalle', to:'DiagnosticoPreguntas', kind:'soft', label:'pregunta_id · Table Storage, sin FK a propósito' },
+      // sql/019 – sql/026 y los snapshots de Table Storage (2026-09-17 a 2026-09-24)
+      { from:'EncuestaRespuesta', to:'Grupo', kind:'fk', label:'grupo_id · ON DELETE SET NULL' },
+      { from:'Calificacion', to:'Grupo', kind:'fk' },
+      { from:'Calificacion', to:'Alumno', kind:'fk' },
+      { from:'EncuestaLinks', to:'Grupo', kind:'soft', label:'grupoId · un link por Grupo' },
+      { from:'EncuestaConfig', to:'EncuestaPreguntas', kind:'soft', label:'textos de la escala 1-5' },
+      { from:'DiplomasGrupo', to:'Grupo', kind:'soft', label:'RowKey = Grupo.diploma_token' },
+      { from:'DiplomasVerif', to:'Diploma', kind:'snap', label:'foto del diploma, sin ref. viva' },
+      { from:'DiplomasVerifLimite', to:'DiplomasVerif', kind:'soft', label:'candado de búsqueda por folio' },
+      { from:'DiagnosticoReportes', to:'Cliente', kind:'snap', label:'clienteId, snapshot' },
+      { from:'DiagnosticoContador', to:'DiagnosticoRespuesta', kind:'snap', label:'conteo sembrado desde SQL' },
+      { from:'EncuestaReportes', to:'EncuestaRespuesta', kind:'snap', label:'reporte ya calculado' },
+      { from:'CalificacionesReportes', to:'Calificacion', kind:'snap', label:'reporte ya calculado' },
     ];
 
-    // Zonas por pilar de negocio — agrupación secundaria, borde delgado.
-    const ZONES = [
-      { x:40, y:40, w:1070, h:860, label:'Comercial' },
-      { x:1140, y:40, w:1070, h:1260, label:'Operación' },
-      { x:40, y:1400, w:1070, h:460, label:'Catálogo de Cursos' },
-      { x:1140, y:1400, w:1070, h:460, label:'Recursos (códigos de descarga)' },
-      { x:40, y:1900, w:2070, h:460, label:'Infraestructura y herramientas propias' },
+    // Layout AUTOMÁTICO por columnas explícitas: cada zona lista, columna por
+    // columna, qué tablas lleva. Las posiciones se calculan midiendo la altura
+    // real de cada tarjeta, así nunca se encima una con otra aunque cambie el
+    // número de campos (antes eran coordenadas a mano y se desfasaban cada vez
+    // que crecía el esquema). Solo lo que Alfredo arrastra a mano se guarda.
+    // Cada tabla de TABLES debe aparecer exactamente una vez aquí.
+    const LAYOUT = [
+      { style:'sql', label:'AZURE SQL', sub:'apcweb-backoffice', rows:[[
+        { key:'comercial', label:'Comercial', cols:[['Cliente','Solicitud','TarifaHerramienta'],['Contacto','Cotizacion']] },
+        { key:'operacion', label:'Operación', cols:[['Grupo','GrupoFaseHistorial'],['Calificacion','Alumno','Diploma'],['EncuestaRespuesta','EncuestaRespuestaDetalle','DiagnosticoRespuesta','DiagnosticoRespuestaDetalle']] },
+      ]] },
+      { style:'storage', label:'TABLE STORAGE', sub:'apcwebrecursos', rows:[
+        [
+          { key:'catalogo', label:'Catálogo de Cursos y Recursos', cols:[['Temas','Proyectos'],['TemariosEstandar','Cursos'],['Recursos']] },
+          { key:'infra', label:'Infraestructura y herramientas propias', cols:[['IntentosCodigo','AdminActividad'],['Pendientes','ConfiguracionNotificaciones']] },
+        ],
+        [
+          { key:'formatos', label:'Formatos: Diagnósticos, Encuestas, Calificaciones y Diplomas', cols:[
+            ['DiagnosticoPreguntas','DiagnosticoContador','DiagnosticoReportes'],
+            ['EncuestaPreguntas','EncuestaConfig','EncuestaLinks','EncuestaReportes'],
+            ['CalificacionesReportes','DiplomasGrupo'],
+            ['DiplomasVerif','DiplomasVerifLimite'],
+          ] },
+        ],
+      ] },
     ];
 
-    // Macro-región por MOTOR de datos — la separación visual dominante que
-    // pidió Alfredo (sólido = Azure SQL, punteado = Table Storage, mismo
-    // criterio que ya usa cada tarjeta individual). Coordenadas calculadas a
-    // mano para envolver holgado a las ZONES de arriba; los conteos del label
-    // sí se calculan solos desde TABLES, nunca a mano.
-    const MACRO_ZONES = [
-      { x:20, y:20, w:2210, h:1300, label:'AZURE SQL', sub:'apcweb-backoffice', style:'sql',
-        count: TABLES.filter(t => t.engine === 'sql').length },
-      { x:20, y:1380, w:2210, h:1000, label:'TABLE STORAGE', sub:'apcwebrecursos', style:'storage',
-        count: TABLES.filter(t => t.engine === 'storage').length },
-    ];
+    const GAP_X = 36, GAP_Y = 26, ZPAD = 26, ZHEAD = 64, ZGAP = 44, MPAD = 30, MHEAD = 104, MGAP = 70;
+    const MIN_SCALE = 0.08, MAX_SCALE = 2.2, LOD_SCALE = 0.6;
 
-    const WORLD_W = 2280, WORLD_H = 2440;
-    const STORAGE_KEY = 'apc-admin-modelo-layout-v3';
+    // Si cambia el esquema (tablas o campos), las posiciones arrastradas a mano
+    // dejan de servir — la firma en la llave las reinicia solas.
+    const SCHEMA_SIG = TABLES.length + '.' + TABLES.reduce((n, t) => n + t.fields.length, 0);
+    const STORAGE_KEY = 'apc-admin-modelo-layout-v4-' + SCHEMA_SIG;
 
+    let custom = {};
+    try { custom = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch(e){ custom = {}; }
     const pos = {};
-    TABLES.forEach(t => pos[t.id] = { x:t.x, y:t.y });
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e){ saved = null; }
-    if (saved) Object.keys(saved).forEach(id => { if (pos[id]) pos[id] = saved[id]; });
-    function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pos)); } catch(e){} }
+    function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(custom)); } catch(e){} }
 
     function toast(msg, ok){
       const el = document.getElementById('mdlToast');
@@ -15021,6 +15239,8 @@
     }
 
     // ── tarjetas ──
+    const byId = {};
+    TABLES.forEach(t => { byId[t.id] = t; });
     const cardsLayer = document.getElementById('mdlCardsLayer');
     const cardEls = {};
     const statsEls = {};
@@ -15028,7 +15248,7 @@
     function fieldRowHtml(fld){
       const cls = ['mdl-field', fld.pk ? 'pk' : (fld.fk ? 'fk' : 'plain'), fld.opt ? 'opt' : ''].join(' ').trim();
       let extra = '';
-      if (fld.fk) extra = `<span class="mdl-field-extra">→ <b>${fld.fk}</b></span>`;
+      if (fld.fk) extra = `<span class="mdl-field-extra">→ <b>${fld.fk}</b>${fld.extra ? ' · ' + fld.extra : ''}</span>`;
       else if (fld.extra) extra = `<span class="mdl-field-extra">${fld.extra}</span>`;
       const badge = fld.badge ? `<span class="mdl-field-badge">${fld.badge}</span>` : '';
       return `<div class="${cls}"><span class="mdl-field-mark"></span><span class="mdl-field-body"><span class="mdl-field-name">${fld.name}</span><span class="mdl-field-type">${fld.type}</span>${badge}${extra}</span></div>`;
@@ -15041,8 +15261,6 @@
       el.className = 'mdl-card engine-' + t.engine;
       el.id = 'mdlCard-' + t.id;
       el.style.width = CARD_W + 'px';
-      el.style.left = pos[t.id].x + 'px';
-      el.style.top = pos[t.id].y + 'px';
       el.title = t.engine === 'sql' ? 'Azure SQL · apcweb-backoffice' : 'Azure Table Storage · apcwebrecursos';
       el.innerHTML = `
         <div class="mdl-card-accent" style="background:var(--mdl-${t.pillar})"></div>
@@ -15055,7 +15273,6 @@
             <span class="mdl-pillar-pill"><span class="mdl-pillar-dot" style="background:var(--mdl-${t.pillar})"></span>${PILLAR_LABEL[t.pillar]}</span>
             <span class="mdl-pk-line">PK: ${t.pk}</span>
           </div>
-          ${t.note ? `<div class="mdl-card-note">${t.note}</div>` : ''}
           <div class="mdl-card-stats" id="mdlStats-${t.id}">Pulsa el ícono de refrescar para ver filas</div>
         </div>
         <div class="mdl-field-list">${t.fields.map(fieldRowHtml).join('')}</div>
@@ -15068,50 +15285,13 @@
     document.getElementById('mdlStatsLine').textContent =
       `${TABLES.length} tablas · 2 motores de datos · ${RELATIONS.length} relaciones`;
 
-    // ── zonas de fondo — macro-región por motor primero (más gruesa, detrás),
-    // luego las zonas por pilar de negocio encima (más delgadas) ──
-    const zonesLayer = document.getElementById('mdlZonesLayer');
-    MACRO_ZONES.forEach(z => {
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.innerHTML = `
-        <rect class="mdl-macro-rect ${z.style}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="22"></rect>
-        <text class="mdl-macro-title" x="${z.x+22}" y="${z.y+34}">${z.label}</text>
-        <text class="mdl-macro-sub" x="${z.x+22}" y="${z.y+52}">${z.sub} · ${z.count} tablas</text>
-      `;
-      zonesLayer.appendChild(g);
-    });
-    ZONES.forEach(z => {
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.innerHTML = `
-        <rect class="mdl-zone-rect" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="14" stroke="var(--line)" stroke-dasharray="6,5"></rect>
-        <text class="mdl-zone-label" x="${z.x+14}" y="${z.y+22}">${z.label}</text>
-      `;
-      zonesLayer.appendChild(g);
-    });
-
-    // ── geometría + trazado de relaciones (misma lógica del Artifact público) ──
-    function cardRect(id){
-      const p = pos[id], el = cardEls[id];
-      const h = el.offsetHeight || 200;
-      return { x:p.x, y:p.y, w:CARD_W, h };
-    }
-    function edgePoint(rect, otherCenter){
-      const cx = rect.x + rect.w/2, cy = rect.y + rect.h/2;
-      const dx = otherCenter.x - cx, dy = otherCenter.y - cy;
-      if (Math.abs(dx) > Math.abs(dy)) return { x: cx + Math.sign(dx||1) * rect.w/2, y: cy };
-      return { x: cx, y: cy + Math.sign(dy||1) * rect.h/2 };
-    }
-    function bezierAt(p0,p1,p2,p3,t){
-      const mt = 1-t;
-      const x = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
-      const y = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
-      return {x,y};
-    }
+    // ── relaciones ──
     const KIND_STYLE = {
       fk:   { stroke:'var(--blue-bright)', width:1.6, dash:'none', marker:'url(#mdlArrowFk)' },
       soft: { stroke:'var(--text-dim)', width:1.3, dash:'5,4', marker:'url(#mdlArrowSoft)' },
       snap: { stroke:'var(--mdl-snapshot)', width:1.2, dash:'1,4', marker:'url(#mdlArrowSnap)' },
     };
+    const KIND_TEXT = { fk:'FK real', soft:'Sin FK', snap:'Foto' };
     const linesLayer = document.getElementById('mdlLinesLayer');
     const relEls = [];
     RELATIONS.forEach(r => {
@@ -15140,8 +15320,26 @@
       relEls.push({ r, g, path, labelGroup });
     });
 
+    function cardRect(id){
+      const p = pos[id], el = cardEls[id];
+      return { x:p.x, y:p.y, w:CARD_W, h:el.offsetHeight || 200 };
+    }
+    function edgePoint(rect, otherCenter){
+      const cx = rect.x + rect.w/2, cy = rect.y + rect.h/2;
+      const dx = otherCenter.x - cx, dy = otherCenter.y - cy;
+      if (Math.abs(dx) > Math.abs(dy)) return { x: cx + Math.sign(dx||1) * rect.w/2, y: cy };
+      return { x: cx, y: cy + Math.sign(dy||1) * rect.h/2 };
+    }
+    function bezierAt(p0,p1,p2,p3,t){
+      const mt = 1-t;
+      return {
+        x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+        y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y,
+      };
+    }
     function updateLines(){
       relEls.forEach(({r, path, labelGroup}) => {
+        if (!pos[r.from] || !pos[r.to]) return;
         const A = cardRect(r.from);
         if (r.self){
           const sx = A.x + A.w, sy = A.y + A.h*0.32;
@@ -15171,128 +15369,361 @@
       });
     }
 
+    // ── layout: mide las tarjetas y acomoda zonas/columnas ──
     const mdlSvg = document.getElementById('mdlSvg');
-    mdlSvg.setAttribute('width', WORLD_W); mdlSvg.setAttribute('height', WORLD_H); mdlSvg.setAttribute('viewBox', `0 0 ${WORLD_W} ${WORLD_H}`);
-    document.getElementById('mdlWorld').style.width = WORLD_W + 'px';
-    document.getElementById('mdlWorld').style.height = WORLD_H + 'px';
+    const zonesLayer = document.getElementById('mdlZonesLayer');
+    const world = document.getElementById('mdlWorld');
+    const viewport = document.getElementById('mdlViewport');
+    let defaultPos = {}, zoneRects = [], macroRects = [], worldW = 1000, worldH = 1000;
+    let laidOut = false;
+
+    function computeLayout(){
+      defaultPos = {}; zoneRects = []; macroRects = [];
+      const sized = LAYOUT.map(m => m.rows.map(row => row.map(z => {
+        const colH = z.cols.map(col => col.reduce((h, id) => h + cardEls[id].offsetHeight + GAP_Y, -GAP_Y));
+        const w = z.cols.length * CARD_W + (z.cols.length - 1) * GAP_X + ZPAD * 2;
+        return { z, w, h: ZHEAD + Math.max(...colH) + ZPAD };
+      })));
+      const rowWidth = row => row.reduce((s, c) => s + c.w, 0) + ZGAP * (row.length - 1);
+      let mx = 20, worldBottom = 0;
+      LAYOUT.forEach((m, mi) => {
+        const macroW = Math.max(...sized[mi].map(rowWidth)) + MPAD * 2;
+        const y = 20;
+        let cy = y + MHEAD;
+        sized[mi].forEach(row => {
+          const rowH = Math.max(...row.map(c => c.h));
+          let cx = mx + MPAD;
+          row.forEach(({z, w}) => {
+            zoneRects.push({ key:z.key, label:z.label, x:cx, y:cy, w, h:rowH });
+            let colX = cx + ZPAD;
+            z.cols.forEach(col => {
+              let colY = cy + ZHEAD;
+              col.forEach(id => { defaultPos[id] = { x:colX, y:colY }; colY += cardEls[id].offsetHeight + GAP_Y; });
+              colX += CARD_W + GAP_X;
+            });
+            cx += w + ZGAP;
+          });
+          cy += rowH + ZGAP;
+        });
+        const h = cy - ZGAP + MPAD - y;
+        const ids = m.rows.flat(2).flatMap(z => z.cols.flat());
+        macroRects.push({ x:mx, y, w:macroW, h, style:m.style, label:m.label, sub:m.sub, count:ids.length });
+        mx += macroW + MGAP; worldBottom = Math.max(worldBottom, y + h);
+      });
+      worldW = mx - MGAP + 20; worldH = worldBottom + 20;
+    }
+    function applyPositions(){
+      Object.keys(defaultPos).forEach(id => {
+        pos[id] = custom[id] ? { x:custom[id].x, y:custom[id].y } : { x:defaultPos[id].x, y:defaultPos[id].y };
+        cardEls[id].style.left = pos[id].x + 'px';
+        cardEls[id].style.top = pos[id].y + 'px';
+      });
+    }
+    function drawZones(){
+      zonesLayer.innerHTML = '';
+      macroRects.forEach(z => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.innerHTML = `
+          <rect class="mdl-macro-rect ${z.style}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="22"></rect>
+          <text class="mdl-macro-title" x="${z.x+24}" y="${z.y+50}">${z.label}</text>
+          <text class="mdl-macro-sub" x="${z.x+24}" y="${z.y+80}">${z.sub} · ${z.count} tablas</text>
+        `;
+        zonesLayer.appendChild(g);
+      });
+      zoneRects.forEach(z => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.innerHTML = `
+          <rect class="mdl-zone-rect" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="14" stroke="var(--line)" stroke-dasharray="6,5"></rect>
+          <text class="mdl-zone-label" x="${z.x+18}" y="${z.y+38}">${z.label}</text>
+        `;
+        zonesLayer.appendChild(g);
+      });
+    }
+    function doLayout(){
+      world.classList.remove('lod'); isLod = false;
+      computeLayout(); applyPositions(); drawZones();
+      mdlSvg.setAttribute('width', worldW); mdlSvg.setAttribute('height', worldH); mdlSvg.setAttribute('viewBox', `0 0 ${worldW} ${worldH}`);
+      world.style.width = worldW + 'px'; world.style.height = worldH + 'px';
+      updateLines();
+      applyTransform(false);
+    }
 
     // ── pan + zoom ──
-    const viewport = document.getElementById('mdlViewport');
-    const world = document.getElementById('mdlWorld');
-    let scale = 1, panX = 0, panY = 0;
-    function applyTransform(){
+    let scale = 1, panX = 0, panY = 0, isLod = false;
+    function applyTransform(animate){
+      if (animate){
+        world.classList.add('animating');
+        clearTimeout(applyTransform._t);
+        applyTransform._t = setTimeout(() => world.classList.remove('animating'), 420);
+      } else world.classList.remove('animating');
       world.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
       document.getElementById('mdlZoomReadout').textContent = Math.round(scale*100) + '%';
+      const lod = scale < LOD_SCALE;
+      if (lod !== isLod){
+        isLod = lod; world.classList.toggle('lod', lod);
+        if (laidOut) updateLines();
+      }
     }
-    function fitView(){
-      const vw = viewport.clientWidth, vh = viewport.clientHeight, margin = 30;
-      const s = Math.min((vw-margin*2)/WORLD_W, (vh-margin*2)/WORLD_H, 1);
-      scale = Math.max(s, 0.15);
-      panX = (vw - WORLD_W*scale) / 2;
-      panY = (vh - WORLD_H*scale) / 2;
-      applyTransform();
+    function zoomAt(cx, cy, newScale, animate){
+      newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+      panX = cx - (cx - panX) * (newScale/scale); panY = cy - (cy - panY) * (newScale/scale);
+      scale = newScale; applyTransform(animate);
     }
-    let isPanning = false, panStart = null;
+    function fitBox(box, opts){
+      const o = opts || {};
+      const vw = viewport.clientWidth, vh = viewport.clientHeight, m = 44;
+      const s = Math.max(MIN_SCALE, Math.min((vw - m*2)/box.w, (vh - m*2)/box.h, o.maxScale || 1));
+      scale = s;
+      panX = (vw - box.w*s)/2 - box.x*s;
+      panY = (vh - box.h*s)/2 - box.y*s;
+      applyTransform(o.animate !== false);
+    }
+    function boxOf(ids){
+      const rs = ids.filter(id => pos[id]).map(cardRect);
+      if (!rs.length) return { x:0, y:0, w:worldW, h:worldH };
+      const x0 = Math.min(...rs.map(r => r.x)), y0 = Math.min(...rs.map(r => r.y));
+      const x1 = Math.max(...rs.map(r => r.x + r.w)), y1 = Math.max(...rs.map(r => r.y + r.h));
+      return { x:x0, y:y0, w:x1-x0, h:y1-y0 };
+    }
+    function fitAll(animate){ fitBox({ x:0, y:0, w:worldW, h:worldH }, { maxScale:1, animate }); }
+    function boxIsVisible(box){
+      const vw = viewport.clientWidth, vh = viewport.clientHeight, m = 16;
+      const x0 = box.x*scale + panX, y0 = box.y*scale + panY, x1 = (box.x+box.w)*scale + panX, y1 = (box.y+box.h)*scale + panY;
+      return x0 >= m && y0 >= m && x1 <= vw - m && y1 <= vh - m;
+    }
+
+    // Arrastre del fondo (1 dedo/ratón) y pellizco (2 dedos)
+    const pointers = new Map();
+    let panStart = null, pinchStart = null, panMoved = false;
     viewport.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.mdl-card')) return;
-      isPanning = true; panStart = { x:e.clientX, y:e.clientY, panX, panY };
-      viewport.classList.add('panning'); viewport.setPointerCapture(e.pointerId);
+      if (e.target.closest('.mdl-card') || e.target.closest('.mdl-legend') || e.target.closest('.mdl-hint')) return;
+      pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+      try { viewport.setPointerCapture(e.pointerId); } catch(err){}
+      if (pointers.size === 1){
+        panStart = { x:e.clientX, y:e.clientY, panX, panY }; panMoved = false;
+        viewport.classList.add('panning');
+      } else if (pointers.size === 2){
+        const [a, b] = [...pointers.values()], rect = viewport.getBoundingClientRect();
+        pinchStart = { dist: Math.hypot(a.x-b.x, a.y-b.y) || 1, scale, panX, panY, cx:(a.x+b.x)/2 - rect.left, cy:(a.y+b.y)/2 - rect.top };
+        panStart = null; panMoved = true;
+      }
     });
     viewport.addEventListener('pointermove', (e) => {
-      if (!isPanning) return;
-      panX = panStart.panX + (e.clientX - panStart.x); panY = panStart.panY + (e.clientY - panStart.y);
-      applyTransform();
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+      if (pointers.size === 2 && pinchStart){
+        const [a, b] = [...pointers.values()];
+        const k = (Math.hypot(a.x-b.x, a.y-b.y) || 1) / pinchStart.dist;
+        const ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE, pinchStart.scale * k));
+        panX = pinchStart.cx - (pinchStart.cx - pinchStart.panX) * (ns/pinchStart.scale);
+        panY = pinchStart.cy - (pinchStart.cy - pinchStart.panY) * (ns/pinchStart.scale);
+        scale = ns; applyTransform();
+      } else if (panStart && pointers.size === 1){
+        const dx = e.clientX - panStart.x, dy = e.clientY - panStart.y;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) panMoved = true;
+        panX = panStart.panX + dx; panY = panStart.panY + dy; applyTransform();
+      }
     });
-    viewport.addEventListener('pointerup', () => { isPanning = false; viewport.classList.remove('panning'); });
-    viewport.addEventListener('pointercancel', () => { isPanning = false; viewport.classList.remove('panning'); });
+    function endPointer(e){
+      if (!pointers.has(e.pointerId)) return;
+      pointers.delete(e.pointerId);
+      pinchStart = null;
+      if (pointers.size === 0){
+        // un clic limpio en el fondo (sin arrastrar) quita la selección; arrastrar para navegar NO
+        if (panStart && !panMoved && e.type === 'pointerup') clearSelection();
+        panStart = null; viewport.classList.remove('panning');
+      } else if (pointers.size === 1){
+        const [p] = [...pointers.values()];
+        panStart = { x:p.x, y:p.y, panX, panY }; panMoved = true;
+      }
+    }
+    viewport.addEventListener('pointerup', endPointer);
+    viewport.addEventListener('pointercancel', endPointer);
+
+    // Rueda: mueve la vista. Ctrl + rueda (o pellizco en trackpad) hace zoom.
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const rect = viewport.getBoundingClientRect();
-      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
-      const factor = e.deltaY < 0 ? 1.12 : 1/1.12;
-      const newScale = Math.min(2.2, Math.max(0.12, scale * factor));
-      panX = cx - (cx - panX) * (newScale/scale); panY = cy - (cy - panY) * (newScale/scale);
-      scale = newScale; applyTransform();
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      const dx = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
+      if (e.ctrlKey || e.metaKey){
+        const rect = viewport.getBoundingClientRect();
+        const f = Math.exp(-Math.max(-60, Math.min(60, dy)) * 0.012);
+        zoomAt(e.clientX - rect.left, e.clientY - rect.top, scale * f);
+      } else {
+        if (e.shiftKey){ panX -= dy; } else { panX -= dx; panY -= dy; }
+        applyTransform();
+      }
     }, { passive:false });
 
-    document.getElementById('mdlZoomIn').addEventListener('click', () => zoomStep(1.2));
-    document.getElementById('mdlZoomOut').addEventListener('click', () => zoomStep(1/1.2));
-    function zoomStep(factor){
-      const vw = viewport.clientWidth, vh = viewport.clientHeight, cx = vw/2, cy = vh/2;
-      const newScale = Math.min(2.2, Math.max(0.12, scale * factor));
-      panX = cx - (cx - panX) * (newScale/scale); panY = cy - (cy - panY) * (newScale/scale);
-      scale = newScale; applyTransform();
-    }
-    document.getElementById('mdlFitBtn').addEventListener('click', fitView);
+    function zoomStep(factor){ zoomAt(viewport.clientWidth/2, viewport.clientHeight/2, scale * factor, true); }
+    document.getElementById('mdlZoomIn').addEventListener('click', () => zoomStep(1.25));
+    document.getElementById('mdlZoomOut').addEventListener('click', () => zoomStep(1/1.25));
+    document.getElementById('mdlFitBtn').addEventListener('click', () => { clearSelection(); fitAll(true); });
 
-    // ── arrastrar tarjetas ──
+    // ── selección, resaltado y búsqueda ──
+    let selected = null, searchQuery = '', matchIds = [], matchSet = new Set(), matchIdx = -1;
+    function neighbors(id){
+      const set = new Set([id]);
+      RELATIONS.forEach(r => { if (r.from === id) set.add(r.to); if (r.to === id) set.add(r.from); });
+      return set;
+    }
+    function tableMatches(t, q){
+      if (!q) return true;
+      return t.id.toLowerCase().includes(q) || (t.note || '').toLowerCase().includes(q) ||
+        t.fields.some(f => f.name.toLowerCase().includes(q) || (f.extra || '').toLowerCase().includes(q));
+    }
+    function render(){
+      const active = selected ? neighbors(selected) : null;
+      Object.entries(cardEls).forEach(([id, el]) => {
+        el.classList.toggle('selected', selected === id);
+        el.classList.toggle('dim', active ? !active.has(id) : (searchQuery ? !matchSet.has(id) : false));
+        el.classList.toggle('match', !active && !!searchQuery && matchSet.has(id));
+      });
+      relEls.forEach(({r, g}) => {
+        let op = 0.55;
+        if (active) op = (selected === r.from || selected === r.to) ? 1 : 0.06;
+        else if (searchQuery) op = 0.1;
+        g.style.opacity = op;
+      });
+      renderDetail(); renderIndex();
+    }
+    function selectTable(id, force){
+      selected = id; render();
+      // Encuadra la tabla con sus vecinas; si son tantas que se vería diminuto,
+      // se enfoca solo la tabla (las vecinas quedan resaltadas y listadas en el panel).
+      const box = boxOf([...neighbors(id)]);
+      const vw = viewport.clientWidth, vh = viewport.clientHeight;
+      const fitScale = Math.min((vw - 88)/box.w, (vh - 88)/box.h, 1);
+      if (fitScale >= 0.5){
+        if (force || scale < 0.5 || !boxIsVisible(box)) fitBox(box, { maxScale:1 });
+      } else if (force || scale < 0.5 || !boxIsVisible(boxOf([id]))){
+        fitBox(boxOf([id]), { maxScale:0.85 });
+      }
+    }
+    function clearSelection(){ if (!selected) return; selected = null; render(); }
+    function focusCard(id){ fitBox(boxOf([id]), { maxScale:1 }); }
+
+    // ── panel lateral: detalle de la tabla elegida + índice para saltar ──
+    const sideEl = document.getElementById('mdlSide');
+    const detailEl = document.getElementById('mdlDetail');
+    const indexEl = document.getElementById('mdlIndex');
+    function renderDetail(){
+      if (!selected){ detailEl.hidden = true; detailEl.innerHTML = ''; return; }
+      const t = byId[selected];
+      const out = [], inc = [];
+      RELATIONS.forEach(r => {
+        if (r.from === selected && r.to === selected) out.push({ other:selected, r, self:true });
+        else if (r.from === selected) out.push({ other:r.to, r });
+        else if (r.to === selected) inc.push({ other:r.from, r });
+      });
+      const row = ({ other, r, self }) =>
+        `<li><button type="button" data-go="${other}">${self ? 'ella misma' : other}</button><span class="mdl-rel-tag ${r.kind}">${KIND_TEXT[r.kind]}</span>${r.label ? `<small>${r.label}</small>` : ''}</li>`;
+      const lista = (arr) => arr.length ? `<ul class="mdl-rel-list">${arr.map(row).join('')}</ul>` : '<p class="mdl-side-empty">Ninguna.</p>';
+      const st = statsEls[selected].classList.contains('loaded') ? `<div class="mdl-det-stats">${statsEls[selected].textContent}</div>` : '';
+      detailEl.hidden = false;
+      detailEl.innerHTML = `
+        <div class="mdl-det-head">
+          <div><div class="mdl-det-title">${t.id}</div><div class="mdl-det-sub">${t.engine === 'sql' ? 'Azure SQL' : 'Table Storage'} · ${PILLAR_LABEL[t.pillar]}</div></div>
+          <button type="button" class="mdl-det-close" data-clear title="Quitar selección (Esc)" aria-label="Quitar selección">×</button>
+        </div>
+        <div class="mdl-det-pk">PK: ${t.pk} · ${t.fields.length} campos</div>
+        ${st}
+        ${t.note ? `<p class="mdl-det-note">${t.note}</p>` : ''}
+        <div class="mdl-det-h">Apunta a (${out.length})</div>${lista(out)}
+        <div class="mdl-det-h">Le apuntan (${inc.length})</div>${lista(inc)}
+      `;
+    }
+    function renderIndex(){
+      let html = '';
+      LAYOUT.forEach(m => {
+        let bloque = '';
+        m.rows.forEach(row => row.forEach(z => {
+          const ids = z.cols.flat().filter(id => tableMatches(byId[id], searchQuery));
+          if (!ids.length) return;
+          bloque += `<button type="button" class="mdl-idx-zone" data-zone="${z.key}">${z.label}<em>${ids.length}</em></button>`;
+          bloque += ids.map(id => `<button type="button" class="mdl-idx-item${selected === id ? ' active' : ''}" data-go="${id}"><i style="background:var(--mdl-${byId[id].pillar})"></i><b>${id}</b><span>${byId[id].engine === 'sql' ? 'SQL' : 'TS'}</span></button>`).join('');
+        }));
+        if (bloque) html += `<button type="button" class="mdl-idx-macro" data-macro="${m.style}">${m.label}</button>${bloque}`;
+      });
+      indexEl.innerHTML = html || '<p class="mdl-side-empty">Ninguna tabla coincide.</p>';
+    }
+    sideEl.addEventListener('click', (e) => {
+      const go = e.target.closest('[data-go]');
+      if (go){ selectTable(go.getAttribute('data-go'), true); return; }
+      if (e.target.closest('[data-clear]')){ clearSelection(); return; }
+      const mb = e.target.closest('[data-macro]');
+      if (mb){
+        const mr = macroRects.find(r => r.style === mb.getAttribute('data-macro'));
+        if (mr){ clearSelection(); fitBox(mr, { maxScale:0.8 }); }
+        return;
+      }
+      const zb = e.target.closest('[data-zone]');
+      if (zb){
+        const z = zoneRects.find(r => r.key === zb.getAttribute('data-zone'));
+        if (z){ clearSelection(); fitBox(z, { maxScale:0.8 }); }
+      }
+    });
+    const SIDE_KEY = 'apc-admin-modelo-side-open';
+    let sideOpen = window.innerWidth >= 1000;
+    try { const v = localStorage.getItem(SIDE_KEY); if (v !== null) sideOpen = v === '1'; } catch(e){}
+    sideEl.classList.toggle('closed', !sideOpen);
+    document.getElementById('mdlSideBtn').addEventListener('click', () => {
+      sideOpen = !sideOpen; sideEl.classList.toggle('closed', !sideOpen);
+      try { localStorage.setItem(SIDE_KEY, sideOpen ? '1' : '0'); } catch(e){}
+    });
+
+    // búsqueda: filtra el índice, resalta coincidencias y lleva la vista a ellas
+    const searchInput = document.getElementById('mdlSearch');
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      selected = null; matchIdx = -1;
+      matchIds = searchQuery ? TABLES.filter(t => tableMatches(t, searchQuery)).map(t => t.id) : [];
+      matchSet = new Set(matchIds);
+      render();
+      if (matchIds.length && laidOut) fitBox(boxOf(matchIds), { maxScale:0.9 });
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && matchIds.length){
+        e.preventDefault();
+        matchIdx = (matchIdx + 1) % matchIds.length;
+        focusCard(matchIds[matchIdx]);
+      } else if (e.key === 'Escape'){
+        searchInput.value = ''; searchInput.dispatchEvent(new Event('input'));
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || (e.target.closest && e.target.closest('input, textarea, select'))) return;
+      if (document.getElementById('panel-modelo').classList.contains('active')) clearSelection();
+    });
+
+    // ── arrastrar tarjetas por su título ──
     let dragId = null, dragStart = null, moved = false;
     Object.entries(cardEls).forEach(([id, el]) => {
       const head = el.querySelector('.mdl-card-head');
       head.addEventListener('pointerdown', (e) => {
         e.stopPropagation(); dragId = id; moved = false;
         dragStart = { x:e.clientX, y:e.clientY, px:pos[id].x, py:pos[id].y };
-        head.setPointerCapture(e.pointerId);
+        try { head.setPointerCapture(e.pointerId); } catch(err){}
       });
       head.addEventListener('pointermove', (e) => {
         if (dragId !== id) return;
         const dx = (e.clientX - dragStart.x) / scale, dy = (e.clientY - dragStart.y) / scale;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+        if (!moved) return;
         pos[id].x = dragStart.px + dx; pos[id].y = dragStart.py + dy;
         el.style.left = pos[id].x + 'px'; el.style.top = pos[id].y + 'px';
         updateLines();
       });
       head.addEventListener('pointerup', () => {
         if (dragId !== id) return;
-        dragId = null; persist();
-        if (!moved) toggleSelect(id);
+        dragId = null;
+        if (moved){ custom[id] = { x:Math.round(pos[id].x), y:Math.round(pos[id].y) }; persist(); }
+        else selected === id ? clearSelection() : selectTable(id);
       });
       el.addEventListener('click', (e) => {
         if (e.target.closest('.mdl-card-head')) return;
-        toggleSelect(id);
+        selected === id ? clearSelection() : selectTable(id);
       });
-    });
-
-    // ── selección / resaltado de relaciones ──
-    let selected = null;
-    function neighbors(id){
-      const set = new Set([id]);
-      RELATIONS.forEach(r => { if (r.from === id) set.add(r.to); if (r.to === id) set.add(r.from); });
-      return set;
-    }
-    function toggleSelect(id){
-      if (searchQuery) return;
-      selected = selected === id ? null : id;
-      render();
-    }
-    function render(){
-      const active = selected ? neighbors(selected) : null;
-      Object.entries(cardEls).forEach(([id, el]) => {
-        el.classList.toggle('selected', selected === id);
-        el.classList.toggle('dim', !!active && !active.has(id));
-        el.classList.remove('match');
-      });
-      relEls.forEach(({r, g}) => {
-        const rel = !active || (active.has(r.from) && active.has(r.to) && (selected === r.from || selected === r.to));
-        g.style.opacity = active ? (rel ? 1 : 0.12) : 1;
-      });
-    }
-    viewport.addEventListener('pointerdown', (e) => {
-      if (!e.target.closest('.mdl-card')) { selected = null; render(); }
-    });
-
-    // ── búsqueda ──
-    let searchQuery = '';
-    const searchInput = document.getElementById('mdlSearch');
-    searchInput.addEventListener('input', () => {
-      searchQuery = searchInput.value.trim().toLowerCase();
-      selected = null;
-      if (!searchQuery){ render(); return; }
-      Object.entries(cardEls).forEach(([id, el]) => {
-        const hay = el.textContent.toLowerCase().includes(searchQuery);
-        el.classList.toggle('match', hay); el.classList.toggle('dim', !hay); el.classList.remove('selected');
-      });
-      relEls.forEach(({g}) => g.style.opacity = 0.12);
     });
 
     // ── leyenda ──
@@ -15308,12 +15739,9 @@
 
     // ── reset de layout ──
     document.getElementById('mdlResetBtn').addEventListener('click', () => {
-      TABLES.forEach(t => {
-        pos[t.id] = { x:t.x, y:t.y };
-        cardEls[t.id].style.left = t.x + 'px'; cardEls[t.id].style.top = t.y + 'px';
-      });
+      custom = {};
       try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
-      updateLines(); fitView();
+      doLayout(); clearSelection(); fitAll(true);
       toast('Posiciones originales restauradas', true);
     });
 
@@ -15351,6 +15779,8 @@
         const data = await apiGetConReintento('/api/getModeloEstadisticas');
         (data.sql || []).forEach(fila => pintarStats(fila, false));
         (data.storage || []).forEach(fila => pintarStats(fila, true));
+        if (laidOut) updateLines();
+        renderDetail();
         const hora = new Date(data.generado).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
         document.getElementById('mdlUpdated').textContent = 'Actualizado ' + hora;
         if (data.sqlError) toast(data.sqlError, false);
@@ -15365,8 +15795,17 @@
     }
     actualizarBtn.addEventListener('click', cargarEstadisticas);
 
-    // ── arranque ──
-    requestAnimationFrame(() => { updateLines(); fitView(); });
+    // ── arranque: el layout necesita medir tarjetas, y el panel está oculto
+    // hasta que se abre — se calcula la primera vez que el visor tiene tamaño ──
+    render();
+    function tryLayout(){
+      if (laidOut || !viewport.clientWidth) return;
+      laidOut = true; doLayout(); fitBox(macroRects[0], { maxScale:0.8, animate:false });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { doLayout(); });
+    }
+    new ResizeObserver(tryLayout).observe(viewport);
+    const navBtn = document.querySelector('.admin-nav-item[data-panel="modelo"]');
+    if (navBtn) navBtn.addEventListener('click', () => setTimeout(tryLayout, 0));
   })();
 
   // ══ Marca (kit de marca) ══

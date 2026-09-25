@@ -5,7 +5,7 @@
 // SELECT/listEntities. Se dispara nada más al pulsar "Actualizar" en el panel
 // — a propósito no se llama sola al abrir el panel, mismo criterio que
 // Tarifas/Respaldos en Configuración: evita despertar la base SQL serverless
-// o recorrer las 8 tablas de Table Storage (sin COUNT nativo, hay que listar
+// o recorrer las tablas de Table Storage (sin COUNT nativo, hay que listar
 // todas las entidades) solo por entrar a ver el diagrama.
 const { getPool } = require("../src/backoffice-db");
 const { TableClient } = require("@azure/data-tables");
@@ -31,6 +31,7 @@ const SQL_TABLAS = [
   { tabla: "Grupo", fechaCol: "fecha_creacion" },
   { tabla: "GrupoFaseHistorial", fechaCol: "fecha" },
   { tabla: "Alumno", fechaCol: null },
+  { tabla: "Calificacion", fechaCol: "fecha_carga" },
   { tabla: "Diploma", fechaCol: "fecha_generacion" },
   { tabla: "EncuestaRespuesta", fechaCol: "fecha_envio" },
   { tabla: "EncuestaRespuestaDetalle", fechaCol: null },
@@ -47,6 +48,8 @@ const SQL_TABLAS = [
 const STORAGE_TABLAS = [
   "Temas", "TemariosEstandar", "Proyectos", "Cursos", "Recursos", "IntentosCodigo", "Pendientes",
   "AdminActividad", "DiagnosticoPreguntas", "EncuestaPreguntas", "ConfiguracionNotificaciones",
+  "DiagnosticoContador", "DiagnosticoReportes", "EncuestaConfig", "EncuestaLinks", "EncuestaReportes",
+  "CalificacionesReportes", "DiplomasGrupo", "DiplomasVerif", "DiplomasVerifLimite",
 ];
 
 function isTableNotFound(err) {

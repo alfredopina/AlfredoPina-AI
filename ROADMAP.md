@@ -43,7 +43,7 @@ Que no se caiga nada.
 - Confianza del dominio `alfredopina.ai`: reclasificaciones por fabricante, whitelist con TI de clientes, ficha PDF para TI. Palo Alto quita "dominio nuevo" ~2026-10-12.
 - Correo y DNS de `lifezen.com.mx`: viernes 2026-09-25 mover DNS a GoDaddy con SPF/DKIM/DMARC (ver `CLAUDE_DETALLE.md` → "Correo y suite").
 - Migración Google Workspace → Exchange Online (~2 semanas después), alias `alfredo@alfredopina.ai`, luego Dropbox → OneDrive.
-- Pagar la factura vencida de Microsoft (G166761726).
+- **Calendario de pagos y vencimientos** (Azure, Microsoft 365, Google Workspace, dominios, Dropbox, OneDrive) con recordatorios, método de pago con saldo y cobro automático, y un segundo contacto de facturación. El 2026-09-25 una factura vencida de Azure deshabilitó la suscripción y tumbó el sitio unas horas.
 - Accesos y respaldos ordenados (Viridiana como segunda admin).
 - **Meta:** correo con SPF/DKIM/DMARC en PASS, dominio confiable, cero facturas vencidas.
 
@@ -64,7 +64,7 @@ Aquí está el ahorro de horas y la estabilidad.
 
 ### Frente 3 — Oferta y marca personal
 Lo que hace crecer la demanda.
-- Marca: **un canal principal (LinkedIn)** con una publicación semanal sacada del material de los cursos; después YouTube, blog y boletín reciclando lo mismo.
+- Marca: **un canal principal (LinkedIn)** con una publicación semanal sacada del material de los cursos; después YouTube, blog y boletín reciclando lo mismo. **Proyecto de contenido en Claude Cowork** (chats por canal: LinkedIn, YouTube, cursos y conferencias); su documento de arranque es privado y vive fuera de este repositorio.
 - Oferta: cursos cortos nuevos, IA y habilidades blandas (con preventa), actualización de cursos y recursos existentes, certificaciones vigentes.
 - **Microsoft Certified Trainer (MCT):** revisar requisitos del programa y ponerle fecha límite. Aparte, decidir si se quiere el camino de socio/revendedor.
 - Conferencias.

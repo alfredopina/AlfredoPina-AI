@@ -21,6 +21,7 @@
 // ahora un id de Table Storage (string), por eso la columna correspondiente
 // en DiagnosticoRespuestaDetalle pasó de INT a NVARCHAR (sql/015).
 const { getPool, sql } = require("../src/backoffice-db");
+const { resolverCliente } = require("../src/cliente-resolver");
 const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagnostico-tables");
 const { getDiagnosticoContadorTable, ajustarContadorDiagnostico } = require("../src/diagnostico-contador");
 const { JSON_HEADERS } = require("../src/http");
@@ -31,43 +32,12 @@ const HERRAMIENTAS = ["excel", "powerbi"];
 // necesitar ningún caso especial en el cálculo de fue_correcta.
 const OPCIONES = ["A", "B", "C", "D", "N"];
 
-function limpiarCodigo(codigo) {
-  return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
 function errorSeguro(mensaje) {
   const err = new Error(mensaje);
   err.safe = true;
   return err;
 }
 
-// nuevaRequest() devuelve un Request ligado a la transacción del envío: si el
-// guardado de las respuestas falla, la empresa nueva (Prospecto) se revierte
-// también — antes se insertaba fuera de la transacción y un envío fallido
-// dejaba un Cliente huérfano sin ninguna respuesta. Una empresa que no existe
-// nace SIEMPRE como Prospecto, nunca como cliente.
-async function resolverCliente(nuevaRequest, empresa) {
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-
-  if (clienteId) {
-    const r = await nuevaRequest().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw errorSeguro("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await nuevaRequest().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
-
-  const insert = await nuevaRequest()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
-  return insert.recordset[0];
-}
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -120,7 +90,7 @@ module.exports = async function (context, req) {
   try {
     await transaction.begin();
 
-    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa);
+    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa, "Prospecto", { crearError: errorSeguro });
 
     const insertRespuesta = await new sql.Request(transaction)
       .input("nombre", sql.NVarChar, nombre)

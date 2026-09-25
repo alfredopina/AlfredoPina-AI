@@ -23,25 +23,12 @@
 // intencional (link controlado por QR en vivo); el aviso suave de "ya
 // contestaste" vive en el navegador (localStorage), no bloquea.
 const { getPool, sql } = require("../src/backoffice-db");
+const { resolverClienteExistente } = require("../src/cliente-resolver");
 const { getEncuestaPreguntasTable, listarTodas, bancoVigente } = require("../src/encuesta-tables");
 const { getEncuestaLinksTable, leerLink, ajustarContadores } = require("../src/encuesta-links");
 const { validarRespuestas, errorSeguro, fechaMexico, CORREO_RE } = require("../src/encuesta-logic");
 const { JSON_HEADERS } = require("../src/http");
 
-// La Encuesta abierta (sin link de Grupo) ya NO crea empresas: solo acepta un
-// Cliente que ya existe (y que no sea Prospecto). Una empresa nueva solo puede
-// nacer desde Solicitud/Cotización o un Diagnóstico abierto.
-async function resolverCliente(pool, empresa) {
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-  if (!clienteId) throw errorSeguro("Selecciona tu empresa de la lista — si no aparece, pídele el link o el QR a tu instructor.");
-
-  const r = await pool
-    .request()
-    .input("id", sql.Int, clienteId)
-    .query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id AND tipo_cliente <> 'Prospecto'");
-  if (!r.recordset.length) throw errorSeguro("El cliente seleccionado ya no existe.");
-  return r.recordset[0];
-}
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -78,7 +65,7 @@ module.exports = async function (context, req) {
 
     // 3. SQL
     const pool = await getPool();
-    const clienteId = link ? Number(link.clienteId) : (await resolverCliente(pool, body.empresa || {})).id;
+    const clienteId = link ? Number(link.clienteId) : (await resolverClienteExistente(pool, body.empresa || {}, errorSeguro)).id;
 
     const transaction = new sql.Transaction(pool);
     let duplicado = false;

@@ -341,6 +341,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/actualizarUmbralNotificacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getConfiguracionNotificaciones",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getNotificacionesActivas",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/previsualizarCotizacion",
       "allowedRoles": ["admin"]
     },

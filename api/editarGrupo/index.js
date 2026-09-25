@@ -14,6 +14,7 @@
 // Contacto nuevo consigo, creado en la misma transacción justo antes del
 // UPDATE del Grupo.
 const { getPool, sql } = require("../src/backoffice-db");
+const { resolverCliente } = require("../src/cliente-resolver");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase, registrarCambioFase } = require("../src/grupo-fase");
@@ -24,33 +25,6 @@ const NIVELES = [1, 2, 3];
 const ESTATUS_CURSO = ["Por iniciar", "En proceso", "Terminado"];
 const ESTATUS_CIERRE = ["Proyecto", "Calificaciones", "Diplomas", "Cerrado"];
 
-// tipoNuevo: tipo con el que nace una empresa que NO existía — Directo si es
-// el contratante, Indirecto si es el cliente final (ya tiene Grupo, no es Prospecto).
-async function resolverCliente(pool, empresa, tipoNuevo) {
-  if (!empresa) return null;
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-
-  if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = (empresa.codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
-
-  const insert = await pool
-    .request()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .input("tipo", sql.NVarChar, tipoNuevo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, @tipo)");
-  return insert.recordset[0];
-}
 
 function validarCuerpo(body) {
   const herramientas = Array.isArray(body.herramientas) ? body.herramientas : [];

@@ -14,6 +14,7 @@
 // que el modelo quede alineado con lo que un futuro form público (canal_origen
 // "Sitio") va a mandar. canal_origen siempre es "Manual" desde este form.
 const { getPool, sql } = require("../src/backoffice-db");
+const { resolverCliente } = require("../src/cliente-resolver");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -21,33 +22,6 @@ const TEMARIO_TIPOS = ["estandar", "personalizado"];
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
 
-function limpiarCodigo(codigo) {
-  return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-async function resolverCliente(pool, empresa) {
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-
-  if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
-
-  const insert = await pool
-    .request()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
-  return insert.recordset[0];
-}
 
 module.exports = async function (context, req) {
   const body = req.body || {};

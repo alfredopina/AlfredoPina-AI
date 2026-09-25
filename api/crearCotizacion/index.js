@@ -10,6 +10,7 @@
 // mismo criterio que anularDiploma). Si viene solicitud_id, esa Solicitud
 // pasa a "Cotizada".
 const { getPool, sql } = require("../src/backoffice-db");
+const { resolverCliente } = require("../src/cliente-resolver");
 const { subirCotizacionPdf } = require("../src/cotizaciones-storage");
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -25,34 +26,6 @@ const TOOL_LABELS = {
   powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Ofimática Básica",
 };
 
-function limpiarCodigo(codigo) {
-  return (codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-// mismo patrón que crearSolicitud/generarDiplomas — duplicado a propósito
-async function resolverCliente(pool, empresa) {
-  const clienteId = empresa.clienteId ? Number(empresa.clienteId) : null;
-
-  if (clienteId) {
-    const r = await pool.request().input("id", sql.Int, clienteId).query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id");
-    if (!r.recordset.length) throw new Error("El cliente seleccionado ya no existe.");
-    return r.recordset[0];
-  }
-
-  const nombre = (empresa.nombre || "").trim();
-  const codigo = limpiarCodigo(empresa.codigo);
-  if (!nombre || !codigo) throw new Error("Falta el nombre o el código de la empresa nueva.");
-
-  const existente = await pool.request().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
-
-  const insert = await pool
-    .request()
-    .input("nombre", sql.NVarChar, nombre)
-    .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
-  return insert.recordset[0];
-}
 
 // consecutivo por Cliente+Año, mismo cálculo que generarDiplomas pero leyendo
 // los folios ya usados en Cotizacion en vez de Diploma.

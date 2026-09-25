@@ -6,6 +6,7 @@
 // tiene candado de intentos). Nunca toca SQL: lee el registro de Table
 // Storage que escribe reconstruirSnapshotGrupo. Calificación y asistencia no
 // viven en ese registro — no hay forma de exponerlas por aquí.
+const crypto = require("crypto");
 const { getDiplomasVerifTable, getVerifLimiteTable, ensureTable, leerPorCodigo, leerPorFolio, registrarVista, abreviarNombre } = require("../src/diplomas-verif");
 const { checarBloqueo, registrarIntentoFallido } = require("../src/rate-limit");
 const { esAdmin, esBot } = require("../src/verif-cliente");
@@ -14,9 +15,12 @@ const { JSON_HEADERS } = require("../src/http");
 
 const FOLIO_RE = /^[A-Z0-9]{3,12}-\d{3,8}$/;
 
+// Del candado de intentos solo se guarda una huella cifrada de la IP (SHA-256
+// con sal), nunca la IP: sirve para frenar el abuso, no para identificar a nadie.
 function ipDe(req) {
   const h = String((req.headers && (req.headers["x-forwarded-for"] || req.headers["x-azure-clientip"])) || "unknown");
-  return h.split(",")[0].trim().replace(/[\\/#?]/g, "_").slice(0, 60) || "unknown";
+  const ip = h.split(",")[0].trim() || "unknown";
+  return crypto.createHash("sha256").update("verif|" + ip).digest("hex").slice(0, 32);
 }
 
 module.exports = async function (context, req) {

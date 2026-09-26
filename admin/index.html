@@ -8465,7 +8465,7 @@
           case 'horas': return g.horas || 0;
           case 'participantes': return g.vigentes || 0;
           case 'verificaciones': return (verifCache.porGrupo[g.grupo_id] || {}).vistas || 0;
-          case 'fecha': default: return g.ultima_generacion || '';
+          case 'fecha': default: return g.fecha_inicio || '';
         }
       };
       return filas.slice().sort((a, b) => {
@@ -12845,7 +12845,7 @@
     // speech-bubble simple en vez del ícono de documento que traía antes,
     // pedido explícito de Alfredo (2026-09-14) para que se lea como mensaje.
     const ICO_NOTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc', grupo: 'asc', curso: 'asc', horas: 'desc', dias_en_fase: 'desc' };
+    const SORT_DEFAULT_DIR = { fecha: 'desc', fecha_ultima_fase: 'desc', cliente: 'asc', herramienta: 'asc', instructor: 'asc', fase: 'asc', grupo: 'asc', curso: 'asc', horas: 'desc', dias_en_fase: 'desc' };
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -12968,7 +12968,7 @@
     const gruFClienteAuto = crearAutocomplete({ inputId:'gruFClienteNombre', listId:'gruFClienteLista', onChange: () => buscarGruposDebounced() });
 
     // ══ CONSULTAR GRUPOS — filtros / orden / tabla ══
-    let gruSort = 'fecha';
+    let gruSort = 'fecha_ultima_fase';
     let gruDir = 'desc';
     let gruListaCache = [];
     // A qué pestaña volver al terminar de editar o mover la fase de un Grupo —
@@ -12985,7 +12985,7 @@
     // listGruposAdmin, solo fecha/cliente) — con el volumen real de Grupos
     // (decenas, no miles) es más simple reordenar en el cliente que
     // replicar cada regla en SQL.
-    const SORT_GRUPOS_CLIENT = ['herramienta', 'instructor', 'fase', 'grupo', 'curso', 'horas', 'dias_en_fase'];
+    const SORT_GRUPOS_CLIENT = ['herramienta', 'instructor', 'fase', 'grupo', 'curso', 'horas', 'dias_en_fase', 'fecha_ultima_fase'];
     function ordenarListaGrupos(lista){
       if(!SORT_GRUPOS_CLIENT.includes(gruSort)) return lista;
       const factor = gruDir === 'asc' ? 1 : -1;
@@ -12995,6 +12995,9 @@
         if(gruSort === 'grupo') return g.grupo_codigo || '';
         if(gruSort === 'curso') return g.nombre_curso || '';
         if(gruSort === 'horas') return g.horas != null ? g.horas : -1;
+        // la columna "Fecha" muestra la fecha del último cambio de fase, así que
+        // ordena por ESA (antes caía al backend, que ordena por fecha_inicio)
+        if(gruSort === 'fecha_ultima_fase') return g.fecha_ultima_fase ? new Date(g.fecha_ultima_fase).getTime() : -1;
         if(gruSort === 'dias_en_fase') return (g.dias_en_fase != null && g.fase !== 'Cerrado') ? g.dias_en_fase : -1;
         return FASES.indexOf(g.fase);
       }
@@ -13823,7 +13826,7 @@
     // herramienta/instructor. null = sin filtrar por fase.
     let groFaseFiltro = null;
     let groConteosFase = {};
-    const SORT_DEFAULT_DIR_TRACKING = { cliente: 'asc', herramienta: 'asc', fase: 'asc', dias_en_fase: 'desc', grupo: 'asc', curso: 'asc', horas: 'desc' };
+    const SORT_DEFAULT_DIR_TRACKING = { cliente: 'asc', herramienta: 'asc', fase: 'asc', dias_en_fase: 'desc', grupo: 'asc', curso: 'asc', horas: 'desc', fecha_ultima_fase: 'desc' };
 
     let groBuscarDebounce = null;
     function buscarGruposTrackingDebounced(){
@@ -13915,6 +13918,7 @@
         if(groSort === 'grupo') return g.grupo_codigo || '';
         if(groSort === 'curso') return g.nombre_curso || '';
         if(groSort === 'horas') return g.horas != null ? g.horas : -1;
+        if(groSort === 'fecha_ultima_fase') return g.fecha_ultima_fase ? new Date(g.fecha_ultima_fase).getTime() : -1;
         return (g.dias_en_fase == null || g.fase === 'Cerrado') ? -1 : g.dias_en_fase;
       }
       return lista.slice().sort((a, b) => {

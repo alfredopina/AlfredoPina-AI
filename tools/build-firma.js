@@ -16,8 +16,8 @@ const SITE = "https://www.alfredopina.ai";
 
 const DATOS = {
   nombre: "Alfredo Piña",
-  cargo: "Instructor &amp; Consultor · Excel, Power BI e IA",
-  descriptor: "Productividad con Datos · Automatización · IA",
+  cargo: "Instructor &amp; Consultor",
+  herramientas: "Excel · Power BI · Power Platform · IA",
   telefono: "(+52) 811 725 5937",
   telefonoHref: "tel:+528117255937",
   whatsappHref: "https://wa.me/528117255937",
@@ -35,16 +35,16 @@ function logo(gif) {
   return `<tr><td style="padding:0 0 12px 0;"><a href="${SITE}/" style="text-decoration:none;"><img src="${SITE}/assets/img/brand/logo-principal-claro.${ext}" width="260" alt="alfredopina.ai" style="display:block;border:0;width:260px;height:auto;"></a></td></tr>`;
 }
 
+const icono = (archivo, alt) => `<img src="${SITE}/assets/img/brand/${archivo}" width="18" height="18" alt="${alt}" style="border:0;width:18px;height:18px;vertical-align:middle;">`;
+
 function completa(gif) {
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.55;color:${C.tinta};">
   ${logo(gif)}
   <tr><td style="border-left:3px solid ${C.azul};padding:2px 0 2px 12px;">
-    <div style="font-size:16px;font-weight:bold;color:${C.tinta};">${DATOS.nombre}</div>
-    <div style="color:${C.gris};">${DATOS.cargo}</div>
-    <div style="padding-top:8px;">${a(DATOS.telefonoHref, DATOS.telefono)} &nbsp;·&nbsp; ${a(DATOS.whatsappHref, "WhatsApp")}</div>
-    <div>${a("mailto:" + DATOS.correo, DATOS.correo)}</div>
-    <div>${a(SITE + "/", DATOS.web)} &nbsp;·&nbsp; ${a(DATOS.linkedin, "LinkedIn")}</div>
-    <div style="padding-top:8px;font-size:11px;color:${C.gris};">${DATOS.descriptor}</div>
+    <div><strong style="font-size:16px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">· ${DATOS.cargo}</span></div>
+    <div style="color:${C.gris};">${DATOS.herramientas}</div>
+    <div style="padding-top:8px;">${a(DATOS.telefonoHref, DATOS.telefono)} &nbsp;·&nbsp; ${a("mailto:" + DATOS.correo, DATOS.correo)}</div>
+    <div>${a(SITE + "/", DATOS.web)} &nbsp;&nbsp;${a(DATOS.whatsappHref, icono("firma-whatsapp.png", "WhatsApp"))}&nbsp;${a(DATOS.linkedin, icono("firma-linkedin.png", "LinkedIn"))}</div>
   </td></tr>
 </table>
 `;
@@ -58,6 +58,21 @@ function corta() {
   </td></tr>
 </table>
 `;
+}
+
+// Íconos de contacto (PNG de 36 px para mostrarse a 18 px): dibujados aquí, generados solo si hay "sharp".
+const ICONOS = {
+  "firma-whatsapp.png": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z" fill="${C.azul}"/><path d="M8.5 7.2c.3-.4.9-.4 1.2 0l.9 1.3c.2.3.2.7-.1 1l-.6.6c.6 1.2 1.5 2.1 2.7 2.7l.6-.6c.3-.3.7-.3 1-.1l1.3.9c.4.3.4.9 0 1.2-1 1-2.3 1.2-3.6.7-2.5-1-4.3-2.8-5.3-5.3-.5-1.3-.3-2.6.7-3.6z" fill="#fff"/></svg>`,
+  "firma-linkedin.png": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="${C.azul}"/><circle cx="7.2" cy="7.6" r="1.6" fill="#fff"/><rect x="5.7" y="10" width="3" height="8.6" fill="#fff"/><path d="M11 10h2.9v1.2c.5-.9 1.5-1.4 2.7-1.4 2.3 0 3.1 1.5 3.1 3.6v5.2h-3v-4.6c0-1-.3-1.7-1.3-1.7s-1.4.8-1.4 1.8v4.5H11z" fill="#fff"/></svg>`,
+};
+try {
+  const sharp = require("sharp");
+  const BRAND = path.join(__dirname, "..", "assets", "img", "brand");
+  for (const [archivo, svg] of Object.entries(ICONOS)) {
+    sharp(Buffer.from(svg), { density: 600 }).resize(36, 36).png().toFile(path.join(BRAND, archivo));
+  }
+} catch (e) {
+  console.log("(sin sharp: no se regeneraron los íconos PNG; ya están en assets/img/brand/)");
 }
 
 fs.mkdirSync(OUT, { recursive: true });

@@ -297,9 +297,10 @@ section{ padding:24px 0 80px; position:relative; z-index:1; }
 .enc-cierre .op{ color:var(--text-dim); }
 .enc-cierre .fn{ color:var(--blue-bright); }
 .enc-cierre .str{ color:var(--text); }
-.enc-cierre-cuerpo{ padding:20px 22px 22px; }
-.enc-cierre-cond{ font-family:var(--mono); font-size:12.5px; color:var(--text); margin-bottom:12px; overflow-wrap:anywhere; }
-.enc-thanks .enc-cierre p{ max-width:none; margin:0 0 20px; text-align:left; font-size:14px; line-height:1.65; color:var(--text-dim); }
+.enc-cierre a.str{ color:var(--blue-bright); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:4px; }
+.enc-cierre a.str:hover, .enc-cierre a.str:focus-visible{ color:var(--text); }
+.enc-cierre-cuerpo{ padding:26px 28px 28px; text-align:center; }
+.enc-thanks .enc-cierre p{ max-width:none; margin:0 0 24px; text-align:center; font-size:16.5px; line-height:1.7; color:var(--text-dim); }
 .enc-cierre-btn{
   display:inline-flex; align-items:center; gap:9px; font-family:var(--display); font-weight:600; font-size:14px;
   color:#fff; background-color:var(--blue); border:1px solid var(--blue); border-radius:8px; padding:11px 18px;

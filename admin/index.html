@@ -1888,6 +1888,11 @@
   .mk-arch-c p{ font-size:12px; color:var(--text-dim); line-height:1.4; }
   .mk-arch-c p b{ color:var(--text); }
 
+  .mk-sig{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:18px; max-width:760px; }
+  .mk-sig-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .mk-btn.active{ border-color:var(--blue-bright); color:var(--blue-bright); background-color:var(--blue-dim); }
+  .mk-sig-prev{ background-color:#fff; color:#0d1424; border-radius:6px; padding:22px; margin-bottom:14px; min-height:90px; overflow-x:auto; }
+  .mk-sig-prev a{ pointer-events:none; }
   .mk-firma-box{ display:grid; grid-template-columns:1fr 1.3fr; gap:16px; }
   @media (max-width:760px){ .mk-firma-box{ grid-template-columns:1fr; } }
   .mk-firma-rules{ display:flex; flex-direction:column; gap:10px; justify-content:center; }
@@ -4083,6 +4088,23 @@
             <div class="mk-sec-title">Documentos con la marca ya aplicada</div>
             <div class="mk-grid" id="mkPlantillas"></div>
             <p class="mk-sec-note">Se van agregando por lote. Lo que ya está listo se puede bajar; lo demás muestra "Próximamente" y no bloquea el resto del kit.</p>
+          </div>
+
+          <div class="mk-sec">
+            <div class="mk-sec-title">Firma de correo</div>
+            <div class="mk-sig">
+              <div class="mk-sig-tabs" id="mkSigTabs">
+                <button type="button" class="mk-btn active" data-sig="completa" aria-pressed="true">Completa</button>
+                <button type="button" class="mk-btn" data-sig="corta" aria-pressed="false">Corta (respuestas)</button>
+                <button type="button" class="mk-btn" data-sig="animada" aria-pressed="false">Animada (GIF)</button>
+              </div>
+              <div class="mk-sig-prev" id="mkSigPrev"></div>
+              <div class="mk-card-btns">
+                <button type="button" class="mk-btn" id="mkSigCopy">Copiar firma</button>
+                <a class="mk-btn" id="mkSigDl" href="../assets/firma/completa.html" download="firma-completa.html">Descargar .html</a>
+              </div>
+              <p class="mk-sec-note"><b>Gmail:</b> Configuración → Ver todos los ajustes → General → Firma → pega. <b>Outlook:</b> Configuración → Cuentas → Firmas → pega. Las imágenes cargan desde www.alfredopina.ai; los datos de contacto van también como texto por si un correo las bloquea. La animada solo se anima en Gmail y Outlook web; en Outlook de escritorio (Windows) se ve quieta.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -15950,8 +15972,52 @@
       tplAuto('Diploma', 'Diseño aprobado — se genera dentro del módulo Diplomas, no aquí', true, '../assets/plantillas/diploma-ejemplo.pdf') +
       tplAuto('Cotización', 'Se genera dentro del módulo Cotizaciones, no aquí', false) +
       tpl('Presentación de curso', 'PowerPoint · .potx', true) +
-      tpl('Caso práctico', 'Excel · .xltx', true) +
-      tpl('Firma de correo', 'HTML / imagen', true);
+      tpl('Caso práctico', 'Excel · .xltx', true);
+
+    // ── firma de correo ──
+    const SIG_BASE = '../assets/firma/';
+    const sigCache = {};
+    let sigActual = 'completa';
+    const sigPrev = document.getElementById('mkSigPrev');
+    async function sigCargar(k){
+      if (!sigCache[k]) {
+        const r = await fetch(SIG_BASE + k + '.html');
+        if (!r.ok) throw new Error('no se pudo cargar la firma');
+        sigCache[k] = await r.text();
+      }
+      return sigCache[k];
+    }
+    async function sigMostrar(k){
+      try {
+        const html = await sigCargar(k);
+        sigActual = k;
+        sigPrev.innerHTML = html.split('https://www.alfredopina.ai/').join('../');
+        document.querySelectorAll('#mkSigTabs .mk-btn').forEach(b => {
+          const on = b.dataset.sig === k;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+        const dl = document.getElementById('mkSigDl');
+        dl.href = SIG_BASE + k + '.html';
+        dl.setAttribute('download', 'firma-' + k + '.html');
+      } catch (err) { toast('No se pudo cargar la firma: ' + err.message, false); }
+    }
+    document.getElementById('mkSigTabs').addEventListener('click', e => {
+      const b = e.target.closest('.mk-btn');
+      if (b) sigMostrar(b.dataset.sig);
+    });
+    document.getElementById('mkSigCopy').addEventListener('click', async () => {
+      try {
+        const html = await sigCargar(sigActual);
+        if (!window.ClipboardItem) throw new Error('este navegador no permite copiar HTML; usa Descargar');
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([sigPrev.innerText], { type: 'text/plain' }),
+        })]);
+        toast('Firma copiada. Pégala en la configuración de firma de Gmail u Outlook.', true);
+      } catch (err) { toast('No se pudo copiar la firma: ' + err.message, false); }
+    });
+    sigMostrar('completa');
 
     // ── pestañas ──
     document.getElementById('marcaTabs').addEventListener('click', e => {

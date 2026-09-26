@@ -70,6 +70,7 @@ Lo que hace crecer la demanda.
 - Conferencias.
 - Estabilidad: contratos marco o anuales con empresas, programas por trimestre, cursos abiertos con fechas fijas, ingreso recurrente (coaching, mentoría, comunidad).
 - Sitio: navegación, link a LinkedIn/YouTube, `og:image`, socios comerciales, identidad v2 en el resto.
+- **Sitio más completo (ideas acordadas 2026-09-26, sin prioridad frente al motor comercial):** (1) testimonios y logos de clientes con permiso, la prueba social más barata; (2) página de Conferencias con videos, temas, fotos reales y ficha descargable para organizadores; (3) Diagnóstico de nivel público con resultado inmediato y curso recomendado; (4) ebooks gratuitos como imanes de prospectos (requiere dónde guardar correos y actualizar el aviso de privacidad); (5) herramientas gratuitas: calculadora de horas ahorradas por automatizar, termómetro de productividad y balance de vida (reflexión, no diagnóstico médico), "¿Tu Excel está listo para Power BI?", "La fórmula de la semana" y muro de egresados con permiso; (6) fotos dentro de Conferencias y Conóceme, no como sección aparte; (7) blog: no por ahora, LinkedIn hace de blog y se muestran sus últimas publicaciones en el sitio. Sección de contacto: se dejó como está; agenda pública o reservas con Microsoft Bookings quedaron descartadas por ahora.
 - **Meta:** más demanda de la que hoy se sostiene manualmente.
 
 ### Frente 4 — Administración

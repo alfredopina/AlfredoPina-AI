@@ -10,12 +10,17 @@
 // Function de negocio.
 const { getPool } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { despertarConLimite } = require("../src/despertar-limite");
 
 module.exports = async function (context, req) {
   try {
-    const pool = await getPool();
-    await pool.request().query("SELECT 1");
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
+    // una ejecución real cada 10 min por instancia (ver src/despertar-limite.js):
+    // evita que aperturas repetidas o un robot mantengan la base despierta
+    const r = await despertarConLimite(async () => {
+      const pool = await getPool();
+      await pool.request().query("SELECT 1");
+    });
+    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, omitido: r.omitido } };
   } catch (err) {
     context.log.error("Error despertando la base (encuesta):", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo despertar la base." } };

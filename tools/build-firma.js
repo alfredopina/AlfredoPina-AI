@@ -24,7 +24,7 @@ const DATOS = {
   correo: "alfredo.pina@lifezen.com.mx",
   web: "www.alfredopina.ai",
   linkedin: "https://www.linkedin.com/in/alfredopinacortez",
-  linkedinTexto: "linkedin.com/in/alfredopinacortez",
+  linkedinTexto: "Alfredo Piña en LinkedIn",
 };
 
 const C = { tinta: "#0d1424", gris: "#586277", azul: "#1f5fe0", linea: "#c9d3e6" };
@@ -44,7 +44,7 @@ function completa(gif) {
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.55;color:${C.tinta};">
   ${logo(gif)}
   <tr><td style="border-left:3px solid ${C.azul};padding:2px 0 2px 12px;">
-    <div><strong style="font-size:16px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">· ${DATOS.cargo}</span></div>
+    <div><strong style="font-size:16px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${DATOS.cargo}</strong></div>
     <div style="color:${C.gris};padding-bottom:8px;">${DATOS.herramientas}</div>
     <table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.4;">
       ${fila("firma-whatsapp.png", "WhatsApp", DATOS.whatsappHref, DATOS.telefono)}
@@ -59,8 +59,11 @@ function completa(gif) {
 function corta() {
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.55;color:${C.tinta};">
   <tr><td style="border-left:3px solid ${C.azul};padding:2px 0 2px 12px;">
-    <div><strong>${DATOS.nombre}</strong> <span style="color:${C.gris};">· Instructor &amp; Consultor</span></div>
-    <div>${a(DATOS.telefonoHref, DATOS.telefono)} &nbsp;·&nbsp; ${a(SITE + "/", DATOS.web)}</div>
+    <div style="padding-bottom:6px;"><strong style="font-size:15px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${DATOS.cargo}</strong></div>
+    <table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.4;">
+      ${fila("firma-whatsapp.png", "WhatsApp", DATOS.whatsappHref, DATOS.telefono)}
+      ${fila("firma-web.png", "Sitio web", SITE + "/", DATOS.web)}
+    </table>
   </td></tr>
 </table>
 `;

@@ -874,6 +874,9 @@
     display:flex; align-items:center; gap:5px; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:#dfb35a; white-space:nowrap;
   }
   .enc-fuera svg{ width:12px; height:12px; flex:none; }
+  /* comentario que la persona autorizó como testimonio: ícono + texto (nunca solo color) */
+  .enc-testi{ display:flex; align-items:center; gap:5px; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:var(--blue-bright); white-space:nowrap; }
+  .enc-testi svg{ width:12px; height:12px; flex:none; }
   /* Gral: pill con el número (mismo lenguaje que el "Total" de Diagnósticos, pero
      coloreado por umbral — el valor siempre visible dentro) */
   .enc-gral-pill{
@@ -6808,6 +6811,7 @@
       meta.push(r.grupo_id != null ? 'Link por grupo' : 'Link genérico (sin grupo)');
       if(r.link_generado_en) meta.push('Link generado ' + fmtFechaHora(r.link_generado_en));
       if(r.fuera_sesion) meta.push('Mediana de su grupo: ' + fmtFechaHora(r.fuera_sesion.mediana));
+      if(r.autoriza_testimonio) meta.push('Autoriza usar su comentario como testimonio (nombre y empresa)');
 
       const columnas = CATS_RES.map(cat => {
         const filas = r.respuestas.filter(x => x.categoria === cat.key && x.tipo === 'escala');
@@ -6866,7 +6870,7 @@
           ${celdaProm(r.promedios.curso)}${celdaProm(r.promedios.instructor)}${celdaProm(r.promedios.aprendizaje)}
           ${celdaProm(r.globales[0])}${celdaProm(r.globales[1])}
           <td><span class="enc-gral-pill ${claseProm(r.promedios.general)}">${fmtProm(r.promedios.general)}</span></td>
-          <td>${r.comentario ? `<span class="enc-coment" title="${escapeHtml(r.comentario)}">${escapeHtml(r.comentario)}</span>` : '—'}</td>
+          <td>${r.comentario ? `<span class="enc-coment" title="${escapeHtml(r.comentario)}">${escapeHtml(r.comentario)}</span>` : '—'}${r.autoriza_testimonio ? `<div class="enc-testi">${ICO.check}Testimonio autorizado</div>` : ''}</td>
           <td>
             <button type="button" class="radm-icon-btn radm-icon-danger" data-action="eliminar" data-id="${r.id}" title="Eliminar esta respuesta — borrado real, no se puede deshacer">${ICO.trash}</button>
           </td>

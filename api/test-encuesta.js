@@ -4,7 +4,7 @@
 // que imita lo que usa el SDK: getEntity/createEntity/updateEntity con etag
 // → 412/upsertEntity/listEntities). Mismo patrón que test-backup.js.
 const assert = require("assert");
-const { validarRespuestas, cabeOtraEscala, fechaMexico, promediosDeRespuesta, medianaMs, fueraDeSesion } = require("./src/encuesta-logic");
+const { validarRespuestas, cabeOtraEscala, fechaMexico, promediosDeRespuesta, medianaMs, fueraDeSesion, esInstructorMarca } = require("./src/encuesta-logic");
 const { leerEscala, guardarEscala, ESCALA_DEFAULT } = require("./src/encuesta-tables");
 const { guardarLinkDeGrupo, buscarLinkPorGrupo, cambiarEstadoLink, leerLink, ajustarContadores, leerContadores } = require("./src/encuesta-links");
 
@@ -296,6 +296,14 @@ function respuestasCompletas(banco, valor) {
     const m = medianaMs([0, H, 2 * H]);
     assert.strictEqual(fueraDeSesion(H, m, 3), null);
     void generadoHaceDias;
+  });
+
+  console.log("\ninstructor de la marca (invitación a LinkedIn / testimonio)");
+  await prueba("reconoce a Alfredo con o sin acento, mayúsculas o apellido completo", () => {
+    for (const n of ["Alfredo Piña", "alfredo pina", "ALFREDO PIÑA CORTEZ", "  Alfredo Piña  "]) assert.ok(esInstructorMarca(n), n);
+  });
+  await prueba("otros instructores, vacíos y nulos no cuentan", () => {
+    for (const n of ["María López", "Alfredo Gómez", "Piña", "", null, undefined]) assert.ok(!esInstructorMarca(n), String(n));
   });
 
   console.log(fallos ? `\n${fallos} PRUEBA(S) FALLARON` : "\nTODO OK");

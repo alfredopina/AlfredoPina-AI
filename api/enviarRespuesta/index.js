@@ -26,7 +26,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { resolverClienteExistente } = require("../src/cliente-resolver");
 const { getEncuestaPreguntasTable, listarTodas, bancoVigente } = require("../src/encuesta-tables");
 const { getEncuestaLinksTable, leerLink, ajustarContadores } = require("../src/encuesta-links");
-const { validarRespuestas, errorSeguro, fechaMexico, CORREO_RE } = require("../src/encuesta-logic");
+const { validarRespuestas, errorSeguro, fechaMexico, CORREO_RE, esInstructorMarca } = require("../src/encuesta-logic");
 const { JSON_HEADERS } = require("../src/http");
 
 
@@ -63,6 +63,12 @@ module.exports = async function (context, req) {
     const banco = bancoVigente(await listarTodas(getEncuestaPreguntasTable()));
     const detalle = validarRespuestas(banco, body.respuestas);
 
+    // Permiso de testimonio (sql/027): solo vale si de verdad hay comentario,
+    // hay nombre para firmarlo y el instructor es Alfredo — lo demás es un
+    // navegador desactualizado o un envío manipulado.
+    const hayComentario = detalle.some((d) => d.tipo === "texto" && String(d.valor || "").trim());
+    const autorizaTestimonio = body.autorizaTestimonio === true && Boolean(nombre) && hayComentario && esInstructorMarca(instructor);
+
     // 3. SQL
     const pool = await getPool();
     const clienteId = link ? Number(link.clienteId) : (await resolverClienteExistente(pool, body.empresa || {}, errorSeguro)).id;
@@ -74,6 +80,7 @@ module.exports = async function (context, req) {
 
       const insertRespuesta = await new sql.Request(transaction)
         .input("envioId", sql.NVarChar, envioId)
+        .input("autorizaTestimonio", sql.Bit, autorizaTestimonio ? 1 : 0)
         .input("nombre", sql.NVarChar, nombre)
         .input("clienteId", sql.Int, clienteId)
         .input("curso", sql.NVarChar, curso.slice(0, 200))
@@ -86,9 +93,9 @@ module.exports = async function (context, req) {
         .input("horas", sql.Decimal(6, 1), link ? link.horas : null)
         .input("linkGeneradoEn", sql.DateTime2, link ? new Date(link.generadoEn) : null)
         .query(
-          `INSERT INTO EncuestaRespuesta (nombre, cliente_id, curso, instructor, fecha, grupo_id, correo, herramientas, modalidad, horas, link_generado_en, envio_id)
+          `INSERT INTO EncuestaRespuesta (nombre, cliente_id, curso, instructor, fecha, grupo_id, correo, herramientas, modalidad, horas, link_generado_en, envio_id, autoriza_testimonio)
            OUTPUT INSERTED.id
-           VALUES (@nombre, @clienteId, @curso, @instructor, @fecha, @grupoId, @correo, @herramientas, @modalidad, @horas, @linkGeneradoEn, @envioId)`
+           VALUES (@nombre, @clienteId, @curso, @instructor, @fecha, @grupoId, @correo, @herramientas, @modalidad, @horas, @linkGeneradoEn, @envioId, @autorizaTestimonio)`
         );
       const respuestaId = insertRespuesta.recordset[0].id;
 

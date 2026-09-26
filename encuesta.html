@@ -115,6 +115,12 @@
 
     <div id="encPreguntasArea"></div>
 
+    <label class="enc-consent desactivado" id="encConsentWrap" hidden>
+      <input type="checkbox" id="encConsent" disabled>
+      <span>Autorizo usar mi comentario como testimonio en alfredopina.ai y LinkedIn (solo nombre y empresa)
+        <small id="encConsentAyuda">Se activa cuando escribes un comentario.</small></span>
+    </label>
+
     <p class="enc-privacy">Tus respuestas se usan solo para mejorar la calidad del servicio, no se comparten con terceros.</p>
 
     <p class="enc-submit-error" id="encSubmitError"></p>
@@ -135,7 +141,21 @@
     <svg class="enc-thanks-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
     <h2>¡Listo, ya quedó registrada!</h2>
     <p>Gracias por tomarte unos minutos — nos ayuda a mejorar el siguiente curso.</p>
-    <div class="enc-thanks-fx"><span>fx</span> =GRACIAS()</div>
+    <div class="enc-thanks-fx" id="encThanksFx"><span>fx</span> =GRACIAS()</div>
+
+    <div class="enc-cierre" id="encCierre" hidden>
+      <div class="enc-cierre-barra">
+        <span class="enc-cierre-fx">fx</span>
+        <span class="enc-cierre-formula"><span class="op">=</span><span class="fn">GRACIAS</span><span class="op">(</span>tú<span class="op">;</span> este curso<span class="op">)</span></span>
+      </div>
+      <div class="enc-cierre-cuerpo">
+        <div class="enc-cierre-cond"><span class="op">=</span><span class="fn">SI</span><span class="op">(</span>Horas_Ahorradas <span class="op">&gt;</span> 0<span class="op">;</span> <span class="str">"Conectemos"</span><span class="op">)</span></div>
+        <p>Conectemos en LinkedIn: ahí sigo compartiendo tips, actualizaciones y contenido para que sigas ahorrando horas. Y si me dejas una recomendación, subirás mi KPI favorito.</p>
+        <a class="enc-cierre-btn" href="https://www.linkedin.com/in/alfredopinacortez" target="_blank" rel="noopener noreferrer">Conectar en LinkedIn
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -170,6 +190,27 @@
   // servidor); sin token = link genérico, la persona los teclea.
   const TOKEN = (new URLSearchParams(location.search).get('t') || '').trim();
   const CLAVE_ENVIADA = 'enc_enviada_' + (TOKEN || 'generica');
+
+  // La invitación a LinkedIn y la casilla de testimonio son de la marca
+  // personal de Alfredo: solo aplican cuando ÉL es el instructor (link por
+  // grupo → el instructor bloqueado; link genérico → el que se elige). Misma
+  // regla que esInstructorMarca() en api/src/encuesta-logic.js.
+  function esInstructorAlfredo(){
+    const nombre = TOKEN ? document.getElementById('encLockInstructor').textContent : document.getElementById('encInstructor').value;
+    return String(nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('alfredo pina');
+  }
+  // la casilla solo se ofrece con Alfredo, y solo se activa si hay comentario
+  function sincronizarConsent(){
+    const wrap = document.getElementById('encConsentWrap');
+    const cb = document.getElementById('encConsent');
+    wrap.hidden = !esInstructorAlfredo();
+    const coment = document.getElementById('encComentarios');
+    const hayComentario = !!(coment && coment.value.trim());
+    cb.disabled = !hayComentario;
+    if(!hayComentario) cb.checked = false;
+    wrap.classList.toggle('desactivado', !hayComentario);
+    document.getElementById('encConsentAyuda').hidden = hayComentario;
+  }
 
   function escapeHtml(s){
     return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -437,6 +478,7 @@
       document.getElementById('encError').hidden = true;
       document.getElementById('encForm').hidden = false;
       actualizarAvance();
+      sincronizarConsent();
 
       // aviso suave: si este dispositivo ya envió esta encuesta, se avisa pero
       // NO se bloquea (puede haber un error legítimo o un equipo compartido)
@@ -458,6 +500,9 @@
     }
   }
   cargarEncuesta();
+
+  document.addEventListener('input', e => { if(e.target && e.target.id === 'encComentarios') sincronizarConsent(); });
+  document.getElementById('encInstructor').addEventListener('change', sincronizarConsent);
 
   document.getElementById('encAvisoCerrar').addEventListener('click', () => document.getElementById('encAviso').classList.remove('show'));
 
@@ -515,12 +560,21 @@
       respuestas.push({ preguntaId:comentariosEl.dataset.preguntaId, valor:comentariosEl.value.trim() });
     }
 
+    // permiso de testimonio: necesita nombre (se publica "solo nombre y empresa")
+    const consent = document.getElementById('encConsent');
+    const autorizaTestimonio = esInstructorAlfredo() && consent && consent.checked && !consent.disabled;
+    if(autorizaTestimonio && !document.getElementById('encNombre').value.trim()){
+      alert('Para usar tu comentario como testimonio necesitamos tu nombre — escríbelo arriba o desmarca la casilla.');
+      return;
+    }
+
     const btn = document.getElementById('encSubmit');
     const body = document.getElementById('encSubmitBody');
     btn.disabled = true; body.textContent = '=ENVIANDO...()';
 
     if(!envioId) envioId = nuevoEnvioId();
     const payload = { nombre: document.getElementById('encNombre').value.trim(), correo, respuestas, envioId };
+    if(autorizaTestimonio) payload.autorizaTestimonio = true;
     if(TOKEN) payload.token = TOKEN;
     else Object.assign(payload, { empresa, curso, instructor });
 
@@ -549,6 +603,10 @@
     if(enviado){
       try { localStorage.setItem(CLAVE_ENVIADA, new Date().toISOString()); } catch(err){ /* sin localStorage: sin aviso la próxima vez */ }
       document.getElementById('encForm').hidden = true;
+      if(esInstructorAlfredo()){
+        document.getElementById('encCierre').hidden = false;
+        document.getElementById('encThanksFx').hidden = true; // la barra de la tarjeta ya trae su propia fórmula
+      }
       document.getElementById('encThanks').classList.add('show');
     } else if(ultimoError && ultimoError.status === 403){
       mostrarCerrada();

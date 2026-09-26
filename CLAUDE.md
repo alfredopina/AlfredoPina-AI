@@ -89,7 +89,7 @@ Especificación completa en `MANUAL_IDENTIDAD.md` (versión visual: artifact "Ma
 ## Pendientes generales (los de más peso — ver `CLAUDE_DETALLE.md` para el checklist completo con todos los "confirmar en producción")
 
 - Cargar el banco real de 30 preguntas de Diagnóstico (15 Excel + 15 Power BI) — Bloque 1, en curso.
-- Encuestas: Fases 1, 2 y 3 construidas 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage, Resultados con filtros/orden/fuera de sesión/borrar, y Reporte visual por filtros con link + pestaña Reportes) — `sql/020` ya corrido y desplegado; falta cargar las 15 preguntas definitivas; el Reporte se incluirá en el Dashboard (Bloque 4) — Bloque 1.
+- Encuestas: Fases 1, 2 y 3 construidas 2026-09-19 (estructura fija de 15 preguntas, link por Grupo con token, contador en vivo desde Table Storage, Resultados con filtros/orden/fuera de sesión/borrar, y Reporte visual por filtros con link + pestaña Reportes) — `sql/020` ya corrido y desplegado; **`sql/027_encuesta_autoriza_testimonio.sql` (permiso de testimonio + tarjeta de cierre con LinkedIn, solo instructor Alfredo) pendiente de correr por Alfredo ANTES del push**; falta cargar las 15 preguntas definitivas; el Reporte se incluirá en el Dashboard (Bloque 4) — Bloque 1.
 - Ambigüedad de nombres sin resolver: "Temario Estándar" vs. "Curso" (Recursos) vs. "Grupo" — ya se resolvió Grupo, falta Temario/Curso — Bloque 2.
 - Sitio público a afinar: CSS hardcodeado, navegación, link LinkedIn, socios comerciales, conferencias — Bloque 2.
 - Tracking propio de Solicitudes + Proyectos + Notificaciones/Seguimiento afinados + Resumen semanal — Bloque 3.

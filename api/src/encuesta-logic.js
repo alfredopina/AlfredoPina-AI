@@ -123,7 +123,16 @@ function fueraDeSesion(envioMs, medianaGrupoMs, nGrupo) {
   return Math.abs(difMs) > FUERA_SESION_MS ? { difMs } : null;
 }
 
+// Las invitaciones a LinkedIn / testimonio son de la marca personal de Alfredo:
+// solo aplican cuando ÉL es el instructor. Se compara sin acentos ni mayúsculas
+// ("Alfredo Piña", "alfredo pina cortez"…). encuesta.html repite esta misma
+// regla para decidir qué mostrar; el servidor la vuelve a aplicar.
+function esInstructorMarca(nombre) {
+  return String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("alfredo pina");
+}
+
 module.exports = {
+  esInstructorMarca,
   errorSeguro, fechaMexico, validarRespuestas, cabeOtraEscala, CORREO_RE, COMENTARIO_MAX,
   promediosDeRespuesta, medianaMs, fueraDeSesion, FUERA_SESION_MS, FUERA_SESION_MIN_RESPUESTAS,
 };

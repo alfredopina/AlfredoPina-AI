@@ -62,7 +62,7 @@ async function leerRespuestasFiltradas(pool, sql, filtros) {
   const f = construirFiltros(sql, filtros);
   const result = await f.aplicar(pool.request()).query(`
     SELECT r.id AS respuesta_id, r.nombre, r.correo, c.nombre AS cliente, r.curso, r.instructor, r.fecha, r.fecha_envio,
-           r.grupo_id, r.herramientas, r.modalidad, r.horas, r.link_generado_en,
+           r.grupo_id, r.herramientas, r.modalidad, r.horas, r.link_generado_en, r.autoriza_testimonio,
            d.pregunta_id, d.valor, d.pregunta_texto, d.categoria, d.tipo
     FROM EncuestaRespuesta r
     JOIN Cliente c ON c.id = r.cliente_id
@@ -82,7 +82,7 @@ async function leerRespuestasFiltradas(pool, sql, filtros) {
       porId.set(row.respuesta_id, {
         id: row.respuesta_id, nombre: row.nombre, correo: row.correo, cliente: row.cliente, curso: row.curso, instructor: row.instructor,
         fecha: row.fecha, fecha_envio: row.fecha_envio, grupo_id: row.grupo_id, herramientas, modalidad: row.modalidad,
-        horas: row.horas, link_generado_en: row.link_generado_en, filas: [],
+        horas: row.horas, link_generado_en: row.link_generado_en, autoriza_testimonio: Boolean(row.autoriza_testimonio), filas: [],
       });
     }
     const viva = bancoPorId.get(row.pregunta_id);

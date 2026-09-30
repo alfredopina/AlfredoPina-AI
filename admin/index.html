@@ -659,26 +659,31 @@
   }
   .dip-tpl-controls .chip[aria-pressed="true"]{ border-color:var(--c); color:var(--c); font-weight:600; background:color-mix(in srgb, var(--c) 12%, var(--panel-2)); }
   .dip-tpl-preview{ max-width:640px; }
-  .dip-firmas-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
-  .dip-inst-sec{ border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
-  .dip-inst-sec > .lbl{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
+  /* Instructores — una fila horizontal por instructor (antes grid de
+     tarjetas angostas apiladas verticalmente, se sentía descuadrado con la
+     reseña larga y la firma/foto en cajas chicas): 3 columnas, la de
+     nombre+reseña más ancha porque es la que más texto carga. */
+  .dip-firmas-grid{ display:flex; flex-direction:column; gap:14px; }
+  .dip-firma-card{ border:1px solid var(--line); border-radius:8px; padding:16px 18px; background:var(--panel); display:grid; grid-template-columns:2.1fr 1fr 1fr; gap:22px; }
+  .dip-firma-col{ min-width:0; display:flex; flex-direction:column; }
+  .dip-firma-col > .lbl{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
   .dip-inst-foto-row{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
   .dip-inst-foto{ width:64px; height:64px; border-radius:14px; object-fit:cover; border:1px solid var(--line); background:var(--panel-2); flex:none; }
   .dip-inst-foto[hidden]{ display:none; }
   .dip-inst-resena{ width:100%; min-height:84px; resize:vertical; font-family:var(--body); font-size:12.5px; line-height:1.5; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:9px 10px; box-sizing:border-box; outline:none; }
   .dip-inst-resena:focus{ border-color:var(--c); }
   .dip-inst-contador{ font-family:var(--mono); font-size:10px; color:var(--text-faint); text-align:right; margin:3px 0 8px; }
-  .dip-firma-card{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--panel); }
   .dip-firma-nombre{
-    font-family:var(--display); font-weight:600; font-size:13px; margin-bottom:10px;
+    font-family:var(--display); font-weight:600; font-size:13.5px; margin-bottom:12px;
     display:flex; align-items:center; justify-content:space-between; gap:8px;
   }
   .dip-firma-nombre span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .dip-firma-botones{ display:flex; gap:6px; margin-top:8px; }
-  .dip-firma-botones .dip-firma-subir{ flex:1; }
+  .dip-firma-botones{ display:flex; gap:6px; margin-top:auto; padding-top:8px; }
+  .dip-firma-botones .dip-firma-subir, .dip-firma-botones .dip-perfil-guardar{ flex:1; }
   .dip-firma-preview{ height:70px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; background:var(--panel-2); border-radius:6px; }
   .dip-firma-preview img{ max-height:60px; max-width:100%; }
   .dip-firma-archivo{ font-size:11.5px; color:var(--text-dim); margin-bottom:8px; display:block; width:100%; }
+  @media (max-width:900px){ .dip-firma-card{ grid-template-columns:1fr; } }
 
   .dip-paso{ border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:20px; background:var(--panel); }
   .dip-paso-head{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
@@ -689,9 +694,9 @@
   .dip-paso-title{ font-family:var(--display); font-weight:600; font-size:15px; }
 
   .dip-firma-add{
-    border:1px dashed var(--line); border-radius:8px; padding:14px; background:none;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-    color:var(--text-faint); cursor:pointer; min-height:150px; text-align:center; font-size:12.5px;
+    border:1px dashed var(--line); border-radius:8px; padding:16px; background:none;
+    display:flex; flex-direction:row; align-items:center; justify-content:center; gap:8px;
+    color:var(--text-faint); cursor:pointer; text-align:center; font-size:12.5px;
   }
   .dip-firma-add:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .dip-firma-add svg{ color:inherit; }
@@ -8845,23 +8850,29 @@
       img.addEventListener('load', () => { img.hidden = false; fallbackEl.hidden = true; });
     }
 
-    function perfilInstructorHtml(nombre){
+    function perfilResenaHtml(nombre){
+      const p = dipPerfiles[slugInstructor(nombre)] || {};
+      return `
+        <span class="lbl">Reseña (pública, en la verificación del diploma)</span>
+        <textarea class="dip-inst-resena" maxlength="500" placeholder="Reseña breve: trayectoria, enfoque al enseñar…">${escapeHtml(p.resena || '')}</textarea>
+        <div class="dip-inst-contador"><span class="dip-resena-n">${(p.resena || '').length}</span>/500</div>
+        <div class="dip-firma-botones">
+          <button type="button" class="radm-btn radm-btn-ghost dip-perfil-guardar" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Guardar reseña y foto</button>
+        </div>`;
+    }
+
+    function perfilFotoHtml(nombre){
       const p = dipPerfiles[slugInstructor(nombre)] || {};
       const foto = p.foto ? `/api/getFotoInstructor?i=${encodeURIComponent(slugInstructor(nombre))}&t=${Date.now()}` : '';
       return `
-        <div class="dip-inst-sec">
-          <span class="lbl">Foto y reseña (públicas, en la verificación del diploma)</span>
-          <div class="dip-inst-foto-row">
-            <img class="dip-inst-foto" ${foto ? `src="${foto}"` : 'hidden'} alt="Foto de ${escapeHtml(nombre)}">
-            <span class="radm-hint dip-inst-foto-vacio" ${foto ? 'hidden' : ''}>Sin foto todavía.</span>
-          </div>
-          <input type="file" accept="image/jpeg,image/png,image/webp" class="dip-firma-archivo dip-foto-archivo">
-          <textarea class="dip-inst-resena" maxlength="500" placeholder="Reseña breve: trayectoria, enfoque al enseñar…">${escapeHtml(p.resena || '')}</textarea>
-          <div class="dip-inst-contador"><span class="dip-resena-n">${(p.resena || '').length}</span>/500</div>
-          <div class="dip-firma-botones">
-            <button type="button" class="radm-btn radm-btn-ghost dip-perfil-guardar" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Guardar foto y reseña</button>
-            <button type="button" class="radm-icon-btn radm-icon-danger dip-foto-eliminar" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la foto"${p.foto ? '' : ' hidden'}>${ICO_TRASH}</button>
-          </div>
+        <span class="lbl">Foto (pública, en la verificación del diploma)</span>
+        <div class="dip-inst-foto-row">
+          <img class="dip-inst-foto" ${foto ? `src="${foto}"` : 'hidden'} alt="Foto de ${escapeHtml(nombre)}">
+          <span class="radm-hint dip-inst-foto-vacio" ${foto ? 'hidden' : ''}>Sin foto todavía.</span>
+        </div>
+        <input type="file" accept="image/jpeg,image/png,image/webp" class="dip-firma-archivo dip-foto-archivo">
+        <div class="dip-firma-botones">
+          <button type="button" class="radm-icon-btn radm-icon-danger dip-foto-eliminar" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la foto"${p.foto ? '' : ' hidden'}>${ICO_TRASH}</button>
         </div>`;
     }
 
@@ -8869,21 +8880,28 @@
       const cont = document.getElementById('dipFirmasGrid');
       cont.innerHTML = dipInstructores.map(nombre => `
         <div class="dip-firma-card">
-          <div class="dip-firma-nombre">
-            <span>${escapeHtml(nombre)}</span>
-            <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-instructor" data-instructor="${escapeHtml(nombre)}" title="Eliminar este instructor de la lista (su firma también se borra; los diplomas ya generados no cambian)">${ICO_TRASH}</button>
+          <div class="dip-firma-col dip-firma-col-nombre">
+            <div class="dip-firma-nombre">
+              <span>${escapeHtml(nombre)}</span>
+              <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-instructor" data-instructor="${escapeHtml(nombre)}" title="Eliminar este instructor de la lista (su firma también se borra; los diplomas ya generados no cambian)">${ICO_TRASH}</button>
+            </div>
+            ${perfilResenaHtml(nombre)}
           </div>
-          <div class="dip-inst-sec" style="border-top:none; margin-top:0; padding-top:0;"><span class="lbl">Firma (solo va impresa en el diploma)</span></div>
-          <div class="dip-firma-preview">
-            <img class="dip-firma-img" src="/api/getPlantillaAsset?instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}">
-            <span class="radm-hint dip-firma-vacio" hidden>Sin firma todavía.</span>
+          <div class="dip-firma-col dip-firma-col-foto">
+            ${perfilFotoHtml(nombre)}
           </div>
-          <input type="file" accept="image/png" class="dip-firma-archivo" data-instructor="${escapeHtml(nombre)}">
-          <div class="dip-firma-botones">
-            <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Subir firma</button>
-            <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-firma" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la firma (el instructor se queda en la lista)">${ICO_TRASH}</button>
+          <div class="dip-firma-col dip-firma-col-firma">
+            <span class="lbl">Firma (solo va impresa en el diploma)</span>
+            <div class="dip-firma-preview">
+              <img class="dip-firma-img" src="/api/getPlantillaAsset?instructor=${encodeURIComponent(nombre)}&t=${Date.now()}" alt="Firma de ${escapeHtml(nombre)}">
+              <span class="radm-hint dip-firma-vacio" hidden>Sin firma todavía.</span>
+            </div>
+            <input type="file" accept="image/png" class="dip-firma-archivo dip-firma-archivo-sig" data-instructor="${escapeHtml(nombre)}">
+            <div class="dip-firma-botones">
+              <button type="button" class="radm-btn radm-btn-ghost dip-firma-subir" data-instructor="${escapeHtml(nombre)}" style="min-width:auto">Subir firma</button>
+              <button type="button" class="radm-icon-btn radm-icon-danger dip-firma-eliminar-firma" data-instructor="${escapeHtml(nombre)}" title="Eliminar solo la firma (el instructor se queda en la lista)">${ICO_TRASH}</button>
+            </div>
           </div>
-          ${perfilInstructorHtml(nombre)}
         </div>
       `).join('') + `
         <div class="dip-firma-add" id="dipFirmaAddCard">
@@ -8899,7 +8917,7 @@
     function mostrarFormAgregarInstructor(){
       const card = document.getElementById('dipFirmaAddCard');
       card.outerHTML = `
-        <div class="dip-firma-card" id="dipFirmaAddForm">
+        <div class="dip-firma-card" id="dipFirmaAddForm" style="display:block; max-width:420px;">
           <div class="dip-firma-nombre">Nuevo instructor</div>
           <input type="text" id="dipNuevoInstructorNombre" placeholder="Ej. Ing. Fulano Pérez"
                  style="width:100%; margin-bottom:8px; font-family:var(--body); font-size:12.5px; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:5px; padding:8px 10px; box-sizing:border-box;">
@@ -8936,7 +8954,7 @@
 
     document.getElementById('dipFirmasGrid').addEventListener('input', e => {
       const ta = e.target.closest('.dip-inst-resena');
-      if(ta) ta.closest('.dip-inst-sec').querySelector('.dip-resena-n').textContent = ta.value.length;
+      if(ta) ta.closest('.dip-firma-col').querySelector('.dip-resena-n').textContent = ta.value.length;
     });
 
     document.getElementById('dipFirmasGrid').addEventListener('click', async e => {
@@ -9008,7 +9026,7 @@
       const btn = e.target.closest('.dip-firma-subir');
       if(!btn) return;
       const instructor = btn.dataset.instructor;
-      const input = btn.closest('.dip-firma-card').querySelector('.dip-firma-archivo');
+      const input = btn.closest('.dip-firma-card').querySelector('.dip-firma-archivo-sig');
       const file = input.files[0];
       if(!file){ toast('Selecciona un archivo primero.', false); return; }
       btn.disabled = true; btn.textContent = 'Subiendo...';
@@ -10516,9 +10534,18 @@
             </div>
           </div>
         </div>
+        <div id="clfLogoWrap"></div>
         <div id="clfContactosWrap"></div>`;
 
-      if(item) renderContactosSeccion(item.id);
+      if(item){ renderLogoSeccion(item); renderContactosSeccion(item.id); }
+
+      // El logo solo aplica a Intermediario — se muestra/oculta en vivo al
+      // cambiar el select, sin esperar a Guardar (el contenido ya está
+      // renderizado si item existe, esto solo alterna [hidden]).
+      wrap.querySelector('.clf-tipo').addEventListener('change', (e) => {
+        const body = document.getElementById('clfLogoBody');
+        if(body) body.hidden = e.target.value !== 'Intermediario';
+      });
 
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
       const btnEliminar = wrap.querySelector('.clf-eliminar');
@@ -10541,6 +10568,8 @@
         const tipoCliente = wrap.querySelector('.clf-tipo').value;
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
         const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null, tipo_cliente: tipoCliente };
+        const clfLogoMostrar = document.getElementById('clfLogoMostrar');
+        if(clfLogoMostrar) payload.mostrar_logo = clfLogoMostrar.checked;
         try {
           let id;
           if(item){ await apiPostJson('/api/editarCliente', { id: item.id, ...payload }); id = item.id; }
@@ -10550,8 +10579,82 @@
           cargarKpis();
           // Cliente nuevo: se queda en Modificar para agregarle contactos de
           // inmediato, sin tener que volver a buscarlo en la tabla.
-          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente });
+          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente, mostrar_logo: payload.mostrar_logo !== false });
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
+      });
+    }
+
+    // logo reducido a máx. 400px de lado (conserva proporción, a diferencia de
+    // fotoReducida que recorta a cuadrado) y siempre PNG — a diferencia de la
+    // foto de instructor, un logo suele traer transparencia real que un JPEG
+    // destruiría con fondo blanco/negro.
+    function logoReducido(file){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAXL = 400;
+          let w = img.width, h = img.height;
+          if(w > MAXL || h > MAXL){ const r = Math.min(MAXL / w, MAXL / h); w = Math.round(w * r); h = Math.round(h * r); }
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/png').split(',')[1]);
+        };
+        img.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    // Solo aplica a Cliente tipo Intermediario — el contenido siempre se
+    // renderiza (item ya existe, viene de editar), el select de tipo solo
+    // alterna [hidden] en vivo (ver abrirFormCliente).
+    function renderLogoSeccion(item){
+      const wrap = document.getElementById('clfLogoWrap');
+      const esIntermediario = item.tipo_cliente === 'Intermediario';
+      wrap.innerHTML = `
+        <div class="radm-section-head" style="margin-top:22px;">
+          <span class="radm-section-title">LOGO (INTERMEDIARIO)</span>
+        </div>
+        <div id="clfLogoBody" ${esIntermediario ? '' : 'hidden'}>
+          <div class="dip-inst-foto-row">
+            <img class="dip-inst-foto" id="clfLogoImg" src="/api/getLogoIntermediario?cliente=${item.id}&t=${Date.now()}" alt="Logo de ${escapeHtml(item.nombre)}">
+            <span class="radm-hint" id="clfLogoVacio" hidden>Sin logo todavía.</span>
+          </div>
+          <input type="file" accept="image/png,image/jpeg,image/webp" class="dip-firma-archivo" id="clfLogoArchivo">
+          <div class="dip-firma-botones" style="margin-top:0;">
+            <button type="button" class="radm-btn radm-btn-ghost" id="clfLogoSubir" style="min-width:auto; flex:1">Subir logo</button>
+            <button type="button" class="radm-icon-btn radm-icon-danger" id="clfLogoEliminar" title="Eliminar el logo">${ICO_TRASH}</button>
+          </div>
+          <label class="radm-hint" style="display:flex; align-items:center; gap:7px; margin-top:12px; cursor:pointer;">
+            <input type="checkbox" id="clfLogoMostrar" ${item.mostrar_logo === false ? '' : 'checked'}>
+            Mostrar en Reportes y cotizaciones colaborativas
+          </label>
+        </div>`;
+
+      wireImgFallback(document.getElementById('clfLogoImg'), document.getElementById('clfLogoVacio'));
+
+      document.getElementById('clfLogoSubir').addEventListener('click', async () => {
+        const file = document.getElementById('clfLogoArchivo').files[0];
+        if(!file){ toast('Selecciona un archivo primero.', false); return; }
+        const btn = document.getElementById('clfLogoSubir');
+        btn.disabled = true; btn.textContent = 'Subiendo...';
+        try {
+          const fileBase64 = await logoReducido(file);
+          await apiPostJson('/api/subirLogoIntermediario', { clienteId: item.id, fileBase64 });
+          toast('Logo guardado.', true);
+          document.getElementById('clfLogoImg').src = `/api/getLogoIntermediario?cliente=${item.id}&t=${Date.now()}`;
+        } catch(e){ toast('No se pudo subir: ' + e.message, false); }
+        btn.disabled = false; btn.textContent = 'Subir logo';
+      });
+
+      document.getElementById('clfLogoEliminar').addEventListener('click', async () => {
+        if(!confirm('¿Eliminar el logo de "' + item.nombre + '"?')) return;
+        try {
+          await apiPostJson('/api/eliminarLogoIntermediario', { clienteId: item.id });
+          toast('Logo eliminado.', true);
+          const img = document.getElementById('clfLogoImg');
+          img.removeAttribute('src'); img.hidden = true;
+          document.getElementById('clfLogoVacio').hidden = false;
+        } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
       });
     }
 

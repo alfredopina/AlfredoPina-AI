@@ -39,6 +39,11 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
         grupoId: f.grupo_id,
         cliente: f.cliente_final || f.cliente,
         clienteVia: f.cliente_final ? f.cliente : null,
+        // Socio Comercial del reporte: solo si quien contrató (cliente_id,
+        // "clienteVia") es tipo Intermediario Y autorizó mostrar su logo —
+        // se congela aquí, al generar el snapshot, no se vuelve a checar.
+        clienteViaId: f.cliente_final ? f.cliente_id : null,
+        clienteViaEsSocio: f.cliente_final ? f.cliente_tipo === "Intermediario" && !!f.cliente_mostrar_logo : false,
         contacto: f.contacto || null,
         curso: f.nombre_curso,
         herramientas: JSON.parse(f.herramientas || "[]"),
@@ -132,6 +137,12 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
   const participaron = participantes.filter((p) => p.resultado === "Participó").length;
   const noAprobados = participantes.filter((p) => p.resultado === "No Aprobado").length;
 
+  // Igual que el título del reporte (repTitle), el Socio Comercial solo
+  // aplica cuando el reporte es de UN solo Grupo — con varios grupos no hay
+  // un "vía" único que mostrar en el encabezado.
+  const grupoUnico = grupos.size === 1 ? Array.from(grupos.values())[0] : null;
+  const socioComercial = grupoUnico && grupoUnico.clienteViaEsSocio ? { clienteId: grupoUnico.clienteViaId, nombre: grupoUnico.clienteVia } : null;
+
   return {
     version: 1,
     generadoEn: (ahora || new Date()).toISOString(),
@@ -145,6 +156,7 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
     noAprobados,
     promedioCalificacion: todasCalifs.length ? redondear1(media(todasCalifs)) : null,
     asistenciaPct: asistPosible ? redondear1((100 * asistTotal) / asistPosible) : null,
+    socioComercial,
     porGrupo,
     mejores,
     bajoOchenta,

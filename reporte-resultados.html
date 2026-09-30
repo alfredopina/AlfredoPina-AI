@@ -56,7 +56,11 @@
   .rep-brand-id img{ height:22px; width:auto; display:block; }
   .rep-brand-descriptor{ font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; color:var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
   .rep-generado{ display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); }
-  .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin-bottom:6px; }
+  .rep-title-row{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin-bottom:6px; flex:1 1 auto; min-width:0; }
+  .rep-socio{ display:flex; align-items:center; gap:9px; flex:none; margin-bottom:6px; }
+  .rep-socio .eyebrow{ font-family:var(--mono); font-size:9px; letter-spacing:.5px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
+  .rep-socio img{ height:26px; max-width:120px; width:auto; object-fit:contain; display:block; }
   .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
   .rep-filtros{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
   .rep-tabsrow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
@@ -244,7 +248,13 @@
       </div>
       <span class="rep-generado"><span class="rep-live-dot"></span><span id="repGenerado"></span></span>
     </div>
-    <h1 class="rep-title" id="repTitle">Reporte de Resultados</h1>
+    <div class="rep-title-row">
+      <h1 class="rep-title" id="repTitle">Reporte de Resultados</h1>
+      <div class="rep-socio" id="repSocio" hidden>
+        <span class="eyebrow">Socio comercial</span>
+        <img id="repSocioLogo" alt="">
+      </div>
+    </div>
     <div class="rep-etiqueta" id="repEtiqueta" hidden></div>
     <div class="rep-filtros" id="repFiltros"></div>
     <div class="rep-tabsrow">
@@ -430,6 +440,21 @@
       ? `Reporte de Resultados · ${s.porGrupo[0].cliente} · ${s.porGrupo[0].curso}`
       : 'Reporte de Resultados';
     if(s.etiqueta){ const e = document.getElementById('repEtiqueta'); e.textContent = s.etiqueta; e.hidden = false; }
+
+    // Socio Comercial: ya viene decidido (Intermediario + logo autorizado) en
+    // el snapshot — aquí solo se intenta cargar el logo; si no existe (o el
+    // permiso se quitó después de generar el reporte, ver getLogoIntermediario)
+    // se oculta el bloque entero en vez de dejar una etiqueta sin imagen.
+    const repSocio = document.getElementById('repSocio');
+    if(s.socioComercial){
+      const img = document.getElementById('repSocioLogo');
+      img.onerror = () => { repSocio.hidden = true; };
+      img.onload = () => { repSocio.hidden = false; };
+      img.alt = s.socioComercial.nombre;
+      img.src = '/api/getLogoIntermediario?cliente=' + encodeURIComponent(s.socioComercial.clienteId);
+    } else {
+      repSocio.hidden = true;
+    }
 
     const f = s.filtros || {};
     // datos iniciales (alumnos/grupos): etiquetas simples aquí, no scorecards

@@ -313,6 +313,14 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/subirLogoIntermediario",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarLogoIntermediario",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/actualizarNotasCliente",
       "allowedRoles": ["admin"]
     },

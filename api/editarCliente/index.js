@@ -27,6 +27,7 @@ module.exports = async function (context, req) {
   const notas = (body.notas || "").trim() || null;
   const clienteDesde = anioONull(body.cliente_desde);
   const tipoCliente = TIPOS_VALIDOS.includes(body.tipo_cliente) ? body.tipo_cliente : "Directo";
+  const mostrarLogo = body.mostrar_logo === false ? 0 : 1;
 
   if (!id || !nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id, nombre o código del cliente." } };
@@ -51,8 +52,9 @@ module.exports = async function (context, req) {
       .input("notas", sql.NVarChar, notas)
       .input("clienteDesde", sql.Int, clienteDesde)
       .input("tipoCliente", sql.NVarChar, tipoCliente)
+      .input("mostrarLogo", sql.Bit, mostrarLogo)
       .query(
-        "UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde, tipo_cliente=@tipoCliente WHERE id=@id"
+        "UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde, tipo_cliente=@tipoCliente, mostrar_logo=@mostrarLogo WHERE id=@id"
       );
     if (!result.rowsAffected[0]) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese cliente ya no existe." } };

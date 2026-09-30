@@ -22,7 +22,8 @@ function fila(over) {
     alumno: "José Pérez", correo: "jose@acme.com",
     nombre_curso: "Excel Intermedio", herramientas: '["excel"]', instructor: "Alfredo Piña", modalidad: "Online",
     fecha_inicio: "2026-08-10T00:00:00Z", fecha_fin: "2026-09-07T00:00:00Z",
-    cliente: "Capacitanet", cliente_codigo: "CAPA", cliente_final: "Follatti Casinos", cliente_final_codigo: "KEME",
+    cliente_id: 10, cliente: "Capacitanet", cliente_codigo: "CAPA", cliente_tipo: "Directo", cliente_mostrar_logo: true,
+    cliente_final: "Follatti Casinos", cliente_final_codigo: "KEME",
     ...over,
   };
 }
@@ -53,6 +54,38 @@ check("semáforo ámbar en un valor bajo pero no cero (no confundir con rojo)", 
   check("cada participante trae su semáforo", s.participantes.find(p => p.nombre === "Luis Mora").semaforo === "rojo");
   check("correo se conserva cuando existe y es null cuando no", s.participantes.find(p => p.nombre === "José Pérez").correo === "jose@acme.com" && s.participantes.find(p => p.nombre === "Ana Ruiz").correo === null);
   check("etiqueta y filtros se guardan tal cual", s.etiqueta === "Prueba" && JSON.stringify(s.filtros) === "{}");
+  check("sin Socio Comercial cuando quien contrató no es Intermediario", s.socioComercial === null);
+}
+
+// Socio Comercial: cliente_final distinto + quien contrató es Intermediario con logo autorizado
+{
+  const filas = [fila({ cliente_tipo: "Intermediario", cliente_mostrar_logo: true })];
+  const s = calcularSnapshot({ filas, filtros: {}, ahora: new Date() });
+  check("Socio Comercial aparece con nombre y clienteId de quien contrató", JSON.stringify(s.socioComercial) === JSON.stringify({ clienteId: 10, nombre: "Capacitanet" }));
+}
+
+// Socio Comercial: Intermediario pero sin autorizar mostrar el logo — no aparece
+{
+  const filas = [fila({ cliente_tipo: "Intermediario", cliente_mostrar_logo: false })];
+  const s = calcularSnapshot({ filas, filtros: {}, ahora: new Date() });
+  check("sin Socio Comercial si mostrar_logo está apagado", s.socioComercial === null);
+}
+
+// Socio Comercial: sin cliente_final (no hay reventa) — aunque sea Intermediario, no aplica
+{
+  const filas = [fila({ cliente_tipo: "Intermediario", cliente_mostrar_logo: true, cliente_final: null })];
+  const s = calcularSnapshot({ filas, filtros: {}, ahora: new Date() });
+  check("sin Socio Comercial cuando no hay cliente_final (Intermediario contrata para sí mismo)", s.socioComercial === null);
+}
+
+// Socio Comercial: con más de un Grupo no hay un solo "vía" que mostrar en el encabezado
+{
+  const filas = [
+    fila({ grupo_id: 1, cliente_tipo: "Intermediario", cliente_mostrar_logo: true }),
+    fila({ id: 2, grupo_id: 2, alumno: "Otro", cliente_tipo: "Intermediario", cliente_mostrar_logo: true }),
+  ];
+  const s = calcularSnapshot({ filas, filtros: {}, ahora: new Date() });
+  check("sin Socio Comercial cuando el reporte junta varios grupos", s.socioComercial === null);
 }
 
 // dos grupos, calificación >100 con puntos extra (se topa a 100 en el promedio, no en el detalle)

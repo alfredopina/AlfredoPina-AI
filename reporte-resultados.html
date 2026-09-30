@@ -60,7 +60,8 @@
   .rep-title{ font-family:var(--display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin-bottom:6px; flex:1 1 auto; min-width:0; }
   .rep-socio{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:none; }
   .rep-socio .eyebrow{ font-family:var(--mono); font-size:9px; letter-spacing:.5px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
-  .rep-socio img{ height:100px; max-width:320px; width:auto; object-fit:contain; display:block; }
+  .rep-socio-card{ background:#fff; border-radius:9px; padding:10px 16px; display:flex; align-items:center; }
+  .rep-socio img{ height:80px; max-width:280px; width:auto; object-fit:contain; display:block; }
   .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
   .rep-filtros{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
   .rep-tabsrow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
@@ -252,7 +253,7 @@
       <h1 class="rep-title" id="repTitle">Reporte de Resultados</h1>
       <div class="rep-socio" id="repSocio" hidden>
         <span class="eyebrow">Socio comercial</span>
-        <img id="repSocioLogo" alt="">
+        <div class="rep-socio-card"><img id="repSocioLogo" alt=""></div>
       </div>
     </div>
     <div class="rep-etiqueta" id="repEtiqueta" hidden></div>

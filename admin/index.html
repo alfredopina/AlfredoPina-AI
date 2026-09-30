@@ -3885,6 +3885,7 @@
             <table class="dip-table">
               <thead>
                 <tr>
+                  <th data-sort="creado">Creado<span class="th-sort-ico"></span></th>
                   <th data-sort="empresa" class="cal-col-empresa">Empresa<span class="th-sort-ico"></span></th>
                   <th data-sort="curso" class="cal-col-curso">Curso<span class="th-sort-ico"></span></th>
                   <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
@@ -3899,7 +3900,7 @@
                 </tr>
               </thead>
               <tbody id="calResultadosBody">
-                <tr><td colspan="11" class="radm-empty-row">Cargando resultados...</td></tr>
+                <tr><td colspan="12" class="radm-empty-row">Cargando resultados...</td></tr>
               </tbody>
             </table>
           </div>
@@ -3994,6 +3995,7 @@
             <table class="dip-table">
               <thead>
                 <tr>
+                  <th data-sort="creado">Creado<span class="th-sort-ico"></span></th>
                   <th data-sort="empresa">Empresa<span class="th-sort-ico"></span></th>
                   <th data-sort="curso">Curso<span class="th-sort-ico"></span></th>
                   <th data-sort="instructor">Instructor<span class="th-sort-ico"></span></th>
@@ -4006,7 +4008,7 @@
                 </tr>
               </thead>
               <tbody id="dipListaBody">
-                <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
+                <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -7967,10 +7969,11 @@
       no_aprobados: r => r.no_aprobados,
       asistencia: r => r.asistencias_posibles ? r.asistencias_total / r.asistencias_posibles : null,
       calificacion: r => r.prom_calificacion,
+      creado: r => r.ultima_carga ? new Date(r.ultima_carga).getTime() : null,
     };
     const SORT_DEFAULT_DIR = {
       empresa: 'asc', fase: 'asc', curso: 'asc', instructor: 'asc', fecha: 'desc', alumnos: 'desc',
-      aprobados: 'desc', participaron: 'desc', no_aprobados: 'desc', asistencia: 'desc', calificacion: 'desc',
+      aprobados: 'desc', participaron: 'desc', no_aprobados: 'desc', asistencia: 'desc', calificacion: 'desc', creado: 'desc',
     };
     function ordenarFilas(lista){
       if(!calSort.campo) return lista;
@@ -8032,6 +8035,7 @@
       const abierto = detalleAbiertos.has(r.grupo_id);
       return `
       <tr>
+        <td class="radm-mono">${fmtFechaLocal(r.ultima_carga)}</td>
         <td class="cal-col-empresa" title="${escapeHtml(r.cliente_final || r.cliente)}"><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}${r.contacto ? `<div class="diag-nombre-sub">${escapeHtml(r.contacto)}</div>` : ''}</td>
         <td class="cal-col-curso" title="${escapeHtml(r.nombre_curso || '')}">${r.nombre_curso ? `<span class="cal-curso-nombre">${escapeHtml(r.nombre_curso)}</span>` : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))}</div></td>
         <td>${r.instructor ? escapeHtml(r.instructor) : '—'}</td>
@@ -8074,13 +8078,15 @@
           <td>${a.notas ? escapeHtml(a.notas) : '—'}</td>
         </tr>`).join('')}</tbody></table>`;
     }
-    // nota general y fecha de carga (mismas para todo el grupo) van aquí, no
-    // como columnas propias de la tabla — pedido de Alfredo para no saturarla
+    // nota general (misma para todo el grupo) va aquí, no como columna propia
+    // de la tabla — pedido de Alfredo para no saturarla. La fecha de carga sí
+    // se volvió columna propia (Creado, 2026-09-30, pedido explícito) — ya no
+    // se repite aquí.
     function filaDetalleHtml(r){
       const detalle = detalleCache.get(r.grupo_id);
-      const meta = `<div class="cal-detalle-meta"><span>Cargado: ${fmtFechaLocal(r.ultima_carga)}</span>${r.nota_general ? `<span class="cal-detalle-nota">Nota general: ${escapeHtml(r.nota_general)}</span>` : ''}</div>`;
+      const meta = r.nota_general ? `<div class="cal-detalle-meta"><span class="cal-detalle-nota">Nota general: ${escapeHtml(r.nota_general)}</span></div>` : '';
       const cuerpo = detalle ? detalleTablaHtml(detalle) : '<span class="radm-hint">Cargando alumnos…</span>';
-      return `<tr class="cal-detalle-row" data-detalle="${r.grupo_id}"><td colspan="11">${meta}${cuerpo}</td></tr>`;
+      return `<tr class="cal-detalle-row" data-detalle="${r.grupo_id}"><td colspan="12">${meta}${cuerpo}</td></tr>`;
     }
 
     function renderResultados(){
@@ -8094,11 +8100,11 @@
       renderCabecerasOrden();
       actualizarGenStats(filas);
       if(!resultadosCache.length){
-        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar Calificaciones.</td></tr>';
+        body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Todavía no hay calificaciones cargadas — cárgalas en la pestaña Cargar Calificaciones.</td></tr>';
         return;
       }
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
+        body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
         return;
       }
       body.innerHTML = filas.map(filaHtml).join('');
@@ -8106,13 +8112,13 @@
 
     async function cargarResultados(){
       const body = document.getElementById('calResultadosBody');
-      body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">Cargando resultados... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
+      body.innerHTML = '<tr><td colspan="12" class="radm-empty-row">Cargando resultados... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
       try {
         resultadosCache = await apiGetConReintento('/api/listCalificacionesAdmin');
         poblarInstructores();
         renderResultados();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="12" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
@@ -8543,6 +8549,7 @@
       const factor = dipSort.dir === 'asc' ? 1 : -1;
       const valor = (g) => {
         switch(dipSort.campo){
+          case 'creado': return g.ultima_generacion || '';
           case 'empresa': return empresaDe(g) || '';
           case 'curso': return g.nombre_curso || '';
           case 'instructor': return g.instructor || '';
@@ -8605,7 +8612,7 @@
     function filaDetalleHtml(g){
       const detalle = detalleCache.get(g.grupo_id);
       const cuerpo = detalle ? detalleTablaHtml(detalle) : '<span class="radm-hint">Cargando alumnos…</span>';
-      return `<tr class="cal-detalle-row" data-detalle="${g.grupo_id}"><td colspan="9">${cuerpo}</td></tr>`;
+      return `<tr class="cal-detalle-row" data-detalle="${g.grupo_id}"><td colspan="10">${cuerpo}</td></tr>`;
     }
 
     function filaHtml(g){
@@ -8613,6 +8620,7 @@
       const participantes = g.anulados ? `${g.vigentes}/${g.total}` : `${g.vigentes}`;
       return `
       <tr>
+        <td class="radm-mono">${fmtFecha(g.ultima_generacion)}</td>
         <td><b>${escapeHtml(empresaDe(g))}</b>${g.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(g.cliente)}</div>` : ''}${g.contacto ? `<div class="diag-nombre-sub">${escapeHtml(g.contacto)}</div>` : ''}</td>
         <td>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(g.herramientas))}</div></td>
         <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>
@@ -8646,11 +8654,11 @@
         : '';
       renderCabecerasOrden();
       if(!gruposCache.length){
-        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Todavía no se ha generado ningún diploma — se generan desde Calificaciones → Resultados.</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">Todavía no se ha generado ningún diploma — se generan desde Calificaciones → Resultados.</td></tr>';
         return;
       }
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">Sin grupos con estos filtros.</td></tr>';
         return;
       }
       body.innerHTML = filas.map(filaHtml).join('');
@@ -8658,7 +8666,7 @@
 
     async function cargarLista(){
       const body = document.getElementById('dipListaBody');
-      body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">Cargando diplomas... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
+      body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">Cargando diplomas... (si la base estaba dormida puede tardar unos segundos)</td></tr>';
       try {
         gruposCache = await apiGetConReintento('/api/listDiplomas');
         // las verificaciones viven en Table Storage: si fallan no deben tumbar la lista
@@ -8666,7 +8674,7 @@
         poblarInstructores();
         renderLista();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 

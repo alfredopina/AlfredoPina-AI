@@ -497,6 +497,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/vaciarArchivadosPendientes",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/updateOrdenPendientesCategorias",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/moverPendiente",
       "allowedRoles": ["admin"]
     },

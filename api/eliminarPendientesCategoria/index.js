@@ -1,8 +1,10 @@
 // eliminarPendientesCategoria/index.js
-// Function protegida (rol "admin"): borrado real de un contenedor — solo si
-// está vacío (sin notas activas ni archivadas). Si tiene algo, responde 409
-// con el conteo para que Alfredo las mueva o archive primero — mismo
-// criterio que eliminarCliente (nunca borrar de golpe algo con contenido).
+// Function protegida (rol "admin"): borrado real de un contenedor — bloquea
+// solo si tiene notas ACTIVAS (esas sí las tiene que mover o archivar primero,
+// mismo criterio que eliminarCliente: nunca borrar de golpe algo con
+// contenido vivo). Si solo tiene archivadas, se borran junto con el
+// contenedor — una archivada ya es "ya lo pensé, fuera de la vista", borrarla
+// al eliminar el contenedor no pierde nada que Alfredo siguiera necesitando.
 const { getPendientesTable, CAT_PARTITION } = require("../src/pendientes-tables");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -16,19 +18,24 @@ module.exports = async function (context, req) {
   try {
     const table = getPendientesTable();
 
-    let n = 0;
+    let activas = 0;
+    const archivadasRowKeys = [];
     for await (const p of table.listEntities({ queryOptions: { filter: `PartitionKey eq '${id}'` } })) {
-      n++;
+      if (p.archivado) archivadasRowKeys.push(p.rowKey);
+      else activas++;
     }
-    if (n > 0) {
+    if (activas > 0) {
       context.res = {
         status: 409,
         headers: JSON_HEADERS,
-        body: { error: `No se puede eliminar: tiene ${n} pendiente${n === 1 ? "" : "s"} (activos o archivados). Muévelos a otro contenedor primero.` },
+        body: { error: `No se puede eliminar: tiene ${activas} pendiente${activas === 1 ? "" : "s"} activo${activas === 1 ? "" : "s"}. Muévelas o archívalas primero.` },
       };
       return;
     }
 
+    for (const rowKey of archivadasRowKeys) {
+      await table.deleteEntity(id, rowKey);
+    }
     await table.deleteEntity(CAT_PARTITION, id);
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {

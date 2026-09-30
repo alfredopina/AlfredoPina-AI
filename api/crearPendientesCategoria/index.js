@@ -20,7 +20,7 @@ function slugify(nombre) {
 module.exports = async function (context, req) {
   const body = req.body || {};
   const nombre = (body.nombre || "").trim();
-  const icono = (body.icono || "sitio").trim();
+  const icono = (body.icono || "papel").trim();
 
   if (!nombre) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre del contenedor." } };

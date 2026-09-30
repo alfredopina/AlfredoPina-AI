@@ -1540,22 +1540,48 @@
      --panel-3/--line-strong del mockup no existen como variable propia en
      este proyecto: --panel-3 se mapea a --panel-2, --line-strong a --line
      (mismo criterio ya usado en el resto del admin para bordes discretos). ── */
-  .pend-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(215px, 1fr)); gap:18px; align-items:start; }
+  /* Corkboard: fondo con textura punteada muy sutil (nada de imagen — un
+     radial-gradient repetido, longhands explícitos a propósito para no
+     chocar con la regla de no mezclar `background` shorthand con
+     color-mix()/tokens, ver CLAUDE.md) para que el grid se sienta un tablero,
+     no otro panel oscuro más del admin. */
+  .pend-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(215px, 1fr)); gap:22px 18px; align-items:start;
+    background-color:var(--bg); background-image:radial-gradient(var(--line) 1px, transparent 1.3px); background-size:15px 15px;
+    border:1px solid var(--line); border-radius:14px; padding:22px 20px 26px;
+  }
   .pend-col{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 14px; }
-  .pend-col-head{ display:flex; align-items:center; gap:9px; margin-bottom:14px; }
-  .pend-col-ico{ flex:none; width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--blue-bright); }
-  .pend-col-ico svg{ width:14px; height:14px; }
+  .pend-col-head{ display:flex; align-items:center; gap:9px; margin-bottom:14px; cursor:grab; }
+  .pend-col-head:active{ cursor:grabbing; }
+  .pend-col-ico{ flex:none; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--blue-bright); }
+  .pend-col-ico svg{ width:22px; height:22px; }
+  .pend-col-ico.urgente{ background-color:color-mix(in srgb, var(--bad) 18%, var(--panel-2)); border-color:var(--bad); color:var(--bad); }
   .pend-col-title{ font-family:var(--display); font-weight:600; font-size:13.5px; }
   .pend-col-count{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
   .pend-sort-btn{ flex:none; width:22px; height:22px; margin-left:6px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); cursor:pointer; padding:0; }
   .pend-sort-btn svg{ width:12px; height:12px; }
   .pend-sort-btn:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
 
-  .pend-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .pend-list-archivadas{ margin-top:8px; padding-top:10px; border-top:1px dashed var(--line); }
+  .pend-list{ display:flex; flex-direction:column; gap:14px; margin-bottom:10px; padding-top:6px; }
+  .pend-list-archivadas{ margin-top:8px; padding-top:16px; border-top:1px dashed var(--line); display:flex; flex-direction:column; gap:14px; }
 
-  .pend-card{ display:flex; gap:9px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 11px; position:relative; }
-  .pend-card:hover{ border-color:var(--blue-bright); }
+  /* Nota "pegada" al tablero: rotación leve y estable por nota (--rot, hash
+     del id calculado en JS — no aleatorio en cada render, para que no
+     "tiemble" solo al abrir otra nota) + sombra que la levanta del fondo, y
+     una cinta de color arriba simulando que está pegada, no impresa. Al
+     editar (.editing) se resetea a 0 — ahí se necesita leer, no decorar. */
+  .pend-card{
+    display:flex; gap:9px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:10px 11px; position:relative; transform:rotate(var(--rot, 0deg));
+    box-shadow:0 2px 4px rgba(0,0,0,.28), 0 7px 16px rgba(0,0,0,.35); transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .pend-card::before{
+    content:""; position:absolute; top:-7px; left:16px; width:40px; height:15px; border-radius:2px;
+    background-color:var(--blue-bright); opacity:.32; transform:rotate(-4deg); pointer-events:none;
+  }
+  .pend-card.urgente::before{ background-color:var(--bad); opacity:.4; }
+  .pend-card.editing::before{ display:none; }
+  .pend-card:hover{ transform:rotate(0deg) translateY(-2px); border-color:var(--blue-bright); box-shadow:0 4px 8px rgba(0,0,0,.32), 0 12px 22px rgba(0,0,0,.42); z-index:2; }
   .pend-drag{ flex:none; width:14px; height:14px; margin-top:3px; color:var(--text-faint); cursor:grab; opacity:0; transition:opacity .15s; touch-action:none; }
   .pend-drag svg{ width:14px; height:14px; }
   .pend-card:hover .pend-drag{ opacity:1; }
@@ -1568,8 +1594,10 @@
   .pend-text{ font-size:13px; line-height:1.5; color:var(--text); cursor:text; white-space:pre-wrap; overflow-wrap:break-word; }
   .pend-meta{ display:flex; justify-content:space-between; align-items:center; margin-top:7px; }
   .pend-date{ font-family:var(--mono); font-size:10px; color:var(--text-faint); }
-  .pend-edit-ico{ opacity:0; color:var(--text-faint); flex:none; cursor:pointer; transition:opacity .15s; width:12px; height:12px; }
-  .pend-card:hover .pend-edit-ico{ opacity:1; }
+  .pend-meta-icos{ display:flex; align-items:center; gap:9px; }
+  .pend-edit-ico, .pend-trash-ico{ opacity:0; color:var(--text-faint); flex:none; cursor:pointer; transition:opacity .15s, color .15s; width:12px; height:12px; }
+  .pend-card:hover .pend-edit-ico, .pend-card:hover .pend-trash-ico{ opacity:1; }
+  .pend-trash-ico:hover{ color:var(--bad); }
 
   .pend-card.editing{ border-color:var(--blue-bright); background:var(--panel-2); }
   .pend-card.editing .pend-check{ visibility:hidden; }
@@ -1593,14 +1621,36 @@
   .pend-add-btn svg{ width:13px; height:13px; }
   .pend-add-open{ background:var(--panel-2); border:1px solid var(--blue-bright); border-radius:8px; padding:10px; margin-bottom:10px; }
 
+  .pend-archived-row{ display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px; }
   .pend-archived-link{
-    display:block; width:100%; text-align:center; margin-top:10px; font-family:var(--mono); font-size:10.5px;
+    display:block; text-align:center; font-family:var(--mono); font-size:10.5px;
     color:var(--text-faint); text-decoration:underline; text-underline-offset:2px; cursor:pointer;
     background:none; border:none; padding:0;
   }
   .pend-archived-link:hover{ color:var(--text-dim); }
+  .pend-vaciar-link{
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint); background:none; border:none;
+    padding:0; cursor:pointer; text-decoration:underline; text-underline-offset:2px;
+  }
+  .pend-vaciar-link:hover{ color:var(--bad); }
 
   .pend-empty{ text-align:center; padding:18px 6px; color:var(--text-faint); font-size:12px; line-height:1.5; margin-bottom:10px; }
+
+  /* Toolbar (buscador) — vive fuera de #pendGrid a propósito: si estuviera
+     dentro, cada render() (que reemplaza el innerHTML completo) le quitaría
+     el foco al input en cada tecleo. */
+  .pend-toolbar{ margin-bottom:16px; }
+  .pend-search{
+    display:flex; align-items:center; gap:8px; max-width:360px; background:var(--panel); border:1px solid var(--line);
+    border-radius:8px; padding:9px 12px;
+  }
+  .pend-search svg{ width:15px; height:15px; color:var(--text-faint); flex:none; }
+  .pend-search input{
+    flex:1; min-width:0; background:none; border:none; outline:none; color:var(--text);
+    font-family:var(--body); font-size:13px;
+  }
+  .pend-search input::placeholder{ color:var(--text-faint); }
+  .pend-search:focus-within{ border-color:var(--blue-bright); }
 
   /* Contenedores dinámicos (crear/editar/eliminar) — 2026-09-23 */
   .pend-col-actions{ display:flex; gap:2px; margin-left:auto; opacity:0; transition:opacity .15s; }
@@ -1617,12 +1667,12 @@
     color:var(--text); font-family:var(--body); font-size:13.5px; font-weight:600; padding:7px 9px; outline:none;
     margin-bottom:10px;
   }
-  .pend-icon-picker{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .pend-icon-picker{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
   .pend-icon-swatch{
-    width:26px; height:26px; flex:none; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    width:36px; height:36px; flex:none; border-radius:8px; display:flex; align-items:center; justify-content:center;
     background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); cursor:pointer; padding:0;
   }
-  .pend-icon-swatch svg{ width:13px; height:13px; }
+  .pend-icon-swatch svg{ width:19px; height:19px; }
   .pend-icon-swatch:hover{ border-color:var(--blue-bright); color:var(--text); }
   .pend-icon-swatch.selected{ background:var(--blue-soft); border-color:var(--blue-bright); color:var(--blue-bright); }
   .pend-col-head-edit .pend-edit-actions{ margin-top:0; margin-bottom:14px; }
@@ -3990,6 +4040,12 @@
 
       <div class="admin-panel" id="panel-pendientes" style="--c:var(--blue-bright)">
         <div id="pendToast" class="radm-toast" hidden></div>
+        <div class="pend-toolbar">
+          <div class="pend-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
+            <input type="text" id="pendBuscar" placeholder="Buscar en tus pendientes…">
+          </div>
+        </div>
         <div class="pend-grid" id="pendGrid"></div>
       </div>
 
@@ -14396,18 +14452,16 @@
   (function(){
     // Claves fijas del picker de íconos — el backend solo guarda la CLAVE
     // (nunca SVG/HTML) para no tener que confiar en markup ajeno al pintar.
+    // Reducido a 5 a propósito (2026-09-30, pedido explícito de Alfredo): son
+    // su propia clasificación de contenedores, no decoración libre — dinero
+    // (trae dinero), engrane (operativo), papel (administrativo/aburrido
+    // pero necesario), foco (ideas de mejora), bandera (urgente/hoy).
     const ICONS = {
-      maletin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      dinero: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9v.01M18 15v.01" stroke-linecap="round"/></svg>',
       engrane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      caja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      persona: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke-linecap="round"/></svg>',
-      globo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z"/></svg>',
-      estrella: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3L3 9.5l6.4-.6L12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      foco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4" stroke-linecap="round"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1.1 2.1h4.8c.1-.9.5-1.6 1.1-2.1A6 6 0 0 0 12 3Z"/><path d="M12 1v1M4.2 4.2l.7.7M1 12h1M22 12h1M19.1 4.9l-.7.7" stroke-linecap="round"/></svg>',
+      papel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"/></svg>',
       bandera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4M5 4h13l-3 4 3 4H5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      rayo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke-linecap="round"/></svg>',
-      diana: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
-      calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"/></svg>',
     };
     const ICO_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m3 0-.8 12.1A2 2 0 0 1 15.2 21H8.8a2 2 0 0 1-2-1.9L6 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -14450,6 +14504,8 @@
 
     let pendCache = [];
     let pendCategorias = [];
+    let pendSearch = '';
+    let colSortableInstance = null;
     const uiState = {};
     const uiGlobal = { nuevoContenedorAbierto: false };
     // Crea el estado de una categoría si todavía no existe (categorías
@@ -14469,12 +14525,31 @@
     function ordenValor(p){
       return (typeof p.orden === 'number') ? p.orden : -new Date(p.fecha_creacion).getTime();
     }
+    // Buscador simple, en memoria (todo ya vive cargado) — filtra por texto,
+    // sin distinguir mayúsculas. Vacío = sin filtro, se ve todo como siempre.
+    function coincideBusqueda(p){
+      return !pendSearch || p.texto.toLowerCase().includes(pendSearch);
+    }
     function porCategoria(catId, archivado){
-      const items = pendCache.filter(p => p.categoria === catId && !!p.archivado === archivado);
+      const items = pendCache.filter(p => p.categoria === catId && !!p.archivado === archivado && coincideBusqueda(p));
       if(archivado){
         return items.slice().sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
       }
       return items.slice().sort((a, b) => ordenValor(a) - ordenValor(b));
+    }
+
+    // Rotación leve y ESTABLE por nota (hash del id, no Math.random): así la
+    // nota no "tiembla" a un ángulo distinto cada vez que algo más en la
+    // columna dispara un render(). Rango -1.6°..1.6°, casi imperceptible de
+    // una a la vez pero se nota en conjunto como notas pegadas a mano.
+    function rotFor(id){
+      let h = 0;
+      for(let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+      return ((Math.abs(h) % 321) / 100 - 1.6).toFixed(2);
+    }
+    function esContenedorUrgente(catId){
+      const cat = pendCategorias.find(c => c.id === catId);
+      return !!cat && cat.icono === 'bandera';
     }
 
     function cardHtml(p, editando){
@@ -14488,19 +14563,24 @@
               <div class="pend-edit-actions">
                 <button type="button" class="pend-edit-btn primary" data-accion="guardar-editar" data-cat="${p.categoria}" data-id="${p.id}">Guardar</button>
                 <button type="button" class="pend-edit-btn" data-accion="cancelar-editar" data-cat="${p.categoria}">Cancelar</button>
+                <button type="button" class="pend-edit-btn" data-accion="eliminar" data-cat="${p.categoria}" data-id="${p.id}" style="margin-left:auto; color:var(--bad); border-color:var(--bad);">Eliminar</button>
               </div>
             </div>
           </div>`;
       }
+      const urgente = esContenedorUrgente(p.categoria);
       return `
-        <div class="pend-card${p.archivado ? ' archivada' : ''}" data-id="${p.id}">
+        <div class="pend-card${p.archivado ? ' archivada' : ''}${urgente ? ' urgente' : ''}" data-id="${p.id}" style="--rot:${rotFor(p.id)}deg">
           ${p.archivado ? '' : `<span class="pend-drag" title="Arrastra para priorizar">${ICO_DRAG}</span>`}
           <button type="button" class="pend-check" data-accion="toggle-archivado" data-cat="${p.categoria}" data-id="${p.id}" data-archivado="${p.archivado ? '1' : '0'}" title="${p.archivado ? 'Desarchivar' : 'Archivar'}">${p.archivado ? ICO_CHECK : ''}</button>
           <div class="pend-body">
             <div class="pend-text" data-accion="editar" data-cat="${p.categoria}" data-id="${p.id}">${escapeHtml(p.texto)}</div>
             <div class="pend-meta">
               <span class="pend-date">${fmtFechaCorta(p.archivado ? p.fecha_archivado : p.fecha_creacion)}</span>
-              ${p.archivado ? '' : `<span class="pend-edit-ico" data-accion="editar" data-cat="${p.categoria}" data-id="${p.id}">${ICO_EDIT}</span>`}
+              <span class="pend-meta-icos">
+                ${p.archivado ? '' : `<span class="pend-edit-ico" data-accion="editar" data-cat="${p.categoria}" data-id="${p.id}" title="Editar">${ICO_EDIT}</span>`}
+                <span class="pend-trash-ico" data-accion="eliminar" data-cat="${p.categoria}" data-id="${p.id}" title="Eliminar para siempre">${ICO_TRASH}</span>
+              </span>
             </div>
           </div>
         </div>`;
@@ -14533,26 +14613,34 @@
       const estado = estadoDe(cat.id);
       const activas = porCategoria(cat.id, false);
       const archivadas = porCategoria(cat.id, true);
+      const urgente = cat.icono === 'bandera';
+      const sinTextoActivas = pendSearch ? 'Sin resultados.' : 'Sin pendientes por ahora.';
 
       if(estado.editandoContenedor){
         return `<div class="pend-col" data-cat="${cat.id}">${colHeadEditHtml(cat)}</div>`;
       }
 
-      const listaActivas = activas.length
-        ? `<div class="pend-list">${activas.map(p => cardHtml(p, estado.editingId === p.id)).join('')}</div>`
-        : (estado.addOpen ? '' : '<div class="pend-empty">Sin pendientes por ahora.</div>');
+      // .pend-list SIEMPRE se pinta (aunque esté vacía) — es el destino de
+      // Sortable; si se reemplaza por el texto suelto de "vacío" cuando no
+      // hay notas, arrastrar una tarjeta hacia un contenedor vacío no tiene
+      // dónde soltarse (bug real reportado 2026-09-30).
+      const listaActivas = `
+        <div class="pend-list">
+          ${activas.map(p => cardHtml(p, estado.editingId === p.id)).join('')}
+          ${activas.length ? '' : `<div class="pend-empty">${sinTextoActivas}</div>`}
+        </div>`;
 
       const bloqueAgregar = estado.addOpen ? addFormHtml(cat.id) : `
         <button type="button" class="pend-add-btn" data-accion="abrir-agregar" data-cat="${cat.id}">${ICO_PLUS} Agregar</button>`;
 
       const listaArchivadas = estado.archivedOpen
-        ? `<div class="pend-list-archivadas">${archivadas.length ? archivadas.map(p => cardHtml(p, false)).join('') : '<div class="pend-empty">Sin archivados.</div>'}</div>`
+        ? `<div class="pend-list-archivadas">${archivadas.length ? archivadas.map(p => cardHtml(p, false)).join('') : `<div class="pend-empty">${pendSearch ? 'Sin resultados.' : 'Sin archivados.'}</div>`}</div>`
         : '';
 
       return `
         <div class="pend-col" data-cat="${cat.id}">
           <div class="pend-col-head">
-            <span class="pend-col-ico">${ICONS[cat.icono] || ICONS.globo}</span>
+            <span class="pend-col-ico${urgente ? ' urgente' : ''}">${ICONS[cat.icono] || ICONS.papel}</span>
             <span class="pend-col-title">${escapeHtml(cat.nombre)}</span>
             <span class="pend-col-count">${activas.length}</span>
             <span class="pend-col-actions">
@@ -14563,7 +14651,10 @@
           </div>
           ${listaActivas}
           ${bloqueAgregar}
-          <button type="button" class="pend-archived-link" data-accion="toggle-archivados" data-cat="${cat.id}">${estado.archivedOpen ? 'ocultar archivados' : 'ver archivados'} (${archivadas.length})</button>
+          <div class="pend-archived-row">
+            <button type="button" class="pend-archived-link" data-accion="toggle-archivados" data-cat="${cat.id}">${estado.archivedOpen ? 'ocultar archivados' : 'ver archivados'} (${archivadas.length})</button>
+            ${estado.archivedOpen && archivadas.length ? `<button type="button" class="pend-vaciar-link" data-accion="vaciar-archivados" data-cat="${cat.id}">vaciar archivados</button>` : ''}
+          </div>
           ${listaArchivadas}
         </div>`;
     }
@@ -14579,7 +14670,7 @@
         <div class="pend-col pend-col-new">
           <div class="pend-col-form">
             <input type="text" class="pend-col-name-input" id="pendNewColNombre" placeholder="Nombre del contenedor" maxlength="40">
-            <div class="pend-icon-picker" id="pendNewColIconos">${iconSwatchesHtml('globo')}</div>
+            <div class="pend-icon-picker" id="pendNewColIconos">${iconSwatchesHtml('papel')}</div>
             <div class="pend-edit-actions">
               <button type="button" class="pend-edit-btn primary" data-accion="guardar-nuevo-contenedor">Guardar</button>
               <button type="button" class="pend-edit-btn" data-accion="cancelar-nuevo-contenedor">Cancelar</button>
@@ -14640,6 +14731,28 @@
             if(movioColumna) render();
           },
         });
+      });
+
+      // Reordenar CONTENEDORES completos (arrastrando por su encabezado) —
+      // a diferencia de las tarjetas, #pendGrid nunca se destruye entre
+      // renders (solo su innerHTML), así que hay que destruir la instancia
+      // vieja antes de crear otra o se acumulan varias sobre el mismo nodo,
+      // cada una disparando su propio onEnd en cada drag.
+      const grid = document.getElementById('pendGrid');
+      if(colSortableInstance){ colSortableInstance.destroy(); colSortableInstance = null; }
+      colSortableInstance = Sortable.create(grid, {
+        handle: '.pend-col-head', animation: 150,
+        filter: '.pend-col-action-btn, .pend-sort-btn', preventOnFilter: false,
+        onEnd: async () => {
+          // el tile fantasma "+ Nuevo contenedor" no trae data-cat — se
+          // reancla al final pase lo que pase, nunca es un contenedor real.
+          const ghost = grid.querySelector('.pend-col-new');
+          if(ghost) grid.appendChild(ghost);
+          const items = Array.from(grid.querySelectorAll('.pend-col[data-cat]')).map((el, i) => ({ id: el.dataset.cat, orden: i * 10 }));
+          items.forEach(it => { const c = pendCategorias.find(x => x.id === it.id); if(c) c.orden = it.orden; });
+          try { await apiPostJson('/api/updateOrdenPendientesCategorias', { items }); }
+          catch(e){ toast('No se pudo guardar el nuevo orden de contenedores: ' + e.message, false); }
+        },
       });
     }
     // deja el cursor listo en el textarea recién abierto (agregar o editar) —
@@ -14734,6 +14847,20 @@
         } catch(err){ toast('No se pudo guardar: ' + err.message, false); }
         return;
       }
+      if(accion === 'eliminar'){
+        const id = btn.dataset.id;
+        const p = pendCache.find(x => x.id === id);
+        const preview = p ? p.texto.slice(0, 70) : '';
+        if(!confirm(`¿Eliminar esta nota para siempre? No se puede deshacer.\n\n"${preview}${p && p.texto.length > 70 ? '…' : ''}"`)) return;
+        try {
+          await apiPostJson('/api/eliminarPendiente', { categoria: catId, id });
+          pendCache = pendCache.filter(x => x.id !== id);
+          estadoDe(catId).editingId = null;
+          render();
+          toast('Nota eliminada.', true);
+        } catch(err){ toast('No se pudo eliminar: ' + err.message, false); }
+        return;
+      }
       if(accion === 'toggle-archivado'){
         const id = btn.dataset.id;
         const archivarA = btn.dataset.archivado !== '1'; // el valor actual es el opuesto de lo que ya tiene
@@ -14749,6 +14876,17 @@
       if(accion === 'toggle-archivados'){
         estadoDe(catId).archivedOpen = !estadoDe(catId).archivedOpen;
         render();
+        return;
+      }
+      if(accion === 'vaciar-archivados'){
+        const n = porCategoria(catId, true).length;
+        if(!confirm(`¿Eliminar las ${n} nota${n === 1 ? '' : 's'} archivada${n === 1 ? '' : 's'} de este contenedor? No se puede deshacer.`)) return;
+        try {
+          await apiPostJson('/api/vaciarArchivadosPendientes', { categoria: catId });
+          pendCache = pendCache.filter(p => !(p.categoria === catId && p.archivado));
+          render();
+          toast('Archivados eliminados.', true);
+        } catch(err){ toast('No se pudo vaciar: ' + err.message, false); }
         return;
       }
       if(accion === 'ordenar-fecha'){
@@ -14785,7 +14923,7 @@
       if(accion === 'guardar-contenedor'){
         const nombre = document.getElementById('pendColNombre-' + catId).value.trim();
         const swatch = document.querySelector('#pendColIconos-' + catId + ' .pend-icon-swatch.selected');
-        const icono = swatch ? swatch.dataset.icono : 'globo';
+        const icono = swatch ? swatch.dataset.icono : 'papel';
         if(!nombre){ toast('El nombre no puede quedar vacío.', false); return; }
         try {
           await apiPostJson('/api/editarPendientesCategoria', { id: catId, nombre, icono });
@@ -14823,7 +14961,7 @@
       if(accion === 'guardar-nuevo-contenedor'){
         const nombre = document.getElementById('pendNewColNombre').value.trim();
         const swatch = document.querySelector('#pendNewColIconos .pend-icon-swatch.selected');
-        const icono = swatch ? swatch.dataset.icono : 'globo';
+        const icono = swatch ? swatch.dataset.icono : 'papel';
         if(!nombre){ toast('Escribe un nombre para el contenedor.', false); return; }
         try {
           const nuevo = await apiPostJson('/api/crearPendientesCategoria', { nombre, icono });
@@ -14834,6 +14972,11 @@
         } catch(err){ toast('No se pudo crear: ' + err.message, false); }
         return;
       }
+    });
+
+    document.getElementById('pendBuscar').addEventListener('input', e => {
+      pendSearch = e.target.value.trim().toLowerCase();
+      render();
     });
 
     cargarPendientes();

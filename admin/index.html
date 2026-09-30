@@ -7313,6 +7313,12 @@
       if(!iso) return '—';
       return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
     }
+    // con hora — para columnas "Creado" donde puede haber varios registros el
+    // mismo día (Resultados/Reportes) y hace falta distinguirlos
+    function fmtFechaHora(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
     function listaJson(s){
       try { const v = JSON.parse(s || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; }
     }
@@ -8035,7 +8041,7 @@
       const abierto = detalleAbiertos.has(r.grupo_id);
       return `
       <tr>
-        <td class="radm-mono">${fmtFechaLocal(r.ultima_carga)}</td>
+        <td class="radm-mono">${fmtFechaHora(r.ultima_carga)}</td>
         <td class="cal-col-empresa" title="${escapeHtml(r.cliente_final || r.cliente)}"><b>${escapeHtml(r.cliente_final || r.cliente)}</b>${r.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(r.cliente)}</div>` : ''}${r.contacto ? `<div class="diag-nombre-sub">${escapeHtml(r.contacto)}</div>` : ''}</td>
         <td class="cal-col-curso" title="${escapeHtml(r.nombre_curso || '')}">${r.nombre_curso ? `<span class="cal-curso-nombre">${escapeHtml(r.nombre_curso)}</span>` : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(r.herramientas))}</div></td>
         <td>${r.instructor ? escapeHtml(r.instructor) : '—'}</td>
@@ -8226,7 +8232,7 @@
       });
       body.innerHTML = lista.map(r => `
         <tr>
-          <td class="radm-mono">${fmtFechaLocal(r.generadoEn)}</td>
+          <td class="radm-mono">${fmtFechaHora(r.generadoEn)}</td>
           <td class="cal-col-empresa" title="${escapeHtml(r.empresaTexto)}">${r.empresaTexto ? `<b>${escapeHtml(r.empresaTexto)}</b>` : '—'}${r.contactoTexto ? `<div class="diag-nombre-sub">${escapeHtml(r.contactoTexto)}</div>` : ''}</td>
           <td class="cal-col-curso" title="${escapeHtml(r.cursoTexto)}">${r.cursoTexto ? `<span class="cal-curso-nombre">${escapeHtml(r.cursoTexto)}</span>` : '—'}${(r.herramientas || []).length ? `<div class="diag-nombre-sub">${escapeHtml(r.herramientas.map(h => TOOL_NAMES[h] || h).join(' + '))}</div>` : ''}</td>
           <td>${r.instructorTexto ? escapeHtml(r.instructorTexto) : '—'}</td>
@@ -8473,6 +8479,13 @@
       const d = new Date(iso);
       return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC' });
     }
+    // con hora, sin forzar UTC (a diferencia de fmtFecha) — es para la
+    // columna "Creado" (fecha_generacion, un timestamp real), no para fechas
+    // de curso que son solo DATE
+    function fmtFechaHora(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
     function semaforoCalifHtml(calif){
       if(calif == null) return '—';
       const topada = calif > 100 ? 100 : calif;
@@ -8620,7 +8633,7 @@
       const participantes = g.anulados ? `${g.vigentes}/${g.total}` : `${g.vigentes}`;
       return `
       <tr>
-        <td class="radm-mono">${fmtFecha(g.ultima_generacion)}</td>
+        <td class="radm-mono">${fmtFechaHora(g.ultima_generacion)}</td>
         <td><b>${escapeHtml(empresaDe(g))}</b>${g.cliente_final ? `<div class="diag-nombre-sub">vía ${escapeHtml(g.cliente)}</div>` : ''}${g.contacto ? `<div class="diag-nombre-sub">${escapeHtml(g.contacto)}</div>` : ''}</td>
         <td>${g.nombre_curso ? escapeHtml(g.nombre_curso) : '—'}<div class="diag-nombre-sub">${escapeHtml(nombreHerramientas(g.herramientas))}</div></td>
         <td>${g.instructor ? escapeHtml(g.instructor) : '—'}</td>

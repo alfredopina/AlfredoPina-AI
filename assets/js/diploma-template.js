@@ -102,26 +102,26 @@
   // puede escanear) y el QR pegado al margen con su etiqueta mínima. Sin QR
   // (diploma viejo o sin librería) queda solo el folio, como antes.
   //
-  // Socio Comercial (Grupo con cliente Intermediario, logo autorizado): se
-  // agrega un tercer bloque a la IZQUIERDA del folio, misma caja cuadrada y
-  // misma etiqueta chica debajo que ya usa el QR — dos anclas visuales del
-  // mismo tamaño (logo/QR) enmarcando el folio al centro, no un logo suelto
-  // sin pareja. Si la imagen no carga (se borró el logo después de que este
-  // grupo quedó armado, o nunca se subió) el bloque entero se oculta solo —
-  // mismo criterio que el resto del sitio, nunca una etiqueta huérfana.
-  function socioHtml(datos) {
-    if (!datos.socioComercialLogo) return "";
-    return `<div class="fq-socio">
-      <div class="vq-box"><img src="${esc(datos.socioComercialLogo)}" alt="" style="display:block;width:100%;height:100%;object-fit:contain" onerror="this.closest('.fq-socio').style.display='none'"></div>
-      <div class="fq-l">Con la colaboración de</div>
-    </div>`;
-  }
   function folioQrHtml(datos) {
     const svg = qrSvg(datos.codigoVerif);
-    const socio = socioHtml(datos);
     const texto = `<div class="fq-txt"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div>${svg ? '<div class="fq-u">alfredopina.ai/verificar</div>' : ""}</div>`;
     const qr = svg ? `<div class="fq-qr"><div class="vq-box">${svg}</div><div class="fq-l">Validar diploma</div></div>` : "";
-    return `<div class="abs fq" style="right:calc(var(--u)*80);top:calc(var(--u)*54)">${socio}${texto}${qr}</div>`;
+    return `<div class="abs fq" style="right:calc(var(--u)*80);top:calc(var(--u)*54)">${texto}${qr}</div>`;
+  }
+  // Socio Comercial (Grupo con cliente Intermediario, logo autorizado):
+  // logo suelto, sin caja ni fondo (Alfredo lo pidió con el MISMO peso que
+  // el logo propio, no una estampa chica) — centrado horizontal entre el
+  // logo de alfredopina.ai (izquierda) y el bloque folio/QR (derecha), no
+  // pegado a ninguno de los dos. Si la imagen no carga (se borró el logo
+  // después de que este grupo quedó armado, o nunca se subió) el bloque
+  // entero se oculta solo — mismo criterio que el resto del sitio, nunca
+  // una etiqueta huérfana.
+  function socioHtml(datos) {
+    if (!datos.socioComercialLogo) return "";
+    return `<div class="abs fq-socio" style="left:50%;top:calc(var(--u)*46);transform:translateX(-50%)">
+      <img src="${esc(datos.socioComercialLogo)}" alt="" onerror="this.closest('.fq-socio').style.display='none'">
+      <div class="fq-l">Con la colaboración de</div>
+    </div>`;
   }
 
   function sellosHtml(herramientas) {
@@ -152,6 +152,7 @@
       <div class="m-grid"></div>${barraHtml(herramientas)}
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*58)"><img src="/assets/img/brand/logo-diploma-claro.svg" alt="alfredopina.ai" style="display:block;width:calc(var(--u)*245);height:auto"></div>
       ${folioQrHtml(datos)}
+      ${socioHtml(datos)}
       <div class="abs" style="left:calc(var(--u)*96);top:calc(var(--u)*214);width:calc(var(--u)*900)">
         <div class="eyebrow">Otorga el presente diploma a</div>
         <div class="name fit" style="margin-top:calc(var(--u)*14)">${esc(datos.nombre)}</div>
@@ -287,8 +288,12 @@
   .dip-tpl-frame .fq{ display:flex; align-items:flex-start; gap:calc(var(--u)*18); text-align:right }
   .dip-tpl-frame .fq-txt{ padding-top:calc(var(--u)*6) }
   .dip-tpl-frame .fq-u{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:calc(var(--u)*9.5); color:var(--dfaint); margin-top:calc(var(--u)*7); white-space:nowrap }
-  .dip-tpl-frame .fq-qr, .dip-tpl-frame .fq-socio{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*6) }
+  .dip-tpl-frame .fq-qr{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*6) }
   .dip-tpl-frame .vq-box{ width:calc(var(--u)*84); height:calc(var(--u)*84); flex:none; border:calc(var(--u)*1.5) solid var(--dline); border-radius:calc(var(--u)*8); padding:calc(var(--u)*3); background:var(--paper) }
+  /* sin caja/borde/fondo a propósito — mismo peso que el logo de marca de la
+     izquierda, no una estampa chica */
+  .dip-tpl-frame .fq-socio{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*8) }
+  .dip-tpl-frame .fq-socio img{ display:block; height:calc(var(--u)*62); max-width:calc(var(--u)*230); width:auto; object-fit:contain }
   .dip-tpl-frame .fq-l{ font-size:calc(var(--u)*8.5); letter-spacing:.2em; text-transform:uppercase; color:var(--dfaint); font-weight:500; white-space:nowrap }
   .dip-tpl-frame .seals{ position:absolute; right:calc(var(--u)*80); bottom:calc(var(--u)*70); display:flex }
   .dip-tpl-frame .seals.h{ flex-direction:row-reverse; gap:calc(var(--u)*38) }

@@ -1555,7 +1555,6 @@
   .pend-col-head:active{ cursor:grabbing; }
   .pend-col-ico{ flex:none; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--blue-bright); }
   .pend-col-ico svg{ width:22px; height:22px; }
-  .pend-col-ico.urgente{ background-color:color-mix(in srgb, var(--bad) 18%, var(--panel-2)); border-color:var(--bad); color:var(--bad); }
   .pend-col-title{ font-family:var(--display); font-weight:600; font-size:13.5px; }
   .pend-col-count{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
   .pend-sort-btn{ flex:none; width:22px; height:22px; margin-left:6px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); cursor:pointer; padding:0; }
@@ -1568,18 +1567,21 @@
   /* Nota "pegada" al tablero: rotación leve y estable por nota (--rot, hash
      del id calculado en JS — no aleatorio en cada render, para que no
      "tiemble" solo al abrir otra nota) + sombra que la levanta del fondo, y
-     una cinta de color arriba simulando que está pegada, no impresa. Al
-     editar (.editing) se resetea a 0 — ahí se necesita leer, no decorar. */
+     un pin discreto en la esquina superior izquierda (no una cinta — se
+     sintió con demasiado color). El pin se CONTRARROTA (-1 * --rot) para
+     quedarse "derecho" aunque la nota gire debajo, como si de verdad la
+     sostuviera. Al editar (.editing) se resetea a 0 — ahí se necesita leer,
+     no decorar. */
   .pend-card{
     display:flex; gap:9px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
     padding:10px 11px; position:relative; transform:rotate(var(--rot, 0deg));
     box-shadow:0 2px 4px rgba(0,0,0,.28), 0 7px 16px rgba(0,0,0,.35); transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
   .pend-card::before{
-    content:""; position:absolute; top:-7px; left:16px; width:40px; height:15px; border-radius:2px;
-    background-color:var(--blue-bright); opacity:.32; transform:rotate(-4deg); pointer-events:none;
+    content:""; position:absolute; top:-5px; left:13px; width:11px; height:11px; border-radius:50%;
+    background-image:radial-gradient(circle at 35% 30%, var(--text) 0%, var(--text-dim) 55%, var(--text-faint) 100%);
+    box-shadow:0 1px 2px rgba(0,0,0,.45); transform:rotate(calc(-1 * var(--rot, 0deg))); pointer-events:none;
   }
-  .pend-card.urgente::before{ background-color:var(--bad); opacity:.4; }
   .pend-card.editing::before{ display:none; }
   .pend-card:hover{ transform:rotate(0deg) translateY(-2px); border-color:var(--blue-bright); box-shadow:0 4px 8px rgba(0,0,0,.32), 0 12px 22px rgba(0,0,0,.42); z-index:2; }
   .pend-drag{ flex:none; width:14px; height:14px; margin-top:3px; color:var(--text-faint); cursor:grab; opacity:0; transition:opacity .15s; touch-action:none; }
@@ -14547,11 +14549,6 @@
       for(let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
       return ((Math.abs(h) % 321) / 100 - 1.6).toFixed(2);
     }
-    function esContenedorUrgente(catId){
-      const cat = pendCategorias.find(c => c.id === catId);
-      return !!cat && cat.icono === 'bandera';
-    }
-
     function cardHtml(p, editando){
       if(editando){
         return `
@@ -14568,9 +14565,8 @@
             </div>
           </div>`;
       }
-      const urgente = esContenedorUrgente(p.categoria);
       return `
-        <div class="pend-card${p.archivado ? ' archivada' : ''}${urgente ? ' urgente' : ''}" data-id="${p.id}" style="--rot:${rotFor(p.id)}deg">
+        <div class="pend-card${p.archivado ? ' archivada' : ''}" data-id="${p.id}" style="--rot:${rotFor(p.id)}deg">
           ${p.archivado ? '' : `<span class="pend-drag" title="Arrastra para priorizar">${ICO_DRAG}</span>`}
           <button type="button" class="pend-check" data-accion="toggle-archivado" data-cat="${p.categoria}" data-id="${p.id}" data-archivado="${p.archivado ? '1' : '0'}" title="${p.archivado ? 'Desarchivar' : 'Archivar'}">${p.archivado ? ICO_CHECK : ''}</button>
           <div class="pend-body">
@@ -14613,7 +14609,6 @@
       const estado = estadoDe(cat.id);
       const activas = porCategoria(cat.id, false);
       const archivadas = porCategoria(cat.id, true);
-      const urgente = cat.icono === 'bandera';
       const sinTextoActivas = pendSearch ? 'Sin resultados.' : 'Sin pendientes por ahora.';
 
       if(estado.editandoContenedor){
@@ -14640,7 +14635,7 @@
       return `
         <div class="pend-col" data-cat="${cat.id}">
           <div class="pend-col-head">
-            <span class="pend-col-ico${urgente ? ' urgente' : ''}">${ICONS[cat.icono] || ICONS.papel}</span>
+            <span class="pend-col-ico">${ICONS[cat.icono] || ICONS.papel}</span>
             <span class="pend-col-title">${escapeHtml(cat.nombre)}</span>
             <span class="pend-col-count">${activas.length}</span>
             <span class="pend-col-actions">

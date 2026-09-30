@@ -10584,6 +10584,14 @@
       });
     }
 
+    // si el logo no carga (todavía no hay, o se borró) se oculta y se muestra
+    // el texto de al lado — cada panel trae su propia copia de este helper,
+    // no hay nada compartido entre IIFEs (mismo criterio que ICO/escapeHtml).
+    function wireImgFallback(img, fallbackEl){
+      img.addEventListener('error', () => { img.hidden = true; fallbackEl.hidden = false; });
+      img.addEventListener('load', () => { img.hidden = false; fallbackEl.hidden = true; });
+    }
+
     // logo reducido a máx. 400px de lado (conserva proporción, a diferencia de
     // fotoReducida que recorta a cuadrado) y siempre PNG — a diferencia de la
     // foto de instructor, un logo suele traer transparencia real que un JPEG

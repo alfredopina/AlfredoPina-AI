@@ -193,6 +193,10 @@
   @keyframes repBarFill{ from{ width:0; } to{ width:var(--w); } }
   .rep-stat-fill{ height:100%; border-radius:5px; animation:repBarFill 1.1s cubic-bezier(.2,.8,.2,1) forwards; width:0; }
   @media (prefers-reduced-motion:reduce){ .rep-stat-fill{ animation:none; width:var(--w); } }
+  /* boleta individual recién inyectada + window.print() casi al instante
+     (ver imprimirPerfiles) — sin esto la barra se imprime a medio llenar o
+     vacía, mismo motivo que estatico en gaugeSvg. */
+  .rep-stat-fill.estatico{ animation:none; width:var(--w); }
   .rep-puntos-num{ animation:repPop .4s cubic-bezier(.2,.8,.3,1.4); display:inline-block; }
   @keyframes repPop{ from{ transform:scale(.5); opacity:0; } to{ transform:scale(1); opacity:1; } }
   @media (prefers-reduced-motion:reduce){ .rep-puntos-num{ animation:none; } }
@@ -219,9 +223,30 @@
   .rep-print-page{ padding:24px 0; }
 
   @media print{
-    body{ background:#fff; color:#0d1424; }
+    /* "Imprimir reporte" reusa el DOM oscuro tal cual, solo re-pintado en
+       claro — así que hay que redefinir los TOKENS (no cada regla suelta):
+       --blue-bright (#6b9fff) y --text (#edf0f4, casi blanco) están pensados
+       para leerse sobre --bg (#0a0d12), no sobre papel — impresos se ven
+       lavados/casi invisibles, que es justo lo que reportó Alfredo ("los
+       colores no se ven bien"). Redefinir :root aquí cascada solo a la CSS,
+       TAMBIÉN a los gauges (gaugeSvg usa fill="var(--text)"/stroke="var(--line)"
+       como atributo de presentación SVG, que sí participa del cascade). Mismo
+       par papel/tinta ya usado en Cotización/reporte-diagnostico — ambar y
+       teal usan su "tinta" (versión oscura) documentada en CLAUDE.md, la
+       pálida original no pasa el contraste mínimo sobre blanco. */
+    :root{
+      --bg:#fbfcff; --panel:#eef0f6; --panel-2:#eef0f6; --line:#dfe3ec; --line-soft:#eceff5;
+      --blue:#1f5fe0; --blue-bright:#1f5fe0; --blue-soft:rgba(31,95,224,.10);
+      --text:#0d1424; --text-dim:#5b6270; --text-faint:#8b93a1;
+      --rojo:#dc2626; --ambar:#8a6a00; --teal:#0d9488;
+    }
+    /* -webkit-font-smoothing:antialiased (ver body{} arriba) suaviza texto
+       CLARO sobre fondo oscuro — aplicado a texto oscuro sobre papel adelgaza
+       la letra y se ve "débil" (la otra mitad de "algunas fuentes no se ven
+       bien"). En impresión no hace falta ningún smoothing especial. */
+    body{ background:#fff; color:#0d1424; -webkit-font-smoothing:auto; }
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
     .rep-tabsrow, .rep-actions, .info-panel, .abtn{ display:none !important; }
-    .card{ border-color:#ccc; background:#fafafa; }
     .rep-ind-right{ width:100%; }
     /* "Imprimir reporte" (General) no necesita ninguna clase especial: se
        imprime lo que ya está visible, tal cual. Imprimir una boleta o todas
@@ -401,7 +426,7 @@
   // gauge de reporte-diagnostico.html. `bench` dibuja una marca en el arco
   // con la media del grupo (mismo truco trigonométrico que el benchmark de
   // Diagnóstico: theta(p) = 180 - 1.8p grados desde el centro). ──
-  function gaugeSvg({ p, color, bench, big, suffix }){
+  function gaugeSvg({ p, color, bench, big, suffix, estatico }){
     const c = Math.PI * 70;
     const val = Math.min(p || 0, 100);
     const end = c * (1 - val / 100);
@@ -423,7 +448,7 @@
     const texto = p == null ? '—' : (suffix ? Math.round(p) + suffix : fmtCalif(p));
     return `<svg viewBox="0 0 180 100" width="${w}" height="${h}">
       <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="var(--line)" stroke-width="${stroke}" stroke-linecap="round"></path>
-      <path class="rep-gauge-fill" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" style="stroke-dashoffset:${c}; --end:${end};"></path>
+      <path class="${estatico ? '' : 'rep-gauge-fill'}" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" style="stroke-dashoffset:${estatico ? end : c}; --end:${end};"></path>
       ${marcador}
       <text x="90" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="${fontSize}" fill="var(--text)">${texto}</text>
     </svg>`;
@@ -603,8 +628,8 @@
   // Puntos/Asistencia/Proyecto como líneas animadas — más legible que una
   // cuadrícula de números sueltos y consistente con el resto del reporte
   // ("vivo"); Calificación se queda en el gauge grande de arriba.
-  function statLinesHtml(p){
-    const barra = (val, color) => `<div class="rep-stat-track"><div class="rep-stat-fill" style="--w:${Math.min(val, 100)}%; background:${color};"></div></div>`;
+  function statLinesHtml(p, estatico){
+    const barra = (val, color) => `<div class="rep-stat-track"><div class="rep-stat-fill${estatico ? ' estatico' : ''}" style="--w:${Math.min(val, 100)}%; background:${color};"></div></div>`;
     return `<div class="card rep-stat-lines">
       <div class="rep-stat-line">
         <div class="rep-stat-head"><span class="rep-stat-ico">${SVG.proyecto}</span><span class="rep-stat-lbl">Proyecto<small>evaluación práctica del alumno — 80% de la calificación</small></span><span class="rep-stat-val">${p.proyecto}</span></div>
@@ -636,13 +661,13 @@
           <ul class="rep-profile-meta">${metaItems.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
         </div>
         <div class="rep-profile-gauge-col">
-          <div class="rep-gauge-wrap" title="Calificación: 80% Proyecto + 20% Asistencia + Puntos${bench != null ? ` · la línea marca la media del grupo (${fmtCalif(bench)})` : ''}">${gaugeSvg({ p: p.calificacionTopada, color: SEM_COLOR[p.semaforo], bench })}</div>
+          <div class="rep-gauge-wrap" title="Calificación: 80% Proyecto + 20% Asistencia + Puntos${bench != null ? ` · la línea marca la media del grupo (${fmtCalif(bench)})` : ''}">${gaugeSvg({ p: p.calificacionTopada, color: SEM_COLOR[p.semaforo], bench, estatico: paraImprimir })}</div>
           ${bench != null ? `<div class="rep-bench-note">— media del grupo: ${fmtCalif(bench)}</div>` : ''}
           ${p.excede100 ? `<div class="rep-excede-nota">Incluye ${r1(p.puntos)} puntos extra</div>` : ''}
           ${pill(semDeResultado(p.resultado), p.resultado)}
         </div>
       </div>
-      ${statLinesHtml(p)}
+      ${statLinesHtml(p, paraImprimir)}
       ${p.notas ? `<div class="card rep-profile-notas"><span class="lbl">Notas</span><br>${esc(p.notas)}</div>` : ''}
       ${paraImprimir ? '' : `<button type="button" class="rep-download" data-imprimir-alumno="${p.id}">${SVG.print}Imprimir boleta individual</button>`}`;
   }

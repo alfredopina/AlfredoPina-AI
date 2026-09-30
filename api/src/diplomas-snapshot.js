@@ -34,12 +34,22 @@ async function asegurarCodigos(pool, filas) {
 async function reconstruirSnapshotGrupo(pool, grupoId, token) {
   const g = (
     await pool.request().input("grupoId", sql.Int, grupoId).query(
-      `SELECT cli.nombre AS cliente, cli.codigo AS cliente_codigo, clf.nombre AS cliente_final,
+      `SELECT cli.id AS cliente_id, cli.nombre AS cliente, cli.codigo AS cliente_codigo, cli.tipo_cliente, cli.mostrar_logo,
+              clf.nombre AS cliente_final,
               g.nombre_curso, g.herramientas, g.niveles, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin, g.horas
        FROM Grupo g JOIN Cliente cli ON cli.id = g.cliente_id LEFT JOIN Cliente clf ON clf.id = g.cliente_final_id WHERE g.id = @grupoId`
     )
   ).recordset[0];
   if (!g) return;
+
+  // Socio Comercial: mismo criterio que calificaciones-reporte-calc.js —
+  // solo si quien contrató (cliente_id) es Intermediario Y autorizó mostrar
+  // su logo, Y hay un cliente_final distinto recibiendo el curso. El logo en
+  // sí no se congela aquí, se sirve en vivo por clienteId (ver
+  // getLogoIntermediario) — solo se congela SI aplica o no.
+  const socioComercial = g.cliente_final && g.tipo_cliente === "Intermediario" && g.mostrar_logo
+    ? { clienteId: g.cliente_id, nombre: g.cliente }
+    : null;
 
   const todos = (
     await pool
@@ -59,6 +69,7 @@ async function reconstruirSnapshotGrupo(pool, grupoId, token) {
     cliente: g.cliente_final || g.cliente,
     clienteVia: g.cliente_final ? g.cliente : null,
     clienteCodigo: g.cliente_codigo,
+    socioComercial,
     curso: g.nombre_curso || "",
     herramientas: g.herramientas,
     nivel: nivelTexto(g.niveles),

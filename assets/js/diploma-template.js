@@ -97,15 +97,31 @@
       `<rect x="${x + 0.5}" y="${y + 0.5}" width="6" height="6" rx="1.7" fill="none" stroke="${tinta}" stroke-width="1"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" rx="0.9" fill="${tinta}"/>`;
     return `<svg viewBox="-1 -1 ${n + 2} ${n + 2}" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100%"><rect x="-1" y="-1" width="${n + 2}" height="${n + 2}" fill="${papel}"/>${mod}${ojo(0, 0)}${ojo(n - 7, 0)}${ojo(0, n - 7)}</svg>`;
   }
-  // bloque folio + QR de la esquina superior derecha: el folio a la izquierda
+  // bloque folio + QR de la esquina superior derecha: el folio al centro
   // (con la URL diminuta debajo, para quien tiene el diploma en papel y no
   // puede escanear) y el QR pegado al margen con su etiqueta mínima. Sin QR
   // (diploma viejo o sin librería) queda solo el folio, como antes.
+  //
+  // Socio Comercial (Grupo con cliente Intermediario, logo autorizado): se
+  // agrega un tercer bloque a la IZQUIERDA del folio, misma caja cuadrada y
+  // misma etiqueta chica debajo que ya usa el QR — dos anclas visuales del
+  // mismo tamaño (logo/QR) enmarcando el folio al centro, no un logo suelto
+  // sin pareja. Si la imagen no carga (se borró el logo después de que este
+  // grupo quedó armado, o nunca se subió) el bloque entero se oculta solo —
+  // mismo criterio que el resto del sitio, nunca una etiqueta huérfana.
+  function socioHtml(datos) {
+    if (!datos.socioComercialLogo) return "";
+    return `<div class="fq-socio">
+      <div class="vq-box"><img src="${esc(datos.socioComercialLogo)}" alt="" style="display:block;width:100%;height:100%;object-fit:contain" onerror="this.closest('.fq-socio').style.display='none'"></div>
+      <div class="fq-l">Con la colaboración de</div>
+    </div>`;
+  }
   function folioQrHtml(datos) {
     const svg = qrSvg(datos.codigoVerif);
+    const socio = socioHtml(datos);
     const texto = `<div class="fq-txt"><div class="folio-l">Folio</div><div class="folio-v">${esc(datos.folio)}</div>${svg ? '<div class="fq-u">alfredopina.ai/verificar</div>' : ""}</div>`;
     const qr = svg ? `<div class="fq-qr"><div class="vq-box">${svg}</div><div class="fq-l">Validar diploma</div></div>` : "";
-    return `<div class="abs fq" style="right:calc(var(--u)*80);top:calc(var(--u)*54)">${texto}${qr}</div>`;
+    return `<div class="abs fq" style="right:calc(var(--u)*80);top:calc(var(--u)*54)">${socio}${texto}${qr}</div>`;
   }
 
   function sellosHtml(herramientas) {
@@ -271,7 +287,7 @@
   .dip-tpl-frame .fq{ display:flex; align-items:flex-start; gap:calc(var(--u)*18); text-align:right }
   .dip-tpl-frame .fq-txt{ padding-top:calc(var(--u)*6) }
   .dip-tpl-frame .fq-u{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:calc(var(--u)*9.5); color:var(--dfaint); margin-top:calc(var(--u)*7); white-space:nowrap }
-  .dip-tpl-frame .fq-qr{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*6) }
+  .dip-tpl-frame .fq-qr, .dip-tpl-frame .fq-socio{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*6) }
   .dip-tpl-frame .vq-box{ width:calc(var(--u)*84); height:calc(var(--u)*84); flex:none; border:calc(var(--u)*1.5) solid var(--dline); border-radius:calc(var(--u)*8); padding:calc(var(--u)*3); background:var(--paper) }
   .dip-tpl-frame .fq-l{ font-size:calc(var(--u)*8.5); letter-spacing:.2em; text-transform:uppercase; color:var(--dfaint); font-weight:500; white-space:nowrap }
   .dip-tpl-frame .seals{ position:absolute; right:calc(var(--u)*80); bottom:calc(var(--u)*70); display:flex }

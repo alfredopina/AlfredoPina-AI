@@ -863,6 +863,21 @@
     border:1px solid var(--line); border-radius:7px; padding:10px 12px;
   }
   .cal-nota-general:focus{ border-color:var(--c); }
+
+  /* Foto final del grupo — vista previa horizontal (no cuadrada, a diferencia
+     de la foto de instructor) + controles. Mismo criterio visual que
+     dip-inst-* de Diplomas → Instructores. */
+  .cal-foto-wrap{ display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+  .cal-foto-preview{
+    width:220px; height:132px; flex:none; border-radius:8px; object-fit:cover;
+    background-color:var(--panel-2); border:1px solid var(--line);
+  }
+  .cal-foto-preview[hidden]{ display:none; }
+  .cal-foto-controles{ display:flex; flex-direction:column; gap:10px; min-width:220px; }
+  .cal-foto-archivo{ font-size:11.5px; color:var(--text-dim); }
+  .cal-foto-botones{ display:flex; gap:6px; flex-wrap:wrap; }
+  .cal-foto-visible{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); }
+  .cal-foto-visible input{ accent-color:var(--c); width:15px; height:15px; }
   .cal-nota-cell{
     display:inline-block; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     vertical-align:bottom; cursor:help;
@@ -3830,6 +3845,25 @@
               </div>
               <textarea id="calAprendizaje" class="cal-nota-general" rows="4" placeholder="Un punto por renglón, por ejemplo:&#10;El participante aprendió a modelar datos con relaciones&#10;El participante aprendió a crear medidas con DAX&#10;El participante aprendió a construir un tablero interactivo"></textarea>
               <span class="radm-hint">Máximo 5 renglones de 160 caracteres, uno por punto. En la página se muestran como lista bajo "El participante aprendió a:", así que puedes escribir solo el verbo ("modelar datos con relaciones") o la frase completa. Es texto público: sin nombres de la empresa ni datos internos. Si el grupo ya tiene diplomas emitidos, al guardar se actualiza también lo que ven en la verificación.</span>
+            </div>
+
+            <div class="radm-section">
+              <div class="radm-section-head">
+                <span class="radm-section-title">FOTO FINAL DEL GRUPO — SALE EN EL REPORTE DE RESULTADOS</span>
+              </div>
+              <div class="cal-foto-wrap">
+                <img class="cal-foto-preview" id="calFotoPreview" alt="Foto del grupo" hidden>
+                <span class="radm-hint" id="calFotoVacio">Sin foto todavía.</span>
+                <div class="cal-foto-controles">
+                  <input type="file" accept="image/jpeg,image/png,image/webp" class="cal-foto-archivo" id="calFotoArchivo">
+                  <div class="cal-foto-botones">
+                    <button type="button" class="radm-btn radm-btn-ghost" id="calFotoSubir" style="min-width:auto">Subir foto</button>
+                    <button type="button" class="radm-icon-btn radm-icon-danger" id="calFotoEliminar" title="Eliminar la foto" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  </div>
+                  <label class="cal-foto-visible"><input type="checkbox" id="calFotoVisible" checked>Mostrar en el reporte</label>
+                </div>
+              </div>
+              <span class="radm-hint">Se sube y se borra al instante, aparte de Cargar/Actualizar. Si apagas "Mostrar en el reporte", la foto se queda guardada pero no sale en el link que mandas al cliente.</span>
             </div>
 
             <div class="radm-actions">
@@ -7837,6 +7871,64 @@
     function leerAprendizaje(){ return document.getElementById('calAprendizaje').value.trim(); }
     function fijarAprendizaje(v){ document.getElementById('calAprendizaje').value = v || ''; }
 
+    // ── Foto final del grupo — se sube/borra al instante (no espera a Cargar/
+    // Actualizar), igual que la firma/foto de instructor en Diplomas. A
+    // diferencia de la foto de instructor (recorte cuadrado), aquí se
+    // conserva la proporción original: una foto de grupo es horizontal. ──
+    function fotoGrupoReducida(file){
+      const ANCHO_MAX = 1280;
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const escala = Math.min(1, ANCHO_MAX / img.width);
+          const w = Math.round(img.width * escala), h = Math.round(img.height * escala);
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.85).split(',')[1]);
+        };
+        img.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        img.src = URL.createObjectURL(file);
+      });
+    }
+    function renderFotoGrupo(g){
+      const img = document.getElementById('calFotoPreview');
+      const vacio = document.getElementById('calFotoVacio');
+      const elim = document.getElementById('calFotoEliminar');
+      document.getElementById('calFotoVisible').checked = g.foto_grupo_visible !== false;
+      document.getElementById('calFotoArchivo').value = '';
+      img.onerror = () => { img.hidden = true; vacio.hidden = false; elim.hidden = true; };
+      img.onload = () => { img.hidden = false; vacio.hidden = true; elim.hidden = false; };
+      img.src = '/api/getFotoGrupo?grupoId=' + g.id + '&t=' + Date.now();
+    }
+    document.getElementById('calFotoSubir').addEventListener('click', async () => {
+      if(!grupoSel){ toast('Elige un grupo primero.', false); return; }
+      const file = document.getElementById('calFotoArchivo').files[0];
+      if(!file){ toast('Selecciona un archivo primero.', false); return; }
+      const btn = document.getElementById('calFotoSubir');
+      btn.disabled = true; btn.textContent = 'Subiendo...';
+      try {
+        const fileBase64 = await fotoGrupoReducida(file);
+        await apiPostJson('/api/guardarFotoGrupo', { grupoId: grupoSel.id, visible: document.getElementById('calFotoVisible').checked, fileBase64, contentType: 'image/jpeg' });
+        renderFotoGrupo(grupoSel);
+        toast('Foto guardada.', true);
+      } catch(e){ toast('No se pudo subir: ' + e.message, false); }
+      finally { btn.disabled = false; btn.textContent = 'Subir foto'; }
+    });
+    document.getElementById('calFotoEliminar').addEventListener('click', async () => {
+      if(!grupoSel) return;
+      if(!(await confirmarAccion({ mensaje: '¿Eliminar la foto de este grupo? Sigue pudiendo subir una nueva después.', variante: 'advertencia', textoConfirmar: 'Eliminar' }))) return;
+      try {
+        await apiPostJson('/api/eliminarFotoGrupo', { grupoId: grupoSel.id });
+        renderFotoGrupo(grupoSel);
+        toast('Foto eliminada.', true);
+      } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    });
+    document.getElementById('calFotoVisible').addEventListener('change', async (e) => {
+      if(!grupoSel) return;
+      try { await apiPostJson('/api/guardarFotoGrupo', { grupoId: grupoSel.id, visible: e.target.checked }); }
+      catch(err){ toast('No se pudo guardar: ' + err.message, false); e.target.checked = !e.target.checked; }
+    });
+
     // valida el grid completo, usado por Cargar/Cargar y cerrar/Actualizar
     function validarProblemas(filas){
       const problemas = [];
@@ -7861,6 +7953,9 @@
       document.getElementById('calGridSection').hidden = true;
       vaciarGrid();
       fijarNotaGeneral(''); fijarAprendizaje('');
+      document.getElementById('calFotoPreview').hidden = true;
+      document.getElementById('calFotoVacio').hidden = false;
+      document.getElementById('calFotoEliminar').hidden = true;
       renderAtajos();
     }
 
@@ -7903,6 +7998,7 @@
       lista.hidden = true;
       document.getElementById('calAtajos').hidden = true;
       renderCard(g);
+      renderFotoGrupo(g);
       document.getElementById('calGrupoCard').hidden = false;
       vaciarGrid();
       fijarNotaGeneral(''); fijarAprendizaje('');
@@ -8010,10 +8106,11 @@
         contacto: r.contacto, herramientas: r.herramientas, nombre_curso: r.nombre_curso,
         niveles: r.niveles, horas: r.horas, modalidad: r.modalidad, instructor: r.instructor,
         fecha_inicio: r.fecha_inicio, fecha_fin: r.fecha_fin, fase: r.fase,
-        grupo_codigo: r.grupo_codigo, dias_en_fase: r.dias_en_fase,
+        grupo_codigo: r.grupo_codigo, dias_en_fase: r.dias_en_fase, foto_grupo_visible: r.foto_grupo_visible,
       };
       grupoSel = g; existentes = 0;
       renderCard(g);
+      renderFotoGrupo(g);
       document.getElementById('calGrupoCard').hidden = false;
       vaciarGrid();
       fijarNotaGeneral(''); fijarAprendizaje('');
@@ -14446,7 +14543,10 @@
           const ok = await confirmarAccion({ titulo: s.titulo, mensaje: s.mensaje, variante: 'advertencia', textoConfirmar: s.textoConfirmar });
           if(!ok) continue;
           try {
-            await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: s.faseNueva });
+            // apiPostJson, no apiPostConReintento — esta última no existe en
+            // este IIFE (solo apiGetConReintento), es la misma que ya usa el
+            // stepper manual de este mismo panel para esta misma Function.
+            await apiPostJson('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: s.faseNueva });
             huboCambios = true;
           } catch(e){
             toast('No se pudo mover "' + (g.grupo_codigo || g.nombre_curso || g.id) + '": ' + e.message, false);

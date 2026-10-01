@@ -14401,23 +14401,32 @@
       const d = new Date();
       return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
     }
+    // Título "Cambio de fase: X → Y" + mensaje en viñetas (Cliente &
+    // contacto, Curso, Modalidad, Días en esta fase) — mismo criterio de
+    // empresaDe() (línea 8711, no accesible desde este IIFE, se repite aquí
+    // a propósito) para el caso de reventa/intermediario.
+    function tituloYDetalleDe(g, faseActual, faseNueva){
+      const empresa = g.cliente_final || g.cliente;
+      const clienteYContacto = (g.cliente_final ? `${empresa} (vía ${g.cliente})` : empresa) + (g.contacto ? ` — ${g.contacto}` : '');
+      const curso = g.nombre_curso || g.grupo_codigo || ('Grupo #' + g.id);
+      const dias = g.dias_en_fase != null ? g.dias_en_fase + (g.dias_en_fase === 1 ? ' día' : ' días') : '—';
+      return {
+        titulo: `Cambio de fase: ${faseActual} → ${faseNueva}`,
+        mensaje: `• Cliente: ${clienteYContacto}\n• Curso: ${curso}\n• Modalidad: ${g.modalidad || '—'}\n• Días en esta fase: ${dias}\n\n¿Confirmas el cambio?`,
+      };
+    }
     function sugerenciaFaseDe(g, hoy){
-      const nombre = g.grupo_codigo || g.nombre_curso || ('Grupo #' + g.id);
       if(g.estatus_curso === 'Por iniciar' && g.fecha_inicio && new Date(g.fecha_inicio) <= hoy){
-        return { faseNueva: 'En curso', textoConfirmar: 'Sí, ya inició',
-          mensaje: `¿"${nombre}" ya inició? Su fecha de inicio fue el ${fmtFecha(g.fecha_inicio)}.` };
+        return { faseNueva: 'En curso', textoConfirmar: 'Sí, ya inició', ...tituloYDetalleDe(g, 'Por iniciar', 'En curso') };
       }
       if(g.estatus_curso === 'En proceso' && g.fecha_fin && new Date(g.fecha_fin) <= hoy){
-        return { faseNueva: 'Proyecto', textoConfirmar: 'Sí, ya terminó',
-          mensaje: `¿"${nombre}" ya terminó? Su fecha final fue el ${fmtFecha(g.fecha_fin)}. Pasaría a la fase Proyecto.` };
+        return { faseNueva: 'Proyecto', textoConfirmar: 'Sí, ya terminó', ...tituloYDetalleDe(g, 'En curso', 'Proyecto') };
       }
       if(g.estatus_curso === 'Terminado' && (!g.estatus_cierre || g.estatus_cierre === 'Proyecto') && g.dias_en_fase != null && g.dias_en_fase >= 7){
-        return { faseNueva: 'Calificaciones', textoConfirmar: 'Sí, pasar',
-          mensaje: `"${nombre}" lleva ${g.dias_en_fase} días en Proyecto. ¿Lo pasas a Calificaciones?` };
+        return { faseNueva: 'Calificaciones', textoConfirmar: 'Sí, pasar', ...tituloYDetalleDe(g, 'Proyecto', 'Calificaciones') };
       }
       if(g.estatus_cierre === 'Calificaciones' && g.dias_en_fase != null && g.dias_en_fase >= 1){
-        return { faseNueva: 'Diplomas', textoConfirmar: 'Sí, pasar',
-          mensaje: `"${nombre}" lleva ${g.dias_en_fase} día${g.dias_en_fase === 1 ? '' : 's'} en Calificaciones. ¿Lo pasas a Diplomas?` };
+        return { faseNueva: 'Diplomas', textoConfirmar: 'Sí, pasar', ...tituloYDetalleDe(g, 'Calificaciones', 'Diplomas') };
       }
       return null;
     }
@@ -14434,7 +14443,7 @@
         const pendientes = (lista || []).map(g => ({ g, s: sugerenciaFaseDe(g, hoy) })).filter(x => x.s);
         let huboCambios = false;
         for(const { g, s } of pendientes){
-          const ok = await confirmarAccion({ mensaje: s.mensaje, variante: 'advertencia', textoConfirmar: s.textoConfirmar });
+          const ok = await confirmarAccion({ titulo: s.titulo, mensaje: s.mensaje, variante: 'advertencia', textoConfirmar: s.textoConfirmar });
           if(!ok) continue;
           try {
             await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: s.faseNueva });

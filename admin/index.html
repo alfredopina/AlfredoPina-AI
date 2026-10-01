@@ -3254,6 +3254,13 @@
                 </button>
                 <div class="cli-info-popover" id="groInfoPopover" hidden></div>
               </div>
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="groInfoCambiosBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info Cambios de Fase
+                </button>
+                <div class="cli-info-popover" id="groInfoCambiosPopover" hidden></div>
+              </div>
             </div>
           </div>
         </div>
@@ -4451,6 +4458,11 @@
     document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
     document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
     document.getElementById('topbarTitle').textContent = TITLES[key] || key;
+    // Entrar a Grupos refresca sus datos y revisa sugerencias de cambio de
+    // fase (ver window.alEntrarAGrupos, definido en el IIFE de Grupos) —
+    // cualquier puerta de entrada que termine llamando a activarPanel queda
+    // cubierta sola, sin tener que engancharla aparte.
+    if(key === 'tracking-operacion' && typeof window.alEntrarAGrupos === 'function') window.alEntrarAGrupos();
   }
 
   document.getElementById('adminNav').addEventListener('click', e => {
@@ -14365,6 +14377,82 @@
       `).join('');
     }
 
+    // ── Sugerencias automáticas de cambio de fase (acordado 2026-09-30) ──
+    // Al entrar al Tracking de Grupos se revisa cada grupo cargado contra 4
+    // reglas de fecha/tiempo-en-fase; si alguna se cumple, se pregunta con
+    // el diálogo de confirmación (confirmarAccion(), ver inicio del
+    // <script>) antes de mover la fase — nunca se mueve sola. "No" no
+    // descarta nada: se vuelve a preguntar la próxima vez que se entre aquí
+    // (decidido así a propósito, sin "Omitir" — ver CLAUDE_DETALLE.md →
+    // "Diálogo de confirmación unificado"). Un grupo cancelado que nunca
+    // avanza preguntaría siempre (no existe estatus "Cancelado" todavía) —
+    // aceptado como caso raro, sin resolver aquí.
+    //
+    // Reglas (fechas DATE en UTC, igual que fmtFecha de este mismo IIFE):
+    //   Por iniciar → En curso: ya se cumplió fecha_inicio.
+    //   En curso → Proyecto: ya se cumplió fecha_fin.
+    //   Proyecto → Calificaciones: 7 días desde que entró a Proyecto — usa
+    //     dias_en_fase (ya lo calcula listGruposAdmin desde
+    //     GrupoFaseHistorial), NO fecha_fin + 14: la entrada real a Proyecto
+    //     puede ser antes o después de esos 14 días (son solo un promedio).
+    //   Calificaciones → Diplomas: 1 día desde que entró a Calificaciones
+    //     (mismo dias_en_fase).
+    function hoyUTC(){
+      const d = new Date();
+      return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    }
+    function sugerenciaFaseDe(g, hoy){
+      const nombre = g.grupo_codigo || g.nombre_curso || ('Grupo #' + g.id);
+      if(g.estatus_curso === 'Por iniciar' && g.fecha_inicio && new Date(g.fecha_inicio) <= hoy){
+        return { faseNueva: 'En curso', textoConfirmar: 'Sí, ya inició',
+          mensaje: `¿"${nombre}" ya inició? Su fecha de inicio fue el ${fmtFecha(g.fecha_inicio)}.` };
+      }
+      if(g.estatus_curso === 'En proceso' && g.fecha_fin && new Date(g.fecha_fin) <= hoy){
+        return { faseNueva: 'Proyecto', textoConfirmar: 'Sí, ya terminó',
+          mensaje: `¿"${nombre}" ya terminó? Su fecha final fue el ${fmtFecha(g.fecha_fin)}. Pasaría a la fase Proyecto.` };
+      }
+      if(g.estatus_curso === 'Terminado' && (!g.estatus_cierre || g.estatus_cierre === 'Proyecto') && g.dias_en_fase != null && g.dias_en_fase >= 7){
+        return { faseNueva: 'Calificaciones', textoConfirmar: 'Sí, pasar',
+          mensaje: `"${nombre}" lleva ${g.dias_en_fase} días en Proyecto. ¿Lo pasas a Calificaciones?` };
+      }
+      if(g.estatus_cierre === 'Calificaciones' && g.dias_en_fase != null && g.dias_en_fase >= 1){
+        return { faseNueva: 'Diplomas', textoConfirmar: 'Sí, pasar',
+          mensaje: `"${nombre}" lleva ${g.dias_en_fase} día${g.dias_en_fase === 1 ? '' : 's'} en Calificaciones. ¿Lo pasas a Diplomas?` };
+      }
+      return null;
+    }
+    // Candado simple contra una doble ejecución casi simultánea (p. ej. un
+    // doble clic en el ítem del sidebar) — confirmarAccion() ya cancela el
+    // diálogo anterior si se llama de nuevo, pero esto evita procesar la
+    // cola dos veces.
+    let revisandoSugerenciasFase = false;
+    async function revisarSugerenciasFase(lista){
+      if(revisandoSugerenciasFase) return;
+      revisandoSugerenciasFase = true;
+      try {
+        const hoy = hoyUTC();
+        const pendientes = (lista || []).map(g => ({ g, s: sugerenciaFaseDe(g, hoy) })).filter(x => x.s);
+        let huboCambios = false;
+        for(const { g, s } of pendientes){
+          const ok = await confirmarAccion({ mensaje: s.mensaje, variante: 'advertencia', textoConfirmar: s.textoConfirmar });
+          if(!ok) continue;
+          try {
+            await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: s.faseNueva });
+            huboCambios = true;
+          } catch(e){
+            toast('No se pudo mover "' + (g.grupo_codigo || g.nombre_curso || g.id) + '": ' + e.message, false);
+          }
+        }
+        if(huboCambios){
+          toast('Fases actualizadas.', true);
+          cargarKpisGrupos();
+          buscarGruposTracking();
+        }
+      } finally {
+        revisandoSugerenciasFase = false;
+      }
+    }
+
     async function buscarGruposTracking(){
       const params = new URLSearchParams();
       params.set('vista', groVista);
@@ -14547,13 +14635,52 @@
           </div>
         </div>`;
     }
-    function wireInfoPopoverGrupo(btnId, popoverId){
+    // Popover "Info Cambios de Fase" — documenta las 4 reglas automáticas de
+    // más abajo (sugerenciaFaseDe/revisarSugerenciasFase). Estático, a
+    // diferencia del de Días en Fase, porque estas reglas no dependen de un
+    // umbral configurable en Notificaciones.
+    function renderInfoCambiosFasePopover(popoverEl){
+      popoverEl.innerHTML = `
+        <div class="cli-info-pop-title">Cambios de fase automáticos</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">1</span>
+            <div class="cli-info-step-body">
+              <strong>Por iniciar → En curso</strong> cuando se cumple la fecha de inicio
+            </div>
+          </li>
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">2</span>
+            <div class="cli-info-step-body">
+              <strong>En curso → Proyecto</strong> cuando se cumple la fecha final del curso
+            </div>
+          </li>
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">3</span>
+            <div class="cli-info-step-body">
+              <strong>Proyecto → Calificaciones</strong> a los 7 días de haber entrado a Proyecto
+            </div>
+          </li>
+          <li class="cli-info-step">
+            <span class="cli-info-step-num">4</span>
+            <div class="cli-info-step-body">
+              <strong>Calificaciones → Diplomas</strong> 1 día después de haber entrado a Calificaciones
+            </div>
+          </li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Cómo funciona</div>
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.5;">Se pregunta una por una, con Cancelar/Confirmar, al entrar a este Tracking — nunca se mueve sola. Si cancelas, se vuelve a preguntar la próxima vez que entres aquí, no se guarda como "ya la vi".</div>
+        </div>`;
+    }
+    function wireInfoPopoverGrupo(btnId, popoverId, renderFn){
+      renderFn = renderFn || renderInfoDiasFaseGrupoPopover;
       const btn = document.getElementById(btnId);
       const pop = document.getElementById(popoverId);
       btn.addEventListener('click', e => {
         e.stopPropagation();
         const abrir = pop.hidden;
-        if(abrir) renderInfoDiasFaseGrupoPopover(pop);
+        if(abrir) renderFn(pop);
         pop.hidden = !abrir;
         btn.classList.toggle('active', abrir);
       });
@@ -14566,6 +14693,7 @@
     }
     wireInfoPopoverGrupo('groInfoBtn', 'groInfoPopover');
     wireInfoPopoverGrupo('gruInfoBtn', 'gruInfoPopover');
+    wireInfoPopoverGrupo('groInfoCambiosBtn', 'groInfoCambiosPopover', renderInfoCambiosFasePopover);
     // Mismo umbral en el tooltip ⓘ de la columna "Días en fase" de las 2
     // tablas — se recalcula en cada render (no solo una vez al cargar la
     // página) porque window.UMBRALES_NOTIF llega async desde Notificaciones,
@@ -14616,12 +14744,22 @@
 
     // Bug real encontrado 2026-09-12: KPIs/alerta/tabla solo se cargaban UNA
     // vez, al abrir el admin — si Alfredo editaba/avanzaba un Grupo y volvía
-    // a este panel por el sidebar, seguía viendo los números viejos. El resto
-    // de accesos a este panel (volverDeModificar, "Nueva versión" en otros
-    // módulos) ya refrescan explícito; el que faltaba era el clic directo en
-    // el ítem del sidebar.
-    const groNavBtn = document.querySelector('.admin-nav-item[data-panel="tracking-operacion"]');
-    if(groNavBtn) groNavBtn.addEventListener('click', () => { cargarKpisGrupos(); buscarGruposTracking(); });
+    // a este panel, seguía viendo los números viejos. El resto de accesos a
+    // este panel (volverDeModificar, "Nueva versión" en otros módulos) ya
+    // refrescan explícito; lo que faltaba era entrar al panel de cero.
+    //
+    // Entrar a Grupos refresca KPIs/tabla y revisa sugerencias de fase — pero
+    // hay varias puertas de entrada (sidebar, tarjeta de Tracking View,
+    // notificación "Grupos atorados" de la campana, y las que se agreguen
+    // después) y todas pasan por el mismo sitio: activarPanel(key), la única
+    // puerta real de cambio de panel (ver su definición, arriba del todo del
+    // <script>). En vez de perseguir cada botón, se expone este hook global
+    // UNA vez — activarPanel lo llama solo cuando key === 'tracking-operacion'
+    // — y cualquier entrada nueva a Grupos queda cubierta sin tocar nada más.
+    // (Reemplaza el listener suelto que tenía antes solo groNavBtn: con el
+    // mismo criterio se corrige de paso que entrar por la tarjeta/campana no
+    // refrescaba los datos.)
+    window.alEntrarAGrupos = () => { cargarKpisGrupos(); buscarGruposTracking().then(() => revisarSugerenciasFase(groListaCache)); };
   })();
 
   // ═══════════════════════════════════════════════════════════════

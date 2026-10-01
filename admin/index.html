@@ -61,19 +61,21 @@
   :root[data-theme="light"] .admin-dialog-overlay{ background:rgba(20,24,31,.4); }
   .admin-dialog-overlay[hidden]{ display:none; }
   .admin-dialog{
-    width:400px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:22px 24px 20px; box-shadow:0 24px 60px rgba(0,0,0,.4);
+    width:640px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:34px 36px 30px; box-shadow:0 30px 80px rgba(0,0,0,.45);
+    display:flex; gap:22px; align-items:flex-start;
   }
-  .admin-dialog-ico{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
-  .admin-dialog-ico svg{ width:19px; height:19px; }
+  .admin-dialog-ico{ width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; }
+  .admin-dialog-ico svg{ width:30px; height:30px; }
   .admin-dialog-destructivo .admin-dialog-ico{ color:var(--bad); background-color:rgba(220,38,38,.14); }
   .admin-dialog-advertencia .admin-dialog-ico{ color:var(--warn); background-color:rgba(223,179,90,.16); }
   .admin-dialog-neutral .admin-dialog-ico{ color:var(--blue-bright); background-color:var(--blue-soft); }
-  .admin-dialog-titulo{ font-family:var(--display); font-weight:600; font-size:16px; margin-bottom:8px; }
-  .admin-dialog-mensaje{ font-size:13.5px; color:var(--text-dim); line-height:1.55; white-space:pre-line; }
-  .admin-dialog-acciones{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+  .admin-dialog-cuerpo{ flex:1; min-width:0; padding-top:4px; }
+  .admin-dialog-titulo{ font-family:var(--display); font-weight:600; font-size:23px; margin-bottom:10px; }
+  .admin-dialog-mensaje{ font-size:16px; color:var(--text-dim); line-height:1.6; white-space:pre-line; }
+  .admin-dialog-acciones{ display:flex; justify-content:flex-end; gap:12px; margin-top:28px; }
   .admin-dialog-btn{
-    font:inherit; font-size:13px; font-weight:600; padding:9px 16px; border-radius:8px; cursor:pointer;
+    font:inherit; font-size:15px; font-weight:600; padding:12px 22px; border-radius:10px; cursor:pointer;
     border:1px solid var(--line); background-color:transparent; color:var(--text);
   }
   .admin-dialog-btn:hover{ background-color:var(--panel-2); }
@@ -85,7 +87,7 @@
   .admin-dialog-btn-advertencia:hover{ background-color:color-mix(in srgb, var(--warn) 88%, black); }
   .admin-dialog-btn-neutral{ background-color:var(--blue); }
   .admin-dialog-btn-neutral:hover{ background-color:color-mix(in srgb, var(--blue) 85%, black); }
-  @media (max-width:480px){ .admin-dialog-acciones{ flex-direction:column-reverse; } .admin-dialog-btn{ width:100%; } }
+  @media (max-width:560px){ .admin-dialog{ flex-direction:column; } .admin-dialog-acciones{ flex-direction:column-reverse; } .admin-dialog-btn{ width:100%; } }
 
   .admin-shell{ display:flex; min-height:100vh; }
 
@@ -4348,11 +4350,13 @@
       overlay.innerHTML =
         '<div class="admin-dialog" role="alertdialog" aria-modal="true" aria-labelledby="admDlgTitulo" aria-describedby="admDlgMensaje">' +
           '<div class="admin-dialog-ico"></div>' +
-          '<h3 class="admin-dialog-titulo" id="admDlgTitulo"></h3>' +
-          '<p class="admin-dialog-mensaje" id="admDlgMensaje"></p>' +
-          '<div class="admin-dialog-acciones">' +
-            '<button type="button" class="admin-dialog-btn admin-dialog-cancelar">Cancelar</button>' +
-            '<button type="button" class="admin-dialog-btn admin-dialog-confirmar">Confirmar</button>' +
+          '<div class="admin-dialog-cuerpo">' +
+            '<h3 class="admin-dialog-titulo" id="admDlgTitulo"></h3>' +
+            '<p class="admin-dialog-mensaje" id="admDlgMensaje"></p>' +
+            '<div class="admin-dialog-acciones">' +
+              '<button type="button" class="admin-dialog-btn admin-dialog-cancelar">Cancelar</button>' +
+              '<button type="button" class="admin-dialog-btn admin-dialog-confirmar">Confirmar</button>' +
+            '</div>' +
           '</div>' +
         '</div>';
       document.body.appendChild(overlay);

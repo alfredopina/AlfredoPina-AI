@@ -321,6 +321,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/guardarFotoGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarFotoGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getFotoGrupo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/actualizarNotasCliente",
       "allowedRoles": ["admin"]
     },

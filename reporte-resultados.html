@@ -62,6 +62,13 @@
   .rep-socio .eyebrow{ font-family:var(--mono); font-size:9px; letter-spacing:.5px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
   .rep-socio-card{ background:#fff; border-radius:9px; padding:10px 16px; display:flex; align-items:center; }
   .rep-socio img{ height:80px; max-width:280px; width:auto; object-fit:contain; display:block; }
+  /* Foto final del grupo — portada del tab General, solo cuando el reporte es
+     de un único grupo (con varios, cada uno trae su miniatura en "Grupos
+     incluidos" en vez de una sola portada). */
+  .rep-foto-card{ padding:0; overflow:hidden; margin-bottom:22px; }
+  .rep-foto-card img{ display:block; width:100%; max-height:380px; object-fit:cover; }
+  .grp-foto-cell{ width:52px; }
+  .grp-foto-thumb{ width:44px; height:44px; object-fit:cover; border-radius:6px; display:block; }
   .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
   .rep-filtros{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
   .rep-tabsrow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
@@ -319,6 +326,8 @@
 
   <main><div class="wrap">
     <section class="rep-view" id="repViewGeneral">
+      <div class="card rep-foto-card" id="repFotoCard" hidden><img id="repFotoImg" alt="Foto del grupo"></div>
+
       <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="M12 9v3l2 1" stroke-linecap="round" stroke-linejoin="round"/></svg>Promedios del grupo <small>calificación y asistencia</small></div>
       <div class="card gauge-duo" id="repGaugesCard"></div>
 
@@ -335,7 +344,7 @@
         <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>Grupos incluidos <small id="repGruposN"></small></div>
         <div class="card grp-table-wrap">
           <table class="grp-table"><thead><tr>
-            <th>Grupo</th><th>Empresa</th><th>Instructor</th><th>Fechas</th><th>Alumnos</th><th>Aprobado</th><th>Participó</th><th>No aprob.</th><th>Calificación</th><th>Asistencia</th>
+            <th class="grp-foto-cell"></th><th>Grupo</th><th>Empresa</th><th>Instructor</th><th>Fechas</th><th>Alumnos</th><th>Aprobado</th><th>Participó</th><th>No aprob.</th><th>Calificación</th><th>Asistencia</th>
           </tr></thead><tbody id="repGruposBody"></tbody></table>
         </div>
       </div>
@@ -455,8 +464,27 @@
   }
 
   let REPORTE = null;
+  let REPORTE_TOKEN = null;
   let tabActiva = 'general';
   let alumnoActivoId = null;
+
+  function fotoGrupoUrl(grupoId){ return '/api/getFotoGrupoReporte?token=' + encodeURIComponent(REPORTE_TOKEN) + '&grupoId=' + grupoId; }
+
+  // Portada del tab General — solo con UN grupo (con varios, cada quien trae
+  // su miniatura en "Grupos incluidos"). mostrarFoto ya viene decidido en el
+  // snapshot; si el blob no existe (o se borró después), el onerror la oculta
+  // en vez de dejar un hueco roto.
+  function renderFotoGrupo(s){
+    const card = document.getElementById('repFotoCard');
+    if(s.nGrupos === 1 && s.porGrupo[0] && s.porGrupo[0].mostrarFoto){
+      const img = document.getElementById('repFotoImg');
+      img.onerror = () => { card.hidden = true; };
+      img.onload = () => { card.hidden = false; };
+      img.src = fotoGrupoUrl(s.porGrupo[0].grupoId);
+    } else {
+      card.hidden = true;
+    }
+  }
 
   function render(s){
     document.title = (s.etiqueta ? s.etiqueta + ' — ' : '') + 'Reporte de Resultados — Alfredo Piña';
@@ -497,6 +525,7 @@
     else if(s.rango && s.rango.desde) chips.push(`<span class="chip">${SVG.cal}Del <b>${fmtDia(s.rango.desde)}</b> al <b>${fmtDia(s.rango.hasta)}</b></span>`);
     document.getElementById('repFiltros').innerHTML = chips.join('');
 
+    renderFotoGrupo(s);
     renderGauges(s);
     renderDonuts(s);
     renderStack(s);
@@ -587,6 +616,7 @@
     document.getElementById('repGruposN').textContent = `${s.nGrupos} grupos`;
     document.getElementById('repGruposBody').innerHTML = s.porGrupo.map(g => `
       <tr>
+        <td class="grp-foto-cell">${g.mostrarFoto ? `<img class="grp-foto-thumb" src="${fotoGrupoUrl(g.grupoId)}" alt="" onerror="this.closest('td').innerHTML=''">` : ''}</td>
         <td><b>${esc(g.curso || '—')}</b><div class="grp-curso-sub">${esc((g.herramientas || []).map(h => TOOL_NOMBRE[h] || h).join(' + '))}</div></td>
         <td>${esc(g.cliente)}${g.clienteVia ? `<div class="grp-curso-sub">vía ${esc(g.clienteVia)}</div>` : ''}</td>
         <td>${esc(g.instructor || '—')}</td>
@@ -739,6 +769,7 @@
       const data = await res.json().catch(() => ({}));
       if(!res.ok) throw new Error(data.error || 'No se pudo cargar el reporte.');
       REPORTE = data;
+      REPORTE_TOKEN = token;
       render(data);
     } catch(err){ mostrarError(err.message); }
   }

@@ -49,6 +49,7 @@ check("semáforo ámbar en un valor bajo pero no cero (no confundir con rojo)", 
   check("asistencia global = 9/15 = 60%", s.asistenciaPct === 60);
   check("porGrupo trae 1 fila con el resumen del grupo", s.porGrupo.length === 1 && s.porGrupo[0].alumnos === 3 && s.porGrupo[0].cliente === "Follatti Casinos");
   check("porGrupo.clienteVia = cliente que contrató", s.porGrupo[0].clienteVia === "Capacitanet");
+  check("mostrarFoto en false si el grupo no manda foto_grupo_visible", s.porGrupo[0].mostrarFoto === false);
   check("mejores trae a José primero", s.mejores[0].nombre === "José Pérez");
   check("bajoOchenta incluye a Ana y Luis, no a José", s.bajoOchenta.length === 2 && !s.bajoOchenta.some(p => p.nombre === "José Pérez"));
   check("cada participante trae su semáforo", s.participantes.find(p => p.nombre === "Luis Mora").semaforo === "rojo");
@@ -91,11 +92,12 @@ check("semáforo ámbar en un valor bajo pero no cero (no confundir con rojo)", 
 // dos grupos, calificación >100 con puntos extra (se topa a 100 en el promedio, no en el detalle)
 {
   const filas = [
-    fila({ id: 1, grupo_id: 1, alumno: "Pedro Sol", calificacion: 105, resultado: "Aprobado", cliente_final: null, cliente: "Acme SA" }),
-    fila({ id: 2, grupo_id: 2, alumno: "Marta Díaz", calificacion: 40, resultado: "No Aprobado", asistencias: 2, frecuencias: 5, cliente_final: null, cliente: "Delta", nombre_curso: "Power BI Total", herramientas: '["powerbi"]' }),
+    fila({ id: 1, grupo_id: 1, alumno: "Pedro Sol", calificacion: 105, resultado: "Aprobado", cliente_final: null, cliente: "Acme SA", foto_grupo_visible: true }),
+    fila({ id: 2, grupo_id: 2, alumno: "Marta Díaz", calificacion: 40, resultado: "No Aprobado", asistencias: 2, frecuencias: 5, cliente_final: null, cliente: "Delta", nombre_curso: "Power BI Total", herramientas: '["powerbi"]', foto_grupo_visible: false }),
   ];
   const s = calcularSnapshot({ filas, filtros: { empresa: "a" }, ahora: new Date() });
   check("nGrupos = 2", s.nGrupos === 2);
+  check("mostrarFoto es por grupo (uno sí, otro no)", s.porGrupo.find(g => g.grupoId === 1).mostrarFoto === true && s.porGrupo.find(g => g.grupoId === 2).mostrarFoto === false);
   check("promedio topa el 105 a 100 antes de promediar: (100+40)/2=70", s.promedioCalificacion === 70);
   check("el detalle del participante conserva 105 sin topar", s.participantes.find(p => p.nombre === "Pedro Sol").calificacion === 105);
   check("excede100 marcado solo en quien lo excede", s.participantes.find(p => p.nombre === "Pedro Sol").excede100 === true && s.participantes.find(p => p.nombre === "Marta Díaz").excede100 === false);

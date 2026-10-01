@@ -23,7 +23,7 @@ module.exports = async function (context) {
       SELECT g.id AS grupo_id, c.nombre AS cliente, c.codigo AS cliente_codigo,
              cf.nombre AS cliente_final, cf.codigo AS cliente_final_codigo, ct.nombre AS contacto,
              g.herramientas, g.nombre_curso, g.niveles, g.grupo_codigo, g.instructor, g.modalidad, g.horas,
-             g.fecha_inicio, g.fecha_fin, g.estatus_curso, g.estatus_cierre,
+             g.fecha_inicio, g.fecha_fin, g.estatus_curso, g.estatus_cierre, g.foto_grupo_visible,
              (SELECT DATEDIFF(day, MAX(gfh.fecha), GETUTCDATE()) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS dias_en_fase,
              k.alumnos, k.aprobados, k.participaron, k.no_aprobados,
              k.prom_calificacion, k.asistencias_total, k.asistencias_posibles, k.sesiones, k.nota_general, k.ultima_carga

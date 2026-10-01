@@ -47,7 +47,7 @@ async function leerCalificacionesFiltradas(pool, { grupoId, empresa, herramienta
     SELECT c.id, c.grupo_id, c.puntos, c.asistencias, c.frecuencias, c.proyecto, c.calificacion, c.resultado,
            c.notas, c.nota_general, c.fecha_carga,
            a.id AS alumno_id, a.nombre_completo AS alumno, a.correo,
-           g.cliente_id, g.nombre_curso, g.herramientas, g.niveles, g.horas, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin,
+           g.cliente_id, g.nombre_curso, g.herramientas, g.niveles, g.horas, g.instructor, g.modalidad, g.fecha_inicio, g.fecha_fin, g.foto_grupo_visible,
            cli.nombre AS cliente, cli.codigo AS cliente_codigo, cli.tipo_cliente AS cliente_tipo, cli.mostrar_logo AS cliente_mostrar_logo,
            clf.nombre AS cliente_final, clf.codigo AS cliente_final_codigo,
            ct.nombre AS contacto

@@ -44,6 +44,7 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
         // se congela aquí, al generar el snapshot, no se vuelve a checar.
         clienteViaId: f.cliente_final ? f.cliente_id : null,
         clienteViaEsSocio: f.cliente_final ? f.cliente_tipo === "Intermediario" && !!f.cliente_mostrar_logo : false,
+        fotoVisible: !!f.foto_grupo_visible,
         contacto: f.contacto || null,
         curso: f.nombre_curso,
         herramientas: JSON.parse(f.herramientas || "[]"),
@@ -100,6 +101,7 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
       grupoId: g.grupoId,
       cliente: g.cliente,
       clienteVia: g.clienteVia,
+      mostrarFoto: g.fotoVisible,
       contacto: g.contacto,
       curso: g.curso,
       herramientas: g.herramientas,

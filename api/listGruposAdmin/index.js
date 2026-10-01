@@ -80,7 +80,7 @@ module.exports = async function (context, req) {
              g.horas, g.sesiones, g.fecha_inicio, g.fecha_fin, g.instructor,
              g.estatus_curso, g.estatus_cierre,
              g.cotizacion_id, cot.folio AS cotizacion_folio,
-             g.fecha_cierre, g.notas, g.fecha_creacion,
+             g.fecha_cierre, g.notas, g.fecha_creacion, g.foto_grupo_visible,
              (SELECT MAX(gfh.fecha) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS fecha_ultima_fase,
              (SELECT DATEDIFF(day, MAX(gfh.fecha), GETUTCDATE()) FROM GrupoFaseHistorial gfh WHERE gfh.grupo_id = g.id) AS dias_en_fase
       FROM Grupo g

@@ -23,7 +23,7 @@
     --bg: #0a0d12; --panel: #10141b; --panel-2: #141a23; --line: #1d2530; --line-soft: #161c26;
     --blue: #3d7fff; --blue-bright: #6b9fff; --blue-soft: rgba(61,127,255,.14); --blue-dim: #16233f;
     --text: #edf0f4; --text-dim: #a4acb9; --text-faint: #79828f;
-    --good: #14b8a6; --bad: #dc2626;
+    --good: #14b8a6; --bad: #dc2626; --warn: #dfb35a;
     --mono: 'JetBrains Mono', monospace; --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif;
     /* colores de "pilar" del panel Modelo — Comercial/Operación/Producto-Catálogo/
        Infraestructura, coherentes con la paleta de marca pero sin chocar con los
@@ -34,12 +34,58 @@
     --bg: #eef1f8; --panel: #ffffff; --panel-2: #e6ebf5; --line: #d2d9e6; --line-soft: #e0e5f0;
     --blue: #2f6fe0; --blue-bright: #1d5fd6; --blue-soft: rgba(47,111,224,.10); --blue-dim: #dde8fb;
     --text: #14181f; --text-dim: #4a5261; --text-faint: #6b7280;
-    --good: #0d9488; --bad: #dc2626;
+    --good: #0d9488; --bad: #dc2626; --warn: #8a6a00;
     --mdl-comercial: #2f6fe0; --mdl-operacion: #b4690a; --mdl-catalogo: #158a45; --mdl-infra: #5b6577; --mdl-snapshot: #a3781f;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased; transition:background .15s, color .15s;}
   a{color:inherit;}
+  body.admin-dialog-abierto{ overflow:hidden; }
+
+  /* ───────────────────────── DIÁLOGO DE CONFIRMACIÓN (global) ─────────────
+     Reemplaza confirm()/alert() nativos del navegador (grises, sin marca) en
+     TODO el admin — un único diálogo compartido por toda la página, creado
+     una vez y reutilizado; ver confirmarAccion() en el <script> principal,
+     justo después de este bloque de estilos. Variante decide color+ÍCONO
+     (nunca solo color, por la deuteranomalía de Alfredo):
+       destructivo = rojo  (--bad)  → acción real e irreversible (borra datos)
+       advertencia = ámbar (--warn) → cambia algo, pero es reversible/recuperable
+       neutral     = azul  (--blue-bright) → confirmación simple, sin riesgo real
+     Mismo criterio de semáforo que el resto del admin (rojo=urgente,
+     ámbar=atención, verde-azulado=bien — aquí no aplica el "bien" porque un
+     diálogo siempre pide decidir algo, nunca informa que todo está correcto). */
+  .admin-dialog-overlay{
+    position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(5,7,10,.6);
+  }
+  :root[data-theme="light"] .admin-dialog-overlay{ background:rgba(20,24,31,.4); }
+  .admin-dialog-overlay[hidden]{ display:none; }
+  .admin-dialog{
+    width:400px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:22px 24px 20px; box-shadow:0 24px 60px rgba(0,0,0,.4);
+  }
+  .admin-dialog-ico{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .admin-dialog-ico svg{ width:19px; height:19px; }
+  .admin-dialog-destructivo .admin-dialog-ico{ color:var(--bad); background-color:rgba(220,38,38,.14); }
+  .admin-dialog-advertencia .admin-dialog-ico{ color:var(--warn); background-color:rgba(223,179,90,.16); }
+  .admin-dialog-neutral .admin-dialog-ico{ color:var(--blue-bright); background-color:var(--blue-soft); }
+  .admin-dialog-titulo{ font-family:var(--display); font-weight:600; font-size:16px; margin-bottom:8px; }
+  .admin-dialog-mensaje{ font-size:13.5px; color:var(--text-dim); line-height:1.55; white-space:pre-line; }
+  .admin-dialog-acciones{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+  .admin-dialog-btn{
+    font:inherit; font-size:13px; font-weight:600; padding:9px 16px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--line); background-color:transparent; color:var(--text);
+  }
+  .admin-dialog-btn:hover{ background-color:var(--panel-2); }
+  .admin-dialog-btn:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:2px; }
+  .admin-dialog-confirmar{ border-color:transparent; color:#fff; }
+  .admin-dialog-btn-destructivo{ background-color:var(--bad); }
+  .admin-dialog-btn-destructivo:hover{ background-color:color-mix(in srgb, var(--bad) 85%, black); }
+  .admin-dialog-btn-advertencia{ background-color:var(--warn); color:#17120a; }
+  .admin-dialog-btn-advertencia:hover{ background-color:color-mix(in srgb, var(--warn) 88%, black); }
+  .admin-dialog-btn-neutral{ background-color:var(--blue); }
+  .admin-dialog-btn-neutral:hover{ background-color:color-mix(in srgb, var(--blue) 85%, black); }
+  @media (max-width:480px){ .admin-dialog-acciones{ flex-direction:column-reverse; } .admin-dialog-btn{ width:100%; } }
 
   .admin-shell{ display:flex; min-height:100vh; }
 
@@ -4250,6 +4296,117 @@
 </div>
 
 <script>
+  // ───────────────────────────────────────────────────────────────────────
+  // confirmarAccion() — reemplaza confirm()/alert() nativos en TODO el admin
+  // (CSS: ver ".admin-dialog" arriba del <style>). Se define primero, antes
+  // de cualquier panel, porque cada IIFE de panel lo llama por closure sobre
+  // esta variable global — nunca hay que volver a declarar nada por panel.
+  //
+  // Es una Promise, no un valor directo: confirm() nativo congela la pestaña
+  // hasta que respondes; este diálogo es solo HTML/CSS, así que la ejecución
+  // sigue y hay que esperarla con await. Por eso cada llamada se ve así:
+  //
+  //   const ok = await confirmarAccion({
+  //     mensaje: `¿Eliminar "${nombre}"? Esto no se puede deshacer.`,
+  //     variante: 'destructivo',     // 'destructivo' | 'advertencia' | 'neutral' (default)
+  //     textoConfirmar: 'Eliminar',  // opcional — hay un default razonable por variante
+  //   });
+  //   if(!ok) return;
+  //
+  // y la función que la usa debe ser `async` (si el handler del botón ya era
+  // async, que es el caso casi siempre en este archivo, no hay que tocar nada
+  // más que esa línea).
+  //
+  // variante elige color + ÍCONO (nunca solo color, por la deuteranomalía de
+  // Alfredo): destructivo = acción real e irreversible (se pierden datos de
+  // verdad); advertencia = cambia algo pero es reversible o recuperable
+  // (mover de fase, cambiar una tarifa, descartar cambios sin guardar,
+  // romper un link que se puede regenerar); neutral = casi no se usa, solo
+  // para confirmaciones simples sin ningún riesgo real.
+  //
+  // Un solo diálogo compartido para toda la página (igual que el patrón de
+  // "un popover, coordenadas en JS" que ya usa Notificaciones/Notas) — si se
+  // llama de nuevo mientras uno sigue abierto, el anterior se cancela antes
+  // de abrir el nuevo, nunca hay dos superpuestos.
+  const confirmarAccion = (function(){
+    const ICONOS = {
+      destructivo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m3 0-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke-linecap="round"/></svg>',
+      advertencia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3Z" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1"/></svg>',
+      neutral: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.2.9-1.2 1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="17" r=".2" fill="currentColor"/></svg>',
+    };
+    const TEXTO_DEFAULT = { destructivo: 'Eliminar', advertencia: 'Continuar', neutral: 'Aceptar' };
+
+    let overlay, caja, icoEl, tituloEl, mensajeEl, btnCancelar, btnConfirmar;
+    let resolverActual = null;
+    let elementoConFocoPrevio = null;
+
+    function construir(){
+      if(overlay) return;
+      overlay = document.createElement('div');
+      overlay.className = 'admin-dialog-overlay';
+      overlay.hidden = true;
+      overlay.innerHTML =
+        '<div class="admin-dialog" role="alertdialog" aria-modal="true" aria-labelledby="admDlgTitulo" aria-describedby="admDlgMensaje">' +
+          '<div class="admin-dialog-ico"></div>' +
+          '<h3 class="admin-dialog-titulo" id="admDlgTitulo"></h3>' +
+          '<p class="admin-dialog-mensaje" id="admDlgMensaje"></p>' +
+          '<div class="admin-dialog-acciones">' +
+            '<button type="button" class="admin-dialog-btn admin-dialog-cancelar">Cancelar</button>' +
+            '<button type="button" class="admin-dialog-btn admin-dialog-confirmar">Confirmar</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      caja = overlay.querySelector('.admin-dialog');
+      icoEl = overlay.querySelector('.admin-dialog-ico');
+      tituloEl = overlay.querySelector('.admin-dialog-titulo');
+      mensajeEl = overlay.querySelector('.admin-dialog-mensaje');
+      btnCancelar = overlay.querySelector('.admin-dialog-cancelar');
+      btnConfirmar = overlay.querySelector('.admin-dialog-confirmar');
+      btnCancelar.addEventListener('click', () => cerrar(false));
+      btnConfirmar.addEventListener('click', () => cerrar(true));
+      overlay.addEventListener('mousedown', e => { if(e.target === overlay) cerrar(false); });
+      document.addEventListener('keydown', e => {
+        if(overlay.hidden) return;
+        if(e.key === 'Escape'){ cerrar(false); return; }
+        if(e.key !== 'Tab') return;
+        // trampa de foco simple — solo hay 2 botones en el diálogo
+        if(e.shiftKey && document.activeElement === btnCancelar){ e.preventDefault(); btnConfirmar.focus(); }
+        else if(!e.shiftKey && document.activeElement === btnConfirmar){ e.preventDefault(); btnCancelar.focus(); }
+      });
+    }
+
+    function cerrar(resultado){
+      overlay.hidden = true;
+      document.body.classList.remove('admin-dialog-abierto');
+      if(elementoConFocoPrevio && elementoConFocoPrevio.focus) elementoConFocoPrevio.focus();
+      const resolver = resolverActual;
+      resolverActual = null;
+      if(resolver) resolver(resultado);
+    }
+
+    return function confirmarAccion(opts){
+      opts = opts || {};
+      construir();
+      if(resolverActual) cerrar(false); // ya había uno abierto — se cancela antes de abrir el nuevo
+      const varianteFinal = ['destructivo', 'advertencia', 'neutral'].includes(opts.variante) ? opts.variante : 'advertencia';
+      caja.className = 'admin-dialog admin-dialog-' + varianteFinal;
+      icoEl.innerHTML = ICONOS[varianteFinal];
+      tituloEl.textContent = opts.titulo || (varianteFinal === 'destructivo' ? 'Confirmar eliminación' : 'Confirmar acción');
+      mensajeEl.textContent = opts.mensaje || '';
+      btnConfirmar.textContent = opts.textoConfirmar || TEXTO_DEFAULT[varianteFinal];
+      btnConfirmar.className = 'admin-dialog-btn admin-dialog-confirmar admin-dialog-btn-' + varianteFinal;
+      btnCancelar.textContent = opts.textoCancelar || 'Cancelar';
+      elementoConFocoPrevio = document.activeElement;
+      overlay.hidden = false;
+      document.body.classList.add('admin-dialog-abierto');
+      // el foco por default va en Cancelar para un destructivo — así un Enter
+      // accidental (p. ej. quedó el foco en un input al abrir el diálogo)
+      // nunca ejecuta la acción irreversible sin querer
+      (varianteFinal === 'destructivo' ? btnCancelar : btnConfirmar).focus();
+      return new Promise(resolve => { resolverActual = resolve; });
+    };
+  })();
+
   // tema claro/oscuro — se recuerda por navegador (localStorage), default oscuro.
   // El switch es un pill con sol/luna fijos y un thumb que se desliza por CSS
   // ([data-theme="light"]), no hace falta tocar el DOM del botón en JS.
@@ -5170,7 +5327,7 @@
         if(cancelBtn) cancelBtn.addEventListener('click', () => { root.innerHTML = ''; });
       } else {
         root.querySelector('#cadmTEliminar').addEventListener('click', async () => {
-          if(!confirm(`¿Eliminar el temario "${t.nombre}"? Esto no se puede deshacer.`)) return;
+          if(!(await confirmarAccion({ mensaje: `¿Eliminar el temario "${t.nombre}"? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
           try {
             await apiPostJson('/api/eliminarTemario', { herramienta:cadmTool, id:t.id });
             toast('Temario eliminado.', true);
@@ -5369,7 +5526,7 @@
 
     async function eliminarTema(id){
       const t = cadmTemas.find(x => x.id === id);
-      if(!confirm(`¿Eliminar el tema "${t ? t.nombre : id}"?`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar el tema "${t ? t.nombre : id}"?`, variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarTema', { herramienta:cadmTool, id });
         cadmTemas = cadmTemas.filter(x => x.id !== id);
@@ -5501,7 +5658,7 @@
 
     async function eliminarProyecto(id){
       const p = cadmProyectos.find(x => x.id === id);
-      if(!confirm(`¿Eliminar el proyecto "${p ? p.nombre : id}"?`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar el proyecto "${p ? p.nombre : id}"?`, variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarProyecto', { herramienta:cadmTool, id });
         cadmProyectos = cadmProyectos.filter(x => x.id !== id);
@@ -5838,7 +5995,7 @@
       });
 
       document.getElementById('radmBtnEliminarCurso').addEventListener('click', async () => {
-        if(!confirm(`¿Eliminar el curso "${curso.nombre}" y todos sus recursos? Esto no se puede deshacer.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el curso "${curso.nombre}" y todos sus recursos? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarCurso', { herramienta:radmTool, curso:curso.id });
           toast('Curso eliminado.', true);
@@ -6006,7 +6163,7 @@
     }
 
     async function eliminarRecurso(rowKey){
-      if(!confirm('¿Eliminar este recurso? Esto no se puede deshacer.')) return;
+      if(!(await confirmarAccion({ mensaje: '¿Eliminar este recurso? Esto no se puede deshacer.', variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarRecurso', { herramienta:radmTool, curso:radmCursoId, rowKey });
         radmRecursos = radmRecursos.filter(r => r.rowKey !== rowKey);
@@ -6278,7 +6435,7 @@
 
     async function eliminarPregunta(p, cat){
       if(!p) return;
-      if(!confirm(`¿Eliminar la pregunta "${p.texto}"? Es un borrado real y no se puede deshacer. Las respuestas que ya la contestaron se conservan completas (cada respuesta guarda su propia copia del texto), solo desaparece del cuestionario.`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar la pregunta "${p.texto}"? Es un borrado real y no se puede deshacer. Las respuestas que ya la contestaron se conservan completas (cada respuesta guarda su propia copia del texto), solo desaparece del cuestionario.`, variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarPregunta', { id: p.id, seccion: cat.key });
         toast('Pregunta eliminada.', true);
@@ -6582,7 +6739,7 @@
       const l = encLinks.find(x => x.token === token) || (encLinkActual && encLinkActual.token === token ? encLinkActual : null);
       if(!l) return;
       const abrir = !l.abierta;
-      if(!abrir && !confirm(`¿Cerrar la encuesta de "${l.clienteNombre} · ${l.curso}"? Dejará de aceptar respuestas hasta que la reabras (no se borra nada).`)) return;
+      if(!abrir && !(await confirmarAccion({ mensaje: `¿Cerrar la encuesta de "${l.clienteNombre} · ${l.curso}"? Dejará de aceptar respuestas hasta que la reabras (no se borra nada).`, variante: 'advertencia', textoConfirmar: 'Cerrar' }))) return;
       try {
         await apiPostJson('/api/cambiarEstadoLinkEncuesta', { token, abierta: abrir });
         l.abierta = abrir;
@@ -7024,7 +7181,7 @@
         // 3ra excepción del proyecto a "nunca borrar de verdad" (junto con
         // eliminarGrupo y eliminarRespuestaDiagnostico), pedida explícita por
         // Alfredo para limpiar pruebas/duplicados.
-        if(!confirm(`¿Eliminar la respuesta de "${r && r.nombre ? r.nombre : 'Anónimo'}"? Es un borrado real y no se puede deshacer — también se descuenta del contador en vivo.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar la respuesta de "${r && r.nombre ? r.nombre : 'Anónimo'}"? Es un borrado real y no se puede deshacer — también se descuenta del contador en vivo.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarRespuestaEncuesta', { id });
           toast('Respuesta eliminada.', true);
@@ -7187,7 +7344,7 @@
         const r = encReportesRaw.find(x => x.token === token);
         // NO es excepción a "nunca borrar de verdad": un reporte es un snapshot
         // derivado, las respuestas siguen intactas y se puede volver a generar
-        if(!confirm(`¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las respuestas NO se borran y se puede volver a generar.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las respuestas NO se borran y se puede volver a generar.`, variante: 'advertencia' }))) return;
         try {
           await apiPostJson('/api/eliminarReporteEncuesta', { token });
           toast('Reporte eliminado.', true);
@@ -7722,7 +7879,7 @@
       const g = grupos.find(x => String(x.id) === String(id));
       if(!g) return;
       if(grupoSel && grupoSel.id === g.id){ lista.hidden = true; return; }
-      if(grupoSel && gridSucio() && !confirm('Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?')) return;
+      if(grupoSel && gridSucio() && !(await confirmarAccion({ mensaje: 'Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?', variante: 'advertencia', textoConfirmar: 'Continuar' }))) return;
 
       const mio = ++tokenSeleccion;
       grupoSel = g; existentes = 0;
@@ -7743,8 +7900,8 @@
       }
     }
 
-    document.getElementById('calCardCambiar').addEventListener('click', () => {
-      if(gridSucio() && !confirm('Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?')) return;
+    document.getElementById('calCardCambiar').addEventListener('click', async () => {
+      if(gridSucio() && !(await confirmarAccion({ mensaje: 'Cambiar de grupo descarta lo que tienes en el grid. ¿Continuar?', variante: 'advertencia', textoConfirmar: 'Continuar' }))) return;
       limpiarSeleccion();
       inputQ.focus();
     });
@@ -7766,7 +7923,7 @@
         return;
       }
 
-      if(existentes && !confirm(`Este grupo ya tiene ${existentes} alumno${existentes === 1 ? '' : 's'} cargado${existentes === 1 ? '' : 's'}. Se reemplazarán por los ${filas.length} del grid. ¿Continuar?`)) return;
+      if(existentes && !(await confirmarAccion({ mensaje: `Este grupo ya tiene ${existentes} alumno${existentes === 1 ? '' : 's'} cargado${existentes === 1 ? '' : 's'}. Se reemplazarán por los ${filas.length} del grid. ¿Continuar?`, variante: 'advertencia', textoConfirmar: 'Reemplazar' }))) return;
 
       const txt = (btn) => btn.querySelector('.cal-btn-txt');
       const previo = { cargar: txt(btnCargar).textContent, cerrar: txt(btnCerrar).textContent };
@@ -7788,7 +7945,7 @@
           const pregunta = cerrar
             ? `¿Cerrar el grupo? Pasará de "${r.fase}" a "Cerrado" sin emitir diplomas.`
             : `¿Mover el grupo de "${r.fase}" a "Diplomas"?`;
-          if(confirm(`Calificaciones cargadas (${n} alumno${n === 1 ? '' : 's'}: ${resumen}).\n\n${pregunta}`)){
+          if(await confirmarAccion({ mensaje: `Calificaciones cargadas (${n} alumno${n === 1 ? '' : 's'}: ${resumen}).\n\n${pregunta}`, variante: 'advertencia', textoConfirmar: 'Mover' })){
             try {
               await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: g.id, faseNueva: destino });
               msg += cerrar ? ' Grupo cerrado.' : ' Grupo movido a Diplomas.';
@@ -7821,7 +7978,7 @@
     }
 
     async function entrarModoEdicion(r){
-      if(grupoSel && gridSucio() && !modoEdicion && !confirm('Perderás lo que tienes en el grid. ¿Continuar a Editar?')) return;
+      if(grupoSel && gridSucio() && !modoEdicion && !(await confirmarAccion({ mensaje: 'Perderás lo que tienes en el grid. ¿Continuar a Editar?', variante: 'advertencia', textoConfirmar: 'Continuar' }))) return;
 
       activarTabCal('cargar');
       modoEdicion = true;
@@ -7864,8 +8021,8 @@
       limpiarSeleccion();
     }
 
-    document.getElementById('calCancelarEdicion').addEventListener('click', () => {
-      if(snapshotGrid() !== edicionSnapshot && !confirm('Se perderán los cambios sin guardar. ¿Cancelar la edición?')) return;
+    document.getElementById('calCancelarEdicion').addEventListener('click', async () => {
+      if(snapshotGrid() !== edicionSnapshot && !(await confirmarAccion({ mensaje: 'Se perderán los cambios sin guardar. ¿Cancelar la edición?', variante: 'advertencia', textoConfirmar: 'Descartar' }))) return;
       salirModoEdicion();
       activarTabCal('resultados');
       cargarResultados();
@@ -8279,7 +8436,7 @@
       }
       if(btn.dataset.action === 'eliminar'){
         const r = calReportesRaw.find(x => x.token === token);
-        if(!confirm(`¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las calificaciones NO se borran y se puede volver a generar.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el reporte${r && r.etiqueta ? ' "' + r.etiqueta + '"' : ''}? El link que ya compartiste deja de funcionar — las calificaciones NO se borran y se puede volver a generar.`, variante: 'advertencia' }))) return;
         try {
           await apiPostJson('/api/eliminarReporteCalificaciones', { token });
           toast('Reporte eliminado.', true);
@@ -8344,7 +8501,7 @@
 
           const idxActual = FASES.indexOf(r.fase);
           const idxDestino = FASES.indexOf('Cerrado');
-          if(idxActual >= 0 && idxActual < idxDestino && confirm(`${msg}\n\n¿Mover el grupo de "${r.fase}" a "Cerrado" y cerrarlo?`)){
+          if(idxActual >= 0 && idxActual < idxDestino && await confirmarAccion({ mensaje: `${msg}\n\n¿Mover el grupo de "${r.fase}" a "Cerrado" y cerrarlo?`, variante: 'advertencia', textoConfirmar: 'Mover' })){
             try { await apiPostConReintento('/api/avanzarFaseGrupo', { grupoId: r.grupo_id, faseNueva: 'Cerrado' }); msg += ' Grupo movido a Cerrado.'; }
             catch(e){ msg += ` No se pudo mover la fase: ${e.message}`; }
           }
@@ -8373,7 +8530,7 @@
         if(!r) return;
         const empresa = r.cliente_final || r.cliente;
         const avisoFase = r.fase === 'Calificaciones' ? '' : ` El grupo pasará de "${r.fase}" a "Calificaciones".`;
-        if(!confirm(`¿Eliminar las ${r.alumnos} calificaciones de ${empresa}? Esta acción no se puede deshacer.${avisoFase}`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar las ${r.alumnos} calificaciones de ${empresa}? Esta acción no se puede deshacer.${avisoFase}`, variante: 'destructivo' }))) return;
         btnEliminar.disabled = true;
         try {
           await apiPostConReintento('/api/eliminarCalificacionesGrupo', { grupoId: r.grupo_id });
@@ -8779,7 +8936,7 @@
       if(btnEliminarGrupo){
         const r = g(Number(btnEliminarGrupo.dataset.id));
         if(!r) return;
-        if(!confirm(`¿Eliminar los ${r.total} diploma${r.total === 1 ? '' : 's'} de ${empresaDe(r)}? Esta acción no se puede deshacer y el link público dejará de funcionar.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar los ${r.total} diploma${r.total === 1 ? '' : 's'} de ${empresaDe(r)}? Esta acción no se puede deshacer y el link público dejará de funcionar.`, variante: 'destructivo' }))) return;
         btnEliminarGrupo.disabled = true;
         try {
           await apiPostConReintento('/api/eliminarDiplomasGrupo', { grupoId: r.grupo_id });
@@ -9045,7 +9202,7 @@
       const btnElimInstructor = e.target.closest('.dip-firma-eliminar-instructor');
       if(btnElimInstructor){
         const nombre = btnElimInstructor.dataset.instructor;
-        if(!confirm(`¿Eliminar a "${nombre}" de la lista de instructores? Su firma también se borra. Los diplomas ya generados con su nombre no cambian.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar a "${nombre}" de la lista de instructores? Su firma también se borra. Los diplomas ya generados con su nombre no cambian.`, variante: 'destructivo' }))) return;
         try {
           const data = await apiPostJson('/api/eliminarInstructor', { nombre });
           dipInstructores = data.instructores || dipInstructores;
@@ -9080,7 +9237,7 @@
       const btnElimFoto = e.target.closest('.dip-foto-eliminar');
       if(btnElimFoto){
         const nombre = btnElimFoto.dataset.instructor;
-        if(!confirm('¿Eliminar la foto de "' + nombre + '"? La reseña y la firma se quedan.')) return;
+        if(!(await confirmarAccion({ mensaje: '¿Eliminar la foto de "' + nombre + '"? La reseña y la firma se quedan.', variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarFotoInstructor', { nombre });
           const k = slugInstructor(nombre);
@@ -9094,7 +9251,7 @@
       const btnElimFirma = e.target.closest('.dip-firma-eliminar-firma');
       if(btnElimFirma){
         const instructor = btnElimFirma.dataset.instructor;
-        if(!confirm(`¿Eliminar la firma de "${instructor}"? El instructor se queda en la lista, sus próximos diplomas salen sin firma hasta que subas una nueva.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar la firma de "${instructor}"? El instructor se queda en la lista, sus próximos diplomas salen sin firma hasta que subas una nueva.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarFirma', { instructor });
           renderFirmasGrid();
@@ -9484,7 +9641,7 @@
 
     async function eliminarPregunta(tool, id){
       const p = (diagPreguntas[tool] || []).find(x => x.id === id);
-      if(!confirm(`¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial en Resultados, solo dejan de mostrar su texto/imagen. Si solo quieres que deje de aparecer en el diagnóstico, usa el interruptor Activa/Inactiva en vez de esto.`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar la pregunta "${p ? p.texto : id}"? Es un borrado real y no se puede deshacer — las respuestas ya guardadas con esta pregunta se conservan como historial en Resultados, solo dejan de mostrar su texto/imagen. Si solo quieres que deje de aparecer en el diagnóstico, usa el interruptor Activa/Inactiva en vez de esto.`, variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarPreguntaDiagnostico', { id, herramienta: tool });
         toast('Pregunta eliminada.', true);
@@ -9854,7 +10011,7 @@
         // Única excepción del proyecto a "nunca borrar de verdad", además de
         // eliminarGrupo — pedida explícita por Alfredo para limpiar pruebas/
         // duplicados. El reporte agregará otras acciones aquí más adelante.
-        if(!confirm(`¿Eliminar la respuesta de "${r ? r.nombre : id}"? Es un borrado real y no se puede deshacer.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar la respuesta de "${r ? r.nombre : id}"? Es un borrado real y no se puede deshacer.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarRespuestaDiagnostico', { id });
           toast('Respuesta eliminada.', true);
@@ -10043,7 +10200,7 @@
       }
       if(btn.dataset.action === 'eliminar'){
         const r = diagReportesRaw.find(x => x.token === token);
-        if(!confirm(`¿Eliminar el reporte de "${r ? r.clienteNombre : token}"? El link que ya le mandaste al cliente deja de funcionar — las respuestas del Diagnóstico NO se borran, se puede volver a generar.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el reporte de "${r ? r.clienteNombre : token}"? El link que ya le mandaste al cliente deja de funcionar — las respuestas del Diagnóstico NO se borran, se puede volver a generar.`, variante: 'advertencia' }))) return;
         try {
           await apiPostJson('/api/eliminarReporteDiagnostico', { token });
           toast('Reporte eliminado.', true);
@@ -10365,9 +10522,9 @@
       } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
     }
     document.getElementById('cliNotasCancelar').addEventListener('click', cerrarNotasCliente);
-    document.getElementById('cliNotasBorrar').addEventListener('click', () => {
+    document.getElementById('cliNotasBorrar').addEventListener('click', async () => {
       if(!cliNotasClienteActual) return;
-      if(!confirm('¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.')) return;
+      if(!(await confirmarAccion({ mensaje: '¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.', variante: 'advertencia', textoConfirmar: 'Borrar' }))) return;
       cliNotasTextarea.value = '';
       guardarNotasCliente('');
     });
@@ -10558,7 +10715,7 @@
     }
 
     async function eliminarContacto(id, listaEl, clienteId){
-      if(!confirm('¿Eliminar este contacto? No se puede deshacer.')) return;
+      if(!(await confirmarAccion({ mensaje: '¿Eliminar este contacto? No se puede deshacer.', variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarContacto', { id });
         toast('Contacto eliminado.', true);
@@ -10630,7 +10787,7 @@
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
       const btnEliminar = wrap.querySelector('.clf-eliminar');
       if(btnEliminar) btnEliminar.addEventListener('click', async () => {
-        if(!confirm('¿Eliminar "' + item.nombre + '"? Es un borrado real y no se puede deshacer. Sus contactos se borran con él. Solo se permite si no tiene Solicitudes, Cotizaciones, Grupos, Diplomas ni respuestas.')) return;
+        if(!(await confirmarAccion({ mensaje: '¿Eliminar "' + item.nombre + '"? Es un borrado real y no se puede deshacer. Sus contactos se borran con él. Solo se permite si no tiene Solicitudes, Cotizaciones, Grupos, Diplomas ni respuestas.', variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarCliente', { id: item.id });
           toast('Cliente eliminado.', true);
@@ -10735,7 +10892,7 @@
       });
 
       document.getElementById('clfLogoEliminar').addEventListener('click', async () => {
-        if(!confirm('¿Eliminar el logo de "' + item.nombre + '"?')) return;
+        if(!(await confirmarAccion({ mensaje: '¿Eliminar el logo de "' + item.nombre + '"?', variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarLogoIntermediario', { clienteId: item.id });
           toast('Logo eliminado.', true);
@@ -12014,7 +12171,7 @@
 
     async function descartarSolicitud(sol){
       if(!sol) return;
-      if(!confirm(`¿Descartar la solicitud de ${sol.cliente}? No se borra — solo cambia a estatus "Descartada", sigue visible en Solicitudes.`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Descartar la solicitud de ${sol.cliente}? No se borra — solo cambia a estatus "Descartada", sigue visible en Solicitudes.`, variante: 'advertencia', textoConfirmar: 'Descartar' }))) return;
       try {
         await apiPostJson('/api/actualizarEstatusSolicitud', { id: sol.id, estatus: 'Descartada' });
         toast('Solicitud descartada.', true);
@@ -12724,7 +12881,7 @@
           const anterior = Number(input.dataset.original);
           const nuevo = Number(input.value);
           if(!Number.isFinite(nuevo) || nuevo < 0){ toast('Precio inválido.', false); return; }
-          if(!confirm(`¿Cambiar la tarifa de ${nombre} de ${fmtMoney(anterior)} a ${fmtMoney(nuevo)} por hora?`)) return;
+          if(!(await confirmarAccion({ mensaje: `¿Cambiar la tarifa de ${nombre} de ${fmtMoney(anterior)} a ${fmtMoney(nuevo)} por hora?`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
 
           const textoOriginal = btn.textContent;
           btn.disabled = true; btn.textContent = 'Guardando...';
@@ -12760,7 +12917,7 @@
   // riesgo de auto-pause, así que sin reintento con pausas crecientes (ese
   // patrón es solo para lo que sí vive en apcweb-backoffice). Mismo patrón
   // visual/interacción que Tarifas por hora arriba: input + botón
-  // "Actualizar" deshabilitado hasta que cambia + confirm(), un campo a la
+  // "Actualizar" deshabilitado hasta que cambia + confirmarAccion(), un campo a la
   // vez. Guardar un umbral también actualiza window.UMBRALES_NOTIF y llama a
   // window.refrescarNotificaciones() (expuesto por el IIFE de la campana más
   // abajo) para que Tracking Comercial/Grupos y el popover reflejen el
@@ -12858,7 +13015,7 @@
           const anterior = Number(input.dataset.original);
           const nuevo = Number(input.value);
           if(!Number.isInteger(nuevo) || nuevo < 1){ toast('El valor debe ser un entero mayor a 0.', false); return; }
-          if(!confirm(`¿Cambiar ${nombre} de ${anterior} a ${nuevo} días?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`)) return;
+          if(!(await confirmarAccion({ mensaje: `¿Cambiar ${nombre} de ${anterior} a ${nuevo} días?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
 
           const textoOriginal = btn.textContent;
           btn.disabled = true; btn.textContent = 'Guardando...';
@@ -12907,7 +13064,7 @@
   // wireInteractivo(containerEl, onMover) engancha el clic de CUALQUIER nodo
   // que no sea la fase actual (avanzar una o varias fases, o regresar) después
   // de insertar ese HTML en el DOM — nunca dispara la llamada a la API él
-  // mismo, deja que quien lo use decida qué hacer tras el confirm()
+  // mismo, deja que quien lo use decida qué hacer tras confirmarAccion()
   // (avanzarFaseGrupo + toast + refrescar).
   window.FaseStepper = (function(){
     const FASES = ['Por iniciar', 'En curso', 'Proyecto', 'Calificaciones', 'Diplomas', 'Cerrado'];
@@ -12988,13 +13145,13 @@
     // Engancha el clic de cada nodo movible dentro de containerEl (debe
     // llamarse después de insertar el HTML de render({variant:'interactivo'})
     // en el DOM). onMover(faseNueva) se llama solo tras confirmar; el texto
-    // del confirm() distingue avanzar 1 fase, saltar varias y regresar (y avisa
+    // del diálogo (confirmarAccion()) distingue avanzar 1 fase, saltar varias y regresar (y avisa
     // lo que cambia al regresar o al reabrir un grupo Cerrado).
     function wireInteractivo(containerEl, onMover){
       const track = containerEl.querySelector('.step-track');
       const faseActual = track ? track.dataset.faseActual : '';
       containerEl.querySelectorAll('.step-node[data-fase-destino]').forEach(node => {
-        node.addEventListener('click', () => {
+        node.addEventListener('click', async () => {
           const faseNueva = node.dataset.faseDestino;
           const delta = FASES.indexOf(faseNueva) - FASES.indexOf(faseActual);
           let pregunta;
@@ -13004,7 +13161,8 @@
             pregunta = `¿Regresar el grupo de "${faseActual}" a "${faseNueva}"? Los días en fase volverán a contar desde hoy.`;
             if(faseActual === 'Cerrado') pregunta += ' Se quitará la fecha de cierre (queda en el historial) y el grupo volverá a Tracking.';
           }
-          if(!confirm(pregunta)) return;
+          const ok = await confirmarAccion({ mensaje: pregunta, variante: 'advertencia', textoConfirmar: delta >= 1 ? 'Avanzar' : 'Regresar' });
+          if(!ok) return;
           onMover(faseNueva);
         });
       });
@@ -13372,7 +13530,7 @@
 
     async function confirmarEliminarGrupo(g){
       const nombre = g.grupo_codigo || g.nombre_curso || ('Grupo #' + g.id);
-      if(!confirm(`¿Eliminar "${nombre}" de ${g.cliente}? Se borra de verdad de la base de datos — no se puede deshacer.`)) return;
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar "${nombre}" de ${g.cliente}? Se borra de verdad de la base de datos — no se puede deshacer.`, variante: 'destructivo' }))) return;
       try {
         await apiPostJson('/api/eliminarGrupo', { id: g.id });
         toast('Grupo eliminado.', true);
@@ -14298,9 +14456,9 @@
       } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
     }
     document.getElementById('groNotasCancelar').addEventListener('click', cerrarNotasGrupo);
-    document.getElementById('groNotasBorrar').addEventListener('click', () => {
+    document.getElementById('groNotasBorrar').addEventListener('click', async () => {
       if(!groNotasGrupoActual) return;
-      if(!confirm('¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.')) return;
+      if(!(await confirmarAccion({ mensaje: '¿Borrar este seguimiento? Ya lo ejecutaste y no lo necesitas más.', variante: 'advertencia', textoConfirmar: 'Borrar' }))) return;
       groNotasTextarea.value = '';
       guardarNotasGrupo('');
     });
@@ -14471,7 +14629,7 @@
   // editar/eliminar, y arrastrar tarjetas entre columnas (antes 5 fijas, ver
   // pendientes-tables.js para la migración de las que ya existían). Calca el
   // mockup aprobado: grid de contenedores, tarjeta con checkbox (archivar,
-  // reversible, sin confirm()) + lápiz de editar que solo aparece al hover,
+  // reversible, sin diálogo de confirmación) + lápiz de editar que solo aparece al hover,
   // "+ Agregar" inline y "ver archivados" expandible por columna.
   (function(){
     // Claves fijas del picker de íconos — el backend solo guarda la CLAVE
@@ -14868,7 +15026,7 @@
         const id = btn.dataset.id;
         const p = pendCache.find(x => x.id === id);
         const preview = p ? p.texto.slice(0, 70) : '';
-        if(!confirm(`¿Eliminar esta nota para siempre? No se puede deshacer.\n\n"${preview}${p && p.texto.length > 70 ? '…' : ''}"`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar esta nota para siempre? No se puede deshacer.\n\n"${preview}${p && p.texto.length > 70 ? '…' : ''}"`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarPendiente', { categoria: catId, id });
           pendCache = pendCache.filter(x => x.id !== id);
@@ -14897,7 +15055,7 @@
       }
       if(accion === 'vaciar-archivados'){
         const n = porCategoria(catId, true).length;
-        if(!confirm(`¿Eliminar las ${n} nota${n === 1 ? '' : 's'} archivada${n === 1 ? '' : 's'} de este contenedor? No se puede deshacer.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar las ${n} nota${n === 1 ? '' : 's'} archivada${n === 1 ? '' : 's'} de este contenedor? No se puede deshacer.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/vaciarArchivadosPendientes', { categoria: catId });
           pendCache = pendCache.filter(p => !(p.categoria === catId && p.archivado));
@@ -14954,7 +15112,7 @@
       }
       if(accion === 'eliminar-contenedor'){
         const cat = pendCategorias.find(c => c.id === catId);
-        if(!confirm(`¿Eliminar el contenedor "${cat ? cat.nombre : catId}"? No se puede deshacer.`)) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el contenedor "${cat ? cat.nombre : catId}"? No se puede deshacer.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarPendientesCategoria', { id: catId });
           pendCategorias = pendCategorias.filter(c => c.id !== catId);

@@ -1087,3 +1087,17 @@ Movido a HISTORIAL.md (2026-09-12) para no cargarlo completo en cada turno de Cl
 **Qué hay:** `tools/build-firma.js` genera `assets/firma/{completa,corta,animada}.html` (fragmentos con tablas y estilos en línea, fuentes del sistema, sin la firma manuscrita — esa va solo en el pie del sitio). Para cambiar un dato (p. ej. el correo cuando exista `@alfredopina.ai`): editar `DATOS` en el script y correrlo. Se instala por copiar/pegar: sirve igual en Gmail y en Outlook, no hay que rehacerla al migrar. Vive en Marca → Plantillas → "Firma de correo" (vista previa, "Copiar firma" como HTML enriquecido con ClipboardItem, descarga del .html).
 
 **Pendiente:** cambiar el correo cuando se cree el alias `@alfredopina.ai`; probar el pegado real en Gmail (Alfredo).
+
+## Viaje Excel — scrollytelling hacia el catálogo (2026-10-02)
+
+**Qué es:** `viaje-excel.html` (raíz, público-oculto/noindex, header y footer reales del sitio) — prototipo de la nueva "parte de arriba" de la pestaña Excel en `cursos.html`: 4 escenas ancladas por scroll (captura de datos → organiza/tabla dinámica matricial → dashboard → automatizaciones con Copilot) que venden sin que el cliente tenga que leer, seguidas de 2 tarjetas-acordeón (Básico-Intermedio / Intermedio-Avanzado) que llevan al catálogo real. Nació como mockup desechable en una sesión de iteración larga (varias rondas de feedback visual directo de Alfredo) y se subió ya con commit/push para verlo en vivo — **todavía no está enlazado desde ningún lado del sitio ni integrado a `cursos.html`**.
+
+**Motor:** GSAP + ScrollTrigger vía CDN (jsdelivr, `gsap@3.12.5`) — primera vez que se usa en el sitio; nueva dependencia de stack, aprobada explícitamente por Alfredo para este caso. Nada de esto toca Functions/SQL/Table Storage — es 100% front-end estático, cero riesgo para el tier gratuito de Azure.
+
+**Patrones a respetar si se seguirá iterando:**
+- Cada escena es un `<section class="scene">` fijado (`pin:true`) con `start:'top '+NAV+'px'` (NAV=68, altura real del nav) para no encimarse con el nav sticky — nunca `'top top'` a secas en una página con header real.
+- Fallback sin pin/scrub si `pointer:coarse` + `max-width:560px` (teléfono real) o `prefers-reduced-motion`, y si falla la carga de GSAP — todo controlado por la clase `body.simple-mode`, nunca por un media query de ancho a secas (un panel angosto de escritorio con mouse sigue animando completo).
+- Mensajes de cada escena van en una barra `fx=` (`.formula-msg`) que se revela con `clip-path`, no con opacity — es la identidad de marca aplicada a texto que aparece con el scroll.
+- Lección cara: verificar visualmente en el navegador integrado de la sesión no sirve si el panel queda oculto (`document.hidden=true` congela transiciones CSS y las capturas salen en negro) — verificar con `getComputedStyle`/estado del DOM, o pedirle a Alfredo que confirme él mismo lo puramente visual.
+
+**Pendiente real antes de integrarlo:** conectar a los datos reales del catálogo (`getCatalogoCursos`) en vez de los 2 programas con texto/horas de muestra; decidir si el viaje reemplaza o se agrega arriba del header actual de la pestaña Excel en `cursos.html`; portarlo a las otras 5 herramientas si a Alfredo le gusta el resultado final.

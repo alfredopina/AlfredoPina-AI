@@ -39,6 +39,9 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
         grupoId: f.grupo_id,
         cliente: f.cliente_final || f.cliente,
         clienteVia: f.cliente_final ? f.cliente : null,
+        // el código del cliente FINAL (dueño real de los alumnos) si existe,
+        // si no el de quien contrató — mismo criterio que el folio del diploma
+        clienteCodigo: (f.cliente_final ? f.cliente_final_codigo : f.cliente_codigo) || "",
         // Socio Comercial del reporte: solo si quien contrató (cliente_id,
         // "clienteVia") es tipo Intermediario Y autorizó mostrar su logo —
         // se congela aquí, al generar el snapshot, no se vuelve a checar.
@@ -101,6 +104,7 @@ function calcularSnapshot({ filas, filtros, etiqueta, ahora }) {
       grupoId: g.grupoId,
       cliente: g.cliente,
       clienteVia: g.clienteVia,
+      clienteCodigo: g.clienteCodigo,
       mostrarFoto: g.fotoVisible,
       contacto: g.contacto,
       curso: g.curso,

@@ -25,13 +25,21 @@ function anioCorto() {
 
 const NIVEL_TEXTO = ["", "Básico", "Intermedio", "Avanzado"];
 
-// niveles llega como JSON de Grupo.niveles (ej. "[1,3]") — con varios se toma
-// el más alto, el diploma no distingue nivel por herramienta.
+// niveles llega como JSON de Grupo.niveles (ej. "[1,3]") — el diploma no
+// distingue nivel por herramienta, así que si el grupo tiene varios se
+// nombran TODOS los que incluye ("Básico y Avanzado"), no solo el más alto
+// (antes se perdía el resto: un grupo [1,3] salía solo "Avanzado", como si
+// nunca hubiera tenido nivel Básico).
 function nivelTexto(nivelesJson) {
   let niveles = [];
   try { niveles = JSON.parse(nivelesJson || "[]"); } catch (e) { niveles = []; }
-  const max = niveles.length ? Math.max(...niveles.map(Number)) : 1;
-  return NIVEL_TEXTO[max] || "Básico";
+  const nombres = [...new Set(niveles.map(Number))]
+    .filter((n) => NIVEL_TEXTO[n])
+    .sort((a, b) => a - b)
+    .map((n) => NIVEL_TEXTO[n]);
+  if (!nombres.length) return "Básico";
+  if (nombres.length === 1) return nombres[0];
+  return nombres.slice(0, -1).join(", ") + " y " + nombres[nombres.length - 1];
 }
 
 module.exports = { siguienteConsecutivo, anioCorto, nivelTexto };

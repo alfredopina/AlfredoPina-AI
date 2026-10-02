@@ -49,6 +49,7 @@ check("semáforo ámbar en un valor bajo pero no cero (no confundir con rojo)", 
   check("asistencia global = 9/15 = 60%", s.asistenciaPct === 60);
   check("porGrupo trae 1 fila con el resumen del grupo", s.porGrupo.length === 1 && s.porGrupo[0].alumnos === 3 && s.porGrupo[0].cliente === "Follatti Casinos");
   check("porGrupo.clienteVia = cliente que contrató", s.porGrupo[0].clienteVia === "Capacitanet");
+  check("porGrupo.clienteCodigo = código del cliente FINAL (KEME), no de quien contrató", s.porGrupo[0].clienteCodigo === "KEME");
   check("mostrarFoto en false si el grupo no manda foto_grupo_visible", s.porGrupo[0].mostrarFoto === false);
   check("mejores trae a José primero", s.mejores[0].nombre === "José Pérez");
   check("bajoOchenta incluye a Ana y Luis, no a José", s.bajoOchenta.length === 2 && !s.bajoOchenta.some(p => p.nombre === "José Pérez"));

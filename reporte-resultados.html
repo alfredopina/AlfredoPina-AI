@@ -486,8 +486,33 @@
     }
   }
 
+  // Nombre de pestaña normal (se restaura después de imprimir) vs. nombre de
+  // archivo al imprimir/exportar a PDF — Chrome/Edge usan document.title como
+  // propuesta de nombre en su diálogo "Guardar como PDF", así que para
+  // controlarlo hay que cambiar el title justo antes de window.print() y
+  // regresarlo al terminar (evento afterprint). Mismo criterio de limpieza de
+  // caracteres que nombreZipDiplomas en diploma-template.js.
+  function tituloPestana(s){ return (s.etiqueta ? s.etiqueta + ' — ' : '') + 'Reporte de Resultados — Alfredo Piña'; }
+  function limpioNombre(s){ return String(s || '').replace(/[\\/:*?"<>|]/g, '').trim(); }
+  function mesAnioArchivo(iso){
+    if(!iso) return '';
+    const d = new Date(iso + 'T12:00:00');
+    return String(d.getMonth() + 1).padStart(2, '0') + String(d.getFullYear()).slice(-2);
+  }
+  // "Reporte General|Individuales de Resultados - {códigoCliente}-{curso}-{mesAño de fecha fin}"
+  // — solo con un grupo hay un código/curso único que nombrar; con varios
+  // (reporte por filtros) se usa el rango de fechas, sin un curso que elegir.
+  function nombreImpresion(prefijo, s){
+    if(s.nGrupos === 1 && s.porGrupo[0]){
+      const g = s.porGrupo[0];
+      return `${prefijo} - ${limpioNombre(g.clienteCodigo) || 'SinCodigo'}-${limpioNombre(g.curso) || 'Curso'}-${mesAnioArchivo(g.fechaFin)}`;
+    }
+    const mesAnio = s.rango && s.rango.hasta ? '-' + mesAnioArchivo(s.rango.hasta) : '';
+    return `${prefijo} - Varios grupos${mesAnio}`;
+  }
+
   function render(s){
-    document.title = (s.etiqueta ? s.etiqueta + ' — ' : '') + 'Reporte de Resultados — Alfredo Piña';
+    document.title = tituloPestana(s);
     document.getElementById('repGenerado').textContent = 'GENERADO ' + fmtFechaHora(s.generadoEn).toUpperCase();
     document.getElementById('repFooterFecha').textContent = fmtFechaHora(s.generadoEn);
     document.getElementById('repTitle').textContent = (s.nGrupos === 1 && s.porGrupo[0])
@@ -722,7 +747,10 @@
     panel.hidden = !panel.hidden;
     e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
   });
-  document.getElementById('repImprimirGeneral').addEventListener('click', () => window.print());
+  document.getElementById('repImprimirGeneral').addEventListener('click', () => {
+    if(REPORTE) document.title = nombreImpresion('Reporte General de Resultados', REPORTE);
+    window.print();
+  });
   document.getElementById('repIndBuscar').addEventListener('input', pintarListasAlumnos);
   // delegado en TODO el layout (lista a la izquierda, tarjeta a la derecha) —
   // no solo en repIndRight, que solo es la mitad derecha
@@ -743,11 +771,13 @@
   function imprimirPerfiles(lista){
     document.getElementById('repPrintTodos').innerHTML = lista.map(p => `<div class="rep-print-page">${perfilAlumnoHtml(p, true)}</div>`).join('');
     document.body.classList.add('rep-imprimiendo');
+    if(REPORTE) document.title = nombreImpresion('Reporte Individuales de Resultados', REPORTE);
     window.print();
   }
   window.addEventListener('afterprint', () => {
     document.body.classList.remove('rep-imprimiendo');
     document.getElementById('repPrintTodos').innerHTML = '';
+    if(REPORTE) document.title = tituloPestana(REPORTE);
   });
   document.getElementById('repImprimirTodos').addEventListener('click', () => {
     if(REPORTE && REPORTE.participantes.length) imprimirPerfiles(REPORTE.participantes);

@@ -66,7 +66,18 @@
      de un único grupo (con varios, cada uno trae su miniatura en "Grupos
      incluidos" en vez de una sola portada). */
   .rep-foto-card{ padding:0; overflow:hidden; margin-bottom:22px; }
+  .rep-foto-card{ position:relative; }
   .rep-foto-card img{ display:block; width:100%; max-height:380px; object-fit:cover; }
+  /* la portada recorta (cover); este botón abre la foto completa */
+  .rep-foto-ver{ position:absolute; right:12px; bottom:12px; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; color:#fff; background-color:rgba(10,13,18,.78); border:1px solid rgba(255,255,255,.25); border-radius:7px; padding:8px 12px; cursor:pointer; }
+  .rep-foto-ver:hover{ background-color:rgba(10,13,18,.92); border-color:var(--blue-bright); }
+  .rep-foto-ver svg{ width:14px; height:14px; }
+  .rep-visor{ position:fixed; inset:0; z-index:1000; background-color:rgba(5,7,10,.94); display:flex; align-items:center; justify-content:center; padding:24px; }
+  .rep-visor[hidden]{ display:none; }
+  .rep-visor img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; }
+  .rep-visor-x{ position:absolute; top:14px; right:14px; width:38px; height:38px; display:grid; place-items:center; color:#fff; background-color:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); border-radius:50%; cursor:pointer; }
+  .rep-visor-x svg{ width:18px; height:18px; }
+  .grp-foto-thumb{ cursor:zoom-in; }
   .grp-foto-cell{ width:52px; }
   .grp-foto-thumb{ width:44px; height:44px; object-fit:cover; border-radius:6px; display:block; }
   .rep-etiqueta{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
@@ -230,6 +241,7 @@
   .rep-print-page{ padding:24px 0; }
 
   @media print{
+    .rep-foto-ver, .rep-visor{ display:none !important; }
     /* "Imprimir reporte" reusa el DOM oscuro tal cual, solo re-pintado en
        claro — así que hay que redefinir los TOKENS (no cada regla suelta):
        --blue-bright (#6b9fff) y --text (#edf0f4, casi blanco) están pensados
@@ -326,7 +338,8 @@
 
   <main><div class="wrap">
     <section class="rep-view" id="repViewGeneral">
-      <div class="card rep-foto-card" id="repFotoCard" hidden><img id="repFotoImg" alt="Foto del grupo"></div>
+      <div class="card rep-foto-card" id="repFotoCard" hidden><img id="repFotoImg" alt="Foto del grupo"><button type="button" class="rep-foto-ver" id="repFotoVer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ver foto completa</button></div>
+      <div class="rep-visor" id="repVisor" hidden><button type="button" class="rep-visor-x" id="repVisorX" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button><img id="repVisorImg" alt="Foto del grupo"></div>
 
       <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="M12 9v3l2 1" stroke-linecap="round" stroke-linejoin="round"/></svg>Promedios del grupo <small>calificación y asistencia</small></div>
       <div class="card gauge-duo" id="repGaugesCard"></div>
@@ -467,6 +480,21 @@
   let REPORTE_TOKEN = null;
   let tabActiva = 'general';
   let alumnoActivoId = null;
+
+  // visor de foto completa (la portada y las miniaturas recortan con cover)
+  function abrirVisor(src){
+    document.getElementById('repVisorImg').src = src;
+    document.getElementById('repVisor').hidden = false;
+  }
+  function cerrarVisor(){ document.getElementById('repVisor').hidden = true; }
+  document.getElementById('repFotoVer').addEventListener('click', () => abrirVisor(document.getElementById('repFotoImg').src));
+  document.getElementById('repVisorX').addEventListener('click', cerrarVisor);
+  document.getElementById('repVisor').addEventListener('click', e => { if(e.target.id === 'repVisor') cerrarVisor(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarVisor(); });
+  document.getElementById('repGruposBody').addEventListener('click', e => {
+    const t = e.target.closest('.grp-foto-thumb');
+    if(t) abrirVisor(t.src);
+  });
 
   function fotoGrupoUrl(grupoId){ return '/api/getFotoGrupoReporte?token=' + encodeURIComponent(REPORTE_TOKEN) + '&grupoId=' + grupoId; }
 

@@ -10,5 +10,7 @@
   };
   btn.addEventListener('click', () => set(!nav.classList.contains('open')));
   nav.addEventListener('click', (e) => { if (e.target.closest('.nav-links a')) set(false); });
+  // al elegir una herramienta del desplegable, soltar el foco para que el menú se cierre
+  nav.addEventListener('click', (e) => { if (e.target.closest('.nav-dd-menu a')) { const a = document.activeElement; if (a && a.blur) a.blur(); } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
 })();

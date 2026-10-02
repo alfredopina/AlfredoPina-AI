@@ -41,7 +41,17 @@
     <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links" id="navLinks">
       <a href="/">Conóceme</a>
-      <a href="/cursos" aria-current="page">Cursos</a>
+      <div class="nav-dd">
+      <a href="/cursos" class="nav-dd-trigger" aria-current="page" aria-haspopup="true">Cursos <svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="nav-dd-menu">
+        <a href="/cursos#excel" data-cat="excel" style="--c:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg>Excel</a>
+        <a href="/cursos#powerbi" data-cat="powerbi" style="--c:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><g fill-opacity=".36"><rect x="9.5" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><rect x="16" y="9.5" width="5" height="5"/></g><rect x="3" y="16" width="5" height="5"/><rect x="9.5" y="9.5" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/></g></svg>Power BI</a>
+        <a href="/cursos#powerapps" data-cat="powerapps" style="--c:#c026d3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/></svg>Power Apps</a>
+        <a href="/cursos#powerautomate" data-cat="powerautomate" style="--c:#06b6d4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/></svg>Power Automate</a>
+        <a href="/cursos#ia" data-cat="ia" style="--c:#a78bfa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/></svg>IA Aplicada</a>
+        <a href="/cursos#ofimatica" data-cat="ofimatica" style="--c:#f97316"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z"/><rect x="13" y="13" width="7.5" height="7.5" stroke-width="1.5"/><rect x="15.5" y="15.5" width="2.5" height="2.5" fill="currentColor" stroke="none"/></svg>Ofimática</a>
+      </div>
+    </div>
       <a href="/recursos">Recursos</a>
     </div>
     <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hablemos</a>
@@ -51,43 +61,6 @@
 <!--/layout:nav-->
 
 <main id="contenido">
-
-<div class="cat-nav-wrap" id="categorias">
-  <div class="wrap">
-    <div class="cat-nav">
-      <button class="cat-cell active" data-cat="excel" style="--c:#22c55e">
-        <span class="cat-cell-ref">A1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg></span>
-        <span class="cat-cell-label">Excel</span>
-      </button>
-      <button class="cat-cell" data-cat="powerbi" style="--c:#f2c94c">
-        <span class="cat-cell-ref">B1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><g fill-opacity=".36"><rect x="9.5" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><rect x="16" y="9.5" width="5" height="5"/></g><rect x="3" y="16" width="5" height="5"/><rect x="9.5" y="9.5" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/></g></svg></span>
-        <span class="cat-cell-label">Power BI</span>
-      </button>
-      <button class="cat-cell" data-cat="powerapps" style="--c:#c026d3">
-        <span class="cat-cell-ref">C1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/></svg></span>
-        <span class="cat-cell-label">Power Apps</span>
-      </button>
-      <button class="cat-cell" data-cat="powerautomate" style="--c:#06b6d4">
-        <span class="cat-cell-ref">D1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/></svg></span>
-        <span class="cat-cell-label">Power Automate</span>
-      </button>
-      <button class="cat-cell" data-cat="ia" style="--c:#a78bfa">
-        <span class="cat-cell-ref">E1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/></svg></span>
-        <span class="cat-cell-label">IA Aplicada</span>
-      </button>
-      <button class="cat-cell" data-cat="ofimatica" style="--c:#f97316">
-        <span class="cat-cell-ref">F1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z"/><rect x="13" y="13" width="7.5" height="7.5" stroke-width="1.5"/><rect x="15.5" y="15.5" width="2.5" height="2.5" fill="currentColor" stroke="none"/></svg></span>
-        <span class="cat-cell-label">Ofimática</span>
-      </button>
-    </div>
-  </div>
-</div>
 
 <header style="padding:56px 0 20px;">
   <div class="wrap">
@@ -180,6 +153,7 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  const TOOL_COLOR = { excel:'#22c55e', powerbi:'#f2c94c', powerapps:'#c026d3', powerautomate:'#06b6d4', ia:'#a78bfa', ofimatica:'#f97316' };
   const catalogoCache = {};
   let currentCat = 'excel';
   let currentCatalogo = null;
@@ -209,7 +183,9 @@
     if(!tabMap[cat]) return;
     currentCat = cat;
 
-    document.querySelectorAll('.cat-cell').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    document.querySelectorAll('.nav-dd-menu a[data-cat]').forEach(a => {
+      if(a.dataset.cat === cat) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
     const meta = CAT_META[cat];
     if(meta){
       document.getElementById('catTitle').textContent = meta.title;
@@ -222,9 +198,7 @@
     const encabezado = document.getElementById('catTitle').closest('header');
     if(encabezado) encabezado.hidden = !!(window.ViajeHerramienta && window.ViajeHerramienta.tieneConfig(cat));
 
-    const cell = document.querySelector(`.cat-cell[data-cat="${cat}"]`);
-    const color = (cell && cell.style.getPropertyValue('--c').trim()) || '#22c55e';
-    document.querySelector('section.wrap').style.setProperty('--c', color);
+    document.querySelector('section.wrap').style.setProperty('--c', TOOL_COLOR[cat] || '#22c55e');
 
     const panel = document.getElementById('cursoPanel');
     if(!catalogoCache[cat]){
@@ -242,9 +216,13 @@
     renderCursoPanel();
   }
 
+  // los íconos de marca viven en el menú desplegable del nav (se estampan con tools/build-layout.js)
+  function toolIconInline(cat){
+    const el = document.querySelector(`.nav-dd-menu a[data-cat="${cat}"] svg`);
+    return el ? el.outerHTML : '';
+  }
   function toolIconSvg(cat){
-    const el = document.querySelector(`.cat-cell[data-cat="${cat}"] .cat-cell-icon svg`);
-    return el ? el.outerHTML.replace('<svg ', '<svg class="soon-icon" ') : '';
+    return toolIconInline(cat).replace('<svg ', '<svg class="soon-icon" ');
   }
 
   function renderCursoPanel(){
@@ -303,16 +281,14 @@
     return `
       <div class="program-fn" id="programFn-${p.id}">
         <div class="program-fn-head" onclick="toggleProgram('${p.id}')">
-          <div class="program-fn-name"><span class="fn-kw">${escapeHtml(p.nombre.replace(/\s+/g, '_'))}</span><span class="fn-args">()</span></div>
-          <div class="program-fn-hours">
-            ${p.horas} hr${p.nivelLabel ? ' · ' + escapeHtml(p.nivelLabel) : ''}
-            <svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+          <div class="program-fn-eyebrow"><span class="program-tool-ico">${toolIconInline(currentCat)}</span>${escapeHtml(((CAT_META[currentCat] || {}).title || '').toUpperCase())}${p.nivelLabel ? ' · ' + escapeHtml(p.nivelLabel.toUpperCase()) : ''} · ${p.horas} HR</div>
+          <div class="program-fn-title">${escapeHtml(p.nombre)}</div>
+          <p class="program-fn-hook">${escapeHtml(p.objetivo)}</p>
+          <div class="program-fn-toggle">Ver temario completo<svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="program-fn-body">
           <div class="program-fn-inner">
             <div class="program-fn-obj">
-              <div><h4>OBJETIVO</h4><p>${escapeHtml(p.objetivo)}</p></div>
               <div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>
             </div>
             ${tagsHtml}
@@ -489,14 +465,17 @@
     }
   }
 
-  document.querySelectorAll('.cat-cell').forEach(tab => {
-    tab.addEventListener('click', () => {
-      activateTab(tab.dataset.cat);
-      history.replaceState(null, '', '#' + tab.dataset.cat);
-    });
+  // la herramienta se elige desde el menú desplegable "Cursos" del nav (enlaces /cursos#herramienta):
+  // al estar ya en esta página solo cambia el hash, así que hay que escucharlo.
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if(tabMap[hash] && hash !== currentCat){
+      activateTab(hash);
+      window.scrollTo(0, 0);
+    }
   });
 
-  // al cargar: si viene un hash en la URL (ej. cursos.html#powerbi), abre esa categoría; si no, deja Excel por default
+  // al cargar: si viene un hash en la URL (ej. cursos#powerbi), abre esa herramienta; si no, deja Excel por default
   window.addEventListener('load', () => {
     const hash = window.location.hash.replace('#', '');
     activateTab(hash && tabMap[hash] ? hash : 'excel');

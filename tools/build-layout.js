@@ -57,6 +57,28 @@ function head(cfg) {
   return l.join("\n");
 }
 
+
+// Menú desplegable de Cursos: una entrada por herramienta, con su ícono de marca (assets/img/brand/iconos).
+// Los íconos usan currentColor, así que el color de cada herramienta viaja en --c.
+const HERRAMIENTAS_NAV = [
+  ["excel", "Excel", "#22c55e"],
+  ["powerbi", "Power BI", "#f2c94c"],
+  ["powerapps", "Power Apps", "#c026d3"],
+  ["powerautomate", "Power Automate", "#06b6d4"],
+  ["ia", "IA Aplicada", "#a78bfa"],
+  ["ofimatica", "Ofimática", "#f97316"],
+];
+const CHEVRON = '<svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function iconoHerramienta(id) {
+  const svg = fs.readFileSync(path.join(ROOT, "assets/img/brand/iconos", id + ".svg"), "utf8").trim();
+  return svg.replace(/ xmlns="[^"]*"/, "").replace(/ width="24" height="24"/, "").replace(/ role="img" aria-label="[^"]*"/, "").replace(/<title>[^<]*<\/title>/, "");
+}
+function ddCursos(aria) {
+  const items = HERRAMIENTAS_NAV.map(([id, nombre, color]) =>
+    '<a href="/cursos#' + id + '" data-cat="' + id + '" style="--c:' + color + '">' + iconoHerramienta(id) + nombre + '</a>'
+  ).join("\n        ");
+  return '<div class="nav-dd">\n      <a href="/cursos" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
+}
 function nav(cfg) {
   const n = cfg.nav;
   const cur = (k) => (n.active === k ? ' aria-current="page"' : "");
@@ -68,7 +90,7 @@ function nav(cfg) {
     <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="${BRAND}logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links" id="navLinks">
       <a href="${n.conoceme || "/"}">Conóceme</a>
-      <a href="/cursos"${cur("cursos")}>Cursos</a>
+      ${ddCursos(cur("cursos"))}
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>
     <a href="/#contacto" class="nav-cta">${CAFE} Hablemos</a>

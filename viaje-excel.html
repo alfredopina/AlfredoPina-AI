@@ -65,19 +65,19 @@
 .org-panel{ flex:1; background:var(--panel); border-radius:12px; border:1px solid var(--line); overflow:hidden; min-width:0; }
 .org-head{ padding:12px 16px; font-size:12px; font-weight:600; color:var(--text-faint); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
 .org-head svg{ width:14px; height:14px; }
-.otable{ width:100%; border-collapse:collapse; font-size:12px; }
-.otable th{ background:var(--blue-dim); color:var(--blue-bright); text-align:left; padding:8px 10px; font-weight:600; position:relative; }
-.otable td{ padding:8px 10px; border-top:1px solid var(--line-soft); color:var(--text); transition:transform .3s ease, opacity .3s ease; }
+.otable{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.otable th{ background:var(--blue-dim); color:var(--blue-bright); text-align:left; padding:13px 14px; font-weight:600; position:relative; }
+.otable td{ padding:13px 14px; border-top:1px solid var(--line-soft); color:var(--text); transition:transform .3s ease, opacity .3s ease; }
 .filter-ico{ width:10px; height:10px; margin-left:4px; opacity:0; vertical-align:middle; }
 .sem-pill{ display:inline-flex; align-items:center; gap:5px; font-size:10.5px; padding:3px 7px; border-radius:999px; font-weight:600; }
 .sem-pill.rojo{ background:rgba(220,38,38,.18); color:#ff8787; }
 .sem-pill.ambar{ background:rgba(223,179,90,.2); color:var(--amber); }
 .sem-pill.verde{ background:rgba(20,184,166,.18); color:#5fe6cf; }
-.matrix{ padding:14px 16px; }
-.matrix table{ width:100%; border-collapse:collapse; font-size:12px; }
-.matrix th{ text-align:right; color:var(--text-faint); font-weight:600; padding:6px 8px; font-size:10.5px; }
+.matrix{ padding:18px 20px; }
+.matrix table{ width:100%; border-collapse:collapse; font-size:13px; }
+.matrix th{ text-align:right; color:var(--text-faint); font-weight:600; padding:10px 10px; font-size:10.5px; }
 .matrix th:first-child{ text-align:left; }
-.matrix td{ text-align:right; padding:6px 8px; color:var(--text); border-top:1px solid var(--line-soft); }
+.matrix td{ text-align:right; padding:10px 10px; color:var(--text); border-top:1px solid var(--line-soft); }
 .matrix td:first-child{ text-align:left; color:var(--text-dim); font-weight:600; }
 .matrix tr.tot td{ font-weight:700; color:var(--teal); border-top:1px solid var(--line); }
 .matrix td.tot{ font-weight:700; color:var(--teal); }
@@ -87,11 +87,15 @@
 .dash-grid{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; width:min(1080px,94vw); }
 .dash-tile{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; justify-content:center; gap:10px; min-width:0; }
 .slicer-pills{ display:flex; flex-wrap:wrap; gap:6px; }
-.slicer-pill{ font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); padding:5px 11px; border-radius:12px; }
-.slicer-pill.active{ background:rgba(20,184,166,.14); border-color:var(--teal); color:#6ee7b7; }
+.slicer-pill{ font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); padding:5px 11px; border-radius:12px; transition:transform .2s; }
+.slicer-pill.active{ background:rgba(20,184,166,.14); border-color:var(--teal); color:#6ee7b7; animation:pillPulse 2.4s ease-in-out infinite; }
+@keyframes pillPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(20,184,166,.35); } 50%{ box-shadow:0 0 0 4px rgba(20,184,166,0); } }
 .timeline-wrap{ margin-top:4px; }
 .timeline-track{ height:6px; border-radius:4px; background:var(--panel-2); position:relative; overflow:hidden; }
 .timeline-range{ position:absolute; top:0; bottom:0; left:15%; width:0; background:var(--teal); border-radius:4px; }
+.timeline-range::before, .timeline-range::after{ content:''; position:absolute; top:50%; width:10px; height:10px; border-radius:50%; background:#eafff9; border:2px solid var(--teal); transform:translateY(-50%); }
+.timeline-range::before{ left:-5px; }
+.timeline-range::after{ right:-5px; }
 .timeline-ticks{ display:flex; justify-content:space-between; margin-top:6px; font-family:var(--mono); font-size:9px; color:var(--text-faint); }
 .dash-tile-label{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-dim); }
 .dash-tile-label svg{ width:14px; height:14px; flex:none; }
@@ -117,20 +121,20 @@
 
 /* ---- ESCENA AUTOMATIZA ---- */
 .auto-stage{ position:relative; width:min(1120px,95vw); display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
-.toolbar-grid{ display:grid; grid-template-columns:repeat(4,88px); gap:9px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; position:relative; }
-.tool-btn{ display:flex; flex-direction:column; align-items:center; gap:5px; padding:9px 4px; border-radius:9px; font-size:9.5px; color:var(--text-dim); position:relative; text-align:center; line-height:1.2; }
-.tool-btn svg{ width:16px; height:16px; color:var(--blue-bright); }
-.tool-btn-fx{ position:absolute; top:-4px; right:6px; width:16px; height:16px; border-radius:4px; background:var(--teal); display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.3); }
-.tool-btn-fx svg{ width:9px; height:9px; color:#04140f; }
-.mini-bar{ width:70%; height:4px; border-radius:3px; background:var(--panel-2); overflow:hidden; }
+.toolbar-grid{ display:grid; grid-template-columns:repeat(4,116px); gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; position:relative; }
+.tool-btn{ display:flex; flex-direction:column; align-items:center; gap:7px; padding:14px 6px; border-radius:10px; font-size:11.5px; color:var(--text-dim); position:relative; text-align:center; line-height:1.25; }
+.tool-btn svg{ width:22px; height:22px; color:var(--blue-bright); }
+.tool-btn-fx{ position:absolute; top:-6px; right:8px; width:20px; height:20px; border-radius:5px; background:var(--teal); display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.3); }
+.tool-btn-fx svg{ width:11px; height:11px; color:#04140f; }
+.mini-bar{ width:70%; height:5px; border-radius:3px; background:var(--panel-2); overflow:hidden; }
 .mini-bar i{ display:block; height:100%; width:0; background:var(--teal); }
-.rec-dot{ width:8px; height:8px; border-radius:50%; background:#ef4444; opacity:0; }
-.flyer{ position:absolute; width:18px; height:18px; color:var(--blue-bright); z-index:6; top:12px; left:30px; }
+.rec-dot{ width:9px; height:9px; border-radius:50%; background:#ef4444; opacity:0; }
+.flyer{ position:absolute; width:22px; height:22px; color:var(--blue-bright); z-index:6; top:16px; left:40px; }
 
-.copilot-panel{ width:300px; max-width:80vw; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-.copilot-head{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--amber); }
-.copilot-head svg{ width:15px; height:15px; }
-.bubble{ max-width:92%; padding:9px 12px; border-radius:10px; font-size:11.5px; line-height:1.5; }
+.copilot-panel{ width:380px; max-width:85vw; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+.copilot-head{ display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:600; color:var(--amber); }
+.copilot-head svg{ width:19px; height:19px; }
+.bubble{ max-width:92%; padding:11px 15px; border-radius:11px; font-size:13px; line-height:1.55; }
 .bubble.user{ align-self:flex-end; background:var(--blue-bright); color:#0a0d12; border-bottom-right-radius:3px; }
 .bubble.ai{ align-self:flex-start; background:var(--panel-2); color:var(--text); border-bottom-left-radius:3px; display:flex; gap:7px; align-items:flex-start; }
 .bubble.ai svg{ width:13px; height:13px; color:var(--teal); flex:none; margin-top:2px; }
@@ -242,20 +246,20 @@
       <div class="cap-cell hd">A</div><div class="cap-cell hd">B</div><div class="cap-cell hd">C</div><div class="cap-cell hd">D</div>
       <div class="cap-cell hd">E</div><div class="cap-cell hd">F</div><div class="cap-cell hd">G</div><div class="cap-cell hd">H</div>
       <div class="cap-cell hd">1</div>
-      <div class="cap-cell cap-fn reveal" data-k="c12" data-g="r1c1">=ÍNDICE(</div><div class="cap-cell" data-g="r1c2"></div><div class="cap-cell" data-g="r1c3"></div><div class="cap-cell" data-g="r1c4"></div>
-      <div class="cap-cell cap-fn new reveal" data-k="n1" data-g="r1c5">SI.CONJUNTO</div><div class="cap-cell cap-fn reveal" data-k="c13" data-g="r1c6">=COINCIDIR(</div><div class="cap-cell" data-g="r1c7"></div><div class="cap-cell" data-g="r1c8"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
       <div class="cap-cell hd">2</div>
-      <div class="cap-cell" data-g="r2c1"></div><div class="cap-cell cap-fn reveal" data-k="c2" data-g="r2c2">=SI(</div><div class="cap-cell" data-g="r2c3"></div><div class="cap-cell" data-g="r2c4"></div>
-      <div class="cap-cell cap-fn new reveal" data-k="n2" data-g="r2c5">CAMBIAR</div><div class="cap-cell" data-g="r2c6"></div><div class="cap-cell cap-fn new reveal" data-k="n3" data-g="r2c7">IMAGEN</div><div class="cap-cell" data-g="r2c8"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
       <div class="cap-cell hd">3</div>
-      <div class="cap-cell cap-fn new reveal" data-k="n4" data-g="r3c1">BUSCARX</div><div class="cap-cell" data-g="r3c2"></div><div class="cap-cell cap-fn reveal" data-k="c14" data-g="r3c3">=SUMA(</div><div class="cap-cell" data-g="r3c4"></div>
-      <div class="cap-cell" data-g="r3c5"></div><div class="cap-cell cap-fn reveal" data-k="c6" data-g="r3c6">=BUSCARV(</div><div class="cap-cell" data-g="r3c7"></div><div class="cap-cell" data-g="r3c8"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
       <div class="cap-cell hd">4</div>
-      <div class="cap-cell" data-g="r4c1"></div><div class="cap-cell cap-fn reveal" data-k="c15" data-g="r4c2">=PROMEDIO(</div><div class="cap-cell" data-g="r4c3"></div><div class="cap-cell cap-fn reveal" data-k="c7" data-g="r4c4">=CONCATENAR(</div>
-      <div class="cap-cell" data-g="r4c5"></div><div class="cap-cell" data-g="r4c6"></div><div class="cap-cell cap-fn reveal" data-k="c8" data-g="r4c7">=EXTRAE(</div><div class="cap-cell" data-g="r4c8"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
       <div class="cap-cell hd">5</div>
-      <div class="cap-cell" data-g="r5c1"></div><div class="cap-cell cap-fn new reveal" data-k="n6" data-g="r5c2">FILTRAR</div><div class="cap-cell" data-g="r5c3"></div><div class="cap-cell cap-fn reveal" data-k="c11" data-g="r5c4">=HOY()</div>
-      <div class="cap-cell" data-g="r5c5"></div><div class="cap-cell cap-fn new reveal" data-k="n7" data-g="r5c6">TRADUCIR</div><div class="cap-cell cap-fn reveal" data-k="c16" data-g="r5c7">=SUMAR.SI(</div><div class="cap-cell" data-g="r5c8"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
+      <div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div><div class="cap-cell"></div>
     </div>
     <div class="scene-msg">
       <div class="formula-msg" id="msgWrap1a"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText1a">Domina lo esencial.<span class="formula-msg-cursor"></span></span></div>
@@ -282,6 +286,9 @@
             <tr data-row="sop"><td>Soporte Anual</td><td>Centro</td><td>$97,100</td><td><span class="sem-pill ambar">● Atención</span></td></tr>
             <tr data-row="cap"><td>Capacitación</td><td>Sur</td><td>$54,900</td><td><span class="sem-pill rojo">● Urgente</span></td></tr>
             <tr data-row="con"><td>Consultoría</td><td>Norte</td><td>$120,300</td><td><span class="sem-pill verde">● Bien</span></td></tr>
+            <tr class="reveal" data-k="x1"><td>Diagnóstico Inicial</td><td>Centro</td><td>$42,300</td><td><span class="sem-pill verde">● Bien</span></td></tr>
+            <tr class="reveal" data-k="x2"><td>Renovación Anual</td><td>Sur</td><td>$68,500</td><td><span class="sem-pill ambar">● Atención</span></td></tr>
+            <tr class="reveal" data-k="x3"><td>Implementación</td><td>Norte</td><td>$95,200</td><td><span class="sem-pill verde">● Bien</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -294,7 +301,9 @@
               <tr class="reveal" data-k="m1"><td>Norte</td><td>$165,000</td><td>$137,700</td><td class="tot">$302,700</td></tr>
               <tr class="reveal" data-k="m2"><td>Centro</td><td>$52,000</td><td>$45,100</td><td class="tot">$97,100</td></tr>
               <tr class="reveal" data-k="m3"><td>Sur</td><td>$28,000</td><td>$26,900</td><td class="tot">$54,900</td></tr>
-              <tr class="tot reveal" data-k="m4"><td>Total</td><td>$245,000</td><td>$209,700</td><td class="tot">$454,700</td></tr>
+              <tr class="reveal" data-k="m5"><td>Bajío</td><td>$38,000</td><td>$31,500</td><td class="tot">$69,500</td></tr>
+              <tr class="reveal" data-k="m6"><td>Noreste</td><td>$22,000</td><td>$19,800</td><td class="tot">$41,800</td></tr>
+              <tr class="tot reveal" data-k="m4"><td>Total</td><td>$305,000</td><td>$261,000</td><td class="tot">$566,000</td></tr>
             </tbody>
           </table>
         </div>
@@ -525,8 +534,28 @@
     var d = document.createElement('div');
     d.className = 'heat-cell reveal';
     d.dataset.k = 'h'+i;
-    d.style.opacity = (0.25 + v*0.75);
+    d.dataset.finalOpacity = (0.25 + v*0.75).toFixed(2);
     heatGrid.appendChild(d);
+  });
+
+  // Escena 2 — sortea en qué celda cae cada función (clásicas y nuevas) cada
+  // vez que carga la página, nunca la misma hoja dos veces. Corre siempre,
+  // sin importar si GSAP/el scroll-scrub terminan activándose o no.
+  function shuffle(arr){
+    for(var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  var classicFns = ['=ÍNDICE(','=COINCIDIR(','=SI(','=BUSCARV(','=SUMA(','=PROMEDIO(','=CONCATENAR(','=EXTRAE(','=HOY()','=SUMAR.SI('];
+  var newFns = ['SI.CONJUNTO','IMAGEN','BUSCARX','FILTRAR','TRADUCIR','ÚNICOS','ORDENAR','SECUENCIA','EXPANDIR','LAMBDA','REDUCE','DIVIDIRTEXTO'];
+  var capPool = shuffle(Array.prototype.slice.call(document.querySelectorAll('#capStage .cap-cell:not(.hd)')));
+  var classicCells = classicFns.map(function(fn, i){
+    var cell = capPool[i]; cell.textContent = fn; cell.classList.add('cap-fn', 'reveal'); return cell;
+  });
+  var newCells = newFns.map(function(fn, i){
+    var cell = capPool[classicFns.length + i]; cell.textContent = fn; cell.classList.add('cap-fn', 'new', 'reveal'); return cell;
   });
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -554,6 +583,7 @@
     document.getElementById('lineArea').style.opacity = 1;
     document.getElementById('hb5').style.width = '20%';
     document.getElementById('timelineRange').style.width = '55%';
+    document.querySelectorAll('.heat-cell').forEach(function(el){ el.style.opacity = el.dataset.finalOpacity; });
   }
 
   if(!gsapReady){
@@ -583,25 +613,16 @@
   var tl1 = gsap.timeline({ scrollTrigger:{ trigger:'#sceneCaptura', start:'top '+NAV+'px', end:'+=170%', scrub:1, pin:true,
     onToggle:function(self){ if(self.isActive) setActive(2); } } });
   tl1.to('#capStage', { opacity:1, duration:4 }, 0);
-  ['c2','c6','c7','c8','c11','c12','c13','c14','c15','c16'].forEach(function(k, i){ tl1.to('[data-k="'+k+'"]', { opacity:1, duration:4 }, 4 + i*3); });
+  classicCells.forEach(function(cell, i){ tl1.to(cell, { opacity:1, duration:4 }, 4 + i*3); });
   tl1.to('#msgText1a', { clipPath:'inset(0 0% 0 0)', duration:10 }, 2);
   tl1.to('#msgWrap1a', { opacity:0, duration:4 }, 32);
   tl1.set('#msgWrap1a', { display:'none' }, 36);
   tl1.set('#msgWrap1b', { display:'inline-flex', opacity:1 }, 36);
   tl1.to('#msgText1b', { clipPath:'inset(0 0% 0 0)', duration:9 }, 37);
-  ['n1','n2','n3','n4','n6','n7'].forEach(function(k, i){
-    tl1.fromTo('[data-k="'+k+'"]', { opacity:0, scale:.5 }, { opacity:1, scale:1, duration:5 }, 36 + i*4.2);
-  });
-  // momento de adrenalina: 15 funciones más, de golpe, casi llenando la hoja
-  var burstFns = ['ÚNICOS','ORDENAR','ORDENARPOR','SECUENCIA','EXPANDIR','LAMBDA','MAP','REDUCE','DIVIDIRTEXTO'];
-  var emptyCells = Array.prototype.slice.call(document.querySelectorAll('#capStage .cap-cell:not(.hd):not(.cap-fn)'));
-  burstFns.forEach(function(fn, i){
-    var cell = emptyCells[i % emptyCells.length];
-    if(!cell) return;
-    cell.textContent = fn;
-    cell.classList.add('cap-fn', 'new', 'reveal');
+  // momento de adrenalina: las funciones nuevas de golpe, casi llenando la hoja
+  newCells.forEach(function(cell, i){
     gsap.set(cell, { opacity:0, scale:.4 });
-    tl1.to(cell, { opacity:1, scale:1, duration:3 }, 68 + i*1.1);
+    tl1.to(cell, { opacity:1, scale:1, duration:3.2 }, 40 + i*3.8);
   });
   tl1.to('#capStage', { opacity:0, scale:.94, duration:14 }, 86);
 
@@ -621,8 +642,9 @@
   tl2.to('#otable3 tr[data-row="sop"] td', { y:34, duration:8 }, 32);
   tl2.to('#otable3 tr[data-row="cap"] td', { y:34, duration:8 }, 32);
   tl2.to('#otable3 tr[data-row="con"] td', { opacity:1, y:-68, duration:8 }, 32);
+  ['x1','x2','x3'].forEach(function(k, i){ tl2.to('[data-k="'+k+'"]', { opacity:1, duration:5 }, 42 + i*4); });
 
-  ['m1','m2','m3','m4'].forEach(function(k, i){ tl2.to('[data-k="'+k+'"]', { opacity:1, duration:6 }, 46 + i*7); });
+  ['m1','m2','m3','m5','m6','m4'].forEach(function(k, i){ tl2.to('[data-k="'+k+'"]', { opacity:1, duration:5 }, 46 + i*5); });
   tl2.to('#orgLeft', { opacity:0, x:-50, duration:14 }, 84);
   tl2.to('#orgRight', { opacity:0, x:50, duration:14 }, 84);
 
@@ -633,7 +655,7 @@
   tl3.to('#msgText3', { clipPath:'inset(0 0% 0 0)', duration:10 }, 1);
   tl3.to('#dashGrid', { opacity:1, y:0, duration:8 }, 3);
   tl3.to('[data-k="sl1"], [data-k="sl2"], [data-k="sl3"], [data-k="sl4"]', { opacity:1, duration:4, stagger:2 }, 8);
-  tl3.to('#timelineRange', { width:'55%', duration:10 }, 16);
+  tl3.to('#timelineRange', { opacity:1, width:'55%', duration:10 }, 16);
   tl3.to('#hb5', { width:'20%', duration:8 }, 26);
   tl3.to('#lineArea', { opacity:1, duration:6 }, 34);
   tl3.to('#barValA, #barValB, #barValC, #barValD', { opacity:1, duration:4, stagger:2 }, 37);
@@ -655,7 +677,7 @@
   tl3.to('#barC', { height:'95%', duration:8 }, 42);
   tl3.to('#barD', { height:'40%', duration:8 }, 45);
   gsap.utils.toArray('.heat-cell').forEach(function(c, i){
-    tl3.to(c, { scale:1, duration:4 }, 44 + i*2);
+    tl3.to(c, { opacity:parseFloat(c.dataset.finalOpacity), scale:1, duration:4 }, 44 + i*2);
   });
   tl3.to('#dashGrid, #imm4', { opacity:0, scale:.95, duration:12 }, 87);
 
@@ -671,9 +693,9 @@
   tl4.to('#bubbleAi2', { opacity:1, duration:4 }, 64);
 
   var btnPos = {
-    btnMail:[57,44], btnDown:[154,44], btnRec:[251,44], btnRef:[348,44],
-    btnClean:[57,110], btnRep:[154,110], btnEval:[251,110], btnApr:[348,110],
-    btnPres:[57,170], btnEdit:[154,170], btnDark:[251,170], btnLight:[348,170]
+    btnMail:[77,62], btnDown:[206,62], btnRec:[335,62], btnRef:[464,62],
+    btnClean:[77,155], btnRep:[206,155], btnEval:[335,155], btnApr:[464,155],
+    btnPres:[77,239], btnEdit:[206,239], btnDark:[335,239], btnLight:[464,239]
   };
 
   function clickAt(pos, btnId, after){

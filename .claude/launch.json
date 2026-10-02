@@ -7,6 +7,12 @@
       "runtimeArgs": ["--yes", "http-server", "-c-1", "."],
       "port": 8080,
       "autoPort": true
+    },
+    {
+      "name": "viaje-excel-mockup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\alfre\\AppData\\Local\\Temp\\claude\\C--Users-alfre-Dropbox-13--Marca-APCWEB-GIT\\1359c2e1-f4d8-464d-a6a9-d04b550428a1\\scratchpad\\viaje-excel\\serve.js"],
+      "port": 8731
     }
   ]
 }

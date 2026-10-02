@@ -1,0 +1,707 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Viaje Excel — Alfredo Piña</title>
+<link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/cursos.css">
+<script src="/assets/js/nav.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<style>
+/* ======================= mockup propio (base.css y cursos.css ya vienen linkados arriba) ======================= */
+:root{ --ink:#171c26; --nav-h:68px; }
+.mono{ font-family:'JetBrains Mono',monospace; }
+.disp{ font-family:'Space Grotesk',sans-serif; }
+
+.rail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:14px; z-index:50; }
+.rail-num{ width:24px; height:24px; border-radius:4px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; font-family:var(--mono); color:var(--text-faint); background:var(--panel); transition:all .25s ease; }
+.rail-item.active .rail-num{ border-color:var(--teal); color:var(--teal); background:rgba(20,184,166,.14); transform:scale(1.15); }
+
+.intro{ position:relative; min-height:calc(100vh - var(--nav-h)); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px 16px; gap:22px; }
+.intro-eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--blue-bright); text-transform:uppercase; }
+.intro-title{ font-family:var(--display); font-weight:700; font-size:clamp(32px,6vw,58px); margin:0; max-width:820px; line-height:1.15; }
+.intro-title .accent{ color:var(--blue-bright); position:relative; display:inline-block; }
+.selector-box{
+    position:absolute; inset:-9px -12px; border:1.5px solid var(--blue-bright); border-radius:2px;
+    pointer-events:none; z-index:2; box-shadow: 0 0 0 3px var(--blue-soft);
+    opacity:0; transform:translate(-90px,-14px) scale(.6);
+    animation:selReveal .75s cubic-bezier(.34,1.56,.64,1) .9s forwards;
+  }
+@keyframes selReveal{ 60%{ opacity:1; } to{ opacity:1; transform:translate(0,0) scale(1); } }
+.selector-box::after{ content:''; position:absolute; width:7px; height:7px; background:var(--blue-bright); right:-4px; bottom:-4px; border-radius:1px; box-shadow:0 0 6px var(--blue-bright); }
+.selector-label{ position:absolute; top:-22px; left:-1px; font-family:var(--mono); font-size:10px; color:var(--blue-bright); background:var(--bg); padding:1px 4px; letter-spacing:.5px; white-space:nowrap; }
+.intro-cue{ margin-top:10px; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--text-faint); font-size:12px; }
+.intro-cue svg{ width:20px; height:20px; animation:bounce 1.6s ease-in-out infinite; }
+@keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(8px); } }
+.skip-nav-btn{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); border:1px solid var(--line); padding:7px 14px; border-radius:16px; display:inline-flex; align-items:center; gap:7px; transition:all .2s; }
+.skip-nav-btn:hover{ border-color:var(--blue); color:var(--text); background:var(--blue-soft); }
+.skip-nav-btn svg{ width:12px; height:12px; }
+
+/* fx= barra de fórmula — mensajes de cada escena, tipo "se va escribiendo" */
+.formula-msg{ position:relative; z-index:3; display:inline-flex; align-items:stretch; border:1px solid var(--blue-dim); border-radius:6px; background:var(--panel); overflow:hidden; max-width:92vw; }
+.formula-msg-fx{ font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright); background:var(--blue-soft); padding:14px 16px; border-right:1px solid var(--blue-dim); display:flex; align-items:center; flex:none; }
+.formula-msg-text{ font-family:var(--display); font-weight:600; font-size:clamp(16px,2.4vw,24px); color:var(--text); padding:14px 20px; white-space:nowrap; overflow:hidden; display:inline-block; clip-path:inset(0 100% 0 0); }
+.formula-msg-cursor{ display:inline-block; width:2px; height:1em; background:var(--blue-bright); margin-left:2px; vertical-align:-3px; animation:blink-cursor 1s step-end infinite; }
+
+.reveal{ opacity:0; }
+.scene{ position:relative; height:calc(100vh - var(--nav-h)); width:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.scene-stage{ width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:16px; }
+.scene-msg{ font-family:var(--display); font-weight:600; font-size:clamp(20px,3vw,32px); text-align:center; max-width:760px; line-height:1.3; position:relative; z-index:3; }
+.scene-msg .line{ display:block; }
+
+/* ---- ESCENA CAPTURA (oscura) ---- */
+.cap-grid{ width:min(1180px,94vw); height:min(540px,58vh); display:grid; grid-template-columns:34px repeat(8,1fr); grid-template-rows:28px repeat(5,1fr); border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel); }
+.cap-cell{ border-right:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); display:flex; align-items:center; padding:0 9px; font-size:12px; font-family:var(--mono); color:var(--text-dim); }
+.cap-cell.hd{ background:var(--panel-2); color:var(--text-faint); font-family:var(--body); font-weight:600; justify-content:center; font-size:10.5px; }
+.cap-fn{ font-weight:600; color:var(--text-dim); }
+.cap-fn.new{ color:#eafff9; background:rgba(20,184,166,.28); border-radius:6px; margin:3px; padding:3px 7px; font-size:14px; font-weight:700; box-shadow:0 0 0 1px rgba(20,184,166,.45); }
+
+/* ---- ESCENA ORGANIZA (oscura, split) ---- */
+.org-split{ display:flex; gap:26px; width:min(1180px,94vw); align-items:flex-start; }
+.org-panel{ flex:1; background:var(--panel); border-radius:12px; border:1px solid var(--line); overflow:hidden; min-width:0; }
+.org-head{ padding:12px 16px; font-size:12px; font-weight:600; color:var(--text-faint); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
+.org-head svg{ width:14px; height:14px; }
+.otable{ width:100%; border-collapse:collapse; font-size:12px; }
+.otable th{ background:var(--blue-dim); color:var(--blue-bright); text-align:left; padding:8px 10px; font-weight:600; position:relative; }
+.otable td{ padding:8px 10px; border-top:1px solid var(--line-soft); color:var(--text); transition:transform .3s ease, opacity .3s ease; }
+.filter-ico{ width:10px; height:10px; margin-left:4px; opacity:0; vertical-align:middle; }
+.sem-pill{ display:inline-flex; align-items:center; gap:5px; font-size:10.5px; padding:3px 7px; border-radius:999px; font-weight:600; }
+.sem-pill.rojo{ background:rgba(220,38,38,.18); color:#ff8787; }
+.sem-pill.ambar{ background:rgba(223,179,90,.2); color:var(--amber); }
+.sem-pill.verde{ background:rgba(20,184,166,.18); color:#5fe6cf; }
+.matrix{ padding:14px 16px; }
+.matrix table{ width:100%; border-collapse:collapse; font-size:12px; }
+.matrix th{ text-align:right; color:var(--text-faint); font-weight:600; padding:6px 8px; font-size:10.5px; }
+.matrix th:first-child{ text-align:left; }
+.matrix td{ text-align:right; padding:6px 8px; color:var(--text); border-top:1px solid var(--line-soft); }
+.matrix td:first-child{ text-align:left; color:var(--text-dim); font-weight:600; }
+.matrix tr.tot td{ font-weight:700; color:var(--teal); border-top:1px solid var(--line); }
+.matrix td.tot{ font-weight:700; color:var(--teal); }
+
+/* ---- ESCENA DECIDE ---- */
+.immersive{ position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(20,24,34,.25), #05070a 78%); }
+.dash-grid{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; width:min(1080px,94vw); }
+.dash-tile{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; justify-content:center; gap:10px; min-width:0; }
+.slicer-pills{ display:flex; flex-wrap:wrap; gap:6px; }
+.slicer-pill{ font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); padding:5px 11px; border-radius:12px; }
+.slicer-pill.active{ background:rgba(20,184,166,.14); border-color:var(--teal); color:#6ee7b7; }
+.timeline-wrap{ margin-top:4px; }
+.timeline-track{ height:6px; border-radius:4px; background:var(--panel-2); position:relative; overflow:hidden; }
+.timeline-range{ position:absolute; top:0; bottom:0; left:15%; width:0; background:var(--teal); border-radius:4px; }
+.timeline-ticks{ display:flex; justify-content:space-between; margin-top:6px; font-family:var(--mono); font-size:9px; color:var(--text-faint); }
+.dash-tile-label{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-dim); }
+.dash-tile-label svg{ width:14px; height:14px; flex:none; }
+.gauge-wrap{ position:relative; width:100%; height:76px; align-self:center; }
+.gauge-wrap svg{ width:100%; height:100%; }
+.gauge-val{ position:absolute; left:0; right:0; bottom:0; text-align:center; font-family:var(--display); font-weight:600; font-size:18px; }
+.bars-row{ display:flex; align-items:flex-end; gap:10px; height:84px; }
+.bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; }
+.bar-col i{ width:100%; display:block; border-radius:4px 4px 0 0; background:var(--blue-bright); height:0; }
+.bar-val{ font-family:var(--mono); font-size:9px; color:var(--text-dim); }
+.bar-tag{ font-size:9.5px; color:var(--text-faint); margin-top:2px; }
+.hbars{ display:flex; flex-direction:column; gap:8px; }
+.hbar-row{ display:flex; align-items:center; gap:8px; }
+.hbar-label{ font-size:10px; color:var(--text-faint); width:64px; flex:none; }
+.hbar-track{ flex:1; height:9px; border-radius:5px; background:var(--panel-2); overflow:hidden; }
+.hbar-fill{ height:100%; width:0; border-radius:5px; background:var(--teal); }
+.hbar-val{ font-size:10px; color:var(--text-dim); width:40px; text-align:right; flex:none; }
+.heat-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+.heat-cell{ aspect-ratio:1; border-radius:4px; background:var(--teal); transform:scale(.4); }
+.legend{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; font-size:10px; color:var(--text-dim); }
+.legend span{ display:inline-flex; align-items:center; gap:4px; }
+.legend i{ width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+/* ---- ESCENA AUTOMATIZA ---- */
+.auto-stage{ position:relative; width:min(1120px,95vw); display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
+.toolbar-grid{ display:grid; grid-template-columns:repeat(4,88px); gap:9px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; position:relative; }
+.tool-btn{ display:flex; flex-direction:column; align-items:center; gap:5px; padding:9px 4px; border-radius:9px; font-size:9.5px; color:var(--text-dim); position:relative; text-align:center; line-height:1.2; }
+.tool-btn svg{ width:16px; height:16px; color:var(--blue-bright); }
+.tool-btn-fx{ position:absolute; top:-4px; right:6px; width:16px; height:16px; border-radius:4px; background:var(--teal); display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.3); }
+.tool-btn-fx svg{ width:9px; height:9px; color:#04140f; }
+.mini-bar{ width:70%; height:4px; border-radius:3px; background:var(--panel-2); overflow:hidden; }
+.mini-bar i{ display:block; height:100%; width:0; background:var(--teal); }
+.rec-dot{ width:8px; height:8px; border-radius:50%; background:#ef4444; opacity:0; }
+.flyer{ position:absolute; width:18px; height:18px; color:var(--blue-bright); z-index:6; top:12px; left:30px; }
+
+.copilot-panel{ width:300px; max-width:80vw; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.copilot-head{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--amber); }
+.copilot-head svg{ width:15px; height:15px; }
+.bubble{ max-width:92%; padding:9px 12px; border-radius:10px; font-size:11.5px; line-height:1.5; }
+.bubble.user{ align-self:flex-end; background:var(--blue-bright); color:#0a0d12; border-bottom-right-radius:3px; }
+.bubble.ai{ align-self:flex-start; background:var(--panel-2); color:var(--text); border-bottom-left-radius:3px; display:flex; gap:7px; align-items:flex-start; }
+.bubble.ai svg{ width:13px; height:13px; color:var(--teal); flex:none; margin-top:2px; }
+
+.cursor-ico{ position:absolute; z-index:10; width:20px; height:20px; color:#fff; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); top:0; left:0; }
+.click-ripple{ position:absolute; width:26px; height:26px; border-radius:50%; border:2px solid var(--teal); z-index:9; top:0; left:0; transform:scale(0); opacity:0; }
+
+/* ---- PROGRAMAS (teaser al catálogo real) ---- */
+.programas-section{ padding:110px 0 100px; }
+.program-highlight-grid{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:44px; }
+@media (max-width:820px){ .program-highlight-grid{ grid-template-columns:1fr; } }
+.program-highlight-card{ position:relative; display:block; border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:28px 26px 24px; overflow:hidden; cursor:pointer; transition:border-color .2s, transform .2s; }
+.program-highlight-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#22c55e; }
+.program-highlight-card:hover{ border-color:#22c55e; transform:translateY(-4px); }
+.phc-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:#22c55e; margin-bottom:10px; }
+.phc-title{ font-family:var(--display); font-weight:600; font-size:22px; margin-bottom:8px; }
+.phc-hook{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin-bottom:18px; }
+.phc-mini{ display:flex; align-items:center; gap:18px; padding:14px 0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); margin-bottom:16px; }
+.phc-gauge{ width:92px; height:54px; flex:none; position:relative; }
+.phc-gauge-val{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; font-family:var(--display); font-weight:600; font-size:13px; padding-bottom:2px; }
+.phc-bars{ flex:1; display:flex; align-items:flex-end; gap:5px; height:40px; }
+.phc-bars i{ flex:1; border-radius:2px 2px 0 0; display:block; background:var(--blue-bright); }
+.phc-chips{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
+.phc-cta{ font-family:var(--body); font-weight:600; font-size:13.5px; color:#22c55e; display:inline-flex; align-items:center; gap:8px; }
+.phc-cta svg{ width:14px; height:14px; transition:transform .2s; }
+.program-highlight-card:hover .phc-cta svg{ transform:translateX(4px); }
+
+.handoff-mini{ text-align:center; padding:10px 0 40px; color:var(--text-faint); font-size:12px; }
+
+/* ---- Programas: tarjeta + acordeón híbrido ---- */
+.programs-list{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:44px; }
+@media (max-width:820px){ .programs-list{ grid-template-columns:1fr; } }
+.program-fn{ position:relative; border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden; transition:border-color .2s, transform .2s; }
+.program-fn::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#22c55e; }
+.program-fn.open{ border-color:rgba(34,197,94,.35); }
+.program-fn-head{ padding:26px 26px 6px; cursor:pointer; }
+.program-fn-eyebrow{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:#22c55e; margin-bottom:12px; }
+.program-tool-ico{ width:22px; height:22px; flex:none; color:#22c55e; }
+.program-fn-title{ font-family:var(--display); font-weight:600; font-size:22px; margin-bottom:8px; }
+.program-fn-hook{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin-bottom:18px; }
+.program-fn-toggle{ display:flex; align-items:center; gap:7px; padding:14px 0; border-top:1px solid var(--line-soft); font-family:var(--body); font-weight:600; font-size:13.5px; color:#22c55e; }
+.program-fn-chevron{ width:14px; height:14px; color:#22c55e; transition:transform .3s; flex:none; }
+.program-fn.open .program-fn-chevron{ transform:rotate(180deg); }
+.program-fn-body{ max-height:0; overflow:hidden; transition:max-height .5s ease; }
+.program-fn.open .program-fn-body{ max-height:1600px; }
+.program-fn-inner{ padding:0 26px 26px; }
+.program-fn-obj{ display:flex; flex-direction:column; gap:14px; margin-bottom:10px; padding-top:4px; }
+.program-fn-obj h4{ font-family:var(--mono); font-size:10.5px; color:#6ee7b7; letter-spacing:.4px; margin-bottom:6px; }
+.program-fn-obj p{ font-size:13px; color:var(--text-dim); line-height:1.65; }
+.session{ display:flex; gap:14px; padding:14px 2px; border-top:1px solid var(--line-soft); }
+.session-num{ font-family:var(--mono); font-size:11px; color:#6ee7b7; background:rgba(34,197,94,.12); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px; }
+.session-body{ flex:1; }
+.session-body b{ font-family:var(--display); font-weight:600; font-size:13.5px; display:block; margin-bottom:3px; }
+.session-body p{ font-size:12.5px; color:var(--text-dim); line-height:1.55; }
+.program-cta-row{ margin-top:18px; }
+.program-cta{ font-family:var(--body); font-weight:600; font-size:13.5px; padding:11px 20px; border-radius:4px; background:#22c55e; color:#06180e; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+
+.js-off-note{ position:fixed; bottom:14px; left:14px; right:14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:12px; color:var(--text-dim); display:none; z-index:80; }
+
+@media (prefers-reduced-motion: reduce){ .reveal{ opacity:1 !important; transform:none !important; } }
+</style>
+
+<div class="grid-bg"></div>
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+
+<nav aria-label="Principal">
+  <div class="wrap">
+    <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Conóceme</a>
+      <a href="/cursos" aria-current="page">Cursos</a>
+      <a href="/recursos">Recursos</a>
+    </div>
+    <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/></svg> Hablemos</a>
+    <button type="button" class="nav-toggle" aria-label="Abrir menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</nav>
+
+<div class="rail" id="rail">
+  <div class="rail-item" data-scene="1"><span class="rail-num">1</span></div>
+  <div class="rail-item" data-scene="2"><span class="rail-num">2</span></div>
+  <div class="rail-item" data-scene="3"><span class="rail-num">3</span></div>
+  <div class="rail-item" data-scene="4"><span class="rail-num">4</span></div>
+  <div class="rail-item" data-scene="5"><span class="rail-num">5</span></div>
+</div>
+
+<main id="contenido">
+
+<section class="intro" id="sceneIntro">
+  <span class="intro-eyebrow">Curso de Excel</span>
+  <h1 class="intro-title">Aprende Excel como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">A1</span></span></span>.</h1>
+  <div class="scope-chips">
+    <span class="scope-chip">Versión 365</span>
+    <span class="scope-chip">Español e Inglés</span>
+    <span class="scope-chip">WPS / Google Sheets</span>
+  </div>
+  <div class="intro-cue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    scroll
+  </div>
+  <a href="#programas" class="skip-nav-btn">Ver programas directo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</section>
+
+<!-- ESCENA 2 — CAPTURA (oscura) -->
+<section class="scene" id="sceneCaptura">
+  <div class="scene-stage">
+    <div class="cap-grid reveal" id="capStage">
+      <div class="cap-cell hd"></div>
+      <div class="cap-cell hd">A</div><div class="cap-cell hd">B</div><div class="cap-cell hd">C</div><div class="cap-cell hd">D</div>
+      <div class="cap-cell hd">E</div><div class="cap-cell hd">F</div><div class="cap-cell hd">G</div><div class="cap-cell hd">H</div>
+      <div class="cap-cell hd">1</div>
+      <div class="cap-cell cap-fn reveal" data-k="c12" data-g="r1c1">=ÍNDICE(</div><div class="cap-cell" data-g="r1c2"></div><div class="cap-cell" data-g="r1c3"></div><div class="cap-cell" data-g="r1c4"></div>
+      <div class="cap-cell cap-fn new reveal" data-k="n1" data-g="r1c5">SI.CONJUNTO</div><div class="cap-cell cap-fn reveal" data-k="c13" data-g="r1c6">=COINCIDIR(</div><div class="cap-cell" data-g="r1c7"></div><div class="cap-cell" data-g="r1c8"></div>
+      <div class="cap-cell hd">2</div>
+      <div class="cap-cell" data-g="r2c1"></div><div class="cap-cell cap-fn reveal" data-k="c2" data-g="r2c2">=SI(</div><div class="cap-cell" data-g="r2c3"></div><div class="cap-cell" data-g="r2c4"></div>
+      <div class="cap-cell cap-fn new reveal" data-k="n2" data-g="r2c5">CAMBIAR</div><div class="cap-cell" data-g="r2c6"></div><div class="cap-cell cap-fn new reveal" data-k="n3" data-g="r2c7">IMAGEN</div><div class="cap-cell" data-g="r2c8"></div>
+      <div class="cap-cell hd">3</div>
+      <div class="cap-cell cap-fn new reveal" data-k="n4" data-g="r3c1">BUSCARX</div><div class="cap-cell" data-g="r3c2"></div><div class="cap-cell cap-fn reveal" data-k="c14" data-g="r3c3">=SUMA(</div><div class="cap-cell" data-g="r3c4"></div>
+      <div class="cap-cell" data-g="r3c5"></div><div class="cap-cell cap-fn reveal" data-k="c6" data-g="r3c6">=BUSCARV(</div><div class="cap-cell" data-g="r3c7"></div><div class="cap-cell" data-g="r3c8"></div>
+      <div class="cap-cell hd">4</div>
+      <div class="cap-cell" data-g="r4c1"></div><div class="cap-cell cap-fn reveal" data-k="c15" data-g="r4c2">=PROMEDIO(</div><div class="cap-cell" data-g="r4c3"></div><div class="cap-cell cap-fn reveal" data-k="c7" data-g="r4c4">=CONCATENAR(</div>
+      <div class="cap-cell" data-g="r4c5"></div><div class="cap-cell" data-g="r4c6"></div><div class="cap-cell cap-fn reveal" data-k="c8" data-g="r4c7">=EXTRAE(</div><div class="cap-cell" data-g="r4c8"></div>
+      <div class="cap-cell hd">5</div>
+      <div class="cap-cell" data-g="r5c1"></div><div class="cap-cell cap-fn new reveal" data-k="n6" data-g="r5c2">FILTRAR</div><div class="cap-cell" data-g="r5c3"></div><div class="cap-cell cap-fn reveal" data-k="c11" data-g="r5c4">=HOY()</div>
+      <div class="cap-cell" data-g="r5c5"></div><div class="cap-cell cap-fn new reveal" data-k="n7" data-g="r5c6">TRADUCIR</div><div class="cap-cell cap-fn reveal" data-k="c16" data-g="r5c7">=SUMAR.SI(</div><div class="cap-cell" data-g="r5c8"></div>
+    </div>
+    <div class="scene-msg">
+      <div class="formula-msg" id="msgWrap1a"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText1a">Domina lo esencial.<span class="formula-msg-cursor"></span></span></div>
+      <div class="formula-msg" id="msgWrap1b" style="display:none;"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText1b">Aprende a crear fórmulas poderosas.<span class="formula-msg-cursor"></span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ESCENA 3 — ORGANIZA (oscura) -->
+<section class="scene" id="sceneOrganiza">
+  <div class="scene-stage">
+    <div class="org-split">
+      <div class="org-panel reveal" id="orgLeft">
+        <div class="org-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Base de datos</div>
+        <table class="otable" id="otable3">
+          <thead><tr>
+            <th>Producto<svg class="filter-ico" data-fico viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg></th>
+            <th>Región<svg class="filter-ico" data-fico viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg></th>
+            <th>Ventas<svg class="filter-ico" data-fico viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg></th>
+            <th>Estatus<svg class="filter-ico" data-fico viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg></th>
+          </tr></thead>
+          <tbody>
+            <tr data-row="lic"><td>Licencias Pro</td><td>Norte</td><td>$182,400</td><td><span class="sem-pill verde">● Bien</span></td></tr>
+            <tr data-row="sop"><td>Soporte Anual</td><td>Centro</td><td>$97,100</td><td><span class="sem-pill ambar">● Atención</span></td></tr>
+            <tr data-row="cap"><td>Capacitación</td><td>Sur</td><td>$54,900</td><td><span class="sem-pill rojo">● Urgente</span></td></tr>
+            <tr data-row="con"><td>Consultoría</td><td>Norte</td><td>$120,300</td><td><span class="sem-pill verde">● Bien</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="org-panel reveal" id="orgRight">
+        <div class="org-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg>Tabla dinámica matricial</div>
+        <div class="matrix">
+          <table>
+            <thead><tr><th>Región</th><th>Q1</th><th>Q2</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr class="reveal" data-k="m1"><td>Norte</td><td>$165,000</td><td>$137,700</td><td class="tot">$302,700</td></tr>
+              <tr class="reveal" data-k="m2"><td>Centro</td><td>$52,000</td><td>$45,100</td><td class="tot">$97,100</td></tr>
+              <tr class="reveal" data-k="m3"><td>Sur</td><td>$28,000</td><td>$26,900</td><td class="tot">$54,900</td></tr>
+              <tr class="tot reveal" data-k="m4"><td>Total</td><td>$245,000</td><td>$209,700</td><td class="tot">$454,700</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="scene-msg"><div class="formula-msg" id="msgWrap2"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText2">Organiza tablas y crea Reportes automáticos.<span class="formula-msg-cursor"></span></span></div></div>
+  </div>
+</section>
+
+<!-- ESCENA 4 — DECIDE -->
+<section class="scene" id="sceneDecide">
+  <div class="immersive reveal" id="imm4"></div>
+  <div class="scene-stage">
+    <div class="scene-msg" style="margin-bottom:-6px;"><div class="formula-msg" id="msgWrap3"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span></div></div>
+    <div class="dash-grid reveal" id="dashGrid">
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8"/></svg>Automatización</span>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 180 100"><path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#2a3140" stroke-width="12" stroke-linecap="round"/>
+          <path id="gA" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220" data-anim-prop="stroke-dashoffset" data-anim-final="18"/></svg>
+          <div class="disp gauge-val">92%</div>
+        </div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Top 5 productos</span>
+        <div class="hbars">
+          <div class="hbar-row"><span class="hbar-label">Licencias</span><div class="hbar-track"><div class="hbar-fill" id="hb1" style="background:#22c55e;" data-anim-prop="width-pct" data-anim-final="95"></div></div><span class="hbar-val">$182k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Consultoría</span><div class="hbar-track"><div class="hbar-fill" id="hb2" style="background:#6b9fff;" data-anim-prop="width-pct" data-anim-final="63"></div></div><span class="hbar-val">$120k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Soporte</span><div class="hbar-track"><div class="hbar-fill" id="hb3" style="background:#dfb35a;" data-anim-prop="width-pct" data-anim-final="51"></div></div><span class="hbar-val">$97k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Capacitación</span><div class="hbar-track"><div class="hbar-fill" id="hb4" style="background:#14b8a6;" data-anim-prop="width-pct" data-anim-final="29"></div></div><span class="hbar-val">$55k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Diagnóstico</span><div class="hbar-track"><div class="hbar-fill" id="hb5" style="background:#a78bfa;" data-anim-prop="width-pct" data-anim-final="20"></div></div><span class="hbar-val">$38k</span></div>
+        </div>
+        <div class="legend" style="justify-content:flex-start;margin-top:2px;">
+          <span class="chip" style="font-size:9.5px;padding:4px 9px;">Este trimestre</span>
+          <span class="chip" style="font-size:9.5px;padding:4px 9px;">Todas las regiones</span>
+        </div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>Distribución por producto</span>
+        <div class="gauge-wrap" style="height:84px;">
+          <svg viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#2a3140" stroke-width="12"/>
+            <circle id="pie1" cx="50" cy="50" r="45" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="127 283" stroke-dashoffset="127" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+            <circle id="pie2" cx="50" cy="50" r="45" fill="none" stroke="#6b9fff" stroke-width="12" stroke-dasharray="85 283" stroke-dashoffset="42" data-anim-prop="stroke-dashoffset" data-anim-final="-127"/>
+            <circle id="pie3" cx="50" cy="50" r="45" fill="none" stroke="#dfb35a" stroke-width="12" stroke-dasharray="71 283" stroke-dashoffset="-141" data-anim-prop="stroke-dashoffset" data-anim-final="-212"/>
+          </svg>
+        </div>
+        <div class="legend"><span><i style="background:#22c55e;"></i>Excel 45%</span><span><i style="background:#6b9fff;"></i>Power BI 30%</span><span><i style="background:#dfb35a;"></i>Auto 25%</span></div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg>Filtro de segmentación</span>
+        <div class="slicer-pills">
+          <span class="slicer-pill active reveal" data-k="sl1">Todas</span>
+          <span class="slicer-pill reveal" data-k="sl2">Norte</span>
+          <span class="slicer-pill reveal" data-k="sl3">Centro</span>
+          <span class="slicer-pill reveal" data-k="sl4">Sur</span>
+        </div>
+        <div class="timeline-wrap">
+          <div class="timeline-track"><div class="timeline-range reveal" id="timelineRange"></div></div>
+          <div class="timeline-ticks"><span>Ene</span><span>Abr</span><span>Jul</span><span>Oct</span><span>Dic</span></div>
+        </div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Ventas por región y tendencia</span>
+        <div class="bars-row">
+          <div class="bar-col"><span class="bar-val reveal" id="barValA">$185k</span><i id="barA" data-anim-prop="height-pct" data-anim-final="85"></i><span class="bar-tag">Q1</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValB">$130k</span><i id="barB" data-anim-prop="height-pct" data-anim-final="60"></i><span class="bar-tag">Q2</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValC">$206k</span><i id="barC" data-anim-prop="height-pct" data-anim-final="95"></i><span class="bar-tag">Q3</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValD">$87k</span><i id="barD" data-anim-prop="height-pct" data-anim-final="40"></i><span class="bar-tag">Q4</span></div>
+        </div>
+        <svg viewBox="-2 -12 120 82" style="width:100%;height:76px;">
+          <line x1="0" x2="100" y1="10" y2="10" stroke="var(--line-soft)" stroke-width=".6"/>
+          <line x1="0" x2="100" y1="32" y2="32" stroke="var(--line-soft)" stroke-width=".6"/>
+          <line x1="0" x2="100" y1="55" y2="55" stroke="var(--line-soft)" stroke-width=".6"/>
+          <path id="lineArea" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8 L98,62 L2,62 Z" fill="url(#lineGrad)" opacity="0"/>
+          <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></linearGradient></defs>
+          <path id="lineChart" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8" fill="none" stroke="#14b8a6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <path id="lineProj" d="M98,8 L114,-2" fill="none" stroke="#dfb35a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 3" pathLength="100" stroke-dashoffset="100" opacity="0" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <g id="lineMarkers" opacity="0">
+            <circle cx="2" cy="55" r="2.6" fill="#14b8a6"/><circle cx="22" cy="45" r="2.6" fill="#14b8a6"/><circle cx="42" cy="50" r="2.6" fill="#14b8a6"/>
+            <circle cx="62" cy="28" r="2.6" fill="#14b8a6"/><circle cx="82" cy="18" r="2.6" fill="#14b8a6"/><circle cx="98" cy="8" r="2.8" fill="#eafff9" stroke="#14b8a6" stroke-width="1.4"/>
+            <text x="2" y="-3" font-size="6.5" fill="var(--text-faint)" font-family="monospace">$28k</text>
+            <text x="90" y="4" font-size="6.5" fill="#eafff9" font-family="monospace">$61k</text>
+          </g>
+          <text x="100" y="-6" font-size="6" fill="#dfb35a" font-family="monospace" opacity="0" id="projLabel">proyección</text>
+        </svg>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13 6-3m-6 3V7m6 13 6-3V4l-6 3m0 13V7m0 0L9 4"/></svg>Cobertura por región</span>
+        <div class="heat-grid" id="heatGrid"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ESCENA 5 — AUTOMATIZA -->
+<section class="scene" id="sceneAutomatiza">
+  <div class="immersive" style="opacity:1;"></div>
+  <div class="scene-stage">
+    <div class="scene-msg"><div class="formula-msg" id="msgWrap4"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText4">Deja que la IA haga el trabajo duro.<span class="formula-msg-cursor"></span></span></div></div>
+    <div class="auto-stage">
+      <div class="toolbar-grid reveal" id="toolbar5">
+        <div class="tool-btn" id="btnMail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>Enviar<div class="tool-btn-fx" id="fxMail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnDown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar<div class="mini-bar"><i id="downBar" data-anim-prop="width-pct" data-anim-final="100"></i></div></div>
+        <div class="tool-btn" id="btnRec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>Registrar<div class="rec-dot" id="recDot"></div></div>
+        <div class="tool-btn" id="btnRef"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v6h6M20 20v-6h-6M4.5 15a8 8 0 0 0 14.5 3.5M19.5 9a8 8 0 0 0-14.5-3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Actualizar<div class="tool-btn-fx" id="fx5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnClean"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l4-4m0 0 9-9 4 4-9 9m-4-4 4 4M14 7l3 3"/></svg>Limpiar<div class="tool-btn-fx" id="fx6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnRep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2h9l5 5v15H6z"/><path d="M12 12v6M9 15h6"/></svg>Crear reporte<div class="tool-btn-fx" id="fx7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnEval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Evaluar<div class="tool-btn-fx" id="fx8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnApr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 11v9M2 13v5a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.4l2-7A2 2 0 0 0 18.6 9H14l1-5a2 2 0 0 0-2-2.4L9 9H7"/></svg>Aprobaciones<div class="tool-btn-fx" id="fx9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnPres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg>Presentar<div class="tool-btn-fx" id="fx10"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg>Editar<div class="tool-btn-fx" id="fx11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnDark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A5.5 5.5 0 0 1 12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Modo oscuro<div class="tool-btn-fx" id="fx12"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="tool-btn" id="btnLight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-linecap="round"/></svg>Modo claro<div class="tool-btn-fx" id="fx13"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+
+        <svg class="flyer" id="flyMail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>
+        <svg class="cursor-ico reveal" id="cursor5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l15 7-6.2 1.6L11 17z"/></svg>
+        <div class="click-ripple" id="ripple5"></div>
+      </div>
+
+      <div class="copilot-panel reveal" id="copilotPanel">
+        <div class="copilot-head"><svg viewBox="0 0 24 24" width="15" height="15"><defs><linearGradient id="cpGrad" x1="7" y1="3" x2="18" y2="22"><stop offset="0" stop-color="#6b9fff"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs><path d="M12 3.5c-2.9 0-4.9 2-4.9 4.6 0 1.9 1.2 3.2 2.8 3.9-1.6.7-2.8 2-2.8 3.9 0 2.6 2 4.6 4.9 4.6s4.9-2 4.9-4.6c0-1.9-1.2-3.2-2.8-3.9 1.6-.7 2.8-2 2.8-3.9 0-2.6-2-4.6-4.9-4.6Z" fill="url(#cpGrad)"/></svg>Copilot</div>
+        <div class="bubble user reveal" id="bubbleUser">Envíame un resumen del dashboard cada lunes</div>
+        <div class="bubble ai reveal" id="bubbleAi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Listo. Son muchas automatizaciones — y todas corren solas.</span></div>
+        <div class="bubble user reveal" id="bubbleUser2">¿También las aprobaciones?</div>
+        <div class="bubble ai reveal" id="bubbleAi2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Claro — ya quedó enlazada con tu flujo.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="programas-section wrap" id="programas">
+  <div class="eyebrow">EXCEL</div>
+  <h2 class="section-title">Nuestros programas más pedidos</h2>
+  <p class="section-sub">Ya armados, listos para arrancar — la mayoría de nuestros clientes empieza aquí.</p>
+
+  <div class="programs-list">
+    <div class="program-fn" id="progFn1">
+      <div class="program-fn-head" onclick="toggleProgramV4('progFn1')">
+        <div class="program-fn-eyebrow"><span class="program-tool-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg></span>EXCEL · BÁSICO-INTERMEDIO · 16 HR</div>
+        <div class="program-fn-title disp">Básico-Intermedio</div>
+        <p class="program-fn-hook">Deja de perder horas copiando y pegando: aprende a capturar, ordenar y analizar tu información como un profesional.</p>
+        <div class="program-fn-toggle">Ver temario completo<svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="program-fn-body">
+        <div class="program-fn-inner">
+          <div class="program-fn-obj">
+            <div><h4>OBJETIVO</h4><p>Aprender a capturar, ordenar y analizar información en Excel con fórmulas, formato condicional y tablas dinámicas básicas.</p></div>
+            <div><h4>DIRIGIDO A</h4><p>Quien usa Excel a diario pero nunca lo aprendió formalmente — administrativos, coordinadores, analistas junior.</p></div>
+          </div>
+          <div class="session"><div class="session-num">1</div><div class="session-body"><b>Fórmulas y funciones esenciales</b><p>SI, BUSCARV, SUMAR.SI y las funciones que más vas a usar todos los días.</p></div></div>
+          <div class="session"><div class="session-num">2</div><div class="session-body"><b>Formato condicional y validación</b><p>Semáforos, listas desplegables y datos capturados sin errores.</p></div></div>
+          <div class="session"><div class="session-num">3</div><div class="session-body"><b>Tablas de datos y dinámicas básicas</b><p>De una lista desordenada a un resumen que se actualiza solo.</p></div></div>
+          <div class="session"><div class="session-num">4</div><div class="session-body"><b>Gráficos que comunican</b><p>Elige el gráfico correcto y preséntalo con claridad.</p></div></div>
+          <div class="program-cta-row"><a href="/cursos#excel" class="program-cta">Solicitar cotización<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="program-fn" id="progFn2">
+      <div class="program-fn-head" onclick="toggleProgramV4('progFn2')">
+        <div class="program-fn-eyebrow"><span class="program-tool-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg></span>EXCEL · INTERMEDIO-AVANZADO · 20 HR</div>
+        <div class="program-fn-title disp">Intermedio-Avanzado</div>
+        <p class="program-fn-hook">Power Query, tablas dinámicas, dashboards y macros con IA — todo lo que viste en el viaje, en un solo programa.</p>
+        <div class="program-fn-toggle">Ver temario completo<svg class="program-fn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="program-fn-body">
+        <div class="program-fn-inner">
+          <div class="program-fn-obj">
+            <div><h4>OBJETIVO</h4><p>Importar, analizar, visualizar y automatizar información con Power Query, tablas dinámicas, dashboards y macros con IA.</p></div>
+            <div><h4>DIRIGIDO A</h4><p>Quien ya domina lo básico y necesita construir reportes y dashboards ejecutivos de verdad — como el que acabas de ver.</p></div>
+          </div>
+          <div class="session"><div class="session-num">1</div><div class="session-body"><b>Power Query</b><p>Conecta archivos, carpetas y SharePoint — bases de datos siempre al día.</p></div></div>
+          <div class="session"><div class="session-num">2</div><div class="session-body"><b>Tablas dinámicas y reporteo</b><p>Agrupaciones, matrices e inteligencia de tiempo.</p></div></div>
+          <div class="session"><div class="session-num">3</div><div class="session-body"><b>Diseño de dashboards</b><p>El dashboard que viste en el viaje, paso a paso.</p></div></div>
+          <div class="session"><div class="session-num">4</div><div class="session-body"><b>Macros y Copilot aplicado</b><p>VBA apoyado en IA para automatizar lo repetitivo.</p></div></div>
+          <div class="program-cta-row"><a href="/cursos#excel" class="program-cta">Solicitar cotización<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="handoff-mini">¿Buscas algo distinto? Pide tu temario personalizado directo con Alfredo.</p>
+
+  <script>function toggleProgramV4(id){ document.getElementById(id).classList.toggle('open'); }</script>
+</section>
+
+</main>
+
+<footer id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">HABLEMOS</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/></svg></h2>
+    <div class="formula-bar-big" id="formulaBar">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+    </div>
+    <div class="contact-meta">
+      <a href="/aviso-privacidad">Aviso de Privacidad</a>
+      <a href="/terminos-uso">Términos de Uso</a>
+      <a href="/verificar">Verificar diploma</a>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+    <div class="footer-brand">
+      <div class="footer-id">
+        <img src="/assets/img/brand/logo-compacto-oscuro.svg" alt="alfredopina.ai" loading="lazy">
+        <span>Productividad con Datos · Automatización · IA</span>
+      </div>
+      <div class="footer-created"><span>Created by</span><img src="/assets/img/firma-ap.png" alt="Firma de Alfredo Piña" loading="lazy"></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/footer.js"></script>
+
+<div class="js-off-note" id="jsOffNote">GSAP no cargó — mostrando el contenido en su estado final, sin animación (fallback de respaldo).</div>
+
+<script>
+(function(){
+  var heatVals = [.25,.55,.85,.4,.2, .6,.9,.35,.7,.3, .45,.75,.95,.5,.65, .3,.6,.4,.8,.55];
+  var heatGrid = document.getElementById('heatGrid');
+  heatVals.forEach(function(v, i){
+    var d = document.createElement('div');
+    d.className = 'heat-cell reveal';
+    d.dataset.k = 'h'+i;
+    d.style.opacity = (0.25 + v*0.75);
+    heatGrid.appendChild(d);
+  });
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isPhoneTouch = window.matchMedia('(pointer: coarse)').matches && window.matchMedia('(max-width:560px)').matches;
+  var desktop = !isPhoneTouch;
+  var gsapReady = (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined');
+
+  function forceFinalState(){
+    document.body.classList.add('simple-mode');
+    document.querySelectorAll('.reveal').forEach(function(el){ el.style.opacity = 1; el.style.transform = 'none'; });
+    document.querySelectorAll('[data-anim-final]').forEach(function(el){
+      var prop = el.dataset.animProp, val = el.dataset.animFinal;
+      if(prop === 'width-pct') el.style.width = val + '%';
+      else if(prop === 'height-pct') el.style.height = val + '%';
+      else el.setAttribute(prop, val);
+    });
+    document.querySelectorAll('.formula-msg-text').forEach(function(el){ el.style.clipPath = 'inset(0 0% 0 0)'; });
+    document.getElementById('msgWrap1a').style.display = 'none';
+    document.getElementById('msgWrap1b').style.display = 'inline-flex';
+    document.getElementById('fxMail').style.opacity = 1;
+    document.getElementById('fxMail').style.transform = 'scale(1)';
+    document.getElementById('lineMarkers').setAttribute('opacity','1');
+    document.getElementById('lineProj').setAttribute('opacity','1');
+    document.getElementById('projLabel').setAttribute('opacity','1');
+    document.getElementById('lineArea').style.opacity = 1;
+    document.getElementById('hb5').style.width = '20%';
+    document.getElementById('timelineRange').style.width = '55%';
+  }
+
+  if(!gsapReady){
+    document.getElementById('jsOffNote').style.display = 'block';
+    forceFinalState();
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var rail = document.getElementById('rail');
+  function setActive(n){
+    rail.querySelectorAll('.rail-item').forEach(function(it){ it.classList.toggle('active', it.dataset.scene === String(n)); });
+  }
+  setActive(1);
+
+  if(!desktop || reduced){
+    forceFinalState();
+    return;
+  }
+
+  var NAV = 68;
+
+  ScrollTrigger.create({ trigger:'#sceneIntro', start:'top center', end:'bottom center', onToggle:function(self){ if(self.isActive) setActive(1); } });
+
+  // ---- ESCENA 2: CAPTURA ----
+  var tl1 = gsap.timeline({ scrollTrigger:{ trigger:'#sceneCaptura', start:'top '+NAV+'px', end:'+=170%', scrub:1, pin:true,
+    onToggle:function(self){ if(self.isActive) setActive(2); } } });
+  tl1.to('#capStage', { opacity:1, duration:4 }, 0);
+  ['c2','c6','c7','c8','c11','c12','c13','c14','c15','c16'].forEach(function(k, i){ tl1.to('[data-k="'+k+'"]', { opacity:1, duration:4 }, 4 + i*3); });
+  tl1.to('#msgText1a', { clipPath:'inset(0 0% 0 0)', duration:10 }, 2);
+  tl1.to('#msgWrap1a', { opacity:0, duration:4 }, 32);
+  tl1.set('#msgWrap1a', { display:'none' }, 36);
+  tl1.set('#msgWrap1b', { display:'inline-flex', opacity:1 }, 36);
+  tl1.to('#msgText1b', { clipPath:'inset(0 0% 0 0)', duration:9 }, 37);
+  ['n1','n2','n3','n4','n6','n7'].forEach(function(k, i){
+    tl1.fromTo('[data-k="'+k+'"]', { opacity:0, scale:.5 }, { opacity:1, scale:1, duration:5 }, 36 + i*4.2);
+  });
+  // momento de adrenalina: 15 funciones más, de golpe, casi llenando la hoja
+  var burstFns = ['ÚNICOS','ORDENAR','ORDENARPOR','SECUENCIA','EXPANDIR','LAMBDA','MAP','REDUCE','DIVIDIRTEXTO'];
+  var emptyCells = Array.prototype.slice.call(document.querySelectorAll('#capStage .cap-cell:not(.hd):not(.cap-fn)'));
+  burstFns.forEach(function(fn, i){
+    var cell = emptyCells[i % emptyCells.length];
+    if(!cell) return;
+    cell.textContent = fn;
+    cell.classList.add('cap-fn', 'new', 'reveal');
+    gsap.set(cell, { opacity:0, scale:.4 });
+    tl1.to(cell, { opacity:1, scale:1, duration:3 }, 68 + i*1.1);
+  });
+  tl1.to('#capStage', { opacity:0, scale:.94, duration:14 }, 86);
+
+  // ---- ESCENA 3: ORGANIZA ----
+  var tl2 = gsap.timeline({ scrollTrigger:{ trigger:'#sceneOrganiza', start:'top '+NAV+'px', end:'+=175%', scrub:1, pin:true,
+    onToggle:function(self){ if(self.isActive) setActive(3); } } });
+  tl2.fromTo('#orgLeft', { opacity:0, x:-40 }, { opacity:1, x:0, duration:8 }, 0);
+  tl2.fromTo('#orgRight', { opacity:0, x:40 }, { opacity:1, x:0, duration:8 }, 0);
+  tl2.to('#msgText2', { clipPath:'inset(0 0% 0 0)', duration:10 }, 2);
+  tl2.to('[data-fico]', { opacity:1, duration:5, stagger:2 }, 9);
+
+  // filtrar: deja solo lo que necesita atención (semáforo ámbar/rojo)
+  tl2.to('#otable3 tr[data-row="lic"] td, #otable3 tr[data-row="con"] td', { opacity:.15, duration:6 }, 18);
+  tl2.to('#otable3 tr[data-row="sop"] td, #otable3 tr[data-row="cap"] td', { color:'#fff', duration:6 }, 18);
+  // ordenar: reacomoda por Ventas desc (Licencias, Consultoría, Soporte, Capacitación)
+  tl2.to('#otable3 tr[data-row="lic"] td', { opacity:1, duration:6 }, 30);
+  tl2.to('#otable3 tr[data-row="sop"] td', { y:34, duration:8 }, 32);
+  tl2.to('#otable3 tr[data-row="cap"] td', { y:34, duration:8 }, 32);
+  tl2.to('#otable3 tr[data-row="con"] td', { opacity:1, y:-68, duration:8 }, 32);
+
+  ['m1','m2','m3','m4'].forEach(function(k, i){ tl2.to('[data-k="'+k+'"]', { opacity:1, duration:6 }, 46 + i*7); });
+  tl2.to('#orgLeft', { opacity:0, x:-50, duration:14 }, 84);
+  tl2.to('#orgRight', { opacity:0, x:50, duration:14 }, 84);
+
+  // ---- ESCENA 4: DECIDE ----
+  var tl3 = gsap.timeline({ scrollTrigger:{ trigger:'#sceneDecide', start:'top '+NAV+'px', end:'+=195%', scrub:1, pin:true,
+    onToggle:function(self){ if(self.isActive) setActive(4); } } });
+  tl3.to('#imm4', { opacity:1, duration:8 }, 0);
+  tl3.to('#msgText3', { clipPath:'inset(0 0% 0 0)', duration:10 }, 1);
+  tl3.to('#dashGrid', { opacity:1, y:0, duration:8 }, 3);
+  tl3.to('[data-k="sl1"], [data-k="sl2"], [data-k="sl3"], [data-k="sl4"]', { opacity:1, duration:4, stagger:2 }, 8);
+  tl3.to('#timelineRange', { width:'55%', duration:10 }, 16);
+  tl3.to('#hb5', { width:'20%', duration:8 }, 26);
+  tl3.to('#lineArea', { opacity:1, duration:6 }, 34);
+  tl3.to('#barValA, #barValB, #barValC, #barValD', { opacity:1, duration:4, stagger:2 }, 37);
+  tl3.to('#gA', { attr:{ 'stroke-dashoffset':18 }, duration:14 }, 10);
+  tl3.to('#hb1', { width:'95%', duration:8 }, 14);
+  tl3.to('#hb2', { width:'63%', duration:8 }, 17);
+  tl3.to('#hb3', { width:'51%', duration:8 }, 20);
+  tl3.to('#hb4', { width:'29%', duration:8 }, 23);
+  tl3.to('#pie1', { attr:{ 'stroke-dashoffset':0 }, duration:10 }, 18);
+  tl3.to('#pie2', { attr:{ 'stroke-dashoffset':-127 }, duration:10 }, 22);
+  tl3.to('#pie3', { attr:{ 'stroke-dashoffset':-212 }, duration:10 }, 26);
+  tl3.to('#lineChart', { attr:{ 'stroke-dashoffset':0 }, duration:16 }, 24);
+  tl3.to('#lineMarkers', { opacity:1, duration:4 }, 38);
+  tl3.to('#lineProj', { opacity:1, duration:1 }, 40);
+  tl3.to('#lineProj', { attr:{ 'stroke-dashoffset':0 }, duration:8 }, 40);
+  tl3.to('#projLabel', { opacity:1, duration:4 }, 44);
+  tl3.to('#barA', { height:'85%', duration:8 }, 36);
+  tl3.to('#barB', { height:'60%', duration:8 }, 39);
+  tl3.to('#barC', { height:'95%', duration:8 }, 42);
+  tl3.to('#barD', { height:'40%', duration:8 }, 45);
+  gsap.utils.toArray('.heat-cell').forEach(function(c, i){
+    tl3.to(c, { scale:1, duration:4 }, 44 + i*2);
+  });
+  tl3.to('#dashGrid, #imm4', { opacity:0, scale:.95, duration:12 }, 87);
+
+  // ---- ESCENA 5: AUTOMATIZA ----
+  var tl4 = gsap.timeline({ scrollTrigger:{ trigger:'#sceneAutomatiza', start:'top '+NAV+'px', end:'+=190%', scrub:1, pin:true,
+    onToggle:function(self){ if(self.isActive) setActive(5); } } });
+  tl4.to('#toolbar5, #copilotPanel', { opacity:1, y:0, duration:6 }, 0);
+  tl4.to('#msgText4', { clipPath:'inset(0 0% 0 0)', duration:9 }, 1);
+  tl4.fromTo('#cursor5', { opacity:0, x:360, y:180 }, { opacity:1, duration:3 }, 4);
+  tl4.to('#bubbleUser', { opacity:1, duration:5 }, 8);
+  tl4.to('#bubbleAi', { opacity:1, duration:5 }, 14);
+  tl4.to('#bubbleUser2', { opacity:1, duration:4 }, 58);
+  tl4.to('#bubbleAi2', { opacity:1, duration:4 }, 64);
+
+  var btnPos = {
+    btnMail:[57,44], btnDown:[154,44], btnRec:[251,44], btnRef:[348,44],
+    btnClean:[57,110], btnRep:[154,110], btnEval:[251,110], btnApr:[348,110],
+    btnPres:[57,170], btnEdit:[154,170], btnDark:[251,170], btnLight:[348,170]
+  };
+
+  function clickAt(pos, btnId, after){
+    var p = btnPos[btnId];
+    tl4.to('#cursor5', { x:p[0], y:p[1], duration:6 }, pos);
+    tl4.to('#ripple5', { x:p[0]+8, y:p[1]+2, scale:1, opacity:1, duration:2 }, pos+6);
+    tl4.to('#ripple5', { scale:1.6, opacity:0, duration:3 }, pos+7);
+    if(after) after(pos+8);
+  }
+
+  clickAt(20, 'btnMail', function(p){
+    tl4.to('#fxMail', { opacity:1, scale:1, duration:3 }, p);
+    tl4.fromTo('#flyMail', { opacity:0, x:27, y:32 }, { opacity:1, duration:2 }, p);
+    tl4.to('#flyMail', { x:330, y:-150, opacity:0, duration:7 }, p+2);
+  });
+  clickAt(34, 'btnDown', function(p){ tl4.to('#downBar', { width:'100%', duration:7 }, p); });
+  clickAt(46, 'btnRec', function(p){ tl4.to('#recDot', { opacity:1, duration:1, repeat:3, yoyo:true }, p); });
+  clickAt(55, 'btnRef', function(p){ tl4.to('#fx5', { opacity:1, scale:1, duration:3 }, p); });
+  clickAt(63, 'btnClean', function(p){ tl4.to('#fx6', { opacity:1, scale:1, duration:3 }, p); });
+  clickAt(70, 'btnRep', function(p){ tl4.to('#fx7', { opacity:1, scale:1, duration:3 }, p); });
+  clickAt(76, 'btnEval', function(p){ tl4.to('#fx8', { opacity:1, scale:1, duration:3 }, p); });
+  clickAt(81, 'btnApr', function(p){ tl4.to('#fx9', { opacity:1, scale:1, duration:3 }, p); });
+
+  tl4.to('#toolbar5, #copilotPanel, #cursor5', { opacity:0, y:-10, duration:10 }, 92);
+
+  gsap.utils.toArray('.program-fn').forEach(function(card){
+    gsap.set(card, { opacity:0, y:16 });
+    ScrollTrigger.create({ trigger:card, start:'top 92%', onEnter:function(){ gsap.to(card, { opacity:1, y:0, duration:.6, ease:'power2.out' }); } });
+  });
+})();
+</script>

@@ -19,8 +19,11 @@ const PESO_ASISTENCIA = 20;
 const UMBRAL_APROBADO = 80; // calificación mínima para Aprobado
 const UMBRAL_ASISTENCIA = 80; // % de asistencia mínimo para Participó
 
+// Los nombres de alumnos se guardan SIEMPRE en MAYÚSCULAS (pedido de Alfredo:
+// diplomas y reportes se ven parejos sin importar cómo lo tecleó el cliente
+// en su Excel). Los acentos se conservan: "JOSÉ", "MUÑOZ".
 function limpiarNombre(s) {
-  return String(s || "").replace(/\s+/g, " ").trim();
+  return String(s || "").replace(/\s+/g, " ").trim().toLocaleUpperCase("es-MX");
 }
 
 // Se calcula en DÉCIMAS de punto y se compara ya redondeado a 1 decimal —

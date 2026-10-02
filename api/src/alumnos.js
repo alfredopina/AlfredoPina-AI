@@ -13,10 +13,15 @@ async function resolverAlumno(nuevoRequest, clienteId, nombreCompleto, correo) {
   const existente = await nuevoRequest()
     .input("clienteId", sql.Int, clienteId)
     .input("nombre", sql.NVarChar, nombreCompleto)
-    .query("SELECT id, correo FROM Alumno WHERE cliente_id = @clienteId AND nombre_completo = @nombre COLLATE Latin1_General_CI_AI");
+    .query("SELECT id, correo, nombre_completo FROM Alumno WHERE cliente_id = @clienteId AND nombre_completo = @nombre COLLATE Latin1_General_CI_AI");
 
   if (existente.recordset.length) {
-    const { id, correo: correoActual } = existente.recordset[0];
+    const { id, correo: correoActual, nombre_completo: nombreActual } = existente.recordset[0];
+    // alumnos dados de alta antes de la regla de mayúsculas ("José") se
+    // actualizan solos la próxima vez que se les carga una calificación
+    if (nombreActual !== nombreCompleto) {
+      await nuevoRequest().input("id", sql.Int, id).input("nombre", sql.NVarChar, nombreCompleto).query("UPDATE Alumno SET nombre_completo = @nombre WHERE id = @id");
+    }
     if (correo && correo !== correoActual) {
       await nuevoRequest().input("id", sql.Int, id).input("correo", sql.NVarChar, correo).query("UPDATE Alumno SET correo = @correo WHERE id = @id");
     }

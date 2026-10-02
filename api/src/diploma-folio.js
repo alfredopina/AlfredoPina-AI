@@ -39,7 +39,10 @@ function nivelTexto(nivelesJson) {
     .map((n) => NIVEL_TEXTO[n]);
   if (!nombres.length) return "Básico";
   if (nombres.length === 1) return nombres[0];
-  return nombres.slice(0, -1).join(", ") + " y " + nombres[nombres.length - 1];
+  // "y" se vuelve "e" ante una palabra que empieza con "i" ("Básico e Intermedio")
+  const ultimo = nombres[nombres.length - 1];
+  const conj = /^i/i.test(ultimo) ? " e " : " y ";
+  return nombres.slice(0, -1).join(", ") + conj + ultimo;
 }
 
 module.exports = { siguienteConsecutivo, anioCorto, nivelTexto };

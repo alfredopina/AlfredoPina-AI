@@ -3857,13 +3857,12 @@
                 <div class="cal-foto-controles">
                   <input type="file" accept="image/jpeg,image/png,image/webp" class="cal-foto-archivo" id="calFotoArchivo">
                   <div class="cal-foto-botones">
-                    <button type="button" class="radm-btn radm-btn-ghost" id="calFotoSubir" style="min-width:auto">Subir foto</button>
                     <button type="button" class="radm-icon-btn radm-icon-danger" id="calFotoEliminar" title="Eliminar la foto" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                   </div>
                   <label class="cal-foto-visible"><input type="checkbox" id="calFotoVisible" checked>Mostrar en el reporte</label>
                 </div>
               </div>
-              <span class="radm-hint">Se sube y se borra al instante, aparte de Cargar/Actualizar. Si apagas "Mostrar en el reporte", la foto se queda guardada pero no sale en el link que mandas al cliente.</span>
+              <span class="radm-hint">La foto se sube sola al elegir el archivo y se borra al instante, aparte de Cargar/Actualizar. Si apagas "Mostrar en el reporte", la foto se queda guardada pero no sale en el link que mandas al cliente.</span>
             </div>
 
             <div class="radm-actions">
@@ -7745,7 +7744,7 @@
     function crearFilaVacia(){
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="dip-col-nombre"><input type="text" data-col="nombre"></td>
+        <td class="dip-col-nombre"><input type="text" data-col="nombre" style="text-transform:uppercase"></td>
         <td class="cal-col-correo"><input type="text" data-col="correo"></td>
         <td class="dip-col-num"><input type="text" data-col="puntos"></td>
         <td class="dip-col-num"><input type="text" data-col="asistencias"></td>
@@ -7767,7 +7766,7 @@
 
     function leerCeldas(tr){
       const get = col => celda(tr, col).value.trim();
-      return { nombreCompleto: get('nombre'), correo: get('correo'), puntos: get('puntos'), asistencias: get('asistencias'), frecuencias: get('frecuencias'), proyecto: get('proyecto'), notas: get('notas') };
+      return { nombreCompleto: get('nombre').toLocaleUpperCase('es-MX'), correo: get('correo'), puntos: get('puntos'), asistencias: get('asistencias'), frecuencias: get('frecuencias'), proyecto: get('proyecto'), notas: get('notas') };
     }
     const filaConContenido = f => Object.values(f).some(v => v !== '');
 
@@ -7900,19 +7899,22 @@
       img.onload = () => { img.hidden = false; vacio.hidden = true; elim.hidden = false; };
       img.src = '/api/getFotoGrupo?grupoId=' + g.id + '&t=' + Date.now();
     }
-    document.getElementById('calFotoSubir').addEventListener('click', async () => {
-      if(!grupoSel){ toast('Elige un grupo primero.', false); return; }
-      const file = document.getElementById('calFotoArchivo').files[0];
-      if(!file){ toast('Selecciona un archivo primero.', false); return; }
-      const btn = document.getElementById('calFotoSubir');
-      btn.disabled = true; btn.textContent = 'Subiendo...';
+    // se sube sola al elegir el archivo (antes había un botón "Subir foto" y a
+    // veces se olvidaba darle clic)
+    document.getElementById('calFotoArchivo').addEventListener('change', async (e) => {
+      const input = e.target;
+      const file = input.files[0];
+      if(!file) return;
+      if(!grupoSel){ toast('Elige un grupo primero.', false); input.value = ''; return; }
+      input.disabled = true;
+      toast('Subiendo foto…', true);
       try {
         const fileBase64 = await fotoGrupoReducida(file);
         await apiPostJson('/api/guardarFotoGrupo', { grupoId: grupoSel.id, visible: document.getElementById('calFotoVisible').checked, fileBase64, contentType: 'image/jpeg' });
         renderFotoGrupo(grupoSel);
         toast('Foto guardada.', true);
-      } catch(e){ toast('No se pudo subir: ' + e.message, false); }
-      finally { btn.disabled = false; btn.textContent = 'Subir foto'; }
+      } catch(err){ toast('No se pudo subir: ' + err.message, false); input.value = ''; }
+      finally { input.disabled = false; }
     });
     document.getElementById('calFotoEliminar').addEventListener('click', async () => {
       if(!grupoSel) return;

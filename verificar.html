@@ -346,7 +346,7 @@
     const tieneApr = (d.aprendizaje || []).length > 0;
     $('vAprCard').hidden = !tieneApr;
     $('vGrid2').classList.toggle('solo', !tieneApr);
-    $('vTemas').innerHTML = (d.aprendizaje || []).map(t => { const l = t.replace(/^\s*(el|la) participante aprendi[oó] a\s*/i, '').trim(); return `<li>${esc(/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]/.test(l) ? l[0].toLowerCase() + l.slice(1) : l)}</li>`; }).join('');
+    $('vTemas').innerHTML = (d.aprendizaje || []).map(t => { const l = t.replace(/^\s*(el|la) participante aprendi[oó] a\s*/i, '').trim(); return `<li>${esc(l ? l[0].toLocaleUpperCase('es-MX') + l.slice(1) : l)}</li>`; }).join('');
 
     const ins = d.instructor || {};
     const ini = (ins.nombre || '?').replace(/^(ing|lic|dr|dra|mtro|mtra)\.?\s+/i, '').split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase();

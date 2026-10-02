@@ -620,17 +620,20 @@
 
   // los puntos extra van visibles aquí: sin esto, varios "100+" se ven
   // idénticos y no se distingue quién sacó más puntos
-  function itemRank(p, i){
+  // enmascarar: en "Por debajo de 80" no se muestra la calificación exacta (a
+  // nadie le sirve ver un 3.3 en un reporte para RH) sino "<80", siempre en
+  // ámbar — el rojo de 0 exacto delataría el número igual.
+  function itemRank(p, i, enmascarar){
     // los puntos extra van debajo del "100+", sutiles y en gris — no junto
     // al nombre: así se distingue quién sacó más sin competir con el número
     const extra = p.excede100 && p.puntos ? `<span class="rank-extra">+${r1(p.calificacion - 100)} pts</span>` : '';
-    return `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(p.nombre)}<span class="rank-cat">${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</span></span><span class="rank-prom-wrap"><span class="rank-prom num ${p.semaforo}">${p.excede100 ? '100+' : fmtCalif(p.calificacion)}</span>${extra}</span></div>`;
+    return `<div class="rank-item"><span class="rank-pos">${i + 1}</span><span class="rank-txt">${esc(p.nombre)}<span class="rank-cat">${esc(p.empresa)}${p.curso ? ' · ' + esc(p.curso) : ''}</span></span><span class="rank-prom-wrap"><span class="rank-prom num ${enmascarar ? 'ambar' : p.semaforo}">${enmascarar ? '&lt;80' : (p.excede100 ? '100+' : fmtCalif(p.calificacion))}</span>${enmascarar ? '' : extra}</span></div>`;
   }
   function renderRank(s){
-    const mejores = `<div class="card rank"><div class="rank-title">${SVG.up}Los mejor calificados</div>${(s.mejores || []).map(itemRank).join('') || '<div class="rank-ok">Sin datos suficientes.</div>'}</div>`;
+    const mejores = `<div class="card rank"><div class="rank-title">${SVG.up}Los mejor calificados</div>${(s.mejores || []).map((p, i) => itemRank(p, i, false)).join('') || '<div class="rank-ok">Sin datos suficientes.</div>'}</div>`;
     const bajos = s.bajoOchenta || [];
     const debajo = bajos.length
-      ? `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 80 (${bajos.length})</div>${bajos.slice(0, 10).map(itemRank).join('')}${bajos.length > 10 ? `<div class="rep-empty">…y ${bajos.length - 10} más — ver pestaña Por alumno.</div>` : ''}</div>`
+      ? `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 80 (${bajos.length})</div>${bajos.slice(0, 3).map((p, i) => itemRank(p, i, true)).join('')}${bajos.length > 3 ? `<div class="rep-empty">…y ${bajos.length - 3} más — ver pestaña Por alumno.</div>` : ''}</div>`
       : `<div class="card rank"><div class="rank-title">${SVG.down}Por debajo de 80</div><div class="rank-ok">${SVG.ok}Nadie quedó por debajo de 80 — todo el grupo está en verde.</div></div>`;
     document.getElementById('repRank').innerHTML = mejores + debajo;
   }

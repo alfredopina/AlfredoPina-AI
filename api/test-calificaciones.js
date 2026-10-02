@@ -76,7 +76,8 @@ const base = { puntos: "", asistencias: "5", frecuencias: "5", proyecto: "90" };
     { ...base, nombreCompleto: "Ana Ruiz", proyecto: "70", asistencias: "4" },
   ]);
   check("2 filas válidas, la vacía del grid se ignora", filas.length === 2 && errores.length === 0);
-  check("nombre limpio y correo conservado", filas[0].nombreCompleto === "José Pérez" && filas[0].correo === "jose@acme.com");
+  check("nombre limpio, en MAYÚSCULAS con acentos, y correo conservado", filas[0].nombreCompleto === "JOSÉ PÉREZ" && filas[0].correo === "jose@acme.com");
+  check("la ñ también sube a mayúscula", validarFilas([{ ...base, nombreCompleto: "luis muñoz" }]).filas[0].nombreCompleto === "LUIS MUÑOZ");
   check("evaluación calculada en la fila (98 Aprobado)", filas[0].calificacion === 98 && filas[0].resultado === "Aprobado");
   check("puntos vacío = 0; correo vacío = null", filas[1].puntos === 0 && filas[1].correo === null);
   check("notas conservadas", filas[0].notas === "Muy buen proyecto" && filas[1].notas === null);

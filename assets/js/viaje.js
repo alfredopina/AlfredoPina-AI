@@ -68,8 +68,20 @@
     <div class="rail-item" data-scene="2"><span class="rail-num">2</span></div>
     <div class="rail-item" data-scene="3"><span class="rail-num">3</span></div>
     <div class="rail-item" data-scene="4"><span class="rail-num">4</span></div>
+    <div class="rail-item" data-scene="5"><span class="rail-num">5</span></div>
   </div>
-  <a href="#programsList" class="skip-nav-btn">Ver programas directo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+
+  <section class="viaje-hero" id="sceneHero">
+    <span class="viaje-hero-eyebrow">Curso de Excel</span>
+    <h1 class="viaje-hero-title">Aprende Excel como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">A1</span></span></span>.</h1>
+    <div class="viaje-hero-chips">
+      <span class="scope-chip">Versión 365</span>
+      <span class="scope-chip">Español e Inglés</span>
+      <span class="scope-chip">WPS / Google Sheets</span>
+    </div>
+    <div class="viaje-hero-cue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>scroll</div>
+    <a href="#programsList" class="skip-nav-btn">Ver programas directo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </section>
 
   <section class="viaje-scene" id="sceneCaptura">
     <div class="viaje-stage">
@@ -245,20 +257,24 @@
         heatGrid.appendChild(d);
       });
 
-      const { simple, gsapListo } = ViajeEngine.esSimpleMode();
+      const NAV = ViajeEngine.navOffset(root);
+      document.documentElement.style.setProperty("--viaje-nav-h", NAV + "px");
+
+      const { simple } = ViajeEngine.esSimpleMode();
       if (simple) { ViajeEngine.forceFinalState(root); return; }
 
       gsap.registerPlugin(ScrollTrigger);
-      const NAV = ViajeEngine.navOffset(root);
-      document.documentElement.style.setProperty("--viaje-nav-h", NAV + "px");
       const rail = root.querySelector("#viajeRail");
       function setActive(n) { rail.querySelectorAll(".rail-item").forEach((it) => it.classList.toggle("active", it.dataset.scene === String(n))); }
 
       const $ = (sel) => root.querySelector(sel);
       const q = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
 
-      // ---- 1: CAPTURA ----
-      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top " + NAV + "px", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(1) } });
+      ScrollTrigger.create({ trigger: "#sceneHero", start: "top center", end: "bottom center", onToggle: (self) => self.isActive && setActive(1) });
+      setActive(1);
+
+      // ---- 2: CAPTURA ----
+      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top " + NAV + "px", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
       tl1.to("#capStage", { opacity: 1, duration: 4 }, 0);
       classicCells.forEach((cell, i) => tl1.to(cell, { opacity: 1, duration: 4 }, 4 + i * 3));
       tl1.to("#msgText1a", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -270,7 +286,7 @@
       tl1.to("#capStage", { opacity: 0, scale: .94, duration: 14 }, 86);
 
       // ---- 2: ORGANIZA ----
-      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top " + NAV + "px", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
+      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top " + NAV + "px", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
       tl2.fromTo("#orgLeft", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.fromTo("#orgRight", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.to("#msgText2", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -287,7 +303,7 @@
       tl2.to("#orgRight", { opacity: 0, x: 50, duration: 14 }, 84);
 
       // ---- 3: DECIDE ----
-      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top " + NAV + "px", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
+      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top " + NAV + "px", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
       tl3.to("#imm4", { opacity: 1, duration: 8 }, 0);
       tl3.to("#msgText3", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 1);
       tl3.to("#dashGrid", { opacity: 1, y: 0, duration: 8 }, 3);
@@ -312,7 +328,7 @@
       tl3.to("#dashGrid, #imm4", { opacity: 0, scale: .95, duration: 12 }, 87);
 
       // ---- 4: AUTOMATIZA ----
-      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top " + NAV + "px", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
+      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top " + NAV + "px", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
       tl4.to("#toolbar5, #copilotPanel", { opacity: 1, y: 0, duration: 6 }, 0);
       tl4.to("#msgText4", { clipPath: "inset(0 0% 0 0)", duration: 9 }, 1);
       tl4.fromTo("#cursor5", { opacity: 0, x: 360, y: 180 }, { opacity: 1, duration: 3 }, 4);

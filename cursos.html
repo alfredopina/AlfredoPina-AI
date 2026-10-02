@@ -218,6 +218,10 @@
         .map(s => `<span class="scope-chip">${checkDot()}${s}</span>`).join('');
     }
 
+    // con viaje, su hero reemplaza el encabezado genérico (título/subtítulo/chips)
+    const encabezado = document.getElementById('catTitle').closest('header');
+    if(encabezado) encabezado.hidden = !!(window.ViajeHerramienta && window.ViajeHerramienta.tieneConfig(cat));
+
     const cell = document.querySelector(`.cat-cell[data-cat="${cat}"]`);
     const color = (cell && cell.style.getPropertyValue('--c').trim()) || '#22c55e';
     document.querySelector('section.wrap').style.setProperty('--c', color);

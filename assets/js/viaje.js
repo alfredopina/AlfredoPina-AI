@@ -70,6 +70,8 @@
     <div class="rail-item" data-scene="5"><span class="rail-num">5</span></div>
   </div>
 
+  <a href="#programsList" class="viaje-fab" aria-label="Navegar a Programas">Navegar a Programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+
   <section class="viaje-hero" id="sceneHero">
     <span class="viaje-hero-eyebrow">Curso de Excel</span>
     <h1 class="viaje-hero-title">Aprende Excel como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">A1</span></span></span>.</h1>
@@ -78,8 +80,8 @@
       <span class="scope-chip">Español e Inglés</span>
       <span class="scope-chip">WPS / Google Sheets</span>
     </div>
-    <div class="viaje-hero-cue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>scroll</div>
-    <a href="#programsList" class="skip-nav-btn">Ver programas directo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a href="#programsList" class="viaje-cta">Navegar a Programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <div class="viaje-hero-cue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>o baja para recorrer el viaje</div>
   </section>
 
   <section class="viaje-scene" id="sceneCaptura">

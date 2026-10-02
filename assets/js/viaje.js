@@ -49,7 +49,6 @@
         else el.setAttribute(prop, val);
       });
       root.querySelectorAll(".formula-msg-text").forEach((el) => { el.style.clipPath = "inset(0 0% 0 0)"; });
-      root.querySelectorAll(".heat-cell").forEach((el) => { el.style.opacity = el.dataset.finalOpacity || 1; });
     },
   };
 
@@ -84,6 +83,7 @@
   </section>
 
   <section class="viaje-scene" id="sceneCaptura">
+    <div class="immersive" style="opacity:1;"></div>
     <div class="viaje-stage">
       <div class="cap-grid reveal" id="capStage">
         <div class="cap-cell hd"></div>
@@ -99,6 +99,7 @@
   </section>
 
   <section class="viaje-scene" id="sceneOrganiza">
+    <div class="immersive" style="opacity:1;"></div>
     <div class="viaje-stage">
       <div class="org-split">
         <div class="org-panel reveal" id="orgLeft">
@@ -142,65 +143,110 @@
     </div>
   </section>
 
-  <section class="viaje-scene" id="sceneDecide">
-    <div class="immersive reveal" id="imm4"></div>
-    <div class="viaje-stage">
-      <div class="viaje-msg" style="margin-bottom:-6px;"><div class="formula-msg" id="msgWrap3"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span></div></div>
-      <div class="dash-grid reveal" id="dashGrid">
-        <div class="dash-tile">
-          <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8"/></svg>Automatización</span>
-          <div class="gauge-wrap"><svg viewBox="0 0 180 100"><path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#2a3140" stroke-width="12" stroke-linecap="round"/><path id="gA" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220" data-anim-prop="stroke-dashoffset" data-anim-final="18"/></svg><div class="disp gauge-val">92%</div></div>
-        </div>
-        <div class="dash-tile">
-          <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg>Filtro de segmentación</span>
-          <div class="slicer-pills">
-            <span class="slicer-pill active reveal" data-k="sl1">Todas</span>
-            <span class="slicer-pill reveal" data-k="sl2">Norte</span>
-            <span class="slicer-pill reveal" data-k="sl3">Centro</span>
-            <span class="slicer-pill reveal" data-k="sl4">Sur</span>
-          </div>
-          <div class="timeline-wrap">
-            <div class="timeline-track"><div class="timeline-range reveal" id="timelineRange"></div></div>
-            <div class="timeline-ticks"><span>Ene</span><span>Abr</span><span>Jul</span><span>Oct</span><span>Dic</span></div>
-          </div>
-        </div>
-        <div class="dash-tile">
-          <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>Distribución por producto</span>
-          <div class="gauge-wrap" style="height:84px;"><svg viewBox="0 0 100 100" style="transform:rotate(-90deg)"><circle cx="50" cy="50" r="45" fill="none" stroke="#2a3140" stroke-width="12"/><circle id="pie1" cx="50" cy="50" r="45" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="127 283" stroke-dashoffset="127" data-anim-prop="stroke-dashoffset" data-anim-final="0"/><circle id="pie2" cx="50" cy="50" r="45" fill="none" stroke="#6b9fff" stroke-width="12" stroke-dasharray="85 283" stroke-dashoffset="42" data-anim-prop="stroke-dashoffset" data-anim-final="-127"/><circle id="pie3" cx="50" cy="50" r="45" fill="none" stroke="#dfb35a" stroke-width="12" stroke-dasharray="71 283" stroke-dashoffset="-141" data-anim-prop="stroke-dashoffset" data-anim-final="-212"/></svg></div>
-          <div class="legend"><span><i style="background:#22c55e;"></i>Excel 45%</span><span><i style="background:#6b9fff;"></i>Power BI 30%</span><span><i style="background:#dfb35a;"></i>Auto 25%</span></div>
-        </div>
-        <div class="dash-tile">
-          <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13 6-3m-6 3V7m6 13 6-3V4l-6 3m0 13V7m0 0L9 4"/></svg>Cobertura por región</span>
-          <div class="heat-grid" id="heatGrid"></div>
-        </div>
-        <div class="dash-tile" style="grid-column:span 2;">
-          <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Ventas por región y tendencia</span>
-          <div class="bars-row">
-            <div class="bar-col"><span class="bar-val reveal" id="barValA">$185k</span><i id="barA" data-anim-prop="height-pct" data-anim-final="85"></i><span class="bar-tag">Q1</span></div>
-            <div class="bar-col"><span class="bar-val reveal" id="barValB">$130k</span><i id="barB" data-anim-prop="height-pct" data-anim-final="60"></i><span class="bar-tag">Q2</span></div>
-            <div class="bar-col"><span class="bar-val reveal" id="barValC">$206k</span><i id="barC" data-anim-prop="height-pct" data-anim-final="95"></i><span class="bar-tag">Q3</span></div>
-            <div class="bar-col"><span class="bar-val reveal" id="barValD">$87k</span><i id="barD" data-anim-prop="height-pct" data-anim-final="40"></i><span class="bar-tag">Q4</span></div>
-          </div>
-          <svg viewBox="-2 -12 120 82" style="width:100%;height:76px;">
-            <line x1="0" x2="100" y1="10" y2="10" stroke="var(--line-soft)" stroke-width=".6"/>
-            <line x1="0" x2="100" y1="32" y2="32" stroke="var(--line-soft)" stroke-width=".6"/>
-            <line x1="0" x2="100" y1="55" y2="55" stroke="var(--line-soft)" stroke-width=".6"/>
-            <path id="lineArea" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8 L98,62 L2,62 Z" fill="url(#lineGrad)" opacity="0"/>
-            <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></linearGradient></defs>
-            <path id="lineChart" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8" fill="none" stroke="#14b8a6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-            <path id="lineProj" d="M98,8 L114,-2" fill="none" stroke="#dfb35a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 3" pathLength="100" stroke-dashoffset="100" opacity="0" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-            <g id="lineMarkers" opacity="0">
-              <circle cx="2" cy="55" r="2.6" fill="#14b8a6"/><circle cx="22" cy="45" r="2.6" fill="#14b8a6"/><circle cx="42" cy="50" r="2.6" fill="#14b8a6"/>
-              <circle cx="62" cy="28" r="2.6" fill="#14b8a6"/><circle cx="82" cy="18" r="2.6" fill="#14b8a6"/><circle cx="98" cy="8" r="2.8" fill="#eafff9" stroke="#14b8a6" stroke-width="1.4"/>
-              <text x="2" y="-3" font-size="6.5" fill="var(--text-faint)" font-family="monospace">$28k</text>
-              <text x="90" y="4" font-size="6.5" fill="#eafff9" font-family="monospace">$61k</text>
-            </g>
-            <text x="100" y="-6" font-size="6" fill="#dfb35a" font-family="monospace" opacity="0" id="projLabel">proyección</text>
-          </svg>
+<section class="viaje-scene" id="sceneDecide">
+  <div class="immersive reveal" id="imm4"></div>
+  <div class="viaje-stage">
+    <div class="viaje-msg" style="margin-bottom:-6px;"><div class="formula-msg" id="msgWrap3"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span></div></div>
+    <div class="dash-grid reveal" id="dashGrid">
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8"/></svg>Automatización</span>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 180 100"><path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#2a3140" stroke-width="12" stroke-linecap="round"/>
+          <path id="gA" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220" data-anim-prop="stroke-dashoffset" data-anim-final="18"/></svg>
+          <div class="disp gauge-val">92%</div>
         </div>
       </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Top 5 productos</span>
+        <div class="hbars">
+          <div class="hbar-row"><span class="hbar-label">Licencias</span><div class="hbar-track"><div class="hbar-fill" id="hb1" style="background:#22c55e;" data-anim-prop="width-pct" data-anim-final="95"></div></div><span class="hbar-val">$182k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Consultoría</span><div class="hbar-track"><div class="hbar-fill" id="hb2" style="background:#6b9fff;" data-anim-prop="width-pct" data-anim-final="63"></div></div><span class="hbar-val">$120k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Soporte</span><div class="hbar-track"><div class="hbar-fill" id="hb3" style="background:#dfb35a;" data-anim-prop="width-pct" data-anim-final="51"></div></div><span class="hbar-val">$97k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Capacitación</span><div class="hbar-track"><div class="hbar-fill" id="hb4" style="background:#14b8a6;" data-anim-prop="width-pct" data-anim-final="29"></div></div><span class="hbar-val">$55k</span></div>
+          <div class="hbar-row"><span class="hbar-label">Diagnóstico</span><div class="hbar-track"><div class="hbar-fill" id="hb5" style="background:#a78bfa;" data-anim-prop="width-pct" data-anim-final="20"></div></div><span class="hbar-val">$38k</span></div>
+        </div>
+        <div class="legend" style="justify-content:flex-start;margin-top:2px;">
+          <span class="chip" style="font-size:9.5px;padding:4px 9px;">Este trimestre</span>
+          <span class="chip" style="font-size:9.5px;padding:4px 9px;">Todas las regiones</span>
+        </div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>Distribución por producto</span>
+        <div class="gauge-wrap" style="height:84px;">
+          <svg viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#2a3140" stroke-width="12"/>
+            <circle id="pie1" cx="50" cy="50" r="45" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="127 283" stroke-dashoffset="127" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+            <circle id="pie2" cx="50" cy="50" r="45" fill="none" stroke="#6b9fff" stroke-width="12" stroke-dasharray="85 283" stroke-dashoffset="42" data-anim-prop="stroke-dashoffset" data-anim-final="-127"/>
+            <circle id="pie3" cx="50" cy="50" r="45" fill="none" stroke="#dfb35a" stroke-width="12" stroke-dasharray="71 283" stroke-dashoffset="-141" data-anim-prop="stroke-dashoffset" data-anim-final="-212"/>
+          </svg>
+        </div>
+        <div class="legend"><span><i style="background:#22c55e;"></i>Excel 45%</span><span><i style="background:#6b9fff;"></i>Power BI 30%</span><span><i style="background:#dfb35a;"></i>Auto 25%</span></div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg>Filtro de segmentación</span>
+        <div class="slicer-pills">
+          <span class="slicer-pill active reveal" data-k="sl1">Todas</span>
+          <span class="slicer-pill reveal" data-k="sl2">Norte</span>
+          <span class="slicer-pill reveal" data-k="sl3">Centro</span>
+          <span class="slicer-pill reveal" data-k="sl4">Sur</span>
+        </div>
+        <div class="timeline-wrap">
+          <div class="timeline-track"><div class="timeline-range reveal" id="timelineRange"></div></div>
+          <div class="timeline-ticks"><span>Ene</span><span>Abr</span><span>Jul</span><span>Oct</span><span>Dic</span></div>
+        </div>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Ventas por región y tendencia</span>
+        <div class="bars-row">
+          <div class="bar-col"><span class="bar-val reveal" id="barValA">$185k</span><i id="barA" data-anim-prop="height-pct" data-anim-final="85"></i><span class="bar-tag">Q1</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValB">$130k</span><i id="barB" data-anim-prop="height-pct" data-anim-final="60"></i><span class="bar-tag">Q2</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValC">$206k</span><i id="barC" data-anim-prop="height-pct" data-anim-final="95"></i><span class="bar-tag">Q3</span></div>
+          <div class="bar-col"><span class="bar-val reveal" id="barValD">$87k</span><i id="barD" data-anim-prop="height-pct" data-anim-final="40"></i><span class="bar-tag">Q4</span></div>
+        </div>
+        <svg viewBox="-2 -12 120 82" style="width:100%;height:76px;">
+          <line x1="0" x2="100" y1="10" y2="10" stroke="var(--line-soft)" stroke-width=".6"/>
+          <line x1="0" x2="100" y1="32" y2="32" stroke="var(--line-soft)" stroke-width=".6"/>
+          <line x1="0" x2="100" y1="55" y2="55" stroke="var(--line-soft)" stroke-width=".6"/>
+          <path id="lineArea" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8 L98,62 L2,62 Z" fill="url(#lineGrad)" opacity="0"/>
+          <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></linearGradient></defs>
+          <path id="lineChart" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8" fill="none" stroke="#14b8a6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <path id="lineProj" d="M98,8 L114,-2" fill="none" stroke="#dfb35a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 3" pathLength="100" stroke-dashoffset="100" opacity="0" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <g id="lineMarkers" opacity="0">
+            <circle cx="2" cy="55" r="2.6" fill="#14b8a6"/><circle cx="22" cy="45" r="2.6" fill="#14b8a6"/><circle cx="42" cy="50" r="2.6" fill="#14b8a6"/>
+            <circle cx="62" cy="28" r="2.6" fill="#14b8a6"/><circle cx="82" cy="18" r="2.6" fill="#14b8a6"/><circle cx="98" cy="8" r="2.8" fill="#eafff9" stroke="#14b8a6" stroke-width="1.4"/>
+            <text x="2" y="-3" font-size="6.5" fill="var(--text-faint)" font-family="monospace">$28k</text>
+            <text x="90" y="4" font-size="6.5" fill="#eafff9" font-family="monospace">$61k</text>
+          </g>
+          <text x="100" y="-6" font-size="6" fill="#dfb35a" font-family="monospace" opacity="0" id="projLabel">proyección</text>
+        </svg>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13 6-3m-6 3V7m6 13 6-3V4l-6 3m0 13V7m0 0L9 4"/></svg>Cobertura por región</span>
+        <svg class="mx-map" viewBox="0 0 310 195">
+          <g id="mapFill" class="reveal">
+            <path d="M30,5 L66,17 L93,17 L109,12 L128,34 L142,40 L157,32 L176,55 L197,71 L192,105 L209,138 L224,148 L243,144 L257,142 L264,120 L295,115 L290,145 L275,152 L257,158 L245,185 L223,168 L204,173 L180,163 L154,152 L121,128 L118,105 L95,75 L71,51 L49,32 L31,13 Z" fill="rgba(20,184,166,.10)"/>
+            <path d="M8,5 L31,3 L30,13 L48,35 L63,65 L81,98 L76,101 L57,83 L33,52 L20,31 Z" fill="rgba(20,184,166,.10)"/>
+          </g>
+          <path id="mapOutline" d="M30,5 L66,17 L93,17 L109,12 L128,34 L142,40 L157,32 L176,55 L197,71 L192,105 L209,138 L224,148 L243,144 L257,142 L264,120 L295,115 L290,145 L275,152 L257,158 L245,185 L223,168 L204,173 L180,163 L154,152 L121,128 L118,105 L95,75 L71,51 L49,32 L31,13 Z" fill="none" stroke="#14b8a6" stroke-width="1.6" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <path id="mapOutlineBaja" d="M8,5 L31,3 L30,13 L48,35 L63,65 L81,98 L76,101 L57,83 L33,52 L20,31 Z" fill="none" stroke="#14b8a6" stroke-width="1.6" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+          <g class="map-dot-g reveal"><circle class="map-ring" cx="122" cy="32" r="9"/><circle cx="122" cy="32" r="6.5" fill="#22c55e"/><text x="134" y="25" class="map-lbl">Norte</text></g>
+          <g class="map-dot-g reveal"><circle class="map-ring" cx="168" cy="73" r="8"/><circle cx="168" cy="73" r="5.5" fill="#6b9fff"/><text x="178" y="68" class="map-lbl">Noreste</text></g>
+          <g class="map-dot-g reveal"><circle class="map-ring" cx="160" cy="118" r="8"/><circle cx="160" cy="118" r="5.5" fill="#dfb35a"/><text x="96" y="114" class="map-lbl">Bajío</text></g>
+          <g class="map-dot-g reveal"><circle class="map-ring" cx="181" cy="134" r="9"/><circle cx="181" cy="134" r="6.5" fill="#14b8a6"/><text x="192" y="132" class="map-lbl">Centro</text></g>
+          <g class="map-dot-g reveal"><circle class="map-ring" cx="203" cy="160" r="7"/><circle cx="203" cy="160" r="5" fill="#a78bfa"/><text x="214" y="168" class="map-lbl">Sur</text></g>
+        </svg>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
+
 
   <section class="viaje-scene" id="sceneAutomatiza">
     <div class="immersive" style="opacity:1;"></div>
@@ -248,15 +294,6 @@
       const classicCells = this.classicFns.map((fn, i) => { const c = pool[i]; c.textContent = fn; c.classList.add("cap-fn", "reveal"); return c; });
       const newCells = this.newFns.map((fn, i) => { const c = pool[this.classicFns.length + i]; c.textContent = fn; c.classList.add("cap-fn", "new", "reveal"); return c; });
 
-      const heatVals = [.25, .55, .85, .4, .2, .6, .9, .35, .7, .3, .45, .75, .95, .5, .65, .3, .6, .4, .8, .55, .9, .35, .7, .5, .25, .8, .45, .65];
-      const heatGrid = root.querySelector("#heatGrid");
-      heatVals.forEach((v, i) => {
-        const d = document.createElement("div");
-        d.className = "heat-cell reveal";
-        d.dataset.finalOpacity = (0.25 + v * 0.75).toFixed(2);
-        heatGrid.appendChild(d);
-      });
-
       const NAV = ViajeEngine.navOffset(root);
       document.documentElement.style.setProperty("--viaje-nav-h", NAV + "px");
 
@@ -274,7 +311,7 @@
       setActive(1);
 
       // ---- 2: CAPTURA ----
-      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top " + NAV + "px", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
+      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top top", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
       tl1.to("#capStage", { opacity: 1, duration: 4 }, 0);
       classicCells.forEach((cell, i) => tl1.to(cell, { opacity: 1, duration: 4 }, 4 + i * 3));
       tl1.to("#msgText1a", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -286,7 +323,7 @@
       tl1.to("#capStage", { opacity: 0, scale: .94, duration: 14 }, 86);
 
       // ---- 2: ORGANIZA ----
-      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top " + NAV + "px", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
+      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top top", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
       tl2.fromTo("#orgLeft", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.fromTo("#orgRight", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.to("#msgText2", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -303,7 +340,7 @@
       tl2.to("#orgRight", { opacity: 0, x: 50, duration: 14 }, 84);
 
       // ---- 3: DECIDE ----
-      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top " + NAV + "px", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
+      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top top", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
       tl3.to("#imm4", { opacity: 1, duration: 8 }, 0);
       tl3.to("#msgText3", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 1);
       tl3.to("#dashGrid", { opacity: 1, y: 0, duration: 8 }, 3);
@@ -324,11 +361,18 @@
       tl3.to("#barB", { height: "60%", duration: 8 }, 39);
       tl3.to("#barC", { height: "95%", duration: 8 }, 42);
       tl3.to("#barD", { height: "40%", duration: 8 }, 45);
-      q(".heat-cell").forEach((c, i) => tl3.to(c, { opacity: parseFloat(c.dataset.finalOpacity), scale: 1, duration: 4 }, 44 + i * 1.4));
+      tl3.to("#hb1", { width: "95%", duration: 8 }, 14);
+      tl3.to("#hb2", { width: "63%", duration: 8 }, 17);
+      tl3.to("#hb3", { width: "51%", duration: 8 }, 20);
+      tl3.to("#hb4", { width: "29%", duration: 8 }, 23);
+      tl3.to("#hb5", { width: "20%", duration: 8 }, 26);
+      tl3.to("#mapFill", { opacity: 1, duration: 8 }, 40);
+      tl3.to("#mapOutline, #mapOutlineBaja", { attr: { "stroke-dashoffset": 0 }, duration: 14 }, 38);
+      q(".map-dot-g").forEach((g, i) => tl3.to(g, { opacity: 1, duration: 4 }, 52 + i * 6));
       tl3.to("#dashGrid, #imm4", { opacity: 0, scale: .95, duration: 12 }, 87);
 
       // ---- 4: AUTOMATIZA ----
-      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top " + NAV + "px", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
+      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top top", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
       tl4.to("#toolbar5, #copilotPanel", { opacity: 1, y: 0, duration: 6 }, 0);
       tl4.to("#msgText4", { clipPath: "inset(0 0% 0 0)", duration: 9 }, 1);
       tl4.fromTo("#cursor5", { opacity: 0, x: 360, y: 180 }, { opacity: 1, duration: 3 }, 4);
@@ -363,6 +407,10 @@
       clickAt(81, "btnApr", (p) => tl4.to("#fx9", { opacity: 1, scale: 1, duration: 3 }, p));
       tl4.to("#toolbar5, #copilotPanel, #cursor5", { opacity: 0, y: -10, duration: 10 }, 92);
 
+      // inmersivo: del primer pin al último, nav y categorías se esconden
+      document.body.classList.add("viaje-on");
+      ScrollTrigger.create({ trigger: "#sceneCaptura", start: "top top", end: () => tl4.scrollTrigger.end, onToggle: (self) => document.body.classList.toggle("viaje-inmersivo", self.isActive) });
+
       ScrollTrigger.refresh();
       window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
     },
@@ -375,6 +423,6 @@
     html(cat) { return VIAJE_SCENES[cat] ? VIAJE_SCENES[cat].renderHtml() : ""; },
     iniciar(cat) { if (VIAJE_SCENES[cat]) VIAJE_SCENES[cat].iniciar(); },
     // al cambiar de herramienta el panel se reemplaza: hay que soltar los pins viejos
-    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); },
+    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); document.body.classList.remove("viaje-on", "viaje-inmersivo"); },
   };
 })();

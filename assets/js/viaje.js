@@ -3,7 +3,7 @@
 // cursos.html, arriba del catálogo de cada herramienta. Hoy solo Excel tiene
 // contenido (VIAJE_SCENES.excel) — para replicarlo en otra herramienta:
 // escribir su propio renderHtml()/iniciar() con el mismo patrón y agregarlo a
-// VIAJE_SCENES; el motor compartido (ViajeEngine: pin, rail, fx=, fallback
+// VIAJE_SCENES; el motor compartido (ViajeEngine: pin, hoja con barra de fórmulas/pestañas, fallback
 // simple-mode) no cambia.
 //
 // Decisiones que NO hay que repetir si esto se toca:
@@ -62,15 +62,25 @@
     renderHtml() {
       return `
 <div class="viaje-root" id="viajeExcel">
-  <div class="rail" id="viajeRail">
-    <div class="rail-item" data-scene="1"><span class="rail-num">1</span></div>
-    <div class="rail-item" data-scene="2"><span class="rail-num">2</span></div>
-    <div class="rail-item" data-scene="3"><span class="rail-num">3</span></div>
-    <div class="rail-item" data-scene="4"><span class="rail-num">4</span></div>
-    <div class="rail-item" data-scene="5"><span class="rail-num">5</span></div>
+  <div class="hoja-shell" id="hojaShell">
+    <div class="hoja-top">
+      <div class="hoja-namebox" id="hojaName">B5</div>
+      <div class="hoja-fx"><span class="hoja-fx-ico">fx</span><div class="hoja-fx-stack">
+        <span class="hoja-txt" id="msgText1">Aprende a crear fórmulas poderosas.<span class="formula-msg-cursor"></span></span>
+        <span class="hoja-txt" id="msgText2">Organiza tablas y crea Reportes automáticos.<span class="formula-msg-cursor"></span></span>
+        <span class="hoja-txt" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span>
+        <span class="hoja-txt" id="msgText4">Deja que la IA haga el trabajo duro.<span class="formula-msg-cursor"></span></span>
+      </div></div>
+      <a href="#programsList" class="hoja-ver">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="hoja-gutter"><div class="hoja-rows" id="hojaRows"></div><div class="hoja-sel"></div></div>
+    <div class="hoja-tabs" id="viajeRail">
+      <button type="button" class="hoja-tab" data-scene="2" data-goto="sceneCaptura">Captura</button>
+      <button type="button" class="hoja-tab" data-scene="3" data-goto="sceneOrganiza">Organiza</button>
+      <button type="button" class="hoja-tab" data-scene="4" data-goto="sceneDecide">Decide</button>
+      <button type="button" class="hoja-tab" data-scene="5" data-goto="sceneAutomatiza">Automatiza</button>
+    </div>
   </div>
-
-  <a href="#programsList" class="viaje-fab" aria-label="Navegar a Programas">Navegar a Programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 
   <section class="viaje-hero" id="sceneHero">
     <span class="viaje-hero-eyebrow">Curso de Excel</span>
@@ -80,8 +90,10 @@
       <span class="scope-chip">Español e Inglés</span>
       <span class="scope-chip">WPS / Google Sheets</span>
     </div>
-    <a href="#programsList" class="viaje-cta">Navegar a Programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    <div class="viaje-hero-cue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>o baja para recorrer el viaje</div>
+    <div class="viaje-hero-actions">
+      <a href="#sceneCaptura" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a href="#programsList" class="viaje-btn solid">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
   </section>
 
   <section class="viaje-scene" id="sceneCaptura">
@@ -94,8 +106,7 @@
         ${[1, 2, 3, 4, 5].map((row) => `<div class="cap-cell hd">${row}</div>` + Array(8).fill('<div class="cap-cell"></div>').join("")).join("")}
       </div>
       <div class="viaje-msg">
-        <div class="formula-msg" id="msgWrap1a"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText1a">Domina lo esencial.<span class="formula-msg-cursor"></span></span></div>
-        <div class="formula-msg" id="msgWrap1b" style="display:none;"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText1b">Aprende a crear fórmulas poderosas.<span class="formula-msg-cursor"></span></span></div>
+        <div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">Aprende a crear fórmulas poderosas.<span class="formula-msg-cursor"></span></span></div>
       </div>
     </div>
   </section>
@@ -141,24 +152,15 @@
           </div>
         </div>
       </div>
-      <div class="viaje-msg"><div class="formula-msg" id="msgWrap2"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText2">Organiza tablas y crea Reportes automáticos.<span class="formula-msg-cursor"></span></span></div></div>
+      <div class="viaje-msg"><div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">Organiza tablas y crea Reportes automáticos.<span class="formula-msg-cursor"></span></span></div></div>
     </div>
   </section>
 
 <section class="viaje-scene" id="sceneDecide">
   <div class="immersive reveal" id="imm4"></div>
   <div class="viaje-stage">
-    <div class="viaje-msg" style="margin-bottom:-6px;"><div class="formula-msg" id="msgWrap3"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span></div></div>
+    <div class="viaje-msg" style="margin-bottom:-6px;"><div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span></div></div>
     <div class="dash-grid reveal" id="dashGrid">
-
-      <div class="dash-tile">
-        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8"/></svg>Automatización</span>
-        <div class="gauge-wrap">
-          <svg viewBox="0 0 180 100"><path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#2a3140" stroke-width="12" stroke-linecap="round"/>
-          <path id="gA" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220" data-anim-prop="stroke-dashoffset" data-anim-final="18"/></svg>
-          <div class="disp gauge-val">92%</div>
-        </div>
-      </div>
 
       <div class="dash-tile">
         <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Top 5 productos</span>
@@ -176,16 +178,38 @@
       </div>
 
       <div class="dash-tile">
-        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>Distribución por producto</span>
-        <div class="gauge-wrap" style="height:84px;">
-          <svg viewBox="0 0 100 100" style="transform:rotate(-90deg)">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#2a3140" stroke-width="12"/>
-            <circle id="pie1" cx="50" cy="50" r="45" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="127 283" stroke-dashoffset="127" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-            <circle id="pie2" cx="50" cy="50" r="45" fill="none" stroke="#6b9fff" stroke-width="12" stroke-dasharray="85 283" stroke-dashoffset="42" data-anim-prop="stroke-dashoffset" data-anim-final="-127"/>
-            <circle id="pie3" cx="50" cy="50" r="45" fill="none" stroke="#dfb35a" stroke-width="12" stroke-dasharray="71 283" stroke-dashoffset="-141" data-anim-prop="stroke-dashoffset" data-anim-final="-212"/>
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8"/></svg>Automatización</span>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 180 100"><path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#2a3140" stroke-width="12" stroke-linecap="round"/>
+          <path id="gA" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220" data-anim-prop="stroke-dashoffset" data-anim-final="18"/></svg>
+          <div class="disp gauge-val">92%</div>
+        </div>
+        <span class="gauge-sub">de los procesos corren solos</span>
+      </div>
+
+      <div class="dash-tile">
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-9"/></svg>Tendencia de ventas</span>
+        <div class="chart-fill">
+          <svg class="line-svg" viewBox="-2 -12 120 82" preserveAspectRatio="xMidYMid meet">
+            <line x1="0" x2="100" y1="10" y2="10" stroke="var(--line-soft)" stroke-width=".6"/>
+            <line x1="0" x2="100" y1="32" y2="32" stroke="var(--line-soft)" stroke-width=".6"/>
+            <line x1="0" x2="100" y1="55" y2="55" stroke="var(--line-soft)" stroke-width=".6"/>
+            <path id="lineArea" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8 L98,62 L2,62 Z" fill="url(#lineGrad)" opacity="0"/>
+            <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></linearGradient></defs>
+            <path id="lineChart" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8" fill="none" stroke="#14b8a6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+            <path id="lineProj" d="M98,8 L114,-2" fill="none" stroke="#dfb35a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 3" pathLength="100" stroke-dashoffset="100" opacity="0" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
+            <g id="lineMarkers" opacity="0">
+              <circle cx="2" cy="55" r="2.6" fill="#14b8a6"/><circle cx="22" cy="45" r="2.6" fill="#14b8a6"/><circle cx="42" cy="50" r="2.6" fill="#14b8a6"/>
+              <circle cx="62" cy="28" r="2.6" fill="#14b8a6"/><circle cx="82" cy="18" r="2.6" fill="#14b8a6"/><circle cx="98" cy="8" r="2.8" fill="#eafff9" stroke="#14b8a6" stroke-width="1.4"/>
+              <text x="2" y="-3" font-size="6.5" fill="var(--text-faint)" font-family="monospace">$28k</text>
+              <text x="90" y="4" font-size="6.5" fill="#eafff9" font-family="monospace">$61k</text>
+            </g>
+            <text x="116" y="-6" text-anchor="end" font-size="6" fill="#dfb35a" font-family="monospace" opacity="0" id="projLabel">proyección</text>
+            <g font-size="5.5" fill="var(--text-faint)" font-family="monospace" text-anchor="middle">
+              <text x="2" y="69">Ene</text><text x="22" y="69">Feb</text><text x="42" y="69">Mar</text><text x="62" y="69">Abr</text><text x="82" y="69">May</text><text x="98" y="69">Jun</text>
+            </g>
           </svg>
         </div>
-        <div class="legend"><span><i style="background:#22c55e;"></i>Excel 45%</span><span><i style="background:#6b9fff;"></i>Power BI 30%</span><span><i style="background:#dfb35a;"></i>Auto 25%</span></div>
       </div>
 
       <div class="dash-tile">
@@ -203,46 +227,30 @@
       </div>
 
       <div class="dash-tile">
-        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Ventas por región y tendencia</span>
-        <div class="bars-row">
-          <div class="bar-col"><span class="bar-val reveal" id="barValA">$185k</span><i id="barA" data-anim-prop="height-pct" data-anim-final="85"></i><span class="bar-tag">Q1</span></div>
-          <div class="bar-col"><span class="bar-val reveal" id="barValB">$130k</span><i id="barB" data-anim-prop="height-pct" data-anim-final="60"></i><span class="bar-tag">Q2</span></div>
-          <div class="bar-col"><span class="bar-val reveal" id="barValC">$206k</span><i id="barC" data-anim-prop="height-pct" data-anim-final="95"></i><span class="bar-tag">Q3</span></div>
-          <div class="bar-col"><span class="bar-val reveal" id="barValD">$87k</span><i id="barD" data-anim-prop="height-pct" data-anim-final="40"></i><span class="bar-tag">Q4</span></div>
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M12 12h9"/></svg>Ventas por producto</span>
+        <div class="treemap" id="treemap">
+          <div class="tm-top" style="flex:399 1 0;">
+            <div class="tm-cell reveal" style="flex:182 1 0; --tc:34,197,94;"><b>Licencias</b><span>37%</span></div>
+            <div class="tm-col" style="flex:217 1 0;">
+              <div class="tm-cell reveal" style="flex:120 1 0; --tc:107,159,255;"><b>Consultoría</b><span>24%</span></div>
+              <div class="tm-cell reveal" style="flex:97 1 0; --tc:223,179,90;"><b>Soporte</b><span>20%</span></div>
+            </div>
+          </div>
+          <div class="tm-row" style="flex:93 1 0;">
+            <div class="tm-cell reveal" style="flex:55 1 0; --tc:20,184,166;"><b>Capacitación</b><span>11%</span></div>
+            <div class="tm-cell reveal" style="flex:38 1 0; --tc:167,139,250;"><b>Diagnóstico</b><span>8%</span></div>
+          </div>
         </div>
-        <svg viewBox="-2 -12 120 82" style="width:100%;height:76px;">
-          <line x1="0" x2="100" y1="10" y2="10" stroke="var(--line-soft)" stroke-width=".6"/>
-          <line x1="0" x2="100" y1="32" y2="32" stroke="var(--line-soft)" stroke-width=".6"/>
-          <line x1="0" x2="100" y1="55" y2="55" stroke="var(--line-soft)" stroke-width=".6"/>
-          <path id="lineArea" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8 L98,62 L2,62 Z" fill="url(#lineGrad)" opacity="0"/>
-          <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></linearGradient></defs>
-          <path id="lineChart" d="M2,55 L22,45 L42,50 L62,28 L82,18 L98,8" fill="none" stroke="#14b8a6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-          <path id="lineProj" d="M98,8 L114,-2" fill="none" stroke="#dfb35a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 3" pathLength="100" stroke-dashoffset="100" opacity="0" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-          <g id="lineMarkers" opacity="0">
-            <circle cx="2" cy="55" r="2.6" fill="#14b8a6"/><circle cx="22" cy="45" r="2.6" fill="#14b8a6"/><circle cx="42" cy="50" r="2.6" fill="#14b8a6"/>
-            <circle cx="62" cy="28" r="2.6" fill="#14b8a6"/><circle cx="82" cy="18" r="2.6" fill="#14b8a6"/><circle cx="98" cy="8" r="2.8" fill="#eafff9" stroke="#14b8a6" stroke-width="1.4"/>
-            <text x="2" y="-3" font-size="6.5" fill="var(--text-faint)" font-family="monospace">$28k</text>
-            <text x="90" y="4" font-size="6.5" fill="#eafff9" font-family="monospace">$61k</text>
-          </g>
-          <text x="100" y="-6" font-size="6" fill="#dfb35a" font-family="monospace" opacity="0" id="projLabel">proyección</text>
-        </svg>
       </div>
 
       <div class="dash-tile">
-        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13 6-3m-6 3V7m6 13 6-3V4l-6 3m0 13V7m0 0L9 4"/></svg>Cobertura por región</span>
-        <svg class="mx-map" viewBox="0 0 310 195">
-          <g id="mapFill" class="reveal">
-            <path d="M30,5 L66,17 L93,17 L109,12 L128,34 L142,40 L157,32 L176,55 L197,71 L192,105 L209,138 L224,148 L243,144 L257,142 L264,120 L295,115 L290,145 L275,152 L257,158 L245,185 L223,168 L204,173 L180,163 L154,152 L121,128 L118,105 L95,75 L71,51 L49,32 L31,13 Z" fill="rgba(20,184,166,.10)"/>
-            <path d="M8,5 L31,3 L30,13 L48,35 L63,65 L81,98 L76,101 L57,83 L33,52 L20,31 Z" fill="rgba(20,184,166,.10)"/>
-          </g>
-          <path id="mapOutline" d="M30,5 L66,17 L93,17 L109,12 L128,34 L142,40 L157,32 L176,55 L197,71 L192,105 L209,138 L224,148 L243,144 L257,142 L264,120 L295,115 L290,145 L275,152 L257,158 L245,185 L223,168 L204,173 L180,163 L154,152 L121,128 L118,105 L95,75 L71,51 L49,32 L31,13 Z" fill="none" stroke="#14b8a6" stroke-width="1.6" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-          <path id="mapOutlineBaja" d="M8,5 L31,3 L30,13 L48,35 L63,65 L81,98 L76,101 L57,83 L33,52 L20,31 Z" fill="none" stroke="#14b8a6" stroke-width="1.6" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" data-anim-prop="stroke-dashoffset" data-anim-final="0"/>
-          <g class="map-dot-g reveal"><circle class="map-ring" cx="122" cy="32" r="9"/><circle cx="122" cy="32" r="6.5" fill="#22c55e"/><text x="134" y="25" class="map-lbl">Norte</text></g>
-          <g class="map-dot-g reveal"><circle class="map-ring" cx="168" cy="73" r="8"/><circle cx="168" cy="73" r="5.5" fill="#6b9fff"/><text x="178" y="68" class="map-lbl">Noreste</text></g>
-          <g class="map-dot-g reveal"><circle class="map-ring" cx="160" cy="118" r="8"/><circle cx="160" cy="118" r="5.5" fill="#dfb35a"/><text x="96" y="114" class="map-lbl">Bajío</text></g>
-          <g class="map-dot-g reveal"><circle class="map-ring" cx="181" cy="134" r="9"/><circle cx="181" cy="134" r="6.5" fill="#14b8a6"/><text x="192" y="132" class="map-lbl">Centro</text></g>
-          <g class="map-dot-g reveal"><circle class="map-ring" cx="203" cy="160" r="7"/><circle cx="203" cy="160" r="5" fill="#a78bfa"/><text x="214" y="168" class="map-lbl">Sur</text></g>
-        </svg>
+        <span class="dash-tile-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20v4"/></svg>Ventas por trimestre</span>
+        <div class="bars-row">
+          <div class="bar-col"><div class="bar-plot"><i id="barA" data-anim-prop="height-pct" data-anim-final="85"><span class="bar-val reveal" id="barValA">$185k</span></i></div><span class="bar-tag">Q1</span></div>
+          <div class="bar-col"><div class="bar-plot"><i id="barB" data-anim-prop="height-pct" data-anim-final="60"><span class="bar-val reveal" id="barValB">$130k</span></i></div><span class="bar-tag">Q2</span></div>
+          <div class="bar-col"><div class="bar-plot"><i id="barC" data-anim-prop="height-pct" data-anim-final="95"><span class="bar-val reveal" id="barValC">$206k</span></i></div><span class="bar-tag">Q3</span></div>
+          <div class="bar-col"><div class="bar-plot"><i id="barD" data-anim-prop="height-pct" data-anim-final="40"><span class="bar-val reveal" id="barValD">$87k</span></i></div><span class="bar-tag">Q4</span></div>
+        </div>
       </div>
 
     </div>
@@ -253,7 +261,7 @@
   <section class="viaje-scene" id="sceneAutomatiza">
     <div class="immersive" style="opacity:1;"></div>
     <div class="viaje-stage">
-      <div class="viaje-msg"><div class="formula-msg" id="msgWrap4"><span class="formula-msg-fx">fx</span><span class="formula-msg-text" id="msgText4">Deja que la IA haga el trabajo duro.<span class="formula-msg-cursor"></span></span></div></div>
+      <div class="viaje-msg"><div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">Deja que la IA haga el trabajo duro.<span class="formula-msg-cursor"></span></span></div></div>
       <div class="auto-stage">
         <div class="toolbar-grid reveal" id="toolbar5">
           <div class="tool-btn" id="btnMail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>Enviar<div class="tool-btn-fx" id="fxMail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
@@ -295,6 +303,17 @@
       const classicCells = this.classicFns.map((fn, i) => { const c = pool[i]; c.textContent = fn; c.classList.add("cap-fn", "reveal"); return c; });
       const newCells = this.newFns.map((fn, i) => { const c = pool[this.classicFns.length + i]; c.textContent = fn; c.classList.add("cap-fn", "new", "reveal"); return c; });
 
+      // scroll a una escena pineada: ancla nativa no sirve (el pin mueve el layout), se va al start del trigger
+      function irA(id, frac) {
+        const sc = document.getElementById(id);
+        if (!sc) return;
+        const st = window.ScrollTrigger && ScrollTrigger.getAll().find((t) => t.trigger === sc && t.pin);
+        const y = st ? st.start + (st.end - st.start) * (frac || 0) : sc.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+      const next = root.querySelector("[data-viaje-next]");
+      if (next) next.addEventListener("click", (e) => { e.preventDefault(); irA("sceneCaptura", 0); });
+
       const NAV = ViajeEngine.navOffset(root);
       document.documentElement.style.setProperty("--viaje-nav-h", NAV + "px");
 
@@ -302,8 +321,26 @@
       if (simple) { ViajeEngine.forceFinalState(root); return; }
 
       gsap.registerPlugin(ScrollTrigger);
-      const rail = root.querySelector("#viajeRail");
-      function setActive(n) { rail.querySelectorAll(".rail-item").forEach((it) => it.classList.toggle("active", it.dataset.scene === String(n))); }
+      // hoja de cálculo: pestañas = escenas; números de fila y cuadro de nombres avanzan con el scroll
+      const tabs = Array.prototype.slice.call(root.querySelectorAll(".hoja-tab"));
+      const nameBox = root.querySelector("#hojaName");
+      const rowsEl = root.querySelector("#hojaRows");
+      const ROW_H = 28, RATIO = 0.5, SEL_I = 4, LETRA = { 2: "B", 3: "D", 4: "F", 5: "H" };
+      const rowEls = Array.prototype.slice.call((rowsEl.innerHTML = Array(Math.ceil(window.innerHeight / ROW_H) + 2).fill('<div class="hoja-row"></div>').join(""), rowsEl.children));
+      let escena = 1, baseVista = -1, yHoja = 0;
+      function pintarHoja(y) {
+        yHoja = y;
+        const base = Math.floor(y / ROW_H), frac = y - base * ROW_H;
+        rowsEl.style.transform = "translateY(" + (-frac) + "px)";
+        root.style.setProperty("--hoja-y", -y + "px");
+        if (base !== baseVista) { baseVista = base; rowEls.forEach((r, i) => { r.textContent = base + i + 1; }); }
+        const fila = base + SEL_I + 1 + (frac >= ROW_H / 2 ? 1 : 0);
+        const celda = (LETRA[escena] || "A") + fila;
+        if (nameBox.textContent !== celda) nameBox.textContent = celda;
+      }
+      function setActive(n) { escena = n; tabs.forEach((t) => t.classList.toggle("active", t.dataset.scene === String(n))); pintarHoja(yHoja); }
+      tabs.forEach((t) => t.addEventListener("click", () => irA(t.dataset.goto, 0.3)));
+      pintarHoja(0);
 
       const $ = (sel) => root.querySelector(sel);
       const q = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
@@ -315,13 +352,10 @@
       const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top top", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
       tl1.to("#capStage", { opacity: 1, duration: 4 }, 0);
       classicCells.forEach((cell, i) => tl1.to(cell, { opacity: 1, duration: 4 }, 4 + i * 3));
-      tl1.to("#msgText1a", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
-      tl1.to("#msgWrap1a", { opacity: 0, duration: 4 }, 32);
-      tl1.set("#msgWrap1a", { display: "none" }, 36);
-      tl1.set("#msgWrap1b", { display: "inline-flex", opacity: 1 }, 36);
-      tl1.to("#msgText1b", { clipPath: "inset(0 0% 0 0)", duration: 9 }, 37);
+      tl1.to("#msgText1", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
       newCells.forEach((cell, i) => { gsap.set(cell, { opacity: 0, scale: .4 }); tl1.to(cell, { opacity: 1, scale: 1, duration: 3.2 }, 40 + i * 3.8); });
       tl1.to("#capStage", { opacity: 0, scale: .94, duration: 14 }, 86);
+      tl1.to("#msgText1", { opacity: 0, duration: 6 }, 94);
 
       // ---- 2: ORGANIZA ----
       const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top top", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
@@ -339,6 +373,7 @@
       ["m1", "m2", "m3", "m5", "m6", "m4"].forEach((k, i) => tl2.to(`[data-k="${k}"]`, { opacity: 1, duration: 5 }, 46 + i * 5));
       tl2.to("#orgLeft", { opacity: 0, x: -50, duration: 14 }, 84);
       tl2.to("#orgRight", { opacity: 0, x: 50, duration: 14 }, 84);
+      tl2.to("#msgText2", { opacity: 0, duration: 6 }, 92);
 
       // ---- 3: DECIDE ----
       const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top top", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
@@ -350,9 +385,6 @@
       tl3.to("#lineArea", { opacity: 1, duration: 6 }, 34);
       tl3.to("#barValA, #barValB, #barValC, #barValD", { opacity: 1, duration: 4, stagger: 2 }, 37);
       tl3.to("#gA", { attr: { "stroke-dashoffset": 18 }, duration: 14 }, 10);
-      tl3.to("#pie1", { attr: { "stroke-dashoffset": 0 }, duration: 10 }, 18);
-      tl3.to("#pie2", { attr: { "stroke-dashoffset": -127 }, duration: 10 }, 22);
-      tl3.to("#pie3", { attr: { "stroke-dashoffset": -212 }, duration: 10 }, 26);
       tl3.to("#lineChart", { attr: { "stroke-dashoffset": 0 }, duration: 16 }, 24);
       tl3.to("#lineMarkers", { opacity: 1, duration: 4 }, 38);
       tl3.to("#lineProj", { opacity: 1, duration: 1 }, 40);
@@ -367,10 +399,9 @@
       tl3.to("#hb3", { width: "51%", duration: 8 }, 20);
       tl3.to("#hb4", { width: "29%", duration: 8 }, 23);
       tl3.to("#hb5", { width: "20%", duration: 8 }, 26);
-      tl3.to("#mapFill", { opacity: 1, duration: 8 }, 40);
-      tl3.to("#mapOutline, #mapOutlineBaja", { attr: { "stroke-dashoffset": 0 }, duration: 14 }, 38);
-      q(".map-dot-g").forEach((g, i) => tl3.to(g, { opacity: 1, duration: 4 }, 52 + i * 6));
+      q(".tm-cell").forEach((c, i) => { gsap.set(c, { scale: .86 }); tl3.to(c, { opacity: 1, scale: 1, duration: 6 }, 38 + i * 5); });
       tl3.to("#dashGrid, #imm4", { opacity: 0, scale: .95, duration: 12 }, 87);
+      tl3.to("#msgText3", { opacity: 0, duration: 6 }, 93);
 
       // ---- 4: AUTOMATIZA ----
       const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top top", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
@@ -407,10 +438,15 @@
       clickAt(76, "btnEval", (p) => tl4.to("#fx8", { opacity: 1, scale: 1, duration: 3 }, p));
       clickAt(81, "btnApr", (p) => tl4.to("#fx9", { opacity: 1, scale: 1, duration: 3 }, p));
       tl4.to("#toolbar5, #copilotPanel, #cursor5", { opacity: 0, y: -10, duration: 10 }, 92);
+      tl4.to("#msgText4", { opacity: 0, duration: 6 }, 96);
 
       // inmersivo: del primer pin al último, nav y categorías se esconden
       document.body.classList.add("viaje-on");
-      ScrollTrigger.create({ trigger: "#sceneCaptura", start: "top top", end: () => tl4.scrollTrigger.end, onToggle: (self) => document.body.classList.toggle("viaje-inmersivo", self.isActive) });
+      ScrollTrigger.create({
+        trigger: "#sceneCaptura", start: "top top", end: () => tl4.scrollTrigger.end,
+        onUpdate: (self) => pintarHoja((self.scroll() - self.start) * RATIO),
+        onToggle: (self) => document.body.classList.toggle("viaje-inmersivo", self.isActive),
+      });
 
       ScrollTrigger.refresh();
       window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });

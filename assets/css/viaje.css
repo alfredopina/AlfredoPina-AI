@@ -12,13 +12,7 @@
 /* a pantalla completa: cursos.html lo monta dentro de un .wrap angosto (1120px) */
 .viaje-root{ position:relative; width:100vw; margin-left:calc(50% - 50vw); }
 
-.rail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:14px; z-index:50; }
-.rail-num{ width:24px; height:24px; border-radius:4px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; font-family:var(--mono); color:var(--text-faint); background:var(--panel); transition:all .25s ease; }
-.rail-item.active .rail-num{ border-color:var(--teal); color:var(--teal); background:rgba(20,184,166,.14); transform:scale(1.15); }
 
-.skip-nav-btn{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); border:1px solid var(--line); padding:7px 14px; border-radius:16px; display:inline-flex; align-items:center; gap:7px; transition:all .2s; position:relative; z-index:4; margin:0 auto 18px; width:fit-content; }
-.skip-nav-btn:hover{ border-color:var(--blue); color:var(--text); background:var(--blue-soft); }
-.skip-nav-btn svg{ width:12px; height:12px; }
 
 /* fx= barra de fórmula — mensajes de cada escena, tipo "se va escribiendo" */
 .formula-msg{ position:relative; z-index:3; display:inline-flex; align-items:stretch; border:1px solid var(--blue-dim); border-radius:6px; background:var(--panel); overflow:hidden; max-width:92vw; }
@@ -112,15 +106,10 @@
 .cursor-ico{ position:absolute; z-index:10; width:20px; height:20px; color:#fff; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); top:0; left:0; }
 .click-ripple{ position:absolute; width:26px; height:26px; border-radius:50%; border:2px solid var(--teal); z-index:9; top:0; left:0; transform:scale(0); opacity:0; }
 
-.viaje-handoff{ text-align:center; padding:30px 0 10px; color:var(--text-faint); font-size:12px; display:flex; flex-direction:column; align-items:center; gap:8px; }
-.viaje-handoff svg{ width:18px; height:18px; animation:bounce 1.6s ease-in-out infinite; }
-@keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(8px); } }
 
 /* ---- fallback sin pin/scrub: teléfono táctil real, reduced-motion, o si GSAP no cargó ---- */
 .viaje-root.viaje-simple .viaje-scene{ height:auto; min-height:0; padding:64px 0; }
 .viaje-root.viaje-simple .viaje-stage{ height:auto; }
-.viaje-root.viaje-simple .rail,
-.viaje-root.viaje-simple .skip-nav-btn{ display:none; }
 
 @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1 !important; transform:none !important; } }
 
@@ -145,10 +134,6 @@
 .hbar-track{ flex:1; height:9px; border-radius:5px; background:var(--panel-2); overflow:hidden; }
 .hbar-fill{ height:100%; width:0; border-radius:5px; background:var(--teal); }
 .hbar-val{ font-size:10px; color:var(--text-dim); width:40px; text-align:right; flex:none; }
-.mx-map{ width:100%; height:auto; max-height:190px; display:block; }
-.map-lbl{ font-family:var(--mono); font-size:8px; fill:var(--text-dim); }
-.map-ring{ fill:none; stroke:rgba(255,255,255,.35); stroke-width:1; transform-box:fill-box; transform-origin:center; animation:mapPulse 2.2s ease-out infinite; }
-@keyframes mapPulse{ 0%{ transform:scale(.6); opacity:.9; } 100%{ transform:scale(1.9); opacity:0; } }
 
 /* inmersivo: nav y barra de categorías se esconden mientras corre el viaje */
 body.viaje-on nav, body.viaje-on .cat-nav-wrap{ transition:transform .45s ease, opacity .45s ease; }
@@ -160,13 +145,109 @@ body.viaje-inmersivo nav, body.viaje-inmersivo .cat-nav-wrap{ transform:translat
 .selector-box::after{ background:#22c55e; box-shadow:0 0 6px #22c55e; }
 .selector-label{ color:#22c55e; }
 
-/* "Navegar a Programas": botón principal en el hero + pastilla fija mientras corre el viaje */
-.viaje-cta{ display:inline-flex; align-items:center; gap:10px; font-family:var(--body); font-weight:600; font-size:14.5px; padding:13px 24px; border-radius:4px; background:#22c55e; color:#06180e; transition:transform .15s ease, background .2s; }
-.viaje-cta svg{ width:16px; height:16px; }
-.viaje-cta:hover{ background:#4ade80; transform:translateY(-1px); }
-.viaje-hero-cue{ margin-top:0; }
-.viaje-fab{ position:fixed; left:50%; bottom:22px; z-index:60; display:inline-flex; align-items:center; gap:8px; transform:translate(-50%,16px); opacity:0; pointer-events:none; font-family:var(--mono); font-size:11.5px; color:var(--text); background:rgba(16,20,27,.82); backdrop-filter:blur(8px); border:1px solid rgba(34,197,94,.45); padding:9px 16px; border-radius:20px; transition:opacity .35s ease, transform .35s ease, background .2s; }
-.viaje-fab svg{ width:12px; height:12px; color:#22c55e; }
-.viaje-fab:hover{ background:rgba(34,197,94,.16); }
-body.viaje-inmersivo .viaje-fab{ opacity:1; transform:translate(-50%,0); pointer-events:auto; }
-.viaje-root.viaje-simple .viaje-fab{ display:none; }
+
+@keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(8px); } }
+
+/* ---- hero: más aire entre el titular, los chips y los botones ---- */
+.viaje-hero{ gap:34px; }
+.viaje-hero-title{ max-width:1000px; line-height:1.28; word-spacing:.14em; }
+.viaje-hero-chips{ margin-top:4px; }
+
+/* dos botones paralelos: misma medida, misma flecha */
+.viaje-hero-actions{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:10px; }
+.viaje-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px; min-width:290px; height:50px; padding:0 24px; border-radius:4px; font-family:var(--body); font-weight:600; font-size:14.5px; border:1.5px solid #22c55e; transition:transform .15s ease, background .2s, color .2s; }
+.viaje-btn svg{ width:16px; height:16px; flex:none; animation:bounce 1.6s ease-in-out infinite; }
+.viaje-btn.solid{ background:#22c55e; color:#06180e; }
+.viaje-btn.solid:hover{ background:#4ade80; border-color:#4ade80; transform:translateY(-1px); }
+.viaje-btn.ghost{ background:transparent; color:var(--text); }
+.viaje-btn.ghost:hover{ background:rgba(34,197,94,.14); transform:translateY(-1px); }
+@media (max-width:640px){ .viaje-btn{ min-width:0; width:100%; } .viaje-hero-actions{ width:100%; max-width:380px; } }
+
+/* ---- dashboard: dos filas altas; líneas y columnas son los protagonistas ---- */
+.dash-grid{ height:min(calc(100vh - 140px), 780px); grid-template-rows:repeat(2, minmax(0,1fr)); }
+.dash-tile{ justify-content:flex-start; padding:20px; gap:14px; }
+.dash-tile-label{ font-size:12.5px; }
+.dash-tile .gauge-wrap{ height:clamp(110px,19vh,170px); margin:auto 0; }
+.gauge-val{ font-size:30px; }
+.gauge-sub{ text-align:center; font-size:11px; color:var(--text-faint); margin-bottom:auto; }
+.dash-tile .hbars{ flex:1; justify-content:space-evenly; gap:0; }
+.hbar-track{ height:12px; }
+.hbar-label{ font-size:11px; width:78px; }
+.hbar-val{ font-size:11px; width:46px; }
+.chart-fill{ flex:1; min-height:0; display:flex; }
+.line-svg{ width:100%; height:100%; }
+.dash-tile .slicer-pills{ gap:8px; margin-top:auto; }
+.dash-tile .slicer-pill{ font-size:11.5px; padding:7px 14px; }
+.dash-tile .timeline-wrap{ margin-bottom:auto; }
+.dash-tile .timeline-track{ height:8px; }
+.dash-tile .timeline-ticks{ font-size:10px; }
+.bars-row{ flex:1; min-height:0; height:auto; gap:16px; }
+.bar-col{ gap:8px; }
+.bar-plot{ flex:1; min-height:0; width:100%; display:flex; align-items:flex-end; }
+.bar-col i{ position:relative; height:0; }
+.bar-val{ position:absolute; left:0; right:0; top:-17px; text-align:center; font-size:11px; }
+.bar-tag{ font-size:11px; }
+.treemap{ flex:1; min-height:0; display:flex; flex-direction:column; gap:5px; }
+.tm-top{ display:flex; gap:5px; min-width:0; min-height:0; }
+.tm-col{ display:flex; flex-direction:column; gap:5px; min-width:0; min-height:0; }
+.tm-row{ display:flex; gap:5px; min-width:0; min-height:0; }
+.tm-cell{ min-width:0; min-height:0; overflow:hidden; border-radius:6px; padding:9px 10px; display:flex; flex-direction:column; justify-content:flex-end; gap:2px; background-color:rgba(var(--tc),.2); border-top:3px solid rgb(var(--tc)); }
+.tm-cell b{ font-family:var(--display); font-weight:600; font-size:11.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tm-cell span{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+/* modo simple en pantallas chicas: sin pin, filas de alto fijo (los % de barras y treemap necesitan un alto definido) */
+@media (max-width:900px){ .viaje-simple .dash-grid{ grid-template-columns:repeat(2,1fr); grid-template-rows:none; grid-auto-rows:280px; height:auto; width:94vw; } }
+@media (max-width:640px){ .viaje-simple .dash-grid{ grid-template-columns:1fr; } }
+.viaje-btn{ min-width:300px; }
+.tm-row .tm-cell{ flex-direction:row; align-items:center; justify-content:space-between; gap:8px; padding:4px 10px; }
+
+/* ---- hoja de cálculo: barra de fórmulas fija, números de fila y pestañas (solo en el recorrido inmersivo) ----
+   Se muestra con body.viaje-inmersivo; en modo simple (teléfono, reduced-motion, sin GSAP) no existe y cada
+   escena conserva su propio mensaje .viaje-msg. */
+.hoja-shell{ display:none; }
+body.viaje-on .hoja-shell{ display:block; position:fixed; inset:0; z-index:70; pointer-events:none; opacity:0; transition:opacity .4s ease; }
+body.viaje-inmersivo .hoja-shell{ opacity:1; }
+body.viaje-inmersivo .hoja-shell > *{ pointer-events:auto; }
+body.viaje-on .viaje-msg{ display:none; }
+body.viaje-on .viaje-stage{ padding:62px 56px 50px; }
+body.viaje-on .dash-grid{ height:min(calc(100vh - 128px), 800px); }
+
+.hoja-top{ position:absolute; top:0; left:0; right:0; height:48px; display:flex; align-items:stretch; background:var(--panel); border-bottom:1px solid var(--line); }
+.hoja-namebox{ width:84px; flex:none; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; color:var(--text); background:var(--panel-2); border-right:1px solid var(--line); }
+.hoja-fx{ flex:1; min-width:0; display:flex; align-items:stretch; }
+.hoja-fx-ico{ width:46px; flex:none; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; font-style:italic; font-size:14px; color:var(--blue-bright); background:var(--blue-soft); border-right:1px solid var(--blue-dim); }
+.hoja-fx-stack{ position:relative; flex:1; min-width:0; overflow:hidden; }
+.hoja-txt{ position:absolute; left:18px; top:50%; transform:translateY(-50%); white-space:nowrap; font-family:var(--display); font-weight:600; font-size:clamp(15px,1.7vw,21px); color:var(--text); clip-path:inset(0 100% 0 0); }
+.hoja-ver{ display:inline-flex; align-items:center; gap:8px; align-self:center; flex:none; height:32px; margin:0 12px; padding:0 14px; border-radius:4px; background:#22c55e; color:#06180e; font-weight:600; font-size:12.5px; transition:background .2s, transform .15s; }
+.hoja-ver svg{ width:13px; height:13px; }
+.hoja-ver:hover{ background:#4ade80; transform:translateY(-1px); }
+
+.hoja-gutter{ position:absolute; left:0; top:48px; bottom:36px; width:44px; overflow:hidden; background:var(--panel); border-right:1px solid var(--line); }
+.hoja-rows{ will-change:transform; }
+.hoja-row{ height:28px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; color:var(--text-faint); border-bottom:1px solid var(--line-soft); }
+.hoja-sel{ position:absolute; left:0; right:0; top:112px; height:28px; background:rgba(34,197,94,.18); border-right:2px solid #22c55e; pointer-events:none; }
+
+.hoja-tabs{ position:absolute; left:0; right:0; bottom:0; height:36px; padding-left:44px; display:flex; align-items:flex-end; gap:2px; background:var(--panel); border-top:1px solid var(--line); }
+.hoja-tab{ height:30px; padding:0 18px; font-family:var(--body); font-size:12.5px; color:var(--text-faint); background:transparent; border:0; border-bottom:2px solid transparent; cursor:pointer; transition:color .2s, background .2s; }
+.hoja-tab:hover{ color:var(--text); background:var(--panel-2); }
+.hoja-tab.active{ color:var(--text); font-weight:600; background:var(--bg); border-bottom-color:#22c55e; }
+
+/* cuadrícula de la hoja detrás de cada escena: sus líneas coinciden con los números de fila y se desplazan con el scroll */
+body.viaje-on .immersive{
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    radial-gradient(ellipse at center, rgba(20,24,34,.25), #05070a 78%);
+  background-size:100% 28px, 112px 100%, auto;
+  background-position:0 calc(var(--hoja-y, 0px) + 48px), 44px 0, 0 0;
+}
+@media (max-width:720px){
+  .hoja-namebox{ width:62px; font-size:12px; }
+  .hoja-gutter{ width:34px; } .hoja-tabs{ padding-left:34px; }
+  .hoja-tab{ padding:0 11px; }
+  body.viaje-on .viaje-stage{ padding:58px 40px 46px; }
+}
+/* con la hoja activa, el contenido respeta el ancho útil (sin los números de fila de la izquierda) */
+body.viaje-on .cap-grid{ width:min(1500px, calc(100vw - 130px)); }
+body.viaje-on .org-split{ width:min(1400px, calc(100vw - 130px)); }
+body.viaje-on .dash-grid{ width:min(1280px, calc(100vw - 130px)); }
+body.viaje-on .auto-stage{ width:min(1300px, calc(100vw - 130px)); }

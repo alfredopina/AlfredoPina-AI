@@ -25,6 +25,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/viaje.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="/assets/js/viaje.js" defer></script>
 <body>
 
 <a href="#contenido" class="skip-link">Saltar al contenido</a>
@@ -53,32 +57,32 @@
     <div class="cat-nav">
       <button class="cat-cell active" data-cat="excel" style="--c:#22c55e">
         <span class="cat-cell-ref">A1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg></span>
         <span class="cat-cell-label">Excel</span>
       </button>
       <button class="cat-cell" data-cat="powerbi" style="--c:#f2c94c">
         <span class="cat-cell-ref">B1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><g fill-opacity=".36"><rect x="9.5" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><rect x="16" y="9.5" width="5" height="5"/></g><rect x="3" y="16" width="5" height="5"/><rect x="9.5" y="9.5" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/></g></svg></span>
         <span class="cat-cell-label">Power BI</span>
       </button>
       <button class="cat-cell" data-cat="powerapps" style="--c:#c026d3">
         <span class="cat-cell-ref">C1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/></svg></span>
         <span class="cat-cell-label">Power Apps</span>
       </button>
       <button class="cat-cell" data-cat="powerautomate" style="--c:#06b6d4">
         <span class="cat-cell-ref">D1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/></svg></span>
         <span class="cat-cell-label">Power Automate</span>
       </button>
       <button class="cat-cell" data-cat="ia" style="--c:#a78bfa">
         <span class="cat-cell-ref">E1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/></svg></span>
         <span class="cat-cell-label">IA Aplicada</span>
       </button>
       <button class="cat-cell" data-cat="ofimatica" style="--c:#f97316">
         <span class="cat-cell-ref">F1</span>
-        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></span>
+        <span class="cat-cell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z"/><rect x="13" y="13" width="7.5" height="7.5" stroke-width="1.5"/><rect x="15.5" y="15.5" width="2.5" height="2.5" fill="currentColor" stroke="none"/></svg></span>
         <span class="cat-cell-label">Ofimática</span>
       </button>
     </div>
@@ -176,12 +180,9 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  const MIN_HOURS = 12;
-  const selectedTopics = new Set();
   const catalogoCache = {};
   let currentCat = 'excel';
   let currentCatalogo = null;
-  let currentMode = 'estandar';
 
   const dotIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const PRICING_NOTE_ITEMS = [
@@ -207,8 +208,6 @@
   async function activateTab(cat){
     if(!tabMap[cat]) return;
     currentCat = cat;
-    currentMode = 'estandar';
-    selectedTopics.clear();
 
     document.querySelectorAll('.cat-cell').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
     const meta = CAT_META[cat];
@@ -236,9 +235,6 @@
       }
     }
     currentCatalogo = catalogoCache[cat];
-    if(!(currentCatalogo.estandar && currentCatalogo.estandar.length) && (currentCatalogo.temas && currentCatalogo.temas.length)){
-      currentMode = 'builder';
-    }
     renderCursoPanel();
   }
 
@@ -249,11 +245,11 @@
 
   function renderCursoPanel(){
     const panel = document.getElementById('cursoPanel');
+    if(window.ViajeHerramienta) window.ViajeHerramienta.destruir();
     const data = currentCatalogo || { temas: [], estandar: [], proyectos: [] };
     const hasEstandar = !!(data.estandar && data.estandar.length);
-    const hasBuilder = !!(data.temas && data.temas.length);
 
-    if(!hasEstandar && !hasBuilder){
+    if(!hasEstandar){
       const meta = CAT_META[currentCat] || {};
       panel.innerHTML = `
         <div class="curso-grid">
@@ -267,43 +263,12 @@
       return;
     }
 
-    let html = '';
-    if(hasEstandar && hasBuilder){
-      html += `
-        <div class="excel-modes">
-          <button type="button" class="excel-mode-btn ${currentMode === 'estandar' ? 'active' : ''}" data-mode="estandar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11" stroke-linecap="round"/></svg>
-            Temarios Estándar
-          </button>
-          <button type="button" class="excel-mode-btn ${currentMode === 'builder' ? 'active' : ''}" data-mode="builder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10" stroke-linecap="round"/></svg>
-            Personalizar Temario
-          </button>
-        </div>`;
-    }
-
-    const showEstandar = hasEstandar && (currentMode === 'estandar' || !hasBuilder);
-    const showBuilder = hasBuilder && (currentMode === 'builder' || !hasEstandar);
-
-    if(showEstandar) html += estandarHtml(data.estandar);
-    if(showBuilder) html += builderHtml();
-
-    panel.innerHTML = html;
-
-    panel.querySelectorAll('.excel-mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if(currentMode === btn.dataset.mode) return;
-        currentMode = btn.dataset.mode;
-        renderCursoPanel();
-      });
-    });
-
-    if(showBuilder){
-      renderTopics(data.temas);
-      renderBuilderState();
-      const builderSlot = document.getElementById('leadFormSlot-builder');
-      if(builderSlot) builderSlot.innerHTML = leadFormHTML('builder');
-    }
+    // El viaje (scroll-scrub) solo existe para las herramientas en VIAJE_CONFIG
+    // (hoy solo Excel) — ver assets/js/viaje.js. Para replicarlo a otra
+    // herramienta: agregar su entrada ahí, nada se toca aquí.
+    const tieneViaje = window.ViajeHerramienta && window.ViajeHerramienta.tieneConfig(currentCat);
+    panel.innerHTML = (tieneViaje ? window.ViajeHerramienta.html(currentCat) : '') + estandarHtml(data.estandar);
+    if(tieneViaje) window.ViajeHerramienta.iniciar(currentCat);
   }
 
   // ============================================================
@@ -366,128 +331,7 @@
     document.getElementById('programFn-' + id).classList.toggle('open');
   }
 
-  // ============================================================
-  // PERSONALIZAR TEMARIO — constructor ("Arma tu Fórmula")
-  // ============================================================
-  function builderHtml(){
-    return `
-      <div class="builder-title">Construye tu temario a tu necesidad</div>
-      <p class="builder-sub">Elige los temas que tu equipo necesita. La fórmula se arma sola — y tu cotización también.</p>
-
-      <div class="formula-builder-bar">
-        <span class="formula-builder-fx">fx</span>
-        <span class="formula-builder-body" id="builderBarBody">
-          <span class="placeholder">=${TOOL_LABEL[currentCat]}( elige tus temas… )</span>
-        </span>
-      </div>
-
-      <div class="builder-meta">
-        <div class="builder-total" id="builderTotal"><b>0 hr</b> · 0 temas seleccionados</div>
-        <div class="builder-warning" id="builderWarning">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Te recomendamos incluir fundamentos antes de temas avanzados.</span>
-        </div>
-      </div>
-
-      <div class="builder-bonuses" id="builderBonuses"></div>
-
-      <div class="topics-grid" id="topicsGrid"></div>
-
-      <div class="builder-cta-row">
-        <button class="builder-cta" id="builderCtaBtn" disabled onclick="openLeadForm('builder')">
-          Solicitar cotización
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <span class="builder-cta-hint" id="builderCtaHint">Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar.</span>
-      </div>
-
-      <div class="pricing-note" id="pricingNoteBuilder">${PRICING_NOTE}</div>
-
-      <div id="leadFormSlot-builder"></div>`;
-  }
-
-  // ref decorativo tipo celda de Excel (B2, C3...) — cosmético, se calcula aquí
-  // agrupando por nivel (1=Básico→B, 2=Intermedio→C, 3=Avanzado→D) y usando la
-  // posición dentro de su propio nivel (+2, para empezar en fila 2).
-  function topicRef(t, temas){
-    const sameLevel = temas.filter(x => x.nivel === t.nivel);
-    const idx = sameLevel.findIndex(x => x.id === t.id);
-    return `${String.fromCharCode(65 + (t.nivel || 1))}${idx + 2}`;
-  }
-
-  function renderTopics(temas){
-    const grid = document.getElementById('topicsGrid');
-    if(!grid) return;
-    grid.innerHTML = temas.map(t => `
-      <button type="button" class="topic-card ${selectedTopics.has(t.id) ? 'selected' : ''}" data-id="${t.id}" onclick="toggleTopic('${t.id}')">
-        <span class="topic-cell-ref">${topicRef(t, temas)}</span>
-        <div class="topic-head">
-          <span class="topic-check">${checkIcon()}</span>
-          <span class="topic-name">${escapeHtml(t.nombre)}</span>
-        </div>
-        <div class="topic-meta">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</div>
-        <div class="topic-desc">${escapeHtml(t.descripcion)}</div>
-      </button>
-    `).join('');
-  }
-
-  function toggleTopic(id){
-    if(selectedTopics.has(id)) selectedTopics.delete(id);
-    else selectedTopics.add(id);
-    document.querySelectorAll('#topicsGrid .topic-card').forEach(c => c.classList.toggle('selected', selectedTopics.has(c.dataset.id)));
-    renderBuilderState();
-  }
-
-  function renderBuilderState(){
-    const temas = (currentCatalogo && currentCatalogo.temas) || [];
-    const proyectos = (currentCatalogo && currentCatalogo.proyectos) || [];
-    const chosen = temas.filter(t => selectedTopics.has(t.id));
-    const totalHours = chosen.reduce((s, t) => s + t.horas, 0);
-
-    const body = document.getElementById('builderBarBody');
-    if(body){
-      if(chosen.length === 0){
-        body.innerHTML = `<span class="placeholder">=${TOOL_LABEL[currentCat]}( elige tus temas… )</span>`;
-      } else {
-        const terms = chosen.map(t => `<span class="fterm">${escapeHtml(t.nombre.replace(/\s+/g, '_'))}</span>`).join('<span class="fop">+</span>');
-        body.innerHTML = `=${TOOL_LABEL[currentCat]}( ${terms} )<span class="fop">=</span><b style="color:var(--c-bright)">${totalHours} hr</b><span class="formula-cursor"></span>`;
-      }
-    }
-
-    const totalEl = document.getElementById('builderTotal');
-    if(totalEl) totalEl.innerHTML = `<b>${totalHours} hr</b> · ${chosen.length} tema${chosen.length === 1 ? '' : 's'} seleccionado${chosen.length === 1 ? '' : 's'}`;
-
-    const hasBasico = chosen.some(t => t.nivel === 1);
-    const hasAvanzado = chosen.some(t => t.nivel === 3);
-    const warnEl = document.getElementById('builderWarning');
-    if(warnEl) warnEl.classList.toggle('show', hasAvanzado && !hasBasico);
-
-    const bonuses = document.getElementById('builderBonuses');
-    if(bonuses){
-      if(totalHours >= MIN_HOURS){
-        const chosenIds = new Set(chosen.map(t => t.id));
-        const activos = proyectos.filter(p => p.temaIds && p.temaIds.length && p.temaIds.every(id => chosenIds.has(id)));
-        bonuses.innerHTML = activos.map(p => `<span class="bonus-pill">${checkIcon()} Incluye Proyecto: ${escapeHtml(p.nombre)}</span>`).join('');
-      } else {
-        bonuses.innerHTML = '';
-      }
-    }
-
-    const cta = document.getElementById('builderCtaBtn');
-    const hint = document.getElementById('builderCtaHint');
-    if(cta && hint){
-      if(totalHours >= MIN_HOURS){
-        cta.disabled = false;
-        hint.textContent = '';
-      } else {
-        cta.disabled = true;
-        hint.textContent = `Selecciona al menos ${MIN_HOURS} hr (3 temas) para cotizar. Llevas ${totalHours} hr.`;
-        document.getElementById('leadForm-builder')?.classList.remove('show');
-      }
-    }
-  }
-
-  // ---- formulario compartido (builder y programas estándar) ----
+  // ---- formulario de cotización (uno por programa estándar) ----
   const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.85 9.85 0 0 0 4.62 1.15h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Zm5.8 14.06c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.1.11-1.78-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.15-1.53-1.15-2.92s.72-2.06.98-2.35c.24-.27.54-.34.72-.34h.5c.16 0 .38-.03.58.44.24.57.8 1.98.87 2.12.07.14.11.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.24 2.21 1.38.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.55.73 1.82.86.27.14.44.2.51.31.07.11.07.62-.17 1.3Z"/></svg>';
   const mailIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 6 8 7 8-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -533,6 +377,7 @@
             <textarea id="leadComments-${id}" rows="3" placeholder="Kick off, grabación de sesiones, otras necesidades..."></textarea>
           </div>
         </div>
+        <input type="text" id="leadWeb-${id}" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
         <div class="lead-form-actions">
           <button type="button" class="lead-btn wa" onclick="sendLead('${id}','whatsapp')">${waIcon} WhatsApp</button>
           <button type="button" class="lead-btn mail" onclick="sendLead('${id}','mail')">${mailIcon} Correo</button>
@@ -540,14 +385,17 @@
       </div>`;
   }
 
-  // click delegado para los pills de participantes/modalidad (single-select por grupo)
+  // click delegado para los pills de participantes/modalidad (single-select por grupo).
+  // En fase de captura (true): el form vive dentro de un div con
+  // onclick="event.stopPropagation()" (para no cerrar el acordeón), así que en
+  // burbuja el click nunca llegaba al document y los pills no se marcaban.
   document.addEventListener('click', (e) => {
     const opt = e.target.closest('.pill-opt');
     if(!opt) return;
     const group = opt.closest('.pill-group');
     group.querySelectorAll('.pill-opt').forEach(o => o.classList.remove('active'));
     opt.classList.add('active');
-  });
+  }, true);
 
   function getPillValue(groupId){
     return document.querySelector(`[data-group="${groupId}"] .pill-opt.active`)?.dataset.value || '';
@@ -558,23 +406,9 @@
   }
 
   function buildMessage(id){
-    let msg;
     const toolTitle = (CAT_META[currentCat] || {}).title || '';
-    if(id === 'builder'){
-      const temas = (currentCatalogo && currentCatalogo.temas) || [];
-      const proyectos = (currentCatalogo && currentCatalogo.proyectos) || [];
-      const chosen = temas.filter(t => selectedTopics.has(t.id));
-      const totalHours = chosen.reduce((s, t) => s + t.horas, 0);
-      const chosenIds = new Set(chosen.map(t => t.id));
-      const activos = proyectos.filter(p => p.temaIds && p.temaIds.length && p.temaIds.every(pid => chosenIds.has(pid)));
-      msg = `Quiero cotizar un temario personalizado de ${toolTitle}:\n\n`;
-      msg += chosen.map(t => `• ${t.nombre} (${t.horas} hr)`).join('\n');
-      msg += `\n\nTotal: ${totalHours} hr`;
-      if(activos.length) msg += `\nIncluye: ${activos.map(p => p.nombre).join(', ')}`;
-    } else {
-      const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
-      msg = p ? `Quiero cotizar el programa "${p.nombre}" (${p.horas} hr) de ${toolTitle}.` : `Quiero cotizar un curso de ${toolTitle}.`;
-    }
+    const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
+    let msg = p ? `Quiero cotizar el programa "${p.nombre}" (${p.horas} hr) de ${toolTitle}.` : `Quiero cotizar un curso de ${toolTitle}.`;
 
     const participantes = getPillValue(`participantes-${id}`);
     const modalidad = getPillValue(`modalidad-${id}`);
@@ -591,12 +425,58 @@
     return msg;
   }
 
+  // reintento con pausas crecientes — mismo patrón que encuesta.html/diagnostico.html
+  // para cualquier Function que toque apcweb-backoffice (puede estar "dormida").
+  const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+  async function apiPostJson(url, data){
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok){ const err = new Error(body.error || 'Error de red'); err.status = res.status; throw err; }
+    return body;
+  }
+  const esErrorDefinitivo = e => e && e.status >= 400 && e.status < 500;
+
+  // crea la Solicitud real en el admin — "mejor esfuerzo": nunca bloquea ni
+  // le avisa nada al visitante, solo para que a Alfredo le llegue sin que
+  // dependa de que WhatsApp/correo sí se abran.
+  async function crearSolicitudPublica(id, extra){
+    const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
+    if(!p) return;
+    const payload = {
+      nombre: extra.name, empresa: extra.co, herramienta: currentCat,
+      temario_nombre: p.nombre, temas: p.temas, horas_totales: p.horas,
+      fecha_tentativa: extra.fecha, ciudad_sede: extra.ciudad,
+      participantes: extra.participantes, modalidad: extra.modalidad,
+      comentarios: extra.comentarios,
+      web: (document.getElementById('leadWeb-' + id)?.value || ''),
+    };
+    for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length; intento++){
+      try { await apiPostJson('/api/crearSolicitudPublica', payload); return; }
+      catch(err){
+        if(esErrorDefinitivo(err) || intento === REINTENTO_PAUSAS_MS.length){
+          console.error('No se pudo registrar la solicitud en el admin:', err);
+          return;
+        }
+        await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+      }
+    }
+  }
+
   function sendLead(id, channel){
     const name = (document.getElementById('leadName-' + id)?.value || '').trim();
     const co   = (document.getElementById('leadCo-' + id)?.value || '').trim();
     const toolTitle = (CAT_META[currentCat] || {}).title || '';
 
     let msg = `Hola Alfredo, soy ${name || 'un/a interesado/a'}${co ? ' de ' + co : ''}.\n\n` + buildMessage(id);
+
+    crearSolicitudPublica(id, {
+      name, co,
+      fecha: (document.getElementById('leadDate-' + id)?.value || '').trim(),
+      ciudad: (document.getElementById('leadCity-' + id)?.value || '').trim(),
+      comentarios: (document.getElementById('leadComments-' + id)?.value || '').trim(),
+      participantes: getPillValue(`participantes-${id}`),
+      modalidad: getPillValue(`modalidad-${id}`),
+    });
 
     if(channel === 'whatsapp'){
       window.open(`https://wa.me/528117255937?text=${encodeURIComponent(msg)}`, '_blank');

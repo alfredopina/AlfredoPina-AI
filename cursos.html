@@ -107,8 +107,6 @@
 <script>
   // nav de categorías (celdas) + título/subtítulo comercial dinámico + catálogo por herramienta
   const tabMap = { excel:'excel', powerbi:'powerbi', powerapps:'powerapps', powerautomate:'powerautomate', ia:'ia', ofimatica:'ofimatica' };
-  const TOOL_LABEL = { excel:'EXCEL', powerbi:'POWERBI', powerapps:'POWERAPPS', powerautomate:'POWERAUTOMATE', ia:'IA', ofimatica:'OFIMATICA' };
-  const NIVEL_LABEL = ['', 'Básico', 'Intermedio', 'Avanzado'];
 
   const CAT_META = {
     excel: {
@@ -258,8 +256,7 @@
   // ============================================================
   function estandarHtml(estandar){
     return `
-      <div class="builder-title">Nuestros programas más pedidos</div>
-      <p class="builder-sub">Programas ya armados — la mayoría de nuestros clientes empieza aquí.</p>
+      <div class="programs-head" id="programas"><div class="builder-title">Nuestros programas más pedidos</div></div>
       <div class="programs-list" id="programsList">${estandar.map(programFnHtml).join('')}</div>`;
   }
 

@@ -56,8 +56,8 @@
   // EXCEL — único contenido real hoy
   // ============================================================
   const ExcelScenes = {
-    classicFns: ["=ÍNDICE(", "=COINCIDIR(", "=SI(", "=BUSCARV(", "=SUMA(", "=PROMEDIO(", "=CONCATENAR(", "=EXTRAE(", "=HOY()", "=SUMAR.SI("],
-    newFns: ["SI.CONJUNTO", "IMAGEN", "BUSCARX", "FILTRAR", "TRADUCIR", "ÚNICOS", "ORDENAR", "SECUENCIA", "EXPANDIR", "LAMBDA", "REDUCE", "DIVIDIRTEXTO"],
+    classicFns: ["=ÍNDICE()", "=COINCIDIR()", "=SI()", "=BUSCARV()", "=SUMA()", "=PROMEDIO()", "=CONCATENAR()", "=EXTRAE()", "=HOY()", "=SUMAR.SI()"],
+    newFns: ["SI.CONJUNTO()", "IMAGEN()", "BUSCARX()", "FILTRAR()", "TRADUCIR()", "ÚNICOS()", "ORDENAR()", "SECUENCIA()", "EXPANDIR()", "LAMBDA()", "REDUCE()", "DIVIDIRTEXTO()"],
 
     renderHtml() {
       return `
@@ -71,7 +71,7 @@
         <span class="hoja-txt" id="msgText3">Diseña Dashboards increíbles.<span class="formula-msg-cursor"></span></span>
         <span class="hoja-txt" id="msgText4">Deja que la IA haga el trabajo duro.<span class="formula-msg-cursor"></span></span>
       </div></div>
-      <a href="#programsList" class="hoja-ver">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a href="#programas" class="hoja-ver">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="hoja-gutter"><div class="hoja-rows" id="hojaRows"></div><div class="hoja-sel"></div></div>
     <div class="hoja-tabs" id="viajeRail">
@@ -92,19 +92,14 @@
     </div>
     <div class="viaje-hero-actions">
       <a href="#sceneCaptura" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      <a href="#programsList" class="viaje-btn solid">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a href="#programas" class="viaje-btn solid">Ver programas<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
   </section>
 
   <section class="viaje-scene" id="sceneCaptura">
     <div class="immersive" style="opacity:1;"></div>
     <div class="viaje-stage">
-      <div class="cap-grid reveal" id="capStage">
-        <div class="cap-cell hd"></div>
-        <div class="cap-cell hd">A</div><div class="cap-cell hd">B</div><div class="cap-cell hd">C</div><div class="cap-cell hd">D</div>
-        <div class="cap-cell hd">E</div><div class="cap-cell hd">F</div><div class="cap-cell hd">G</div><div class="cap-cell hd">H</div>
-        ${[1, 2, 3, 4, 5].map((row) => `<div class="cap-cell hd">${row}</div>` + Array(8).fill('<div class="cap-cell"></div>').join("")).join("")}
-      </div>
+      <div class="cap-field reveal" id="capStage">${Array(24).fill('<div class="cap-slot"></div>').join("")}</div>
       <div class="viaje-msg">
         <div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">Aprende a crear fórmulas poderosas.<span class="formula-msg-cursor"></span></span></div>
       </div>
@@ -299,9 +294,10 @@
       if (!root) return;
 
       // sortea en qué celda cae cada función — nunca la misma hoja dos veces
-      const pool = shuffle(Array.prototype.slice.call(root.querySelectorAll("#capStage .cap-cell:not(.hd)")));
-      const classicCells = this.classicFns.map((fn, i) => { const c = pool[i]; c.textContent = fn; c.classList.add("cap-fn", "reveal"); return c; });
-      const newCells = this.newFns.map((fn, i) => { const c = pool[this.classicFns.length + i]; c.textContent = fn; c.classList.add("cap-fn", "new", "reveal"); return c; });
+      const pool = shuffle(Array.prototype.slice.call(root.querySelectorAll("#capStage .cap-slot")));
+      function colocarFn(slot, fn, nueva) { const el = document.createElement("span"); el.className = "cap-fn reveal" + (nueva ? " new" : ""); el.textContent = fn; slot.appendChild(el); return el; }
+      const classicCells = this.classicFns.map((fn, i) => colocarFn(pool[i], fn, false));
+      const newCells = this.newFns.map((fn, i) => colocarFn(pool[this.classicFns.length + i], fn, true));
 
       // scroll a una escena pineada: ancla nativa no sirve (el pin mueve el layout), se va al start del trigger
       function irA(id, frac) {
@@ -311,6 +307,13 @@
         const y = st ? st.start + (st.end - st.start) * (frac || 0) : sc.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
+      // "Ver programas": aterriza en el título de la sección (instantáneo: el scroll suave atraviesa todo el recorrido)
+      function verProgramas(e) {
+        e.preventDefault();
+        const t = document.getElementById("programas");
+        if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - (NAV + 24), behavior: "instant" });
+      }
+      root.querySelectorAll('a[href="#programas"]').forEach((a) => a.addEventListener("click", verProgramas));
       const next = root.querySelector("[data-viaje-next]");
       if (next) next.addEventListener("click", (e) => { e.preventDefault(); irA("sceneCaptura", 0); });
 
@@ -325,7 +328,7 @@
       const tabs = Array.prototype.slice.call(root.querySelectorAll(".hoja-tab"));
       const nameBox = root.querySelector("#hojaName");
       const rowsEl = root.querySelector("#hojaRows");
-      const ROW_H = 28, RATIO = 0.5, SEL_I = 4, LETRA = { 2: "B", 3: "D", 4: "F", 5: "H" };
+      const ROW_H = 28, RATIO = 0.5, SEL_I = 0, LETRA = { 2: "B", 3: "D", 4: "F", 5: "H" };
       const rowEls = Array.prototype.slice.call((rowsEl.innerHTML = Array(Math.ceil(window.innerHeight / ROW_H) + 2).fill('<div class="hoja-row"></div>').join(""), rowsEl.children));
       let escena = 1, baseVista = -1, yHoja = 0;
       function pintarHoja(y) {
@@ -349,7 +352,7 @@
       setActive(1);
 
       // ---- 2: CAPTURA ----
-      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top top", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
+      const tl1 = gsap.timeline({ scrollTrigger: { trigger: "#sceneCaptura", start: "top " + NAV + "px", end: "+=170%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(2) } });
       tl1.to("#capStage", { opacity: 1, duration: 4 }, 0);
       classicCells.forEach((cell, i) => tl1.to(cell, { opacity: 1, duration: 4 }, 4 + i * 3));
       tl1.to("#msgText1", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -358,7 +361,7 @@
       tl1.to("#msgText1", { opacity: 0, duration: 6 }, 94);
 
       // ---- 2: ORGANIZA ----
-      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top top", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
+      const tl2 = gsap.timeline({ scrollTrigger: { trigger: "#sceneOrganiza", start: "top " + NAV + "px", end: "+=175%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(3) } });
       tl2.fromTo("#orgLeft", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.fromTo("#orgRight", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 8 }, 0);
       tl2.to("#msgText2", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 2);
@@ -376,7 +379,7 @@
       tl2.to("#msgText2", { opacity: 0, duration: 6 }, 92);
 
       // ---- 3: DECIDE ----
-      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top top", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
+      const tl3 = gsap.timeline({ scrollTrigger: { trigger: "#sceneDecide", start: "top " + NAV + "px", end: "+=195%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(4) } });
       tl3.to("#imm4", { opacity: 1, duration: 8 }, 0);
       tl3.to("#msgText3", { clipPath: "inset(0 0% 0 0)", duration: 10 }, 1);
       tl3.to("#dashGrid", { opacity: 1, y: 0, duration: 8 }, 3);
@@ -404,7 +407,7 @@
       tl3.to("#msgText3", { opacity: 0, duration: 6 }, 93);
 
       // ---- 4: AUTOMATIZA ----
-      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top top", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
+      const tl4 = gsap.timeline({ scrollTrigger: { trigger: "#sceneAutomatiza", start: "top " + NAV + "px", end: "+=190%", scrub: 1, pin: true, onToggle: (self) => self.isActive && setActive(5) } });
       tl4.to("#toolbar5, #copilotPanel", { opacity: 1, y: 0, duration: 6 }, 0);
       tl4.to("#msgText4", { clipPath: "inset(0 0% 0 0)", duration: 9 }, 1);
       tl4.fromTo("#cursor5", { opacity: 0, x: 360, y: 180 }, { opacity: 1, duration: 3 }, 4);
@@ -440,13 +443,29 @@
       tl4.to("#toolbar5, #copilotPanel, #cursor5", { opacity: 0, y: -10, duration: 10 }, 92);
       tl4.to("#msgText4", { opacity: 0, duration: 6 }, 96);
 
-      // inmersivo: del primer pin al último, nav y categorías se esconden
+      // la hoja (barra de fórmulas, filas, pestañas) vive bajo el nav, que se queda visible
       document.body.classList.add("viaje-on");
+      // la barra de la hoja aparece apenas se empieza a scrollear (30 px) y dura hasta el final de Automatiza
       ScrollTrigger.create({
-        trigger: "#sceneCaptura", start: "top top", end: () => tl4.scrollTrigger.end,
+        trigger: "#sceneHero", start: () => "top " + (NAV - 30) + "px", end: () => tl4.scrollTrigger.end,
         onUpdate: (self) => pintarHoja((self.scroll() - self.start) * RATIO),
-        onToggle: (self) => document.body.classList.toggle("viaje-inmersivo", self.isActive),
+        onToggle: (self) => document.body.classList.toggle("viaje-hoja", self.isActive),
       });
+
+      // Automatiza llena la pantalla: se escala todo el escenario (las coordenadas del cursor viven dentro, escalan con él)
+      const autoStage = root.querySelector(".auto-stage");
+      function escalarAuto() {
+        autoStage.style.transform = "none";
+        const tb = root.querySelector("#toolbar5"), cp = root.querySelector("#copilotPanel");
+        const w0 = tb.offsetWidth + cp.offsetWidth + 24, h0 = autoStage.offsetHeight;
+        const dispW = window.innerWidth - 130, dispH = root.querySelector("#sceneAutomatiza").clientHeight - 62 - 50 - 24;
+        const s = Math.min(dispW / w0, dispH / h0, 1.7);
+        if (autoStage.offsetHeight <= tb.offsetHeight + 4 || autoStage.offsetHeight <= cp.offsetHeight + 4) { if (s > 1.02) autoStage.style.transform = "scale(" + s.toFixed(3) + ")"; }
+      }
+      if (window._viajeResize) window.removeEventListener("resize", window._viajeResize);
+      window._viajeResize = escalarAuto;
+      window.addEventListener("resize", escalarAuto);
+      escalarAuto();
 
       ScrollTrigger.refresh();
       window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
@@ -460,6 +479,6 @@
     html(cat) { return VIAJE_SCENES[cat] ? VIAJE_SCENES[cat].renderHtml() : ""; },
     iniciar(cat) { if (VIAJE_SCENES[cat]) VIAJE_SCENES[cat].iniciar(); },
     // al cambiar de herramienta el panel se reemplaza: hay que soltar los pins viejos
-    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); document.body.classList.remove("viaje-on", "viaje-inmersivo"); },
+    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); document.body.classList.remove("viaje-on", "viaje-hoja"); if (window._viajeResize) { window.removeEventListener("resize", window._viajeResize); window._viajeResize = null; } },
   };
 })();

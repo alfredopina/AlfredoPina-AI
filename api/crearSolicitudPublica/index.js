@@ -1,17 +1,30 @@
 // crearSolicitudPublica/index.js
 // Function PÚBLICA (anonymous, sin rol — no listada en staticwebapp.config.json
 // a propósito, igual que getCatalogoCursos): el formulario de cursos.html crea
-// aquí la Solicitud real en vez de solo abrir WhatsApp/correo. Mismo contrato
-// que crearSolicitud (admin), con 3 diferencias:
-//   - canal_origen siempre 'Sitio' (crearSolicitud ya traía el comentario
-//     anticipando esto).
+// aquí la Solicitud real (ya es el ÚNICO canal del formulario: sin WhatsApp ni
+// correo). Mismo contrato que crearSolicitud (admin), con estas diferencias:
+//   - canal_origen siempre 'Sitio'.
 //   - el form público no pide "código" de empresa (fricción innecesaria para
 //     un prospecto frío) — se deriva uno de su nombre + sufijo random para no
 //     chocar con un código real existente.
+//   - pide un medio de contacto (correo o WhatsApp en un solo campo) y crea el
+//     Contacto real del prospecto: es la única forma en que Alfredo puede
+//     responderle.
 //   - valida un honeypot (campo "web", oculto por CSS) como único filtro
 //     antispam — no hay rate-limit real todavía, ver CLAUDE_DETALLE.md.
-// contacto_id se deja NULL (resolver un Contacto real es trabajo de otra
-// tanda); el nombre de quien llena el form va dentro de notas.
+//
+// IDEMPOTENTE (corrige el bug de 3 Solicitudes por un solo envío): con la base
+// dormida, el primer intento tarda más que el límite de ~45 s de Static Web
+// Apps (llega un 504 al navegador aunque esta Function sigue y termina
+// insertando), y el cliente reintenta con pausas — cada reintento insertaba otra
+// fila. Ahora todo corre en una transacción protegida por un applock
+// (sp_getapplock) cuya llave es el hash del envío; dentro del lock se busca una
+// Solicitud 'Sitio' igual (mismo contacto, empresa, programa y detalles) de los
+// últimos 30 min y, si existe, se devuelve esa en vez de crear otra. El applock
+// serializa los intentos concurrentes, así que tampoco hay carrera.
+// Los errores de base de datos devuelven 503 (el cliente reintenta); solo los
+// de validación son 400 (definitivos, el cliente no reintenta).
+const crypto = require("crypto");
 const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -19,10 +32,15 @@ const { JSON_HEADERS } = require("../src/http");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
+const VENTANA_DUPLICADO_MIN = 30;
 
 function derivarCodigo(nombre) {
   const base = (nombre || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) || "EMPRESA";
   return base + Math.floor(100 + Math.random() * 900);
+}
+
+function bad(context, error) {
+  context.res = { status: 400, headers: JSON_HEADERS, body: { error } };
 }
 
 module.exports = async function (context, req) {
@@ -34,59 +52,118 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const nombreContacto = (body.nombre || "").trim();
-  const empresaNombre = (body.empresa || "").trim() || nombreContacto;
+  const nombreContacto = (body.nombre || "").trim().slice(0, 200);
+  const empresaNombre = ((body.empresa || "").trim() || nombreContacto).slice(0, 200);
   const herramienta = (body.herramienta || "").trim().toLowerCase();
-  const temarioNombre = (body.temario_nombre || "").trim();
+  const temarioNombre = (body.temario_nombre || "").trim().slice(0, 200);
   const temas = Array.isArray(body.temas) ? body.temas : [];
   const horasTotales = Number(body.horas_totales);
-  const fechaTentativa = (body.fecha_tentativa || "").trim() || null;
-  const ciudadSede = (body.ciudad_sede || "").trim() || null;
+  const fechaTentativa = (body.fecha_tentativa || "").trim().slice(0, 200) || null;
+  const ciudadSede = (body.ciudad_sede || "").trim().slice(0, 150) || null;
   const participantes = (body.participantes || "").trim() || null;
   const modalidad = (body.modalidad || "").trim() || null;
-  const comentarios = (body.comentarios || "").trim();
+  const comentarios = (body.comentarios || "").trim().slice(0, 2000);
+  const contactoRaw = (body.contacto || "").trim().slice(0, 200);
 
-  if (!nombreContacto) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta tu nombre." } };
-    return;
-  }
-  if (!HERRAMIENTAS.includes(herramienta)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Herramienta inválida." } };
-    return;
-  }
-  if (!temarioNombre) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el temario." } };
-    return;
-  }
-  if (!Number.isFinite(horasTotales) || horasTotales <= 0) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Las horas no son válidas." } };
-    return;
-  }
-  if (modalidad && !MODALIDADES.includes(modalidad)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Modalidad inválida." } };
-    return;
-  }
-  if (participantes && !PARTICIPANTES_OPCIONES.includes(participantes)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Participantes inválido." } };
-    return;
+  if (!nombreContacto) return bad(context, "Falta tu nombre.");
+  if (!contactoRaw) return bad(context, "Falta tu correo o WhatsApp para poder responderte.");
+  if (!HERRAMIENTAS.includes(herramienta)) return bad(context, "Herramienta inválida.");
+  if (!temarioNombre) return bad(context, "Falta el programa.");
+  if (!Number.isFinite(horasTotales) || horasTotales <= 0) return bad(context, "Las horas no son válidas.");
+  if (modalidad && !MODALIDADES.includes(modalidad)) return bad(context, "Modalidad inválida.");
+  if (participantes && !PARTICIPANTES_OPCIONES.includes(participantes)) return bad(context, "Participantes inválido.");
+
+  // un solo campo: si trae @ es correo, si no es teléfono/WhatsApp
+  let correo = null;
+  let telefono = null;
+  if (contactoRaw.includes("@")) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactoRaw)) return bad(context, "El correo no parece válido.");
+    correo = contactoRaw.toLowerCase();
+  } else {
+    const digitos = contactoRaw.replace(/\D/g, "");
+    if (digitos.length < 8 || digitos.length > 15) return bad(context, "El WhatsApp no parece válido (incluye la lada).");
+    telefono = contactoRaw.slice(0, 30);
   }
 
-  const notas = comentarios ? `Contacto: ${nombreContacto} — ${comentarios}` : `Contacto: ${nombreContacto}`;
+  const notas = comentarios || null;
 
-  let pool, cliente;
+  // llave del envío: mismo contacto + empresa + programa + detalles = mismo envío
+  const llave = crypto
+    .createHash("sha1")
+    .update([nombreContacto, correo || telefono, empresaNombre, herramienta, temarioNombre, fechaTentativa, ciudadSede, participantes, modalidad, comentarios].map((x) => (x || "").toString().toLowerCase()).join("|"))
+    .digest("hex");
+
+  let pool;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, { nombre: empresaNombre, codigo: derivarCodigo(empresaNombre) });
   } catch (err) {
-    context.log.error("Error resolviendo el cliente (público):", err.message);
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "No se pudo procesar tu solicitud, inténtalo de nuevo." } };
+    context.log.error("No se pudo conectar a la base (solicitud pública):", err.message);
+    context.res = { status: 503, headers: JSON_HEADERS, body: { error: "El sistema está despertando, inténtalo de nuevo." } };
     return;
   }
 
+  const transaction = new sql.Transaction(pool);
   try {
-    const insert = await pool
-      .request()
+    await transaction.begin();
+    const nuevaRequest = () => new sql.Request(transaction);
+
+    // serializa los intentos del MISMO envío; se libera solo al terminar la transacción
+    const lock = await nuevaRequest()
+      .input("recurso", sql.NVarChar, "solpub_" + llave)
+      .query("DECLARE @r INT; EXEC @r = sp_getapplock @Resource = @recurso, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 40000; SELECT @r AS r");
+    if (lock.recordset[0].r < 0) throw new Error("No se obtuvo el candado del envío (código " + lock.recordset[0].r + ")");
+
+    const previa = await nuevaRequest()
+      .input("herramienta", sql.NVarChar, herramienta)
+      .input("temarioNombre", sql.NVarChar, temarioNombre)
+      .input("nombre", sql.NVarChar, nombreContacto)
+      .input("correo", sql.NVarChar, correo || "")
+      .input("telefono", sql.NVarChar, telefono || "")
+      .input("empresa", sql.NVarChar, empresaNombre)
+      .input("fecha", sql.NVarChar, fechaTentativa || "")
+      .input("ciudad", sql.NVarChar, ciudadSede || "")
+      .input("participantes", sql.NVarChar, participantes || "")
+      .input("modalidad", sql.NVarChar, modalidad || "")
+      .input("notas", sql.NVarChar, notas || "")
+      .input("ventana", sql.Int, VENTANA_DUPLICADO_MIN)
+      .query(
+        `SELECT TOP 1 s.id
+           FROM Solicitud s
+           JOIN Contacto c ON c.id = s.contacto_id
+           JOIN Cliente cl ON cl.id = s.cliente_id
+          WHERE s.canal_origen = 'Sitio'
+            AND s.fecha_creacion >= DATEADD(MINUTE, -@ventana, SYSUTCDATETIME())
+            AND s.herramienta = @herramienta AND s.temario_nombre = @temarioNombre
+            AND c.nombre = @nombre AND ISNULL(c.correo, '') = @correo AND ISNULL(c.telefono, '') = @telefono
+            AND cl.nombre = @empresa
+            AND ISNULL(s.fecha_tentativa, '') = @fecha AND ISNULL(s.ciudad_sede, '') = @ciudad
+            AND ISNULL(s.participantes, '') = @participantes AND ISNULL(s.modalidad, '') = @modalidad
+            AND ISNULL(s.notas, '') = @notas
+          ORDER BY s.id`
+      );
+    if (previa.recordset.length) {
+      await transaction.commit();
+      context.res = { status: 200, headers: JSON_HEADERS, body: { id: previa.recordset[0].id, duplicada: true } };
+      return;
+    }
+
+    const cliente = await resolverCliente(nuevaRequest, { nombre: empresaNombre, codigo: derivarCodigo(empresaNombre) });
+
+    const insertContacto = await nuevaRequest()
       .input("clienteId", sql.Int, cliente.id)
+      .input("nombre", sql.NVarChar, nombreContacto)
+      .input("correo", sql.NVarChar, correo)
+      .input("telefono", sql.NVarChar, telefono)
+      .input("tieneWhatsapp", sql.Bit, telefono ? 1 : 0)
+      .query(
+        `INSERT INTO Contacto (cliente_id, nombre, correo, telefono, tiene_whatsapp, es_principal)
+         OUTPUT INSERTED.id
+         VALUES (@clienteId, @nombre, @correo, @telefono, @tieneWhatsapp, 1)`
+      );
+
+    const insert = await nuevaRequest()
+      .input("clienteId", sql.Int, cliente.id)
+      .input("contactoId", sql.Int, insertContacto.recordset[0].id)
       .input("herramienta", sql.NVarChar, herramienta)
       .input("temarioNombre", sql.NVarChar, temarioNombre)
       .input("temasJson", sql.NVarChar, JSON.stringify(temas))
@@ -98,16 +175,19 @@ module.exports = async function (context, req) {
       .input("modalidad", sql.NVarChar, modalidad)
       .query(
         `INSERT INTO Solicitud
-          (cliente_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
+          (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
            fecha_tentativa, ciudad_sede, participantes, modalidad)
          OUTPUT INSERTED.id
          VALUES
-          (@clienteId, @herramienta, 'estandar', @temarioNombre, @temasJson, @horasTotales, 'Sitio', @notas,
+          (@clienteId, @contactoId, @herramienta, 'estandar', @temarioNombre, @temasJson, @horasTotales, 'Sitio', @notas,
            @fechaTentativa, @ciudadSede, @participantes, @modalidad)`
       );
+
+    await transaction.commit();
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {
+    try { await transaction.rollback(); } catch (_) { /* ya cerrada */ }
     context.log.error("Error creando la solicitud pública:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo crear la solicitud." } };
+    context.res = { status: 503, headers: JSON_HEADERS, body: { error: "No se pudo registrar tu solicitud, inténtalo de nuevo." } };
   }
 };

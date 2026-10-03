@@ -297,8 +297,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             </div>
-            <div class="pricing-note">${PRICING_NOTE}</div>
-            <div onclick="event.stopPropagation()">${leadFormHTML(p.id)}</div>
+            <details class="pricing-details"><summary>Qué incluye y condiciones</summary><div class="pricing-note">${PRICING_NOTE}</div></details>
           </div>
         </div>
       </div>`;
@@ -308,70 +307,112 @@
     document.getElementById('programFn-' + id).classList.toggle('open');
   }
 
-  // ---- formulario de cotización (uno por programa estándar) ----
-  const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.85 9.85 0 0 0 4.62 1.15h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Zm5.8 14.06c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.1.11-1.78-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.15-1.53-1.15-2.92s.72-2.06.98-2.35c.24-.27.54-.34.72-.34h.5c.16 0 .38-.03.58.44.24.57.8 1.98.87 2.12.07.14.11.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.24 2.21 1.38.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.55.73 1.82.86.27.14.44.2.51.31.07.11.07.62-.17 1.3Z"/></svg>';
-  const mailIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 6 8 7 8-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // ---- solicitud de cotización: UN diálogo compartido (antes un formulario de 8 campos por tarjeta,
+  // dentro del acordeón). Lo esencial va primero (nombre, correo o WhatsApp, empresa); participantes,
+  // modalidad, fecha, ciudad y comentarios quedan en "Agregar detalles (opcional)". ----
+  const chevronIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  let leadProgId = null;      // programa para el que está armado el diálogo
+  let leadEstado = 'form';    // 'form' | 'enviado'
 
-  function leadFormHTML(id){
+  function leadBodyHTML(){
     return `
-      <div class="lead-form" id="leadForm-${id}">
-        <div class="lead-grid">
-          <div class="lead-field">
-            <label for="leadName-${id}">Tu nombre</label>
-            <input type="text" id="leadName-${id}" placeholder="¿Cómo te llamas?">
-          </div>
-          <div class="lead-field">
-            <label for="leadCo-${id}">Empresa (opcional)</label>
-            <input type="text" id="leadCo-${id}" placeholder="Nombre de tu empresa">
-          </div>
-          <div class="lead-field">
-            <label for="leadDate-${id}">Fecha tentativa de inicio</label>
-            <input type="text" id="leadDate-${id}" placeholder="Ej. últimas dos semanas de septiembre">
-          </div>
-          <div class="lead-field">
-            <label for="leadCity-${id}">Ciudad / sede (si es presencial)</label>
-            <input type="text" id="leadCity-${id}" placeholder="Ej. Monterrey, oficinas del cliente">
-          </div>
-          <div class="lead-field full">
-            <label>Participantes</label>
-            <div class="pill-group" data-group="participantes-${id}">
-              <button type="button" class="pill-opt" data-value="Solo yo">Solo yo</button>
-              <button type="button" class="pill-opt" data-value="5 a 10">5 a 10</button>
-              <button type="button" class="pill-opt" data-value="10 a 15">10 a 15</button>
-              <button type="button" class="pill-opt" data-value="Más de 15">Más de 15</button>
-            </div>
-          </div>
-          <div class="lead-field full">
-            <label>Modalidad</label>
-            <div class="pill-group" data-group="modalidad-${id}">
-              <button type="button" class="pill-opt" data-value="Online">Online</button>
-              <button type="button" class="pill-opt" data-value="Presencial">Presencial</button>
-              <button type="button" class="pill-opt" data-value="Híbrido">Híbrido</button>
-            </div>
-          </div>
-          <div class="lead-field full">
-            <label for="leadComments-${id}">Comentarios (opcional)</label>
-            <textarea id="leadComments-${id}" rows="3" placeholder="Kick off, grabación de sesiones, otras necesidades..."></textarea>
+      <div class="lead-fields">
+        <div class="lead-field">
+          <label for="leadName">Tu nombre *</label>
+          <input type="text" id="leadName" placeholder="¿Cómo te llamas?" autocomplete="name" maxlength="200">
+        </div>
+        <div class="lead-field">
+          <label for="leadContact">Correo o WhatsApp *</label>
+          <input type="text" id="leadContact" placeholder="Para enviarte la cotización" autocomplete="email" inputmode="email" maxlength="200">
+        </div>
+        <div class="lead-field">
+          <label for="leadCo">Empresa <span class="lead-opt">(opcional)</span></label>
+          <input type="text" id="leadCo" placeholder="Tu empresa" autocomplete="organization" maxlength="200">
+        </div>
+      </div>
+      <button type="button" class="lead-more" id="leadMoreBtn" aria-expanded="false" aria-controls="leadMore">Agregar detalles (opcional) ${chevronIcon}</button>
+      <div class="lead-more-body" id="leadMore" hidden>
+        <div class="lead-field">
+          <label>Participantes</label>
+          <div class="pill-group" data-group="participantes">
+            <button type="button" class="pill-opt" data-value="Solo yo">Solo yo</button>
+            <button type="button" class="pill-opt" data-value="5 a 10">5 a 10</button>
+            <button type="button" class="pill-opt" data-value="10 a 15">10 a 15</button>
+            <button type="button" class="pill-opt" data-value="Más de 15">Más de 15</button>
           </div>
         </div>
-        <input type="text" id="leadWeb-${id}" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
-        <div class="lead-form-actions">
-          <button type="button" class="lead-btn wa" onclick="sendLead('${id}','whatsapp')">${waIcon} WhatsApp</button>
-          <button type="button" class="lead-btn mail" onclick="sendLead('${id}','mail')">${mailIcon} Correo</button>
+        <div class="lead-field">
+          <label>Modalidad</label>
+          <div class="pill-group" data-group="modalidad">
+            <button type="button" class="pill-opt" data-value="Online">Online</button>
+            <button type="button" class="pill-opt" data-value="Presencial">Presencial</button>
+            <button type="button" class="pill-opt" data-value="Híbrido">Híbrido</button>
+          </div>
         </div>
+        <div class="lead-row2">
+          <div class="lead-field">
+            <label for="leadDate">Fecha tentativa</label>
+            <input type="text" id="leadDate" placeholder="Ej. segunda quincena de noviembre" maxlength="200">
+          </div>
+          <div class="lead-field">
+            <label for="leadCity">Ciudad / sede</label>
+            <input type="text" id="leadCity" placeholder="Si es presencial" maxlength="150">
+          </div>
+        </div>
+        <div class="lead-field">
+          <label for="leadComments">Comentarios</label>
+          <textarea id="leadComments" rows="3" placeholder="Kick off, grabación de sesiones, otras necesidades…" maxlength="2000"></textarea>
+        </div>
+      </div>
+      <input type="text" id="leadWeb" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
+      <div class="lead-error" id="leadErr" role="alert" hidden></div>
+      <div class="lead-form-actions">
+        <button type="button" class="lead-btn send" id="leadSend">Enviar solicitud</button>
       </div>`;
   }
 
-  // click delegado para los pills de participantes/modalidad (single-select por grupo).
-  // En fase de captura (true): el form vive dentro de un div con
-  // onclick="event.stopPropagation()" (para no cerrar el acordeón), así que en
-  // burbuja el click nunca llegaba al document y los pills no se marcaban.
+  function ensureLeadDialog(){
+    let dlg = document.getElementById('leadDialog');
+    if(dlg) return dlg;
+    document.body.insertAdjacentHTML('beforeend', `
+      <dialog class="lead-dialog" id="leadDialog" aria-labelledby="leadTitle">
+        <div class="lead-dlg-head">
+          <span class="lead-dlg-ico" id="leadIco"></span>
+          <div class="lead-dlg-titles">
+            <div class="lead-dlg-kicker">Solicitar cotización</div>
+            <div class="lead-dlg-title" id="leadTitle"></div>
+            <div class="lead-dlg-meta" id="leadMeta"></div>
+          </div>
+          <button type="button" class="lead-dlg-close" id="leadClose" aria-label="Cerrar">${closeIcon}</button>
+        </div>
+        <div class="lead-dlg-body" id="leadBody"></div>
+      </dialog>`);
+    dlg = document.getElementById('leadDialog');
+    document.getElementById('leadClose').addEventListener('click', () => dlg.close());
+    // clic en el fondo oscuro (fuera de la tarjeta) cierra
+    dlg.addEventListener('click', e => { if(e.target === dlg) dlg.close(); });
+    dlg.addEventListener('click', e => {
+      if(e.target.closest('#leadSend')) sendLead();
+      const more = e.target.closest('#leadMoreBtn');
+      if(more){
+        const body = document.getElementById('leadMore');
+        body.hidden = !body.hidden;
+        more.setAttribute('aria-expanded', String(!body.hidden));
+        more.classList.toggle('open', !body.hidden);
+      }
+    });
+    return dlg;
+  }
+
+  // click delegado para los pills (single-select por grupo)
   document.addEventListener('click', (e) => {
     const opt = e.target.closest('.pill-opt');
     if(!opt) return;
     const group = opt.closest('.pill-group');
+    const ya = opt.classList.contains('active');
     group.querySelectorAll('.pill-opt').forEach(o => o.classList.remove('active'));
-    opt.classList.add('active');
+    if(!ya) opt.classList.add('active'); // segundo clic = quitar la selección (es opcional)
   }, true);
 
   function getPillValue(groupId){
@@ -379,27 +420,21 @@
   }
 
   function openLeadForm(id){
-    document.getElementById('leadForm-' + id)?.classList.toggle('show');
-  }
-
-  function buildMessage(id){
-    const toolTitle = (CAT_META[currentCat] || {}).title || '';
     const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
-    let msg = p ? `Quiero cotizar el programa "${p.nombre}" (${p.horas} hr) de ${toolTitle}.` : `Quiero cotizar un curso de ${toolTitle}.`;
-
-    const participantes = getPillValue(`participantes-${id}`);
-    const modalidad = getPillValue(`modalidad-${id}`);
-    const fecha = (document.getElementById('leadDate-' + id)?.value || '').trim();
-    const ciudad = (document.getElementById('leadCity-' + id)?.value || '').trim();
-    const comentarios = (document.getElementById('leadComments-' + id)?.value || '').trim();
-
-    if(participantes) msg += `\nParticipantes: ${participantes}`;
-    if(modalidad) msg += `\nModalidad: ${modalidad}`;
-    if(fecha) msg += `\nFecha tentativa: ${fecha}`;
-    if(ciudad) msg += `\nCiudad / sede: ${ciudad}`;
-    if(comentarios) msg += `\nComentarios: ${comentarios}`;
-
-    return msg;
+    if(!p) return;
+    const dlg = ensureLeadDialog();
+    const toolTitle = (CAT_META[currentCat] || {}).title || '';
+    dlg.style.setProperty('--c', TOOL_COLOR[currentCat] || '#22c55e');
+    document.getElementById('leadIco').innerHTML = toolIconInline(currentCat);
+    document.getElementById('leadTitle').textContent = p.nombre;
+    document.getElementById('leadMeta').textContent = (toolTitle + ' · ' + p.horas + ' hr').toUpperCase();
+    // se conserva lo escrito si se cierra y se vuelve a abrir el mismo programa; si no, formulario limpio
+    if(leadProgId !== id || leadEstado !== 'form'){
+      document.getElementById('leadBody').innerHTML = leadBodyHTML();
+      leadProgId = id; leadEstado = 'form';
+    }
+    dlg.showModal();
+    document.getElementById('leadName')?.focus();
   }
 
   // reintento con pausas crecientes — mismo patrón que encuesta.html/diagnostico.html
@@ -413,53 +448,68 @@
   }
   const esErrorDefinitivo = e => e && e.status >= 400 && e.status < 500;
 
-  // crea la Solicitud real en el admin — "mejor esfuerzo": nunca bloquea ni
-  // le avisa nada al visitante, solo para que a Alfredo le llegue sin que
-  // dependa de que WhatsApp/correo sí se abran.
-  async function crearSolicitudPublica(id, extra){
+  // crea la Solicitud real en el admin: ya es el ÚNICO canal del formulario. Con la base
+  // dormida el servidor puede tardar más de lo que aguanta Static Web Apps (llega un 504 aunque
+  // sigue y termina); por eso se reintenta con pausas y la Function es idempotente (mismo envío
+  // = misma Solicitud, nunca duplicada). Devuelve true si quedó registrada.
+  async function crearSolicitudPublica(id, extra, onReintento){
     const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
-    if(!p) return;
+    if(!p) throw new Error('Programa no encontrado.');
     const payload = {
-      nombre: extra.name, empresa: extra.co, herramienta: currentCat,
+      nombre: extra.name, contacto: extra.contacto, empresa: extra.co, herramienta: currentCat,
       temario_nombre: p.nombre, temas: p.temas, horas_totales: p.horas,
       fecha_tentativa: extra.fecha, ciudad_sede: extra.ciudad,
       participantes: extra.participantes, modalidad: extra.modalidad,
       comentarios: extra.comentarios,
-      web: (document.getElementById('leadWeb-' + id)?.value || ''),
+      web: (document.getElementById('leadWeb')?.value || ''),
     };
     for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length; intento++){
-      try { await apiPostJson('/api/crearSolicitudPublica', payload); return; }
+      try { await apiPostJson('/api/crearSolicitudPublica', payload); return true; }
       catch(err){
-        if(esErrorDefinitivo(err) || intento === REINTENTO_PAUSAS_MS.length){
-          console.error('No se pudo registrar la solicitud en el admin:', err);
-          return;
-        }
+        if(esErrorDefinitivo(err)) throw err; // validación: se le muestra tal cual
+        if(intento === REINTENTO_PAUSAS_MS.length){ console.error('No se pudo registrar la solicitud:', err); return false; }
+        if(onReintento) onReintento();
         await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
       }
     }
+    return false;
   }
 
-  function sendLead(id, channel){
-    const name = (document.getElementById('leadName-' + id)?.value || '').trim();
-    const co   = (document.getElementById('leadCo-' + id)?.value || '').trim();
-    const toolTitle = (CAT_META[currentCat] || {}).title || '';
+  async function sendLead(){
+    const id = leadProgId;
+    const btn = document.getElementById('leadSend');
+    const errEl = document.getElementById('leadErr');
+    if(!id || !btn || btn.disabled) return; // evita el doble clic
+    const val = k => (document.getElementById(k)?.value || '').trim();
+    const name = val('leadName'), contacto = val('leadContact');
+    const mostrarError = msg => { errEl.textContent = msg; errEl.hidden = false; };
+    errEl.hidden = true;
+    if(!name){ mostrarError('Escribe tu nombre.'); document.getElementById('leadName').focus(); return; }
+    if(!contacto){ mostrarError('Déjanos tu correo o WhatsApp para poder responderte.'); document.getElementById('leadContact').focus(); return; }
 
-    let msg = `Hola Alfredo, soy ${name || 'un/a interesado/a'}${co ? ' de ' + co : ''}.\n\n` + buildMessage(id);
-
-    crearSolicitudPublica(id, {
-      name, co,
-      fecha: (document.getElementById('leadDate-' + id)?.value || '').trim(),
-      ciudad: (document.getElementById('leadCity-' + id)?.value || '').trim(),
-      comentarios: (document.getElementById('leadComments-' + id)?.value || '').trim(),
-      participantes: getPillValue(`participantes-${id}`),
-      modalidad: getPillValue(`modalidad-${id}`),
-    });
-
-    if(channel === 'whatsapp'){
-      window.open(`https://wa.me/528117255937?text=${encodeURIComponent(msg)}`, '_blank');
-    } else {
-      window.location.href = `mailto:alfredo.pina@lifezen.com.mx?subject=${encodeURIComponent('Cotización de curso ' + toolTitle)}&body=${encodeURIComponent(msg)}`;
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+    try {
+      const ok = await crearSolicitudPublica(id, {
+        name, contacto, co: val('leadCo'), fecha: val('leadDate'), ciudad: val('leadCity'),
+        comentarios: val('leadComments'),
+        participantes: getPillValue('participantes'),
+        modalidad: getPillValue('modalidad'),
+      }, () => { btn.textContent = 'Seguimos intentando…'; });
+      if(ok){
+        leadEstado = 'enviado';
+        document.getElementById('leadBody').innerHTML =
+          '<div class="lead-ok" role="status"><b>Listo, ' + escapeHtml(name) + '.</b> Recibimos tu solicitud y te contactaremos pronto.</div>' +
+          '<div class="lead-form-actions"><button type="button" class="lead-btn" id="leadDone">Cerrar</button></div>';
+        document.getElementById('leadDone').addEventListener('click', () => document.getElementById('leadDialog').close());
+        return;
+      }
+      mostrarError('No pudimos enviar tu solicitud en este momento. Inténtalo de nuevo en unos minutos o escríbenos a alfredo.pina@lifezen.com.mx.');
+    } catch(e){
+      mostrarError(e && e.message ? e.message : 'No pudimos enviar tu solicitud. Revisa tus datos e inténtalo de nuevo.');
     }
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitud';
   }
 
   // la herramienta se elige desde el menú desplegable "Cursos" del nav (enlaces /cursos#herramienta):

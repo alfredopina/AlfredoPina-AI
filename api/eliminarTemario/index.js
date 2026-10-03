@@ -20,7 +20,7 @@ module.exports = async function (context, req) {
     await temariosTable.deleteEntity(herramienta, id);
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
-    context.log.error("Error eliminando el temario:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el temario: " + err.message } };
+    context.log.error("Error eliminando el programa:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el programa: " + err.message } };
   }
 };

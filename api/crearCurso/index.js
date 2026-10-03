@@ -22,11 +22,11 @@ module.exports = async function (context, req) {
     return;
   }
   if (!SLUG_RE.test(curso)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El id del curso solo puede tener minúsculas, números y guiones (ej. excel-bi)." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El id del material solo puede tener minúsculas, números y guiones (ej. excel-bi)." } };
     return;
   }
   if (!nombre || !codigo) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan el nombre o el código del curso." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan el nombre o el código del material." } };
     return;
   }
 
@@ -38,7 +38,7 @@ module.exports = async function (context, req) {
     );
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
-    context.log.error("Error guardando el curso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el curso: " + err.message } };
+    context.log.error("Error guardando el material:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el material: " + err.message } };
   }
 };

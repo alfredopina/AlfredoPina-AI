@@ -37,6 +37,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { cursos } };
   } catch (err) {
     context.log.error("Error consultando la tabla Cursos:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar los cursos: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron cargar los materiales: " + err.message } };
   }
 };

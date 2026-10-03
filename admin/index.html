@@ -2079,11 +2079,11 @@
       <div class="admin-nav-group">PRODUCTOS</div>
       <button class="admin-nav-item" data-panel="cursos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
-        Cursos
+        Programas
       </button>
       <button class="admin-nav-item" data-panel="recursos">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
-        Recursos
+        Materiales
       </button>
 
       <div class="admin-nav-group">SITIO</div>
@@ -2274,11 +2274,11 @@
           <div class="dkpi-grid" id="dashKpis">
             <div class="radm-empty-row">Cargando métricas…</div>
           </div>
-          <div class="dbar-title">Cursos publicados por herramienta</div>
+          <div class="dbar-title">Programas publicados por herramienta</div>
           <div id="dashBarChart"></div>
 
-          <div class="dbar-title" style="margin-top:32px;">% de cursos completos por herramienta</div>
-          <div class="dring-hint">Clic en una herramienta para ver el detalle de sus cursos — clic de nuevo para cerrarlo.</div>
+          <div class="dbar-title" style="margin-top:32px;">% de materiales completos por herramienta</div>
+          <div class="dring-hint">Clic en una herramienta para ver el detalle de sus materiales — clic de nuevo para cerrarlo.</div>
           <div class="dring-grid" id="dashRings"></div>
           <div class="ddrill" id="dashDrilldown" hidden>
             <div class="ddrill-head" id="ddrillHead"></div>
@@ -2349,7 +2349,7 @@
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </button>
           <div class="cfg-card-body" id="cfgRespaldosBody" hidden>
-            <div class="cfg-note">Copia de seguridad de Cursos, Recursos, Temas, Temarios Estándar y Proyectos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
+            <div class="cfg-note">Copia de seguridad de Programas, Temas, Proyectos, Materiales y sus recursos — Table Storage no tiene papelera de reciclaje propia, así que esto es la única red de seguridad real. Se genera sola cada lunes a medianoche, o cuando quieras con el botón de abajo.</div>
             <button type="button" class="radm-btn" id="bakGenerarBtn" style="margin:12px 0 16px;min-width:auto;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
               Respaldar ahora
@@ -2440,7 +2440,7 @@
                 <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
                 <th>Contacto</th>
                 <th>Herramienta</th>
-                <th>Temario / Temas</th>
+                <th>Programa / Temas</th>
                 <th data-sort="horas">Horas<span class="th-sort-ico"></span></th>
                 <th>Canal</th>
                 <th>Estatus</th>
@@ -2959,7 +2959,7 @@
             <thead>
               <tr>
                 <th>Cliente</th>
-                <th>Curso</th>
+                <th>Programa</th>
                 <th>Monto</th>
                 <th>Días abierta</th>
                 <th>Estatus</th>
@@ -2983,7 +2983,7 @@
                   <tr>
                     <th>Cliente</th>
                     <th>Herramienta</th>
-                    <th>Temario / Temas</th>
+                    <th>Programa / Temas</th>
                     <th>Horas</th>
                     <th>Fecha</th>
                     <th>Estatus</th>
@@ -3159,7 +3159,7 @@
           <div class="dip-table-wrap">
             <table class="dip-table">
               <thead>
-                <tr><th>Cliente</th><th>Herramienta / Curso</th><th>Folio</th><th>Precio</th><th>Estatus</th><th>Fecha de creación</th><th>Acciones</th></tr>
+                <tr><th>Cliente</th><th>Herramienta / Programa</th><th>Folio</th><th>Precio</th><th>Estatus</th><th>Fecha de creación</th><th>Acciones</th></tr>
               </thead>
               <tbody id="cotVListaBody">
                 <tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>
@@ -4473,7 +4473,7 @@
   const TITLES = {
     'tracking-view': 'Tracking View',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
-    diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Cursos', recursos: 'Recursos', clientes: 'Clientes',
+    diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', clientes: 'Clientes',
     'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     marca: 'Marca', modelo: 'Modelo', config: 'Configuración',
@@ -5031,18 +5031,18 @@
 
       const info = TOOL_META[toolId];
       const r = (datos && datos.completitud[toolId]) || { cursos: [] };
-      document.getElementById('ddrillHead').textContent = `${info.nombre} — detalle de cursos`;
+      document.getElementById('ddrillHead').textContent = `${info.nombre} — detalle de materiales`;
       const listEl = document.getElementById('ddrillList');
 
       if(!r.cursos.length){
-        listEl.innerHTML = '<div class="radm-empty-row">Sin cursos publicados en esta herramienta todavía.</div>';
+        listEl.innerHTML = '<div class="radm-empty-row">Sin materiales publicados en esta herramienta todavía.</div>';
       } else {
         listEl.innerHTML = r.cursos.map(c => {
           const proyectosTxt = c.proyectos.length ? c.proyectos.map(escapeHtmlDash).join(', ') : 'Sin proyecto desbloqueado';
           const manualTxt = c.recursos.manual >= 1 ? 'Manual cargado' : 'Falta el manual';
           const sub = c.temarioId
             ? `${c.temas} temas · ${proyectosTxt} · ${manualTxt}`
-            : `Sin vincular a un Temario Estándar (temas/proyecto no disponibles) · ${manualTxt}`;
+            : `Sin vincular a un Programa (temas/proyecto no disponibles) · ${manualTxt}`;
           return `<div class="radm-row">
             <div class="radm-row-body">
               <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#14b8a6;">${ICO.check}</span>` : ''}</div>
@@ -5068,7 +5068,7 @@
         const d = await cargarDatos();
         kpisEl.innerHTML = [
           kpiCard('#3d7fff', ICO.layers, 6, 'Herramientas', 'Cantidad de herramientas del catálogo (fijo).'),
-          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Cursos', 'Total de temarios estándar publicados en todas las herramientas.'),
+          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Programas', 'Total de programas publicados en todas las herramientas.'),
           kpiCard('#f2c94c', ICO.list, d.temasPub, 'Temas', 'Total de temas publicados en todas las herramientas.'),
           kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Total de proyectos publicados en todas las herramientas.'),
         ].join('');
@@ -5094,8 +5094,8 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL CURSOS — administra herramientas → Temarios Estándar / Personalizar
-  // Temario (banco de Temas + Proyectos). Independiente del módulo Recursos:
+  // PANEL PROGRAMAS (id interno "cursos") — administra herramientas → Programas (antes
+  // "Temarios Estándar") / Temas y Proyectos (antes "Personalizar Temario": banco de Temas + Proyectos). Independiente del módulo Recursos:
   // no comparte tablas ni estado, solo reusa las clases CSS .radm-* (genéricas)
   // con IDs propios prefijo "cadm" para no chocar con el IIFE de Recursos.
   // ═══════════════════════════════════════════════════════════════
@@ -5166,7 +5166,7 @@
           ? `<span class="radm-tool-empty">Sin contenido todavía</span>`
           : `<div class="radm-tool-cursos">
               <span class="radm-tool-curso-item">${r.temas.publicados}/${r.temas.total} temas publicados</span>
-              <span class="radm-tool-curso-item">${r.temarios.publicados}/${r.temarios.total} temarios estándar</span>
+              <span class="radm-tool-curso-item">${r.temarios.publicados}/${r.temarios.total} programas</span>
               <span class="radm-tool-curso-item">${r.proyectos.publicados}/${r.proyectos.total} proyectos</span>
             </div>`;
         return `
@@ -5230,8 +5230,8 @@
     function renderModeTabs(){
       const wrap = document.getElementById('cadmModeTabs');
       wrap.innerHTML = `
-        <div class="radm-tab ${cadmMode === 'estandar' ? 'active' : ''}" data-mode="estandar">Temarios Estándar</div>
-        <div class="radm-tab ${cadmMode === 'personalizado' ? 'active' : ''}" data-mode="personalizado">Personalizar Temario</div>
+        <div class="radm-tab ${cadmMode === 'estandar' ? 'active' : ''}" data-mode="estandar">Programas</div>
+        <div class="radm-tab ${cadmMode === 'personalizado' ? 'active' : ''}" data-mode="personalizado">Temas y Proyectos</div>
       `;
       wrap.querySelectorAll('.radm-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -5248,7 +5248,7 @@
       else renderPersonalizadoView();
     }
 
-    // ── Temarios Estándar (tabs + form grande, como los cursos de Recursos) ──
+    // ── Programas (tabs + form grande, como los materiales) ──
     function renderEstandarView(){
       document.getElementById('cadmModeArea').innerHTML = `
         <div class="radm-tabs" id="cadmTemarioTabs"></div>
@@ -5272,7 +5272,7 @@
           <span class="radm-status-dot ${t.estado === 'publicado' ? 'pub' : 'draft'}">${t.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
           <span>${escapeHtml(t.nombre)}</span>
         </div>
-      `).join('') + `<button type="button" class="radm-tab-new" id="cadmBtnNuevoTemario">${ICO.plus} Nuevo temario</button>`;
+      `).join('') + `<button type="button" class="radm-tab-new" id="cadmBtnNuevoTemario">${ICO.plus} Nuevo programa</button>`;
 
       wrap.querySelectorAll('.radm-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -5311,13 +5311,13 @@
                 <div class="radm-row-sub">${NIVEL_LABEL[te.nivel] || ''} · ${te.horas} hr${te.estado !== 'publicado' ? ' · borrador' : ''}</div>
               </div>
             </label>`).join('')
-        : '<div class="radm-empty-row">Sin temas todavía — agrégalos en "Personalizar Temario".</div>';
+        : '<div class="radm-empty-row">Sin temas todavía — agrégalos en "Temas y Proyectos".</div>';
 
       return `
         <div class="radm-form">
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>ID DEL TEMARIO</label>
+              <label>ID DEL PROGRAMA</label>
               <input type="text" id="cadmTId" class="radm-mono" ${isNew ? '' : 'readonly'} value="${isNew ? '' : escapeHtml(t.id)}" placeholder="basico-intermedio">
             </div>
             <div class="radm-field">
@@ -5354,10 +5354,10 @@
               <span class="radm-switch-label" id="cadmTEstadoLabel">${t && t.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
             </div>
             <div class="radm-actions-buttons">
-              <button type="button" class="radm-btn" id="cadmTGuardar">${isNew ? 'Crear temario' : 'Guardar cambios'}</button>
+              <button type="button" class="radm-btn" id="cadmTGuardar">${isNew ? 'Crear programa' : 'Guardar cambios'}</button>
               ${isNew
                 ? `<button type="button" class="radm-btn radm-btn-ghost" id="cadmTCancelar">Cancelar</button>`
-                : `<button type="button" class="radm-btn radm-btn-danger" id="cadmTEliminar">Eliminar temario</button>`}
+                : `<button type="button" class="radm-btn radm-btn-danger" id="cadmTEliminar">Eliminar programa</button>`}
             </div>
           </div>
         </div>`;
@@ -5376,10 +5376,10 @@
         if(cancelBtn) cancelBtn.addEventListener('click', () => { root.innerHTML = ''; });
       } else {
         root.querySelector('#cadmTEliminar').addEventListener('click', async () => {
-          if(!(await confirmarAccion({ mensaje: `¿Eliminar el temario "${t.nombre}"? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
+          if(!(await confirmarAccion({ mensaje: `¿Eliminar el programa "${t.nombre}"? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
           try {
             await apiPostJson('/api/eliminarTemario', { herramienta:cadmTool, id:t.id });
-            toast('Temario eliminado.', true);
+            toast('Programa eliminado.', true);
             cadmTemarios = cadmTemarios.filter(x => x.id !== t.id);
             cadmTemarioId = null;
             renderTemarioTabs();
@@ -5408,7 +5408,7 @@
             herramienta:cadmTool, id, nombre, objetivo, dirigido, tags, temaIds, estado,
             orden: t ? t.orden : Date.now(),
           });
-          toast('Temario guardado.', true);
+          toast('Programa guardado.', true);
           const data = await apiGet(`/api/listTemariosAdmin?herramienta=${encodeURIComponent(cadmTool)}`);
           cadmTemarios = data.temarios || [];
           cadmTemarioId = id;
@@ -5432,7 +5432,7 @@
       wireTemarioForm(t);
     }
 
-    // ── Personalizar Temario: banco de Temas + Proyectos ──
+    // ── Temas y Proyectos: banco de Temas + Proyectos ──
     function renderPersonalizadoView(){
       document.getElementById('cadmModeArea').innerHTML = `
         <div class="radm-section">
@@ -5720,7 +5720,7 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL RECURSOS — administra herramientas → cursos → recursos.
+  // PANEL MATERIALES (id interno "recursos") — administra herramientas → materiales (antes "cursos") → recursos (archivos, skills, plantillas…).
   // Todas las llamadas van a Functions protegidas con allowedRoles:["admin"]
   // (ver staticwebapp.config.json) — el navegador ya trae la sesión de Entra ID.
   // ═══════════════════════════════════════════════════════════════
@@ -5820,7 +5820,7 @@
         const cursos = (catalogo && catalogo[id]) || [];
         const listaCursos = cursos.length
           ? `<div class="radm-tool-cursos">${cursos.map(c => `<span class="radm-tool-curso-item">${escapeHtml(c.nombre)}</span>`).join('')}</div>`
-          : `<span class="radm-tool-empty">Sin cursos publicados</span>`;
+          : `<span class="radm-tool-empty">Sin materiales publicados</span>`;
         return `
           <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
             <span class="radm-tool-icon">${t.icon}</span>
@@ -5878,7 +5878,7 @@
         else abrirFormNuevoCurso();
       } catch(e){
         document.getElementById('radmTabs').innerHTML = '';
-        toast('No se pudieron cargar los cursos: ' + e.message, false);
+        toast('No se pudieron cargar los materiales: ' + e.message, false);
       }
     }
 
@@ -5890,7 +5890,7 @@
           <span class="radm-status-dot ${c.estado === 'publicado' ? 'pub' : 'draft'}">${c.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
           <span>${escapeHtml(c.nombre)}</span>
         </div>
-      `).join('') + `<button type="button" class="radm-tab-new" id="radmBtnNuevoCurso">${ICO.plus} Nuevo curso</button>`;
+      `).join('') + `<button type="button" class="radm-tab-new" id="radmBtnNuevoCurso">${ICO.plus} Nuevo material</button>`;
 
       wrap.querySelectorAll('.radm-tab').forEach(tab => {
         tab.addEventListener('click', () => selectCurso(tab.dataset.curso));
@@ -5917,7 +5917,7 @@
         <div class="radm-newcurso">
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>ID DEL CURSO (minúsculas, sin espacios)</label>
+              <label>ID DEL MATERIAL (minúsculas, sin espacios)</label>
               <input type="text" id="radmNewId" class="radm-mono" placeholder="excel-bi">
             </div>
           </div>
@@ -5952,12 +5952,12 @@
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
         try {
           await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:id, nombre, codigo, estado:'borrador', orden:Date.now() });
-          toast('Curso creado.', true);
+          toast('Material creado.', true);
           document.getElementById('radmNewCursoArea').innerHTML = '';
           const data = await apiGet(`/api/listCursosAdmin?herramienta=${encodeURIComponent(radmTool)}`);
           radmCursos = data.cursos || [];
           selectCurso(id);
-        } catch(e){ toast('No se pudo crear el curso: ' + e.message, false); }
+        } catch(e){ toast('No se pudo crear el material: ' + e.message, false); }
       });
     }
 
@@ -5987,7 +5987,7 @@
         <div class="radm-form">
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>ID DEL CURSO</label>
+              <label>ID DEL MATERIAL</label>
               <input type="text" class="radm-mono" value="${escapeHtml(curso.id)}" readonly>
             </div>
             <div class="radm-field">
@@ -6001,7 +6001,7 @@
           </div>
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>VINCULAR CON TEMARIO ESTÁNDAR (para el % de completitud del Dashboard)</label>
+              <label>VINCULAR CON PROGRAMA (para el % de completitud del Dashboard)</label>
               <select id="radmCursoTemario">
                 <option value="">— Sin vincular —</option>
                 ${radmTemarios.map(t => `<option value="${escapeHtml(t.id)}" ${t.id === curso.temarioId ? 'selected' : ''}>${escapeHtml(t.nombre)}</option>`).join('')}
@@ -6018,7 +6018,7 @@
             </div>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn" id="radmBtnGuardarCurso">Guardar cambios</button>
-              <button type="button" class="radm-btn radm-btn-danger" id="radmBtnEliminarCurso">Eliminar curso</button>
+              <button type="button" class="radm-btn radm-btn-danger" id="radmBtnEliminarCurso">Eliminar material</button>
             </div>
           </div>
           <div class="radm-hint">Rotar el código no cierra la sesión de quien ya lo desbloqueó en su navegador — solo bloquea intentos nuevos con el código viejo.</div>
@@ -6039,15 +6039,15 @@
           await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:curso.id, nombre, codigo, estado, orden:curso.orden, temarioId });
           curso.nombre = nombre; curso.codigo = codigo; curso.estado = estado; curso.temarioId = temarioId;
           renderTabs();
-          toast('Curso guardado.', true);
+          toast('Material guardado.', true);
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
 
       document.getElementById('radmBtnEliminarCurso').addEventListener('click', async () => {
-        if(!(await confirmarAccion({ mensaje: `¿Eliminar el curso "${curso.nombre}" y todos sus recursos? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
+        if(!(await confirmarAccion({ mensaje: `¿Eliminar el material "${curso.nombre}" y todos sus recursos? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
         try {
           await apiPostJson('/api/eliminarCurso', { herramienta:radmTool, curso:curso.id });
-          toast('Curso eliminado.', true);
+          toast('Material eliminado.', true);
           radmCursos = radmCursos.filter(c => c.id !== curso.id);
           radmCursoId = null;
           renderTabs();
@@ -6057,7 +6057,7 @@
       });
     }
 
-    // ── nivel 3 — recursos del curso ──
+    // ── nivel 3 — recursos del material ──
     function renderSecciones(){
       const area = document.getElementById('radmSeccionesArea');
       if(!area) return;
@@ -11247,10 +11247,10 @@
 
       function renderBody(){
         if(modo === 'estandar'){
-          if(!data.estandar.length){ bodyEl.innerHTML = '<div class="radm-empty-row">Sin temarios estándar publicados para esta herramienta.</div>'; return; }
+          if(!data.estandar.length){ bodyEl.innerHTML = '<div class="radm-empty-row">Sin programas publicados para esta herramienta.</div>'; return; }
           bodyEl.innerHTML = `
             <div class="radm-field">
-              <label>TEMARIO ESTÁNDAR <span class="dip-req">*</span></label>
+              <label>PROGRAMA <span class="dip-req">*</span></label>
               <select class="ts-temario-select">
                 <option value="">Selecciona...</option>
                 ${data.estandar.map(t => `<option value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-horas="${t.horas}">${escapeHtml(t.nombre)} — ${t.horas} hr${t.nivelLabel ? ' · ' + escapeHtml(t.nivelLabel) : ''}</option>`).join('')}
@@ -11284,14 +11284,14 @@
         const hasEstandar = !!(data.estandar && data.estandar.length);
         const hasBuilder = !!(data.temas && data.temas.length);
         if(!hasEstandar && !hasBuilder){
-          bodyEl.innerHTML = '<div class="radm-empty-row">Esta herramienta todavía no tiene temario publicado.</div>';
+          bodyEl.innerHTML = '<div class="radm-empty-row">Esta herramienta todavía no tiene programas publicados.</div>';
           return;
         }
         modo = hasEstandar ? 'estandar' : 'personalizado';
         if(hasEstandar && hasBuilder){
           modoWrapEl.innerHTML = `
             <div class="radm-tabs" style="margin-bottom:16px;">
-              <button type="button" class="radm-tab active" data-modo="estandar">Temario Estándar</button>
+              <button type="button" class="radm-tab active" data-modo="estandar">Programa</button>
               <button type="button" class="radm-tab" data-modo="personalizado">Personalizado</button>
             </div>`;
           modoWrapEl.querySelectorAll('.radm-tab').forEach(btn => {
@@ -11854,7 +11854,7 @@
         // temario es estándar o personalizado.
         const temarioPayload = temarioSel.getPayload();
         if(!temarioPayload){
-          toast(temarioSel.getModo() === 'estandar' ? 'Selecciona un temario estándar.' : 'Selecciona al menos un tema.', false);
+          toast(temarioSel.getModo() === 'estandar' ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false);
           return;
         }
 
@@ -12103,7 +12103,7 @@
                 ${c.contacto ? `<div class="cot-cliente-sub">${escapeHtml(c.contacto)}${c.contacto_area ? ' · ' + escapeHtml(c.contacto_area) : ''}</div>` : ''}
               </td>
               <td>
-                <div>${escapeHtml(c.temario_nombre || (c.temario_tipo === 'personalizado' ? 'Temario personalizado' : '—'))}</div>
+                <div>${escapeHtml(c.temario_nombre || (c.temario_tipo === 'personalizado' ? 'Programa personalizado' : '—'))}</div>
                 <div class="cot-curso-tool">${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</div>
               </td>
               <td class="radm-mono">${fmtMoney(c.precio_final)}</td>
@@ -12326,7 +12326,7 @@
           <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(datos.participantes || '—')}</div></div>
           <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(datos.modalidad || '—')}</div></div>
         </div>
-        <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || 'Temario personalizado')}</div>
+        <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || 'Programa personalizado')}</div>
         <div class="sol-desglose">${temasHtml}</div>
       `;
       document.getElementById('cotDetalleEditarBtn').addEventListener('click', () => {
@@ -12540,7 +12540,7 @@
       const herramienta = document.getElementById('cotEditHerramienta').value;
       if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
       const temarioPayload = temarioSelEdit.getPayload();
-      if(!temarioPayload){ toast(temarioSelEdit.getModo() === 'estandar' ? 'Selecciona un temario estándar.' : 'Selecciona al menos un tema.', false); return; }
+      if(!temarioPayload){ toast(temarioSelEdit.getModo() === 'estandar' ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false); return; }
 
       const contactoSel = document.getElementById('cotEditContactoSelect');
       const payload = {
@@ -15645,7 +15645,7 @@
           f('orden','number'),
         ]},
       { id:'TemariosEstandar', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
-        note:'= el "Curso" que ve el cliente en /cursos.html. Se auto-crea sola al primer escritura, sin paso de portal.',
+        note:'= el "Programa" que ve el cliente en /cursos.html (se arma con Temas; antes "Temario Estándar"). Se auto-crea sola al primer escritura, sin paso de portal.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
           f('RowKey','string',{pk:true,extra:'temarioId (slug)'}),
@@ -15666,7 +15666,7 @@
 
       // ---------------- Table Storage — Recursos ----------------
       { id:'Cursos', engine:'storage', pillar:'catalogo', pk:'PartitionKey+RowKey',
-        note:'Código de descarga — módulo Recursos. No confundir con "Temario Estándar" (nombre distinto a propósito, ambigüedad ya documentada).',
+        note:'Es el "Material": el paquete de archivos que se entrega, con su código de descarga (módulo Materiales). Distinto del "Programa" (TemariosEstandar), que es lo que se vende. Sus archivos, skills y plantillas viven en la tabla Recursos.',
         fields:[
           f('PartitionKey','string',{pk:true,extra:'herramienta'}),
           f('RowKey','string',{pk:true,extra:'cursoId'}),
@@ -15897,7 +15897,7 @@
       ]] },
       { style:'storage', label:'TABLE STORAGE', sub:'apcwebrecursos', rows:[
         [
-          { key:'catalogo', label:'Catálogo de Cursos y Recursos', cols:[['Temas','Proyectos'],['TemariosEstandar','Cursos'],['Recursos']] },
+          { key:'catalogo', label:'Catálogo de Programas y Materiales', cols:[['Temas','Proyectos'],['TemariosEstandar','Cursos'],['Recursos']] },
           { key:'infra', label:'Infraestructura y herramientas propias', cols:[['IntentosCodigo','AdminActividad'],['Pendientes','ConfiguracionNotificaciones']] },
         ],
         [

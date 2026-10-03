@@ -25,15 +25,15 @@ module.exports = async function (context, req) {
     return;
   }
   if (!SLUG_RE.test(id)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El id del temario solo puede tener minúsculas, números y guiones (ej. basico-intermedio)." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El id del programa solo puede tener minúsculas, números y guiones (ej. basico-intermedio)." } };
     return;
   }
   if (!nombre) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre del temario." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre del programa." } };
     return;
   }
   if (!temaIds.length) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Selecciona al menos un tema para el temario." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Selecciona al menos un tema para el programa." } };
     return;
   }
 
@@ -60,7 +60,7 @@ module.exports = async function (context, req) {
     );
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
-    context.log.error("Error guardando el temario:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el temario: " + err.message } };
+    context.log.error("Error guardando el programa:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar el programa: " + err.message } };
   }
 };

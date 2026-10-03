@@ -39,7 +39,7 @@ module.exports = async function (context, req) {
 
     if (enTemarios.length || enProyectos.length) {
       const partes = [];
-      if (enTemarios.length) partes.push(`el temario "${enTemarios.join('", "')}"`);
+      if (enTemarios.length) partes.push(`el programa "${enTemarios.join('", "')}"`);
       if (enProyectos.length) partes.push(`el proyecto "${enProyectos.join('", "')}"`);
       context.res = {
         status: 400,

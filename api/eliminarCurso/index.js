@@ -12,7 +12,7 @@ module.exports = async function (context, req) {
   const curso = (body.curso || "").trim().toLowerCase();
 
   if (!HERRAMIENTAS.includes(herramienta) || !curso) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos (herramienta o curso)." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos (herramienta o material)." } };
     return;
   }
 
@@ -36,7 +36,7 @@ module.exports = async function (context, req) {
 
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
-    context.log.error("Error eliminando el curso:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el curso: " + err.message } };
+    context.log.error("Error eliminando el material:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo eliminar el material: " + err.message } };
   }
 };

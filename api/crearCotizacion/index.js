@@ -66,7 +66,7 @@ module.exports = async function (context, req) {
     return;
   }
   if (!TEMARIO_TIPOS.includes(temarioTipo)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El tipo de temario debe ser estándar o personalizado." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El tipo de programa debe ser estándar o personalizado." } };
     return;
   }
   if (!temas.length) {

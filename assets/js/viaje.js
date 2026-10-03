@@ -10,9 +10,10 @@
 //   - El offset de pin (NAV) se mide en vivo (nav + .cat-nav-wrap), nunca se
 //     hardcodea — cursos.html tiene DOS barras sticky (nav + cat-nav-wrap),
 //     a diferencia del prototipo original que solo tenía una.
-//   - Fallback simple-mode si es teléfono táctil real (pointer:coarse +
-//     max-width:560px) o prefers-reduced-motion o si GSAP no cargó — nunca
-//     por ancho de ventana a secas (ver CLAUDE_DETALLE.md → "Viaje Excel").
+//   - Dos modos sin pin: ESTÁTICO (prefers-reduced-motion o GSAP caído: todo en su
+//     estado final) y MÓVIL (teléfono táctil real: pointer:coarse + max-width:560px;
+//     las escenas fluyen en vertical y cada bloque se anima UNA vez al entrar en
+//     pantalla, sin scrub) — nunca por ancho de ventana a secas (ver CLAUDE_DETALLE.md).
 (function () {
   "use strict";
 
@@ -30,7 +31,7 @@
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const telefono = window.matchMedia("(pointer: coarse)").matches && window.matchMedia("(max-width:560px)").matches;
       const gsapListo = typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined";
-      return { simple: reduced || telefono || !gsapListo, gsapListo };
+      return { simple: reduced || !gsapListo, telefono, gsapListo };
     },
     navOffset(root) {
       const nav = document.querySelector("nav");
@@ -40,7 +41,7 @@
       return Math.round(navH + catNavH);
     },
     forceFinalState(root) {
-      root.classList.add("viaje-simple");
+      root.classList.add("viaje-simple", "viaje-flujo");
       root.querySelectorAll(".reveal").forEach((el) => { el.style.opacity = 1; el.style.transform = "none"; });
       root.querySelectorAll("[data-anim-final]").forEach((el) => {
         const prop = el.dataset.animProp, val = el.dataset.animFinal;
@@ -304,7 +305,7 @@
         const sc = document.getElementById(id);
         if (!sc) return;
         const st = window.ScrollTrigger && ScrollTrigger.getAll().find((t) => t.trigger === sc && t.pin);
-        const y = st ? st.start + (st.end - st.start) * (frac || 0) : sc.getBoundingClientRect().top + window.scrollY;
+        const y = st ? st.start + (st.end - st.start) * (frac || 0) : sc.getBoundingClientRect().top + window.scrollY - NAV;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
       // "Ver programas": aterriza en el título de la sección (instantáneo: el scroll suave atraviesa todo el recorrido)
@@ -320,8 +321,9 @@
       const NAV = ViajeEngine.navOffset(root);
       document.documentElement.style.setProperty("--viaje-nav-h", NAV + "px");
 
-      const { simple } = ViajeEngine.esSimpleMode();
+      const { simple, telefono } = ViajeEngine.esSimpleMode();
       if (simple) { ViajeEngine.forceFinalState(root); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "viaje-movil"); this.iniciarFlujo(root, classicCells, newCells); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
       // hoja de cálculo: pestañas = escenas; números de fila y cuadro de nombres avanzan con el scroll
@@ -469,6 +471,108 @@
 
       ScrollTrigger.refresh();
       window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
+    },
+
+    // TELÉFONO: sin pin ni scrub (el scroll táctil lo hace incómodo). Las escenas fluyen en vertical y cada
+    // bloque corre su animación UNA vez cuando entra en pantalla. Mismos elementos y selectores que el modo
+    // de escritorio, pero en segundos y sin las salidas de escena (el contenido se queda a la vista).
+    iniciarFlujo(root, classicCells, newCells) {
+      gsap.registerPlugin(ScrollTrigger);
+      const shell = root.querySelector(".hoja-shell");
+      if (shell) shell.remove();
+      // el mensaje de cada escena (los ids de la barra de fórmulas ya no existen en móvil)
+      root.querySelectorAll(".viaje-msg .formula-msg-text").forEach((el, i) => { el.id = "msgText" + (i + 1); });
+      const $ = (s) => root.querySelector(s);
+      const alEntrar = (trigger, start) => gsap.timeline({ scrollTrigger: { trigger, start: start || "top 78%", once: true } });
+      const tile = (sel) => $(sel).closest(".dash-tile");
+      const escribir = (tl, id, at) => tl.to(id, { clipPath: "inset(0 0% 0 0)", duration: 1.3, ease: "none" }, at || 0);
+
+      // ---- Captura ----
+      const t1 = alEntrar("#sceneCaptura", "top 62%");
+      escribir(t1, "#msgText1");
+      t1.to("#capStage", { opacity: 1, duration: 0.4 }, 0.2);
+      t1.to(classicCells, { opacity: 1, duration: 0.35, stagger: 0.13 }, 0.5);
+      gsap.set(newCells, { opacity: 0, scale: 0.4 });
+      t1.to(newCells, { opacity: 1, scale: 1, duration: 0.35, stagger: 0.16 }, 2.3);
+
+      // ---- Organiza: tabla y pivote, uno debajo del otro ----
+      const t2 = alEntrar("#sceneOrganiza", "top 70%");
+      escribir(t2, "#msgText2");
+      const rh = $('#otable3 tr[data-row="lic"]').offsetHeight;
+      const tt = alEntrar("#orgLeft", "top 80%");
+      tt.fromTo("#orgLeft", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6 }, 0);
+      tt.to("[data-fico]", { opacity: 1, duration: 0.3, stagger: 0.15 }, 0.8);
+      tt.to('#otable3 tr[data-row="lic"] td, #otable3 tr[data-row="con"] td', { opacity: 0.15, duration: 0.4 }, 1.7);
+      tt.to('#otable3 tr[data-row="sop"] td, #otable3 tr[data-row="cap"] td', { color: "#fff", duration: 0.4 }, 1.7);
+      tt.to('#otable3 tr[data-row="lic"] td', { opacity: 1, duration: 0.4 }, 2.7);
+      tt.to('#otable3 tr[data-row="sop"] td, #otable3 tr[data-row="cap"] td', { y: rh, duration: 0.6 }, 3.1);
+      tt.to('#otable3 tr[data-row="con"] td', { opacity: 1, y: -2 * rh, duration: 0.6 }, 3.1);
+      tt.to('[data-k="x1"], [data-k="x2"], [data-k="x3"]', { opacity: 1, duration: 0.35, stagger: 0.25 }, 4);
+      const tp = alEntrar("#orgRight", "top 82%");
+      tp.fromTo("#orgRight", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6 }, 0);
+      tp.to(["m1", "m2", "m3", "m5", "m6", "m4"].map((k) => '[data-k="' + k + '"]'), { opacity: 1, duration: 0.35, stagger: 0.28 }, 0.7);
+
+      // ---- Decide: un tablero largo; cada recuadro se anima cuando llega a pantalla ----
+      gsap.set("#dashGrid, #imm4", { opacity: 1 });
+      escribir(alEntrar("#sceneDecide", "top 70%"), "#msgText3");
+      gsap.timeline({ scrollTrigger: { trigger: tile("#hb1"), start: "top 85%", once: true } })
+        .to(["#hb1", "#hb2", "#hb3", "#hb4", "#hb5"].map((id) => id), { width: (i, el) => el.dataset.animFinal + "%", duration: 0.8, stagger: 0.15 }, 0.2);
+      gsap.timeline({ scrollTrigger: { trigger: tile("#gA"), start: "top 85%", once: true } })
+        .to("#gA", { attr: { "stroke-dashoffset": 18 }, duration: 1.6, ease: "power2.out" }, 0.2);
+      gsap.timeline({ scrollTrigger: { trigger: tile("#lineChart"), start: "top 85%", once: true } })
+        .to("#lineArea", { opacity: 1, duration: 0.8 }, 0.8)
+        .to("#lineChart", { attr: { "stroke-dashoffset": 0 }, duration: 1.6 }, 0.2)
+        .to("#lineMarkers", { opacity: 1, duration: 0.4 }, 1.6)
+        .to("#lineProj", { opacity: 1, duration: 0.1 }, 1.8)
+        .to("#lineProj", { attr: { "stroke-dashoffset": 0 }, duration: 0.7 }, 1.8)
+        .to("#projLabel", { opacity: 1, duration: 0.4 }, 2.3);
+      gsap.timeline({ scrollTrigger: { trigger: tile("#timelineRange"), start: "top 85%", once: true } })
+        .to('[data-k="sl1"], [data-k="sl2"], [data-k="sl3"], [data-k="sl4"]', { opacity: 1, duration: 0.3, stagger: 0.15 }, 0.1)
+        .to("#timelineRange", { opacity: 1, width: "55%", duration: 0.9 }, 0.8);
+      gsap.set(".tm-cell", { scale: 0.86 });
+      gsap.timeline({ scrollTrigger: { trigger: tile("#treemap"), start: "top 85%", once: true } })
+        .to(".tm-cell", { opacity: 1, scale: 1, duration: 0.5, stagger: 0.18 }, 0.2);
+      const barras = gsap.timeline({ scrollTrigger: { trigger: tile("#barA"), start: "top 85%", once: true } });
+      [["A", 85], ["B", 60], ["C", 95], ["D", 40]].forEach(([k, h], i) => {
+        barras.to("#bar" + k, { height: h + "%", duration: 0.8 }, 0.2 + i * 0.18);
+        barras.to("#barVal" + k, { opacity: 1, duration: 0.3 }, 0.8 + i * 0.18);
+      });
+
+      // ---- Automatiza: los botones caben en el ancho del teléfono; el cursor se calcula con su posición real ----
+      const tb = $("#toolbar5");
+      escribir(alEntrar("#sceneAutomatiza", "top 70%"), "#msgText4");
+      const pos = (id) => { const b = $("#" + id); return [b.offsetLeft + b.offsetWidth / 2 - 4, b.offsetTop + b.offsetHeight / 2 + 2]; };
+      const ta = alEntrar("#toolbar5", "top 80%");
+      ta.to("#toolbar5", { opacity: 1, y: 0, duration: 0.5 }, 0);
+      ta.fromTo("#cursor5", { opacity: 0, x: tb.offsetWidth * 0.8, y: tb.offsetHeight * 0.95 }, { opacity: 1, duration: 0.3 }, 0.5);
+      const pasos = [
+        ["btnMail", (p) => { ta.to("#fxMail", { opacity: 1, scale: 1, duration: 0.25 }, p); ta.fromTo("#flyMail", { opacity: 0, x: 27, y: 32 }, { opacity: 1, duration: 0.15 }, p); ta.to("#flyMail", { x: tb.offsetWidth - 50, y: -34, opacity: 0, duration: 0.6 }, p + 0.15); }],
+        ["btnDown", (p) => ta.to("#downBar", { width: "100%", duration: 0.6 }, p)],
+        ["btnRec", (p) => ta.to("#recDot", { opacity: 1, duration: 0.15, repeat: 3, yoyo: true }, p)],
+        ["btnRef", (p) => ta.to("#fx5", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnClean", (p) => ta.to("#fx6", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnRep", (p) => ta.to("#fx7", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnEval", (p) => ta.to("#fx8", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnApr", (p) => ta.to("#fx9", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnPres", (p) => ta.to("#fx10", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnEdit", (p) => ta.to("#fx11", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnDark", (p) => ta.to("#fx12", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+        ["btnLight", (p) => ta.to("#fx13", { opacity: 1, scale: 1, duration: 0.25 }, p)],
+      ];
+      pasos.forEach(([id, efecto], i) => {
+        const p = pos(id), t0 = 1 + i * 0.85;
+        ta.to("#cursor5", { x: p[0], y: p[1], duration: 0.45 }, t0);
+        ta.to("#ripple5", { x: p[0] + 8, y: p[1] + 2, scale: 1, opacity: 1, duration: 0.12 }, t0 + 0.45);
+        ta.to("#ripple5", { scale: 1.6, opacity: 0, duration: 0.25 }, t0 + 0.55);
+        efecto(t0 + 0.5);
+      });
+      ta.to("#cursor5", { opacity: 0, duration: 0.3 }, 1 + pasos.length * 0.85 + 0.3);
+      const tc = alEntrar("#copilotPanel", "top 85%");
+      tc.to("#copilotPanel", { opacity: 1, y: 0, duration: 0.5 }, 0);
+      tc.to("#bubbleUser", { opacity: 1, duration: 0.4 }, 0.6);
+      tc.to("#bubbleAi", { opacity: 1, duration: 0.4 }, 1.6);
+      tc.to("#bubbleUser2", { opacity: 1, duration: 0.4 }, 3.2);
+      tc.to("#bubbleAi2", { opacity: 1, duration: 0.4 }, 4.2);
     },
   };
 

@@ -11,7 +11,7 @@
 // ya no forman parte de la regla de completitud.
 const { getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { getCursosTable, getRecursosTable } = require("../src/recursos-tables");
-const { parseTemaIds, proyectoCubierto } = require("../src/cursos-calc");
+const { parseTemaIds, proyectosDePrograma } = require("../src/cursos-calc");
 const { HERRAMIENTAS } = require("../src/herramientas");
 
 const { JSON_HEADERS } = require("../src/http");
@@ -35,7 +35,7 @@ module.exports = async function (context, req) {
     try {
       for await (const p of getProyectosTable().listEntities()) {
         if (!proyectosPorHerramienta[p.partitionKey]) continue;
-        proyectosPorHerramienta[p.partitionKey].push({ nombre: p.nombre || "", temaIds: parseTemaIds(p.temaIds) });
+        proyectosPorHerramienta[p.partitionKey].push({ id: p.rowKey, nombre: p.nombre || "", temaIds: parseTemaIds(p.temaIds) });
       }
     } catch (err) {
       if (!isTableNotFound(err)) throw err;
@@ -65,9 +65,7 @@ module.exports = async function (context, req) {
         const temario = curso.temarioId ? temariosPorClave[`${h}::${curso.temarioId}`] : null;
         const temaIds = temario ? parseTemaIds(temario.temaIds) : [];
         const temaIdsSet = new Set(temaIds);
-        const proyectos = proyectosPorHerramienta[h]
-          .filter((p) => proyectoCubierto(p.temaIds, temaIdsSet))
-          .map((p) => p.nombre);
+        const proyectos = temario ? proyectosDePrograma(temario, proyectosPorHerramienta[h], temaIdsSet).map((p) => p.nombre) : [];
         const conteo = conteoPorCurso[`${h}_${curso.id}`] || {};
         const recursos = {};
         TIPOS.forEach((tipo) => { recursos[tipo] = conteo[tipo] || 0; });

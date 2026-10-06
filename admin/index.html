@@ -287,7 +287,12 @@
   .dinv th.asc .dinv-arrow{ transform:rotate(180deg); }
   .dinv td{ padding:14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
   .dinv-row{ cursor:pointer; }
-  .dinv-row:hover td, .dinv-row.active td{ background:var(--panel-2); }
+  .dinv-row:hover td, .dinv-row.open td{ background:var(--panel-2); }
+  .dinv-chev{ width:14px; height:14px; flex:none; color:var(--text-faint); transition:transform .2s; display:inline-flex; }
+  .dinv-chev svg{ width:100%; height:100%; }
+  .dinv-row.open .dinv-chev{ transform:rotate(90deg); color:var(--text); }
+  .dinv-detail td{ padding:6px 14px 20px 38px; background:var(--panel-2); border-bottom:1px solid var(--line); }
+  .dinv-detail .ddrill-sec:last-child{ margin-bottom:0; }
   .dinv-tool{ display:flex; align-items:center; gap:10px; font-weight:600; font-size:14px; min-width:150px; }
   .dinv-tool-ico{ width:22px; height:22px; flex:none; color:var(--c); }
   .dinv-tool-ico svg{ width:100%; height:100%; }
@@ -405,8 +410,9 @@
   .cadm-prog-body{ padding:6px 22px 24px 52px; border-top:1px solid var(--line-soft); }
   .cadm-prog-body[hidden]{ display:none; }
   .cadm-prog-body .radm-form-row:first-child{ margin-top:16px; }
-  .cadm-form .radm-field textarea{ min-height:96px; line-height:1.55; }
-  .cadm-form textarea.cadm-alcance{ min-height:120px; }
+  .cadm-form .radm-field textarea{ min-height:84px; line-height:1.55; }
+  .cadm-form textarea.cadm-objetivo{ min-height:132px; } /* el espacio grande es del objetivo; dirigido y alcance suelen ser cortos */
+  .cadm-hint{ font-size:11.5px; color:var(--text-faint); line-height:1.5; }
   .cadm-form textarea.cadm-desc{ min-height:105px; } /* la descripción pidió ser 50% más alta (70px → 105px) y a todo el ancho */
   .cadm-picker{ max-height:340px; overflow:auto; }
   .radm-inline-form.cadm-form{ margin:6px 0 12px; }
@@ -2355,17 +2361,9 @@
             <div class="radm-empty-row">Cargando métricas…</div>
           </div>
           <div class="dbar-title">Inventario por herramienta</div>
-          <div class="dring-hint">Toca un encabezado para ordenar. Cada barra compara a la herramienta contra la que más tiene en esa columna; "más" y "menos" marcan los extremos. Toca una fila para ver su detalle.</div>
+          <div class="dring-hint">Toca un encabezado para ordenar. Cada barra compara a la herramienta contra la que más tiene en esa columna; "más" y "menos" marcan los extremos. Toca una fila para desplegar su detalle justo debajo.</div>
           <div class="dinv-wrap"><table class="dinv" id="dashInv"></table></div>
           <div class="dhuecos" id="dashHuecos"></div>
-          <div class="ddrill" id="dashDrilldown" hidden>
-            <div class="ddrill-head" id="ddrillHead"></div>
-            <div class="radm-list" id="ddrillList"></div>
-          </div>
-
-          <div class="dbar-title" style="margin-top:36px;">Materiales con manual por herramienta</div>
-          <div class="dring-hint">El anillo es el % de materiales publicados que ya tienen su manual cargado. Clic en una herramienta para ver su detalle.</div>
-          <div class="dring-grid" id="dashRings"></div>
         </div>
       </div>
 
@@ -4998,19 +4996,8 @@
     const kpisEl = document.getElementById('dashKpis');
     const invEl = document.getElementById('dashInv');
     const huecosEl = document.getElementById('dashHuecos');
-    const ringsEl = document.getElementById('dashRings');
-    const drillEl = document.getElementById('dashDrilldown');
     let datos = null; // cache — no se vuelve a pedir al API en visitas siguientes
-    let toolActivo = null; // qué anillo tiene el drill-down abierto ahora mismo
-
-    // colores del anillo elegidos por Alfredo por su deuteranomalía — siempre
-    // acompañados del número en el centro, nunca solo el color (ver CLAUDE.md)
-    function colorCompletitud(pct, totalCursos){
-      if(!totalCursos) return 'var(--line)';
-      if(pct >= 100) return '#14b8a6';
-      if(pct >= 50) return '#dfb35a';
-      return '#b91c1c';
-    }
+    const abiertos = new Set(); // herramientas con su detalle desplegado bajo la fila
 
     function kpiCard(color, icon, valor, label, tooltip, sub){
       return `<div class="dkpi-card" style="--c:${color}" title="${tooltip}">
@@ -5052,6 +5039,7 @@
       { k:'horas', label:'Horas de contenido' },
     ];
     let invOrden = { k:'programas', dir:-1 }; // dir -1 = de más a menos
+    const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ARROW = '<svg class="dinv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function filasInventario(d){
@@ -5092,8 +5080,8 @@
       const head = `<thead><tr><th>Herramienta</th>${INV_COLS.map(c =>
         `<th class="${invOrden.k === c.k ? 'sorted' + (invOrden.dir === 1 ? ' asc' : '') : ''}"><button type="button" data-col="${c.k}">${c.label}${ARROW}</button></th>`).join('')}</tr></thead>`;
       const cuerpo = filas.map(f => `
-        <tr class="dinv-row" data-tool="${f.id}" style="--c:${f.color}">
-          <td><div class="dinv-tool"><span class="dinv-tool-ico">${f.icon}</span>${f.nombre}</div></td>
+        <tr class="dinv-row ${abiertos.has(f.id) ? 'open' : ''}" data-tool="${f.id}" style="--c:${f.color}" aria-expanded="${abiertos.has(f.id)}">
+          <td><div class="dinv-tool"><span class="dinv-chev" aria-hidden="true">${CHEV}</span><span class="dinv-tool-ico">${f.icon}</span>${f.nombre}</div></td>
           ${INV_COLS.map(c => {
             const x = f[c.k], pct = ext[c.k].max ? (x.v / ext[c.k].max * 100) : 0;
             const t = tag(c.k, x.v);
@@ -5102,7 +5090,7 @@
               <div class="dinv-sub">${x.sub || ''}</div>
               <div class="dinv-tag ${t.startsWith('▼') || t.startsWith('○') ? 'menos' : ''}">${t}</div></td>`;
           }).join('')}
-        </tr>`).join('');
+        </tr>${abiertos.has(f.id) ? `<tr class="dinv-detail" data-tool="${f.id}"><td colspan="6"><div class="dinv-detail-body"></div></td></tr>` : ''}`).join('');
       const tot = k => filas.reduce((acc, f) => acc + f[k].v, 0);
       const pie = `<tfoot><tr><td>Total publicado</td>${INV_COLS.map(c => `<td><div class="dinv-num"><b>${tot(c.k)}</b></div></td>`).join('')}</tr></tfoot>`;
       invEl.innerHTML = head + '<tbody>' + cuerpo + '</tbody>' + pie;
@@ -5111,7 +5099,7 @@
       requestAnimationFrame(() => requestAnimationFrame(() => {
         invEl.querySelectorAll('.dinv-bar i').forEach(el => { el.style.width = el.dataset.pct + '%'; });
       }));
-      if(toolActivo) invEl.querySelector('.dinv-row[data-tool="' + toolActivo + '"]')?.classList.add('active');
+      abiertos.forEach(llenarDetalle);
     }
 
     // huecos: lo que falta, en palabras (nunca solo color)
@@ -5132,63 +5120,25 @@
         : '<div class="dhueco dhueco-ok"><span class="dhueco-label">Sin huecos</span><span class="dhueco-items">Todas las herramientas tienen programas, proyectos y materiales.</span></div>';
     }
 
-    // circunferencia de un círculo r=34 (ver .dring-svg) — se usa para el
-    // stroke-dasharray/offset del anillo de progreso
-    const RING_CIRC = 2 * Math.PI * 34;
-
-    function renderAnillos(barras, completitud){
-      ringsEl.innerHTML = barras.map(b => {
-        const r = completitud[b.id] || { pctCompleto:0, cursosCompletos:0, cursosPublicados:0 };
-        const color = colorCompletitud(r.pctCompleto, r.cursosPublicados);
-        const valorTexto = r.cursosPublicados ? `${r.pctCompleto}%` : '—';
-        return `
-        <div class="dring-card" data-tool="${b.id}">
-          <div class="dring-head">
-            <span class="dring-icon" style="color:${b.color}">${b.icon}</span>
-            <span class="dring-name">${b.nombre}</span>
-          </div>
-          <div class="dring-ring-wrap">
-            <svg viewBox="0 0 80 80" class="dring-svg">
-              <circle cx="40" cy="40" r="34" class="dring-track"></circle>
-              <circle cx="40" cy="40" r="34" class="dring-fill" stroke="${color}"
-                stroke-dasharray="${RING_CIRC}" data-offset="${RING_CIRC * (1 - r.pctCompleto / 100)}" stroke-dashoffset="${RING_CIRC}"></circle>
-            </svg>
-            <div class="dring-value">${valorTexto}</div>
-          </div>
-          <div class="dring-caption">${r.cursosCompletos} de ${r.cursosPublicados} completos</div>
-        </div>`;
-      }).join('');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          ringsEl.querySelectorAll('.dring-fill').forEach(el => { el.style.strokeDashoffset = el.dataset.offset; });
-        });
-      });
-    }
-
     function escapeHtmlDash(s){
       return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    function toggleDrilldown(toolId){
-      const abrirOtro = toolActivo !== toolId;
-      toolActivo = abrirOtro ? toolId : null;
+    function toggleDetalle(toolId){
+      if(abiertos.has(toolId)) abiertos.delete(toolId); else abiertos.add(toolId);
+      if(datos) renderInventario(datos);
+    }
 
-      document.querySelectorAll('.dring-card, .dinv-row').forEach(el => {
-        el.classList.toggle('active', abrirOtro && el.dataset.tool === toolId);
-      });
-
-      if(!abrirOtro){ drillEl.hidden = true; return; }
-
-      const info = TOOL_META[toolId];
+    // rellena el detalle de una fila ya pintada (desde la memoria si ya se pidió, o pidiéndolo)
+    function llenarDetalle(toolId){
+      const cont = invEl.querySelector('.dinv-detail[data-tool="' + toolId + '"] .dinv-detail-body');
+      if(!cont) return;
       const r = (datos && datos.completitud[toolId]) || { cursos: [] };
-      document.getElementById('ddrillHead').textContent = `${info.nombre} — inventario`;
-      const listEl = document.getElementById('ddrillList');
-      listEl.innerHTML = '<div class="radm-empty-row">Cargando inventario…</div>';
-      drillEl.hidden = false;
-      drillEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      if(invCache[toolId]){ cont.innerHTML = inventarioHtml(invCache[toolId], r); return; }
+      cont.innerHTML = '<div class="radm-empty-row">Cargando inventario…</div>';
       cargarInventario(toolId)
-        .then(inv => { if(toolActivo === toolId) listEl.innerHTML = inventarioHtml(inv, r); })
-        .catch(e => { if(toolActivo === toolId) listEl.innerHTML = `<div class="radm-empty-row">No se pudo cargar el inventario: ${escapeHtmlDash(e.message)}</div>`; });
+        .then(inv => { const c = invEl.querySelector('.dinv-detail[data-tool="' + toolId + '"] .dinv-detail-body'); if(c) c.innerHTML = inventarioHtml(inv, r); })
+        .catch(e => { const c = invEl.querySelector('.dinv-detail[data-tool="' + toolId + '"] .dinv-detail-body'); if(c) c.innerHTML = `<div class="radm-empty-row">No se pudo cargar el inventario: ${escapeHtmlDash(e.message)}</div>`; });
     }
 
     // Inventario de UNA herramienta (se pide al abrir su detalle y se guarda en memoria): lo que
@@ -5259,16 +5209,12 @@
         return;
       }
       const row = e.target.closest('.dinv-row');
-      if(row) toggleDrilldown(row.dataset.tool);
+      if(row) toggleDetalle(row.dataset.tool);
     });
-    ringsEl.addEventListener('click', e => {
-      const card = e.target.closest('.dring-card');
-      if(card) toggleDrilldown(card.dataset.tool);
-    });
-
     async function renderProductos(){
       // el inventario se vuelve a pedir en cada visita: se edita desde otros paneles y debe reflejarse
       datos = null;
+      abiertos.clear();
       Object.keys(invCache).forEach(k => { delete invCache[k]; });
       try {
         const d = await cargarDatos();
@@ -5278,21 +5224,17 @@
         const matPub = Object.values(d.completitud).reduce((a, c) => a + (c.cursosPublicados || 0), 0);
         const matCompletos = Object.values(d.completitud).reduce((a, c) => a + (c.cursosCompletos || 0), 0);
         kpisEl.innerHTML = [
-          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Programas', 'Programas publicados en todas las herramientas (lo que se vende).', 'de ' + progTotal + ' en total'),
-          kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Proyectos publicados en todas las herramientas.', 'de ' + proyTotal + ' en total'),
-          kpiCard('#f2c94c', ICO.list, d.temasPub, 'Temas', 'Temas publicados en todas las herramientas (con lo que se arman los programas).', 'de ' + temasTotal + ' en total'),
+          kpiCard('#3d7fff', ICO.book, d.temariosPub, 'Programas', 'Programas publicados en todas las herramientas (lo que se vende).', 'de ' + progTotal + ' en total'),
+          kpiCard('#3d7fff', ICO.rocket, d.proyectosPub, 'Proyectos', 'Proyectos publicados en todas las herramientas.', 'de ' + proyTotal + ' en total'),
+          kpiCard('#3d7fff', ICO.list, d.temasPub, 'Temas', 'Temas publicados en todas las herramientas (con lo que se arman los programas).', 'de ' + temasTotal + ' en total'),
           kpiCard('#3d7fff', ICO.layers, matPub, 'Materiales', 'Materiales publicados (paquetes de entrega con código de descarga).', matCompletos + ' con manual'),
         ].join('');
         renderInventario(d);
         renderHuecos(d);
-        renderAnillos(d.barras, d.completitud);
-        toolActivo = null;
-        drillEl.hidden = true;
       } catch(e){
         kpisEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
         invEl.innerHTML = '';
         huecosEl.innerHTML = '';
-        ringsEl.innerHTML = '';
       }
     }
 
@@ -5378,8 +5320,17 @@
     const ICO_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     // ── nivel 1 — herramientas (tarjetas grandes con ícono de marca y 3 números) ──
-    function statHtml(pub, total, label){
-      return `<div class="radm-tool-stat"><b>${pub}/${total}</b><span>${label}</span></div>`;
+    function statHtml(n, label){
+      return `<div class="radm-tool-stat"><b>${n}</b><span>${label}</span></div>`;
+    }
+    // lo que está en borrador va como nota debajo del resumen (casi todo suele estar publicado)
+    function notaBorradores(r){
+      const partes = [];
+      const bp = r.temarios.total - r.temarios.publicados, bj = r.proyectos.total - r.proyectos.publicados, bt = r.temas.total - r.temas.publicados;
+      if(bp) partes.push(bp + (bp === 1 ? ' programa' : ' programas'));
+      if(bj) partes.push(bj + (bj === 1 ? ' proyecto' : ' proyectos'));
+      if(bt) partes.push(bt + (bt === 1 ? ' tema' : ' temas'));
+      return partes.length ? `<div class="radm-tool-legend">En borrador: ${partes.join(' · ')}</div>` : '';
     }
     function renderToolsGrid(resumen){
       const grid = document.getElementById('cadmToolsGrid');
@@ -5390,11 +5341,11 @@
         const cuerpo = sinNada
           ? `<span class="radm-tool-cta">Crear el primer programa ${ICO_ARROW}</span>`
           : `<div class="radm-tool-stats">
-               ${statHtml(r.temarios.publicados, r.temarios.total, 'Programas')}
-               ${statHtml(r.proyectos.publicados, r.proyectos.total, 'Proyectos')}
-               ${statHtml(r.temas.publicados, r.temas.total, 'Temas')}
+               ${statHtml(r.temarios.total, 'Programas')}
+               ${statHtml(r.proyectos.total, 'Proyectos')}
+               ${statHtml(r.temas.total, 'Temas')}
              </div>
-             <div class="radm-tool-legend">publicados / total</div>`;
+             ${notaBorradores(r)}`;
         return `
           <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
             <span class="radm-tool-icon">${t.icon}</span>
@@ -5596,6 +5547,11 @@
       body.querySelector('.cadm-f-nombre').focus();
     }
 
+    // proyectos que un programa desbloquea por sus temas (comportamiento anterior, cuando aún no fija proyectos)
+    function proyectosAuto(temaIds){
+      return cadmProyectos.filter(pr => (pr.temaIds || []).length && pr.temaIds.every(id => temaIds.includes(id))).map(pr => pr.id);
+    }
+
     function programaFormHtml(p){
       const isNew = !p;
       const temaOptions = cadmTemas.slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -5603,41 +5559,67 @@
       const picker = temaOptions.length
         ? temaOptions.map(te => `
             <label class="radm-row" style="cursor:pointer;">
-              <input type="checkbox" class="cadm-t-pick" value="${escapeHtml(te.id)}" ${selectedIds.includes(te.id) ? 'checked' : ''}>
+              <input type="checkbox" class="cadm-t-pick" value="${escapeHtml(te.id)}" data-horas="${Number(te.horas) || 0}" ${selectedIds.includes(te.id) ? 'checked' : ''}>
               <div class="radm-row-body">
                 <div class="radm-row-title">${escapeHtml(te.nombre)}</div>
                 <div class="radm-row-sub">${NIVEL_LABEL[te.nivel] || ''} · ${te.horas} hr${te.estado !== 'publicado' ? ' · borrador' : ''}</div>
               </div>
             </label>`).join('')
         : '<div class="radm-empty-row">Sin temas todavía — agrégalos en la pestaña "Temas".</div>';
+
+      // proyectos: selección explícita; un programa que nunca la guardó arranca con los que sus temas desbloquean
+      const proyOrdenados = cadmProyectos.slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const proySel = p ? (Array.isArray(p.proyectoIds) ? p.proyectoIds : proyectosAuto(p.temaIds || [])) : [];
+      const pickerProy = proyOrdenados.length
+        ? proyOrdenados.map(pr => `
+            <label class="radm-row" style="cursor:pointer;">
+              <input type="checkbox" class="cadm-pr-pick" value="${escapeHtml(pr.id)}" data-temas="${escapeHtml((pr.temaIds || []).join(','))}" ${proySel.includes(pr.id) ? 'checked' : ''}>
+              <div class="radm-row-body">
+                <div class="radm-row-title">${escapeHtml(pr.nombre)}${pr.estado !== 'publicado' ? ' <span class="radm-row-sub">· borrador</span>' : ''}</div>
+                <div class="radm-row-sub cadm-pr-sub">Requiere: ${(pr.temaIds || []).map(id => escapeHtml((cadmTemas.find(t => t.id === id) || {}).nombre || id)).join(', ')}</div>
+              </div>
+            </label>`).join('')
+        : '<div class="radm-empty-row">Sin proyectos todavía — agrégalos en la pestaña "Proyectos".</div>';
+
       return `
         <div class="cadm-form">
           <div class="radm-form-row">
-            <div class="radm-field" style="flex:1 1 100%;">
+            <div class="radm-field" style="flex:1 1 320px;">
               <label>NOMBRE</label>
               <input type="text" class="cadm-f-nombre" value="${isNew ? '' : escapeHtml(p.nombre)}" placeholder="Excel Básico-Intermedio">
             </div>
+            <div class="radm-field" style="flex:0 0 150px; min-width:130px;">
+              <label>HORAS</label>
+              <input type="text" inputmode="decimal" class="cadm-f-horas radm-mono" value="${p && p.horasManual != null ? p.horasManual : ''}" placeholder="—">
+            </div>
+          </div>
+          <div class="cadm-hint cadm-horas-hint" style="margin:-4px 0 14px;"></div>
+          <div class="radm-form-row">
+            <div class="radm-field" style="flex:1 1 100%;">
+              <label>OBJETIVO</label>
+              <textarea class="cadm-f-objetivo cadm-objetivo">${isNew ? '' : escapeHtml(p.objetivo)}</textarea>
+            </div>
           </div>
           <div class="radm-form-row">
-            <div class="radm-field">
-              <label>OBJETIVO</label>
-              <textarea class="cadm-f-objetivo">${isNew ? '' : escapeHtml(p.objetivo)}</textarea>
-            </div>
             <div class="radm-field">
               <label>DIRIGIDO A</label>
               <textarea class="cadm-f-dirigido">${isNew ? '' : escapeHtml(p.dirigido)}</textarea>
             </div>
-          </div>
-          <div class="radm-form-row">
-            <div class="radm-field" style="flex:1 1 100%;">
+            <div class="radm-field">
               <label>ALCANCE</label>
-              <textarea class="cadm-f-alcance cadm-alcance">${isNew ? '' : escapeHtml(p.alcance)}</textarea>
+              <textarea class="cadm-f-alcance">${isNew ? '' : escapeHtml(p.alcance)}</textarea>
             </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field" style="flex:1 1 100%;">
               <label>TEMAS INCLUIDOS</label>
               <div class="radm-list cadm-picker">${picker}</div>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field" style="flex:1 1 100%;">
+              <label>PROYECTOS INCLUIDOS</label>
+              <div class="radm-list cadm-picker">${pickerProy}</div>
             </div>
           </div>
           <div class="radm-actions">
@@ -5659,6 +5641,35 @@
 
     function wirePrograma(root, p){
       const isNew = !p;
+      const horasEl = root.querySelector('.cadm-f-horas');
+      const hintEl = root.querySelector('.cadm-horas-hint');
+
+      // las horas sugeridas son la suma de los temas elegidos; el campo vacío = usar esa suma
+      function sumaTemas(){ return Array.from(root.querySelectorAll('.cadm-t-pick:checked')).reduce((acc, c) => acc + (Number(c.dataset.horas) || 0), 0); }
+      function refrescarSugerido(){
+        const suma = sumaTemas();
+        horasEl.placeholder = suma ? String(suma) : '—';
+        const manual = horasEl.value.trim();
+        hintEl.textContent = manual
+          ? `Ajustadas a mano: ${manual} hr (los temas suman ${suma} hr). Vacía el campo para usar la suma.`
+          : `Sugerido por los temas: ${suma} hr. Escribe otro número para ajustarlo (por ejemplo, más comercial); vacío = la suma.`;
+      }
+      // proyectos: avisar si les faltan temas requeridos en este programa (no bloquea)
+      function refrescarProyectos(){
+        const incluidos = new Set(Array.from(root.querySelectorAll('.cadm-t-pick:checked')).map(c => c.value));
+        root.querySelectorAll('.cadm-pr-pick').forEach(c => {
+          const req = (c.dataset.temas || '').split(',').filter(Boolean);
+          const faltan = req.filter(id => !incluidos.has(id)).map(id => (cadmTemas.find(t => t.id === id) || {}).nombre || id);
+          const sub = c.closest('label').querySelector('.cadm-pr-sub');
+          const base = 'Requiere: ' + req.map(id => (cadmTemas.find(t => t.id === id) || {}).nombre || id).join(', ');
+          sub.textContent = faltan.length ? base + ' — faltan en este programa: ' + faltan.join(', ') : base;
+        });
+      }
+      root.querySelectorAll('.cadm-t-pick').forEach(c => c.addEventListener('change', () => { refrescarSugerido(); refrescarProyectos(); }));
+      horasEl.addEventListener('input', refrescarSugerido);
+      refrescarSugerido();
+      refrescarProyectos();
+
       root.querySelector('.cadm-f-estado').addEventListener('change', e => {
         root.querySelector('.cadm-f-estado-label').textContent = e.target.checked ? 'Publicado' : 'Borrador';
       });
@@ -5682,15 +5693,19 @@
         const alcance = root.querySelector('.cadm-f-alcance').value.trim();
         const estado = root.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
         const temaIds = Array.from(root.querySelectorAll('.cadm-t-pick:checked')).map(c => c.value);
+        const proyectoIds = Array.from(root.querySelectorAll('.cadm-pr-pick:checked')).map(c => c.value);
+        const horasTxt = horasEl.value.trim().replace(',', '.');
+        const horasManual = horasTxt === '' ? null : Number(horasTxt);
         const id = isNew ? idUnico(nombre, cadmTemarios.map(x => x.id)) : p.id;
 
         if(!nombre){ toast('Falta el nombre.', false); return; }
         if(!SLUG_RE.test(id)){ toast('El nombre debe llevar al menos una letra o número.', false); return; }
         if(!temaIds.length){ toast('Selecciona al menos un tema incluido.', false); return; }
+        if(horasManual !== null && (!Number.isFinite(horasManual) || horasManual <= 0)){ toast('Las horas deben ser un número mayor a 0 (o déjalas vacías para usar la suma de los temas).', false); return; }
 
         try {
           await apiPostJson('/api/crearTemario', {
-            herramienta:cadmTool, id, nombre, objetivo, dirigido, alcance, temaIds, estado,
+            herramienta:cadmTool, id, nombre, objetivo, dirigido, alcance, temaIds, proyectoIds, horasManual, estado,
             orden: p ? p.orden : Date.now(),
           });
           toast('Programa guardado.', true);

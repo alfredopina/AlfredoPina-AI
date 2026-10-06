@@ -11,7 +11,7 @@
 //     temasSinUsar,                       // temas que ningún programa incluye
 //   }
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
-const { parseTemaIds } = require("../src/cursos-calc");
+const { parseTemaIds, horasEfectivas } = require("../src/cursos-calc");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -49,7 +49,7 @@ module.exports = async function (context, req) {
       temarios[h].forEach((p) => {
         const ids = parseTemaIds(p.temaIds);
         ids.forEach((id) => usados.add(id));
-        if (p.estado === "publicado") horasProgramas += ids.reduce((s, id) => s + (horasPorTema[id] || 0), 0);
+        if (p.estado === "publicado") horasProgramas += horasEfectivas(p, ids.reduce((s, id) => s + (horasPorTema[id] || 0), 0));
       });
       const horasTemas = temas[h].filter((t) => t.estado === "publicado").reduce((s, t) => s + (Number(t.horas) || 0), 0);
 

@@ -44,4 +44,29 @@ function proyectoCubierto(proyectoTemaIds, temaIdsDisponibles) {
   return requeridos.length > 0 && requeridos.every((id) => disponibles.has(id));
 }
 
-module.exports = { NIVEL_LABEL, parseTemaIds, resolverTemario, proyectoCubierto };
+// Lista de ids guardada como JSON, pero distinguiendo "nunca se guardó" (null) de "lista vacía" ([]).
+function parseIdsOpcional(raw) {
+  if (raw === undefined || raw === null) return null;
+  return parseTemaIds(raw);
+}
+
+// Horas de un programa: las que Alfredo ajustó a mano (horasManual, para hacerlo más comercial) o,
+// si no hay ajuste, la suma de sus temas (`suma`, que regresa resolverTemario).
+function horasEfectivas(temarioEntity, suma) {
+  const raw = temarioEntity.horasManual;
+  if (raw === undefined || raw === null || raw === "") return suma;
+  const m = Number(raw);
+  return Number.isFinite(m) && m > 0 ? m : suma;
+}
+
+// Proyectos que lleva un programa. Con selección explícita (proyectoIds, guardada desde el admin) son
+// exactamente esos; si el programa nunca la guardó, se conserva el comportamiento anterior: los que
+// sus temas desbloquean (todos los temas requeridos presentes). `proyectos` = [{ id, nombre, temaIds }].
+function proyectosDePrograma(temarioEntity, proyectos, temaIdsDisponibles) {
+  const seleccion = parseIdsOpcional(temarioEntity.proyectoIds);
+  if (seleccion === null) return proyectos.filter((p) => proyectoCubierto(p.temaIds, temaIdsDisponibles));
+  const set = new Set(seleccion);
+  return proyectos.filter((p) => set.has(p.id));
+}
+
+module.exports = { NIVEL_LABEL, parseTemaIds, parseIdsOpcional, resolverTemario, proyectoCubierto, horasEfectivas, proyectosDePrograma };

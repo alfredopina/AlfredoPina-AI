@@ -4,7 +4,7 @@
 // calculados — para pintar la lista y el form de edición del admin.
 const { getTemasTable, getTemariosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const { resolverTemario, parseTemaIds } = require("../src/cursos-calc");
+const { resolverTemario, parseTemaIds, parseIdsOpcional, horasEfectivas } = require("../src/cursos-calc");
 const { escaparComillasOData } = require("../src/odata-escape");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -30,7 +30,7 @@ module.exports = async function (context, req) {
     try {
       const entidades = temariosTable.listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
       for await (const t of entidades) {
-        const { temas, horas, nivelLabel } = resolverTemario(t, temasPorId);
+        const { temas, horas: horasSugeridas, nivelLabel } = resolverTemario(t, temasPorId);
         temarios.push({
           id: t.rowKey,
           nombre: t.nombre || "",
@@ -39,7 +39,10 @@ module.exports = async function (context, req) {
           alcance: t.alcance || "",
           temaIds: parseTemaIds(t.temaIds),
           temas,
-          horas,
+          horas: horasEfectivas(t, horasSugeridas), // las efectivas (ajuste manual o suma)
+          horasSugeridas,                            // suma de los temas
+          horasManual: t.horasManual === undefined || t.horasManual === null || t.horasManual === "" ? null : Number(t.horasManual),
+          proyectoIds: parseIdsOpcional(t.proyectoIds), // null = nunca guardada (se usan los desbloqueados por temas)
           nivelLabel,
           estado: t.estado || "borrador",
           orden: t.orden || 0,

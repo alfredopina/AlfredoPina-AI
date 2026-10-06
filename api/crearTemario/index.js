@@ -4,7 +4,7 @@
 // Campos de texto libre: objetivo, dirigido y alcance (el alcance es por programa; "tags" se quitó
 // 2026-10-06 — no alimentaban nada). temaIds es la lista ORDENADA de temas incluidos
 // (referencia al banco de Temas) — se guarda como JSON string en la columna.
-const { getTemasTable, getTemariosTable, ensureTable, isTableNotFound } = require("../src/cursos-tables");
+const { getTemasTable, getTemariosTable, getProyectosTable, ensureTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { escaparComillasOData } = require("../src/odata-escape");
 const { JSON_HEADERS } = require("../src/http");
@@ -18,6 +18,9 @@ module.exports = async function (context, req) {
   const objetivo = (body.objetivo || "").trim();
   const dirigido = (body.dirigido || "").trim();
   const alcance = (body.alcance || "").trim().slice(0, 4000);
+  const proyectoIds = Array.isArray(body.proyectoIds) ? body.proyectoIds.filter((x) => typeof x === "string" && x) : null; // null = no se manda (el programa no fija proyectos)
+  const horasRaw = body.horasManual;
+  const horasManual = horasRaw === undefined || horasRaw === null || horasRaw === "" ? null : Number(horasRaw);
   const temaIds = Array.isArray(body.temaIds) ? body.temaIds.filter((x) => typeof x === "string" && x) : [];
   const estado = body.estado === "publicado" ? "publicado" : "borrador";
   const orden = Number.isFinite(body.orden) ? body.orden : 0;
@@ -32,6 +35,10 @@ module.exports = async function (context, req) {
   }
   if (!nombre) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre del programa." } };
+    return;
+  }
+  if (horasManual !== null && (!Number.isFinite(horasManual) || horasManual <= 0 || horasManual > 1000)) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Las horas del programa deben ser un número mayor a 0 (o déjalas vacías para usar la suma de los temas)." } };
     return;
   }
   if (!temaIds.length) {
@@ -54,12 +61,27 @@ module.exports = async function (context, req) {
       return;
     }
 
+    if (proyectoIds && proyectoIds.length) {
+      const existentesProy = new Set();
+      try {
+        const proys = getProyectosTable().listEntities({ queryOptions: { filter: `PartitionKey eq '${escaparComillasOData(herramienta)}'` } });
+        for await (const p of proys) existentesProy.add(p.rowKey);
+      } catch (err) {
+        if (!isTableNotFound(err)) throw err;
+      }
+      const faltan = proyectoIds.filter((pid) => !existentesProy.has(pid));
+      if (faltan.length) {
+        context.res = { status: 400, headers: JSON_HEADERS, body: { error: `Estos proyectos ya no existen en ${herramienta}: ${faltan.join(", ")}.` } };
+        return;
+      }
+    }
+
     const temariosTable = getTemariosTable();
     await ensureTable(temariosTable);
-    await temariosTable.upsertEntity(
-      { partitionKey: herramienta, rowKey: id, nombre, objetivo, dirigido, alcance, temaIds: JSON.stringify(temaIds), estado, orden },
-      "Replace"
-    );
+    const entidad = { partitionKey: herramienta, rowKey: id, nombre, objetivo, dirigido, alcance, temaIds: JSON.stringify(temaIds), estado, orden };
+    if (proyectoIds !== null) entidad.proyectoIds = JSON.stringify(proyectoIds);
+    if (horasManual !== null) entidad.horasManual = horasManual;
+    await temariosTable.upsertEntity(entidad, "Replace");
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
     context.log.error("Error guardando el programa:", err.message);

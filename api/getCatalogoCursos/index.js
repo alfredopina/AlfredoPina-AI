@@ -7,7 +7,7 @@
 // para armar ambas vistas de una herramienta sin hardcodear nada.
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const { resolverTemario, proyectoCubierto, parseTemaIds } = require("../src/cursos-calc");
+const { resolverTemario, proyectosDePrograma, horasEfectivas, parseTemaIds } = require("../src/cursos-calc");
 const { JSON_HEADERS } = require("../src/http");
 
 async function listPartition(table, herramienta) {
@@ -52,11 +52,10 @@ module.exports = async function (context, req) {
       .filter((t) => t.estado === "publicado")
       .sort((a, b) => (a.orden || 0) - (b.orden || 0))
       .map((t) => {
-        const { temas, horas, nivelLabel } = resolverTemario(t, temasPorId);
+        const { temas, horas: horasSuma, nivelLabel } = resolverTemario(t, temasPorId);
+        const horas = horasEfectivas(t, horasSuma);
         const temaIdsSet = new Set(temas.map((x) => x.id));
-        const proyectos = proyectosPublicados
-          .filter((p) => proyectoCubierto(p.temaIds, temaIdsSet))
-          .map((p) => p.nombre);
+        const proyectos = proyectosDePrograma(t, proyectosPublicados, temaIdsSet).map((p) => p.nombre);
         return {
           id: t.rowKey,
           nombre: t.nombre || "",

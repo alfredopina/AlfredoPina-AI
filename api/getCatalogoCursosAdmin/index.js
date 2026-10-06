@@ -1,38 +1,65 @@
 // getCatalogoCursosAdmin/index.js
-// Function protegida (rol "admin"): conteos por herramienta (temas, temarios
-// estándar y proyectos, publicados vs. total) para pintar el grid de
-// herramientas del panel Cursos sin traer todo el detalle.
+// Function protegida (rol "admin"): resumen por herramienta del catálogo (temas,
+// programas y proyectos: publicados vs. total) para el grid de herramientas del
+// panel Programas y el Dashboard → Productos (inventario).
+//   resumen[h] = {
+//     temas:     { total, publicados },
+//     temarios:  { total, publicados },   // = Programas (el nombre de la tabla es histórico)
+//     proyectos: { total, publicados },
+//     horas:     { temas, programas },    // temas = horas del banco de temas PUBLICADOS;
+//                                         // programas = suma de horas de los programas publicados
+//     temasSinUsar,                       // temas que ningún programa incluye
+//   }
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("../src/cursos-tables");
+const { parseTemaIds } = require("../src/cursos-calc");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
-async function contarPorHerramienta(table) {
-  const conteos = {};
-  HERRAMIENTAS.forEach((h) => { conteos[h] = { total: 0, publicados: 0 }; });
+async function leerPorHerramienta(table) {
+  const por = {};
+  HERRAMIENTAS.forEach((h) => { por[h] = []; });
   try {
-    const entidades = table.listEntities();
-    for await (const e of entidades) {
-      if (!conteos[e.partitionKey]) continue;
-      conteos[e.partitionKey].total += 1;
-      if (e.estado === "publicado") conteos[e.partitionKey].publicados += 1;
+    for await (const e of table.listEntities()) {
+      if (por[e.partitionKey]) por[e.partitionKey].push(e);
     }
   } catch (err) {
     if (!isTableNotFound(err)) throw err;
   }
-  return conteos;
+  return por;
+}
+
+function contar(entidades) {
+  return { total: entidades.length, publicados: entidades.filter((e) => e.estado === "publicado").length };
 }
 
 module.exports = async function (context, req) {
   try {
     const [temas, temarios, proyectos] = await Promise.all([
-      contarPorHerramienta(getTemasTable()),
-      contarPorHerramienta(getTemariosTable()),
-      contarPorHerramienta(getProyectosTable()),
+      leerPorHerramienta(getTemasTable()),
+      leerPorHerramienta(getTemariosTable()),
+      leerPorHerramienta(getProyectosTable()),
     ]);
 
     const resumen = {};
     HERRAMIENTAS.forEach((h) => {
-      resumen[h] = { temas: temas[h], temarios: temarios[h], proyectos: proyectos[h] };
+      const horasPorTema = {};
+      temas[h].forEach((t) => { horasPorTema[t.rowKey] = Number(t.horas) || 0; });
+      const usados = new Set();
+      let horasProgramas = 0;
+      temarios[h].forEach((p) => {
+        const ids = parseTemaIds(p.temaIds);
+        ids.forEach((id) => usados.add(id));
+        if (p.estado === "publicado") horasProgramas += ids.reduce((s, id) => s + (horasPorTema[id] || 0), 0);
+      });
+      const horasTemas = temas[h].filter((t) => t.estado === "publicado").reduce((s, t) => s + (Number(t.horas) || 0), 0);
+
+      resumen[h] = {
+        temas: contar(temas[h]),
+        temarios: contar(temarios[h]),
+        proyectos: contar(proyectos[h]),
+        horas: { temas: horasTemas, programas: horasProgramas },
+        temasSinUsar: temas[h].filter((t) => !usados.has(t.rowKey)).length,
+      };
     });
 
     context.res = { status: 200, headers: JSON_HEADERS, body: resumen };

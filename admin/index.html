@@ -276,6 +276,36 @@
     font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px;
     text-transform:uppercase; margin-bottom:16px;
   }
+  /* inventario por herramienta: tabla comparativa con barras por columna */
+  .dinv-wrap{ overflow-x:auto; margin-bottom:18px; }
+  .dinv{ width:100%; min-width:780px; border-collapse:separate; border-spacing:0; }
+  .dinv th{ text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .dinv th button{ background:none; border:none; padding:0; font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .dinv th button:hover, .dinv th.sorted button{ color:var(--text); }
+  .dinv th .dinv-arrow{ width:9px; height:9px; opacity:0; }
+  .dinv th.sorted .dinv-arrow{ opacity:1; }
+  .dinv th.asc .dinv-arrow{ transform:rotate(180deg); }
+  .dinv td{ padding:14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  .dinv-row{ cursor:pointer; }
+  .dinv-row:hover td, .dinv-row.active td{ background:var(--panel-2); }
+  .dinv-tool{ display:flex; align-items:center; gap:10px; font-weight:600; font-size:14px; min-width:150px; }
+  .dinv-tool-ico{ width:22px; height:22px; flex:none; color:var(--c); }
+  .dinv-tool-ico svg{ width:100%; height:100%; }
+  .dinv-num b{ font-family:var(--display); font-weight:700; font-size:24px; color:var(--text); }
+  .dinv-num small{ font-size:13px; color:var(--text-faint); margin-left:2px; }
+  .dinv-bar{ height:6px; border-radius:3px; background:var(--line-soft); margin-top:8px; overflow:hidden; min-width:90px; }
+  .dinv-bar i{ display:block; height:100%; width:0; border-radius:3px; background:var(--c); transition:width 1s cubic-bezier(.22,1,.36,1); }
+  .dinv-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:6px; }
+  .dinv-tag{ font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--text); margin-top:4px; min-height:13px; }
+  .dinv-tag.menos{ color:var(--text-dim); }
+  .dinv tfoot td{ border-bottom:none; border-top:1px solid var(--line); font-weight:600; }
+  .dinv tfoot .dinv-num b{ font-size:18px; }
+  .dhuecos{ display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
+  .dhueco{ display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; font-size:13px; padding:10px 14px; border:1px solid var(--line); border-left:3px solid var(--amber, #dfb35a); border-radius:6px; background:var(--panel); }
+  .dhueco-label{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text); flex:none; min-width:150px; }
+  .dhueco-items{ color:var(--text-dim); }
+  .dhueco-ok{ border-left-color:#14b8a6; color:var(--text-dim); }
+  .dkpi-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:-2px; }
   .dbar-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
   .dbar-icon{ width:20px; height:20px; flex:none; color:var(--c); }
   .dbar-icon svg{ width:100%; height:100%; }
@@ -2324,16 +2354,18 @@
           <div class="dkpi-grid" id="dashKpis">
             <div class="radm-empty-row">Cargando métricas…</div>
           </div>
-          <div class="dbar-title">Programas publicados por herramienta</div>
-          <div id="dashBarChart"></div>
-
-          <div class="dbar-title" style="margin-top:32px;">% de materiales completos por herramienta</div>
-          <div class="dring-hint">Clic en una herramienta para ver el detalle de sus materiales — clic de nuevo para cerrarlo.</div>
-          <div class="dring-grid" id="dashRings"></div>
+          <div class="dbar-title">Inventario por herramienta</div>
+          <div class="dring-hint">Toca un encabezado para ordenar. Cada barra compara a la herramienta contra la que más tiene en esa columna; "más" y "menos" marcan los extremos. Toca una fila para ver su detalle.</div>
+          <div class="dinv-wrap"><table class="dinv" id="dashInv"></table></div>
+          <div class="dhuecos" id="dashHuecos"></div>
           <div class="ddrill" id="dashDrilldown" hidden>
             <div class="ddrill-head" id="ddrillHead"></div>
             <div class="radm-list" id="ddrillList"></div>
           </div>
+
+          <div class="dbar-title" style="margin-top:36px;">Materiales con manual por herramienta</div>
+          <div class="dring-hint">El anillo es el % de materiales publicados que ya tienen su manual cargado. Clic en una herramienta para ver su detalle.</div>
+          <div class="dring-grid" id="dashRings"></div>
         </div>
       </div>
 
@@ -4964,7 +4996,8 @@
     };
 
     const kpisEl = document.getElementById('dashKpis');
-    const barEl = document.getElementById('dashBarChart');
+    const invEl = document.getElementById('dashInv');
+    const huecosEl = document.getElementById('dashHuecos');
     const ringsEl = document.getElementById('dashRings');
     const drillEl = document.getElementById('dashDrilldown');
     let datos = null; // cache — no se vuelve a pedir al API en visitas siguientes
@@ -4979,11 +5012,12 @@
       return '#b91c1c';
     }
 
-    function kpiCard(color, icon, valor, label, tooltip){
+    function kpiCard(color, icon, valor, label, tooltip, sub){
       return `<div class="dkpi-card" style="--c:${color}" title="${tooltip}">
         <span class="dkpi-icon">${icon}</span>
         <div class="dkpi-value">${valor}</div>
         <div class="dkpi-label">${label}</div>
+        ${sub ? `<div class="dkpi-sub">${sub}</div>` : ''}
       </div>`;
     }
 
@@ -5005,27 +5039,97 @@
         temasPub += t.publicados; temariosPub += te.publicados; proyectosPub += pr.publicados;
         return { id, nombre: TOOL_META[id].nombre, color: TOOL_META[id].color, icon: TOOL_META[id].icon, cursos: te.publicados };
       }).sort((a, b) => b.cursos - a.cursos);
-      datos = { temasPub, temariosPub, proyectosPub, barras, completitud };
+      datos = { temasPub, temariosPub, proyectosPub, barras, completitud, catalogo };
       return datos;
     }
 
-    function renderBarras(barras){
-      const max = Math.max(1, ...barras.map(b => b.cursos));
-      barEl.innerHTML = barras.map(b => `
-        <div class="dbar-row" data-tool="${b.id}" style="cursor:pointer;">
-          <span class="dbar-icon" style="color:${b.color}">${b.icon}</span>
-          <span class="dbar-label">${b.nombre}</span>
-          <div class="dbar-track"><div class="dbar-fill" data-pct="${b.cursos / max * 100}" style="background:${b.color}"></div></div>
-          <span class="dbar-count">${b.cursos}</span>
-        </div>
-      `).join('');
-      // arranca en 0 y anima al ancho real en el siguiente frame — así se ve
-      // "correr" la barra cada vez que se entra a la pestaña, no solo la primera vez
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          barEl.querySelectorAll('.dbar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
-        });
+    // ── inventario: una fila por herramienta, una columna por tipo de producto ──
+    const INV_COLS = [
+      { k:'programas', label:'Programas' },
+      { k:'proyectos', label:'Proyectos' },
+      { k:'temas', label:'Temas' },
+      { k:'materiales', label:'Materiales' },
+      { k:'horas', label:'Horas de contenido' },
+    ];
+    let invOrden = { k:'programas', dir:-1 }; // dir -1 = de más a menos
+    const ARROW = '<svg class="dinv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function filasInventario(d){
+      return Object.keys(TOOL_META).map(id => {
+        const c = d.catalogo[id] || {};
+        const comp = d.completitud[id] || { cursosPublicados:0, cursosCompletos:0 };
+        const tm = c.temas || { publicados:0, total:0 }, pg = c.temarios || { publicados:0, total:0 }, pr = c.proyectos || { publicados:0, total:0 };
+        const horas = (c.horas && c.horas.temas) || 0;
+        return {
+          id, nombre: TOOL_META[id].nombre, color: TOOL_META[id].color, icon: TOOL_META[id].icon,
+          programas: { v: pg.publicados, total: pg.total },
+          proyectos: { v: pr.publicados, total: pr.total },
+          temas: { v: tm.publicados, total: tm.total, sub: c.temasSinUsar ? c.temasSinUsar + ' sin usar' : '' },
+          materiales: { v: comp.cursosPublicados, total: comp.cursosPublicados, sub: comp.cursosPublicados ? comp.cursosCompletos + ' con manual' : '' },
+          horas: { v: horas, total: horas },
+          temasSinUsar: c.temasSinUsar || 0,
+        };
       });
+    }
+
+    function renderInventario(d){
+      const filas = filasInventario(d);
+      const col = invOrden.k;
+      filas.sort((x, y) => (invOrden.dir * (x[col].v - y[col].v)) || (y.programas.v - x.programas.v) || x.nombre.localeCompare(y.nombre));
+
+      // extremos por columna (sobre los publicados)
+      const ext = {};
+      INV_COLS.forEach(({ k }) => { const vs = filas.map(f => f[k].v); ext[k] = { max: Math.max(...vs), min: Math.min(...vs) }; });
+      const tag = (k, v) => {
+        const { max, min } = ext[k];
+        if(max === min) return '';
+        if(v === max) return '▲ más';
+        if(v === 0) return '○ vacío';
+        if(v === min) return '▼ menos';
+        return '';
+      };
+
+      const head = `<thead><tr><th>Herramienta</th>${INV_COLS.map(c =>
+        `<th class="${invOrden.k === c.k ? 'sorted' + (invOrden.dir === 1 ? ' asc' : '') : ''}"><button type="button" data-col="${c.k}">${c.label}${ARROW}</button></th>`).join('')}</tr></thead>`;
+      const cuerpo = filas.map(f => `
+        <tr class="dinv-row" data-tool="${f.id}" style="--c:${f.color}">
+          <td><div class="dinv-tool"><span class="dinv-tool-ico">${f.icon}</span>${f.nombre}</div></td>
+          ${INV_COLS.map(c => {
+            const x = f[c.k], pct = ext[c.k].max ? (x.v / ext[c.k].max * 100) : 0;
+            const t = tag(c.k, x.v);
+            return `<td><div class="dinv-num"><b>${x.v}</b>${x.total !== x.v ? `<small>/${x.total}</small>` : ''}</div>
+              <div class="dinv-bar"><i data-pct="${pct}"></i></div>
+              <div class="dinv-sub">${x.sub || ''}</div>
+              <div class="dinv-tag ${t.startsWith('▼') || t.startsWith('○') ? 'menos' : ''}">${t}</div></td>`;
+          }).join('')}
+        </tr>`).join('');
+      const tot = k => filas.reduce((acc, f) => acc + f[k].v, 0);
+      const pie = `<tfoot><tr><td>Total publicado</td>${INV_COLS.map(c => `<td><div class="dinv-num"><b>${tot(c.k)}</b></div></td>`).join('')}</tr></tfoot>`;
+      invEl.innerHTML = head + '<tbody>' + cuerpo + '</tbody>' + pie;
+
+      // las barras arrancan en 0 y corren al ancho real
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        invEl.querySelectorAll('.dinv-bar i').forEach(el => { el.style.width = el.dataset.pct + '%'; });
+      }));
+      if(toolActivo) invEl.querySelector('.dinv-row[data-tool="' + toolActivo + '"]')?.classList.add('active');
+    }
+
+    // huecos: lo que falta, en palabras (nunca solo color)
+    function renderHuecos(d){
+      const filas = filasInventario(d);
+      const nombres = (lista, fmt) => lista.map(fmt || (f => f.nombre)).join(' · ');
+      const bloques = [
+        ['Sin programas', filas.filter(f => f.programas.v === 0)],
+        ['Sin proyectos', filas.filter(f => f.proyectos.v === 0)],
+        ['Sin materiales', filas.filter(f => f.programas.v > 0 && f.materiales.v === 0)],
+      ].filter(([, l]) => l.length).map(([t, l]) => [t, nombres(l)]);
+      const borr = filas.filter(f => f.programas.total > f.programas.v);
+      if(borr.length) bloques.push(['Programas en borrador', nombres(borr, f => f.nombre + ' (' + (f.programas.total - f.programas.v) + ')')]);
+      const sinUsar = filas.filter(f => f.temasSinUsar > 0);
+      if(sinUsar.length) bloques.push(['Temas sin usar', nombres(sinUsar, f => f.nombre + ' (' + f.temasSinUsar + ')')]);
+      huecosEl.innerHTML = bloques.length
+        ? bloques.map(([t, items]) => `<div class="dhueco"><span class="dhueco-label">${t}</span><span class="dhueco-items">${items}</span></div>`).join('')
+        : '<div class="dhueco dhueco-ok"><span class="dhueco-label">Sin huecos</span><span class="dhueco-items">Todas las herramientas tienen programas, proyectos y materiales.</span></div>';
     }
 
     // circunferencia de un círculo r=34 (ver .dring-svg) — se usa para el
@@ -5069,7 +5173,7 @@
       const abrirOtro = toolActivo !== toolId;
       toolActivo = abrirOtro ? toolId : null;
 
-      document.querySelectorAll('.dring-card, .dbar-row').forEach(el => {
+      document.querySelectorAll('.dring-card, .dinv-row').forEach(el => {
         el.classList.toggle('active', abrirOtro && el.dataset.tool === toolId);
       });
 
@@ -5081,6 +5185,7 @@
       const listEl = document.getElementById('ddrillList');
       listEl.innerHTML = '<div class="radm-empty-row">Cargando inventario…</div>';
       drillEl.hidden = false;
+      drillEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
       cargarInventario(toolId)
         .then(inv => { if(toolActivo === toolId) listEl.innerHTML = inventarioHtml(inv, r); })
         .catch(e => { if(toolActivo === toolId) listEl.innerHTML = `<div class="radm-empty-row">No se pudo cargar el inventario: ${escapeHtmlDash(e.message)}</div>`; });
@@ -5146,8 +5251,14 @@
         sec('PROYECTOS', inv.proyectos.length, proyectos) + sec('MATERIALES', (r.cursos || []).length, materiales);
     }
 
-    barEl.addEventListener('click', e => {
-      const row = e.target.closest('.dbar-row');
+    invEl.addEventListener('click', e => {
+      const th = e.target.closest('th button[data-col]');
+      if(th){
+        invOrden = { k: th.dataset.col, dir: invOrden.k === th.dataset.col ? -invOrden.dir : -1 };
+        if(datos) renderInventario(datos);
+        return;
+      }
+      const row = e.target.closest('.dinv-row');
       if(row) toggleDrilldown(row.dataset.tool);
     });
     ringsEl.addEventListener('click', e => {
@@ -5156,21 +5267,31 @@
     });
 
     async function renderProductos(){
+      // el inventario se vuelve a pedir en cada visita: se edita desde otros paneles y debe reflejarse
+      datos = null;
+      Object.keys(invCache).forEach(k => { delete invCache[k]; });
       try {
         const d = await cargarDatos();
+        const progTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.temarios || {}).total || 0), 0);
+        const temasTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.temas || {}).total || 0), 0);
+        const proyTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.proyectos || {}).total || 0), 0);
+        const matPub = Object.values(d.completitud).reduce((a, c) => a + (c.cursosPublicados || 0), 0);
+        const matCompletos = Object.values(d.completitud).reduce((a, c) => a + (c.cursosCompletos || 0), 0);
         kpisEl.innerHTML = [
-          kpiCard('#3d7fff', ICO.layers, 6, 'Herramientas', 'Cantidad de herramientas del catálogo (fijo).'),
-          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Programas', 'Total de programas publicados en todas las herramientas.'),
-          kpiCard('#f2c94c', ICO.list, d.temasPub, 'Temas', 'Total de temas publicados en todas las herramientas.'),
-          kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Total de proyectos publicados en todas las herramientas.'),
+          kpiCard('#22c55e', ICO.book, d.temariosPub, 'Programas', 'Programas publicados en todas las herramientas (lo que se vende).', 'de ' + progTotal + ' en total'),
+          kpiCard('#a78bfa', ICO.rocket, d.proyectosPub, 'Proyectos', 'Proyectos publicados en todas las herramientas.', 'de ' + proyTotal + ' en total'),
+          kpiCard('#f2c94c', ICO.list, d.temasPub, 'Temas', 'Temas publicados en todas las herramientas (con lo que se arman los programas).', 'de ' + temasTotal + ' en total'),
+          kpiCard('#3d7fff', ICO.layers, matPub, 'Materiales', 'Materiales publicados (paquetes de entrega con código de descarga).', matCompletos + ' con manual'),
         ].join('');
-        renderBarras(d.barras);
+        renderInventario(d);
+        renderHuecos(d);
         renderAnillos(d.barras, d.completitud);
         toolActivo = null;
         drillEl.hidden = true;
       } catch(e){
         kpisEl.innerHTML = `<div class="radm-empty-row">No se pudieron cargar las métricas: ${e.message}</div>`;
-        barEl.innerHTML = '';
+        invEl.innerHTML = '';
+        huecosEl.innerHTML = '';
         ringsEl.innerHTML = '';
       }
     }
@@ -5183,6 +5304,8 @@
       document.querySelectorAll('.dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
       if(key === 'productos') renderProductos();
     });
+    const dashNav = document.querySelector('.admin-nav-item[data-panel="dashboard"]');
+    if(dashNav) dashNav.addEventListener('click', () => { if(document.getElementById('dashTab-productos').classList.contains('active')) renderProductos(); });
   })();
 
   // ═══════════════════════════════════════════════════════════════

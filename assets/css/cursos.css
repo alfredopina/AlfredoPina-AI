@@ -215,29 +215,6 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
 
 .curso-card:hover{ border-color:var(--blue-dim); }
 
-.curso-sessions{
-    max-height:0; overflow:hidden; transition:max-height .4s ease;
-  }
-
-.curso-sessions.open{ max-height:900px; }
-
-.session{
-    display:flex; gap:14px; padding:16px 2px; border-top:1px solid var(--line-soft);
-  }
-
-.session-num{
-    font-family:var(--mono); font-size:11px; color:var(--blue-bright);
-    background:var(--blue-dim); width:22px; height:22px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px;
-  }
-
-.session-body{ flex:1; }
-
-.session-body b{ font-family:var(--display); font-weight:600; font-size:13.5px; display:block; margin-bottom:4px; }
-
-.session-body p{ font-size:12.5px; color:var(--text-dim); line-height:1.6; }
-
-
 .curso-card.soon{
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
     min-height:200px; text-align:left; border-style:dashed;
@@ -303,3 +280,37 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
 .proy-grid{ display:flex; flex-wrap:wrap; justify-content:center; }
 .proy-card{ width:min(250px, 100%); text-align:center; align-items:center; }
 .proy-img{ width:100%; }
+
+/* ---- temario: resumen, cajas, y tarjetas de temas (primera oración a la vista, el resto plegable) ---- */
+.prog-resumen{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.prog-resumen .scope-chip{ background-color:var(--panel-2); }
+.prog-duo{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px; padding-top:0; }
+.prog-duo:has(> .prog-caja:only-child){ grid-template-columns:1fr; }
+.prog-caja{ background-color:var(--panel-2); border:1px solid var(--line-soft); border-radius:10px; padding:14px 16px; }
+.prog-caja p{ font-size:13.5px; color:var(--text); opacity:.88; line-height:1.65; }
+.temario-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.temas-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+.tema-card{ display:flex; gap:12px; padding:16px; background-color:var(--panel-2); border:1px solid var(--line-soft); border-radius:10px; }
+.tema-num{
+    font-family:var(--mono); font-size:11px; width:24px; height:24px; border-radius:50%; flex:none; margin-top:1px;
+    display:flex; align-items:center; justify-content:center; color:var(--c-bright);
+    background-color:color-mix(in srgb, var(--c) 18%, transparent);
+  }
+.tema-body{ flex:1; min-width:0; }
+.tema-body b{ display:block; font-family:var(--display); font-weight:600; font-size:14.5px; line-height:1.3; margin-bottom:6px; }
+.tema-lead, .tema-resto p{ font-size:13.5px; color:var(--text); opacity:.88; line-height:1.65; }
+.tema-resto{ margin-top:8px; }
+.tema-resto p + p{ margin-top:8px; }
+.tema-resto[hidden]{ display:none; }
+.tema-lista{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.65; color:var(--text); }
+.tema-lista li{ margin-bottom:4px; opacity:.88; }
+.tema-mas{
+    display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:4px 0; background:none; border:none; cursor:pointer;
+    font-family:var(--body); font-weight:600; font-size:12.5px; color:var(--c-bright);
+  }
+.tema-mas svg{ width:12px; height:12px; transition:transform .2s; }
+.tema-mas.open svg{ transform:rotate(180deg); }
+.tema-todo{ margin-top:0; font-size:13px; }
+@media (max-width:760px){
+  .prog-duo, .temas-grid{ grid-template-columns:1fr; }
+}

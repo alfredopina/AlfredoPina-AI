@@ -296,15 +296,74 @@
     dlg.showModal();
   }
 
+  // La descripción de un tema se parte SIN reescribirla: si el texto trae saltos de línea, cada línea es una viñeta
+  // y todo se ve; si es un párrafo, la primera oración queda a la vista y el resto va en "Ver detalle", una oración por renglón.
+  function partirDescripcion(txt){
+    const t = String(txt || '').trim();
+    if(!t) return { lead:'', resto:[], viñetas:false };
+    if(/\n/.test(t)){
+      const lineas = t.split(/\n+/).map(x => x.trim()).filter(Boolean);
+      return { lead:'', resto:lineas, viñetas:true };
+    }
+    const oraciones = t.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])/).map(x => x.trim()).filter(Boolean);
+    return { lead:oraciones[0] || '', resto:oraciones.slice(1), viñetas:false };
+  }
+
+  function temaCardHtml(t, i){
+    const d = partirDescripcion(t.descripcion);
+    let cuerpo = '';
+    if(d.viñetas){
+      cuerpo = `<ul class="tema-lista">${d.resto.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
+    } else {
+      cuerpo = (d.lead ? `<p class="tema-lead">${escapeHtml(d.lead)}</p>` : '') +
+        (d.resto.length
+          ? `<div class="tema-resto" hidden>${d.resto.map(x => `<p>${escapeHtml(x)}</p>`).join('')}</div>
+             <button type="button" class="tema-mas" aria-expanded="false" onclick="toggleTema(this)">Ver detalle ${chevronIcon}</button>`
+          : '');
+    }
+    return `<div class="tema-card">
+      <div class="tema-num">${i + 1}</div>
+      <div class="tema-body"><b>${escapeHtml(t.nombre)}</b>${cuerpo}</div>
+    </div>`;
+  }
+
+  function toggleTema(btn){
+    const card = btn.closest('.tema-card');
+    const resto = card.querySelector('.tema-resto');
+    const abrir = resto.hidden;
+    resto.hidden = !abrir;
+    btn.setAttribute('aria-expanded', String(abrir));
+    btn.classList.toggle('open', abrir);
+    btn.firstChild.textContent = abrir ? 'Ocultar detalle ' : 'Ver detalle ';
+  }
+
+  function toggleTodoTemario(progId, btn){
+    const abrir = btn.dataset.abierto !== '1';
+    document.querySelectorAll('#temas-' + progId + ' .tema-card').forEach(card => {
+      const resto = card.querySelector('.tema-resto');
+      const b = card.querySelector('.tema-mas');
+      if(!resto || !b) return;
+      resto.hidden = !abrir;
+      b.setAttribute('aria-expanded', String(abrir));
+      b.classList.toggle('open', abrir);
+      b.firstChild.textContent = abrir ? 'Ocultar detalle ' : 'Ver detalle ';
+    });
+    btn.dataset.abierto = abrir ? '1' : '0';
+    btn.classList.toggle('open', abrir);
+    btn.firstChild.textContent = abrir ? 'Ocultar todo el detalle ' : 'Ver todo el detalle ';
+  }
+
   function programFnHtml(p){
-    const sessionsHtml = (p.temas || []).map((t, i) => `
-      <div class="session">
-        <div class="session-num">${i + 1}</div>
-        <div class="session-body">
-          <b>${escapeHtml(t.nombre)}</b>
-          <p>${escapeHtml(t.descripcion)}</p>
-        </div>
-      </div>`).join('');
+    const temasHtml = (p.temas || []).map((t, i) => temaCardHtml(t, i)).join('');
+    const hayDetalle = (p.temas || []).some(t => partirDescripcion(t.descripcion).resto.length);
+    const nTemas = (p.temas || []).length;
+    const proyN = (p.proyectosDetalle && p.proyectosDetalle.length) || (p.proyectos && p.proyectos.length) || 0;
+    const resumenHtml = [
+      nTemas + (nTemas === 1 ? ' tema' : ' temas'),
+      p.horas ? p.horas + ' hr' : '',
+      p.nivelLabel || '',
+      proyN ? 'Proyecto práctico incluido' : '',
+    ].filter(Boolean).map(t => `<span class="scope-chip">${escapeHtml(t)}</span>`).join('');
     // proyectos del programa: mini-tarjetas; con imagen de ejemplo se abre en grande al tocarla
     const proyDetalle = (p.proyectosDetalle && p.proyectosDetalle.length) ? p.proyectosDetalle : (p.proyectos || []).map(nm => ({ nombre: nm }));
     const proyectosHtml = proyDetalle.length
@@ -320,11 +379,16 @@
         </div>
         <div class="program-fn-body">
           <div class="program-fn-inner">
-            <div class="program-fn-obj">
-              <div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>
-              ${p.alcance ? `<div><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div>` : ''}
+            <div class="prog-resumen">${resumenHtml}</div>
+            <div class="program-fn-obj prog-duo">
+              ${p.dirigido ? `<div class="prog-caja"><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>` : ''}
+              ${p.alcance ? `<div class="prog-caja"><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div>` : ''}
             </div>
-            <div class="curso-sessions open" style="max-height:none;">${sessionsHtml}</div>
+            <div class="temario-head">
+              <div class="proy-titulo" style="margin:0;">TEMARIO</div>
+              ${hayDetalle ? `<button type="button" class="tema-mas tema-todo" data-abierto="0" onclick="toggleTodoTemario('${p.id}', this)">Ver todo el detalle ${chevronIcon}</button>` : ''}
+            </div>
+            <div class="temas-grid" id="temas-${p.id}">${temasHtml}</div>
             ${proyectosHtml}
             <div class="builder-cta-row" style="margin-top:22px;">
               <button type="button" class="builder-cta" onclick="event.stopPropagation(); openLeadForm('${p.id}')">

@@ -270,8 +270,6 @@
         </div>
         <div class="session-hr">${t.horas} hr</div>
       </div>`).join('');
-    const tagsHtml = (p.tags && p.tags.length)
-      ? `<div class="curso-tags">${p.tags.map(tg => `<span class="chip">${escapeHtml(tg)}</span>`).join('')}</div>` : '';
     const proyectosHtml = (p.proyectos && p.proyectos.length)
       ? `<div class="builder-bonuses">${p.proyectos.map(nm => `<span class="bonus-pill">${checkIcon()} Incluye Proyecto: ${escapeHtml(nm)}</span>`).join('')}</div>` : '';
 
@@ -287,8 +285,8 @@
           <div class="program-fn-inner">
             <div class="program-fn-obj">
               <div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>
+              ${p.alcance ? `<div><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div>` : ''}
             </div>
-            ${tagsHtml}
             <div class="curso-sessions open" style="max-height:none;">${sessionsHtml}</div>
             ${proyectosHtml}
             <div class="builder-cta-row" style="margin-top:22px;">

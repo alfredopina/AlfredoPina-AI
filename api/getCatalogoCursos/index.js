@@ -57,13 +57,12 @@ module.exports = async function (context, req) {
         const proyectos = proyectosPublicados
           .filter((p) => proyectoCubierto(p.temaIds, temaIdsSet))
           .map((p) => p.nombre);
-        const tags = (t.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
         return {
           id: t.rowKey,
           nombre: t.nombre || "",
           objetivo: t.objetivo || "",
           dirigido: t.dirigido || "",
-          tags,
+          alcance: t.alcance || "",
           horas,
           nivelLabel,
           temas,

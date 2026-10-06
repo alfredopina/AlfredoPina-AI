@@ -207,6 +207,10 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
 
 .program-fn-obj p{ font-size:13px; color:var(--text-dim); line-height:1.65; }
 
+.program-fn-obj + .program-fn-obj{ margin-top:2px; }
+.program-fn-obj > div + div{ margin-top:14px; }
+.program-fn-alcance{ white-space:pre-line; }
+
 .curso-panel{ display:none; }
 
 .curso-panel.active{ display:block; }
@@ -226,10 +230,6 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
 .curso-card.in-view{ opacity:1; transform:translateY(0); }
 
 .curso-card:hover{ border-color:var(--blue-dim); }
-
-.curso-tags{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
-
-.curso-tags .chip{ padding:5px 12px; font-size:11px; }
 
 .curso-sessions{
     max-height:0; overflow:hidden; transition:max-height .4s ease;

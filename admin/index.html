@@ -17,6 +17,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../assets/js/qrcode.js"></script>
+<script src="../assets/js/herramientas.js"></script>
 <script src="../assets/js/diploma-template.js?v=10"></script>
 <style>
   :root{
@@ -327,14 +328,60 @@
   .radm-toast.ok{ color:var(--good); border-color:var(--good); background:color-mix(in srgb, var(--good) 10%, var(--panel)); }
   .radm-toast.err{ color:var(--bad); border-color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, var(--panel)); }
 
-  .radm-tools-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+  .radm-tools-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
   .radm-tool-card{
     display:flex; flex-direction:column; gap:10px; border:1px solid var(--line); border-radius:10px;
     background:var(--panel); padding:18px; cursor:pointer; transition:border-color .15s; text-align:left;
     color:var(--text); font:inherit;
   }
   .radm-tool-card:hover{ border-color:var(--c); }
-  .radm-tool-icon{ width:22px; height:22px; color:var(--c); }
+  .radm-tool-card{ gap:16px; padding:24px 24px 22px; min-height:210px; border-top:3px solid var(--c); }
+  .radm-tool-icon{ width:38px; height:38px; color:var(--c); }
+  .radm-tool-card .radm-tool-name{ font-size:19px; }
+  .radm-tool-stats{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:auto; padding-top:16px; border-top:1px solid var(--line-soft); }
+  .radm-tool-stats-1{ grid-template-columns:1fr; }
+  .radm-tool-stat b{ display:block; font-family:var(--display); font-weight:600; font-size:28px; line-height:1.1; color:var(--text); }
+  .radm-tool-stat span{ display:block; margin-top:6px; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .radm-tool-legend{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .radm-tool-cta{ margin-top:auto; display:inline-flex; align-items:center; gap:8px; font-weight:600; font-size:14px; color:var(--c); }
+  .radm-tool-cta svg{ width:15px; height:15px; }
+
+  /* Programas: tarjetas tipo acordeón (parecidas a las del sitio público), lista vertical */
+  .radm-tab-count{ font-size:10.5px; color:var(--text-faint); background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:1px 7px; }
+  .radm-tab.active .radm-tab-count{ color:var(--text); border-color:var(--c); }
+  .radm-section-hint{ font-family:var(--body); font-weight:400; font-size:11.5px; color:var(--text-faint); letter-spacing:0; margin-left:10px; text-transform:none; }
+  .cadm-prog-list{ display:flex; flex-direction:column; gap:14px; }
+  .cadm-prog{ position:relative; border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden; transition:border-color .2s; }
+  .cadm-prog::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c); }
+  .cadm-prog:hover, .cadm-prog.open{ border-color:var(--c); }
+  .cadm-prog-head{ display:flex; align-items:flex-start; gap:14px; padding:22px 22px 20px; cursor:pointer; }
+  .cadm-drag{ width:16px; height:16px; margin-top:3px; flex:none; cursor:grab; color:var(--text-faint); }
+  .cadm-prog-main{ flex:1; min-width:0; }
+  .cadm-prog-eyebrow{ display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:color-mix(in srgb, var(--c) 82%, white); }
+  .cadm-prog-ico{ width:20px; height:20px; flex:none; color:var(--c); display:inline-flex; }
+  .cadm-prog-ico svg{ width:100%; height:100%; }
+  .cadm-prog-title{ font-family:var(--display); font-weight:600; font-size:20px; margin:8px 0 6px; line-height:1.25; }
+  .cadm-prog-hook{ font-size:13px; color:var(--text-dim); line-height:1.6; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .cadm-prog-side{ display:flex; flex-direction:column; align-items:flex-end; gap:9px; flex:none; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .cadm-badge{ display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border:1px solid var(--line); border-radius:12px; }
+  .cadm-badge.pub{ color:var(--good); border-color:var(--good); }
+  .cadm-badge .radm-status-dot{ width:8px; height:8px; }
+  .cadm-prog-toggle{ display:inline-flex; align-items:center; gap:6px; font-weight:600; color:color-mix(in srgb, var(--c) 82%, white); }
+  .cadm-prog-toggle svg{ width:13px; height:13px; transition:transform .25s; }
+  .cadm-prog.open .cadm-prog-toggle svg{ transform:rotate(180deg); }
+  .cadm-prog-body{ padding:6px 22px 24px 52px; border-top:1px solid var(--line-soft); }
+  .cadm-prog-body[hidden]{ display:none; }
+  .cadm-prog-body .radm-form-row:first-child{ margin-top:16px; }
+  .cadm-form .radm-field textarea{ min-height:96px; line-height:1.55; }
+  .cadm-form textarea.cadm-alcance{ min-height:120px; }
+  .cadm-form textarea.cadm-desc{ min-height:105px; } /* la descripción pidió ser 50% más alta (70px → 105px) y a todo el ancho */
+  .cadm-picker{ max-height:340px; overflow:auto; }
+  .radm-inline-form.cadm-form{ margin:6px 0 12px; }
+  @media (max-width:760px){
+    .cadm-prog-head{ flex-wrap:wrap; }
+    .cadm-prog-side{ flex-direction:row; align-items:center; flex-wrap:wrap; width:100%; }
+    .cadm-prog-body{ padding-left:22px; }
+  }
   .radm-tool-icon svg{ width:100%; height:100%; }
   .radm-tool-name{ font-family:var(--display); font-weight:600; font-size:14px; color:var(--text); }
   .radm-tool-cursos{ display:flex; flex-direction:column; gap:4px; margin-top:2px; }
@@ -4903,14 +4950,7 @@
   // pendiente — se resuelve en una siguiente pasada, ver CLAUDE.md.
   // ═══════════════════════════════════════════════════════════════
   (function(){
-    const TOOL_META = {
-      excel:         { nombre:'Excel',            color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
-      powerbi:       { nombre:'Power BI',          color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      powerapps:     { nombre:'Power Apps',        color:'#c026d3', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
-      powerautomate: { nombre:'Power Automate',    color:'#06b6d4', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ia:            { nombre:'IA Aplicada',       color:'#a78bfa', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>' },
-    };
+    const TOOL_META = window.HERRAMIENTAS_UI; // assets/js/herramientas.js (generado por tools/build-herramientas.js)
 
     const ICO = {
       layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5Z" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke-linejoin="round"/></svg>',
@@ -5100,14 +5140,7 @@
   // con IDs propios prefijo "cadm" para no chocar con el IIFE de Recursos.
   // ═══════════════════════════════════════════════════════════════
   (function(){
-    const TOOL_META = {
-      excel:         { nombre:'Excel',            color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
-      powerbi:       { nombre:'Power BI',          color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      powerapps:     { nombre:'Power Apps',        color:'#c026d3', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
-      powerautomate: { nombre:'Power Automate',    color:'#06b6d4', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ia:            { nombre:'IA Aplicada',       color:'#a78bfa', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>' },
-    };
+    const TOOL_META = window.HERRAMIENTAS_UI; // assets/js/herramientas.js (generado por tools/build-herramientas.js)
 
     const NIVEL_LABEL = ['', 'Básico', 'Intermedio', 'Avanzado'];
     const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -5155,25 +5188,43 @@
     let cadmProyectos = [];
     let cadmTemarioId = null;
 
-    // ── nivel 1 — herramientas ──
+    // ── ids: ya no se escriben a mano; salen del nombre (slug) y se vuelven únicos con -2, -3… ──
+    function slugify(s){
+      return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
+    }
+    function idUnico(nombre, existentes){
+      const base = slugify(nombre);
+      let id = base, n = 2;
+      while(existentes.includes(id)) id = base + '-' + n++;
+      return id;
+    }
+    const ICO_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    // ── nivel 1 — herramientas (tarjetas grandes con ícono de marca y 3 números) ──
+    function statHtml(pub, total, label){
+      return `<div class="radm-tool-stat"><b>${pub}/${total}</b><span>${label}</span></div>`;
+    }
     function renderToolsGrid(resumen){
       const grid = document.getElementById('cadmToolsGrid');
       grid.innerHTML = Object.keys(TOOL_META).map(id => {
         const t = TOOL_META[id];
         const r = resumen && resumen[id];
         const sinNada = !r || (r.temas.total === 0 && r.temarios.total === 0 && r.proyectos.total === 0);
-        const linea = sinNada
-          ? `<span class="radm-tool-empty">Sin contenido todavía</span>`
-          : `<div class="radm-tool-cursos">
-              <span class="radm-tool-curso-item">${r.temas.publicados}/${r.temas.total} temas publicados</span>
-              <span class="radm-tool-curso-item">${r.temarios.publicados}/${r.temarios.total} programas</span>
-              <span class="radm-tool-curso-item">${r.proyectos.publicados}/${r.proyectos.total} proyectos</span>
-            </div>`;
+        const cuerpo = sinNada
+          ? `<span class="radm-tool-cta">Crear el primer programa ${ICO_ARROW}</span>`
+          : `<div class="radm-tool-stats">
+               ${statHtml(r.temarios.publicados, r.temarios.total, 'Programas')}
+               ${statHtml(r.proyectos.publicados, r.proyectos.total, 'Proyectos')}
+               ${statHtml(r.temas.publicados, r.temas.total, 'Temas')}
+             </div>
+             <div class="radm-tool-legend">publicados / total</div>`;
         return `
           <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
             <span class="radm-tool-icon">${t.icon}</span>
             <span class="radm-tool-name">${t.nombre}</span>
-            ${linea}
+            ${cuerpo}
           </button>`;
       }).join('');
       grid.querySelectorAll('.radm-tool-card').forEach(card => {
@@ -5198,9 +5249,9 @@
     }
     document.getElementById('cadmBack').addEventListener('click', goTools);
 
-    // ── nivel 2 — herramienta seleccionada ──
+    // ── nivel 2 — herramienta seleccionada: pestañas Programas · Proyectos · Temas ──
     async function goTool(toolId){
-      cadmTool = toolId; cadmMode = 'estandar'; cadmTemarioId = null;
+      cadmTool = toolId; cadmMode = 'programas';
       const t = TOOL_META[toolId];
       document.getElementById('cadmView-tools').classList.remove('active');
       document.getElementById('cadmView-tool').classList.add('active');
@@ -5220,6 +5271,7 @@
         cadmTemas = temasData.temas || [];
         cadmTemarios = temariosData.temarios || [];
         cadmProyectos = proyectosData.proyectos || [];
+        renderModeTabs();
         renderModeArea();
       } catch(e){
         document.getElementById('cadmModeArea').innerHTML = '';
@@ -5229,10 +5281,13 @@
 
     function renderModeTabs(){
       const wrap = document.getElementById('cadmModeTabs');
-      wrap.innerHTML = `
-        <div class="radm-tab ${cadmMode === 'estandar' ? 'active' : ''}" data-mode="estandar">Programas</div>
-        <div class="radm-tab ${cadmMode === 'personalizado' ? 'active' : ''}" data-mode="personalizado">Temas y Proyectos</div>
-      `;
+      const tabs = [
+        ['programas', 'Programas', cadmTemarios.length],
+        ['proyectos', 'Proyectos', cadmProyectos.length],
+        ['temas', 'Temas', cadmTemas.length],
+      ];
+      wrap.innerHTML = tabs.map(([k, label, n]) =>
+        `<div class="radm-tab ${cadmMode === k ? 'active' : ''}" data-mode="${k}">${label}<span class="radm-tab-count">${n}</span></div>`).join('');
       wrap.querySelectorAll('.radm-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           if(cadmMode === tab.dataset.mode) return;
@@ -5244,64 +5299,132 @@
     }
 
     function renderModeArea(){
-      if(cadmMode === 'estandar') renderEstandarView();
-      else renderPersonalizadoView();
+      if(cadmMode === 'programas') renderProgramas();
+      else if(cadmMode === 'proyectos') renderProyectos();
+      else renderTemas();
     }
 
-    // ── Programas (tabs + form grande, como los materiales) ──
-    function renderEstandarView(){
-      document.getElementById('cadmModeArea').innerHTML = `
-        <div class="radm-tabs" id="cadmTemarioTabs"></div>
-        <div id="cadmNewTemarioArea"></div>
-        <div id="cadmTemarioFormArea"></div>`;
-      renderTemarioTabs();
-      if(cadmTemarios.length){
-        if(!cadmTemarios.find(t => t.id === cadmTemarioId)) cadmTemarioId = cadmTemarios[0].id;
-        renderTemarioForm();
-      } else {
-        abrirFormNuevoTemario();
-      }
-    }
-
-    function renderTemarioTabs(){
-      const wrap = document.getElementById('cadmTemarioTabs');
-      if(!wrap) return;
-      wrap.innerHTML = cadmTemarios.map(t => `
-        <div class="radm-tab ${t.id === cadmTemarioId ? 'active' : ''}" data-temario="${t.id}">
-          <span class="radm-tab-drag">${ICO.drag}</span>
-          <span class="radm-status-dot ${t.estado === 'publicado' ? 'pub' : 'draft'}">${t.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
-          <span>${escapeHtml(t.nombre)}</span>
-        </div>
-      `).join('') + `<button type="button" class="radm-tab-new" id="cadmBtnNuevoTemario">${ICO.plus} Nuevo programa</button>`;
-
-      wrap.querySelectorAll('.radm-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          cadmTemarioId = tab.dataset.temario;
-          document.getElementById('cadmNewTemarioArea').innerHTML = '';
-          renderTemarioTabs();
-          renderTemarioForm();
-        });
+    // un solo editor abierto a la vez, y siempre a la vista: debajo de la fila/tarjeta que se tocó
+    function cerrarEditores(){
+      document.querySelectorAll('#cadmModeArea .radm-inline-form').forEach(f => f.remove());
+      document.querySelectorAll('#cadmModeArea .cadm-prog-new').forEach(f => f.remove());
+      document.querySelectorAll('#cadmModeArea .cadm-prog.open').forEach(c => {
+        c.classList.remove('open');
+        const b = c.querySelector('.cadm-prog-body'); b.hidden = true; b.innerHTML = '';
+        c.querySelector('.cadm-prog-head').setAttribute('aria-expanded', 'false');
       });
-      document.getElementById('cadmBtnNuevoTemario').addEventListener('click', abrirFormNuevoTemario);
+    }
+    function verEditor(el){ el.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 
+    // ── PROGRAMAS: lista vertical de tarjetas tipo acordeón (parecidas a las del sitio) ──
+    function renderProgramas(){
+      const t = TOOL_META[cadmTool];
+      document.getElementById('cadmModeArea').innerHTML = `
+        <div class="radm-section" style="--c:${t.color}">
+          <div class="radm-section-head">
+            <span class="radm-section-title">PROGRAMAS <span class="radm-section-hint">el orden de arriba hacia abajo es el del sitio — arrastra para cambiarlo</span></span>
+            <button type="button" class="radm-btn-add" id="cadmBtnNuevoPrograma">${ICO.plus} Nuevo programa</button>
+          </div>
+          <div class="cadm-prog-list" id="cadmProgList"></div>
+        </div>`;
+      document.getElementById('cadmBtnNuevoPrograma').addEventListener('click', abrirNuevoPrograma);
+      const list = document.getElementById('cadmProgList');
+      if(!cadmTemarios.length){
+        list.innerHTML = '<div class="radm-empty-row">Sin programas todavía — crea el primero con "Nuevo programa".</div>';
+        return;
+      }
+      list.innerHTML = cadmTemarios.map(progCardHtml).join('');
+      list.querySelectorAll('.cadm-prog').forEach(card => {
+        const head = card.querySelector('.cadm-prog-head');
+        head.addEventListener('click', () => togglePrograma(card.dataset.id));
+        head.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); togglePrograma(card.dataset.id); } });
+        card.querySelector('.cadm-drag').addEventListener('click', e => e.stopPropagation());
+      });
       if(window.Sortable){
-        Sortable.create(wrap, {
-          handle: '.radm-tab-drag', animation:150, filter: '.radm-tab-new',
+        Sortable.create(list, {
+          handle: '.cadm-drag', draggable: '.cadm-prog[data-id]', animation:150,
           onEnd: async () => {
-            const items = Array.from(wrap.querySelectorAll('.radm-tab')).map((el, i) => ({
-              partitionKey: cadmTool, rowKey: el.dataset.temario, orden: i * 10,
+            const items = Array.from(list.querySelectorAll('.cadm-prog[data-id]')).map((el, i) => ({
+              partitionKey: cadmTool, rowKey: el.dataset.id, orden: i * 10,
             }));
-            try { await apiPostJson('/api/updateOrdenCursos', { tabla:'TemariosEstandar', items }); }
-            catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
+            try {
+              await apiPostJson('/api/updateOrdenCursos', { tabla:'TemariosEstandar', items });
+              items.forEach(it => { const p = cadmTemarios.find(x => x.id === it.rowKey); if(p) p.orden = it.orden; });
+              cadmTemarios.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+            } catch(e){ toast('No se pudo guardar el nuevo orden: ' + e.message, false); }
           },
         });
       }
     }
 
-    function temarioFormHtml(t){
-      const isNew = !t;
+    function progCardHtml(p){
+      const t = TOOL_META[cadmTool];
+      const pub = p.estado === 'publicado';
+      const eyebrow = [t.nombre, p.nivelLabel, p.horas ? p.horas + ' hr' : ''].filter(Boolean).join(' · ').toUpperCase();
+      const nTemas = (p.temas || []).length;
+      return `
+        <div class="cadm-prog" data-id="${escapeHtml(p.id)}" style="--c:${t.color}">
+          <div class="cadm-prog-head" role="button" tabindex="0" aria-expanded="false">
+            <span class="radm-drag cadm-drag" title="Arrastra para ordenar">${ICO.drag}</span>
+            <div class="cadm-prog-main">
+              <div class="cadm-prog-eyebrow"><span class="cadm-prog-ico">${t.icon}</span>${escapeHtml(eyebrow)}</div>
+              <div class="cadm-prog-title">${escapeHtml(p.nombre)}</div>
+              <div class="cadm-prog-hook">${p.objetivo ? escapeHtml(p.objetivo) : '<i>Sin objetivo todavía</i>'}</div>
+            </div>
+            <div class="cadm-prog-side">
+              <span class="cadm-badge ${pub ? 'pub' : 'draft'}"><span class="radm-status-dot">${pub ? ICO.dotFull : ICO.dotEmpty}</span>${pub ? 'Publicado' : 'Borrador'}</span>
+              <span>${nTemas} ${nTemas === 1 ? 'tema' : 'temas'}</span>
+              <span class="cadm-prog-toggle">Editar ${ICO_CHEV}</span>
+            </div>
+          </div>
+          <div class="cadm-prog-body" hidden></div>
+        </div>`;
+    }
+
+    function togglePrograma(id){
+      const card = document.querySelector(`#cadmProgList .cadm-prog[data-id="${CSS.escape(id)}"]`);
+      if(!card) return;
+      const estabaAbierto = card.classList.contains('open');
+      cerrarEditores();
+      if(estabaAbierto) return;
+      const p = cadmTemarios.find(x => x.id === id);
+      const body = card.querySelector('.cadm-prog-body');
+      body.innerHTML = programaFormHtml(p);
+      body.hidden = false;
+      card.classList.add('open');
+      card.querySelector('.cadm-prog-head').setAttribute('aria-expanded', 'true');
+      wirePrograma(body, p);
+      verEditor(card);
+    }
+
+    function abrirNuevoPrograma(){
+      cerrarEditores();
+      const list = document.getElementById('cadmProgList');
+      if(!cadmTemarios.length) list.innerHTML = '';
+      const t = TOOL_META[cadmTool];
+      const card = document.createElement('div');
+      card.className = 'cadm-prog cadm-prog-new open';
+      card.style.setProperty('--c', t.color);
+      card.innerHTML = `
+        <div class="cadm-prog-head" style="cursor:default;">
+          <div class="cadm-prog-main">
+            <div class="cadm-prog-eyebrow"><span class="cadm-prog-ico">${t.icon}</span>${escapeHtml(t.nombre.toUpperCase())} · NUEVO</div>
+            <div class="cadm-prog-title">Nuevo programa</div>
+          </div>
+        </div>
+        <div class="cadm-prog-body"></div>`;
+      list.prepend(card);
+      const body = card.querySelector('.cadm-prog-body');
+      body.innerHTML = programaFormHtml(null);
+      wirePrograma(body, null);
+      verEditor(card);
+      body.querySelector('.cadm-f-nombre').focus();
+    }
+
+    function programaFormHtml(p){
+      const isNew = !p;
       const temaOptions = cadmTemas.slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
-      const selectedIds = t ? t.temaIds : [];
+      const selectedIds = p ? p.temaIds : [];
       const picker = temaOptions.length
         ? temaOptions.map(te => `
             <label class="radm-row" style="cursor:pointer;">
@@ -5311,148 +5434,111 @@
                 <div class="radm-row-sub">${NIVEL_LABEL[te.nivel] || ''} · ${te.horas} hr${te.estado !== 'publicado' ? ' · borrador' : ''}</div>
               </div>
             </label>`).join('')
-        : '<div class="radm-empty-row">Sin temas todavía — agrégalos en "Temas y Proyectos".</div>';
-
+        : '<div class="radm-empty-row">Sin temas todavía — agrégalos en la pestaña "Temas".</div>';
       return `
-        <div class="radm-form">
+        <div class="cadm-form">
           <div class="radm-form-row">
-            <div class="radm-field">
-              <label>ID DEL PROGRAMA</label>
-              <input type="text" id="cadmTId" class="radm-mono" ${isNew ? '' : 'readonly'} value="${isNew ? '' : escapeHtml(t.id)}" placeholder="basico-intermedio">
-            </div>
-            <div class="radm-field">
+            <div class="radm-field" style="flex:1 1 100%;">
               <label>NOMBRE</label>
-              <input type="text" id="cadmTNombre" value="${isNew ? '' : escapeHtml(t.nombre)}" placeholder="Excel Básico-Intermedio">
-            </div>
-            <div class="radm-field">
-              <label>TAGS (coma-separado, opcional)</label>
-              <input type="text" id="cadmTTags" value="${isNew ? '' : escapeHtml(t.tags)}" placeholder="Power Query, DAX, Dashboards">
+              <input type="text" class="cadm-f-nombre" value="${isNew ? '' : escapeHtml(p.nombre)}" placeholder="Excel Básico-Intermedio">
             </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field">
               <label>OBJETIVO</label>
-              <textarea id="cadmTObjetivo">${isNew ? '' : escapeHtml(t.objetivo)}</textarea>
+              <textarea class="cadm-f-objetivo">${isNew ? '' : escapeHtml(p.objetivo)}</textarea>
             </div>
             <div class="radm-field">
               <label>DIRIGIDO A</label>
-              <textarea id="cadmTDirigido">${isNew ? '' : escapeHtml(t.dirigido)}</textarea>
+              <textarea class="cadm-f-dirigido">${isNew ? '' : escapeHtml(p.dirigido)}</textarea>
+            </div>
+          </div>
+          <div class="radm-form-row">
+            <div class="radm-field" style="flex:1 1 100%;">
+              <label>ALCANCE</label>
+              <textarea class="cadm-f-alcance cadm-alcance">${isNew ? '' : escapeHtml(p.alcance)}</textarea>
             </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field" style="flex:1 1 100%;">
               <label>TEMAS INCLUIDOS</label>
-              <div class="radm-list" id="cadmTTemasPicker">${picker}</div>
+              <div class="radm-list cadm-picker">${picker}</div>
             </div>
           </div>
           <div class="radm-actions">
             <div class="radm-switch-row">
               <label class="radm-switch">
-                <input type="checkbox" id="cadmTEstado" ${t && t.estado === 'publicado' ? 'checked' : ''}>
+                <input type="checkbox" class="cadm-f-estado" ${p && p.estado === 'publicado' ? 'checked' : ''}>
                 <span class="radm-switch-track"></span>
               </label>
-              <span class="radm-switch-label" id="cadmTEstadoLabel">${t && t.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
+              <span class="radm-switch-label cadm-f-estado-label">${p && p.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
             </div>
             <div class="radm-actions-buttons">
-              <button type="button" class="radm-btn" id="cadmTGuardar">${isNew ? 'Crear programa' : 'Guardar cambios'}</button>
-              ${isNew
-                ? `<button type="button" class="radm-btn radm-btn-ghost" id="cadmTCancelar">Cancelar</button>`
-                : `<button type="button" class="radm-btn radm-btn-danger" id="cadmTEliminar">Eliminar programa</button>`}
+              <button type="button" class="radm-btn cadm-f-guardar">${isNew ? 'Crear programa' : 'Guardar cambios'}</button>
+              <button type="button" class="radm-btn radm-btn-ghost cadm-f-cancelar">Cancelar</button>
+              ${isNew ? '' : '<button type="button" class="radm-btn radm-btn-danger cadm-f-eliminar">Eliminar programa</button>'}
             </div>
           </div>
         </div>`;
     }
 
-    function wireTemarioForm(t){
-      const isNew = !t;
-      const root = isNew ? document.getElementById('cadmNewTemarioArea') : document.getElementById('cadmTemarioFormArea');
-
-      root.querySelector('#cadmTEstado').addEventListener('change', e => {
-        root.querySelector('#cadmTEstadoLabel').textContent = e.target.checked ? 'Publicado' : 'Borrador';
+    function wirePrograma(root, p){
+      const isNew = !p;
+      root.querySelector('.cadm-f-estado').addEventListener('change', e => {
+        root.querySelector('.cadm-f-estado-label').textContent = e.target.checked ? 'Publicado' : 'Borrador';
       });
-
-      if(isNew){
-        const cancelBtn = root.querySelector('#cadmTCancelar');
-        if(cancelBtn) cancelBtn.addEventListener('click', () => { root.innerHTML = ''; });
-      } else {
-        root.querySelector('#cadmTEliminar').addEventListener('click', async () => {
-          if(!(await confirmarAccion({ mensaje: `¿Eliminar el programa "${t.nombre}"? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
+      root.querySelector('.cadm-f-cancelar').addEventListener('click', cerrarEditores);
+      if(!isNew){
+        root.querySelector('.cadm-f-eliminar').addEventListener('click', async () => {
+          if(!(await confirmarAccion({ mensaje: `¿Eliminar el programa "${p.nombre}"? Esto no se puede deshacer.`, variante: 'destructivo' }))) return;
           try {
-            await apiPostJson('/api/eliminarTemario', { herramienta:cadmTool, id:t.id });
+            await apiPostJson('/api/eliminarTemario', { herramienta:cadmTool, id:p.id });
             toast('Programa eliminado.', true);
-            cadmTemarios = cadmTemarios.filter(x => x.id !== t.id);
-            cadmTemarioId = null;
-            renderTemarioTabs();
-            document.getElementById('cadmTemarioFormArea').innerHTML = '';
-            if(cadmTemarios.length){ cadmTemarioId = cadmTemarios[0].id; renderTemarioForm(); }
-            else abrirFormNuevoTemario();
+            cadmTemarios = cadmTemarios.filter(x => x.id !== p.id);
+            renderModeTabs();
+            renderProgramas();
           } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
         });
       }
-
-      root.querySelector('#cadmTGuardar').addEventListener('click', async () => {
-        const id = isNew ? root.querySelector('#cadmTId').value.trim().toLowerCase() : t.id;
-        const nombre = root.querySelector('#cadmTNombre').value.trim();
-        const objetivo = root.querySelector('#cadmTObjetivo').value.trim();
-        const dirigido = root.querySelector('#cadmTDirigido').value.trim();
-        const tags = root.querySelector('#cadmTTags').value.trim();
-        const estado = root.querySelector('#cadmTEstado').checked ? 'publicado' : 'borrador';
+      root.querySelector('.cadm-f-guardar').addEventListener('click', async () => {
+        const nombre = root.querySelector('.cadm-f-nombre').value.trim();
+        const objetivo = root.querySelector('.cadm-f-objetivo').value.trim();
+        const dirigido = root.querySelector('.cadm-f-dirigido').value.trim();
+        const alcance = root.querySelector('.cadm-f-alcance').value.trim();
+        const estado = root.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
         const temaIds = Array.from(root.querySelectorAll('.cadm-t-pick:checked')).map(c => c.value);
+        const id = isNew ? idUnico(nombre, cadmTemarios.map(x => x.id)) : p.id;
 
-        if(!SLUG_RE.test(id)){ toast('El id solo puede tener minúsculas, números y guiones (ej. basico-intermedio).', false); return; }
         if(!nombre){ toast('Falta el nombre.', false); return; }
+        if(!SLUG_RE.test(id)){ toast('El nombre debe llevar al menos una letra o número.', false); return; }
         if(!temaIds.length){ toast('Selecciona al menos un tema incluido.', false); return; }
 
         try {
           await apiPostJson('/api/crearTemario', {
-            herramienta:cadmTool, id, nombre, objetivo, dirigido, tags, temaIds, estado,
-            orden: t ? t.orden : Date.now(),
+            herramienta:cadmTool, id, nombre, objetivo, dirigido, alcance, temaIds, estado,
+            orden: p ? p.orden : Date.now(),
           });
           toast('Programa guardado.', true);
           const data = await apiGet(`/api/listTemariosAdmin?herramienta=${encodeURIComponent(cadmTool)}`);
           cadmTemarios = data.temarios || [];
-          cadmTemarioId = id;
-          document.getElementById('cadmNewTemarioArea').innerHTML = '';
-          renderTemarioTabs();
-          renderTemarioForm();
+          renderModeTabs();
+          renderProgramas();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }
 
-    function abrirFormNuevoTemario(){
-      document.getElementById('cadmNewTemarioArea').innerHTML = temarioFormHtml(null);
-      wireTemarioForm(null);
-    }
-
-    function renderTemarioForm(){
-      const t = cadmTemarios.find(x => x.id === cadmTemarioId);
-      const area = document.getElementById('cadmTemarioFormArea');
-      if(!t){ area.innerHTML = ''; return; }
-      area.innerHTML = temarioFormHtml(t);
-      wireTemarioForm(t);
-    }
-
-    // ── Temas y Proyectos: banco de Temas + Proyectos ──
-    function renderPersonalizadoView(){
+    // ── TEMAS: filas con editor justo debajo de la fila ──
+    function renderTemas(){
       document.getElementById('cadmModeArea').innerHTML = `
         <div class="radm-section">
           <div class="radm-section-head">
             <span class="radm-section-title">TEMAS</span>
-            <button type="button" class="radm-btn-add" id="cadmBtnAddTema">${ICO.plus} Agregar</button>
+            <button type="button" class="radm-btn-add" id="cadmBtnAddTema">${ICO.plus} Agregar tema</button>
           </div>
           <div class="radm-list" id="cadmListaTemas"></div>
-        </div>
-        <div class="radm-section">
-          <div class="radm-section-head">
-            <span class="radm-section-title">PROYECTOS</span>
-            <button type="button" class="radm-btn-add" id="cadmBtnAddProyecto">${ICO.plus} Agregar</button>
-          </div>
-          <div class="radm-list" id="cadmListaProyectos"></div>
         </div>`;
-      document.getElementById('cadmBtnAddTema').addEventListener('click', () => abrirFormTema(null));
-      document.getElementById('cadmBtnAddProyecto').addEventListener('click', () => abrirFormProyecto(null));
+      document.getElementById('cadmBtnAddTema').addEventListener('click', () => abrirFormTema(null, null));
       renderListaTemas();
-      renderListaProyectos();
     }
 
     function renderListaTemas(){
@@ -5467,15 +5553,18 @@
           <span class="radm-status-dot ${t.estado === 'publicado' ? 'pub' : 'draft'}">${t.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
           <div class="radm-row-body">
             <div class="radm-row-title">${escapeHtml(t.nombre)}</div>
-            <div class="radm-row-sub">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</div>
+            <div class="radm-row-sub">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr${t.estado !== 'publicado' ? ' · borrador' : ''}</div>
           </div>
-          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
-          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
+          <button type="button" class="radm-icon-btn" data-action="edit" title="Editar">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del" title="Eliminar">${ICO.trash}</button>
         </div>
       `).join('');
 
       cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormTema(cadmTemas.find(t => t.id === b.closest('.radm-row').dataset.id)));
+        b.addEventListener('click', () => {
+          const row = b.closest('.radm-row');
+          abrirFormTema(cadmTemas.find(t => t.id === row.dataset.id), row);
+        });
       });
       cont.querySelectorAll('[data-action="del"]').forEach(b => {
         b.addEventListener('click', () => eliminarTema(b.closest('.radm-row').dataset.id));
@@ -5483,9 +5572,9 @@
 
       if(window.Sortable){
         Sortable.create(cont, {
-          handle: '.radm-drag', animation:150,
+          handle: '.radm-drag', draggable: '.radm-row', animation:150,
           onEnd: async () => {
-            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
+            const items2 = Array.from(cont.querySelectorAll(':scope > .radm-row')).map((el, i) => ({
               partitionKey: cadmTool, rowKey: el.dataset.id, orden: i * 10,
             }));
             try { await apiPostJson('/api/updateOrdenCursos', { tabla:'Temas', items:items2 }); }
@@ -5495,40 +5584,34 @@
       }
     }
 
-    function abrirFormTema(item){
+    function abrirFormTema(item, row){
       const cont = document.getElementById('cadmListaTemas');
-      const existing = cont.querySelector('.radm-inline-form');
-      if(existing) existing.remove();
-
+      cerrarEditores();
       const form = document.createElement('div');
-      form.className = 'radm-inline-form';
+      form.className = 'radm-inline-form cadm-form';
       form.innerHTML = `
         <div class="radm-form-row">
-          <div class="radm-field">
-            <label>ID DEL TEMA${item ? '' : ' (minúsculas, sin espacios)'}</label>
-            <input type="text" class="cadm-f-id radm-mono" ${item ? 'readonly' : ''} value="${item ? escapeHtml(item.id) : ''}" placeholder="tablas-dinamicas">
-          </div>
-          <div class="radm-field">
+          <div class="radm-field" style="flex:2 1 260px;">
             <label>NOMBRE</label>
-            <input type="text" class="cadm-f-nombre" value="${item ? escapeHtml(item.nombre) : ''}">
-          </div>
-        </div>
-        <div class="radm-form-row">
-          <div class="radm-field">
-            <label>DESCRIPCIÓN</label>
-            <textarea class="cadm-f-desc">${item ? escapeHtml(item.descripcion) : ''}</textarea>
+            <input type="text" class="cadm-f-nombre" value="${item ? escapeHtml(item.nombre) : ''}" placeholder="Tablas dinámicas">
           </div>
           <div class="radm-field" style="max-width:120px;">
             <label>HORAS</label>
             <input type="text" inputmode="decimal" class="cadm-f-horas radm-mono" value="${item ? item.horas : ''}">
           </div>
-          <div class="radm-field" style="max-width:160px;">
+          <div class="radm-field" style="max-width:170px;">
             <label>NIVEL</label>
             <select class="cadm-f-nivel">
               <option value="1" ${item && item.nivel === 1 ? 'selected' : ''}>Básico</option>
               <option value="2" ${item && item.nivel === 2 ? 'selected' : ''}>Intermedio</option>
               <option value="3" ${item && item.nivel === 3 ? 'selected' : ''}>Avanzado</option>
             </select>
+          </div>
+        </div>
+        <div class="radm-form-row">
+          <div class="radm-field" style="flex:1 1 100%;">
+            <label>DESCRIPCIÓN</label>
+            <textarea class="cadm-f-desc cadm-desc">${item ? escapeHtml(item.descripcion) : ''}</textarea>
           </div>
         </div>
         <div class="radm-actions">
@@ -5540,26 +5623,28 @@
             <span class="radm-switch-label cadm-f-estado-label">${item && item.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
           </div>
           <div class="radm-actions-buttons">
-            <button type="button" class="radm-btn cadm-f-guardar">Guardar</button>
+            <button type="button" class="radm-btn cadm-f-guardar">${item ? 'Guardar cambios' : 'Crear tema'}</button>
             <button type="button" class="radm-btn radm-btn-ghost cadm-f-cancelar">Cancelar</button>
           </div>
         </div>`;
-      cont.appendChild(form);
+      if(row) row.after(form); else cont.prepend(form);
+      verEditor(form);
+      form.querySelector('.cadm-f-nombre').focus();
 
       form.querySelector('.cadm-f-estado').addEventListener('change', e => {
         form.querySelector('.cadm-f-estado-label').textContent = e.target.checked ? 'Publicado' : 'Borrador';
       });
       form.querySelector('.cadm-f-cancelar').addEventListener('click', () => form.remove());
       form.querySelector('.cadm-f-guardar').addEventListener('click', async () => {
-        const id = item ? item.id : form.querySelector('.cadm-f-id').value.trim().toLowerCase();
         const nombre = form.querySelector('.cadm-f-nombre').value.trim();
         const descripcion = form.querySelector('.cadm-f-desc').value.trim();
         const horas = Number(form.querySelector('.cadm-f-horas').value);
         const nivel = Number(form.querySelector('.cadm-f-nivel').value);
         const estado = form.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
+        const id = item ? item.id : idUnico(nombre, cadmTemas.map(x => x.id));
 
-        if(!SLUG_RE.test(id)){ toast('El id solo puede tener minúsculas, números y guiones.', false); return; }
         if(!nombre){ toast('Falta el nombre.', false); return; }
+        if(!SLUG_RE.test(id)){ toast('El nombre debe llevar al menos una letra o número.', false); return; }
         if(!Number.isFinite(horas) || horas <= 0){ toast('Las horas deben ser un número mayor a 0.', false); return; }
 
         try {
@@ -5567,7 +5652,7 @@
           toast('Tema guardado.', true);
           const data = await apiGet(`/api/listTemasAdmin?herramienta=${encodeURIComponent(cadmTool)}`);
           cadmTemas = data.temas || [];
-          form.remove();
+          renderModeTabs();
           renderListaTemas();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
@@ -5579,9 +5664,24 @@
       try {
         await apiPostJson('/api/eliminarTema', { herramienta:cadmTool, id });
         cadmTemas = cadmTemas.filter(x => x.id !== id);
+        renderModeTabs();
         renderListaTemas();
         toast('Tema eliminado.', true);
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    }
+
+    // ── PROYECTOS: filas con editor justo debajo de la fila ──
+    function renderProyectos(){
+      document.getElementById('cadmModeArea').innerHTML = `
+        <div class="radm-section">
+          <div class="radm-section-head">
+            <span class="radm-section-title">PROYECTOS <span class="radm-section-hint">se desbloquean cuando un programa incluye TODOS sus temas requeridos</span></span>
+            <button type="button" class="radm-btn-add" id="cadmBtnAddProyecto">${ICO.plus} Agregar proyecto</button>
+          </div>
+          <div class="radm-list" id="cadmListaProyectos"></div>
+        </div>`;
+      document.getElementById('cadmBtnAddProyecto').addEventListener('click', () => abrirFormProyecto(null, null));
+      renderListaProyectos();
     }
 
     function renderListaProyectos(){
@@ -5595,16 +5695,19 @@
           <span class="radm-drag">${ICO.drag}</span>
           <span class="radm-status-dot ${p.estado === 'publicado' ? 'pub' : 'draft'}">${p.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
           <div class="radm-row-body">
-            <div class="radm-row-title">${escapeHtml(p.nombre)}</div>
+            <div class="radm-row-title">${escapeHtml(p.nombre)}${p.estado !== 'publicado' ? ' <span class="radm-row-sub">· borrador</span>' : ''}</div>
             <div class="radm-row-sub">Requiere: ${p.temaIds.map(id => escapeHtml((cadmTemas.find(t => t.id === id) || {}).nombre || id)).join(', ')}</div>
           </div>
-          <button type="button" class="radm-icon-btn" data-action="edit">${ICO.edit}</button>
-          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del">${ICO.trash}</button>
+          <button type="button" class="radm-icon-btn" data-action="edit" title="Editar">${ICO.edit}</button>
+          <button type="button" class="radm-icon-btn radm-icon-danger" data-action="del" title="Eliminar">${ICO.trash}</button>
         </div>
       `).join('');
 
       cont.querySelectorAll('[data-action="edit"]').forEach(b => {
-        b.addEventListener('click', () => abrirFormProyecto(cadmProyectos.find(p => p.id === b.closest('.radm-row').dataset.id)));
+        b.addEventListener('click', () => {
+          const row = b.closest('.radm-row');
+          abrirFormProyecto(cadmProyectos.find(p => p.id === row.dataset.id), row);
+        });
       });
       cont.querySelectorAll('[data-action="del"]').forEach(b => {
         b.addEventListener('click', () => eliminarProyecto(b.closest('.radm-row').dataset.id));
@@ -5612,9 +5715,9 @@
 
       if(window.Sortable){
         Sortable.create(cont, {
-          handle: '.radm-drag', animation:150,
+          handle: '.radm-drag', draggable: '.radm-row', animation:150,
           onEnd: async () => {
-            const items2 = Array.from(cont.querySelectorAll('.radm-row')).map((el, i) => ({
+            const items2 = Array.from(cont.querySelectorAll(':scope > .radm-row')).map((el, i) => ({
               partitionKey: cadmTool, rowKey: el.dataset.id, orden: i * 10,
             }));
             try { await apiPostJson('/api/updateOrdenCursos', { tabla:'Proyectos', items:items2 }); }
@@ -5624,10 +5727,9 @@
       }
     }
 
-    function abrirFormProyecto(item){
+    function abrirFormProyecto(item, row){
       const cont = document.getElementById('cadmListaProyectos');
-      const existing = cont.querySelector('.radm-inline-form');
-      if(existing) existing.remove();
+      cerrarEditores();
 
       const temaOptions = cadmTemas.slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
       const selectedIds = item ? item.temaIds : [];
@@ -5637,31 +5739,27 @@
               <input type="checkbox" class="cadm-p-pick" value="${escapeHtml(t.id)}" ${selectedIds.includes(t.id) ? 'checked' : ''}>
               <div class="radm-row-body"><div class="radm-row-title">${escapeHtml(t.nombre)}</div></div>
             </label>`).join('')
-        : '<div class="radm-empty-row">Sin temas todavía.</div>';
+        : '<div class="radm-empty-row">Sin temas todavía — agrégalos en la pestaña "Temas".</div>';
 
       const form = document.createElement('div');
-      form.className = 'radm-inline-form';
+      form.className = 'radm-inline-form cadm-form';
       form.innerHTML = `
         <div class="radm-form-row">
-          <div class="radm-field">
-            <label>ID DEL PROYECTO${item ? '' : ' (minúsculas, sin espacios)'}</label>
-            <input type="text" class="cadm-f-id radm-mono" ${item ? 'readonly' : ''} value="${item ? escapeHtml(item.id) : ''}" placeholder="dashboard-ventas">
-          </div>
-          <div class="radm-field">
+          <div class="radm-field" style="flex:1 1 100%;">
             <label>NOMBRE</label>
-            <input type="text" class="cadm-f-nombre" value="${item ? escapeHtml(item.nombre) : ''}">
+            <input type="text" class="cadm-f-nombre" value="${item ? escapeHtml(item.nombre) : ''}" placeholder="Dashboard de ventas">
           </div>
         </div>
         <div class="radm-form-row">
-          <div class="radm-field">
+          <div class="radm-field" style="flex:1 1 100%;">
             <label>OBJETIVO</label>
-            <textarea class="cadm-f-objetivo">${item ? escapeHtml(item.objetivo) : ''}</textarea>
+            <textarea class="cadm-f-objetivo cadm-desc">${item ? escapeHtml(item.objetivo) : ''}</textarea>
           </div>
         </div>
         <div class="radm-form-row">
           <div class="radm-field" style="flex:1 1 100%;">
             <label>TEMAS REQUERIDOS (deben estar TODOS seleccionados para desbloquearlo)</label>
-            <div class="radm-list">${picker}</div>
+            <div class="radm-list cadm-picker">${picker}</div>
           </div>
         </div>
         <div class="radm-actions">
@@ -5673,25 +5771,27 @@
             <span class="radm-switch-label cadm-f-estado-label">${item && item.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>
           </div>
           <div class="radm-actions-buttons">
-            <button type="button" class="radm-btn cadm-f-guardar">Guardar</button>
+            <button type="button" class="radm-btn cadm-f-guardar">${item ? 'Guardar cambios' : 'Crear proyecto'}</button>
             <button type="button" class="radm-btn radm-btn-ghost cadm-f-cancelar">Cancelar</button>
           </div>
         </div>`;
-      cont.appendChild(form);
+      if(row) row.after(form); else cont.prepend(form);
+      verEditor(form);
+      form.querySelector('.cadm-f-nombre').focus();
 
       form.querySelector('.cadm-f-estado').addEventListener('change', e => {
         form.querySelector('.cadm-f-estado-label').textContent = e.target.checked ? 'Publicado' : 'Borrador';
       });
       form.querySelector('.cadm-f-cancelar').addEventListener('click', () => form.remove());
       form.querySelector('.cadm-f-guardar').addEventListener('click', async () => {
-        const id = item ? item.id : form.querySelector('.cadm-f-id').value.trim().toLowerCase();
         const nombre = form.querySelector('.cadm-f-nombre').value.trim();
         const objetivo = form.querySelector('.cadm-f-objetivo').value.trim();
         const estado = form.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
         const temaIds = Array.from(form.querySelectorAll('.cadm-p-pick:checked')).map(c => c.value);
+        const id = item ? item.id : idUnico(nombre, cadmProyectos.map(x => x.id));
 
-        if(!SLUG_RE.test(id)){ toast('El id solo puede tener minúsculas, números y guiones.', false); return; }
         if(!nombre){ toast('Falta el nombre.', false); return; }
+        if(!SLUG_RE.test(id)){ toast('El nombre debe llevar al menos una letra o número.', false); return; }
         if(!temaIds.length){ toast('Selecciona al menos un tema requerido.', false); return; }
 
         try {
@@ -5699,7 +5799,7 @@
           toast('Proyecto guardado.', true);
           const data = await apiGet(`/api/listProyectosAdmin?herramienta=${encodeURIComponent(cadmTool)}`);
           cadmProyectos = data.proyectos || [];
-          form.remove();
+          renderModeTabs();
           renderListaProyectos();
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
@@ -5711,6 +5811,7 @@
       try {
         await apiPostJson('/api/eliminarProyecto', { herramienta:cadmTool, id });
         cadmProyectos = cadmProyectos.filter(x => x.id !== id);
+        renderModeTabs();
         renderListaProyectos();
         toast('Proyecto eliminado.', true);
       } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
@@ -5725,14 +5826,7 @@
   // (ver staticwebapp.config.json) — el navegador ya trae la sesión de Entra ID.
   // ═══════════════════════════════════════════════════════════════
   (function(){
-    const TOOL_META = {
-      excel:         { nombre:'Excel',            color:'#22c55e', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>' },
-      powerbi:       { nombre:'Power BI',          color:'#f2c94c', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      powerapps:     { nombre:'Power Apps',        color:'#c026d3', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
-      powerautomate: { nombre:'Power Automate',    color:'#06b6d4', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ia:            { nombre:'IA Aplicada',       color:'#a78bfa', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      ofimatica:     { nombre:'Ofimática Básica',  color:'#f97316', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>' },
-    };
+    const TOOL_META = window.HERRAMIENTAS_UI; // assets/js/herramientas.js (generado por tools/build-herramientas.js)
 
     // manual/caso/plantilla llevan archivo; skill es texto puro (el prompt);
     // extra es solo un link — mismo modelo que consume recursos.html
@@ -5818,14 +5912,17 @@
       grid.innerHTML = Object.keys(TOOL_META).map(id => {
         const t = TOOL_META[id];
         const cursos = (catalogo && catalogo[id]) || [];
-        const listaCursos = cursos.length
-          ? `<div class="radm-tool-cursos">${cursos.map(c => `<span class="radm-tool-curso-item">${escapeHtml(c.nombre)}</span>`).join('')}</div>`
-          : `<span class="radm-tool-empty">Sin materiales publicados</span>`;
+        const cuerpo = cursos.length
+          ? `<div class="radm-tool-stats radm-tool-stats-1">
+               <div class="radm-tool-stat"><b>${cursos.length}</b><span>${cursos.length === 1 ? 'Material publicado' : 'Materiales publicados'}</span></div>
+             </div>
+             <div class="radm-tool-cursos">${cursos.slice(0, 3).map(c => `<span class="radm-tool-curso-item">${escapeHtml(c.nombre)}</span>`).join('')}${cursos.length > 3 ? `<span class="radm-tool-curso-item">+${cursos.length - 3} más</span>` : ''}</div>`
+          : `<span class="radm-tool-cta">Crear el primer material <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         return `
           <button type="button" class="radm-tool-card" style="--c:${t.color}" data-tool="${id}">
             <span class="radm-tool-icon">${t.icon}</span>
             <span class="radm-tool-name">${t.nombre}</span>
-            ${listaCursos}
+            ${cuerpo}
           </button>`;
       }).join('');
       grid.querySelectorAll('.radm-tool-card').forEach(card => {

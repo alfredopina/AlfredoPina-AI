@@ -29,6 +29,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
+const { notificarSolicitudNueva } = require("../src/notificaciones-correo");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
@@ -207,6 +208,11 @@ module.exports = async function (context, req) {
       );
 
     await transaction.commit();
+    // aviso por correo a Alfredo (apagado si no hay configuración; nunca lanza ni retrasa más de unos segundos)
+    await notificarSolicitudNueva({
+      id: insert.recordset[0].id, nombre: nombreContacto, empresa: empresaNombre, correo, telefono, programa: temarioNombre, herramienta,
+      horas: horasTotales, participantes: participantesRaw, modalidad, comentarios,
+    });
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {
     try { await transaction.rollback(); } catch (_) { /* ya cerrada */ }

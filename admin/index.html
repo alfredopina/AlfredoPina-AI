@@ -312,6 +312,9 @@
   .dring-caption{ font-size:10.5px; color:var(--text-faint); text-align:center; }
 
   .ddrill{ border:1px solid var(--blue-bright); border-radius:10px; background:var(--panel); padding:18px; margin-top:20px; }
+  .ddrill-sec{ margin-bottom:18px; }
+  .ddrill-sec-title{ font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; display:flex; gap:8px; align-items:center; }
+  .ddrill-sec-title span{ color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:0 8px; }
   .ddrill-head{ font-family:var(--display); font-weight:600; font-size:14px; color:var(--text); margin-bottom:12px; }
 
   .admin-welcome{ font-size:13.5px; color:var(--text-dim); line-height:1.7; max-width:520px; }
@@ -4986,10 +4989,13 @@
 
     async function cargarDatos(){
       if(datos) return datos;
-      const [catalogo, completitud] = await Promise.all([
-        fetch('/api/getCatalogoCursosAdmin').then(r => r.json()),
-        fetch('/api/getResumenCompletitudAdmin').then(r => r.json()),
-      ]);
+      const pedir = async (url) => {
+        const res = await fetch(url);
+        const body = await res.json().catch(() => ({}));
+        if(!res.ok) throw new Error(body.error || ('Error ' + res.status + ' en ' + url));
+        return body;
+      };
+      const [catalogo, completitud] = await Promise.all([pedir('/api/getCatalogoCursosAdmin'), pedir('/api/getResumenCompletitudAdmin')]);
       let temasPub = 0, temariosPub = 0, proyectosPub = 0;
       const barras = Object.keys(TOOL_META).map(id => {
         const c = catalogo[id] || {};
@@ -5071,27 +5077,73 @@
 
       const info = TOOL_META[toolId];
       const r = (datos && datos.completitud[toolId]) || { cursos: [] };
-      document.getElementById('ddrillHead').textContent = `${info.nombre} — detalle de materiales`;
+      document.getElementById('ddrillHead').textContent = `${info.nombre} — inventario`;
       const listEl = document.getElementById('ddrillList');
-
-      if(!r.cursos.length){
-        listEl.innerHTML = '<div class="radm-empty-row">Sin materiales publicados en esta herramienta todavía.</div>';
-      } else {
-        listEl.innerHTML = r.cursos.map(c => {
-          const proyectosTxt = c.proyectos.length ? c.proyectos.map(escapeHtmlDash).join(', ') : 'Sin proyecto desbloqueado';
-          const manualTxt = c.recursos.manual >= 1 ? 'Manual cargado' : 'Falta el manual';
-          const sub = c.temarioId
-            ? `${c.temas} temas · ${proyectosTxt} · ${manualTxt}`
-            : `Sin vincular a un Programa (temas/proyecto no disponibles) · ${manualTxt}`;
-          return `<div class="radm-row">
-            <div class="radm-row-body">
-              <div class="radm-row-title">${escapeHtmlDash(c.nombre)}${c.completo ? ` <span style="color:#14b8a6;">${ICO.check}</span>` : ''}</div>
-              <div class="radm-row-sub">${sub}</div>
-            </div>
-          </div>`;
-        }).join('');
-      }
+      listEl.innerHTML = '<div class="radm-empty-row">Cargando inventario…</div>';
       drillEl.hidden = false;
+      cargarInventario(toolId)
+        .then(inv => { if(toolActivo === toolId) listEl.innerHTML = inventarioHtml(inv, r); })
+        .catch(e => { if(toolActivo === toolId) listEl.innerHTML = `<div class="radm-empty-row">No se pudo cargar el inventario: ${escapeHtmlDash(e.message)}</div>`; });
+    }
+
+    // Inventario de UNA herramienta (se pide al abrir su detalle y se guarda en memoria): lo que
+    // se vende (Programas), de qué está hecho (Temas), lo que desbloquea (Proyectos) y lo que se
+    // entrega (Materiales, que sí viene del resumen de completitud).
+    const invCache = {};
+    async function cargarInventario(toolId){
+      if(invCache[toolId]) return invCache[toolId];
+      const get = async (url) => {
+        const res = await fetch(url);
+        const body = await res.json().catch(() => ({}));
+        if(!res.ok) throw new Error(body.error || 'Error de red');
+        return body;
+      };
+      const q = encodeURIComponent(toolId);
+      const [te, ts, pr] = await Promise.all([
+        get('/api/listTemariosAdmin?herramienta=' + q), get('/api/listTemasAdmin?herramienta=' + q), get('/api/listProyectosAdmin?herramienta=' + q),
+      ]);
+      invCache[toolId] = { temarios: te.temarios || [], temas: ts.temas || [], proyectos: pr.proyectos || [] };
+      return invCache[toolId];
+    }
+
+    function inventarioHtml(inv, r){
+      const esc = escapeHtmlDash;
+      const fila = (titulo, sub) => `<div class="radm-row"><div class="radm-row-body"><div class="radm-row-title">${titulo}</div><div class="radm-row-sub">${sub}</div></div></div>`;
+      const sec = (titulo, n, cuerpo) => `<div class="ddrill-sec"><div class="ddrill-sec-title">${titulo}<span>${n}</span></div>${cuerpo}</div>`;
+
+      // programas, con el material que los entrega (vínculo Material → Programa)
+      const programas = inv.temarios.length ? inv.temarios.map(p => {
+        const mats = (r.cursos || []).filter(c => c.temarioId === p.id);
+        const matTxt = mats.length
+          ? mats.map(m => esc(m.nombre) + ' (' + (m.recursos.manual >= 1 ? 'manual cargado' : 'falta el manual') + ')').join('; ')
+          : 'sin material vinculado';
+        const n = (p.temas || []).length;
+        return fila(esc(p.nombre) + (p.estado === 'publicado' ? '' : ' <span class="radm-row-sub">· borrador</span>'),
+          [p.nivelLabel || '—', (p.horas || 0) + ' hr', n + (n === 1 ? ' tema' : ' temas'), matTxt].join(' · '));
+      }).join('') : '<div class="radm-empty-row">Sin programas todavía.</div>';
+
+      // temas: por nivel, horas y cuáles no se usan en ningún programa
+      const usados = new Set(); inv.temarios.forEach(p => (p.temaIds || []).forEach(id => usados.add(id)));
+      const pub = inv.temas.filter(t => t.estado === 'publicado');
+      const porNivel = [1, 2, 3].map(n => pub.filter(t => t.nivel === n).length);
+      const horas = pub.reduce((acc, t) => acc + (Number(t.horas) || 0), 0);
+      const sinUsar = inv.temas.filter(t => !usados.has(t.id));
+      const temas = inv.temas.length
+        ? fila(`Básico ${porNivel[0]} · Intermedio ${porNivel[1]} · Avanzado ${porNivel[2]}`, `${pub.length} publicados de ${inv.temas.length} · ${horas} hr en total`) +
+          (sinUsar.length ? fila('Sin usar en ningún programa', sinUsar.map(t => esc(t.nombre)).join(', ')) : '')
+        : '<div class="radm-empty-row">Sin temas todavía.</div>';
+
+      const proyectos = inv.proyectos.length
+        ? inv.proyectos.map(p => fila(esc(p.nombre) + (p.estado === 'publicado' ? '' : ' <span class="radm-row-sub">· borrador</span>'), 'requiere ' + (p.temaIds || []).length + ' temas')).join('')
+        : '<div class="radm-empty-row">Sin proyectos todavía.</div>';
+
+      const materiales = (r.cursos || []).length
+        ? r.cursos.map(c => fila(esc(c.nombre) + (c.completo ? ` <span style="color:#14b8a6;">${ICO.check}</span>` : ''),
+            (c.recursos.manual >= 1 ? 'Manual cargado' : 'Falta el manual') + (c.temarioId ? '' : ' · sin vincular a un Programa'))).join('')
+        : '<div class="radm-empty-row">Sin materiales publicados todavía.</div>';
+
+      return sec('PROGRAMAS', inv.temarios.length, programas) + sec('TEMAS', inv.temas.length, temas) +
+        sec('PROYECTOS', inv.proyectos.length, proyectos) + sec('MATERIALES', (r.cursos || []).length, materiales);
     }
 
     barEl.addEventListener('click', e => {

@@ -7,7 +7,7 @@
 //   - el form público no pide "código" de empresa (fricción innecesaria para
 //     un prospecto frío) — se deriva uno de su nombre + sufijo random para no
 //     chocar con un código real existente.
-//   - pide un medio de contacto (correo o WhatsApp en un solo campo) y crea el
+//   - pide un medio de contacto (correo y/o WhatsApp, campos separados; al menos uno) y crea el
 //     Contacto real del prospecto: es la única forma en que Alfredo puede
 //     responderle.
 //   - valida un honeypot (campo "web", oculto por CSS) como único filtro
@@ -32,6 +32,22 @@ const { JSON_HEADERS } = require("../src/http");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
+
+// El formulario ofrece esos rangos y también deja escribir un número. La columna Solicitud.participantes
+// solo acepta los 4 rangos (CHECK de sql/007), así que un número se traduce al rango que le toca y el dato
+// exacto viaja en las notas. De 2 a 4 personas ningún rango aplica: la columna queda vacía y el número, en notas.
+function mapearParticipantes(raw) {
+  if (PARTICIPANTES_OPCIONES.includes(raw)) return { columna: raw, nota: null };
+  const m = raw.match(/\d+/);
+  const n = m ? parseInt(m[0], 10) : NaN;
+  if (!Number.isFinite(n) || n < 1 || n > 5000) return null;
+  const nota = "Participantes: " + n;
+  if (n === 1) return { columna: "Solo yo", nota: null };
+  if (n >= 5 && n <= 10) return { columna: "5 a 10", nota };
+  if (n >= 11 && n <= 15) return { columna: "10 a 15", nota };
+  if (n > 15) return { columna: "Más de 15", nota };
+  return { columna: null, nota };
+}
 const VENTANA_DUPLICADO_MIN = 30;
 
 function derivarCodigo(nombre) {
@@ -58,39 +74,46 @@ module.exports = async function (context, req) {
   const temarioNombre = (body.temario_nombre || "").trim().slice(0, 200);
   const temas = Array.isArray(body.temas) ? body.temas : [];
   const horasTotales = Number(body.horas_totales);
-  const fechaTentativa = (body.fecha_tentativa || "").trim().slice(0, 200) || null;
-  const ciudadSede = (body.ciudad_sede || "").trim().slice(0, 150) || null;
-  const participantes = (body.participantes || "").trim() || null;
+  const fechaTentativa = null; // el formulario ya no los pide (se aclaran en la primera llamada)
+  const ciudadSede = null;
+  const participantesRaw = String(body.participantes === undefined || body.participantes === null ? "" : body.participantes).trim().slice(0, 60);
   const modalidad = (body.modalidad || "").trim() || null;
   const comentarios = (body.comentarios || "").trim().slice(0, 2000);
-  const contactoRaw = (body.contacto || "").trim().slice(0, 200);
+  // correo y WhatsApp van separados (al menos uno); "contacto" (un solo campo) se acepta por compatibilidad
+  let correoRaw = (body.correo || "").trim().slice(0, 200);
+  let whatsappRaw = (body.whatsapp || "").trim().slice(0, 40);
+  const contactoLegacy = (body.contacto || "").trim().slice(0, 200);
+  if (!correoRaw && !whatsappRaw && contactoLegacy) { if (contactoLegacy.includes("@")) correoRaw = contactoLegacy; else whatsappRaw = contactoLegacy; }
 
   if (!nombreContacto) return bad(context, "Falta tu nombre.");
-  if (!contactoRaw) return bad(context, "Falta tu correo o WhatsApp para poder responderte.");
+  if (!correoRaw && !whatsappRaw) return bad(context, "Déjanos tu correo o tu WhatsApp para poder responderte.");
   if (!HERRAMIENTAS.includes(herramienta)) return bad(context, "Herramienta inválida.");
   if (!temarioNombre) return bad(context, "Falta el programa.");
   if (!Number.isFinite(horasTotales) || horasTotales <= 0) return bad(context, "Las horas no son válidas.");
   if (modalidad && !MODALIDADES.includes(modalidad)) return bad(context, "Modalidad inválida.");
-  if (participantes && !PARTICIPANTES_OPCIONES.includes(participantes)) return bad(context, "Participantes inválido.");
+  if (!participantesRaw) return bad(context, "Indica cuántas personas participarán.");
+  const part = mapearParticipantes(participantesRaw);
+  if (!part) return bad(context, "El número de participantes no es válido.");
+  const participantes = part.columna;
 
-  // un solo campo: si trae @ es correo, si no es teléfono/WhatsApp
   let correo = null;
   let telefono = null;
-  if (contactoRaw.includes("@")) {
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactoRaw)) return bad(context, "El correo no parece válido.");
-    correo = contactoRaw.toLowerCase();
-  } else {
-    const digitos = contactoRaw.replace(/\D/g, "");
+  if (correoRaw) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correoRaw)) return bad(context, "El correo no parece válido.");
+    correo = correoRaw.toLowerCase();
+  }
+  if (whatsappRaw) {
+    const digitos = whatsappRaw.replace(/\D/g, "");
     if (digitos.length < 8 || digitos.length > 15) return bad(context, "El WhatsApp no parece válido (incluye la lada).");
-    telefono = contactoRaw.slice(0, 30);
+    telefono = whatsappRaw.slice(0, 30);
   }
 
-  const notas = comentarios || null;
+  const notas = [comentarios, part.nota].filter(Boolean).join("\n") || null;
 
   // llave del envío: mismo contacto + empresa + programa + detalles = mismo envío
   const llave = crypto
     .createHash("sha1")
-    .update([nombreContacto, correo || telefono, empresaNombre, herramienta, temarioNombre, fechaTentativa, ciudadSede, participantes, modalidad, comentarios].map((x) => (x || "").toString().toLowerCase()).join("|"))
+    .update([nombreContacto, correo, telefono, empresaNombre, herramienta, temarioNombre, participantesRaw, modalidad, comentarios].map((x) => (x || "").toString().toLowerCase()).join("|"))
     .digest("hex");
 
   let pool;

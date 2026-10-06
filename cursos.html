@@ -260,6 +260,8 @@
       <div class="programs-list" id="programsList">${estandar.map(programFnHtml).join('')}</div>`;
   }
 
+  const LEYENDA_PROYECTO = 'Al concluir el programa, el participante desarrollará un proyecto práctico basado en sus propios datos para aprobar el curso.';
+
   function proyectoCardHtml(progId, pr){
     const inner = (pr.imagenMiniUrl ? `<span class="proy-img"><img src="${escapeHtml(pr.imagenMiniUrl)}" alt="" loading="lazy"></span>` : '') +
       `<span class="proy-name">${escapeHtml(pr.nombre)}</span>` + (pr.resumen ? `<span class="proy-res">${escapeHtml(pr.resumen)}</span>` : '');
@@ -302,12 +304,11 @@
           <b>${escapeHtml(t.nombre)}</b>
           <p>${escapeHtml(t.descripcion)}</p>
         </div>
-        <div class="session-hr">${t.horas} hr</div>
       </div>`).join('');
     // proyectos del programa: mini-tarjetas; con imagen de ejemplo se abre en grande al tocarla
     const proyDetalle = (p.proyectosDetalle && p.proyectosDetalle.length) ? p.proyectosDetalle : (p.proyectos || []).map(nm => ({ nombre: nm }));
     const proyectosHtml = proyDetalle.length
-      ? `<div class="proy-bloque"><div class="proy-titulo">PROYECTOS INCLUIDOS</div><div class="proy-grid">${proyDetalle.map(pr => proyectoCardHtml(p.id, pr)).join('')}</div></div>` : '';
+      ? `<div class="proy-bloque"><div class="proy-titulo">PROYECTO PRÁCTICO</div><p class="proy-leyenda">${LEYENDA_PROYECTO}</p><div class="proy-ejemplos">EJEMPLOS DE PROYECTO</div><div class="proy-grid">${proyDetalle.map(pr => proyectoCardHtml(p.id, pr)).join('')}</div></div>` : '';
 
     return `
       <div class="program-fn" id="programFn-${p.id}">
@@ -343,7 +344,7 @@
 
   // ---- solicitud de cotización: UN diálogo compartido (antes un formulario de 8 campos por tarjeta,
   // dentro del acordeón). Lo esencial va primero (nombre, correo o WhatsApp, empresa); participantes,
-  // modalidad, fecha, ciudad y comentarios quedan en "Agregar detalles (opcional)". ----
+  // participantes, modalidad y comentarios también están a la vista (fecha y ciudad ya no se piden). ----
   const chevronIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   let leadProgId = null;      // programa para el que está armado el diálogo
@@ -351,52 +352,47 @@
 
   function leadBodyHTML(){
     return `
-      <div class="lead-fields">
+      <div class="lead-fields lead-grid2">
         <div class="lead-field">
           <label for="leadName">Tu nombre *</label>
           <input type="text" id="leadName" placeholder="¿Cómo te llamas?" autocomplete="name" maxlength="200">
         </div>
         <div class="lead-field">
-          <label for="leadContact">Correo o WhatsApp *</label>
-          <input type="text" id="leadContact" placeholder="Para enviarte la cotización" autocomplete="email" inputmode="email" maxlength="200">
-        </div>
-        <div class="lead-field">
           <label for="leadCo">Empresa <span class="lead-opt">(opcional)</span></label>
           <input type="text" id="leadCo" placeholder="Tu empresa" autocomplete="organization" maxlength="200">
         </div>
-      </div>
-      <button type="button" class="lead-more" id="leadMoreBtn" aria-expanded="false" aria-controls="leadMore">Agregar detalles (opcional) ${chevronIcon}</button>
-      <div class="lead-more-body" id="leadMore" hidden>
         <div class="lead-field">
-          <label>Participantes</label>
-          <div class="pill-group" data-group="participantes">
-            <button type="button" class="pill-opt" data-value="Solo yo">Solo yo</button>
-            <button type="button" class="pill-opt" data-value="5 a 10">5 a 10</button>
-            <button type="button" class="pill-opt" data-value="10 a 15">10 a 15</button>
-            <button type="button" class="pill-opt" data-value="Más de 15">Más de 15</button>
-          </div>
+          <label for="leadMail">Correo</label>
+          <input type="email" id="leadMail" placeholder="tu@empresa.com" autocomplete="email" inputmode="email" maxlength="200">
         </div>
         <div class="lead-field">
-          <label>Modalidad</label>
+          <label for="leadWa">WhatsApp</label>
+          <input type="tel" id="leadWa" placeholder="Con lada, ej. 81 1234 5678" autocomplete="tel" inputmode="tel" maxlength="40">
+        </div>
+        <div class="lead-note lead-full">Déjanos al menos uno de los dos para poder responderte.</div>
+        <div class="lead-field">
+          <label for="leadPart">Participantes *</label>
+          <select id="leadPart">
+            <option value="">Selecciona…</option>
+            <option value="Solo yo">Solo yo</option>
+            <option value="5 a 10">5 a 10</option>
+            <option value="10 a 15">10 a 15</option>
+            <option value="Más de 15">Más de 15</option>
+            <option value="otro">Otro número…</option>
+          </select>
+          <input type="number" id="leadPartNum" min="1" max="5000" inputmode="numeric" placeholder="¿Cuántas personas?" style="margin-top:8px;" hidden>
+        </div>
+        <div class="lead-field">
+          <label>Modalidad <span class="lead-opt">(opcional)</span></label>
           <div class="pill-group" data-group="modalidad">
             <button type="button" class="pill-opt" data-value="Online">Online</button>
             <button type="button" class="pill-opt" data-value="Presencial">Presencial</button>
             <button type="button" class="pill-opt" data-value="Híbrido">Híbrido</button>
           </div>
         </div>
-        <div class="lead-row2">
-          <div class="lead-field">
-            <label for="leadDate">Fecha tentativa</label>
-            <input type="text" id="leadDate" placeholder="Ej. segunda quincena de noviembre" maxlength="200">
-          </div>
-          <div class="lead-field">
-            <label for="leadCity">Ciudad / sede</label>
-            <input type="text" id="leadCity" placeholder="Si es presencial" maxlength="150">
-          </div>
-        </div>
-        <div class="lead-field">
-          <label for="leadComments">Comentarios</label>
-          <textarea id="leadComments" rows="3" placeholder="Kick off, grabación de sesiones, otras necesidades…" maxlength="2000"></textarea>
+        <div class="lead-field lead-full">
+          <label for="leadComments">Comentarios <span class="lead-opt">(opcional)</span></label>
+          <textarea id="leadComments" rows="3" placeholder="Kick off, grabación de sesiones, fechas, sede, otras necesidades…" maxlength="2000"></textarea>
         </div>
       </div>
       <input type="text" id="leadWeb" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
@@ -426,15 +422,12 @@
     document.getElementById('leadClose').addEventListener('click', () => dlg.close());
     // clic en el fondo oscuro (fuera de la tarjeta) cierra
     dlg.addEventListener('click', e => { if(e.target === dlg) dlg.close(); });
-    dlg.addEventListener('click', e => {
-      if(e.target.closest('#leadSend')) sendLead();
-      const more = e.target.closest('#leadMoreBtn');
-      if(more){
-        const body = document.getElementById('leadMore');
-        body.hidden = !body.hidden;
-        more.setAttribute('aria-expanded', String(!body.hidden));
-        more.classList.toggle('open', !body.hidden);
-      }
+    dlg.addEventListener('click', e => { if(e.target.closest('#leadSend')) sendLead(); });
+    dlg.addEventListener('change', e => {
+      if(e.target.id !== 'leadPart') return;
+      const num = document.getElementById('leadPartNum');
+      num.hidden = e.target.value !== 'otro';
+      if(!num.hidden) num.focus();
     });
     return dlg;
   }
@@ -490,9 +483,8 @@
     const p = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === id);
     if(!p) throw new Error('Programa no encontrado.');
     const payload = {
-      nombre: extra.name, contacto: extra.contacto, empresa: extra.co, herramienta: currentCat,
+      nombre: extra.name, correo: extra.correo, whatsapp: extra.whatsapp, empresa: extra.co, herramienta: currentCat,
       temario_nombre: p.nombre, temas: p.temas, horas_totales: p.horas,
-      fecha_tentativa: extra.fecha, ciudad_sede: extra.ciudad,
       participantes: extra.participantes, modalidad: extra.modalidad,
       comentarios: extra.comentarios,
       web: (document.getElementById('leadWeb')?.value || ''),
@@ -515,19 +507,27 @@
     const errEl = document.getElementById('leadErr');
     if(!id || !btn || btn.disabled) return; // evita el doble clic
     const val = k => (document.getElementById(k)?.value || '').trim();
-    const name = val('leadName'), contacto = val('leadContact');
-    const mostrarError = msg => { errEl.textContent = msg; errEl.hidden = false; };
+    const name = val('leadName'), correo = val('leadMail'), whatsapp = val('leadWa');
+    const mostrarError = (msg, campo) => { errEl.textContent = msg; errEl.hidden = false; if(campo) document.getElementById(campo)?.focus(); };
     errEl.hidden = true;
-    if(!name){ mostrarError('Escribe tu nombre.'); document.getElementById('leadName').focus(); return; }
-    if(!contacto){ mostrarError('Déjanos tu correo o WhatsApp para poder responderte.'); document.getElementById('leadContact').focus(); return; }
+    if(!name) return mostrarError('Escribe tu nombre.', 'leadName');
+    if(!correo && !whatsapp) return mostrarError('Déjanos tu correo o tu WhatsApp para poder responderte.', 'leadMail');
+    if(correo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return mostrarError('El correo no parece válido.', 'leadMail');
+    if(whatsapp && (whatsapp.replace(/\D/g, '').length < 8)) return mostrarError('El WhatsApp no parece válido (incluye la lada).', 'leadWa');
+    let participantes = val('leadPart');
+    if(!participantes) return mostrarError('Indica cuántas personas participarán.', 'leadPart');
+    if(participantes === 'otro'){
+      participantes = val('leadPartNum');
+      if(!/^\d+$/.test(participantes) || Number(participantes) < 1) return mostrarError('Escribe cuántas personas participarán (un número).', 'leadPartNum');
+    }
 
     btn.disabled = true;
     btn.textContent = 'Enviando…';
     try {
       const ok = await crearSolicitudPublica(id, {
-        name, contacto, co: val('leadCo'), fecha: val('leadDate'), ciudad: val('leadCity'),
+        name, correo, whatsapp, co: val('leadCo'),
         comentarios: val('leadComments'),
-        participantes: getPillValue('participantes'),
+        participantes,
         modalidad: getPillValue('modalidad'),
       }, () => { btn.textContent = 'Seguimos intentando…'; });
       if(ok){

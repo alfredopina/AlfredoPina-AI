@@ -41,15 +41,6 @@ section{padding:96px 0; position:relative; z-index:1;}
 
 .builder-title{ font-family:var(--display); font-weight:600; font-size:clamp(22px,3vw,28px); margin-bottom:10px; }
 
-.builder-bonuses{ display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 4px; min-height:0; }
-
-.bonus-pill{
-    font-family:var(--mono); font-size:11px; color:var(--c-bright); background:color-mix(in srgb, var(--c) 10%, transparent);
-    border:1px solid color-mix(in srgb, var(--c) 35%, transparent); padding:6px 13px; border-radius:12px; display:flex; align-items:center; gap:7px;
-  }
-
-.bonus-pill svg{ width:11px; height:11px; flex:none; }
-
 .builder-cta-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:6px; }
 
 .builder-cta{
@@ -274,3 +265,29 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
     font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint);
     border:1px solid var(--line); padding:5px 12px; border-radius:12px;
   }
+
+/* ---- proyectos incluidos en un programa: mini-tarjetas con imagen de ejemplo ---- */
+.proy-bloque{ margin-top:22px; }
+.proy-titulo{ font-family:var(--mono); font-size:10.5px; color:var(--c-bright); letter-spacing:.4px; margin-bottom:10px; }
+.proy-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:14px; }
+.proy-card{
+    display:flex; flex-direction:column; gap:6px; text-align:left; font:inherit; color:inherit;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px; transition:border-color .2s, transform .2s;
+  }
+.proy-card.has-img{ cursor:zoom-in; }
+.proy-card.has-img:hover{ border-color:var(--c); transform:translateY(-2px); }
+.proy-img{ display:block; aspect-ratio:16/9; border-radius:6px; overflow:hidden; background:var(--bg); border:1px solid var(--line-soft); }
+.proy-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+.proy-name{ font-family:var(--display); font-weight:600; font-size:14px; line-height:1.3; margin-top:2px; }
+.proy-res{ font-size:12px; color:var(--text-dim); line-height:1.5; }
+
+/* visor de la imagen de ejemplo */
+.proy-dialog{ margin:auto; width:min(1040px, calc(100vw - 24px)); max-height:calc(100vh - 24px); padding:0; border:1px solid var(--line); border-radius:14px; background:var(--panel); color:var(--text); box-shadow:0 30px 80px rgba(0,0,0,.6); overflow:auto; border-top:3px solid var(--c); }
+.proy-dialog::backdrop{ background:rgba(4,6,10,.8); backdrop-filter:blur(3px); }
+.proy-dlg-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:16px 20px 12px; }
+.proy-dlg-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); }
+.proy-dlg-title{ font-family:var(--display); font-weight:600; font-size:20px; margin-top:3px; }
+.proy-dlg-img{ display:block; width:100%; height:auto; }
+.proy-dlg-res{ padding:12px 20px 18px; font-size:13.5px; color:var(--text-dim); line-height:1.6; }
+.proy-dlg-res:empty{ display:none; }
+@media (max-width:560px){ .proy-grid{ grid-template-columns:1fr 1fr; gap:10px; } .proy-dlg-head{ padding:14px 14px 10px; } }

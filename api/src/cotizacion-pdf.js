@@ -327,6 +327,43 @@ function construirPortada(datos) {
   ];
 }
 
+// ── Proyectos incluidos: franja compacta (miniaturas en filas de 3) al final de la página de contenido ──
+// Cada proyecto lleva su miniatura (si la tiene), nombre y una línea de descripción. Cada fila es
+// "unbreakable" y el título viaja con la primera, así no queda un título huérfano al final de una página.
+function bloqueProyectos(proyectos, tc) {
+  const lista = proyectos || [];
+  if (!lista.length) return [];
+  const GAP = 14, COLS = 3;
+  const W = Math.floor((CONTENT_W - GAP * (COLS - 1)) / COLS);
+  const tarjeta = (p, i) => ({
+    width: W,
+    stack: [
+      { canvas: [{ type: "rect", x: 0, y: 0, w: W, h: 3, color: tc.fill }] },
+      p.imagen ? { image: `proyecto${i}`, fit: [W, Math.round(W * 9 / 16)], margin: [0, 6, 0, 0] } : null, // caja 16:9: una captura vertical no rompe el diseño
+      { text: p.nombre, font: "SpaceGrotesk", bold: true, fontSize: 10.5, color: INK, margin: [0, 7, 0, 0] },
+      p.resumen ? { text: p.resumen, font: "Inter", fontSize: 8.5, color: INK_DIM, margin: [0, 3, 0, 0] } : null,
+    ].filter(Boolean),
+  });
+  const filas = [];
+  for (let i = 0; i < lista.length; i += COLS) {
+    const grupo = lista.slice(i, i + COLS).map((p, j) => tarjeta(p, i + j));
+    while (grupo.length < COLS) grupo.push({ width: W, text: "" });
+    filas.push({ unbreakable: true, columns: grupo, columnGap: GAP, margin: [0, i === 0 ? 0 : 14, 0, 0] });
+  }
+  const [primera, ...resto] = filas;
+  return [
+    {
+      unbreakable: true,
+      margin: [0, 26, 0, 0],
+      stack: [
+        { text: "PROYECTOS INCLUIDOS", font: "JetBrainsMono", fontSize: 8.5, color: INK_FAINT, margin: [0, 0, 0, 9] },
+        primera,
+      ],
+    },
+    ...resto,
+  ];
+}
+
 // ── PÁGINA 2 — Temario ──
 function construirTemario(datos) {
   const { herramienta, temas, horasTotales } = datos;
@@ -389,7 +426,8 @@ function construirTemario(datos) {
   // y centre solo). Mismo criterio que en la portada: bajar el bloque un
   // tanto fijo en vez de dejarlo huérfano arriba — no es centrado real, pero
   // reparte el vacío de forma que se sienta intencional.
-  const offsetTemarioCorto = (temas || []).length <= 3 ? 90 : 0;
+  // (con proyectos, la franja ya llena ese vacío: sin desplazamiento)
+  const offsetTemarioCorto = (temas || []).length <= 3 && !(datos.proyectos || []).length ? 90 : 0;
 
   return [
     franjaAcento(tc.fill),
@@ -404,6 +442,7 @@ function construirTemario(datos) {
         },
         { canvas: [{ type: "line", x1: 0, y1: 0, x2: CONTENT_W, y2: 0, lineColor: RULE, lineWidth: 1 }], margin: [0, 14, 0, 0] },
         ...filas.map((f, i) => (i === 0 ? Object.assign({}, f, { margin: [0, 18, 0, 0] }) : f)),
+        ...bloqueProyectos(datos.proyectos, tc),
       ],
       margin: [PAD_X, 28 + offsetTemarioCorto, PAD_X, 34],
       pageBreak: "before",
@@ -533,19 +572,23 @@ function construirPropuesta(datos) {
 async function generarCotizacionPdf({
   cliente, contacto, herramienta, herramientaLabel, temarioTitulo, temas,
   horasTotales, precioFinal, modalidad, participantes, ciudadSede,
-  fechaTentativa, fechaVigencia, folio, dirigidoA, objetivo,
+  fechaTentativa, fechaVigencia, folio, dirigidoA, objetivo, proyectos,
 }) {
   const datos = {
+    proyectos: proyectos || [],
     cliente, contacto, herramienta, herramientaLabel, temarioTitulo, temas: temas || [],
     horasTotales: Number(horasTotales) || 0, precioFinal, modalidad, participantes, ciudadSede,
     fechaTentativa, fechaVigencia, folio, dirigidoA, objetivo,
   };
 
+  const images = { firma: FIRMA_PATH, foto: FOTO_PATH };
+  datos.proyectos.forEach((p, i) => { if (p.imagen) images[`proyecto${i}`] = p.imagen; });
+
   const docDefinition = {
     pageSize: "A4",
     pageMargins: [0, 0, 0, 0],
     defaultStyle: { font: "Inter", fontSize: 10, color: INK },
-    images: { firma: FIRMA_PATH, foto: FOTO_PATH },
+    images,
     background: (currentPage, pageSize) => fondoCuadricula(pageSize),
     content: [...construirPortada(datos), ...construirTemario(datos), ...construirPropuesta(datos)],
   };

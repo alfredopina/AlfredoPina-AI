@@ -7,6 +7,7 @@
 // calcularse (calcularlo implicaría leer Cotizacion) y no resuelve/crea
 // Cliente: usa directo el nombre que ya seleccionó/escribió el front.
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
+const { proyectosParaPdf } = require("../src/cotizacion-proyectos");
 const { JSON_HEADERS } = require("../src/http");
 
 const TOOL_LABELS = {
@@ -28,7 +29,9 @@ module.exports = async function (context, req) {
   }
 
   try {
+    const proyectos = await proyectosParaPdf(herramienta, (body.temario_nombre || "").trim());
     const pdfBuffer = await generarCotizacionPdf({
+      proyectos,
       cliente: clienteNombre,
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,

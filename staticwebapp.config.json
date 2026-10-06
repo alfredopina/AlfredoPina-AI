@@ -141,6 +141,14 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/subirImagenProyecto",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/eliminarImagenProyecto",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/updateOrdenCursos",
       "allowedRoles": ["admin"]
     },

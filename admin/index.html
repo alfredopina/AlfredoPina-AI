@@ -259,7 +259,8 @@
   .dip-tabpanel{ display:none; }
   .dip-tabpanel.active{ display:block; }
 
-  .dkpi-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:32px; }
+  .dkpi-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:16px; margin-bottom:32px; }
+  @media (max-width:1250px){ .dkpi-grid{ grid-template-columns:repeat(3, 1fr); } }
   @media (max-width:900px){ .dkpi-grid{ grid-template-columns:repeat(2, 1fr); } }
   @media (max-width:520px){ .dkpi-grid{ grid-template-columns:1fr; } }
   .dkpi-card{
@@ -412,6 +413,13 @@
   .cadm-prog-body .radm-form-row:first-child{ margin-top:16px; }
   .cadm-form .radm-field textarea{ min-height:84px; line-height:1.55; }
   .cadm-form textarea.cadm-objetivo{ min-height:132px; } /* el espacio grande es del objetivo; dirigido y alcance suelen ser cortos */
+  .cadm-thumb{ width:64px; height:36px; object-fit:cover; border-radius:5px; border:1px solid var(--line); flex:none; background:var(--panel-2); }
+  .cadm-img{ display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
+  .cadm-img-prev{ width:240px; aspect-ratio:16/9; border:1px dashed var(--line); border-radius:8px; background:var(--panel-2); display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
+  .cadm-img-prev img{ width:100%; height:100%; object-fit:cover; }
+  .cadm-img-prev img[hidden], .cadm-img-vacio[hidden], .cadm-img-quitar[hidden]{ display:none; }
+  .cadm-img-vacio{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  .cadm-img-side{ flex:1; min-width:220px; display:flex; flex-direction:column; gap:10px; }
   .cadm-hint{ font-size:11.5px; color:var(--text-faint); line-height:1.5; }
   .cadm-form textarea.cadm-desc{ min-height:105px; } /* la descripción pidió ser 50% más alta (70px → 105px) y a todo el ancho */
   .cadm-picker{ max-height:340px; overflow:auto; }
@@ -4989,6 +4997,7 @@
       layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 7l10 5 10-5-10-5Z" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke-linejoin="round"/></svg>',
       book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
       list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 2 5 6 5 10 0 2-1 4-1 4H8s-1-2-1-4c0-4 2-8 5-10Z" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 5 3-2M15 16l2 5-3-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-left:4px;"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
@@ -5222,11 +5231,13 @@
         const temasTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.temas || {}).total || 0), 0);
         const proyTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.proyectos || {}).total || 0), 0);
         const matPub = Object.values(d.completitud).reduce((a, c) => a + (c.cursosPublicados || 0), 0);
+        const horasTotal = Object.values(d.catalogo).reduce((a, c) => a + ((c.horas || {}).temas || 0), 0);
         const matCompletos = Object.values(d.completitud).reduce((a, c) => a + (c.cursosCompletos || 0), 0);
         kpisEl.innerHTML = [
           kpiCard('#3d7fff', ICO.book, d.temariosPub, 'Programas', 'Programas publicados en todas las herramientas (lo que se vende).', 'de ' + progTotal + ' en total'),
           kpiCard('#3d7fff', ICO.rocket, d.proyectosPub, 'Proyectos', 'Proyectos publicados en todas las herramientas.', 'de ' + proyTotal + ' en total'),
           kpiCard('#3d7fff', ICO.list, d.temasPub, 'Temas', 'Temas publicados en todas las herramientas (con lo que se arman los programas).', 'de ' + temasTotal + ' en total'),
+          kpiCard('#3d7fff', ICO.clock, Math.round(horasTotal * 10) / 10, 'Horas', 'Horas de contenido: suma de las horas de todos los temas publicados (temas × horas).', 'en ' + d.temasPub + ' temas publicados'),
           kpiCard('#3d7fff', ICO.layers, matPub, 'Materiales', 'Materiales publicados (paquetes de entrega con código de descarga).', matCompletos + ' con manual'),
         ].join('');
         renderInventario(d);
@@ -5315,6 +5326,20 @@
       let id = base, n = 2;
       while(existentes.includes(id)) id = base + '-' + n++;
       return id;
+    }
+    // imagen de ejemplo del proyecto: se comprime en el navegador a DOS JPEG (completa ≈1600 px y miniatura ≈640 px)
+    async function comprimirJpeg(file, maxAncho, calidad){
+      const bmp = await createImageBitmap(file);
+      const esc = Math.min(1, maxAncho / bmp.width);
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * esc)); c.height = Math.max(1, Math.round(bmp.height * esc));
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height); // un PNG con transparencia no debe salir negro
+      ctx.drawImage(bmp, 0, 0, c.width, c.height);
+      return new Promise((ok, mal) => c.toBlob(b => b ? ok(b) : mal(new Error('No se pudo procesar la imagen.')), 'image/jpeg', calidad));
+    }
+    function blobABase64(blob){
+      return new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = mal; r.readAsDataURL(blob); });
     }
     const ICO_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -5884,6 +5909,7 @@
         <div class="radm-row" data-id="${escapeHtml(p.id)}">
           <span class="radm-drag">${ICO.drag}</span>
           <span class="radm-status-dot ${p.estado === 'publicado' ? 'pub' : 'draft'}">${p.estado === 'publicado' ? ICO.dotFull : ICO.dotEmpty}</span>
+          ${p.imagenMiniUrl ? `<img class="cadm-thumb" src="${escapeHtml(p.imagenMiniUrl)}" alt="">` : ''}
           <div class="radm-row-body">
             <div class="radm-row-title">${escapeHtml(p.nombre)}${p.estado !== 'publicado' ? ' <span class="radm-row-sub">· borrador</span>' : ''}</div>
             <div class="radm-row-sub">Requiere: ${p.temaIds.map(id => escapeHtml((cadmTemas.find(t => t.id === id) || {}).nombre || id)).join(', ')}</div>
@@ -5942,6 +5968,31 @@
         </div>
         <div class="radm-form-row">
           <div class="radm-field" style="flex:1 1 100%;">
+            <label>DESCRIPCIÓN CORTA (una línea: sale bajo la imagen, en el sitio y en la cotización)</label>
+            <input type="text" class="cadm-f-resumen" maxlength="160" value="${item ? escapeHtml(item.resumen || '') : ''}" placeholder="Dashboard interactivo con KPIs, filtros y gráficos">
+          </div>
+        </div>
+        <div class="radm-form-row">
+          <div class="radm-field" style="flex:1 1 100%;">
+            <label>IMAGEN DE EJEMPLO</label>
+            <div class="cadm-img">
+              <div class="cadm-img-prev">
+                <img class="cadm-img-el" alt="" ${item && item.imagenMiniUrl ? `src="${escapeHtml(item.imagenMiniUrl)}"` : 'hidden'}>
+                <span class="cadm-img-vacio" ${item && item.imagenMiniUrl ? 'hidden' : ''}>Sin imagen</span>
+              </div>
+              <div class="cadm-img-side">
+                <div class="radm-actions-buttons">
+                  <button type="button" class="radm-btn radm-btn-ghost cadm-img-elegir">Elegir imagen</button>
+                  <button type="button" class="radm-btn radm-btn-ghost cadm-img-quitar" ${item && item.imagenMiniUrl ? '' : 'hidden'}>Quitar</button>
+                </div>
+                <input type="file" accept="image/*" class="cadm-img-file" hidden>
+                <div class="cadm-hint">Mejor en 16:9 (por ejemplo 1600×900). Usa datos de ejemplo, nunca de un cliente. Se comprime sola al subirla y se guarda al presionar "Guardar".</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="radm-form-row">
+          <div class="radm-field" style="flex:1 1 100%;">
             <label>OBJETIVO</label>
             <textarea class="cadm-f-objetivo cadm-desc">${item ? escapeHtml(item.objetivo) : ''}</textarea>
           </div>
@@ -5973,8 +6024,34 @@
         form.querySelector('.cadm-f-estado-label').textContent = e.target.checked ? 'Publicado' : 'Borrador';
       });
       form.querySelector('.cadm-f-cancelar').addEventListener('click', () => form.remove());
+
+      // imagen de ejemplo: se prepara aquí y se sube al guardar (el proyecto ya debe existir)
+      let imgNueva = null, imgQuitar = false;
+      const imgEl = form.querySelector('.cadm-img-el'), imgVacio = form.querySelector('.cadm-img-vacio');
+      const imgFile = form.querySelector('.cadm-img-file'), imgBtnQuitar = form.querySelector('.cadm-img-quitar');
+      function mostrarImagen(url){
+        if(url){ imgEl.src = url; imgEl.hidden = false; imgVacio.hidden = true; imgBtnQuitar.hidden = false; }
+        else { imgEl.removeAttribute('src'); imgEl.hidden = true; imgVacio.hidden = false; imgBtnQuitar.hidden = true; }
+      }
+      form.querySelector('.cadm-img-elegir').addEventListener('click', () => imgFile.click());
+      imgFile.addEventListener('change', async () => {
+        const f = imgFile.files && imgFile.files[0];
+        if(!f) return;
+        try {
+          const [full, mini] = await Promise.all([comprimirJpeg(f, 1600, 0.86), comprimirJpeg(f, 640, 0.82)]);
+          imgNueva = { full, mini }; imgQuitar = false;
+          mostrarImagen(URL.createObjectURL(mini));
+        } catch(e){ toast('No se pudo leer la imagen: ' + e.message, false); }
+        imgFile.value = '';
+      });
+      imgBtnQuitar.addEventListener('click', () => {
+        imgNueva = null; imgQuitar = !!(item && item.imagenUrl);
+        mostrarImagen('');
+      });
+
       form.querySelector('.cadm-f-guardar').addEventListener('click', async () => {
         const nombre = form.querySelector('.cadm-f-nombre').value.trim();
+        const resumen = form.querySelector('.cadm-f-resumen').value.trim();
         const objetivo = form.querySelector('.cadm-f-objetivo').value.trim();
         const estado = form.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
         const temaIds = Array.from(form.querySelectorAll('.cadm-p-pick:checked')).map(c => c.value);
@@ -5985,8 +6062,16 @@
         if(!temaIds.length){ toast('Selecciona al menos un tema requerido.', false); return; }
 
         try {
-          await apiPostJson('/api/crearProyecto', { herramienta:cadmTool, id, nombre, objetivo, temaIds, estado, orden: item ? item.orden : Date.now() });
-          toast('Proyecto guardado.', true);
+          await apiPostJson('/api/crearProyecto', { herramienta:cadmTool, id, nombre, resumen, objetivo, temaIds, estado, orden: item ? item.orden : Date.now() });
+          let avisoImagen = '';
+          try {
+            if(imgNueva){
+              await apiPostJson('/api/subirImagenProyecto', { herramienta:cadmTool, id, fullBase64: await blobABase64(imgNueva.full), miniBase64: await blobABase64(imgNueva.mini) });
+            } else if(imgQuitar){
+              await apiPostJson('/api/eliminarImagenProyecto', { herramienta:cadmTool, id });
+            }
+          } catch(e){ avisoImagen = ' (la imagen no se pudo guardar: ' + e.message + ')'; }
+          toast(avisoImagen ? 'Proyecto guardado' + avisoImagen : 'Proyecto guardado.', !avisoImagen);
           const data = await apiGet(`/api/listProyectosAdmin?herramienta=${encodeURIComponent(cadmTool)}`);
           cadmProyectos = data.proyectos || [];
           renderModeTabs();

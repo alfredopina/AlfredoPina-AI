@@ -13,6 +13,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
 const { subirCotizacionPdf } = require("../src/cotizaciones-storage");
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
+const { proyectosParaPdf } = require("../src/cotizacion-proyectos");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -131,7 +132,9 @@ module.exports = async function (context, req) {
 
   let blobPath;
   try {
+    const proyectos = temarioTipo === "estandar" ? await proyectosParaPdf(herramienta, temarioNombre) : [];
     const pdfBuffer = await generarCotizacionPdf({
+      proyectos,
       cliente: cliente.nombre,
       contacto: contactoNombre,
       herramienta,

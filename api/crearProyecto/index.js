@@ -13,6 +13,7 @@ module.exports = async function (context, req) {
   const id = (body.id || "").trim().toLowerCase();
   const nombre = (body.nombre || "").trim();
   const objetivo = (body.objetivo || "").trim();
+  const resumen = (body.resumen || "").trim().slice(0, 160); // una línea: sale bajo la imagen en el sitio y en la cotización
   const temaIds = Array.isArray(body.temaIds) ? body.temaIds.filter((x) => typeof x === "string" && x) : [];
   const estado = body.estado === "publicado" ? "publicado" : "borrador";
   const orden = Number.isFinite(body.orden) ? body.orden : 0;
@@ -51,8 +52,14 @@ module.exports = async function (context, req) {
 
     const proyectosTable = getProyectosTable();
     await ensureTable(proyectosTable);
+    // "Replace" borraría los campos de imagen (se suben por subirImagenProyecto): se conservan
+    const imagen = {};
+    try {
+      const previa = await proyectosTable.getEntity(herramienta, id);
+      ["imagenUrl", "imagenMiniUrl", "imagenBlob", "imagenMiniBlob"].forEach((k) => { if (previa[k]) imagen[k] = previa[k]; });
+    } catch (e) { /* proyecto nuevo */ }
     await proyectosTable.upsertEntity(
-      { partitionKey: herramienta, rowKey: id, nombre, objetivo, temaIds: JSON.stringify(temaIds), estado, orden },
+      { partitionKey: herramienta, rowKey: id, nombre, objetivo, resumen, temaIds: JSON.stringify(temaIds), estado, orden, ...imagen },
       "Replace"
     );
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };

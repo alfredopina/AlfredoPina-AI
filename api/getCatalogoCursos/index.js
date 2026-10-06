@@ -46,7 +46,7 @@ module.exports = async function (context, req) {
     const proyectosPublicados = proyectosEntities
       .filter((p) => p.estado === "publicado")
       .sort((a, b) => (a.orden || 0) - (b.orden || 0))
-      .map((p) => ({ id: p.rowKey, nombre: p.nombre || "", objetivo: p.objetivo || "", temaIds: parseTemaIds(p.temaIds) }));
+      .map((p) => ({ id: p.rowKey, nombre: p.nombre || "", objetivo: p.objetivo || "", resumen: p.resumen || "", imagenUrl: p.imagenUrl || "", imagenMiniUrl: p.imagenMiniUrl || "", temaIds: parseTemaIds(p.temaIds) }));
 
     const estandarPublicados = temariosEntities
       .filter((t) => t.estado === "publicado")
@@ -55,7 +55,9 @@ module.exports = async function (context, req) {
         const { temas, horas: horasSuma, nivelLabel } = resolverTemario(t, temasPorId);
         const horas = horasEfectivas(t, horasSuma);
         const temaIdsSet = new Set(temas.map((x) => x.id));
-        const proyectos = proyectosDePrograma(t, proyectosPublicados, temaIdsSet).map((p) => p.nombre);
+        const proyectosDelPrograma = proyectosDePrograma(t, proyectosPublicados, temaIdsSet);
+        const proyectos = proyectosDelPrograma.map((p) => p.nombre);
+        const proyectosDetalle = proyectosDelPrograma.map((p) => ({ id: p.id, nombre: p.nombre, resumen: p.resumen, imagenUrl: p.imagenUrl, imagenMiniUrl: p.imagenMiniUrl }));
         return {
           id: t.rowKey,
           nombre: t.nombre || "",
@@ -66,6 +68,7 @@ module.exports = async function (context, req) {
           nivelLabel,
           temas,
           proyectos,
+          proyectosDetalle,
         };
       });
 

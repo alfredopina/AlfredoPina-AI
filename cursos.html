@@ -260,6 +260,40 @@
       <div class="programs-list" id="programsList">${estandar.map(programFnHtml).join('')}</div>`;
   }
 
+  function proyectoCardHtml(progId, pr){
+    const inner = (pr.imagenMiniUrl ? `<span class="proy-img"><img src="${escapeHtml(pr.imagenMiniUrl)}" alt="" loading="lazy"></span>` : '') +
+      `<span class="proy-name">${escapeHtml(pr.nombre)}</span>` + (pr.resumen ? `<span class="proy-res">${escapeHtml(pr.resumen)}</span>` : '');
+    return pr.imagenMiniUrl
+      ? `<button type="button" class="proy-card has-img" onclick="event.stopPropagation(); abrirProyecto('${progId}','${pr.id}')" aria-label="Ver ejemplo: ${escapeHtml(pr.nombre)}">${inner}</button>`
+      : `<div class="proy-card">${inner}</div>`;
+  }
+
+  // visor: imagen de ejemplo del proyecto en grande
+  function abrirProyecto(progId, projId){
+    const prog = ((currentCatalogo && currentCatalogo.estandar) || []).find(x => x.id === progId);
+    const pr = prog && (prog.proyectosDetalle || []).find(x => x.id === projId);
+    if(!pr || !pr.imagenUrl) return;
+    let dlg = document.getElementById('proyDialog');
+    if(!dlg){
+      document.body.insertAdjacentHTML('beforeend', `
+        <dialog class="proy-dialog" id="proyDialog" aria-labelledby="proyTitulo">
+          <div class="proy-dlg-head"><div><div class="proy-dlg-kicker">Ejemplo de proyecto</div><div class="proy-dlg-title" id="proyTitulo"></div></div>
+            <button type="button" class="lead-dlg-close" id="proyCerrar" aria-label="Cerrar">${closeIcon}</button></div>
+          <img class="proy-dlg-img" id="proyImg" alt="">
+          <div class="proy-dlg-res" id="proyRes"></div>
+        </dialog>`);
+      dlg = document.getElementById('proyDialog');
+      document.getElementById('proyCerrar').addEventListener('click', () => dlg.close());
+      dlg.addEventListener('click', e => { if(e.target === dlg) dlg.close(); });
+    }
+    dlg.style.setProperty('--c', TOOL_COLOR[currentCat] || '#22c55e');
+    document.getElementById('proyTitulo').textContent = pr.nombre;
+    const img = document.getElementById('proyImg');
+    img.src = pr.imagenUrl; img.alt = 'Ejemplo: ' + pr.nombre;
+    document.getElementById('proyRes').textContent = pr.resumen || '';
+    dlg.showModal();
+  }
+
   function programFnHtml(p){
     const sessionsHtml = (p.temas || []).map((t, i) => `
       <div class="session">
@@ -270,8 +304,10 @@
         </div>
         <div class="session-hr">${t.horas} hr</div>
       </div>`).join('');
-    const proyectosHtml = (p.proyectos && p.proyectos.length)
-      ? `<div class="builder-bonuses">${p.proyectos.map(nm => `<span class="bonus-pill">${checkIcon()} Incluye Proyecto: ${escapeHtml(nm)}</span>`).join('')}</div>` : '';
+    // proyectos del programa: mini-tarjetas; con imagen de ejemplo se abre en grande al tocarla
+    const proyDetalle = (p.proyectosDetalle && p.proyectosDetalle.length) ? p.proyectosDetalle : (p.proyectos || []).map(nm => ({ nombre: nm }));
+    const proyectosHtml = proyDetalle.length
+      ? `<div class="proy-bloque"><div class="proy-titulo">PROYECTOS INCLUIDOS</div><div class="proy-grid">${proyDetalle.map(pr => proyectoCardHtml(p.id, pr)).join('')}</div></div>` : '';
 
     return `
       <div class="program-fn" id="programFn-${p.id}">

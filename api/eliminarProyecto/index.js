@@ -2,6 +2,7 @@
 // Function protegida (rol "admin"): borra un proyecto. Nada más referencia un
 // proyecto, así que es un delete directo.
 const { getProyectosTable } = require("../src/cursos-tables");
+const { borrarBlobs } = require("../src/proyectos-storage");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -17,7 +18,10 @@ module.exports = async function (context, req) {
 
   try {
     const proyectosTable = getProyectosTable();
+    let previa = null;
+    try { previa = await proyectosTable.getEntity(herramienta, id); } catch (e) { /* ya no existe */ }
     await proyectosTable.deleteEntity(herramienta, id);
+    if (previa) await borrarBlobs([previa.imagenBlob, previa.imagenMiniBlob]);
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
   } catch (err) {
     context.log.error("Error eliminando el proyecto:", err.message);

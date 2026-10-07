@@ -7,6 +7,7 @@
 // nuevo, el mismo link ya compartido con el cliente refleja el cambio.
 const { getDiplomasGrupoTable, leerDiplomasGrupo, registrarVistaDiplomasGrupo } = require("../src/diplomas-reportes");
 const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
+const { esAdmin, esBot } = require("../src/verif-cliente");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -23,7 +24,8 @@ module.exports = async function (context, req) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese link no existe o ya no está disponible." } };
       return;
     }
-    registrarVistaDiplomasGrupo(table, token).catch((err) => context.log.error("Error registrando vista de diplomas:", err.message));
+    // no cuenta tus propias visitas (rol admin) ni las vistas previas de WhatsApp/LinkedIn: así el contador es de gente real
+    if (!esAdmin(req) && !esBot(req)) registrarVistaDiplomasGrupo(table, token).catch((err) => context.log.error("Error registrando vista de diplomas:", err.message));
     context.res = { status: 200, headers: JSON_HEADERS, body: snapshot };
   } catch (err) {
     context.log.error("Error leyendo diplomas públicos:", err.message);

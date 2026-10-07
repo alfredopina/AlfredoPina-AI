@@ -1,7 +1,7 @@
 // crearCotizacion/index.js
 // Function protegida (rol "admin"): alta de una Cotización. Resuelve folio
-// (mismo patrón AP_{HERRAMIENTA}_{código}_{AA}-{consecutivo} que
-// generarDiplomas, consecutivo por Cliente+Año), calcula precio_sugerido =
+// (AP{AA}-{código}-{HERRAMIENTA}-{NN}, consecutivo por Cliente+Año, ver
+// api/src/cotizacion-folio.js), calcula precio_sugerido =
 // horas × TarifaHerramienta y sugiere 10% de descuento para grupos chicos
 // ("Solo yo"/"5 a 10") — ambos siempre editables desde el front
 // (descuento_pct/precio_final, si vienen, pisan la sugerencia). Genera el PDF
@@ -14,6 +14,7 @@ const { resolverCliente } = require("../src/cliente-resolver");
 const { subirCotizacionPdf } = require("../src/cotizaciones-storage");
 const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
 const { proyectosParaPdf } = require("../src/cotizacion-proyectos");
+const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -28,17 +29,10 @@ const TOOL_LABELS = {
 };
 
 
-// consecutivo por Cliente+Año, mismo cálculo que generarDiplomas pero leyendo
-// los folios ya usados en Cotizacion en vez de Diploma.
+// consecutivo por Cliente+Año: lee los folios ya usados (formato viejo y nuevo)
 async function siguienteConsecutivo(pool, clienteId, yy) {
   const r = await pool.request().input("clienteId", sql.Int, clienteId).query("SELECT folio FROM Cotizacion WHERE cliente_id = @clienteId");
-  const patron = new RegExp(`_${yy}-(\\d+)$`);
-  let max = 0;
-  for (const row of r.recordset) {
-    const m = patron.exec(row.folio || "");
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  }
-  return max + 1;
+  return maxConsecutivo(r.recordset.map((row) => row.folio), yy) + 1;
 }
 
 module.exports = async function (context, req) {
@@ -123,7 +117,7 @@ module.exports = async function (context, req) {
   let folio;
   try {
     const consecutivo = await siguienteConsecutivo(pool, cliente.id, yy);
-    folio = `AP_${herramienta.toUpperCase()}_${cliente.codigo}_${yy}-${consecutivo}`;
+    folio = folioNuevo({ yy, codigoCliente: cliente.codigo, herramienta, consecutivo });
   } catch (err) {
     context.log.error("Error calculando el folio:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo calcular el folio: " + err.message } };

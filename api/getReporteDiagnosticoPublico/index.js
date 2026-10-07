@@ -6,6 +6,7 @@
 const { getDiagnosticoReportesTable, leerReporte, incrementarVisitas } = require("../src/diagnostico-reporte-tables");
 const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
+const { esAdmin, esBot } = require("../src/verif-cliente");
 
 module.exports = async function (context, req) {
   const token = (req.query.token || "").trim();
@@ -21,7 +22,8 @@ module.exports = async function (context, req) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese reporte no existe o ya no está disponible." } };
       return;
     }
-    await incrementarVisitas(table, token);
+    // no cuenta tus propias visitas (rol admin) ni las vistas previas de WhatsApp/LinkedIn
+    if (!esAdmin(req) && !esBot(req)) await incrementarVisitas(table, token);
     context.res = { status: 200, headers: JSON_HEADERS, body: reporte };
   } catch (err) {
     context.log.error("Error leyendo el reporte de diagnóstico:", err.message);

@@ -5,6 +5,7 @@
 // instante sin depender del auto-pause de apcweb-backoffice.
 const { getCalificacionesReportesTable, leerReporteCalificaciones, registrarVistaReporte } = require("../src/calificaciones-reportes");
 const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
+const { esAdmin, esBot } = require("../src/verif-cliente");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -22,7 +23,7 @@ module.exports = async function (context, req) {
       return;
     }
     // no debe tumbar la carga del reporte si el contador falla por lo que sea
-    registrarVistaReporte(table, token).catch((err) => context.log.error("Error registrando vista del reporte:", err.message));
+    if (!esAdmin(req) && !esBot(req)) registrarVistaReporte(table, token).catch((err) => context.log.error("Error registrando vista del reporte:", err.message));
     context.res = { status: 200, headers: JSON_HEADERS, body: snapshot };
   } catch (err) {
     context.log.error("Error leyendo el reporte de calificaciones:", err.message);

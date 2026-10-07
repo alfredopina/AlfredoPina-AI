@@ -12966,9 +12966,10 @@
   // Cotización reusa el selector de temario compartido (TemarioSelector, ver
   // arriba) y opcionalmente precarga desde una Solicitud abierta del cliente
   // o desde una Cotización existente ("Nueva versión" — la vieja pasa a
-  // Reemplazada al confirmar). El PDF se genera con pdfmake (api/src/
-  // cotizacion-pdf.js) — sin plantilla de fondo que subir, el diseño vive en
-  // código, por eso ya no hay pestaña Plantilla aquí.
+  // Reemplazada al confirmar). Lo que recibe el cliente es una PROPUESTA web
+  // (/propuesta/{código}, ver propuesta.html y api/src/propuestas.js), no un PDF:
+  // el diseño vive en esa página y el PDF sale de su botón Imprimir. Las
+  // cotizaciones viejas (sin propuesta_codigo) conservan su PDF.
   (function(){
     const TOOL_NAMES = {
       excel: 'Excel', powerbi: 'Power BI', powerapps: 'Power Apps',
@@ -13087,11 +13088,35 @@
       return { clase:'ok', texto: `${c.dias_abierta} días · A tiempo` };
     }
 
+    // ── propuesta web: link para el cliente, avisos de apertura/aceptación ──
+    const PROPUESTA_BASE = 'https://www.alfredopina.ai/propuesta/';
+    let propStats = {};
+    async function cargarPropStats(){
+      try { propStats = await apiGetConReintento('/api/getPropuestasStatsAdmin'); } catch(e){ propStats = {}; }
+    }
+    // texto corto bajo el estatus (siempre texto, nunca solo color)
+    function propEstadoHtml(c){
+      if(!c.propuesta_codigo) return '';
+      const s = propStats[c.propuesta_codigo];
+      if(!s) return '';
+      if(s.aceptadaEn) return `<div class="cot-cliente-sub"><b>Aceptada</b> por ${escapeHtml(s.aceptadaPor || 'el cliente')}</div>`;
+      if(s.vistas) return `<div class="cot-cliente-sub">Abierta ${s.vistas} ${s.vistas === 1 ? 'vez' : 'veces'}</div>`;
+      return c.estatus === 'Borrador' ? '' : '<div class="cot-cliente-sub">Sin abrir</div>';
+    }
+    async function copiarLinkPropuesta(c){
+      if(!c || !c.propuesta_codigo){ toast('Esta cotización es anterior a las propuestas web: solo tiene PDF.', false); return; }
+      const link = PROPUESTA_BASE + c.propuesta_codigo;
+      try { await navigator.clipboard.writeText(link); toast('Link de la propuesta copiado.', true); }
+      catch(e){ window.prompt('Copia el link de la propuesta:', link); }
+    }
+    const iconoLink = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const iconoVer = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>';
+
     async function buscarCotizaciones(){
       const body = document.getElementById('cotListaBody');
       body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const cruda = await apiGetConReintento('/api/listCotizacionesAdmin?vista=' + cotVistaActual);
+        const [cruda] = await Promise.all([apiGetConReintento('/api/listCotizacionesAdmin?vista=' + cotVistaActual), cargarPropStats()]);
         // Tracking: lo más urgente primero — vencidas, luego más días sin respuesta; los Borradores (sin semáforo) al final.
         const lista = cotVistaActual === 'activas'
           ? cruda.slice().sort((a, b) => {
@@ -13119,12 +13144,14 @@
               </td>
               <td class="radm-mono">${fmtMoney(c.precio_final)}</td>
               <td>${sem ? `<span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span>` : `<span class="radm-mono" style="color:var(--text-dim);">Sin enviar</span>`}</td>
-              <td><span class="cot-badge ${badgeClase}">${escapeHtml(c.estatus)}</span></td>
+              <td><span class="cot-badge ${badgeClase}">${escapeHtml(c.estatus)}</span>${propEstadoHtml(c)}</td>
               <td>
                 <div class="cot-row-actions">
-                  <button type="button" class="cot-icon-btn cot-accion-enviar" data-id="${c.id}" ${puedeEnviar ? '' : 'disabled'} title="Marca Enviada, abre el PDF y un correo prellenado">
+                  <button type="button" class="cot-icon-btn cot-accion-ver" data-id="${c.id}" title="${c.propuesta_codigo ? 'Ver la propuesta (así la ve el cliente, sin contar la visita)' : 'Ver el PDF'}">${iconoVer}</button>
+                  <button type="button" class="cot-icon-btn cot-accion-enviar" data-id="${c.id}" ${puedeEnviar ? '' : 'disabled'} title="${c.propuesta_codigo ? 'Marca Enviada, copia el link y abre un correo prellenado' : 'Marca Enviada, abre el PDF y un correo prellenado'}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 3 18 9-18 9 4-9-4-9Z" stroke-linejoin="round"/></svg>
                   </button>
+                  ${c.propuesta_codigo ? `<button type="button" class="cot-icon-btn cot-accion-link" data-id="${c.id}" title="Copiar el link de la propuesta para el cliente">${iconoLink}</button>` : ''}
                   <button type="button" class="cot-icon-btn cot-accion-version" data-id="${c.id}" title="Nueva versión — precarga el formulario de Crear Cotización para ajustar y reemplazar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"/></svg>
                   </button>
@@ -13155,11 +13182,20 @@
       if(!c) return;
       try {
         await apiPostJson('/api/actualizarEstatusCotizacion', { id: c.id, estatus: 'Enviada' });
-        toast('Marcada como Enviada.', true);
-        window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank');
         const curso = c.temario_nombre || (TOOL_NAMES[c.herramienta] || c.herramienta);
         const asunto = encodeURIComponent(`Cotización — ${curso} — ${c.cliente}`);
-        const cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nTe comparto la cotización para ${curso} (${c.cliente}) por ${fmtMoney(c.precio_final)} MXN — adjunto el PDF que acabo de descargar.\n\nQuedo al pendiente,\nAlfredo`);
+        let cuerpo;
+        if(c.propuesta_codigo){
+          // propuesta web: se manda el link (y se copia, por si el correo prellenado no abre)
+          const link = PROPUESTA_BASE + c.propuesta_codigo;
+          try { await navigator.clipboard.writeText(link); } catch(e){ /* no es crítico: el link va en el cuerpo del correo */ }
+          toast('Marcada como Enviada. Link de la propuesta copiado.', true);
+          cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nTe comparto la propuesta para ${curso} (${c.cliente}) por ${fmtMoney(c.precio_final)} MXN + IVA:\n${link}\n\nAhí encuentras el temario, lo que incluye y cómo se mide. Si necesitas el PDF, lo guardas desde el botón Imprimir.\n\nQuedo al pendiente,\nAlfredo`);
+        } else {
+          toast('Marcada como Enviada.', true);
+          window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank');
+          cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nTe comparto la cotización para ${curso} (${c.cliente}) por ${fmtMoney(c.precio_final)} MXN — adjunto el PDF que acabo de descargar.\n\nQuedo al pendiente,\nAlfredo`);
+        }
         window.location.href = `mailto:${c.contacto_correo || ''}?subject=${asunto}&body=${cuerpo}`;
         buscarCotizaciones();
         cargarKpisCotizaciones();
@@ -13188,7 +13224,11 @@
       const enviarBtn = e.target.closest('.cot-accion-enviar');
       const versionBtn = e.target.closest('.cot-accion-version');
       const seguimientoBtn = e.target.closest('.cot-accion-seguimiento');
-      if(enviarBtn && !enviarBtn.disabled) accionEnviar(enviarBtn.dataset.id);
+      const verBtn = e.target.closest('.cot-accion-ver');
+      const linkBtn = e.target.closest('.cot-accion-link');
+      if(verBtn){ const c = cotizacionPorId(verBtn.dataset.id); if(c) window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank'); }
+      else if(linkBtn) copiarLinkPropuesta(cotizacionPorId(linkBtn.dataset.id));
+      else if(enviarBtn && !enviarBtn.disabled) accionEnviar(enviarBtn.dataset.id);
       else if(versionBtn) accionNuevaVersion(versionBtn.dataset.id);
       else if(seguimientoBtn) accionCorreoSeguimiento(seguimientoBtn.dataset.id);
     });
@@ -13401,7 +13441,7 @@
       cargarListaSolicitudesActivas();
     });
 
-    // El PDF muestra un callout "Dirigido a / Objetivo" solo cuando el
+    // La propuesta muestra "Dirigido a / Objetivo" solo cuando el
     // temario es Estándar (esos 2 campos viven en TemariosEstandar, ver
     // Cursos en CLAUDE.md) — Solicitud solo guarda el NOMBRE del temario, así
     // que hay que resolverlo contra el catálogo cacheado, mismo patrón que ya
@@ -13425,7 +13465,8 @@
       const payload = {
         cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
         herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
-        horas_totales: horasDe(sol), precio_final: precioFinal,
+        horas_totales: horasDe(sol), precio_final: precioFinal, tarifa_hora: tarifasCache[sol.herramienta] || null,
+        temario_tipo: sol.temario_tipo,
         modalidad: sol.modalidad, participantes: sol.participantes,
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
@@ -13436,8 +13477,9 @@
       try {
         const res = await fetch('/api/previsualizarCotizacion', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
         if(!res.ok){ const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Error de red'); }
-        const blob = await res.blob();
-        window.open(URL.createObjectURL(blob), '_blank');
+        // la propuesta de vista previa lee este snapshot de localStorage (mismo origen); no se guarda nada en el servidor
+        localStorage.setItem('propuestaVistaPrevia', JSON.stringify(await res.json()));
+        window.open('/propuesta/vista-previa', '_blank');
       } catch(e){ toast('No se pudo generar la vista previa: ' + e.message, false); }
       btn.disabled = false; btn.textContent = 'Vista previa';
     });
@@ -13469,7 +13511,7 @@
       btn.disabled = true; btn.textContent = 'Creando...';
       try {
         const r = await apiPostJson('/api/crearCotizacion', payload);
-        toast('Cotización creada: ' + r.folio, true);
+        toast('Cotización creada: ' + r.folio + '. La propuesta ya tiene su link.', true);
         cotSolicitudActual = null;
         cotReemplazaFolioActual = null;
         mostrarVistaCrear('lista');
@@ -13566,7 +13608,7 @@
       const body = document.getElementById('cotVListaBody');
       body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGetConReintento('/api/listCotizacionesAdmin?' + params.toString());
+        const [lista] = await Promise.all([apiGetConReintento('/api/listCotizacionesAdmin?' + params.toString()), cargarPropStats()]);
         cotVListaCache = lista;
         if(!lista.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
         body.innerHTML = lista.map(c => `
@@ -13575,13 +13617,14 @@
             <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)} — ${escapeHtml(c.temario_nombre || 'Personalizado')}</td>
             <td class="radm-mono">${escapeHtml(c.folio)}</td>
             <td class="radm-mono" style="text-align:right;">${fmtMoney(c.precio_final)}</td>
-            <td><span class="cot-badge ${ESTATUS_BADGE[c.estatus] || ''}">${escapeHtml(c.estatus)}</span></td>
+            <td><span class="cot-badge ${ESTATUS_BADGE[c.estatus] || ''}">${escapeHtml(c.estatus)}</span>${propEstadoHtml(c)}</td>
             <td>${fmtFecha(c.fecha_creacion)}</td>
             <td>
               <div class="cot-row-actions">
-                <button type="button" class="cot-icon-btn cotV-ver-pdf" data-folio="${escapeHtml(c.folio)}" title="Ver PDF">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg>
+                <button type="button" class="cot-icon-btn cotV-ver-pdf" data-folio="${escapeHtml(c.folio)}" title="${c.propuesta_codigo ? 'Ver la propuesta' : 'Ver PDF'}">
+                  ${c.propuesta_codigo ? iconoVer : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h4"/></svg>'}
                 </button>
+                ${c.propuesta_codigo ? `<button type="button" class="cot-icon-btn cotV-link" data-folio="${escapeHtml(c.folio)}" title="Copiar el link de la propuesta para el cliente">${iconoLink}</button>` : ''}
                 <button type="button" class="cot-icon-btn cotV-recotizar" data-folio="${escapeHtml(c.folio)}" title="Recotizar (nueva versión)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
@@ -13602,7 +13645,10 @@
     document.getElementById('cotVListaBody').addEventListener('click', e => {
       const verBtn = e.target.closest('.cotV-ver-pdf');
       const recoBtn = e.target.closest('.cotV-recotizar');
-      if(verBtn){
+      const linkBtn = e.target.closest('.cotV-link');
+      if(linkBtn){
+        copiarLinkPropuesta(cotVListaCache.find(x => x.folio === linkBtn.dataset.folio));
+      } else if(verBtn){
         window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(verBtn.dataset.folio), '_blank');
       } else if(recoBtn){
         const c = cotVListaCache.find(x => x.folio === recoBtn.dataset.folio);

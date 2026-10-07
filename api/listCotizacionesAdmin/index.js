@@ -10,6 +10,7 @@
 // a diferencia de ?vista= (categorías amplias para el pipeline), aquí se
 // necesita cualquier estatus individual para navegar el historial completo.
 const { getPool, sql } = require("../src/backoffice-db");
+const { codigoDePropuesta } = require("../src/propuestas");
 const { JSON_HEADERS } = require("../src/http");
 
 const VISTAS = {
@@ -53,7 +54,7 @@ module.exports = async function (context, req) {
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json,
              s.horas, s.precio_sugerido, s.descuento_pct, s.precio_final,
              s.fecha_creacion, s.fecha_envio, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio,
-             s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad,
+             s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad, s.blob_path,
              DATEDIFF(day, s.fecha_creacion, GETUTCDATE()) AS dias_abierta,
              CASE WHEN s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)
                        AND s.estatus IN ('Borrador', 'Enviada', 'En negociación')
@@ -65,7 +66,9 @@ module.exports = async function (context, req) {
       ORDER BY s.fecha_creacion DESC
     `);
 
-    context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
+    // propuesta_codigo: las cotizaciones nuevas tienen propuesta web; las viejas (sin código) siguen con su PDF
+    const filas = result.recordset.map(({ blob_path, ...resto }) => ({ ...resto, propuesta_codigo: codigoDePropuesta(blob_path) }));
+    context.res = { status: 200, headers: JSON_HEADERS, body: filas };
   } catch (err) {
     context.log.error("Error listando cotizaciones:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudieron listar las cotizaciones." } };

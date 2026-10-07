@@ -5,15 +5,16 @@
 // horas × TarifaHerramienta y sugiere 10% de descuento para grupos chicos
 // ("Solo yo"/"5 a 10") — ambos siempre editables desde el front
 // (descuento_pct/precio_final, si vienen, pisan la sugerencia). Genera el PDF
-// final y lo sube al contenedor privado "cotizaciones" (autocreado). Si viene
-// reemplaza_a_folio, la cotización vieja pasa a "Reemplazada" (no se borra —
+// la PROPUESTA (snapshot en Table Storage, ver api/src/propuestas.js) que el
+// cliente abre en /propuesta/{código}, y guarda ese código en blob_path como
+// "propuesta/{código}". Si viene reemplaza_a_folio, la cotización vieja pasa a "Reemplazada" (no se borra —
 // mismo criterio que anularDiploma). Si viene solicitud_id, esa Solicitud
 // pasa a "Cotizada".
 const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
-const { subirCotizacionPdf } = require("../src/cotizaciones-storage");
-const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
-const { proyectosParaPdf } = require("../src/cotizacion-proyectos");
+const { proyectosParaPropuesta } = require("../src/cotizacion-proyectos");
+const { armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
+const { codigoCortoUnico } = require("../src/codigo-corto");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
@@ -22,11 +23,6 @@ const TEMARIO_TIPOS = ["estandar", "personalizado"];
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
 const GRUPOS_CHICOS = ["Solo yo", "5 a 10"];
-
-const TOOL_LABELS = {
-  excel: "Excel", powerbi: "Power BI", powerapps: "Power Apps",
-  powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Ofimática Básica",
-};
 
 
 // consecutivo por Cliente+Año: lee los folios ya usados (formato viejo y nuevo)
@@ -124,32 +120,41 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // la propuesta se guarda ANTES del insert: si el insert falla, queda un snapshot huérfano que nadie abre (inofensivo)
   let blobPath;
+  let codigoPropuesta;
+  const tablaPropuestas = getPropuestasTable();
   try {
-    const proyectos = temarioTipo === "estandar" ? await proyectosParaPdf(herramienta, temarioNombre) : [];
-    const pdfBuffer = await generarCotizacionPdf({
-      proyectos,
+    const proyectos = temarioTipo === "estandar" ? await proyectosParaPropuesta(herramienta, temarioNombre) : [];
+    codigoPropuesta = await codigoCortoUnico(async (c) => {
+      try { await tablaPropuestas.getEntity("propuesta", c); return true; } catch (e) { return false; }
+    });
+    const snapshot = armarSnapshot({
+      folio,
       cliente: cliente.nombre,
       contacto: contactoNombre,
       herramienta,
-      herramientaLabel: TOOL_LABELS[herramienta] || herramienta,
-      temarioTitulo: temarioTipo === "estandar" ? temarioNombre : "Temario personalizado",
+      programa: temarioTipo === "estandar" && temarioNombre ? temarioNombre : "Programa personalizado",
       temas,
-      horasTotales: horas,
-      precioFinal,
+      horas,
       modalidad,
       participantes,
       ciudadSede,
       fechaTentativa,
-      fechaVigencia,
-      folio,
-      dirigidoA,
       objetivo,
+      dirigidoA,
+      proyectos,
+      tarifaHora: precioHora,
+      precioSugerido,
+      precioFinal,
+      emitida: new Date(),
+      vigencia: fechaVigencia,
     });
-    blobPath = await subirCotizacionPdf(folio, pdfBuffer);
+    await guardarPropuesta(tablaPropuestas, { codigo: codigoPropuesta, snapshot });
+    blobPath = blobPathDePropuesta(codigoPropuesta);
   } catch (err) {
-    context.log.error("Error generando el PDF de la cotización:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo generar el PDF: " + err.message } };
+    context.log.error("Error guardando la propuesta:", err.message);
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar la propuesta: " + err.message } };
     return;
   }
 
@@ -188,7 +193,10 @@ module.exports = async function (context, req) {
       );
 
     if (reemplazaAFolio) {
-      await pool.request().input("folio", sql.NVarChar, reemplazaAFolio).query("UPDATE Cotizacion SET estatus = 'Reemplazada' WHERE folio = @folio");
+      const vieja = await pool.request().input("folio", sql.NVarChar, reemplazaAFolio).query("UPDATE Cotizacion SET estatus = 'Reemplazada' OUTPUT INSERTED.blob_path WHERE folio = @folio");
+      // el link ya compartido de la versión anterior sigue abriendo, con un aviso de que existe una más nueva
+      const codigoViejo = vieja.recordset.length ? codigoDePropuesta(vieja.recordset[0].blob_path) : null;
+      if (codigoViejo) await marcarReemplazada(tablaPropuestas, codigoViejo, codigoPropuesta, folio);
     }
     if (solicitudId) {
       await pool.request().input("id", sql.Int, solicitudId).query("UPDATE Solicitud SET fecha_estatus = CASE WHEN estatus <> 'Cotizada' THEN SYSUTCDATETIME() ELSE fecha_estatus END, estatus = 'Cotizada' WHERE id = @id");
@@ -197,7 +205,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: JSON_HEADERS,
-      body: { id: insert.recordset[0].id, folio, cliente, precioSugerido, descuentoPct, precioFinal },
+      body: { id: insert.recordset[0].id, folio, cliente, precioSugerido, descuentoPct, precioFinal, propuesta_codigo: codigoPropuesta },
     };
   } catch (err) {
     context.log.error("Error creando la cotización:", err.message);

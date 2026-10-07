@@ -10,8 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* MOCKUP — Fase 1 (diseño con datos de ejemplo, sin backend). ?demo muestra el selector Cliente/Admin;
-     ?vista=admin abre la vista del admin. Cuando se apruebe se conecta a la cotización real (foto en Table Storage). */
+  /* PROPUESTA de cotización. Se abre como /propuesta/{código} (ver staticwebapp.config.json) y lee su snapshot de Table
+     Storage por /api/getPropuestaPublica. /propuesta/vista-previa lee la vista previa que deja el admin en localStorage.
+     El admin (sesión de /admin) ve además una barra con las aperturas del cliente; sus visitas no cuentan. */
   :root{
     --bg:#0a0d12; --panel:#10141b; --panel-2:#141a23; --line:#1d2530; --line-soft:#161c26;
     --blue:#3d7fff; --blue-bright:#6b9fff; --blue-soft:rgba(61,127,255,.14);
@@ -25,6 +26,16 @@
   html{scroll-behavior:smooth; scroll-padding-top:calc(var(--head-h) + 16px);}
   body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased; line-height:1.55; overflow-x:hidden;}
   svg{display:block;} [hidden]{display:none !important;}
+  body.cargando main, body.cargando footer, body.cargando header.top, body.cargando nav.bottom{visibility:hidden;}
+  .estado{min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:32px; position:relative; z-index:2;}
+  .estado .caja{max-width:440px;}
+  .estado img{height:34px; margin:0 auto 28px;}
+  .estado h1{font-family:var(--display); font-size:26px; margin-bottom:10px;}
+  .estado p{color:var(--text-dim); font-size:15px;} .estado a{color:var(--blue-bright);}
+  .aviso-version{position:relative; z-index:3; border:1px solid var(--ambar); border-left-width:4px; background:rgba(223,179,90,.1); border-radius:10px; padding:12px 16px; margin:18px auto 0; max-width:1024px; font-size:14px; display:flex; gap:10px; align-items:center;}
+  .aviso-version svg{width:18px; height:18px; flex:none; color:var(--ambar);} .aviso-version a{color:var(--blue-bright); font-weight:600;}
+  .proy .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .btn.hecho{opacity:.75; cursor:default; pointer-events:none;}
   a{color:inherit;}
   .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
   .mono{font-family:var(--mono);}
@@ -211,7 +222,8 @@
   }
 </style>
 </head>
-<body>
+<body class="cargando">
+<div class="estado" id="estado" hidden><div class="caja"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai"><h1 id="estadoT">Esta propuesta no está disponible</h1><p id="estadoP">El link puede estar incompleto o la propuesta ya no está vigente. Escríbeme y te comparto una nueva: <a href="mailto:alfredo.pina@lifezen.com.mx">alfredo.pina@lifezen.com.mx</a>.</p></div></div>
 <div class="progress" id="progress"></div>
 <div class="bg-grid"></div><div class="bg-glow"></div>
 
@@ -223,7 +235,7 @@
     <span class="admin-stat" id="adminStat"></span>
     <div class="admin-actions">
       <button class="admin-btn" id="abCopiar" type="button">Copiar link del cliente</button>
-      <button class="admin-btn" id="abPdf" type="button">Descargar PDF</button>
+      <button class="admin-btn" id="abPdf" type="button">Imprimir / PDF</button>
       <button class="admin-btn" id="abCliente" type="button">Ver como cliente</button>
     </div>
   </div>
@@ -244,6 +256,7 @@
 </header>
 
 <main>
+<div class="wrap"><div class="aviso-version" id="avisoVersion" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Esta es una versión anterior. Hay una propuesta más reciente: <a id="avisoVersionLink" href="#"></a></span></div></div>
 <div class="print-brand"><img src="/assets/img/brand/logo-principal-claro.svg" alt="alfredopina.ai"><div><b id="pbFolio"></b><span id="pbFecha"></span></div></div>
 <!-- 1 · PORTADA -->
 <section id="propuesta">
@@ -365,47 +378,24 @@
   <form method="dialog" id="fAceptar">
     <h3>Aceptar propuesta</h3>
     <p>Déjanos tus datos y Alfredo te contacta para confirmar fechas y los últimos detalles.</p>
-    <input type="text" id="aNombre" placeholder="Tu nombre" required>
-    <textarea id="aCom" rows="3" placeholder="Comentarios (opcional)"></textarea>
+    <input type="text" id="aNombre" placeholder="Tu nombre" required maxlength="120">
+    <input type="text" id="aWeb" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+    <textarea id="aCom" rows="3" placeholder="Comentarios (opcional)" maxlength="1000"></textarea>
     <div class="cta"><button class="btn pri" type="submit">Confirmar</button><button class="btn ghost" type="button" id="aCancel">Cancelar</button></div>
   </form>
 </dialog>
 <div class="toast" id="toast" hidden></div>
-<div class="demo-switch" id="demoSwitch" hidden><span>DEMO</span><button type="button" data-v="cliente">Cliente</button><button type="button" data-v="admin">Admin</button></div>
+<div class="demo-switch" id="demoSwitch" hidden><span>VISTA</span><button type="button" data-v="cliente">Cliente</button><button type="button" data-v="admin">Admin</button></div>
 
 <script>
 (function(){
-  // ── DATOS DE EJEMPLO (se sustituyen por la foto de la cotización real) ──
-  const DIA = 864e5, hoy = new Date();
-  const D = {
-    folio:'AP26-KEME-POWERBI-01', cliente:'KEMET', contacto:'Anwar Galván',
-    herramienta:'powerbi', herramientaNombre:'Power BI', color:'#f2c94c', tinta:'#8a6a00',
-    programa:'Power BI + Copilot Chat', horas:24, modalidad:'Presencial', participantes:'5 a 10', ciudad:'Monterrey, N.L.',
-    nivelTxt:'Básico a Avanzado',
-    objetivo:'Que el equipo construya tableros confiables y automatice su reporteo, apoyándose en Copilot.',
-    dirigido:'Analistas y líderes de área que hoy arman sus reportes en Excel.',
-    temas:[
-      {n:'Conexión y preparación de datos', nivel:1, d:'Conectas fuentes (Excel, carpetas, bases) y limpias con Power Query para que el modelo nazca ordenado.'},
-      {n:'Modelo de datos y relaciones', nivel:1, d:'Armas un modelo estrella: tablas de hechos, dimensiones y relaciones que no se rompen.'},
-      {n:'Medidas y cálculos con DAX', nivel:2, d:'Escribes las medidas que de verdad usa el negocio: acumulados, comparativos y porcentajes.'},
-      {n:'Visualización y storytelling', nivel:2, d:'Diseñas tableros que se entienden en 5 segundos y cuentan una historia con los datos.'},
-      {n:'Publicación, seguridad y actualización', nivel:2, d:'Publicas en el Servicio de Power BI, controlas quién ve qué y programas la actualización automática.'},
-      {n:'Copilot para acelerar el análisis', nivel:3, d:'Usas Copilot para generar narrativas, resumir hallazgos y proponer medidas DAX, validando lo que produce.'},
-    ],
-    proyectos:[{n:'Tablero de ventas', r:'Ventas por región, producto y mes.', k:'bars'},{n:'Control de inventario', r:'Existencias, rotación y alertas.', k:'line'},{n:'Indicadores de operación', r:'KPIs de planta en un solo vistazo.', k:'bars2'}],
-    tarifaHora:1500, descuentoPct:10, emitida:hoy, vigencia:new Date(hoy.getTime()+15*DIA),
-    admin:{aperturas:3, ultima:'hace 2 días'},
-    tel:'(811) 725 5937', wa:'528117255937', mail:'alfredo.pina@lifezen.com.mx',
+  const DIA = 864e5;
+  // color de cada herramienta (puro = pantalla oscura; tinta = papel blanco), mismos de MANUAL_IDENTIDAD.md
+  const HERR = {
+    excel:{color:'#22c55e', tinta:'#15803d'}, powerbi:{color:'#f2c94c', tinta:'#8a6a00'}, powerapps:{color:'#c026d3', tinta:'#a21caf'},
+    powerautomate:{color:'#06b6d4', tinta:'#0e7490'}, ia:{color:'#a78bfa', tinta:'#6d3fd8'}, ofimatica:{color:'#f97316', tinta:'#b8500a'},
   };
-  D.sugerido = D.horas * D.tarifaHora; D.total = Math.round(D.sugerido * (1 - D.descuentoPct/100));
-  const TERMINOS = [
-    'Horario a definir, mínimo 4 horas a la semana en 1 o 2 sesiones.',
-    'Las sesiones en línea se realizan vía Google Meet, Zoom o Teams.',
-    'El precio aplica igual para modalidad presencial o virtual.',
-    'La sesión de proyecto final es virtual, sin costo adicional.',
-    'Cotización realizada como persona física con actividad empresarial: monto antes de impuestos, aplican IVA e ISR y retenciones conforme a la ley.',
-    'Vigencia de 15 días naturales a partir de la fecha de emisión.',
-  ];
+  const CONTACTO = {tel:'(811) 725 5937', wa:'528117255937', mail:'alfredo.pina@lifezen.com.mx'};
   const NIVEL = {1:'Básico', 2:'Intermedio', 3:'Avanzado'};
 
   const $ = id => document.getElementById(id);
@@ -413,7 +403,52 @@
   const money = n => '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0});
   const fecha = d => d.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const q = new URLSearchParams(location.search);
+  // 'YYYY-MM-DD' como fecha LOCAL (new Date('2026-10-22') es UTC y en México caería un día antes)
+  const fechaLocal = iso => { const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); return new Date(y, m - 1, d); };
+  function aviso(txt){ const t = $('toast'); t.textContent = txt; t.hidden = false; clearTimeout(aviso._t); aviso._t = setTimeout(() => { t.hidden = true; }, 3200); }
+  function hace(iso){
+    if(!iso) return 'nunca';
+    const min = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+    if(min < 2) return 'hace un momento'; if(min < 60) return 'hace ' + min + ' min';
+    const h = Math.round(min / 60); if(h < 24) return 'hace ' + h + (h === 1 ? ' hora' : ' horas');
+    const d = Math.round(h / 24); return 'hace ' + d + (d === 1 ? ' día' : ' días');
+  }
+  function sinPropuesta(titulo, texto){
+    document.body.classList.remove('cargando'); document.body.classList.add('sin-datos');
+    document.querySelectorAll('main, footer, header.top, nav.bottom, .progress, .admin-bar').forEach(e => { e.hidden = true; });
+    if(titulo) $('estadoT').textContent = titulo; if(texto) $('estadoP').textContent = texto;
+    $('estado').hidden = false;
+  }
+
+  // ── carga: /propuesta/{código} (o /propuesta/vista-previa, que deja el admin en localStorage) ──
+  const codigo = (location.pathname.split('/').filter(Boolean)[1] || '').toLowerCase();
+  const esPreview = codigo === 'vista-previa';
+  (async function cargar(){
+    try {
+      if(esPreview){
+        let snap = null; try { snap = JSON.parse(localStorage.getItem('propuestaVistaPrevia') || 'null'); } catch(e){}
+        if(!snap) return sinPropuesta('No hay vista previa', 'Genera la vista previa desde Cotizaciones en el admin.');
+        return pintar(snap, {admin:{preview:true}, aceptada:false, reemplazadaPor:null});
+      }
+      if(!/^[a-z0-9]{8}$/.test(codigo)) return sinPropuesta();
+      const r = await fetch('/api/getPropuestaPublica?codigo=' + encodeURIComponent(codigo), {cache:'no-store'});
+      if(r.status === 404 || r.status === 400) return sinPropuesta();
+      if(!r.ok) return sinPropuesta('No pudimos cargar la propuesta', 'Intenta de nuevo en un momento. Si sigue igual, escríbeme: alfredo.pina@lifezen.com.mx.');
+      const d = await r.json();
+      pintar(d.propuesta, {admin:d.admin || null, aceptada:d.aceptada, reemplazadaPor:d.reemplazadaPor});
+    } catch(e){
+      sinPropuesta('No pudimos cargar la propuesta', 'Revisa tu conexión e intenta de nuevo.');
+    }
+  })();
+
+  function pintar(S, ctx){
+  document.body.classList.remove('cargando');
+  const vigencia = fechaLocal(S.vigencia), emitida = new Date(S.emitida);
+  const D = Object.assign({}, S, CONTACTO, {
+    color:HERR[S.herramienta] ? HERR[S.herramienta].color : '#6b9fff', tinta:HERR[S.herramienta] ? HERR[S.herramienta].tinta : '#1f5fe0',
+    emitida, vigencia,
+  });
+  const diasVig = Math.max(1, Math.round((vigencia - new Date(emitida.getFullYear(), emitida.getMonth(), emitida.getDate())) / DIA));
 
   // color de la herramienta: va en un <style> propio (no inline) para que la versión de impresión pueda usar la TINTA
   // (el color puro es para fondo oscuro; sobre papel blanco se usa la versión oscura, igual que en los diplomas)
@@ -423,32 +458,36 @@
   document.title = `Propuesta ${D.folio} — ${D.programa}`;
 
   // ── vista admin vs cliente ──
-  // En producción el admin se detecta con /.auth/me (rol "admin") y el servidor tampoco cuenta su visita;
-  // aquí ?vista=admin lo simula, y ?demo agrega un selector para comparar.
-  // la barra del admin puede ocupar 1 o 2 renglones (según el ancho/fuentes): su alto real empuja el encabezado y el contenido
+  // El servidor detecta al admin por su sesión (cabecera de Azure SWA) y le devuelve ctx.admin con las estadísticas; esa
+  // visita NO cuenta como apertura del cliente. Solo el admin ve la barra y el selector de vista.
+  const admin = ctx.admin;
   function medirBarra(){ document.documentElement.style.setProperty('--bar-h', document.body.classList.contains('es-admin') ? $('adminBar').offsetHeight + 'px' : '0px'); }
   if(window.ResizeObserver) new ResizeObserver(medirBarra).observe($('adminBar'));
   function aplicarVista(v){
-    const admin = v === 'admin';
-    document.body.classList.toggle('es-admin', admin);
-    $('adminBar').hidden = !admin;
+    const verAdmin = !!admin && v === 'admin';
+    document.body.classList.toggle('es-admin', verAdmin);
+    $('adminBar').hidden = !verAdmin;
     medirBarra();
-    $('adminStat').innerHTML = `El cliente la ha abierto <b>${D.admin.aperturas} veces</b> · última ${esc(D.admin.ultima)}`;
-    document.querySelectorAll('#demoSwitch button').forEach(b => b.classList.toggle('on', b.dataset.v === (admin ? 'admin' : 'cliente')));
+    document.querySelectorAll('#demoSwitch button').forEach(b => b.classList.toggle('on', b.dataset.v === (verAdmin ? 'admin' : 'cliente')));
   }
-  aplicarVista(q.get('vista') === 'admin' ? 'admin' : 'cliente');
-  if(q.has('demo')){
+  if(admin){
+    $('adminStat').innerHTML = admin.preview
+      ? '<b>Vista previa</b> · todavía no se ha guardado ni enviado'
+      : (admin.vistas ? `El cliente la ha abierto <b>${admin.vistas} ${admin.vistas === 1 ? 'vez' : 'veces'}</b> · última ${esc(hace(admin.ultimaVista))}` : 'El cliente <b>aún no la abre</b>') +
+        (admin.aceptadaEn ? ` · <b>Aceptada por ${esc(admin.aceptadaPor)}</b>` : '');
+    if(admin.preview) $('abCopiar').hidden = true;
     $('demoSwitch').hidden = false;
     $('demoSwitch').addEventListener('click', e => { const b = e.target.closest('button'); if(b) aplicarVista(b.dataset.v); });
+    $('abCliente').addEventListener('click', () => aplicarVista('cliente'));
+    const linkCliente = () => location.origin + '/propuesta/' + codigo;
+    $('abCopiar').addEventListener('click', async () => { try { await navigator.clipboard.writeText(linkCliente()); aviso('Link del cliente copiado.'); } catch(e){ aviso(linkCliente()); } });
+    $('abPdf').addEventListener('click', imprimir);
   }
-  $('abCliente').addEventListener('click', () => aplicarVista('cliente'));
-  const linkCliente = () => location.origin + location.pathname;
-  $('abCopiar').addEventListener('click', async () => { try { await navigator.clipboard.writeText(linkCliente()); aviso('Link del cliente copiado.'); } catch(e){ aviso(linkCliente()); } });
+  aplicarVista('admin');
   function imprimir(){ const t = document.title; document.title = `Propuesta ${D.folio} - ${D.programa}`; window.print(); setTimeout(() => { document.title = t; }, 500); }
-  $('abPdf').addEventListener('click', imprimir);
   $('btnImprimir').addEventListener('click', imprimir); $('btnImprimir2').addEventListener('click', imprimir);
   $('pbFolio').textContent = D.folio; $('pbFecha').textContent = 'Emitida ' + fecha(D.emitida) + ' · vigente hasta ' + fecha(D.vigencia);
-  function aviso(txt){ const t = $('toast'); t.textContent = txt; t.hidden = false; clearTimeout(aviso._t); aviso._t = setTimeout(() => { t.hidden = true; }, 3200); }
+  if(ctx.reemplazadaPor){ $('avisoVersion').hidden = false; const a = $('avisoVersionLink'); a.href = '/propuesta/' + ctx.reemplazadaPor.codigo; a.textContent = ctx.reemplazadaPor.folio; }
 
   // ── portada ──
   $('fFolio').textContent = D.folio;
@@ -461,12 +500,13 @@
     lvl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 20v-5M12 20V9M19 20V4" stroke-linecap="round"/></svg>',
     cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>',
   };
-  const dias = Math.max(0, Math.ceil((D.vigencia - Date.now())/DIA));
+  const dias = Math.ceil((D.vigencia - new Date().setHours(0,0,0,0)) / DIA);
   $('hChips').innerHTML =
-    `<span class="chip">${ico.clock}<b>${D.horas} horas</b></span><span class="chip">${ico.mode}${esc(D.modalidad)}</span>` +
-    `<span class="chip">${ico.users}${esc(D.participantes)} participantes</span><span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` +
-    `<span class="chip vig">${ico.cal}Vigente hasta <b>${fecha(D.vigencia)}</b> · ${dias} días</span>`;
-  $('hObj').textContent = D.objetivo; $('hDir').textContent = D.dirigido;
+    `<span class="chip">${ico.clock}<b>${D.horas} horas</b></span>${D.modalidad ? `<span class="chip">${ico.mode}${esc(D.modalidad)}</span>` : ''}` +
+    `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes</span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
+    `<span class="chip vig">${ico.cal}${dias < 0 ? 'Venció el' : 'Vigente hasta'} <b>${fecha(D.vigencia)}</b>${dias >= 0 ? ' · ' + (dias === 0 ? 'vence hoy' : dias + (dias === 1 ? ' día' : ' días')) : ''}</span>`;
+  $('hObj').textContent = D.objetivo || ''; $('hDir').textContent = D.dirigido || '';
+  $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido;
 
   // la "barra de fórmula" se escribe sola (el título real de la portada se queda quieto debajo)
   const tokens = [['=', 'tk-eq'], ['PROPUESTA', 'tk-fn'], ['(', 'tk-p'], ['"' + D.programa + '"', 'tk-str'], ['; ', 'tk-p'], ['"' + D.cliente + '"', 'tk-str'], [')', 'tk-p']];
@@ -482,8 +522,8 @@
   $('tSub').textContent = `${D.temas.length} bloques de trabajo, ${D.horas} horas en total. Toca un bloque para ver qué vas a lograr.`;
   $('ruta').insertAdjacentHTML('beforeend', D.temas.map((t, i) => `
     <article class="celda rv" data-i="${i}" tabindex="0">
-      <div class="top"><span class="coord">A${i+1}</span><span class="nivel">${barras(t.nivel)}${NIVEL[t.nivel]}</span></div>
-      <h3>${esc(t.n)}</h3><p>${esc(t.d)}</p>
+      <div class="top"><span class="coord">A${i+1}</span><span class="nivel">${t.nivel ? barras(t.nivel) + NIVEL[t.nivel] : ''}</span></div>
+      <h3>${esc(t.n)}</h3>${t.d ? `<p>${esc(t.d)}</p>` : ''}
     </article>`).join(''));
   const fBar = $('fBar'), fRes = $('fRes');
   function formulaDe(i){
@@ -495,10 +535,14 @@
   const celdas = [...document.querySelectorAll('.celda')];
   function activar(i){ celdas.forEach((c, k) => c.classList.toggle('on', k === i)); formulaDe(i); }
   celdas.forEach((c, i) => { c.addEventListener('click', () => activar(i)); c.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); activar(i); } }); });
-  $('proys').innerHTML = D.proyectos.map(p => {
-    const th = p.k === 'line'
+  const FORMAS = [[30,55,44,72,60,88], [40,62,34,78,52,90,66]];
+  if(!D.proyectos.length){
+    $('proys').hidden = true; $('metaCard').querySelector('p').textContent = 'Aplicas lo aprendido a un caso real de tu operación: el proyecto final se define contigo.';
+  }
+  $('proys').innerHTML = D.proyectos.map((p, i) => {
+    const th = p.img ? `<img src="${esc(p.img)}" alt="${esc(p.n)}" loading="lazy">` : (i % 3 === 1
       ? '<svg viewBox="0 0 120 70" preserveAspectRatio="none"><polyline points="0,58 20,44 40,50 62,24 84,34 120,8" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>'
-      : (p.k === 'bars2' ? [40,62,34,78,52,90,66].map(h => `<i style="height:${h}%"></i>`).join('') : [30,55,44,72,60,88].map(h => `<i style="height:${h}%"></i>`).join(''));
+      : FORMAS[i % 2].map(h => `<i style="height:${h}%"></i>`).join(''));
     return `<div class="proy rv"><div class="thumb">${th}</div><div class="p-b"><b>${esc(p.n)}</b><span>${esc(p.r)}</span></div></div>`;
   }).join('');
   $('tTotal').textContent = D.horas + ' h';
@@ -506,22 +550,38 @@
 
   // ── inversión ──
   $('resumen').innerHTML = [
-    ['PROGRAMA', D.programa], ['DURACIÓN', D.horas + ' horas'], ['MODALIDAD', D.modalidad], ['PARTICIPANTES', D.participantes],
-    D.ciudad ? ['SEDE', D.ciudad] : null, ['EMITIDA', fecha(D.emitida)], ['VIGENCIA', 'Hasta ' + fecha(D.vigencia)],
+    ['PROGRAMA', D.programa], ['DURACIÓN', D.horas + ' horas'], D.modalidad ? ['MODALIDAD', D.modalidad] : null, D.participantes ? ['PARTICIPANTES', D.participantes] : null,
+    D.ciudad ? ['SEDE', D.ciudad] : null, D.fechaTentativa ? ['FECHA TENTATIVA', D.fechaTentativa] : null, ['EMITIDA', fecha(D.emitida)], ['VIGENCIA', 'Hasta ' + fecha(D.vigencia)],
   ].filter(Boolean).map(([k, v]) => `<div class="rrow"><span>${k}</span><span>${esc(v)}</span></div>`).join('');
+  const dif = D.sugerido - D.total;
   $('desg').innerHTML = `<div><span>${D.horas} h × ${money(D.tarifaHora)} por hora</span><b>${money(D.sugerido)}</b></div>` +
-    (D.descuentoPct ? `<div class="desc"><span>Descuento por tamaño de grupo (${D.descuentoPct} %)</span><b>− ${money(D.sugerido - D.total)}</b></div>` : '');
-  $('fmini').textContent = `=HORAS × TARIFA × (1 − ${D.descuentoPct}%)`;
+    (dif > 0 ? `<div class="desc"><span>${D.descuentoPct ? 'Descuento (' + String(D.descuentoPct).replace('.0', '') + ' %)' : 'Descuento'}</span><b>− ${money(dif)}</b></div>` : '') +
+    (dif < 0 ? `<div><span>Ajuste</span><b>+ ${money(-dif)}</b></div>` : '');
+  $('fmini').textContent = D.descuentoPct ? `=HORAS × TARIFA × (1 − ${String(D.descuentoPct).replace('.0', '')}%)` : '=HORAS × TARIFA';
   const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   $('incluye').innerHTML = ['Programa completo y proyecto final aplicado', 'Diploma verificable para cada participante', 'Reporte de resultados del grupo, con boleta individual', 'Encuesta de satisfacción al cierre'].map(t => `<div>${check}<span>${t}</span></div>`).join('');
-  $('tgrid').innerHTML = TERMINOS.map(t => `<div class="t"><i></i><span>${esc(t)}</span></div>`).join('');
+  $('tgrid').innerHTML = D.terminos.concat(`Vigencia de ${diasVig} días naturales a partir de la fecha de emisión.`).map(t => `<div class="t"><i></i><span>${esc(t)}</span></div>`).join('');
   $('btnDudas').href = `https://wa.me/${D.wa}?text=` + encodeURIComponent(`Hola Alfredo, tengo dudas sobre la propuesta ${D.folio} (${D.programa}).`);
   $('fTel').textContent = D.tel; $('fMail').textContent = D.mail;
 
-  // aceptar propuesta (en producción avisa por correo a Alfredo y marca la cotización)
-  $('btnAceptar').addEventListener('click', () => $('dlgAceptar').showModal());
+  // aceptar propuesta: avisa por correo a Alfredo y queda registrada (solo la primera); en vista previa no envía nada
+  if(ctx.aceptada){ const b = $('btnAceptar'); b.classList.add('hecho'); b.lastChild.textContent = 'Propuesta aceptada'; }
+  $('btnAceptar').addEventListener('click', () => { if(!ctx.aceptada) $('dlgAceptar').showModal(); });
   $('aCancel').addEventListener('click', () => $('dlgAceptar').close());
-  $('fAceptar').addEventListener('submit', () => { aviso('¡Listo! Alfredo recibirá tu respuesta y te contactará pronto.' + (q.has('demo') ? ' (demo: no se envió nada)' : '')); });
+  $('fAceptar').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+    try {
+      if(!admin || !admin.preview){
+        const r = await fetch('/api/responderPropuesta', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo, nombre:$('aNombre').value, comentario:$('aCom').value, web:$('aWeb').value})});
+        if(!r.ok){ const b = await r.json().catch(() => ({})); throw new Error(b.error || 'No se pudo enviar'); }
+      }
+      $('dlgAceptar').close();
+      aviso(admin ? (admin.preview ? 'Vista previa: no se envió nada.' : 'Probaste el botón como admin: no se guardó ni se avisó.') : '¡Listo! Alfredo recibirá tu respuesta y te contactará pronto.');
+      if(!admin){ ctx.aceptada = true; const b = $('btnAceptar'); b.classList.add('hecho'); b.lastChild.textContent = 'Propuesta aceptada'; }
+    } catch(err){ aviso(err.message); }
+    btn.disabled = false;
+  });
 
   // ── animaciones al hacer scroll ──
   function contar(el, a, b, ms, fmt){ if(RM){ el.textContent = fmt(b); return; } const t0 = performance.now(); (function f(t){ const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(a + (b - a) * e); if(k < 1) requestAnimationFrame(f); })(t0); }
@@ -555,6 +615,7 @@
   }
   addEventListener('scroll', onScroll, {passive:true}); addEventListener('resize', onScroll); onScroll();
   celdas.forEach(c => c.addEventListener('click', () => { onScroll._manual = true; clearTimeout(onScroll._mt); onScroll._mt = setTimeout(() => { onScroll._manual = false; }, 2500); }));
+  }
 })();
 </script>
 </body>

@@ -1,4 +1,5 @@
-// Contenedor Blob "cotizaciones" — PDFs generados de Cotización, privado.
+// Contenedor Blob "cotizaciones" — PDFs de las cotizaciones VIEJAS (anteriores a la propuesta web), privado. Ya no se
+// generan PDFs nuevos (ver propuestas.js): solo se leen los que existen.
 // Reusa el Storage Account apcwebrecursos (misma Application Setting
 // RECURSOS_STORAGE_CONNECTION que Cursos/Recursos/Diplomas/Plantillas).
 // A diferencia del contenedor "diplomas" (que Alfredo crea a mano en el
@@ -21,15 +22,6 @@ async function getCotizacionesContainer() {
   return container;
 }
 
-async function subirCotizacionPdf(folio, buffer) {
-  const container = await getCotizacionesContainer();
-  const blobName = `${folio}.pdf`;
-  await container.getBlockBlobClient(blobName).uploadData(buffer, {
-    blobHTTPHeaders: { blobContentType: "application/pdf" },
-  });
-  return blobName;
-}
-
 async function getCotizacionPdfBuffer(folio) {
   const container = await getCotizacionesContainer();
   try {
@@ -40,4 +32,4 @@ async function getCotizacionPdfBuffer(folio) {
   }
 }
 
-module.exports = { getCotizacionesContainer, subirCotizacionPdf, getCotizacionPdfBuffer };
+module.exports = { getCotizacionesContainer, getCotizacionPdfBuffer };

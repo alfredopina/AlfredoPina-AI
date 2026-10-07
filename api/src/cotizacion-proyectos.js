@@ -1,12 +1,12 @@
-// Proyectos de un programa para la página de contenido del PDF de cotización: nombre, descripción de una
-// línea y la miniatura (descargada del blob como data URL JPEG, que es lo que pdfmake sabe incrustar).
+// Proyectos de un programa para la propuesta de cotización (propuesta.html): nombre, descripción de una
+// línea y la URL pública de la miniatura (el contenedor "proyectos" es de acceso público a nivel blob).
 // El programa se encuentra por nombre (Solicitud/Cotización solo guardan el NOMBRE del programa, no su id).
 // "Fail-soft": si algo falla (programa renombrado, blob caído…) devuelve lo que pudo — una cotización nunca
 // debe fallar por una imagen.
 const { getTemasTable, getTemariosTable, getProyectosTable, isTableNotFound } = require("./cursos-tables");
 const { parseTemaIds, proyectosDePrograma } = require("./cursos-calc");
 const { escaparComillasOData } = require("./odata-escape");
-const { descargarBlob } = require("./proyectos-storage");
+const { getProyectosContainer } = require("./proyectos-storage");
 
 const MAX_PROYECTOS = 6;
 
@@ -20,7 +20,7 @@ async function listar(tabla, herramienta) {
   return filas;
 }
 
-async function proyectosParaPdf(herramienta, temarioNombre) {
+async function proyectosParaPropuesta(herramienta, temarioNombre) {
   try {
     const nombre = (temarioNombre || "").trim().toLowerCase();
     if (!nombre) return [];
@@ -36,21 +36,16 @@ async function proyectosParaPdf(herramienta, temarioNombre) {
     const temaIds = new Set(parseTemaIds(programa.temaIds));
     const elegidos = proyectosDePrograma(programa, proyectos, temaIds).slice(0, MAX_PROYECTOS);
 
-    return await Promise.all(elegidos.map(async (p) => {
-      let imagen = null;
-      if (p.imagenMiniBlob) {
-        try {
-          imagen = "data:image/jpeg;base64," + (await descargarBlob(p.imagenMiniBlob)).toString("base64");
-        } catch (err) {
-          console.warn("No se pudo leer la miniatura de " + p.nombre, err.message);
-        }
-      }
-      return { nombre: p.nombre, resumen: p.resumen, imagen };
+    const container = elegidos.some((p) => p.imagenMiniBlob) ? await getProyectosContainer() : null;
+    return elegidos.map((p) => ({
+      nombre: p.nombre,
+      resumen: p.resumen,
+      imagenUrl: p.imagenMiniBlob && container ? container.getBlobClient(p.imagenMiniBlob).url : null,
     }));
   } catch (err) {
-    console.warn("No se pudieron resolver los proyectos para el PDF:", err.message);
+    console.warn("No se pudieron resolver los proyectos para la propuesta:", err.message);
     return [];
   }
 }
 
-module.exports = { proyectosParaPdf };
+module.exports = { proyectosParaPropuesta };

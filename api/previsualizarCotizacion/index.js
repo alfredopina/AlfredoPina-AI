@@ -1,19 +1,11 @@
 // previsualizarCotizacion/index.js
-// Function protegida (rol "admin"): recibe el mismo payload de datos que
-// crearCotizacion (más cliente_nombre/contacto_nombre, que el front ya tiene
-// resueltos en memoria) y regresa el PDF en streaming — SIN tocar la base ni
-// el blob permanente, mismo espíritu que "generar PDF de prueba" de Diplomas
-// (generarDiplomaPrueba). Por eso el folio es un placeholder fijo en vez de
-// calcularse (calcularlo implicaría leer Cotizacion) y no resuelve/crea
-// Cliente: usa directo el nombre que ya seleccionó/escribió el front.
-const { generarCotizacionPdf } = require("../src/cotizacion-pdf");
-const { proyectosParaPdf } = require("../src/cotizacion-proyectos");
+// Function protegida (rol "admin"): recibe el mismo payload de datos que crearCotizacion (más cliente_nombre/
+// contacto_nombre/tarifa_hora, que el front ya tiene resueltos en memoria) y regresa el SNAPSHOT de la propuesta como
+// JSON — SIN guardar nada (ni la base ni Table Storage). El admin lo abre en /propuesta/vista-previa, que lo lee de
+// localStorage. Por eso el folio es un placeholder y no resuelve/crea Cliente.
+const { proyectosParaPropuesta } = require("../src/cotizacion-proyectos");
+const { armarSnapshot } = require("../src/propuestas");
 const { JSON_HEADERS } = require("../src/http");
-
-const TOOL_LABELS = {
-  excel: "Excel", powerbi: "Power BI", powerapps: "Power Apps",
-  powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Ofimática Básica",
-};
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -22,6 +14,7 @@ module.exports = async function (context, req) {
   const temas = Array.isArray(body.temas) ? body.temas : [];
   const horas = Number(body.horas_totales);
   const precioFinal = Number(body.precio_final);
+  const tarifaHora = Number(body.tarifa_hora);
 
   if (!clienteNombre || !herramienta || !temas.length || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos para generar la vista previa." } };
@@ -29,32 +22,31 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const proyectos = await proyectosParaPdf(herramienta, (body.temario_nombre || "").trim());
-    const pdfBuffer = await generarCotizacionPdf({
-      proyectos,
+    const estandar = body.temario_tipo !== "personalizado" && (body.temario_nombre || "").trim();
+    const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : [];
+    const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * 100) / 100 : precioFinal;
+    const snapshot = armarSnapshot({
+      folio: "VISTA PREVIA",
       cliente: clienteNombre,
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,
-      herramientaLabel: TOOL_LABELS[herramienta] || herramienta,
-      temarioTitulo: (body.temario_nombre || "").trim() || "Temario personalizado",
+      programa: estandar ? body.temario_nombre.trim() : "Programa personalizado",
       temas,
-      horasTotales: horas,
-      precioFinal,
+      horas,
       modalidad: (body.modalidad || "").trim() || null,
       participantes: (body.participantes || "").trim() || null,
       ciudadSede: (body.ciudad_sede || "").trim() || null,
       fechaTentativa: (body.fecha_tentativa || "").trim() || null,
-      fechaVigencia: body.fecha_vigencia ? new Date(body.fecha_vigencia) : new Date(Date.now() + 15 * 24 * 3600 * 1000),
-      folio: "VISTA PREVIA — SIN FOLIO",
-      dirigidoA: (body.dirigido_a || "").trim() || null,
       objetivo: (body.objetivo || "").trim() || null,
+      dirigidoA: (body.dirigido_a || "").trim() || null,
+      proyectos,
+      tarifaHora: Number.isFinite(tarifaHora) ? tarifaHora : 0,
+      precioSugerido,
+      precioFinal,
+      emitida: new Date(),
+      vigencia: body.fecha_vigencia ? new Date(body.fecha_vigencia) : new Date(Date.now() + 15 * 24 * 3600 * 1000),
     });
-
-    context.res = {
-      status: 200,
-      headers: { "Content-Type": "application/pdf", "Content-Disposition": 'inline; filename="vista-previa-cotizacion.pdf"', "Cache-Control": "no-store" },
-      body: pdfBuffer,
-    };
+    context.res = { status: 200, headers: { ...JSON_HEADERS, "Cache-Control": "no-store" }, body: snapshot };
   } catch (err) {
     context.log.error("Error generando la vista previa:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo generar la vista previa: " + err.message } };

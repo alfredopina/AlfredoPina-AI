@@ -53,6 +53,10 @@
       "rewrite": "/diplomas-grupo.html"
     },
     {
+      "route": "/propuesta/*",
+      "rewrite": "/propuesta.html"
+    },
+    {
       "route": "/verificar",
       "rewrite": "/verificar.html"
     },
@@ -410,6 +414,10 @@
     },
     {
       "route": "/api/getCotizacionPdf",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getPropuestasStatsAdmin",
       "allowedRoles": ["admin"]
     },
     {

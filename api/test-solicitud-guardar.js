@@ -99,7 +99,17 @@ const prospecto = {
   assert.strictEqual(p2.temarioNombre, null, "personalizado no lleva nombre de programa");
   assert.deepStrictEqual([p2.objetivo, p2.alcance, p2.dirigidoA], ["Automatizar reportes", "3 sesiones", "Finanzas"]);
   assert.strictEqual(p2.horas, 12.3, "horas a un decimal (columna DECIMAL(6,1))");
+  assert.strictEqual(p2.proyectosJson, null, "sin proyectos elegidos no se guarda nada");
   assert.strictEqual(f.hubo("INSERT INTO Cliente").length, 0, "cliente existente: no crea empresa");
+
+  // ── crear: personalizado con proyectos (el estándar los ignora) ──
+  const proy = [{ id: "pr1", nombre: "Dashboard de ventas", resumen: "Un tablero", extra: "x" }, { nombre: "sin id" }];
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 103 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, temario_tipo: "personalizado", es_cliente: true, empresa: { clienteId: 20 }, proyectos: proy });
+  assert.deepStrictEqual(JSON.parse(f.hubo("INSERT INTO Solicitud")[0].params.proyectosJson), [{ id: "pr1", nombre: "Dashboard de ventas", resumen: "Un tablero" }]);
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 104 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, es_cliente: true, empresa: { clienteId: 20 }, proyectos: proy });
+  assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.proyectosJson, null, "el estándar no guarda proyectos propios");
 
   // ── crear: contacto de otro cliente se rechaza ──
   f = fabrica((t) => {
@@ -120,21 +130,23 @@ const prospecto = {
   assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.contactoId, 7);
   assert.ok(f.hubo("INSERT INTO Contacto")[0].texto.includes("CASE WHEN EXISTS"), "es_principal solo si el cliente no tenía principal");
 
-  // ── editar: Prospecto → Cliente existente (mueve el contacto y borra el Prospecto vacío) ──
+  // ── editar: Prospecto → Cliente existente (contacto nuevo para el cliente y borra el Prospecto vacío) ──
   const actual = { cliente_id: 11, contacto_id: 5, creo_prospecto: true, tipo_cliente: "Prospecto" };
   const hEditar = (bloqueos) => (t) => {
     if (t.includes("FROM Solicitud s JOIN Cliente c")) return [actual];
     if (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente")) return [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }];
-    if (t.startsWith("SELECT id, cliente_id FROM Contacto")) return [{ id: 5, cliente_id: 20 }]; // ya movido
+    if (t.startsWith("INSERT INTO Contacto")) return [{ id: 31 }];
     if (t.startsWith("SELECT COUNT(*)")) return [{ n: bloqueos && t.includes("FROM Cotizacion") ? 1 : 0 }];
     return [];
   };
-  const cuerpoCliente = { ...base, es_cliente: true, empresa: { clienteId: 20 }, contacto_id: 5 };
+  const cuerpoCliente = { ...base, es_cliente: true, empresa: { clienteId: 20 }, contacto_datos: { nombre: "Ana Pérez", correo: "ana@acme.com", telefono: "81 1234 5678" } };
   f = fabrica(hEditar(false));
   r = await g.editarSolicitudManual(f.nuevaRequest, 50, cuerpoCliente);
   assert.strictEqual(r.prospectoAnteriorBorrado, true);
-  assert.strictEqual(f.hubo("UPDATE Contacto SET cliente_id")[0].params.nuevo, 20, "el contacto pasa al cliente");
+  assert.strictEqual(f.hubo("INSERT INTO Contacto")[0].params.clienteId, 20, "el contacto se captura como contacto NUEVO del cliente");
   assert.strictEqual(f.hubo("UPDATE Solicitud SET")[0].params.clienteId, 20);
+  assert.strictEqual(f.hubo("UPDATE Solicitud SET")[0].params.contactoId, 31);
+  assert.ok(f.hubo("DELETE FROM Contacto").length === 1, "los contactos del prospecto viejo se van con él");
   assert.ok(f.hubo("DELETE FROM Cliente").length === 1 && f.hubo("DELETE FROM Cliente")[0].params.id === 11);
   assert.ok(f.hubo("creo_prospecto = 0").length === 1, "ya no cuenta como prospecto generado");
   // el UPDATE de la solicitud va ANTES del conteo de dependencias (si no, la propia solicitud bloquearía el borrado)
@@ -179,7 +191,7 @@ const prospecto = {
   r = await g.editarSolicitudManual(f.nuevaRequest, 50, { ...prospecto, empresa: { nombre: "Nuevo", codigo: "nue" } });
   const up = f.hubo("UPDATE Solicitud SET")[0].params;
   assert.deepStrictEqual([up.clienteId, up.contactoId, up.creoProspecto], [30, 31, 1]);
-  assert.strictEqual(f.hubo("UPDATE Contacto SET cliente_id").length, 0, "no se mueve el contacto del cliente real");
+  assert.strictEqual(f.hubo("UPDATE Contacto SET cliente_id").length, 0, "nunca se mueve un contacto entre clientes");
   assert.strictEqual(f.hubo("DELETE FROM Cliente").length, 0, "un Cliente real nunca se borra");
 
   // ── editar: solicitud inexistente ──

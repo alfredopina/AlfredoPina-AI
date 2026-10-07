@@ -7,8 +7,9 @@
 //     (3 letras sugeridas, editables). El código NUNCA se reutiliza en silencio: si ya existe, 409.
 //   - Contacto: se elige uno del cliente (contacto_id), o se captura uno nuevo (contacto_datos). Un Prospecto
 //     necesita al menos correo o WhatsApp. Editar un Prospecto puede corregir su nombre, código y contacto.
-//   - Editar y cambiar de Prospecto a un Cliente existente: la solicitud se re-apunta, el contacto actual puede
-//     pasar al cliente (contacto_id igual al que ya tenía) y el Prospecto viejo se borra SOLO si quedó vacío.
+//   - Editar y cambiar de Prospecto a un Cliente existente: la solicitud se re-apunta, el formulario manda el contacto
+//     del prospecto como contacto NUEVO del cliente (contacto_datos) y el Prospecto viejo (con su contacto) se borra
+//     SOLO si quedó vacío.
 //   - Participantes/modalidad como el formulario público; un número exacto se traduce al rango de la columna
 //     (CHECK de sql/007) y el número viaja en los comentarios como una línea "Participantes: N".
 //   - "Recibida el" (opcional) fija fecha_creacion: una llamada capturada tarde no debe verse como lenta.
@@ -70,6 +71,10 @@ function normalizar(body) {
 
   const personalizado = temarioTipo === "personalizado";
   const texto = (v) => (personalizado ? String(v || "").trim().slice(0, 4000) || null : null);
+  // proyectos elegidos (solo personalizado; el estándar trae los de su programa): foto de id/nombre/resumen
+  const proyectos = personalizado && Array.isArray(body.proyectos)
+    ? body.proyectos.filter((p) => p && p.id).slice(0, 12).map((p) => ({ id: String(p.id), nombre: String(p.nombre || "").slice(0, 200), resumen: String(p.resumen || "").slice(0, 600) }))
+    : [];
 
   let recibida = null;
   if (body.recibida_el) {
@@ -105,7 +110,7 @@ function normalizar(body) {
 
   return {
     herramienta, temarioTipo, temarioNombre: personalizado ? null : temarioNombre, temas, horas, modalidad,
-    participantes: part.columna, notas, objetivo: texto(body.objetivo), alcance: texto(body.alcance), dirigidoA: texto(body.dirigido_a),
+    participantes: part.columna, notas, objetivo: texto(body.objetivo), alcance: texto(body.alcance), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
     recibida, esCliente, clienteId, nombre, codigo, contactoId, contactoDatos,
   };
 }
@@ -192,16 +197,17 @@ async function crearSolicitudManual(nuevaRequest, body) {
     .input("objetivo", sql.NVarChar, d.objetivo)
     .input("alcance", sql.NVarChar, d.alcance)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
+    .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `INSERT INTO Solicitud
         (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-         participantes, modalidad, objetivo, alcance, dirigido_a, fecha_creacion, fecha_estatus, creo_prospecto)
+         participantes, modalidad, objetivo, alcance, dirigido_a, proyectos_json, fecha_creacion, fecha_estatus, creo_prospecto)
        OUTPUT INSERTED.id
        VALUES
         (@clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson, @horas, 'Manual', @notas,
-         @participantes, @modalidad, @objetivo, @alcance, @dirigidoA, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
+         @participantes, @modalidad, @objetivo, @alcance, @dirigidoA, @proyectosJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
     );
   return { id: ins.recordset[0].id, cliente: { id: cliente.id, nombre: cliente.nombre, codigo: cliente.codigo } };
 }
@@ -222,13 +228,11 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
   let cliente;
   let creoProspecto = actual.creo_prospecto ? 1 : 0;
   let prospectoViejo = null; // id del Prospecto que podría quedar vacío
-  let moverContacto = false;
 
   if (d.esCliente) {
     cliente = await clientePorId(nuevaRequest, d.clienteId);
     if (cliente.id !== actual.cliente_id) {
       if (eraProspecto) prospectoViejo = actual.cliente_id;
-      if (d.contactoId && d.contactoId === actual.contacto_id) moverContacto = true;
     }
   } else if (eraProspecto && d.clienteId === actual.cliente_id) {
     // mismo Prospecto: se corrige su nombre y/o código
@@ -246,13 +250,6 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
     if (eraProspecto) prospectoViejo = actual.cliente_id;
   }
 
-  if (moverContacto) {
-    await nuevaRequest()
-      .input("contactoId", sql.Int, d.contactoId)
-      .input("viejo", sql.Int, actual.cliente_id)
-      .input("nuevo", sql.Int, cliente.id)
-      .query("UPDATE Contacto SET cliente_id = @nuevo, es_principal = 0 WHERE id = @contactoId AND cliente_id = @viejo");
-  }
   const contactoId = await resolverContacto(nuevaRequest, cliente.id, d);
 
   await nuevaRequest()
@@ -270,13 +267,14 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
     .input("objetivo", sql.NVarChar, d.objetivo)
     .input("alcance", sql.NVarChar, d.alcance)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
+    .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `UPDATE Solicitud SET
          cliente_id = @clienteId, contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
          temario_nombre = @temarioNombre, temas_json = @temasJson, horas_totales = @horas, notas = @notas,
-         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, alcance = @alcance, dirigido_a = @dirigidoA,
+         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, alcance = @alcance, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson,
          creo_prospecto = @creoProspecto,
          fecha_estatus = CASE WHEN @recibida IS NOT NULL AND estatus = 'Nueva' THEN @recibida ELSE fecha_estatus END,
          fecha_creacion = COALESCE(@recibida, fecha_creacion)

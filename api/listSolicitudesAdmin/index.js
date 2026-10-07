@@ -45,7 +45,7 @@ module.exports = async function (context, req) {
       SELECT s.id, s.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo,
              s.contacto_id, ct.nombre AS contacto,
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json, s.horas_totales,
-             s.canal_origen, s.estatus, s.notas, s.fecha_creacion, s.fecha_estatus, s.creo_prospecto, s.objetivo, s.alcance, s.dirigido_a,
+             s.canal_origen, s.estatus, s.notas, s.fecha_creacion, s.fecha_estatus, s.creo_prospecto, s.objetivo, s.alcance, s.dirigido_a, s.proyectos_json,
              s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad,
              c.tipo_cliente, ct.correo AS contacto_correo, ct.telefono AS contacto_telefono
       FROM Solicitud s

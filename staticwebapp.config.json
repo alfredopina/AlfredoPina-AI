@@ -301,6 +301,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/verificarCodigoCliente",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listClientesAdmin",
       "allowedRoles": ["admin"]
     },

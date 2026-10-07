@@ -1204,30 +1204,6 @@
   .cfg-notif-row-sufijo{ font-size:11.5px; color:var(--text-faint); }
   .cfg-notif-row-nota{ font-size:11.5px; color:var(--text-faint); margin-top:9px; line-height:1.55; }
 
-  /* ---- PANEL SOLICITUDES — selector de temario (estándar/personalizado) ---- */
-  .sol-temas-list{ display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; }
-  .sol-tema-item{
-    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:6px;
-    padding:9px 12px; cursor:pointer; transition:border-color .15s; background:var(--panel);
-  }
-  .sol-tema-item:hover{ border-color:var(--text-dim); }
-  .sol-tema-item input{ flex:none; width:auto; }
-  .sol-tema-nombre{ font-size:12.5px; }
-  .sol-tema-horas{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap; }
-  .sol-temas-total{
-    font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:10px; padding-top:10px;
-    border-top:1px solid var(--line);
-  }
-  .sol-temas-total b{ color:var(--blue-bright); }
-
-  .sol-pill-group{ display:flex; gap:8px; flex-wrap:wrap; }
-  .sol-pill{
-    font-family:var(--mono); font-size:11.5px; color:var(--text-dim); background:var(--panel-2);
-    border:1px solid var(--line); border-radius:20px; padding:7px 14px; cursor:pointer; transition:all .15s;
-  }
-  .sol-pill:hover{ color:var(--text); }
-  .sol-pill.active{ border-color:var(--blue-bright); color:var(--blue-bright); background:var(--blue-soft); }
-
   /* Dropdown colapsable con checkboxes (Herramientas/Nivel en Grupos) — a
      diferencia de .sol-pill-group (siempre visible), aquí el resumen de lo
      elegido vive en el trigger y las opciones solo aparecen al abrir. */
@@ -1336,6 +1312,86 @@
   .sol-acciones .sol-acc-principal{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .sol-acciones .sol-acc-peligro:hover{ color:var(--bad); border-color:var(--bad); }
   .sol-comentarios{ font-size:12.5px; color:var(--text); line-height:1.6; white-space:pre-wrap; margin-top:4px; }
+
+  /* ---- Formulario Crear/Modificar Solicitud (2026-10-08) ---- */
+  .sol-form{ max-width:1100px; }
+  /* los tipos email / fecha-hora / búsqueda no estaban en el tema de .radm-field (salían blancos) */
+  .radm-field input[type=email], .radm-field input[type=datetime-local], .ts-filtros input, .ts-filtros select{
+    font-family:var(--body); font-size:13px; color:var(--text); background-color:var(--panel-2);
+    border-width:1px; border-style:solid; border-color:var(--line); border-radius:6px; padding:9px 11px; outline:none;
+  }
+  .radm-field input[type=email]:focus, .radm-field input[type=datetime-local]:focus, .ts-filtros input:focus, .ts-filtros select:focus{ border-color:var(--blue-bright); }
+  .sol-toggles{
+    display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; gap:22px; padding:14px 16px; margin-bottom:20px;
+    border-width:1px; border-style:solid; border-color:var(--line); border-radius:10px; background-color:var(--panel);
+  }
+  .sol-toggles-hint{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  .sol-card{ border-width:1px; border-style:solid; border-color:var(--line); border-radius:10px; background-color:var(--panel); padding:16px 18px 6px; margin-bottom:18px; }
+  .sol-card-title{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); margin-bottom:14px; }
+  .sol-subform{ border-left:3px solid var(--blue-bright); padding-left:14px; margin:-2px 0 14px; }
+  .sol-subform[hidden], #solBloqueCliente[hidden], #solBloqueProspecto[hidden], #solPersonalizadoWrap[hidden], .sol-aviso[hidden]{ display:none; }
+  .sol-combo{ position:relative; }
+  .sol-combo input{ padding-right:34px; }
+  .sol-combo-btn{
+    position:absolute; right:1px; bottom:1px; width:32px; height:34px; display:flex; align-items:center; justify-content:center;
+    background:none; border:none; color:var(--text-dim); cursor:pointer; border-radius:0 5px 5px 0;
+  }
+  .sol-combo-btn:hover{ color:var(--blue-bright); }
+  .sol-combo-btn svg{ width:14px; height:14px; }
+  #solEmpresaCodigo[readonly]{ opacity:.7; cursor:not-allowed; }
+  .sol-aviso{
+    display:block; font-size:12px; line-height:1.55; color:var(--text); margin:-4px 0 14px; padding:9px 12px; border-radius:6px;
+    background-color:color-mix(in srgb, #dfb35a 12%, var(--panel-2)); border-left:3px solid #dfb35a;
+  }
+  /* estado del código: icono + texto, nunca solo color */
+  .sol-codigo-estado{ display:flex; align-items:center; gap:6px; font-size:11.5px; margin-top:6px; min-height:16px; color:var(--text-dim); }
+  .sol-codigo-estado svg{ width:13px; height:13px; flex:none; }
+  .sol-codigo-estado.ok{ color:var(--good); }
+  .sol-codigo-estado.bad{ color:var(--bad); font-weight:600; }
+  .sol-horas{ max-width:190px; }
+  .sol-horas-hint{ font-size:11.5px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
+  .sol-link-btn{ background:none; border:none; padding:0; font:inherit; color:var(--blue-bright); cursor:pointer; text-decoration:underline; }
+
+  /* selector de programa / temas */
+  .ts-label{ display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.4px; color:var(--text-faint); margin:4px 0 8px; }
+  .ts-meta{ font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap; }
+  .ts-resumen{ margin:2px 0 14px; padding:12px 14px; border-radius:8px; background-color:var(--panel-2); border:1px solid var(--line-soft); }
+  .ts-resumen-head{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:8px; }
+  .ts-resumen-lista{ margin:0; padding-left:20px; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 28px; font-size:12.5px; }
+  .ts-resumen-lista li{ line-height:1.45; }
+  .ts-resumen-nombre{ margin-right:8px; }
+  .ts-picker{ display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(260px, 1fr); gap:16px; margin-bottom:16px; align-items:start; }
+  .ts-col-cat, .ts-col-sel{ border:1px solid var(--line); border-radius:8px; background-color:var(--panel-2); min-width:0; }
+  .ts-filtros{ display:flex; gap:8px; padding:10px; border-bottom:1px solid var(--line-soft); }
+  .ts-filtros .ts-buscar{ flex:1; min-width:0; }
+  .ts-filtros select{ width:auto; }
+  .ts-cat-lista{ max-height:460px; overflow-y:auto; padding:6px; display:flex; flex-direction:column; gap:6px; }
+  .ts-tema{
+    display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:7px; cursor:pointer;
+    background-color:var(--panel); border-width:1px; border-style:solid; border-color:var(--line-soft);
+  }
+  .ts-tema:hover{ border-color:var(--blue-bright); }
+  .ts-tema.sel{ border-color:var(--blue-bright); background-color:color-mix(in srgb, var(--blue-bright) 9%, var(--panel)); }
+  .ts-tema input{ margin-top:3px; flex:none; width:auto; }
+  .ts-tema-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .ts-tema-top{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .ts-tema-top b{ font-size:13px; font-weight:600; }
+  .ts-tema-desc{ font-size:12px; line-height:1.55; color:var(--text-dim); }
+  .ts-col-sel{ position:sticky; top:12px; padding:12px 12px 10px; }
+  .ts-sel-head{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); margin-bottom:8px; }
+  .ts-sel-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; max-height:380px; overflow-y:auto; }
+  .ts-sel-lista li{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; background-color:var(--panel); font-size:12.5px; }
+  .ts-sel-num{ font-family:var(--mono); font-size:10.5px; width:20px; height:20px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; color:var(--blue-bright); background-color:color-mix(in srgb, var(--blue-bright) 18%, transparent); }
+  .ts-sel-nombre{ flex:1; min-width:0; line-height:1.35; }
+  .ts-sel-quitar{ width:22px; height:22px; flex:none; display:flex; align-items:center; justify-content:center; background:none; border:none; color:var(--text-faint); cursor:pointer; border-radius:4px; }
+  .ts-sel-quitar:hover{ color:var(--bad); background-color:var(--panel-2); }
+  .ts-sel-quitar svg{ width:12px; height:12px; }
+  .ts-sel-total{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft); font-size:12.5px; }
+  @media (max-width:900px){
+    .ts-picker{ grid-template-columns:1fr; }
+    .ts-col-sel{ position:static; }
+    .ts-resumen-lista{ grid-template-columns:1fr; }
+  }
 
   /* Encabezados ordenables (reemplazan los botones "Ordenar" sueltos,
      2026-09-15) — clic en el <th data-sort> ordena por esa columna, clic de
@@ -3186,82 +3242,7 @@
             </div>
           </div>
 
-          <!-- Vista 3: editar los datos de la Solicitud antes de cotizar -->
-          <div id="cotEditarVista" hidden>
-            <button type="button" class="radm-back" id="cotEditarVolver">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Cancelar edición
-            </button>
-            <div class="radm-form">
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>CONTACTO (opcional)</label>
-                  <select id="cotEditContactoSelect">
-                    <option value="">Sin contacto específico</option>
-                  </select>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>HERRAMIENTA <span class="dip-req">*</span></label>
-                  <select id="cotEditHerramienta">
-                    <option value="">Selecciona...</option>
-                    <option value="excel">Excel</option>
-                    <option value="powerbi">Power BI</option>
-                    <option value="powerapps">Power Apps</option>
-                    <option value="powerautomate">Power Automate</option>
-                    <option value="ia">IA Aplicada</option>
-                    <option value="ofimatica">Ofimática Básica</option>
-                  </select>
-                </div>
-              </div>
-              <div id="cotEditTemarioModoWrap"></div>
-              <div id="cotEditTemarioBody"></div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>FECHA TENTATIVA DE INICIO</label>
-                  <input type="text" id="cotEditFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
-                </div>
-                <div class="radm-field">
-                  <label>CIUDAD / SEDE (si es presencial)</label>
-                  <input type="text" id="cotEditCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>PARTICIPANTES</label>
-                  <div class="sol-pill-group" data-group="participantes">
-                    <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
-                    <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
-                    <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
-                    <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
-                  </div>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>MODALIDAD</label>
-                  <div class="sol-pill-group" data-group="modalidad">
-                    <button type="button" class="sol-pill" data-value="Online">Online</button>
-                    <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
-                    <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
-                  </div>
-                </div>
-              </div>
-              <div class="radm-form-row">
-                <div class="radm-field">
-                  <label>COMENTARIOS</label>
-                  <textarea id="cotEditNotas"></textarea>
-                </div>
-              </div>
-              <div class="radm-actions">
-                <div class="radm-actions-buttons">
-                  <button type="button" class="radm-btn" id="cotEditGuardar">Guardar cambios</button>
-                  <button type="button" class="radm-btn radm-btn-ghost" id="cotEditCancelar2">Cancelar</button>
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         <div class="dip-tabpanel" id="cotTab-ver">
@@ -11671,21 +11652,21 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // TemarioSelector — componente compartido: elegir herramienta → Temario
-  // Estándar (dropdown) o Personalizado (checkboxes con suma de horas en
-  // vivo), contra el mismo catálogo público (getCatalogoCursos) que usa
-  // cursos.html. Nació dentro de Solicitudes; Fase 3 (Cotizaciones) lo
-  // necesita también y el proyecto pidió explícitamente no repetirlo desde
-  // cero, así que se extrajo aquí — ambos paneles crean su propia instancia
-  // con TemarioSelector.crear({modoWrapEl, bodyEl}) sobre sus propios
-  // contenedores, pero comparten el caché de catálogo por herramienta
-  // (catalogoCache a nivel de módulo) para no repetir la llamada a la API si
-  // ambos paneles terminan consultando la misma herramienta en una sesión.
+  // SELECTOR DE PROGRAMA / TEMAS — lo usa el formulario Crear/Modificar Solicitud. Contra el mismo catálogo
+  // público (getCatalogoCursos) que cursos.html. El modo (estándar o personalizado) lo manda el switch del
+  // formulario con setModo(); aquí solo se pinta y se arma el payload:
+  //   · Estándar: un <select> de programas publicados + resumen de sus temas (sin truncar).
+  //   · Personalizado: catálogo de temas a la izquierda (buscador, filtro de nivel, descripción completa) y
+  //     "Tu selección" a la derecha, en el orden en que se eligieron, con quitar y total de horas.
+  // onChange() avisa cada vez que cambia la selección (el formulario recalcula las horas sugeridas).
+  // El caché del catálogo es por herramienta (a nivel de módulo).
+  // ═══════════════════════════════════════════════════════════════
   window.TemarioSelector = (function(){
     const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
     const catalogoCache = {};
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    const fmtHoras = n => String(Math.round(Number(n) * 10) / 10);
 
     async function cargarCatalogo(herramienta){
       if(!catalogoCache[herramienta]){
@@ -11698,127 +11679,181 @@
       return catalogoCache[herramienta];
     }
 
-    function crear({ modoWrapEl, bodyEl }){
+    function crear({ bodyEl, onChange }){
       let modo = 'estandar';
+      let herramienta = '';
       let data = { temas: [], estandar: [], proyectos: [] };
+      let elegidos = [];          // ids de tema, en orden de selección (personalizado)
+      let programaId = '';        // programa elegido (estándar)
+      let buscar = '', nivelFiltro = '';
 
-      function actualizarTotal(){
-        const total = bodyEl.querySelector('.ts-temas-total');
-        if(!total) return;
-        const marcados = Array.from(bodyEl.querySelectorAll('.ts-tema-check:checked'));
-        const horas = marcados.reduce((s, c) => s + Number(c.dataset.horas || 0), 0);
-        total.innerHTML = `<b>${horas} hr</b> · ${marcados.length} tema${marcados.length === 1 ? '' : 's'} seleccionado${marcados.length === 1 ? '' : 's'}`;
+      const avisar = () => { if(onChange) onChange(); };
+      const temaPorId = id => (data.temas || []).find(t => String(t.id) === String(id));
+
+      function renderEstandar(){
+        const progs = data.estandar || [];
+        if(!herramienta){ bodyEl.innerHTML = '<div class="radm-hint">Elige primero la herramienta.</div>'; return; }
+        if(!progs.length){ bodyEl.innerHTML = '<div class="radm-empty-row">Esta herramienta no tiene programas estándar publicados. Cambia el switch a personalizado.</div>'; return; }
+        const p = progs.find(x => String(x.id) === String(programaId));
+        bodyEl.innerHTML = `
+          <div class="radm-field">
+            <label>PROGRAMA <span class="dip-req">*</span></label>
+            <select class="ts-programa-select">
+              <option value="">Selecciona...</option>
+              ${progs.map(t => `<option value="${escapeHtml(t.id)}" ${String(t.id) === String(programaId) ? 'selected' : ''}>${escapeHtml(t.nombre)} — ${fmtHoras(t.horas)} hr${t.nivelLabel ? ' · ' + escapeHtml(t.nivelLabel) : ''}</option>`).join('')}
+            </select>
+          </div>
+          ${p ? `
+          <div class="ts-resumen">
+            <div class="ts-resumen-head">${(p.temas || []).length} tema${(p.temas || []).length === 1 ? '' : 's'} · ${fmtHoras(p.horas)} hr${p.nivelLabel ? ' · ' + escapeHtml(p.nivelLabel) : ''}</div>
+            <ol class="ts-resumen-lista">
+              ${(p.temas || []).map(t => `<li><span class="ts-resumen-nombre">${escapeHtml(t.nombre)}</span><span class="ts-meta">${fmtHoras(t.horas)} hr</span></li>`).join('')}
+            </ol>
+          </div>` : ''}`;
+        bodyEl.querySelector('.ts-programa-select').addEventListener('change', e => { programaId = e.target.value; renderEstandar(); avisar(); });
       }
 
-      function renderBody(){
-        if(modo === 'estandar'){
-          if(!data.estandar.length){ bodyEl.innerHTML = '<div class="radm-empty-row">Sin programas publicados para esta herramienta.</div>'; return; }
-          bodyEl.innerHTML = `
-            <div class="radm-field">
-              <label>PROGRAMA <span class="dip-req">*</span></label>
-              <select class="ts-temario-select">
-                <option value="">Selecciona...</option>
-                ${data.estandar.map(t => `<option value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-horas="${t.horas}">${escapeHtml(t.nombre)} — ${t.horas} hr${t.nivelLabel ? ' · ' + escapeHtml(t.nivelLabel) : ''}</option>`).join('')}
-              </select>
-            </div>`;
-        } else {
-          if(!data.temas.length){ bodyEl.innerHTML = '<div class="radm-empty-row">Sin temas publicados para esta herramienta.</div>'; return; }
-          bodyEl.innerHTML = `
-            <div class="radm-field">
-              <label>TEMAS <span class="dip-req">* elige los que apliquen</span></label>
-              <div class="sol-temas-list">
-                ${data.temas.map(t => `
-                  <label class="sol-tema-item">
-                    <input type="checkbox" class="ts-tema-check" value="${t.id}" data-nombre="${escapeHtml(t.nombre)}" data-descripcion="${escapeHtml(t.descripcion || '')}" data-horas="${t.horas}" data-nivel="${t.nivel}">
-                    <span class="sol-tema-nombre">${escapeHtml(t.nombre)}</span>
-                    <span class="sol-tema-horas">${NIVEL_LABEL[t.nivel] || ''} · ${t.horas} hr</span>
-                  </label>`).join('')}
+      function listaCatalogoHtml(){
+        const q = buscar.trim().toLowerCase();
+        const visibles = (data.temas || []).filter(t =>
+          (!nivelFiltro || String(t.nivel) === nivelFiltro) &&
+          (!q || (t.nombre || '').toLowerCase().includes(q) || (t.descripcion || '').toLowerCase().includes(q)));
+        if(!visibles.length) return '<div class="radm-empty-row">Ningún tema coincide con la búsqueda.</div>';
+        return visibles.map(t => {
+          const marcado = elegidos.includes(String(t.id));
+          return `
+          <label class="ts-tema ${marcado ? 'sel' : ''}">
+            <input type="checkbox" class="ts-tema-check" value="${escapeHtml(t.id)}" ${marcado ? 'checked' : ''}>
+            <span class="ts-tema-body">
+              <span class="ts-tema-top"><b>${escapeHtml(t.nombre)}</b><span class="ts-meta">${NIVEL_LABEL[t.nivel] ? NIVEL_LABEL[t.nivel] + ' · ' : ''}${fmtHoras(t.horas)} hr</span></span>
+              ${t.descripcion ? `<span class="ts-tema-desc">${escapeHtml(t.descripcion)}</span>` : ''}
+            </span>
+          </label>`;
+        }).join('');
+      }
+
+      function seleccionHtml(){
+        if(!elegidos.length) return '<div class="radm-hint" style="padding:6px 2px;">Marca temas en el catálogo y aquí verás tu selección en orden.</div>';
+        return `<ol class="ts-sel-lista">${elegidos.map((id, i) => {
+          const t = temaPorId(id);
+          if(!t) return '';
+          return `<li><span class="ts-sel-num">${i + 1}</span><span class="ts-sel-nombre">${escapeHtml(t.nombre)}</span><span class="ts-meta">${fmtHoras(t.horas)} hr</span><button type="button" class="ts-sel-quitar" data-id="${escapeHtml(id)}" title="Quitar" aria-label="Quitar ${escapeHtml(t.nombre)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></li>`;
+        }).join('')}</ol>`;
+      }
+
+      function totalHtml(){
+        const horas = elegidos.reduce((s, id) => s + Number((temaPorId(id) || {}).horas || 0), 0);
+        return `<b>${fmtHoras(horas)} hr</b> · ${elegidos.length} tema${elegidos.length === 1 ? '' : 's'}`;
+      }
+
+      function repintarSeleccion(){
+        const sel = bodyEl.querySelector('.ts-sel-wrap');
+        if(sel) sel.innerHTML = seleccionHtml();
+        const tot = bodyEl.querySelector('.ts-sel-total');
+        if(tot) tot.innerHTML = totalHtml();
+        bodyEl.querySelectorAll('.ts-tema').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+      }
+
+      function renderPersonalizado(){
+        if(!herramienta){ bodyEl.innerHTML = '<div class="radm-hint">Elige primero la herramienta.</div>'; return; }
+        if(!(data.temas || []).length){ bodyEl.innerHTML = '<div class="radm-empty-row">Esta herramienta no tiene temas publicados.</div>'; return; }
+        bodyEl.innerHTML = `
+          <label class="ts-label">TEMAS <span class="dip-req">* elige los que apliquen</span></label>
+          <div class="ts-picker">
+            <div class="ts-col-cat">
+              <div class="ts-filtros">
+                <input type="search" class="ts-buscar" placeholder="Buscar tema…" value="${escapeHtml(buscar)}">
+                <select class="ts-nivel">
+                  <option value="">Todos los niveles</option>
+                  ${Object.keys(NIVEL_LABEL).map(n => `<option value="${n}" ${nivelFiltro === n ? 'selected' : ''}>${NIVEL_LABEL[n]}</option>`).join('')}
+                </select>
               </div>
-              <div class="sol-temas-total ts-temas-total">0 hr · 0 temas seleccionados</div>
-            </div>`;
-          bodyEl.querySelectorAll('.ts-tema-check').forEach(chk => chk.addEventListener('change', actualizarTotal));
-          actualizarTotal();
-        }
+              <div class="ts-cat-lista">${listaCatalogoHtml()}</div>
+            </div>
+            <div class="ts-col-sel">
+              <div class="ts-sel-head">TU SELECCIÓN</div>
+              <div class="ts-sel-wrap">${seleccionHtml()}</div>
+              <div class="ts-sel-total">${totalHtml()}</div>
+            </div>
+          </div>`;
+        const lista = bodyEl.querySelector('.ts-cat-lista');
+        const repintarLista = () => { lista.innerHTML = listaCatalogoHtml(); };
+        bodyEl.querySelector('.ts-buscar').addEventListener('input', e => { buscar = e.target.value; repintarLista(); });
+        bodyEl.querySelector('.ts-nivel').addEventListener('change', e => { nivelFiltro = e.target.value; repintarLista(); });
+        lista.addEventListener('change', e => {
+          const chk = e.target.closest('.ts-tema-check');
+          if(!chk) return;
+          const id = String(chk.value);
+          elegidos = chk.checked ? (elegidos.includes(id) ? elegidos : elegidos.concat(id)) : elegidos.filter(x => x !== id);
+          repintarSeleccion(); avisar();
+        });
+        bodyEl.querySelector('.ts-sel-wrap').addEventListener('click', e => {
+          const q = e.target.closest('.ts-sel-quitar');
+          if(!q) return;
+          elegidos = elegidos.filter(x => x !== String(q.dataset.id));
+          const chk = lista.querySelector(`.ts-tema-check[value="${CSS.escape(String(q.dataset.id))}"]`);
+          if(chk) chk.checked = false;
+          repintarSeleccion(); avisar();
+        });
       }
 
-      async function cargarHerramienta(herramienta){
-        if(!herramienta){ modoWrapEl.innerHTML = ''; bodyEl.innerHTML = ''; data = { temas: [], estandar: [], proyectos: [] }; return; }
+      function render(){ if(modo === 'estandar') renderEstandar(); else renderPersonalizado(); }
+
+      async function cargarHerramienta(h){
+        herramienta = h || '';
+        elegidos = []; programaId = ''; buscar = ''; nivelFiltro = '';
+        if(!herramienta){ data = { temas: [], estandar: [], proyectos: [] }; render(); avisar(); return; }
         bodyEl.innerHTML = '<div class="radm-empty-row">Cargando catálogo…</div>';
-        modoWrapEl.innerHTML = '';
         data = await cargarCatalogo(herramienta);
-        const hasEstandar = !!(data.estandar && data.estandar.length);
-        const hasBuilder = !!(data.temas && data.temas.length);
-        if(!hasEstandar && !hasBuilder){
-          bodyEl.innerHTML = '<div class="radm-empty-row">Esta herramienta todavía no tiene programas publicados.</div>';
-          return;
-        }
-        modo = hasEstandar ? 'estandar' : 'personalizado';
-        if(hasEstandar && hasBuilder){
-          modoWrapEl.innerHTML = `
-            <div class="radm-tabs" style="margin-bottom:16px;">
-              <button type="button" class="radm-tab active" data-modo="estandar">Programa</button>
-              <button type="button" class="radm-tab" data-modo="personalizado">Personalizado</button>
-            </div>`;
-          modoWrapEl.querySelectorAll('.radm-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-              if(modo === btn.dataset.modo) return;
-              modo = btn.dataset.modo;
-              modoWrapEl.querySelectorAll('.radm-tab').forEach(b => b.classList.toggle('active', b === btn));
-              renderBody();
-            });
-          });
-        }
-        renderBody();
+        render(); avisar();
       }
 
-      // arma el mismo payload que antes armaba a mano el handler de "Guardar"
-      // de Solicitudes — null si no hay una selección válida todavía.
+      function setModo(m){
+        if(m === modo) return;
+        modo = m;
+        render(); avisar();
+      }
+
+      // arma el payload que guarda la solicitud; null si todavía no hay una selección válida
       function getPayload(){
         if(modo === 'estandar'){
-          const sel = bodyEl.querySelector('.ts-temario-select');
-          if(!sel || !sel.value) return null;
-          const opt = sel.selectedOptions[0];
-          const temarioCat = (data.estandar || []).find(t => t.id === sel.value);
+          const p = (data.estandar || []).find(x => String(x.id) === String(programaId));
+          if(!p) return null;
           return {
-            temario_tipo: 'estandar',
-            temario_nombre: opt.dataset.nombre,
-            horas_totales: Number(opt.dataset.horas),
-            temas: (temarioCat && temarioCat.temas) ? temarioCat.temas.map(t => ({ temaId: t.id, nombre: t.nombre, descripcion: t.descripcion, horas: t.horas, nivel: t.nivel })) : [],
+            temario_tipo: 'estandar', temario_nombre: p.nombre, horas_totales: Number(p.horas),
+            temas: (p.temas || []).map(t => ({ temaId: t.id, nombre: t.nombre, descripcion: t.descripcion, horas: t.horas, nivel: t.nivel })),
           };
         }
-        const marcados = Array.from(bodyEl.querySelectorAll('.ts-tema-check:checked'));
-        if(!marcados.length) return null;
-        const temas = marcados.map(c => ({ temaId: c.value, nombre: c.dataset.nombre, descripcion: c.dataset.descripcion, horas: Number(c.dataset.horas), nivel: Number(c.dataset.nivel) }));
-        return {
-          temario_tipo: 'personalizado',
-          temario_nombre: null,
-          horas_totales: temas.reduce((s, t) => s + t.horas, 0),
-          temas,
-        };
+        const temas = elegidos.map(temaPorId).filter(Boolean).map(t => ({ temaId: t.id, nombre: t.nombre, descripcion: t.descripcion, horas: Number(t.horas), nivel: Number(t.nivel) }));
+        if(!temas.length) return null;
+        return { temario_tipo: 'personalizado', temario_nombre: null, horas_totales: temas.reduce((s, t) => s + t.horas, 0), temas };
       }
 
-      // precarga una selección ya guardada — usado por "Nueva versión" en
-      // Cotizaciones. Debe llamarse después de que cargarHerramienta(...)
-      // haya resuelto (await) para que el DOM ya exista.
-      function preseleccionar({ temarioId, temaIds }){
-        if(modo === 'estandar' && temarioId){
-          const sel = bodyEl.querySelector('.ts-temario-select');
-          if(sel) sel.value = temarioId;
-        } else if(modo === 'personalizado' && Array.isArray(temaIds)){
-          bodyEl.querySelectorAll('.ts-tema-check').forEach(chk => { chk.checked = temaIds.includes(chk.value); });
-          actualizarTotal();
+      // horas que se sugieren al formulario (0 si no hay selección)
+      function getHorasSugeridas(){
+        const p = getPayload();
+        return p ? Math.round(p.horas_totales * 10) / 10 : 0;
+      }
+
+      // precarga una selección ya guardada. Llamar DESPUÉS de await cargarHerramienta(...).
+      // Una solicitud estándar solo guarda el NOMBRE del programa; la personalizada, los ids de sus temas.
+      function preseleccionar({ temarioNombre, temaIds }){
+        if(modo === 'estandar'){
+          const p = (data.estandar || []).find(t => t.nombre === temarioNombre);
+          programaId = p ? String(p.id) : '';
+        } else {
+          elegidos = (temaIds || []).map(String).filter(id => temaPorId(id));
         }
+        render();
       }
 
-      return { cargarHerramienta, getPayload, getModo: () => modo, preseleccionar };
+      return { cargarHerramienta, setModo, getPayload, getHorasSugeridas, getModo: () => modo, preseleccionar, catalogo: () => data };
     }
 
-    // cargarCatalogo se expone además de crear() para el caso de "precargar
-    // desde una Solicitud" en Cotizaciones: Solicitud solo guarda el NOMBRE
-    // del temario estándar (no su id), así que hace falta resolverlo contra
-    // el catálogo para poder preseleccionarlo con preseleccionar({temarioId}).
+    // cargarCatalogo se expone además de crear() para resolver dirigido/objetivo de un programa estándar al cotizar.
     return { crear, cargarCatalogo };
   })();
+
 
   // ═══════════════════════════════════════════════════════════════
   // PANEL SOLICITUDES — Fase 2 del roadmap (bloque Comercial). Alta de
@@ -11887,15 +11922,23 @@
     }
 
     // ── autocompletado de Cliente (copia propia — el de Diplomas no acepta onChange) ──
-    function crearAutocomplete({ inputId, listId, codigoId, onChange }){
+    function crearAutocomplete({ inputId, listId, codigoId, onChange, desplegarBtnId }){
       const input = document.getElementById(inputId);
       const lista = document.getElementById(listId);
+      const btnDesplegar = desplegarBtnId ? document.getElementById(desplegarBtnId) : null;
       let seleccionado = null;
       let timer = null;
 
+      function pintarLista(clientes){
+        lista.innerHTML = clientes.map(c =>
+          `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
+        ).join('');
+        lista.hidden = false;
+      }
+
       input.addEventListener('input', () => {
         seleccionado = null;
-        if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+        if(codigoId) document.getElementById(codigoId).value = '';
         if(onChange) onChange(null);
         const q = input.value.trim();
         clearTimeout(timer);
@@ -11904,35 +11947,51 @@
           try {
             const clientes = await apiGetConReintento('/api/buscarClientesAdmin?q=' + encodeURIComponent(q));
             if(!clientes.length){ lista.hidden = true; return; }
-            lista.innerHTML = clientes.map(c =>
-              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}" data-codigo="${escapeHtml(c.codigo)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
-            ).join('');
-            lista.hidden = false;
+            pintarLista(clientes);
           } catch(e){ /* silencioso, no bloquea seguir capturando */ }
         }, 250);
       });
+
+      // la flecha del combobox despliega la lista completa (los primeros 300, por nombre)
+      if(btnDesplegar){
+        btnDesplegar.addEventListener('click', async () => {
+          if(!lista.hidden){ lista.hidden = true; return; }
+          try {
+            const clientes = await apiGetConReintento('/api/buscarClientesAdmin?todos=1');
+            if(clientes.length) pintarLista(clientes);
+          } catch(e){ /* silencioso */ }
+        });
+      }
 
       lista.addEventListener('click', e => {
         const item = e.target.closest('.dip-autocomplete-item');
         if(!item) return;
         seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre, codigo: item.dataset.codigo };
         input.value = item.dataset.nombre;
-        if(codigoId){ const c = document.getElementById(codigoId); c.value = item.dataset.codigo; c.readOnly = true; }
+        if(codigoId) document.getElementById(codigoId).value = item.dataset.codigo;
         lista.hidden = true;
         if(onChange) onChange(seleccionado);
       });
 
       document.addEventListener('click', e => {
-        if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
+        if(!input.contains(e.target) && !lista.contains(e.target) && !(btnDesplegar && btnDesplegar.contains(e.target))) lista.hidden = true;
       });
 
       return {
         getSeleccionado: () => seleccionado,
+        // fija una selección desde código (modo Modificar)
+        establecer: (c) => {
+          seleccionado = { id: Number(c.id), nombre: c.nombre, codigo: c.codigo };
+          input.value = c.nombre;
+          if(codigoId) document.getElementById(codigoId).value = c.codigo || '';
+          lista.hidden = true;
+          if(onChange) onChange(seleccionado);
+        },
         reset: () => {
           seleccionado = null;
           input.value = '';
           lista.hidden = true;
-          if(codigoId){ const c = document.getElementById(codigoId); c.value = ''; c.readOnly = false; }
+          if(codigoId) document.getElementById(codigoId).value = '';
           if(onChange) onChange(null);
         },
       };
@@ -12293,92 +12352,163 @@
     // entrar al panel (sidebar, tarjeta de Tracking View o campana) refresca datos, como Grupos
     window.alEntrarASolicitudes = () => { activarTabSolicitud('consultar'); buscarSolicitudes(); cargarKpisSolicitudes(); };
 
-    // ══ ALTA/EDICIÓN DE SOLICITUD — vive en la pestaña "Crear Solicitud" ══
-    // sol=null → alta; sol={...} (fila de listSolicitudesAdmin) → edición.
-    // El Cliente no es editable en edición (mismo criterio que editarSolicitud
-    // en el backend: cambiar de empresa a una solicitud ya capturada es un caso
-    // raro que se resuelve mejor descartando y creando una nueva) — el campo se
-    // deja de solo lectura en vez de quitarlo, para no perder el contexto visual.
+    // ══ CREAR / MODIFICAR SOLICITUD — un solo formulario (2026-10-08) ══
+    // sol=null → alta; sol={...} (fila de listSolicitudesAdmin) → modificar, con todo precargado. Dos switches definen
+    // el formulario: ¿Es cliente? (cliente existente vs Prospecto nuevo con código único) y ¿Es curso estándar?
+    // (programa vs temas + objetivo/alcance/dirigido a). Modificar es el MISMO formulario: ahí se corrige el nombre
+    // del Prospecto o se cambia a un cliente existente (api/src/solicitud-guardar.js explica qué pasa con su contacto).
     function abrirFormSolicitud(sol){
       const editando = !!sol;
       const wrap = document.getElementById('solFormWrap');
+      const $ = id => document.getElementById(id);
+      const origenProspecto = editando && sol.tipo_cliente === 'Prospecto';
+      const temasGuardados = editando ? temasDe(sol) : [];
 
       wrap.innerHTML = `
-        <h3 class="radm-form-title">${editando ? 'Editando Solicitud: ' + escapeHtml(sol.cliente) + ' — ' + (TOOL_NAMES[sol.herramienta] || escapeHtml(sol.herramienta)) : 'Nueva Solicitud'}</h3>
-        <div class="radm-form">
-          <div class="radm-form-row">
-            <div class="radm-field dip-autocomplete-wrap">
-              <label>CLIENTE <span class="dip-req">*</span></label>
-              <input type="text" id="solEmpresaNombre" placeholder="Escribe para buscar o crear..." ${editando ? 'readonly title="El cliente no se puede cambiar aquí — descarta y crea una nueva si fue un error."' : ''} value="${editando ? escapeHtml(sol.cliente) : ''}">
-              <div class="dip-autocomplete-list" id="solEmpresaLista" hidden></div>
+        <button type="button" class="radm-back" id="solVolver">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Volver a Solicitudes
+        </button>
+        <h3 class="radm-form-title">${editando ? 'Modificando Solicitud: ' + escapeHtml(sol.cliente) + ' — ' + (TOOL_NAMES[sol.herramienta] || escapeHtml(sol.herramienta)) : 'Nueva Solicitud'}</h3>
+        <div class="radm-form sol-form">
+          <div class="radm-toggles-block sol-toggles">
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="solEsCliente" checked><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Es cliente?</span>
             </div>
-            <div class="radm-field">
-              <label>CÓDIGO <span class="dip-req">* si es cliente nuevo</span></label>
-              <input type="text" id="solEmpresaCodigo" placeholder="ACME" ${editando ? 'readonly' : ''} value="${editando ? escapeHtml(sol.cliente_codigo || '') : ''}">
+            <div class="radm-switch-row">
+              <label class="radm-switch"><input type="checkbox" id="solEsEstandar" checked><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Es curso estándar?</span>
             </div>
+            <span class="radm-hint sol-toggles-hint" id="solTogglesHint"></span>
           </div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>CONTACTO (opcional)</label>
-              <select id="solContactoSelect" disabled>
-                <option value="">Selecciona un cliente existente primero…</option>
-              </select>
-            </div>
-            <div class="radm-field" style="flex:none; justify-content:flex-end;">
-              <button type="button" class="radm-btn-add" id="solBtnNuevoContacto" disabled style="margin-bottom:1px;" title="Se activa al elegir un cliente EXISTENTE de la lista (clic en la sugerencia, no basta con escribir el nombre). Para un cliente nuevo, agrega su contacto después en Clientes.">+ Nuevo contacto</button>
-            </div>
-          </div>
-          <div id="solContactoFormWrap"></div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>HERRAMIENTA <span class="dip-req">*</span></label>
-              <select id="solHerramienta">
-                <option value="">Selecciona...</option>
-                ${Object.keys(TOOL_NAMES).map(k => `<option value="${k}">${TOOL_NAMES[k]}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-          <div id="solTemarioModoWrap"></div>
-          <div id="solTemarioBody"></div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>FECHA TENTATIVA DE INICIO</label>
-              <input type="text" id="solFechaTentativa" placeholder="Ej. últimas dos semanas de septiembre">
-            </div>
-            <div class="radm-field">
-              <label>CIUDAD / SEDE (si es presencial)</label>
-              <input type="text" id="solCiudadSede" placeholder="Ej. Monterrey, oficinas del cliente">
-            </div>
-          </div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>PARTICIPANTES</label>
-              <div class="sol-pill-group" data-group="participantes">
-                <button type="button" class="sol-pill" data-value="Solo yo">Solo yo</button>
-                <button type="button" class="sol-pill" data-value="5 a 10">5 a 10</button>
-                <button type="button" class="sol-pill" data-value="10 a 15">10 a 15</button>
-                <button type="button" class="sol-pill" data-value="Más de 15">Más de 15</button>
+
+          <section class="sol-card">
+            <div class="sol-card-title">QUIÉN</div>
+
+            <div id="solBloqueCliente">
+              <div class="radm-form-row">
+                <div class="radm-field dip-autocomplete-wrap sol-combo" style="flex:2;">
+                  <label>CLIENTE <span class="dip-req">*</span></label>
+                  <input type="text" id="solEmpresaNombre" placeholder="Escribe o despliega la lista…" autocomplete="off">
+                  <button type="button" class="sol-combo-btn" id="solEmpresaDesplegar" title="Ver todos los clientes" aria-label="Ver todos los clientes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <div class="dip-autocomplete-list" id="solEmpresaLista" hidden></div>
+                </div>
+                <div class="radm-field">
+                  <label>CÓDIGO</label>
+                  <input type="text" id="solEmpresaCodigo" readonly tabindex="-1" placeholder="Se llena solo">
+                </div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field">
+                  <label>CONTACTO (opcional)</label>
+                  <select id="solContactoSelect" disabled>
+                    <option value="">Selecciona un cliente primero…</option>
+                  </select>
+                </div>
+                <div class="radm-field" style="flex:none; justify-content:flex-end;">
+                  <button type="button" class="radm-btn-add" id="solBtnNuevoContacto" disabled>+ Nuevo contacto</button>
+                </div>
+              </div>
+              <div id="solContactoNuevo" class="sol-subform" hidden>
+                <div class="radm-form-row">
+                  <div class="radm-field"><label>NOMBRE DEL CONTACTO <span class="dip-req">*</span></label><input type="text" id="solCNombre"></div>
+                  <div class="radm-field"><label>CORREO</label><input type="email" id="solCCorreo"></div>
+                  <div class="radm-field"><label>WHATSAPP / TELÉFONO</label><input type="text" id="solCTel" placeholder="Con lada"></div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>MODALIDAD</label>
-              <div class="sol-pill-group" data-group="modalidad">
-                <button type="button" class="sol-pill" data-value="Online">Online</button>
-                <button type="button" class="sol-pill" data-value="Presencial">Presencial</button>
-                <button type="button" class="sol-pill" data-value="Híbrido">Híbrido</button>
+
+            <div id="solBloqueProspecto" hidden>
+              <div class="radm-form-row">
+                <div class="radm-field" style="flex:2;">
+                  <label>NOMBRE DEL PROSPECTO <span class="dip-req">*</span></label>
+                  <input type="text" id="solPNombre" placeholder="Empresa o persona" autocomplete="off">
+                </div>
+                <div class="radm-field">
+                  <label>CÓDIGO <span class="dip-req">*</span></label>
+                  <input type="text" id="solPCodigo" maxlength="12" placeholder="ACM" autocomplete="off">
+                  <div class="sol-codigo-estado" id="solPCodigoEstado" aria-live="polite"></div>
+                </div>
+              </div>
+              <div class="sol-aviso" id="solPSimilares" hidden></div>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>NOMBRE DEL CONTACTO <span class="dip-req">*</span></label><input type="text" id="solPCNombre"></div>
+                <div class="radm-field"><label>CORREO</label><input type="email" id="solPCCorreo"></div>
+                <div class="radm-field"><label>WHATSAPP / TELÉFONO</label><input type="text" id="solPCTel" placeholder="Con lada"></div>
+              </div>
+              <span class="radm-hint">Deja al menos un correo o un WhatsApp para poder responderle.</span>
+            </div>
+          </section>
+
+          <section class="sol-card">
+            <div class="sol-card-title">QUÉ</div>
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>HERRAMIENTA <span class="dip-req">*</span></label>
+                <select id="solHerramienta">
+                  <option value="">Selecciona...</option>
+                  ${Object.keys(TOOL_NAMES).map(k => `<option value="${k}">${TOOL_NAMES[k]}</option>`).join('')}
+                </select>
+              </div>
+              <div class="radm-field sol-horas">
+                <label>HORAS <span class="dip-req">*</span></label>
+                <input type="number" id="solHoras" min="0.5" step="0.5" placeholder="0">
+                <div class="sol-horas-hint" id="solHorasHint"></div>
               </div>
             </div>
-          </div>
-          <div class="radm-form-row">
-            <div class="radm-field">
-              <label>COMENTARIOS</label>
-              <textarea id="solNotas" placeholder="Kick off, grabación de sesiones, otras necesidades..."></textarea>
+            <div id="solTemarioBody"></div>
+            <div id="solPersonalizadoWrap" hidden>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>OBJETIVO</label><textarea id="solObjetivo" rows="3" placeholder="Qué debe lograr el equipo al terminar."></textarea></div>
+                <div class="radm-field"><label>ALCANCE</label><textarea id="solAlcance" rows="3" placeholder="Qué incluye y qué no."></textarea></div>
+                <div class="radm-field"><label>DIRIGIDO A</label><textarea id="solDirigido" rows="3" placeholder="Perfil de los participantes."></textarea></div>
+              </div>
             </div>
-          </div>
+          </section>
+
+          <section class="sol-card">
+            <div class="sol-card-title">DETALLES</div>
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>PARTICIPANTES</label>
+                <select id="solParticipantes">
+                  <option value="">Selecciona...</option>
+                  <option value="Solo yo">Solo yo</option>
+                  <option value="5 a 10">5 a 10</option>
+                  <option value="10 a 15">10 a 15</option>
+                  <option value="Más de 15">Más de 15</option>
+                  <option value="otro">Otro número…</option>
+                </select>
+                <input type="number" id="solPartNum" min="1" step="1" placeholder="¿Cuántas personas?" hidden style="margin-top:8px;">
+              </div>
+              <div class="radm-field">
+                <label>MODALIDAD</label>
+                <select id="solModalidad">
+                  <option value="">Selecciona...</option>
+                  <option value="Online">Online</option>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Híbrido">Híbrido</option>
+                </select>
+              </div>
+              <div class="radm-field">
+                <label>RECIBIDA EL <span class="radm-hint" style="display:inline;">(opcional)</span></label>
+                <input type="datetime-local" id="solRecibida">
+                <div class="sol-horas-hint">Si llegó antes de hoy, ponla: el semáforo y las horas de atención cuentan desde ahí.</div>
+              </div>
+            </div>
+            <div class="radm-form-row">
+              <div class="radm-field">
+                <label>COMENTARIOS</label>
+                <textarea id="solNotas" rows="3" placeholder="Describe aquí la necesidad particular o comentarios a considerar."></textarea>
+              </div>
+            </div>
+          </section>
+
           <div class="radm-actions">
-            <span class="radm-hint">${editando ? 'El cliente no se puede cambiar aquí — si fue un error, descarta esta solicitud y crea una nueva.' : 'El cliente y el contacto se dan de alta aquí mismo si todavía no existen.'}</span>
+            <span class="radm-hint">${editando && sol.estatus === 'Cotizada' ? 'Esta solicitud ya tiene cotización: los cambios no se reflejan en esa cotización (conserva sus propios datos).' : (editando ? 'Si el prospecto en realidad es un cliente, activa «¿Es cliente?» y elígelo: la solicitud y su contacto pasan a él.' : 'El prospecto y su contacto se dan de alta aquí mismo.')}</span>
             <div class="radm-actions-buttons">
               <button type="button" class="radm-btn" id="solGuardar">${editando ? 'Guardar cambios' : 'Guardar'}</button>
               <button type="button" class="radm-btn radm-btn-ghost" id="solCancelar">Cancelar</button>
@@ -12386,194 +12516,288 @@
           </div>
         </div>`;
 
-      // pills de Participantes/Modalidad — single-select por grupo, sin librería
-      wrap.querySelectorAll('.sol-pill-group').forEach(group => {
-        group.addEventListener('click', e => {
-          const pill = e.target.closest('.sol-pill');
-          if(!pill) return;
-          group.querySelectorAll('.sol-pill').forEach(p => p.classList.toggle('active', p === pill));
-        });
+      // ───── estado ─────
+      let horasTocadas = false;
+      let codigoTocado = origenProspecto;
+      let contactos = [];
+      let verifSeq = 0, verifTimer = null, codigoExiste = null;
+      const esCliente = () => $('solEsCliente').checked;
+      const esEstandar = () => $('solEsEstandar').checked;
+
+      // ───── horas sugeridas ─────
+      const temarioSel = window.TemarioSelector.crear({ bodyEl: $('solTemarioBody'), onChange: alCambiarSeleccion });
+      function actualizarHorasHint(){
+        const sug = temarioSel.getHorasSugeridas();
+        const hint = $('solHorasHint');
+        if(!sug){ hint.innerHTML = ''; return; }
+        const igual = Number($('solHoras').value) === sug;
+        hint.innerHTML = esEstandar()
+          ? `Del programa: <b>${sug} hr</b>`
+          : `Suma de los temas: <b>${sug} hr</b>`;
+        if(!igual) hint.innerHTML += ' · <button type="button" class="sol-link-btn" id="solHorasUsar">Usar sugerido</button>';
+        const usar = $('solHorasUsar');
+        if(usar) usar.addEventListener('click', () => { horasTocadas = false; $('solHoras').value = sug; actualizarHorasHint(); });
+      }
+      function alCambiarSeleccion(){
+        const sug = temarioSel.getHorasSugeridas();
+        if(!horasTocadas) $('solHoras').value = sug || '';
+        actualizarHorasHint();
+      }
+      $('solHoras').addEventListener('input', () => {
+        horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
+        actualizarHorasHint();
       });
-      function valorPill(grupo){
-        const activo = wrap.querySelector(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
-        return activo ? activo.dataset.value : null;
-      }
-      function setPill(grupo, valor){
-        wrap.querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', p.dataset.value === valor));
-      }
+      $('solHerramienta').addEventListener('change', e => { horasTocadas = false; temarioSel.cargarHerramienta(e.target.value); });
 
-      let solContactos = [];
+      // ───── switches ─────
+      function aplicarModo(){
+        $('solBloqueCliente').hidden = !esCliente();
+        $('solBloqueProspecto').hidden = esCliente();
+        $('solPersonalizadoWrap').hidden = esEstandar();
+        temarioSel.setModo(esEstandar() ? 'estandar' : 'personalizado');
+        $('solTogglesHint').textContent = `${esCliente() ? 'Cliente existente' : 'Prospecto nuevo'} · ${esEstandar() ? 'programa estándar' : 'curso personalizado'}`;
+      }
+      $('solEsCliente').addEventListener('change', aplicarModo);
+      $('solEsEstandar').addEventListener('change', () => { horasTocadas = false; aplicarModo(); });
 
+      // ───── cliente existente: combobox + contacto ─────
       function pintarContactoSelect(){
-        const sel = document.getElementById('solContactoSelect');
-        const opciones = solContactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
-        sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
+        const sel = $('solContactoSelect');
+        const cli = solEmpresaAuto.getSeleccionado();
+        let extra = '';
+        // un Prospecto que en realidad es un cliente: su contacto actual se pasa al cliente elegido
+        if(origenProspecto && sol.contacto_id && cli && cli.id !== sol.cliente_id){
+          extra = `<option value="${sol.contacto_id}">Pasar a «${escapeHtml(sol.contacto || 'contacto')}» (el contacto de esta solicitud) a este cliente</option>`;
+        }
+        const opciones = contactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
+        sel.innerHTML = `<option value="">Sin contacto específico</option>${extra}${opciones}`;
+        if(extra) sel.value = String(sol.contacto_id);
       }
-
       async function cargarContactosSolicitud(cliente){
-        const sel = document.getElementById('solContactoSelect');
-        const btnNuevo = document.getElementById('solBtnNuevoContacto');
-        document.getElementById('solContactoFormWrap').innerHTML = '';
+        const sel = $('solContactoSelect');
+        const btnNuevo = $('solBtnNuevoContacto');
+        cerrarContactoNuevo();
         if(!cliente){
-          solContactos = [];
+          contactos = [];
           sel.disabled = true;
-          sel.innerHTML = '<option value="">Selecciona un cliente existente primero…</option>';
+          sel.innerHTML = '<option value="">Selecciona un cliente primero…</option>';
           btnNuevo.disabled = true;
           return;
         }
         sel.disabled = true;
         sel.innerHTML = '<option value="">Cargando contactos…</option>';
-        try { solContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
-        catch(e){ solContactos = []; }
+        try { contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id); }
+        catch(e){ contactos = []; }
         pintarContactoSelect();
         sel.disabled = false;
         btnNuevo.disabled = false;
       }
-
+      function cerrarContactoNuevo(){
+        $('solContactoNuevo').hidden = true;
+        $('solBtnNuevoContacto').textContent = '+ Nuevo contacto';
+        ['solCNombre', 'solCCorreo', 'solCTel'].forEach(id => { $(id).value = ''; });
+      }
+      $('solBtnNuevoContacto').addEventListener('click', () => {
+        const abrir = $('solContactoNuevo').hidden;
+        if(!abrir){ cerrarContactoNuevo(); return; }
+        $('solContactoNuevo').hidden = false;
+        $('solBtnNuevoContacto').textContent = 'Usar uno existente';
+        $('solCNombre').focus();
+      });
       const solEmpresaAuto = crearAutocomplete({
-        inputId: 'solEmpresaNombre', listId: 'solEmpresaLista', codigoId: 'solEmpresaCodigo',
+        inputId: 'solEmpresaNombre', listId: 'solEmpresaLista', codigoId: 'solEmpresaCodigo', desplegarBtnId: 'solEmpresaDesplegar',
         onChange: cargarContactosSolicitud,
       });
 
-      document.getElementById('solBtnNuevoContacto').addEventListener('click', () => {
-        const cliente = solEmpresaAuto.getSeleccionado();
-        if(!cliente) return;
-        const cfw = document.getElementById('solContactoFormWrap');
-        if(cfw.querySelector('.radm-inline-form')) return;
-        cfw.innerHTML = `
-          <div class="radm-inline-form">
-            <div class="radm-form-row">
-              <div class="radm-field"><label>NOMBRE</label><input type="text" class="scf-nombre"></div>
-              <div class="radm-field"><label>CORREO</label><input type="text" class="scf-correo"></div>
-              <div class="radm-field"><label>TELÉFONO</label><input type="text" class="scf-telefono"></div>
-            </div>
-            <div class="radm-actions">
-              <span class="radm-hint">Para más campos (planta, WhatsApp, principal) edítalo después en Clientes.</span>
-              <div class="radm-actions-buttons">
-                <button type="button" class="radm-btn scf-guardar">Guardar</button>
-                <button type="button" class="radm-btn radm-btn-ghost scf-cancelar">Cancelar</button>
-              </div>
-            </div>
-          </div>`;
-        cfw.querySelector('.scf-cancelar').addEventListener('click', () => { cfw.innerHTML = ''; });
-        cfw.querySelector('.scf-guardar').addEventListener('click', async () => {
-          const nombre = cfw.querySelector('.scf-nombre').value.trim();
-          if(!nombre){ toast('Falta el nombre del contacto.', false); return; }
-          try {
-            const r = await apiPostJson('/api/crearContacto', {
-              cliente_id: cliente.id, nombre,
-              correo: cfw.querySelector('.scf-correo').value.trim(),
-              telefono: cfw.querySelector('.scf-telefono').value.trim(),
-            });
-            toast('Contacto guardado.', true);
-            cfw.innerHTML = '';
-            solContactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + cliente.id);
-            pintarContactoSelect();
-            document.getElementById('solContactoSelect').value = r.id;
-          } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
-        });
-      });
-
-      const temarioSel = window.TemarioSelector.crear({
-        modoWrapEl: document.getElementById('solTemarioModoWrap'),
-        bodyEl: document.getElementById('solTemarioBody'),
-      });
-      document.getElementById('solHerramienta').addEventListener('change', e => temarioSel.cargarHerramienta(e.target.value));
-
-      document.getElementById('solCancelar').addEventListener('click', () => activarTabSolicitud('consultar'));
-
-      document.getElementById('solGuardar').addEventListener('click', async () => {
-        const herramienta = document.getElementById('solHerramienta').value;
-        if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-
-        const contactoSel = document.getElementById('solContactoSelect');
-        const contactoId = contactoSel && contactoSel.value ? Number(contactoSel.value) : null;
-        const notas = document.getElementById('solNotas').value.trim();
-        const fechaTentativa = document.getElementById('solFechaTentativa').value.trim();
-        const ciudadSede = document.getElementById('solCiudadSede').value.trim();
-
-        // temas_json siempre lleva el desglose COMPLETO (con descripción) — lo
-        // necesita Alfredo para armar la Cotización después, sin importar si el
-        // temario es estándar o personalizado.
-        const temarioPayload = temarioSel.getPayload();
-        if(!temarioPayload){
-          toast(temarioSel.getModo() === 'estandar' ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false);
-          return;
-        }
-
-        const btn = document.getElementById('solGuardar');
-        btn.disabled = true; btn.textContent = 'Guardando...';
-
-        if(editando){
-          const payload = {
-            id: sol.id, contacto_id: contactoId, herramienta, notas,
-            fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
-            participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
-          };
-          Object.assign(payload, temarioPayload);
-          try {
-            await apiPostJson('/api/editarSolicitud', payload);
-            toast('Solicitud actualizada.', true);
-            activarTabSolicitud('consultar');
-            buscarSolicitudes();
-            cargarKpisSolicitudes();
-          } catch(e){
-            toast('No se pudo guardar: ' + e.message, false);
-            btn.disabled = false; btn.textContent = 'Guardar cambios';
-          }
-          return;
-        }
-
-        const seleccionado = solEmpresaAuto.getSeleccionado();
-        const empresaNombre = document.getElementById('solEmpresaNombre').value.trim();
-        const empresaCodigo = document.getElementById('solEmpresaCodigo').value.trim();
-        let empresa;
-        if(seleccionado){ empresa = { clienteId: seleccionado.id }; }
-        else if(empresaNombre && empresaCodigo){ empresa = { nombre: empresaNombre, codigo: empresaCodigo }; }
-        else { toast('Selecciona un cliente existente o captura nombre + código para uno nuevo.', false); btn.disabled = false; btn.textContent = 'Guardar'; return; }
-
-        const payload = {
-          empresa, contacto_id: contactoId, herramienta, notas,
-          fecha_tentativa: fechaTentativa, ciudad_sede: ciudadSede,
-          participantes: valorPill('participantes'), modalidad: valorPill('modalidad'),
+      // ───── prospecto: código sugerido (3 letras), único, y nombres parecidos ─────
+      function sugerirCodigo(nombre){
+        return String(nombre || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
+      }
+      function pintarEstadoCodigo(estado, msg){
+        const el = $('solPCodigoEstado');
+        const ico = {
+          ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>',
+          wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5" stroke-linecap="round"/></svg>',
         };
-        Object.assign(payload, temarioPayload);
+        el.className = 'sol-codigo-estado ' + (estado || '');
+        el.innerHTML = estado ? `${ico[estado] || ''}<span>${escapeHtml(msg)}</span>` : '';
+      }
+      async function verificarCodigo(){
+        const codigo = $('solPCodigo').value.trim();
+        const nombre = $('solPNombre').value.trim();
+        const seq = ++verifSeq;
+        if(!codigo){ codigoExiste = null; pintarEstadoCodigo('', ''); }
+        else pintarEstadoCodigo('wait', 'Verificando…');
+        if(!codigo && nombre.length < 3){ $('solPSimilares').hidden = true; return; }
         try {
-          await apiPostJson('/api/crearSolicitud', payload);
-          toast('Solicitud guardada.', true);
+          const q = new URLSearchParams({ codigo, nombre });
+          if(origenProspecto) q.set('excluirId', sol.cliente_id);
+          const r = await apiGet('/api/verificarCodigoCliente?' + q.toString());
+          if(seq !== verifSeq) return; // llegó una respuesta vieja
+          codigoExiste = r.existe || null;
+          if(codigo) pintarEstadoCodigo(r.existe ? 'bad' : 'ok', r.existe ? `Ya existe: ${r.existe.nombre} (${r.existe.tipo_cliente === 'Prospecto' ? 'Prospecto' : 'Cliente'}). Escribe otro código.` : 'Código disponible');
+          const sim = r.similares || [];
+          const aviso = $('solPSimilares');
+          aviso.hidden = !sim.length;
+          if(sim.length) aviso.innerHTML = `Ojo: ya hay ${sim.length === 1 ? 'un registro' : 'registros'} con un nombre parecido: <b>${sim.map(s => `${escapeHtml(s.nombre)} (${s.tipo_cliente === 'Prospecto' ? 'Prospecto' : 'Cliente'})`).join(', ')}</b>. Si es el mismo, activa «¿Es cliente?» y elígelo.`;
+        } catch(e){
+          if(seq !== verifSeq) return;
+          codigoExiste = null;
+          if(codigo) pintarEstadoCodigo('wait', 'No se pudo verificar ahora; se revisará al guardar.');
+        }
+      }
+      function verificarCodigoDebounced(){ clearTimeout(verifTimer); verifTimer = setTimeout(verificarCodigo, 350); }
+      $('solPNombre').addEventListener('input', () => {
+        if(!codigoTocado) $('solPCodigo').value = sugerirCodigo($('solPNombre').value);
+        verificarCodigoDebounced();
+      });
+      $('solPCodigo').addEventListener('input', () => {
+        codigoTocado = true;
+        const limpio = $('solPCodigo').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if(limpio !== $('solPCodigo').value) $('solPCodigo').value = limpio;
+        verificarCodigoDebounced();
+      });
+
+      // ───── participantes: lista + "otro número" ─────
+      $('solParticipantes').addEventListener('change', () => {
+        const otro = $('solParticipantes').value === 'otro';
+        $('solPartNum').hidden = !otro;
+        if(otro) $('solPartNum').focus();
+      });
+
+      $('solVolver').addEventListener('click', () => activarTabSolicitud('consultar'));
+      $('solCancelar').addEventListener('click', () => activarTabSolicitud('consultar'));
+
+      // ───── guardar ─────
+      $('solGuardar').addEventListener('click', async () => {
+        const herramienta = $('solHerramienta').value;
+        if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
+        const temarioPayload = temarioSel.getPayload();
+        if(!temarioPayload){ toast(esEstandar() ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false); return; }
+        const horas = Number($('solHoras').value);
+        if(!Number.isFinite(horas) || horas <= 0){ toast('Escribe las horas.', false); return; }
+
+        const payload = Object.assign({}, temarioPayload, {
+          es_cliente: esCliente(), herramienta, horas_totales: horas,
+          notas: $('solNotas').value.trim(),
+          modalidad: $('solModalidad').value,
+          participantes: $('solParticipantes').value === 'otro' ? $('solPartNum').value.trim() : $('solParticipantes').value,
+        });
+        if(!esEstandar()){
+          payload.objetivo = $('solObjetivo').value.trim();
+          payload.alcance = $('solAlcance').value.trim();
+          payload.dirigido_a = $('solDirigido').value.trim();
+        }
+        if($('solParticipantes').value === 'otro' && !/^\d+$/.test(payload.participantes)){ toast('Escribe cuántas personas participarán (un número).', false); return; }
+
+        if(esCliente()){
+          const cli = solEmpresaAuto.getSeleccionado();
+          if(!cli){ toast('Selecciona un cliente de la lista (o apaga «¿Es cliente?» para dar de alta un prospecto).', false); return; }
+          payload.empresa = { clienteId: cli.id };
+          if(!$('solContactoNuevo').hidden){
+            if(!$('solCNombre').value.trim()){ toast('Escribe el nombre del contacto nuevo.', false); return; }
+            payload.contacto_datos = { nombre: $('solCNombre').value, correo: $('solCCorreo').value, telefono: $('solCTel').value };
+          } else if($('solContactoSelect').value){
+            payload.contacto_id = Number($('solContactoSelect').value);
+          }
+        } else {
+          const nombre = $('solPNombre').value.trim(), codigo = $('solPCodigo').value.trim();
+          if(!nombre || !codigo){ toast('Escribe el nombre y el código del prospecto.', false); return; }
+          if(codigoExiste){ toast(`El código ${codigo} ya existe (${codigoExiste.nombre}). Escribe otro.`, false); $('solPCodigo').focus(); return; }
+          if(!$('solPCNombre').value.trim() || (!$('solPCCorreo').value.trim() && !$('solPCTel').value.trim())){
+            toast('Deja el nombre del contacto y al menos un correo o WhatsApp.', false); return;
+          }
+          payload.empresa = origenProspecto ? { clienteId: sol.cliente_id, nombre, codigo } : { nombre, codigo };
+          if(origenProspecto && sol.contacto_id) payload.contacto_id = sol.contacto_id;
+          payload.contacto_datos = { nombre: $('solPCNombre').value, correo: $('solPCCorreo').value, telefono: $('solPCTel').value };
+        }
+
+        const recibida = $('solRecibida').value;
+        if(recibida && (!editando || recibida !== valorRecibidaOriginal)) payload.recibida_el = new Date(recibida).toISOString();
+
+        const btn = $('solGuardar');
+        const textoBtn = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        try {
+          let r;
+          if(editando){ payload.id = sol.id; r = await apiPostJson('/api/editarSolicitud', payload); }
+          else { r = await apiPostJson('/api/crearSolicitud', payload); }
+          let msg = editando ? 'Solicitud actualizada.' : 'Solicitud guardada.';
+          if(r.prospectoAnteriorBorrado === true) msg += ' El prospecto anterior quedó vacío y se eliminó.';
+          if(r.prospectoAnteriorBorrado === false) msg += ' El prospecto anterior se conservó porque tiene otros registros.';
+          toast(msg, true);
           activarTabSolicitud('consultar');
           buscarSolicitudes();
           cargarKpisSolicitudes();
+          if(window.refrescarNotificaciones) window.refrescarNotificaciones();
         } catch(e){
           toast('No se pudo guardar: ' + e.message, false);
-          btn.disabled = false; btn.textContent = 'Guardar';
+          btn.disabled = false; btn.textContent = textoBtn;
         }
       });
 
-      // ── prefill en modo edición — después de todo el wiring de arriba ──
-      if(editando){
-        cargarContactosSolicitud({ id: sol.cliente_id }).then(() => {
-          document.getElementById('solContactoSelect').value = sol.contacto_id || '';
-        });
-        document.getElementById('solHerramienta').value = sol.herramienta;
-        temarioSel.cargarHerramienta(sol.herramienta).then(async () => {
-          if(sol.temario_tipo === 'estandar'){
-            const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
-            const match = (data.estandar || []).find(t => t.nombre === sol.temario_nombre);
-            if(match) temarioSel.preseleccionar({ temarioId: match.id });
-          } else {
-            let temas = [];
-            try { temas = JSON.parse(sol.temas_json || '[]'); } catch(e){ /* deja vacío */ }
-            temarioSel.preseleccionar({ temaIds: temas.map(t => t.temaId) });
-          }
-        });
-        document.getElementById('solFechaTentativa').value = sol.fecha_tentativa || '';
-        document.getElementById('solCiudadSede').value = sol.ciudad_sede || '';
-        setPill('participantes', sol.participantes);
-        setPill('modalidad', sol.modalidad);
-        document.getElementById('solNotas').value = sol.notas || '';
+      // ───── precarga (modo modificar) ─────
+      let valorRecibidaOriginal = '';
+      function aLocalInput(iso){
+        const d = new Date(iso);
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
       }
+      $('solRecibida').max = aLocalInput(new Date().toISOString());
+
+      aplicarModo();
+      if(!editando) return;
+
+      (async () => {
+        $('solEsCliente').checked = !origenProspecto;
+        $('solEsEstandar').checked = sol.temario_tipo === 'estandar';
+        aplicarModo();
+
+        if(origenProspecto){
+          $('solPNombre').value = sol.cliente || '';
+          $('solPCodigo').value = sol.cliente_codigo || '';
+          $('solPCNombre').value = sol.contacto || '';
+          $('solPCCorreo').value = sol.contacto_correo || '';
+          $('solPCTel').value = sol.contacto_telefono || '';
+          verificarCodigo();
+        } else {
+          solEmpresaAuto.establecer({ id: sol.cliente_id, nombre: sol.cliente, codigo: sol.cliente_codigo });
+        }
+
+        $('solHerramienta').value = sol.herramienta;
+        await temarioSel.cargarHerramienta(sol.herramienta);
+        temarioSel.preseleccionar({ temarioNombre: sol.temario_nombre, temaIds: temasGuardados.map(t => t.temaId) });
+        $('solHoras').value = sol.horas_totales != null ? sol.horas_totales : '';
+        horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
+        actualizarHorasHint();
+        $('solObjetivo').value = sol.objetivo || '';
+        $('solAlcance').value = sol.alcance || '';
+        $('solDirigido').value = sol.dirigido_a || '';
+
+        // participantes: el número exacto (si lo hay) viaja en los comentarios como "Participantes: N"
+        const notas = String(sol.notas || '');
+        const mNum = notas.match(/^\s*Participantes:\s*(\d+)\s*$/m);
+        if(mNum){ $('solParticipantes').value = 'otro'; $('solPartNum').hidden = false; $('solPartNum').value = mNum[1]; }
+        else $('solParticipantes').value = sol.participantes || '';
+        $('solModalidad').value = sol.modalidad || '';
+        $('solNotas').value = notas.split('\n').filter(l => !/^\s*Participantes:\s*\d+\s*$/.test(l)).join('\n').trim();
+        valorRecibidaOriginal = aLocalInput(sol.fecha_creacion);
+        $('solRecibida').value = valorRecibidaOriginal;
+
+        // el contacto actual queda seleccionado cuando sigue siendo el mismo cliente
+        if(!origenProspecto){
+          for(let i = 0; i < 40 && $('solContactoSelect').disabled; i++) await new Promise(r => setTimeout(r, 100));
+          if(sol.contacto_id && [...$('solContactoSelect').options].some(o => o.value === String(sol.contacto_id))) $('solContactoSelect').value = String(sol.contacto_id);
+        }
+      })();
     }
+
+    // La puerta de entrada para Modificar: desde la tabla, o desde Crear Cotización (misma pantalla, sin duplicar formularios)
+    window.editarSolicitudEnForm = function(sol){
+      activarPanel('solicitudes');
+      abrirEdicionSolicitud(sol);
+    };
 
     function abrirEdicionSolicitud(sol){
       abrirFormSolicitud(sol);
@@ -12848,21 +13072,6 @@
       tarifasCargando = false;
     }
 
-    function valorPill(grupo, scopeEl){
-      const activo = (scopeEl || document).querySelector(`.sol-pill-group[data-group="${grupo}"] .sol-pill.active`);
-      return activo ? activo.dataset.value : null;
-    }
-    function setPill(grupo, value, scopeEl){
-      (scopeEl || document).querySelectorAll(`.sol-pill-group[data-group="${grupo}"] .sol-pill`).forEach(p => p.classList.toggle('active', p.dataset.value === value));
-    }
-    document.querySelectorAll('#cotEditarVista .sol-pill-group').forEach(group => {
-      group.addEventListener('click', e => {
-        const pill = e.target.closest('.sol-pill');
-        if(!pill) return;
-        group.querySelectorAll('.sol-pill').forEach(p => p.classList.toggle('active', p === pill));
-      });
-    });
-
     function defaultFechaVigencia(){
       return new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString().slice(0, 10);
     }
@@ -12877,7 +13086,6 @@
     function mostrarVistaCrear(vista){
       document.getElementById('cotSolicitudesListaVista').hidden = vista !== 'lista';
       document.getElementById('cotDetalleVista').hidden = vista !== 'detalle';
-      document.getElementById('cotEditarVista').hidden = vista !== 'editar';
     }
 
     // ── Vista 1: lista de Solicitudes activas para cotizar ──
@@ -12930,7 +13138,7 @@
       const editarBtn = e.target.closest('.cot-sol-editar');
       const descartarBtn = e.target.closest('.cot-sol-descartar');
       if(cotizarBtn) abrirDetalleCotizar(solicitudPorId(cotizarBtn.dataset.id));
-      else if(editarBtn) abrirEditarSolicitud(solicitudPorId(editarBtn.dataset.id));
+      else if(editarBtn) window.editarSolicitudEnForm(solicitudPorId(editarBtn.dataset.id));
       else if(descartarBtn) descartarSolicitud(solicitudPorId(descartarBtn.dataset.id));
     });
 
@@ -12980,7 +13188,7 @@
         <div class="sol-desglose">${temasHtml}</div>
       `;
       document.getElementById('cotDetalleEditarBtn').addEventListener('click', () => {
-        if(cotSolicitudActual && cotSolicitudActual.id) abrirEditarSolicitud(cotSolicitudActual);
+        if(cotSolicitudActual && cotSolicitudActual.id) window.editarSolicitudEnForm(cotSolicitudActual);
         else toast('Esta cotización no tiene una Solicitud ligada para editar.', false);
       });
     }
@@ -13054,6 +13262,7 @@
     // que hay que resolverlo contra el catálogo cacheado, mismo patrón que ya
     // usa precargarTemarioEdit para el mismo problema con los temas.
     async function resolverDirigidoObjetivo(sol){
+      if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null };
       if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return { dirigido_a: null, objetivo: null };
       try {
         const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
@@ -13130,114 +13339,8 @@
       btn.disabled = false; btn.textContent = 'Crear';
     });
 
-    // ── Vista 3: editar los datos de la Solicitud antes de cotizar ──
-    const temarioSelEdit = window.TemarioSelector.crear({
-      modoWrapEl: document.getElementById('cotEditTemarioModoWrap'),
-      bodyEl: document.getElementById('cotEditTemarioBody'),
-    });
-    document.getElementById('cotEditHerramienta').addEventListener('change', e => temarioSelEdit.cargarHerramienta(e.target.value));
-
-    // precarga el temario ya guardado — Solicitud solo guarda el NOMBRE del
-    // temario estándar (no su id), así que hace falta resolverlo contra el
-    // catálogo cacheado antes de poder preseleccionarlo.
-    async function precargarTemarioEdit(herramienta, temarioTipo, temarioNombre, temasJsonStr){
-      if(temarioTipo === 'estandar'){
-        const data = await window.TemarioSelector.cargarCatalogo(herramienta);
-        const match = (data.estandar || []).find(t => t.nombre === temarioNombre);
-        if(match) temarioSelEdit.preseleccionar({ temarioId: match.id });
-      } else {
-        let temas = [];
-        try { temas = JSON.parse(temasJsonStr || '[]'); } catch(e){ /* deja vacío */ }
-        temarioSelEdit.preseleccionar({ temaIds: temas.map(t => t.temaId) });
-      }
-    }
-
-    let cotEditandoSolicitud = null;
-    let cotEditVolverA = 'lista'; // a dónde regresar tras guardar/cancelar: 'lista' | 'detalle'
-
-    async function cargarContactosEdit(clienteId, contactoIdSeleccionado){
-      const sel = document.getElementById('cotEditContactoSelect');
-      sel.innerHTML = '<option value="">Cargando…</option>';
-      let contactos = [];
-      try { contactos = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + clienteId); }
-      catch(e){ contactos = []; }
-      const opciones = contactos.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}${c.es_principal ? ' (Principal)' : ''}</option>`).join('');
-      sel.innerHTML = `<option value="">Sin contacto específico</option>${opciones}`;
-      if(contactoIdSeleccionado) sel.value = contactoIdSeleccionado;
-    }
-
-    async function abrirEditarSolicitud(sol){
-      if(!sol) return;
-      cotEditandoSolicitud = sol;
-      cotEditVolverA = document.getElementById('cotDetalleVista').hidden ? 'lista' : 'detalle';
-      await cargarContactosEdit(sol.cliente_id, sol.contacto_id);
-      document.getElementById('cotEditHerramienta').value = sol.herramienta;
-      await temarioSelEdit.cargarHerramienta(sol.herramienta);
-      await precargarTemarioEdit(sol.herramienta, sol.temario_tipo, sol.temario_nombre, sol.temas_json);
-      document.getElementById('cotEditFechaTentativa').value = sol.fecha_tentativa || '';
-      document.getElementById('cotEditCiudadSede').value = sol.ciudad_sede || '';
-      setPill('participantes', sol.participantes, document.getElementById('cotEditarVista'));
-      setPill('modalidad', sol.modalidad, document.getElementById('cotEditarVista'));
-      document.getElementById('cotEditNotas').value = sol.notas || '';
-      mostrarVistaCrear('editar');
-    }
-
-    document.getElementById('cotEditarVolver').addEventListener('click', () => { mostrarVistaCrear(cotEditVolverA); });
-    document.getElementById('cotEditCancelar2').addEventListener('click', () => { mostrarVistaCrear(cotEditVolverA); });
-
-    document.getElementById('cotEditGuardar').addEventListener('click', async () => {
-      if(!cotEditandoSolicitud) return;
-      const herramienta = document.getElementById('cotEditHerramienta').value;
-      if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-      const temarioPayload = temarioSelEdit.getPayload();
-      if(!temarioPayload){ toast(temarioSelEdit.getModo() === 'estandar' ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false); return; }
-
-      const contactoSel = document.getElementById('cotEditContactoSelect');
-      const payload = {
-        id: cotEditandoSolicitud.id,
-        contacto_id: contactoSel.value ? Number(contactoSel.value) : null,
-        herramienta,
-        temario_tipo: temarioPayload.temario_tipo, temario_nombre: temarioPayload.temario_nombre, temas: temarioPayload.temas,
-        horas_totales: temarioPayload.horas_totales,
-        fecha_tentativa: document.getElementById('cotEditFechaTentativa').value.trim(),
-        ciudad_sede: document.getElementById('cotEditCiudadSede').value.trim(),
-        participantes: valorPill('participantes', document.getElementById('cotEditarVista')),
-        modalidad: valorPill('modalidad', document.getElementById('cotEditarVista')),
-        notas: document.getElementById('cotEditNotas').value.trim(),
-      };
-
-      const btn = document.getElementById('cotEditGuardar');
-      btn.disabled = true; btn.textContent = 'Guardando...';
-      try {
-        await apiPostJson('/api/editarSolicitud', payload);
-        toast('Solicitud actualizada.', true);
-        const contactoNombreOpt = contactoSel.selectedOptions[0];
-        Object.assign(cotEditandoSolicitud, {
-          contacto_id: payload.contacto_id,
-          contacto: payload.contacto_id ? contactoNombreOpt.textContent.replace(' (Principal)', '') : null,
-          herramienta: payload.herramienta,
-          temario_tipo: payload.temario_tipo,
-          temario_nombre: payload.temario_nombre,
-          temas_json: JSON.stringify(payload.temas),
-          horas_totales: payload.horas_totales,
-          fecha_tentativa: payload.fecha_tentativa,
-          ciudad_sede: payload.ciudad_sede,
-          participantes: payload.participantes,
-          modalidad: payload.modalidad,
-          notas: payload.notas,
-        });
-        if(cotEditVolverA === 'detalle'){
-          cotSolicitudActual = cotEditandoSolicitud;
-          renderDetalleResumen(cotSolicitudActual);
-          actualizarPrecioSugerido();
-          mostrarVistaCrear('detalle');
-        } else {
-          mostrarVistaCrear('lista');
-          cargarListaSolicitudesActivas();
-        }
-      } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
-      btn.disabled = false; btn.textContent = 'Guardar cambios';
-    });
+    // Editar los datos de la Solicitud antes de cotizar: ya no hay formulario propio aquí; "Editar" abre el mismo
+    // formulario de Modificar del panel Solicitudes (window.editarSolicitudEnForm, ver su IIFE).
 
     // ── "Nueva versión" desde Seguimiento — arranca directo en la vista de
     // detalle/precio con los datos de la cotización elegida, sin pasar por la

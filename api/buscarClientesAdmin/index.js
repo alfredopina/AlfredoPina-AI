@@ -8,6 +8,18 @@ const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const q = (req.query.q || "").trim();
+  // ?todos=1 (sin q): la flecha del combobox del formulario de Solicitudes despliega los primeros 300 por nombre
+  if (!q && req.query.todos) {
+    try {
+      const pool = await getPool();
+      const todos = await pool.request().query("SELECT TOP 300 id, nombre, codigo, tipo_cliente FROM Cliente ORDER BY nombre");
+      context.res = { status: 200, headers: JSON_HEADERS, body: todos.recordset };
+    } catch (err) {
+      context.log.error("Error listando clientes (admin):", err.message);
+      context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo listar clientes en este momento." } };
+    }
+    return;
+  }
   if (!q) {
     context.res = { status: 200, headers: JSON_HEADERS, body: [] };
     return;

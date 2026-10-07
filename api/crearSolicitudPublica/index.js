@@ -35,23 +35,8 @@ const { notificarSolicitudNueva } = require("../src/notificaciones-correo");
 const antispam = require("../src/antispam-solicitud");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
-const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
-
-// El formulario ofrece esos rangos y también deja escribir un número. La columna Solicitud.participantes
-// solo acepta los 4 rangos (CHECK de sql/007), así que un número se traduce al rango que le toca y el dato
-// exacto viaja en las notas. De 2 a 4 personas ningún rango aplica: la columna queda vacía y el número, en notas.
-function mapearParticipantes(raw) {
-  if (PARTICIPANTES_OPCIONES.includes(raw)) return { columna: raw, nota: null };
-  const m = raw.match(/\d+/);
-  const n = m ? parseInt(m[0], 10) : NaN;
-  if (!Number.isFinite(n) || n < 1 || n > 5000) return null;
-  const nota = "Participantes: " + n;
-  if (n === 1) return { columna: "Solo yo", nota: null };
-  if (n >= 5 && n <= 10) return { columna: "5 a 10", nota };
-  if (n >= 11 && n <= 15) return { columna: "10 a 15", nota };
-  if (n > 15) return { columna: "Más de 15", nota };
-  return { columna: null, nota };
-}
+// los rangos de participantes y su traducción de número a rango viven en solicitud-guardar.js (los usa también el admin)
+const { mapearParticipantes } = require("../src/solicitud-guardar");
 const VENTANA_DUPLICADO_MIN = 30;
 
 function derivarCodigo(nombre) {

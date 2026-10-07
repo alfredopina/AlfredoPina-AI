@@ -1181,7 +1181,7 @@
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
 
-  /* Configuración → Notificaciones — 3 filas con nota de contexto debajo de
+  /* Configuración → Alertas — 3 filas con nota de contexto debajo de
      cada una (a diferencia de .cfg-tarifas-grid, que es una rejilla de
      tarjetas cortas sin espacio para texto extra). */
   .cfg-notif-row{ border:1px solid var(--line); border-radius:9px; padding:12px 14px; background:var(--panel); }
@@ -2247,15 +2247,15 @@
         <button type="button" class="admin-icon-btn" id="btnDespertar" title="Despertar base de datos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Notificaciones">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+        <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Alertas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="notif-badge" id="notifBadge" hidden>0</span>
         </button>
 
         <div class="notif-popover" id="notifPopover" hidden>
           <div class="notif-head">
             <div>
-              <span class="notif-fx">fx =NOTIFICACIONES()</span>
+              <span class="notif-fx">fx =ALERTAS()</span>
               <span class="notif-sub" id="notifSub">Cargando…</span>
             </div>
             <button type="button" class="notif-close" id="notifClose" title="Cerrar">
@@ -2302,8 +2302,8 @@
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Solicitudes</h3>
-              <span class="trkv-bell" id="trkvSolBell" hidden title="Solicitudes sin atender que ya notificó la campana">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+              <span class="trkv-bell" id="trkvSolBell" hidden title="Solicitudes sin atender que ya disparó una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
               <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -2322,8 +2322,8 @@
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Cotizaciones</h3>
-              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya notificó la campana">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya disparó una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
               <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -2342,8 +2342,8 @@
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Clientes</h3>
-              <span class="trkv-bell" id="trkvCliBell" hidden title="Clientes inactivos que ya notificó la campana">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+              <span class="trkv-bell" id="trkvCliBell" hidden title="Clientes inactivos que ya disparó una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
               <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -2362,8 +2362,8 @@
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
               <h3>Grupos</h3>
-              <span class="trkv-bell" id="trkvGruBell" hidden title="Grupos atorados que ya notificó la campana">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+              <span class="trkv-bell" id="trkvGruBell" hidden title="Grupos atorados que ya disparó una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="trkv-bell-count">0</span>
               </span>
               <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -2440,7 +2440,7 @@
         </div>
         <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgNotifHead">
-            <span class="cfg-card-title">NOTIFICACIONES</span>
+            <span class="cfg-card-title">ALERTAS</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </button>
           <div class="cfg-card-body" id="cfgNotifBody" hidden>
@@ -4747,7 +4747,7 @@
   // window.UMBRALES_NOTIF para que actualizarAlerta/semaforoDe (Cotizaciones)
   // y actualizarAlertaGrupos/diasFaseHtml (Grupos) usen el mismo número, un
   // solo lugar de verdad. window.refrescarNotificaciones() queda expuesto
-  // para que Configuración → Notificaciones pueda refrescar todo esto en
+  // para que Configuración → Alertas pueda refrescar todo esto en
   // vivo después de guardar un umbral, sin recargar la página. ──
   (function(){
     const ICO = {
@@ -4806,7 +4806,7 @@
           return;
         }
         body.innerHTML = `
-          <div class="radm-empty-row">No se pudieron cargar las notificaciones${ultimoError ? ': ' + escapeHtml(ultimoError) : ''}.</div>
+          <div class="radm-empty-row">No se pudieron cargar las alertas${ultimoError ? ': ' + escapeHtml(ultimoError) : ''}.</div>
           <div style="padding:0 10px 10px;">
             <button type="button" class="radm-btn radm-btn-ghost" id="notifReintentar" style="min-width:auto;">Reintentar</button>
           </div>`;
@@ -4913,7 +4913,7 @@
       }
     }
     cargarNotificaciones();
-    // Expuesto para que Configuración → Notificaciones refresque badge/popover
+    // Expuesto para que Configuración → Alertas refresque badge/popover
     // y los umbrales compartidos en cuanto Alfredo guarda un cambio.
     window.refrescarNotificaciones = cargarNotificaciones;
   })();
@@ -8061,7 +8061,7 @@
     const porUrgencia = (a, b) => rangoFase(a) - rangoFase(b) || diasDe(b) - diasDe(a);
 
     // Días en fase con el mismo criterio y umbrales que Tracking Grupos
-    // (Configuración → Notificaciones): solo se colorea mientras el grupo está
+    // (Configuración → Alertas): solo se colorea mientras el grupo está
     // cerrando (Proyecto/Calificaciones/Diplomas); en En curso es solo un
     // número. Además del color lleva texto ("urgente"/"seguimiento") y un
     // tooltip — nunca solo color (deuteranomalía).
@@ -8700,7 +8700,7 @@
     let resultadosCache = [];
     let detalleCache = new Map();   // grupoId -> filas de getCalificacionesGrupo
     let detalleAbiertos = new Set(); // grupoId con el desglose desplegado
-    let calSort = { campo: null, dir: 'asc' }; // null = orden del servidor (última carga primero)
+    let calSort = { campo: 'creado', dir: 'desc' }; // por fecha de creado (última carga), la más reciente primero
 
     const conPct = (n, total) => total ? `${n}<span class="diag-nombre-sub" style="display:block;margin-top:0;">${Math.round(n * 100 / total)}%</span>` : String(n);
 
@@ -9268,7 +9268,7 @@
     let gruposCache = [];
     let verifCache = { porGrupo: {}, porFolio: {} }; // verificaciones de /verificar (Table Storage, no SQL)
     let detalleCache = new Map(), detalleAbiertos = new Set();
-    let dipSort = { campo:'fecha', dir:'desc' };
+    let dipSort = { campo:'creado', dir:'desc' }; // por fecha de creado (última generación), la más reciente primero
 
     function poblarInstructores(){
       const select = document.getElementById('dipFInstructor');
@@ -10911,8 +10911,8 @@
 
     let cliClientes = [];
     let cliClientesRaw = []; // resultado crudo del último fetch por 'q' — Tipo/Semáforo se filtran sobre esto, sin volver a pedirle nada al backend
-    let cliSort = 'nombre';
-    let cliDir = 'asc';
+    let cliSort = 'dias_inactivo'; // default de todos los Tracking: lo más urgente primero
+    let cliDir = 'desc';
     const cliContactosCache = {};
 
     // Tipo/Semáforo no son parámetros que listClientesAdmin acepte (no hace
@@ -10952,6 +10952,8 @@
         if(cliSort === 'tipo_cliente') return c.tipo_cliente || 'Directo';
         if(cliSort === 'num_contactos') return c.num_contactos;
         if(cliSort === 'semaforo') return SEMAFORO_ORDEN[c.semaforo] ?? 99;
+        // los Prospectos no entran al semáforo (dias_inactivo null): al final, no como "el más urgente"
+        if(c.tipo_cliente === 'Prospecto') return -1;
         return c.dias_inactivo == null ? Infinity : c.dias_inactivo;
       }
       return lista.slice().sort((a, b) => {
@@ -10999,7 +11001,7 @@
     }
     // Mismo patrón que actualizarAlerta (Cotizaciones)/actualizarAlertaGrupos
     // — banner ámbar (.cot-alert, reusado) que cuenta clientes en semáforo
-    // rojo (umbral urgente, el mismo que ya dispara la campana), no en
+    // rojo (umbral urgente, el mismo que ya dispara una alerta), no en
     // ámbar/seguimiento. Agregado 2026-09-16 — Clientes era el único de los 3
     // Trackings sin este banner (decisión original: "sin agregar banner de
     // alerta por ahora", ver CLAUDE.md).
@@ -11562,7 +11564,7 @@
 
     // Popovers "Info Días"/"Info Completado" — contenido armado en JS (no
     // HTML fijo) porque los umbrales de Días Inactivo son configurables
-    // desde Configuración → Notificaciones (window.UMBRALES_NOTIF, ver
+    // desde Configuración → Alertas (window.UMBRALES_NOTIF, ver
     // CLAUDE.md → Notificaciones) y deben reflejarse aquí de inmediato sin
     // tocar este archivo cada vez que Alfredo los cambie. Rediseño 2026-09-16
     // (antes un solo botón "Info" con un párrafo de bullets) — Alfredo
@@ -11605,7 +11607,7 @@
           </li>
         </ol>
         <div class="cli-info-pop-foot">
-          <div class="cli-info-pop-foot-title">Semáforo — el umbral rojo se edita en Configuración → Notificaciones</div>
+          <div class="cli-info-pop-foot-title">Semáforo — el umbral rojo se edita en Configuración → Alertas</div>
           <div class="cli-info-semaforo-legend">
             <div class="cli-info-semaforo-row">${semaforoHtml('verde')}<span>menos de ${seguimiento} días</span></div>
             <div class="cli-info-semaforo-row">${semaforoHtml('amarillo')}<span>${seguimiento}–${urgente} días</span></div>
@@ -11966,7 +11968,7 @@
     // ══ SEMÁFORO EN VIVO ══
     // Solo cuenta para las "Nueva": cuántas horas llevan sin atenderse (desde que llegó la solicitud).
     // Rojo > umbral urgente, ámbar > umbral de seguimiento, el resto a tiempo — umbrales en HORAS de
-    // Configuración → Notificaciones (window.UMBRALES_NOTIF). Una Cotizada deja de contar: muestra
+    // Configuración → Alertas (window.UMBRALES_NOTIF). Una Cotizada deja de contar: muestra
     // cuánto tardó en atenderse. El color nunca va solo: lleva punto + horas + palabra.
     function umbralesSol(){
       const u = window.UMBRALES_NOTIF || {};
@@ -12697,7 +12699,7 @@
     }
 
     // Los umbrales "urgente" (default 10) y "seguimiento" (default 6) vienen
-    // de Configuración → Notificaciones (window.UMBRALES_NOTIF, cargado una
+    // de Configuración → Alertas (window.UMBRALES_NOTIF, cargado una
     // vez al abrir /admin — ver el IIFE "NOTIFICACIONES" más abajo) — mismos
     // números que usa la campana, nunca reimplementados aparte.
     function actualizarAlerta(lista){
@@ -12734,7 +12736,14 @@
       const body = document.getElementById('cotListaBody');
       body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Buscando...</td></tr>`;
       try {
-        const lista = await apiGetConReintento('/api/listCotizacionesAdmin?vista=' + cotVistaActual);
+        const cruda = await apiGetConReintento('/api/listCotizacionesAdmin?vista=' + cotVistaActual);
+        // Tracking: lo más urgente primero — vencidas, luego más días sin respuesta; los Borradores (sin semáforo) al final.
+        const lista = cotVistaActual === 'activas'
+          ? cruda.slice().sort((a, b) => {
+              const k = c => (c.estatus === 'Borrador' ? -1 : (c.vencida ? 100000 : 0) + (c.dias_abierta || 0));
+              return k(b) - k(a);
+            })
+          : cruda;
         cotListaCache = lista;
         if(cotVistaActual === 'activas') actualizarAlerta(lista);
         else document.getElementById('cotAlerta').hidden = true;
@@ -13681,7 +13690,7 @@
     });
   })();
 
-  // ── Configuración → Notificaciones — 3 umbrales configurables (días para
+  // ── Configuración → Alertas — 3 umbrales configurables (días para
   // considerar cada señal "urgente"), Table Storage
   // (ConfiguracionNotificaciones, ver api/src/notificaciones-config.js) — sin
   // riesgo de auto-pause, así que sin reintento con pausas crecientes (ese
@@ -13716,7 +13725,7 @@
 
     // Cada señal trae 2 umbrales editables — Seguimiento (ámbar, solo
     // colorea el semáforo del panel) y Urgente (rojo, lo único que además
-    // dispara la campana). Los 2 se validan juntos en el backend
+    // dispara una alerta). Los 2 se validan juntos en el backend
     // (notificaciones-config.js#PARES): seguimiento siempre debe quedar
     // estrictamente por debajo de su urgente.
     const GRUPOS = [
@@ -13724,25 +13733,25 @@
         nombre:'Solicitudes sin atender',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12l2.5-7h11L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke-linejoin="round"/></svg>',
         seguimiento:'solicitudesSeguimientoHoras', urgente:'solicitudesHoras', unidad:'horas',
-        nota:'Horas que lleva una solicitud Nueva sin atenderse (desde que llegó). Seguimiento (ámbar) la colorea en el tracking de Solicitudes; Urgente (rojo) es lo que además la mete a la campana. El sitio promete cotizar en 24 hr.',
+        nota:'Horas que lleva una solicitud Nueva sin atenderse (desde que llegó). Seguimiento (ámbar) la colorea en el tracking de Solicitudes; Urgente (rojo) es lo que además la manda a Alertas. El sitio promete cotizar en 24 hr.',
       },
       {
         nombre:'Cotizaciones frías',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         seguimiento:'cotizacionesSeguimientoDias', urgente:'cotizacionesDias',
-        nota:'Seguimiento (ámbar) colorea la cotización en Tracking Comercial para que sepas que ya conviene revisarla, sin avisarte en ningún otro lado. Urgente (rojo) es lo que además la mete a la campana.',
+        nota:'Seguimiento (ámbar) colorea la cotización en Tracking Comercial para que sepas que ya conviene revisarla, sin avisarte en ningún otro lado. Urgente (rojo) es lo que además la manda a Alertas.',
       },
       {
         nombre:'Grupos atorados',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
         seguimiento:'gruposSeguimientoDias', urgente:'gruposDias',
-        nota:'Días en la misma fase de cierre (Proyecto/Calificaciones/Diplomas). Seguimiento (ámbar) colorea el grupo en Tracking Grupos; Urgente (rojo) es lo que además lo mete a la campana.',
+        nota:'Días en la misma fase de cierre (Proyecto/Calificaciones/Diplomas). Seguimiento (ámbar) colorea el grupo en Tracking Grupos; Urgente (rojo) es lo que además lo manda a Alertas.',
       },
       {
         nombre:'Clientes inactivos',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M16 4.2c1.4.5 2.4 1.9 2.4 3.5s-1 3-2.4 3.5" stroke-linecap="round"/><path d="M15.5 14.6c1.9.6 3.3 2.4 4 5.4" stroke-linecap="round"/></svg>',
         seguimiento:'clientesSeguimientoDias', urgente:'clientesDias',
-        nota:'Días sin interacción. Seguimiento (ámbar) colorea al cliente "Tibio" en Consultar Clientes; Urgente (rojo) lo pasa a "Inactivo" y además lo mete a la campana.',
+        nota:'Días sin interacción. Seguimiento (ámbar) colorea al cliente "Tibio" en Consultar Clientes; Urgente (rojo) lo pasa a "Inactivo" y además lo manda a Alertas.',
       },
     ];
     const NIVEL_LABEL = { seguimiento:'Seguimiento (ámbar)', urgente:'Urgente (rojo)' };
@@ -13792,7 +13801,7 @@
           const anterior = Number(input.dataset.original);
           const nuevo = Number(input.value);
           if(!Number.isInteger(nuevo) || nuevo < 1){ toast('El valor debe ser un entero mayor a 0.', false); return; }
-          if(!(await confirmarAccion({ mensaje: `¿Cambiar ${nombre} de ${anterior} a ${nuevo} ${unidad}?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
+          if(!(await confirmarAccion({ mensaje: `¿Cambiar ${nombre} de ${anterior} a ${nuevo} ${unidad}?${nivel === 'urgente' ? ' Este número también dispara una alerta.' : ''}`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
 
           const textoOriginal = btn.textContent;
           btn.disabled = true; btn.textContent = 'Guardando...';
@@ -14967,8 +14976,8 @@
     const FASES_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas'];
     let groVista = 'activos';
     let groListaCache = [];
-    let groSort = 'cliente';
-    let groDir = 'asc';
+    let groSort = 'dias_en_fase'; // default de todos los Tracking: lo más urgente primero
+    let groDir = 'desc';
     // Fase tocada en el stepper vivo — filtra la tabla en el cliente (no es
     // un query param del backend), independiente de vista/cliente/
     // herramienta/instructor. null = sin filtrar por fase.
@@ -15014,7 +15023,7 @@
     }
 
     // Los umbrales "urgente" (default 21) y "seguimiento" (default 10)
-    // vienen de Configuración → Notificaciones (window.UMBRALES_NOTIF, mismos
+    // vienen de Configuración → Alertas (window.UMBRALES_NOTIF, mismos
     // números que usa la campana) — ver el IIFE "NOTIFICACIONES" más abajo.
     function actualizarAlertaGrupos(lista){
       const banner = document.getElementById('groAlerta');
@@ -15196,12 +15205,28 @@
     // diálogo anterior si se llama de nuevo, pero esto evita procesar la
     // cola dos veces.
     let revisandoSugerenciasFase = false;
+    // Tope anti-spam (2026-10-07): las sugerencias se preguntan como máximo una vez cada 12 h por navegador
+    // (localStorage), no cada vez que se entra a Grupos. Pueden volver a salir en la tarde del mismo día;
+    // "No" sigue sin descartar nada, solo espera a la siguiente ventana. El stepper manual siempre está disponible.
+    const SUGERENCIAS_FASE_CADA_MS = 12 * 60 * 60 * 1000;
+    const SUGERENCIAS_FASE_CLAVE = 'admin-sugerencias-fase-ultima';
+    function sugerenciasFaseEnReposo(){
+      try {
+        const t = Number(localStorage.getItem(SUGERENCIAS_FASE_CLAVE));
+        return !!t && (Date.now() - t) < SUGERENCIAS_FASE_CADA_MS;
+      } catch(e){ return false; }
+    }
+    function marcarSugerenciasFase(){
+      try { localStorage.setItem(SUGERENCIAS_FASE_CLAVE, String(Date.now())); } catch(e){ /* sin storage: preguntará en cada entrada */ }
+    }
     async function revisarSugerenciasFase(lista){
       if(revisandoSugerenciasFase) return;
       revisandoSugerenciasFase = true;
       try {
         const hoy = hoyUTC();
         const pendientes = (lista || []).map(g => ({ g, s: sugerenciaFaseDe(g, hoy) })).filter(x => x.s);
+        if(!pendientes.length || sugerenciasFaseEnReposo()) return;
+        marcarSugerenciasFase();
         let huboCambios = false;
         for(const { g, s } of pendientes){
           const ok = await confirmarAccion({ titulo: s.titulo, mensaje: s.mensaje, variante: 'advertencia', textoConfirmar: s.textoConfirmar });
@@ -15400,7 +15425,7 @@
           </li>
         </ol>
         <div class="cli-info-pop-foot">
-          <div class="cli-info-pop-foot-title">Semáforo de cierre — el umbral rojo se edita en Configuración → Notificaciones</div>
+          <div class="cli-info-pop-foot-title">Semáforo de cierre — el umbral rojo se edita en Configuración → Alertas</div>
           <div class="cli-info-semaforo-legend">
             <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo</span><span>menos de ${seguimiento} días</span></div>
             <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento</span><span>${seguimiento}–${urgente} días</span></div>
@@ -15473,7 +15498,7 @@
     // así nunca se queda mostrando el default si Alfredo ya lo personalizó.
     function actualizarTooltipDiasFase(){
       const u = window.UMBRALES_NOTIF || {};
-      const texto = `Días desde que el grupo entró a su fase actual. Solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — umbral editable en Configuración → Notificaciones (hoy: ${u.gruposSeguimientoDias ?? 10}/${u.gruposDias ?? 21} días).`;
+      const texto = `Días desde que el grupo entró a su fase actual. Solo se resalta en color mientras está cerrando (Proyecto/Calificaciones/Diplomas) — umbral editable en Configuración → Alertas (hoy: ${u.gruposSeguimientoDias ?? 10}/${u.gruposDias ?? 21} días).`;
       ['groDiasInfoIco', 'gruDiasInfoIco'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.title = texto;
@@ -16397,7 +16422,7 @@
           f('orden','number'), f('activa','boolean'),
         ]},
       { id:'ConfiguracionNotificaciones', engine:'storage', pillar:'infra', pk:'PartitionKey+RowKey',
-        note:'Un solo renglón fijo — 3 umbrales "urgente" (disparan la campana) + sus 3 pares "seguimiento" (ámbar, agregados 2026-09-15, solo colorean el semáforo) — Cotizaciones/Grupos/Clientes, editables desde Configuración → Notificaciones. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
+        note:'Un solo renglón fijo — 3 umbrales "urgente" (disparan una alerta) + sus 3 pares "seguimiento" (ámbar, agregados 2026-09-15, solo colorean el semáforo) — Cotizaciones/Grupos/Clientes, editables desde Configuración → Alertas. Sin relación con otras tablas, por eso no aparece en RELATIONS.',
         fields:[
           f('PartitionKey','"config"',{pk:true,extra:'fijo'}),
           f('RowKey','"notificaciones"',{pk:true,extra:'fijo'}),

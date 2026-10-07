@@ -157,23 +157,27 @@
   let currentCatalogo = null;
 
   // Condiciones comerciales (vigencia, duración mínima, etc.): SOLO en el PDF de cotización. Aquí vive "Cómo contratar".
-  const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
-  const ICO_PUBLICO = ico('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>');
-  const ICO_ALCANCE = ico('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>');
+  const ico = (d, ancho = 1.5) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + ancho + '" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">' + d + '</svg>';
+  const ICO_PUBLICO = ico('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>', 2);
+  const ICO_ALCANCE = ico('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>', 2);
   const PASOS_CONTRATAR = [
     { t:'Solicita', d:'Elige tu programa y cuéntanos de tu equipo.', i:ico('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v5M9.5 14.5h5"/>') },
     { t:'Recibe tu cotización', d:'Te la entregamos en un máximo de 24 hr.', i:ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>') },
     { t:'Confirma', d:'Con orden de compra o anticipo. Nosotros gestionamos el alta de proveedor.', i:ico('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>') },
     { t:'Agendamos', d:'Definimos fechas y plataforma, y el grupo se confirma en calendario.', i:ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>') },
   ];
+  // Por qué contratarnos: lo que acompaña a cualquier programa. Es el MISMO bloque para las 6 herramientas; si una
+  // necesita algo distinto, CONTRATAR_POR_HERRAMIENTA['powerbi'] = { incluye:[…], pasos:[…] } lo reemplaza solo ahí.
   const INCLUYE = [
-    { t:'Evaluación práctica', d:'Según el nivel solicitado, sin costo adicional.', i:ico('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 14l2 2 4-4"/>') },
-    { t:'Diploma', d:'De Participación o Aprobación, al finalizar el curso.', i:ico('<circle cx="12" cy="9" r="5"/><path d="M8.5 13.5 7 21l5-3 5 3-1.5-7.5"/>') },
-    { t:'Diagnóstico previo de nivel', d:'Opcional: ajustamos el temario a las necesidades reales de tu grupo.', i:ico('<path d="M3 12h4l2 6 4-14 2 8h6"/>') },
-    { t:'Kick off y grabación', d:'¿Los necesitas? Indícalo en los comentarios de tu solicitud.', i:ico('<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>') },
-    { t:'Tu plataforma', d:'Teams, Zoom, Google Meet o la que tu equipo ya use.', i:ico('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>') },
-    { t:'Grupos estándar', d:'Temas y objetivos pensados para grupos de 10 a 15 participantes.', i:ico('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>') },
+    { t:'Realiza un diagnóstico previo', d:'Conocemos el nivel de tu equipo antes de empezar y ajustamos el temario a sus necesidades reales.', i:ico('<path d="M3 12h4l2 6 4-14 2 8h6"/>') },
+    { t:'Agenda a tu criterio', d:'Sesiones desde 2 hr si es virtual o 4 hr si es presencial, y hasta un día completo.', i:ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v3l2 1"/>') },
+    { t:'Tu plataforma de comunicación', d:'Teams, Zoom, Google Meet o la que tu equipo ya use.', i:ico('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>') },
+    { t:'Presencial in company', d:'Vamos a tus instalaciones sin costo adicional dentro de la zona metropolitana de Monterrey; fuera de ella, con costo adicional.', i:ico('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>') },
+    { t:'Kick off', d:'Si lo consideras necesario, agendamos un kick off para presentar al equipo los objetivos, las reglas y el alcance.', i:ico('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>') },
+    { t:'Grabación de las sesiones', d:'Incluye la grabación de las sesiones, disponible por tiempo limitado para los participantes.', i:ico('<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>') },
+    { t:'Diploma y credencial en LinkedIn', d:'Entregamos diploma de Participación o Aprobación y una credencial para agregar a tu perfil de LinkedIn.', i:ico('<circle cx="12" cy="9" r="5"/><path d="M8.5 13.5 7 21l5-3 5 3-1.5-7.5"/>') },
   ];
+  const CONTRATAR_POR_HERRAMIENTA = {};
 
   // ============================================================
   // CARGA Y RENDER DEL CATÁLOGO — un solo mount point (#cursoPanel)
@@ -263,15 +267,17 @@
       ${contratarHtml()}`;
   }
 
-  // "Cómo contratar": stepper del proceso de cotización in company + lo que incluye cada programa
+  // Debajo de los programas, dos secciones con el mismo peso visual: "Cómo contratar" (stepper del proceso de
+  // cotización in company) y "No llevas solo un curso" (lo que acompaña a cada programa).
   function contratarHtml(){
-    const pasos = PASOS_CONTRATAR.map((p, i) => `
+    const datos = Object.assign({ pasos: PASOS_CONTRATAR, incluye: INCLUYE }, CONTRATAR_POR_HERRAMIENTA[currentCat] || {});
+    const pasos = datos.pasos.map((p, i) => `
       <li class="paso">
         <div class="paso-ico">${p.i}<span class="paso-num">${String(i + 1).padStart(2, '0')}</span></div>
         <div class="paso-t">${p.t}</div>
         <p class="paso-d">${p.d}</p>
       </li>`).join('');
-    const incluye = INCLUYE.map(b => `
+    const incluye = datos.incluye.map(b => `
       <div class="incl-card">
         <span class="incl-ico">${b.i}</span>
         <div class="incl-t">${b.t}</div>
@@ -282,7 +288,10 @@
         <div class="contratar-kicker">COTIZACIÓN IN COMPANY</div>
         <h2 class="contratar-titulo" id="contratarTitulo">Cómo contratar</h2>
         <ol class="pasos">${pasos}</ol>
-        <div class="contratar-sub">INCLUIDO EN TU PROGRAMA</div>
+      </section>
+      <section class="contratar" id="porqueContratarnos" aria-labelledby="porqueTitulo">
+        <div class="contratar-kicker">POR QUÉ CONTRATARNOS</div>
+        <h2 class="contratar-titulo" id="porqueTitulo">No llevas solo un curso</h2>
         <div class="incl-grid">${incluye}</div>
         <div class="contratar-cta"><a href="#programas" class="viaje-btn solid" onclick="event.preventDefault(); document.getElementById('programas').scrollIntoView({behavior:'smooth'});">Elegir mi programa</a></div>
       </section>`;
@@ -498,16 +507,17 @@
           <input type="number" id="leadPartNum" min="1" max="5000" inputmode="numeric" placeholder="¿Cuántas personas?" style="margin-top:8px;" hidden>
         </div>
         <div class="lead-field">
-          <label>Modalidad <span class="lead-opt">(opcional)</span></label>
-          <div class="pill-group" data-group="modalidad">
-            <button type="button" class="pill-opt" data-value="Online">Online</button>
-            <button type="button" class="pill-opt" data-value="Presencial">Presencial</button>
-            <button type="button" class="pill-opt" data-value="Híbrido">Híbrido</button>
-          </div>
+          <label for="leadMod">Modalidad <span class="lead-opt">(opcional)</span></label>
+          <select id="leadMod">
+            <option value="">Selecciona…</option>
+            <option value="Online">Online</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Híbrido">Híbrido</option>
+          </select>
         </div>
         <div class="lead-field lead-full">
           <label for="leadComments">Comentarios <span class="lead-opt">(opcional)</span></label>
-          <textarea id="leadComments" rows="3" placeholder="Kick off, grabación de sesiones, fechas, sede, otras necesidades…" maxlength="2000"></textarea>
+          <textarea id="leadComments" rows="3" placeholder="Describe aquí tu necesidad particular o comentarios a considerar." maxlength="2000"></textarea>
         </div>
       </div>
       <input type="text" id="leadWeb" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
@@ -545,20 +555,6 @@
       if(!num.hidden) num.focus();
     });
     return dlg;
-  }
-
-  // click delegado para los pills (single-select por grupo)
-  document.addEventListener('click', (e) => {
-    const opt = e.target.closest('.pill-opt');
-    if(!opt) return;
-    const group = opt.closest('.pill-group');
-    const ya = opt.classList.contains('active');
-    group.querySelectorAll('.pill-opt').forEach(o => o.classList.remove('active'));
-    if(!ya) opt.classList.add('active'); // segundo clic = quitar la selección (es opcional)
-  }, true);
-
-  function getPillValue(groupId){
-    return document.querySelector(`[data-group="${groupId}"] .pill-opt.active`)?.dataset.value || '';
   }
 
   function openLeadForm(id){
@@ -643,7 +639,7 @@
         name, correo, whatsapp, co: val('leadCo'),
         comentarios: val('leadComments'),
         participantes,
-        modalidad: getPillValue('modalidad'),
+        modalidad: val('leadMod'),
       }, () => { btn.textContent = 'Seguimos intentando…'; });
       if(ok){
         leadEstado = 'enviado';

@@ -16,6 +16,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { getUmbrales } = require("../src/notificaciones-config");
 const { calcularDiasInactivo } = require("../src/cliente-actividad");
 const { JSON_HEADERS } = require("../src/http");
+const { drenarConSql } = require("../src/solicitud-publica-cola");
 
 // Solicitudes "Nueva" que llevan más de N HORAS sin atenderse (sin cotizar ni
 // descartar). Cuenta a cualquier cliente, Prospecto incluido: justo las del sitio
@@ -154,6 +155,8 @@ module.exports = async function (context, req) {
   try {
     const umbrales = await getUmbrales();
     const pool = await getPool();
+    // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
+    await drenarConSql(pool, context);
     const [solicitudes, cotizaciones, grupos, clientes] = await Promise.all([
       solicitudesSinAtender(pool, umbrales.solicitudesHoras),
       cotizacionesFrias(pool, umbrales.cotizacionesDias),

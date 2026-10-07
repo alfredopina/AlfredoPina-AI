@@ -15,34 +15,24 @@
 //   - marca Solicitud.creo_prospecto cuando ESTA solicitud dio de alta a la
 //     empresa (alimenta la tarjeta "Prospectos generados" del admin).
 //
-// IDEMPOTENTE (corrige el bug de 3 Solicitudes por un solo envío): con la base
-// dormida, el primer intento tarda más que el límite de ~45 s de Static Web
-// Apps (llega un 504 al navegador aunque esta Function sigue y termina
-// insertando), y el cliente reintenta con pausas — cada reintento insertaba otra
-// fila. Ahora todo corre en una transacción protegida por un applock
-// (sp_getapplock) cuya llave es el hash del envío; dentro del lock se busca una
-// Solicitud 'Sitio' igual (mismo contacto, empresa, programa y detalles) de los
-// últimos 30 min y, si existe, se devuelve esa en vez de crear otra. El applock
-// serializa los intentos concurrentes, así que tampoco hay carrera.
-// Los errores de base de datos devuelven 503 (el cliente reintenta); solo los
-// de validación son 400 (definitivos, el cliente no reintenta).
-const crypto = require("crypto");
-const { getPool, sql } = require("../src/backoffice-db");
-const { resolverCliente } = require("../src/cliente-resolver");
+// COLA, NO SQL DIRECTO (2026-10-07): la base se duerme y despertarla tarda 30-60 s
+// o más; con el formulario escribiendo directo a SQL el visitante esperaba (y a
+// veces recibía error o cerraba la ventana y se perdía la solicitud). Ahora esta
+// Function valida, aplica el antispam, guarda en Table Storage (cola) y responde
+// en ~1 s; la solicitud pasa a SQL cuando el admin la lee (drenarConSql, ver
+// api/src/solicitud-publica-cola.js). Idempotente: el mismo envío = la misma fila
+// de la cola, así un reintento del navegador no crea otra. Los errores de
+// validación son 400 (definitivos, el cliente no reintenta); un fallo al guardar
+// en la cola es 503 (el cliente reintenta).
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { notificarSolicitudNueva } = require("../src/notificaciones-correo");
 const antispam = require("../src/antispam-solicitud");
+const cola = require("../src/solicitud-publica-cola");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 // los rangos de participantes y su traducción de número a rango viven en solicitud-guardar.js (los usa también el admin)
 const { mapearParticipantes } = require("../src/solicitud-guardar");
-const VENTANA_DUPLICADO_MIN = 30;
-
-function derivarCodigo(nombre) {
-  const base = (nombre || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) || "EMPRESA";
-  return base + Math.floor(100 + Math.random() * 900);
-}
 
 function bad(context, error) {
   context.res = { status: 400, headers: JSON_HEADERS, body: { error } };
@@ -119,123 +109,45 @@ module.exports = async function (context, req) {
 
   const notas = [comentarios, part.nota].filter(Boolean).join("\n") || null;
 
-  // llave del envío: mismo contacto + empresa + programa + detalles = mismo envío
-  const llave = crypto
-    .createHash("sha1")
-    .update([nombreContacto, correo, telefono, empresaNombre, herramienta, temarioNombre, participantesRaw, modalidad, comentarios].map((x) => (x || "").toString().toLowerCase()).join("|"))
-    .digest("hex");
+  // La solicitud NO se escribe en SQL aquí: se guarda en la cola (Table Storage,
+  // que nunca se duerme) y se contesta al instante. Pasa a SQL cuando Alfredo abre
+  // el admin y la base está despierta — ver api/src/solicitud-publica-cola.js.
+  const datos = {
+    nombreContacto, empresaNombre, correo, telefono, herramienta, temarioNombre, temas, horasTotales,
+    participantes, participantesRaw, modalidad, comentarios, notas,
+  };
+  const llave = cola.llaveDeEnvio(datos);
 
-  let pool;
+  let guardada;
   try {
-    pool = await getPool();
+    guardada = await cola.encolar(cola.getColaTable(), llave, datos);
   } catch (err) {
-    context.log.error("No se pudo conectar a la base (solicitud pública):", err.message);
-    context.res = { status: 503, headers: JSON_HEADERS, body: { error: "El sistema está despertando, inténtalo de nuevo." } };
+    context.log.error("Error guardando la solicitud pública en la cola:", err.message);
+    context.res = { status: 503, headers: JSON_HEADERS, body: { error: "No se pudo registrar tu solicitud, inténtalo de nuevo." } };
     return;
   }
 
-  const transaction = new sql.Transaction(pool);
-  try {
-    await transaction.begin();
-    const nuevaRequest = () => new sql.Request(transaction);
-
-    // serializa los intentos del MISMO envío; se libera solo al terminar la transacción
-    const lock = await nuevaRequest()
-      .input("recurso", sql.NVarChar, "solpub_" + llave)
-      .query("DECLARE @r INT; EXEC @r = sp_getapplock @Resource = @recurso, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 40000; SELECT @r AS r");
-    if (lock.recordset[0].r < 0) throw new Error("No se obtuvo el candado del envío (código " + lock.recordset[0].r + ")");
-
-    const previa = await nuevaRequest()
-      .input("herramienta", sql.NVarChar, herramienta)
-      .input("temarioNombre", sql.NVarChar, temarioNombre)
-      .input("nombre", sql.NVarChar, nombreContacto)
-      .input("correo", sql.NVarChar, correo || "")
-      .input("telefono", sql.NVarChar, telefono || "")
-      .input("empresa", sql.NVarChar, empresaNombre)
-      .input("fecha", sql.NVarChar, fechaTentativa || "")
-      .input("ciudad", sql.NVarChar, ciudadSede || "")
-      .input("participantes", sql.NVarChar, participantes || "")
-      .input("modalidad", sql.NVarChar, modalidad || "")
-      .input("notas", sql.NVarChar, notas || "")
-      .input("ventana", sql.Int, VENTANA_DUPLICADO_MIN)
-      .query(
-        `SELECT TOP 1 s.id
-           FROM Solicitud s
-           JOIN Contacto c ON c.id = s.contacto_id
-           JOIN Cliente cl ON cl.id = s.cliente_id
-          WHERE s.canal_origen = 'Sitio'
-            AND s.fecha_creacion >= DATEADD(MINUTE, -@ventana, SYSUTCDATETIME())
-            AND s.herramienta = @herramienta AND s.temario_nombre = @temarioNombre
-            AND c.nombre = @nombre AND ISNULL(c.correo, '') = @correo AND ISNULL(c.telefono, '') = @telefono
-            AND cl.nombre = @empresa
-            AND ISNULL(s.fecha_tentativa, '') = @fecha AND ISNULL(s.ciudad_sede, '') = @ciudad
-            AND ISNULL(s.participantes, '') = @participantes AND ISNULL(s.modalidad, '') = @modalidad
-            AND ISNULL(s.notas, '') = @notas
-          ORDER BY s.id`
-      );
-    if (previa.recordset.length) {
-      await transaction.commit();
-      context.res = { status: 200, headers: JSON_HEADERS, body: { id: previa.recordset[0].id, duplicada: true } };
-      return;
-    }
-
-    const cliente = await resolverCliente(nuevaRequest, { nombre: empresaNombre, codigo: derivarCodigo(empresaNombre) });
-
-    const insertContacto = await nuevaRequest()
-      .input("clienteId", sql.Int, cliente.id)
-      .input("nombre", sql.NVarChar, nombreContacto)
-      .input("correo", sql.NVarChar, correo)
-      .input("telefono", sql.NVarChar, telefono)
-      .input("tieneWhatsapp", sql.Bit, telefono ? 1 : 0)
-      .query(
-        `INSERT INTO Contacto (cliente_id, nombre, correo, telefono, tiene_whatsapp, es_principal)
-         OUTPUT INSERTED.id
-         VALUES (@clienteId, @nombre, @correo, @telefono, @tieneWhatsapp, 1)`
-      );
-
-    const insert = await nuevaRequest()
-      .input("clienteId", sql.Int, cliente.id)
-      .input("contactoId", sql.Int, insertContacto.recordset[0].id)
-      .input("herramienta", sql.NVarChar, herramienta)
-      .input("temarioNombre", sql.NVarChar, temarioNombre)
-      .input("temasJson", sql.NVarChar, JSON.stringify(temas))
-      .input("horasTotales", sql.Decimal(6, 1), horasTotales)
-      .input("notas", sql.NVarChar, notas)
-      .input("fechaTentativa", sql.NVarChar, fechaTentativa)
-      .input("ciudadSede", sql.NVarChar, ciudadSede)
-      .input("participantes", sql.NVarChar, participantes)
-      .input("modalidad", sql.NVarChar, modalidad)
-      .input("creoProspecto", sql.Bit, cliente.creado ? 1 : 0)
-      .query(
-        `INSERT INTO Solicitud
-          (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-           fecha_tentativa, ciudad_sede, participantes, modalidad, fecha_estatus, creo_prospecto)
-         OUTPUT INSERTED.id
-         VALUES
-          (@clienteId, @contactoId, @herramienta, 'estandar', @temarioNombre, @temasJson, @horasTotales, 'Sitio', @notas,
-           @fechaTentativa, @ciudadSede, @participantes, @modalidad, SYSUTCDATETIME(), @creoProspecto)`
-      );
-
-    await transaction.commit();
-    // solo una solicitud NUEVA cuenta para los límites (un reintento idempotente regresa antes de llegar aquí)
-    await Promise.all([
-      antispam.registrar(tabla, "ip", claveIp, antispam.LIMITE_IP, context),
-      antispam.registrar(tabla, "contacto", claveCto, antispam.LIMITE_CONTACTO, context),
-    ]);
-    // aviso por correo a Alfredo (apagado si no hay configuración; nunca lanza ni retrasa más de unos segundos).
-    // Tope global por hora: pasado el tope la solicitud igual queda en el admin, solo no se manda más correo.
-    if (await antispam.consumirCupo(tabla, "aviso", "global", antispam.LIMITE_AVISOS, context)) {
-      await notificarSolicitudNueva({
-        id: insert.recordset[0].id, nombre: nombreContacto, empresa: empresaNombre, correo, telefono, programa: temarioNombre, herramienta,
-        horas: horasTotales, participantes: participantesRaw, modalidad, comentarios,
-      });
-    } else {
-      context.log.warn("Tope de correos de aviso por hora alcanzado: la solicitud " + insert.recordset[0].id + " no mandó correo.");
-    }
-    context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
-  } catch (err) {
-    try { await transaction.rollback(); } catch (_) { /* ya cerrada */ }
-    context.log.error("Error creando la solicitud pública:", err.message);
-    context.res = { status: 503, headers: JSON_HEADERS, body: { error: "No se pudo registrar tu solicitud, inténtalo de nuevo." } };
+  // un reintento del mismo envío (ya estaba en la cola o ya pasó a SQL) responde ok sin contar ni avisar otra vez
+  if (!guardada.nueva) {
+    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, duplicada: true } };
+    return;
   }
+
+  // solo una solicitud NUEVA cuenta para los límites
+  await Promise.all([
+    antispam.registrar(tabla, "ip", claveIp, antispam.LIMITE_IP, context),
+    antispam.registrar(tabla, "contacto", claveCto, antispam.LIMITE_CONTACTO, context),
+  ]);
+  // aviso por correo a Alfredo (apagado si no hay configuración; nunca lanza ni retrasa más de unos segundos).
+  // Sale AHORA, no cuando la solicitud llegue a SQL: así se entera aunque la base siga dormida.
+  // Tope global por hora: pasado el tope la solicitud igual queda en la cola, solo no se manda más correo.
+  if (await antispam.consumirCupo(tabla, "aviso", "global", antispam.LIMITE_AVISOS, context)) {
+    await notificarSolicitudNueva({
+      nombre: nombreContacto, empresa: empresaNombre, correo, telefono, programa: temarioNombre, herramienta,
+      horas: horasTotales, participantes: participantesRaw, modalidad, comentarios,
+    });
+  } else {
+    context.log.warn("Tope de correos de aviso por hora alcanzado: la solicitud " + llave + " no mandó correo.");
+  }
+  context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
 };

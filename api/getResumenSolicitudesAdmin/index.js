@@ -13,10 +13,13 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { getUmbrales, DEFAULTS } = require("../src/notificaciones-config");
 const { JSON_HEADERS } = require("../src/http");
+const { drenarConSql } = require("../src/solicitud-publica-cola");
 
 module.exports = async function (context, req) {
   try {
     const pool = await getPool();
+    // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
+    await drenarConSql(pool, context);
     const result = await pool.request().query(
       `SELECT
          SUM(CASE WHEN s.canal_origen = 'Manual' THEN 1 ELSE 0 END) AS manuales,

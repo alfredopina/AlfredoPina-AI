@@ -7,6 +7,7 @@
 // con CASE WHEN que ya usa listClientesAdmin, sin SQL dinámico.
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { drenarConSql } = require("../src/solicitud-publica-cola");
 
 const SORTS = ["fecha", "cliente", "horas"];
 const DIRS = ["asc", "desc"];
@@ -18,6 +19,8 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
+    // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
+    await drenarConSql(pool, context);
     const request = pool.request();
     const condiciones = [];
 

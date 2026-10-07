@@ -1,7 +1,8 @@
 // getResumenCotizacionesAdmin/index.js
 // Function protegida (rol "admin"): scorecard del panel Seguimiento — pipeline
-// activo, ganado/perdido del mes, tasa de conversión (últimos 90 días) y
-// tiempo promedio de cierre. La tabla no guarda una fecha de cierre explícita
+// activo, ganado/perdido, tasa de conversión y tiempo promedio de cierre,
+// todo ACUMULADO (ningún Tracking reinicia sus métricas solo; el tiempo de cierre
+// va de fecha_creacion a fecha_cierre). La tabla no guarda una fecha de cierre explícita
 // (no existe fecha_cierre en el esquema), así que "del mes"/"tiempo de
 // cierre" se aproximan con fecha_creacion → ahora para las cotizaciones que
 // ya están Ganada/Perdida y se crearon este mes — simplificación explícita
@@ -37,20 +38,20 @@ module.exports = async function (context, req) {
           WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
 
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus = 'Ganada' AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS ganado_conteo,
+          WHERE estatus = 'Ganada') AS ganado_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion
-          WHERE estatus = 'Ganada' AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS ganado_monto,
+          WHERE estatus = 'Ganada') AS ganado_monto,
 
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus = 'Perdida' AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS perdido_conteo,
+          WHERE estatus = 'Perdida') AS perdido_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion
-          WHERE estatus = 'Perdida' AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS perdido_monto,
+          WHERE estatus = 'Perdida') AS perdido_monto,
 
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Ganada', 'Perdida') AND fecha_creacion >= DATEADD(day, -90, GETUTCDATE())) AS cerradas_90d,
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus = 'Ganada' AND fecha_creacion >= DATEADD(day, -90, GETUTCDATE())) AS ganadas_90d,
+        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Ganada', 'Perdida')) AS cerradas_90d,
+        (SELECT COUNT(*) FROM Cotizacion WHERE estatus = 'Ganada') AS ganadas_90d,
 
-        (SELECT AVG(DATEDIFF(day, fecha_creacion, GETUTCDATE())) FROM Cotizacion
-          WHERE estatus IN ('Ganada', 'Perdida') AND MONTH(fecha_creacion) = MONTH(GETUTCDATE()) AND YEAR(fecha_creacion) = YEAR(GETUTCDATE())) AS tiempo_cierre_dias
+        (SELECT AVG(CAST(DATEDIFF(day, fecha_creacion, fecha_cierre) AS FLOAT)) FROM Cotizacion
+          WHERE estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NOT NULL) AS tiempo_cierre_dias
     `);
     const r = result.recordset[0];
     const tasaConversion = r.cerradas_90d ? Math.round((r.ganadas_90d / r.cerradas_90d) * 100) : 0;

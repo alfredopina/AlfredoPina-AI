@@ -1,7 +1,7 @@
 // getResumenGruposAdmin/index.js
 // Function protegida (rol "admin"): scorecard + stepper vivo del panel
 // Tracking Operación (rediseño 2026-09-13, ver CLAUDE.md). Regresa:
-//   - activos / cerrados_este_anio / dias_promedio_cierre: las 3 tarjetas.
+//   - activos / cerrados / dias_promedio_cierre (acumulados: nunca se reinician solos): las 3 tarjetas.
 //   - conteos_fase: cuántos Grupos activos hay en cada una de las 5 fases
 //     que no son Cerrado — para el stepper. Se calcula en JS con
 //     derivarFase sobre estatus_curso/estatus_cierre crudos, nunca
@@ -35,7 +35,7 @@ module.exports = async function (context, req) {
       pool.request().query(`
         SELECT
           (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre IS NULL OR estatus_cierre <> 'Cerrado') AS activos,
-          (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre = 'Cerrado' AND YEAR(fecha_cierre) = YEAR(SYSUTCDATETIME())) AS cerrados_este_anio,
+          (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre = 'Cerrado') AS cerrados,
           (SELECT AVG(CAST(DATEDIFF(day, fecha_fin, fecha_cierre) AS FLOAT)) FROM Grupo
             WHERE estatus_cierre = 'Cerrado' AND fecha_fin IS NOT NULL AND fecha_cierre IS NOT NULL) AS dias_promedio_cierre
       `),
@@ -72,7 +72,7 @@ module.exports = async function (context, req) {
       headers: JSON_HEADERS,
       body: {
         activos: r.activos,
-        cerrados_este_anio: r.cerrados_este_anio,
+        cerrados: r.cerrados,
         dias_promedio_cierre: r.dias_promedio_cierre != null ? Math.round(r.dias_promedio_cierre * 10) / 10 : null,
         conteos_fase: conteosFase,
         semaforo_cierre: semaforoCierre,

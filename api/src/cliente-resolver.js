@@ -40,14 +40,15 @@ async function resolverCliente(exec, empresa, tipoNuevo = "Prospecto", opciones 
   if (!nombre || !codigo) throw crearError("Falta el nombre o el código de la empresa nueva.");
 
   const existente = await nuevaRequest().input("codigo", sql.NVarChar, codigo).query("SELECT id, nombre, codigo FROM Cliente WHERE codigo = @codigo");
-  if (existente.recordset.length) return existente.recordset[0];
+  if (existente.recordset.length) return { ...existente.recordset[0], creado: false };
 
   const insert = await nuevaRequest()
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
     .input("tipo", sql.NVarChar, tipoNuevo)
     .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, @tipo)");
-  return insert.recordset[0];
+  // creado: true cuando ESTA llamada dio de alta la empresa (Solicitud.creo_prospecto lo usa)
+  return { ...insert.recordset[0], creado: true };
 }
 
 // Encuesta abierta (sin link de Grupo): solo acepta un Cliente que ya existe y

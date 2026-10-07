@@ -297,6 +297,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarSolicitud",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listClientesAdmin",
       "allowedRoles": ["admin"]
     },

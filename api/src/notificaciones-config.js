@@ -8,7 +8,7 @@
 // código.
 //
 // Un solo renglón fijo (PartitionKey "config" / RowKey "notificaciones") con
-// los 6 campos: 3 "urgente" (rojo — lo único que dispara la campana) + 3
+// los 8 campos (6 en DÍAS + las 2 de Solicitudes, que van en HORAS): 3 "urgente" (rojo — lo único que dispara la campana) + 3
 // "seguimiento" (ámbar — solo colorea el semáforo del panel, nunca notifica;
 // agregado 2026-09-15, antes fijo en código). Cada par se valida junto —
 // seguimiento siempre debe quedar por debajo de su urgente.
@@ -39,7 +39,10 @@ const ROW_KEY = "notificaciones";
 const DEFAULTS = {
   cotizacionesDias: 10, gruposDias: 21, clientesDias: 90,
   cotizacionesSeguimientoDias: 6, gruposSeguimientoDias: 10, clientesSeguimientoDias: 30,
+  // Solicitudes sin atender: en HORAS (la promesa del sitio es cotizar en 24 hr)
+  solicitudesHoras: 72, solicitudesSeguimientoHoras: 24,
 };
+const EN_HORAS = new Set(["solicitudesHoras", "solicitudesSeguimientoHoras"]);
 const CAMPOS_VALIDOS = Object.keys(DEFAULTS);
 
 // Cada urgente (rojo) con su seguimiento (ámbar) — el seguimiento siempre
@@ -53,8 +56,10 @@ const PARES = {
   gruposSeguimientoDias: "gruposDias",
   clientesDias: "clientesSeguimientoDias",
   clientesSeguimientoDias: "clientesDias",
+  solicitudesHoras: "solicitudesSeguimientoHoras",
+  solicitudesSeguimientoHoras: "solicitudesHoras",
 };
-const ES_URGENTE = new Set(["cotizacionesDias", "gruposDias", "clientesDias"]);
+const ES_URGENTE = new Set(["cotizacionesDias", "gruposDias", "clientesDias", "solicitudesHoras"]);
 
 // Si el renglón (o la tabla completa) todavía no existe, regresa los mismos
 // valores que ya estaban fijos en código hasta ahora — el comportamiento no
@@ -90,15 +95,16 @@ async function actualizarUmbral(campo, valor) {
   const umbralesActuales = await getUmbrales();
   const valorPar = umbralesActuales[campoPar];
   const esUrgente = ES_URGENTE.has(campo);
+  const unidad = EN_HORAS.has(campo) ? "horas" : "días";
   if (esUrgente && entero <= valorPar) {
     throw Object.assign(
-      new Error(`El umbral urgente debe ser mayor al de seguimiento (${valorPar} días).`),
+      new Error(`El umbral urgente debe ser mayor al de seguimiento (${valorPar} ${unidad}).`),
       { safe: true }
     );
   }
   if (!esUrgente && entero >= valorPar) {
     throw Object.assign(
-      new Error(`El umbral de seguimiento debe ser menor al urgente (${valorPar} días).`),
+      new Error(`El umbral de seguimiento debe ser menor al urgente (${valorPar} ${unidad}).`),
       { safe: true }
     );
   }

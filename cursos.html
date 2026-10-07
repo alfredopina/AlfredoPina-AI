@@ -473,6 +473,7 @@
   const chevronIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   let leadProgId = null;      // programa para el que está armado el diálogo
+  let leadAbiertoEn = Date.now(); // cuándo se armó el formulario: el servidor rechaza envíos de menos de 2 s (antispam)
   let leadEstado = 'form';    // 'form' | 'enviado'
 
   function leadBodyHTML(){
@@ -570,7 +571,7 @@
     // se conserva lo escrito si se cierra y se vuelve a abrir el mismo programa; si no, formulario limpio
     if(leadProgId !== id || leadEstado !== 'form'){
       document.getElementById('leadBody').innerHTML = leadBodyHTML();
-      leadProgId = id; leadEstado = 'form';
+      leadProgId = id; leadEstado = 'form'; leadAbiertoEn = Date.now();
     }
     dlg.showModal();
     document.getElementById('leadName')?.focus();
@@ -600,6 +601,7 @@
       participantes: extra.participantes, modalidad: extra.modalidad,
       comentarios: extra.comentarios,
       web: (document.getElementById('leadWeb')?.value || ''),
+      tf: Date.now() - leadAbiertoEn,
     };
     for(let intento = 0; intento <= REINTENTO_PAUSAS_MS.length; intento++){
       try { await apiPostJson('/api/crearSolicitudPublica', payload); return true; }

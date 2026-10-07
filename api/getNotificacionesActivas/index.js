@@ -1,7 +1,7 @@
 // getNotificacionesActivas/index.js
-// Function protegida (rol "admin"): agrega las 3 señales que alimentan la
-// campana del topbar — Cotizaciones frías, Grupos atorados y Clientes
-// inactivos — usando los umbrales configurables de Configuración →
+// Function protegida (rol "admin"): agrega las 4 señales que alimentan la
+// campana del topbar — Solicitudes sin atender, Cotizaciones frías, Grupos
+// atorados y Clientes inactivos — usando los umbrales configurables de Configuración →
 // Notificaciones (ver api/src/notificaciones-config.js). El resultado es el
 // mismo dato que ya calculan/muestran Tracking Comercial, Tracking Operación
 // y Consultar Clientes (misma regla, mismo umbral) — esto solo lo junta en
@@ -16,6 +16,32 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { getUmbrales } = require("../src/notificaciones-config");
 const { calcularDiasInactivo } = require("../src/cliente-actividad");
 const { JSON_HEADERS } = require("../src/http");
+
+// Solicitudes "Nueva" que llevan más de N HORAS sin atenderse (sin cotizar ni
+// descartar). Cuenta a cualquier cliente, Prospecto incluido: justo las del sitio
+// nacen de un Prospecto, y el cálculo de Clientes inactivos los excluye.
+async function solicitudesSinAtender(pool, horas) {
+  const result = await pool
+    .request()
+    .input("minutos", sql.Int, horas * 60)
+    .query(`
+      SELECT s.id, c.nombre AS cliente, s.herramienta,
+             DATEDIFF(MINUTE, s.fecha_creacion, SYSUTCDATETIME()) AS minutos
+      FROM Solicitud s
+      JOIN Cliente c ON c.id = s.cliente_id
+      WHERE s.estatus = 'Nueva'
+        AND DATEDIFF(MINUTE, s.fecha_creacion, SYSUTCDATETIME()) > @minutos
+      ORDER BY minutos DESC
+    `);
+  return result.recordset.map((r) => ({
+    tipo: "solicitud",
+    id: r.id,
+    cliente: r.cliente,
+    detalle: `Solicitud de ${r.herramienta}, sin atender`,
+    dias: null,
+    horas: Math.floor(r.minutos / 60),
+  }));
+}
 
 async function cotizacionesFrias(pool, umbral) {
   // Un Borrador nunca se mandó a nadie — "sin respuesta" no le aplica (nadie
@@ -128,16 +154,17 @@ module.exports = async function (context, req) {
   try {
     const umbrales = await getUmbrales();
     const pool = await getPool();
-    const [cotizaciones, grupos, clientes] = await Promise.all([
+    const [solicitudes, cotizaciones, grupos, clientes] = await Promise.all([
+      solicitudesSinAtender(pool, umbrales.solicitudesHoras),
       cotizacionesFrias(pool, umbrales.cotizacionesDias),
       gruposAtorados(pool, umbrales.gruposDias),
       clientesInactivos(pool, umbrales.clientesDias),
     ]);
-    const items = [...cotizaciones, ...grupos, ...clientes];
+    const items = [...solicitudes, ...cotizaciones, ...grupos, ...clientes];
     context.res = {
       status: 200,
       headers: JSON_HEADERS,
-      body: { total: items.length, umbrales, grupos: { cotizaciones, grupos, clientes } },
+      body: { total: items.length, umbrales, grupos: { solicitudes, cotizaciones, grupos, clientes } },
     };
   } catch (err) {
     context.log.error("Error armando notificaciones activas:", err.message);

@@ -197,7 +197,7 @@ module.exports = async function (context, req) {
       await pool.request().input("folio", sql.NVarChar, reemplazaAFolio).query("UPDATE Cotizacion SET estatus = 'Reemplazada' WHERE folio = @folio");
     }
     if (solicitudId) {
-      await pool.request().input("id", sql.Int, solicitudId).query("UPDATE Solicitud SET estatus = 'Cotizada' WHERE id = @id");
+      await pool.request().input("id", sql.Int, solicitudId).query("UPDATE Solicitud SET fecha_estatus = CASE WHEN estatus <> 'Cotizada' THEN SYSUTCDATETIME() ELSE fecha_estatus END, estatus = 'Cotizada' WHERE id = @id");
     }
 
     context.res = {

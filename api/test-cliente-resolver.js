@@ -57,12 +57,14 @@ async function rechaza(promesa) {
   pool = fakePool((t) => (t.startsWith("SELECT") ? [{ id: 3, nombre: "Beta", codigo: "BETA" }] : []));
   r = await resolverCliente(pool, { nombre: "Beta SA", codigo: "b-eta" });
   check("código existente se reusa sin INSERT", r.id === 3 && !pool.llamadas.some((c) => c.texto.startsWith("INSERT")));
+  check("código existente: creado = false", r.creado === false);
 
   // 6) empresa nueva: Prospecto por default
   pool = fakePool((t) => (t.startsWith("INSERT") ? [{ id: 11, nombre: "Nueva", codigo: "NUEVA" }] : []));
   r = await resolverCliente(pool, { nombre: "Nueva", codigo: "nueva" });
   let ins = pool.llamadas.find((c) => c.texto.startsWith("INSERT"));
   check("empresa nueva nace Prospecto", r.id === 11 && ins.params.tipo === "Prospecto" && ins.params.codigo === "NUEVA");
+  check("empresa nueva: creado = true (Solicitud.creo_prospecto)", r.creado === true);
 
   // 7) empresa nueva desde Grupo: Directo / Indirecto
   pool = fakePool((t) => (t.startsWith("INSERT") ? [{ id: 12, nombre: "G", codigo: "G" }] : []));

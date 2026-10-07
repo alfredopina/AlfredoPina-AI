@@ -1299,6 +1299,43 @@
   }
   .sol-sort-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:.4px; margin-right:2px; }
 
+  /* ---- Tracking de Solicitudes (2026-10-07) ---- */
+  .sol-estatus-tabs .radm-tab svg{ width:14px; height:14px; flex:none; }
+  .sol-estatus-tabs .radm-tab.active{ border-color:var(--c); }
+  .sol-tabla td{ vertical-align:middle; }
+  .sol-hora{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:2px; }
+  .sol-cli{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .sol-cli-nombre{ font-weight:600; }
+  .sol-cli-sub{ font-size:11.5px; color:var(--text-dim); margin-top:3px; }
+  /* Cliente / Prospecto: icono + texto (nunca solo color); neutro, no es una condición de urgencia */
+  .sol-tipo{
+    display:inline-flex; align-items:center; gap:4px; font-family:var(--mono); font-size:10px; letter-spacing:.3px;
+    color:var(--text-dim); background-color:var(--panel-2); border-width:1px; border-style:solid; border-color:var(--line);
+    border-radius:10px; padding:2px 7px; white-space:nowrap;
+  }
+  .sol-tipo svg{ width:11px; height:11px; flex:none; }
+  .sol-tipo.prospecto{ color:var(--blue-bright); border-color:var(--blue-bright); }
+  /* estatus: icono distinto por estado + texto; Nueva en el azul de marca, Cotizada en el verde-azulado de "bien", Descartada apagada */
+  .sol-est{ display:inline-flex; align-items:center; gap:6px; font-size:12px; white-space:nowrap; }
+  .sol-est svg{ width:14px; height:14px; flex:none; }
+  .sol-est-Nueva{ color:var(--blue-bright); }
+  .sol-est-Cotizada{ color:var(--good); }
+  .sol-est-Descartada{ color:var(--text-faint); }
+  /* semáforo vivo: el punto "respira" mientras la solicitud sigue abierta */
+  .sol-semaforo .cot-semaforo-dot{ animation:admin-live-pulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .sol-semaforo .cot-semaforo-dot{ animation:none; } }
+  .sol-semaforo-fin{ color:var(--text-dim); background-color:var(--panel-2); }
+  .sol-semaforo-fin svg{ width:11px; height:11px; flex:none; }
+  /* acciones: iconos más grandes y con área de clic cómoda */
+  .sol-acciones{ gap:4px; flex-wrap:nowrap; }
+  .sol-acciones .cot-icon-btn{ width:32px; height:32px; }
+  .sol-acciones .cot-icon-btn svg{ width:17px; height:17px; }
+  .sol-tabla th, .sol-tabla td{ padding-left:7px; padding-right:7px; }
+  .sol-tabla td:nth-child(3){ white-space:normal; }
+  .sol-acciones .sol-acc-principal{ color:var(--blue-bright); border-color:var(--blue-bright); }
+  .sol-acciones .sol-acc-peligro:hover{ color:var(--bad); border-color:var(--bad); }
+  .sol-comentarios{ font-size:12.5px; color:var(--text); line-height:1.6; white-space:pre-wrap; margin-top:4px; }
+
   /* Encabezados ordenables (reemplazan los botones "Ordenar" sueltos,
      2026-09-15) — clic en el <th data-sort> ordena por esa columna, clic de
      nuevo alterna asc/desc. Mismo criterio en Clientes/Solicitudes/Grupos. */
@@ -2135,9 +2172,13 @@
       </button>
 
       <div class="admin-nav-group">TRACKING</div>
+      <button class="admin-nav-item" data-panel="solicitudes">
+        <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
+        Solicitudes
+      </button>
       <button class="admin-nav-item" data-panel="tracking-comercial">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
-        Comercial
+        Cotizaciones
       </button>
       <button class="admin-nav-item" data-panel="clientes">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
@@ -2146,10 +2187,6 @@
       <button class="admin-nav-item" data-panel="tracking-operacion">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
         Grupos
-      </button>
-      <button class="admin-nav-item" data-panel="solicitudes">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6L18 5H6L4 12Z" stroke-linejoin="round"/></svg></span>
-        Solicitudes
       </button>
 
       <div class="admin-nav-group">REPORTES</div>
@@ -2261,6 +2298,46 @@
     <div class="admin-content">
       <div class="admin-panel active" id="panel-tracking-view">
         <div class="trkv-grid">
+          <article class="trkv-card" tabindex="0" data-goto="solicitudes">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Solicitudes</h3>
+              <span class="trkv-bell" id="trkvSolBell" hidden title="Solicitudes sin atender que ya notificó la campana">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Manuales (año)</span><span class="trkv-kpi-value" id="trkvSolManuales">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Del sitio (año)</span><span class="trkv-kpi-value" id="trkvSolSitio">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Atendidas</span><span class="trkv-kpi-value" id="trkvSolAtendidas">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de atención</span><span class="trkv-kpi-value" id="trkvSolDias">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Prospectos</span><span class="trkv-kpi-value" id="trkvSolProspectos">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvSolSignal"></div>
+          </article>
+
+          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Cotizaciones</h3>
+              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya notificó la campana">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Ganado</span><span class="trkv-kpi-value" id="trkvComGanado">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Perdido</span><span class="trkv-kpi-value" id="trkvComPerdido">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvComSignal"></div>
+          </article>
+
           <article class="trkv-card" tabindex="0" data-goto="clientes">
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
@@ -2300,35 +2377,6 @@
             </div>
             <div class="trkv-signal" id="trkvGruSignal"></div>
             <div id="trkvGruStepper" class="trkv-stepper-grande"></div>
-          </article>
-
-          <article class="trkv-card trkv-card--soon">
-            <div class="trkv-card-head">
-              <span class="trkv-dot-soon"></span>
-              <h3>Solicitudes</h3>
-              <span class="trkv-tag-soon">PRONTO</span>
-            </div>
-            <p class="trkv-soon-copy">Tendrá su propio semáforo y umbral de urgencia — mismos criterios que los demás Tracking. Se construye después.</p>
-          </article>
-
-          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
-            <div class="trkv-card-head">
-              <span class="admin-nav-live-dot"></span>
-              <h3>Comercial</h3>
-              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya notificó la campana">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/></svg>
-                <span class="trkv-bell-count">0</span>
-              </span>
-              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
-            </div>
-            <div class="trkv-kpis">
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Ganado</span><span class="trkv-kpi-value" id="trkvComGanado">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Perdido</span><span class="trkv-kpi-value" id="trkvComPerdido">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
-            </div>
-            <div class="trkv-signal" id="trkvComSignal"></div>
           </article>
         </div>
       </div>
@@ -2397,7 +2445,7 @@
           </button>
           <div class="cfg-card-body" id="cfgNotifBody" hidden>
             <div class="cfg-note">
-              Cada señal (Cotizaciones/Grupos/Clientes) trae 2 números editables — <b>Seguimiento</b> (ámbar) es a partir de cuándo el panel correspondiente empieza a colorearlo como "ya vale la pena revisarlo", solo ahí, sin avisarte en ningún otro lado; <b>Urgente</b> (rojo) es a partir de cuándo además aparece en la campana de arriba. Los 2 son el mismo número que ya ves en Tracking Comercial/Tracking Grupos/Clientes — un solo lugar donde cambiarlos.
+              Cada señal (Solicitudes/Cotizaciones/Grupos/Clientes) trae 2 números editables — <b>Seguimiento</b> (ámbar) es a partir de cuándo el panel correspondiente empieza a colorearlo como "ya vale la pena revisarlo", solo ahí, sin avisarte en ningún otro lado; <b>Urgente</b> (rojo) es a partir de cuándo además aparece en la campana de arriba. Los 2 son el mismo número que ya ves en Tracking Comercial/Tracking Grupos/Clientes — un solo lugar donde cambiarlos.
             </div>
             <div class="cfg-notif-list" id="cfgNotifList" style="margin-top:14px;">
               <div class="radm-empty-row">Cargando umbrales…</div>
@@ -2453,91 +2501,115 @@
       <div class="admin-panel" id="panel-solicitudes" style="--c:var(--blue-bright)">
         <div id="solToast" class="radm-toast" hidden></div>
 
-        <div class="dash-etabs" id="solTabs">
-          <button type="button" class="dash-etab active" data-soltab="consultar">Histórico</button>
-          <button type="button" class="dash-etab" data-soltab="crear">Crear</button>
+        <div class="dip-tabpanel active" id="solTab-consultar">
+        <div class="cli-scorecard-block">
+          <div class="cli-kpi-row" id="solKpis">
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Solicitudes capturadas a mano en el admin, del año en curso">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value" id="solKpiManuales">—</div>
+              <div class="dkpi-label">Solicitudes manuales</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Solicitudes que llegaron por el formulario del sitio, del año en curso">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18" stroke-linecap="round"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg></div>
+              <div class="dkpi-value" id="solKpiSitio">—</div>
+              <div class="dkpi-label">Solicitudes del sitio</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--good)" title="Del total de solicitudes del año, el porcentaje que ya no está en estatus Nueva (cotizada o descartada)">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value" id="solKpiAtendidas">—</div>
+              <div class="dkpi-label">% Solicitudes atendidas</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Promedio de días entre que llegó la solicitud y se creó su primera cotización (solo las del año que ya tienen cotización)">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value"><span id="solKpiDias">—</span> <span style="font-size:13px; color:var(--text-faint); font-weight:400;">días</span></div>
+              <div class="dkpi-label">Días promedio de atención</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Empresas nuevas dadas de alta como Prospecto por una solicitud este año — mide el crecimiento de nuevos clientes potenciales">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="solKpiProspectos">—</div>
+              <div class="dkpi-label">Prospectos generados</div>
+            </div>
+          </div>
+          <span class="radm-hint" style="display:block; margin-top:8px;">Las tarjetas son del año en curso (<span id="solKpiAnio">—</span>) y se reinician cada 1 de enero; el histórico y los filtros por periodo viven en el Dashboard.</span>
         </div>
 
-        <div class="dip-tabpanel active" id="solTab-consultar">
-        <div class="scorecard-block">
-        <div class="sol-kpi-row" id="solKpis">
-          <div class="dkpi-card">
-            <div class="dkpi-value" id="solKpiManuales">—</div>
-            <div class="dkpi-label">Solicitudes manuales</div>
-          </div>
-          <div class="dkpi-card">
-            <div class="dkpi-value" id="solKpiSitio">—</div>
-            <div class="dkpi-label">Solicitudes del sitio</div>
-          </div>
-          <div class="dkpi-card" title="Solicitudes con cualquier estatus distinto de 'Nueva', sobre el total">
-            <div class="dkpi-value" id="solKpiAtendidas">—</div>
-            <div class="dkpi-label">% Solicitudes atendidas</div>
-          </div>
-        </div>
+        <div class="cot-alert" id="solAlerta" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="solAlertaTexto"></span>
         </div>
 
         <div class="sol-toolbar">
+          <div class="radm-tabs sol-estatus-tabs" id="solEstatusTabs" style="margin-bottom:0;">
+            <button type="button" class="radm-tab active" data-est="Nueva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Nuevas<span class="radm-tab-count" id="solCntNueva">0</span></button>
+            <button type="button" class="radm-tab" data-est="Cotizada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Cotizadas<span class="radm-tab-count" id="solCntCotizada">0</span></button>
+            <button type="button" class="radm-tab" data-est="Descartada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Descartadas<span class="radm-tab-count" id="solCntDescartada">0</span></button>
+            <button type="button" class="radm-tab" data-est=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="solCntTodas">0</span></button>
+          </div>
           <div class="dip-filters" style="margin-bottom:0;">
-            <div class="radm-field">
-              <label>ESTATUS</label>
-              <select id="solFEstatus">
-                <option value="">Todos</option>
-                <option value="Nueva">Nueva</option>
-                <option value="En seguimiento">En seguimiento</option>
-                <option value="Cotizada">Cotizada</option>
-                <option value="Ganada">Ganada</option>
-                <option value="Perdida">Perdida</option>
-                <option value="Descartada">Descartada</option>
-              </select>
-            </div>
+            <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
             <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
               <label>CLIENTE</label>
               <input type="text" id="solFClienteNombre" placeholder="Escribe para buscar...">
               <div class="dip-autocomplete-list" id="solFClienteLista" hidden></div>
             </div>
             <div class="radm-field">
-              <label>DESDE</label>
-              <input type="date" id="solFDesde">
+              <label>TIPO</label>
+              <select id="solFTipo">
+                <option value="">Todos</option>
+                <option value="Cliente">Cliente</option>
+                <option value="Prospecto">Prospecto</option>
+              </select>
             </div>
             <div class="radm-field">
-              <label>HASTA</label>
-              <input type="date" id="solFHasta">
+              <label>HERRAMIENTA</label>
+              <select id="solFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>PROGRAMA</label>
+              <select id="solFPrograma">
+                <option value="">Todos</option>
+              </select>
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn dip-btn-icon" id="solBuscar" style="min-width:auto" title="Busca con los filtros que hayas llenado arriba">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-                Buscar
+              <button type="button" class="radm-btn-add" id="solCrearBtn" style="white-space:nowrap;">+ Crear Solicitud</button>
+              <button type="button" class="cot-icon-btn" id="solActualizar" title="Actualizar la lista y los indicadores">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solLimpiarFiltros" style="min-width:auto" title="Borra los filtros sin buscar todavía">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 20H9l-6-6 9.5-9.5a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Limpiar filtros
-              </button>
-              <button type="button" class="radm-btn radm-btn-ghost dip-btn-icon" id="solVerTodos" style="min-width:auto" title="Quita todos los filtros y muestra todas las solicitudes">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>
-                Ver todos
+              <button type="button" class="cot-icon-btn" id="solLimpiarFiltros" title="Limpiar filtros">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
             </div>
           </div>
-
         </div>
 
         <div class="dip-table-wrap">
-          <table class="dip-table">
+          <table class="dip-table sol-tabla">
             <thead>
               <tr>
-                <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
-                <th>Contacto</th>
-                <th>Herramienta</th>
-                <th>Programa / Temas</th>
-                <th data-sort="horas">Horas<span class="th-sort-ico"></span></th>
-                <th>Canal</th>
-                <th>Estatus</th>
-                <th data-sort="fecha">Fecha<span class="th-sort-ico"></span></th>
+                <th data-sort="fecha">Creada<span class="th-sort-ico"></span></th>
+                <th data-sort="cliente">Cliente / Prospecto<span class="th-sort-ico"></span></th>
+                <th data-sort="herramienta">Herramienta<span class="th-sort-ico"></span></th>
+                <th data-sort="programa">Programa<span class="th-sort-ico"></span></th>
+                <th data-sort="horas">Hr<span class="th-sort-ico"></span></th>
+                <th data-sort="canal">Canal<span class="th-sort-ico"></span></th>
+                <th data-sort="estatus">Estatus<span class="th-sort-ico"></span></th>
+                <th data-sort="semaforo">Atención<span class="th-sort-ico"></span></th>
+                <th data-sort="actualizacion" class="th-2l" title="Fecha del último cambio de estatus">Última actualización<span class="th-sort-ico"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="solListaBody">
-              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -4562,7 +4634,7 @@
     'tracking-view': 'Tracking View',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
     diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', clientes: 'Clientes',
-    'tracking-comercial': 'Comercial', 'tracking-operacion': 'Grupos',
+    'tracking-comercial': 'Cotizaciones', 'tracking-operacion': 'Grupos',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     marca: 'Marca', modelo: 'Modelo', config: 'Configuración',
   };
@@ -4584,6 +4656,8 @@
     // cualquier puerta de entrada que termine llamando a activarPanel queda
     // cubierta sola, sin tener que engancharla aparte.
     if(key === 'tracking-operacion' && typeof window.alEntrarAGrupos === 'function') window.alEntrarAGrupos();
+    // Igual con Solicitudes (ver window.alEntrarASolicitudes en su IIFE): refresca lista y tarjetas al entrar.
+    if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
   }
 
   document.getElementById('adminNav').addEventListener('click', e => {
@@ -4680,6 +4754,7 @@
       cot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       gru: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
       cli: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M16 4.2c1.4.5 2.4 1.9 2.4 3.5s-1 3-2.4 3.5" stroke-linecap="round"/><path d="M15.5 14.6c1.9.6 3.3 2.4 4 5.4" stroke-linecap="round"/></svg>',
+      sol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12l2.5-7h11L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke-linejoin="round"/></svg>',
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" stroke-linecap="round"/><path d="M8 12l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -4687,6 +4762,7 @@
     window.UMBRALES_NOTIF = {
       cotizacionesDias: 10, gruposDias: 21, clientesDias: 90,
       cotizacionesSeguimientoDias: 6, gruposSeguimientoDias: 10, clientesSeguimientoDias: 30,
+      solicitudesHoras: 72, solicitudesSeguimientoHoras: 24, // las de Solicitudes van en HORAS
     }; // defaults hasta que cargue de verdad
     let datos = null; // { total, umbrales, grupos:{cotizaciones,grupos,clientes} }
 
@@ -4715,7 +4791,7 @@
                 <div class="notif-row-cliente">${escapeHtml(it.cliente)}</div>
                 <div class="notif-row-detalle">${escapeHtml(it.detalle)}</div>
               </div>
-              <span class="notif-day-pill">${it.dias == null ? '—' : it.dias + ' d'}</span>
+              <span class="notif-day-pill">${it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d')}</span>
             </div>
           `).join('')}
         </div>`;
@@ -4744,6 +4820,7 @@
         body.innerHTML = `<div class="notif-vacio">${ICO.check}<span>Todo al día.</span></div>`;
       } else {
         body.innerHTML = [
+          grupoHtml('solicitudes', ICO.sol, 'Solicitudes sin atender', 'solicitudes'),
           grupoHtml('cotizaciones', ICO.cot, 'Cotizaciones frías', 'tracking-comercial'),
           grupoHtml('grupos', ICO.gru, 'Grupos atorados', 'tracking-operacion'),
           grupoHtml('clientes', ICO.cli, 'Clientes inactivos', 'clientes'),
@@ -4759,7 +4836,7 @@
         ? `${datos.total} activa${datos.total === 1 ? '' : 's'} requieren tu atención`
         : 'Sin pendientes por ahora';
       const u = datos.umbrales || window.UMBRALES_NOTIF;
-      footUmbrales.textContent = `Umbrales: ${u.cotizacionesDias} · ${u.gruposDias} · ${u.clientesDias} días`;
+      footUmbrales.textContent = `Umbrales: ${u.solicitudesHoras} h · ${u.cotizacionesDias} · ${u.gruposDias} · ${u.clientesDias} días`;
     }
 
     function abrirPopover(){
@@ -4823,6 +4900,7 @@
         datos = b;
         ultimoError = null;
         window.UMBRALES_NOTIF = b.umbrales || window.UMBRALES_NOTIF;
+        window.dispatchEvent(new Event('umbrales-notif')); // el tracking de Solicitudes recolorea su semáforo con los umbrales nuevos
         pintarBadge();
       } catch(e){
         // el badge se queda sin número, pero el popover SÍ muestra el error
@@ -4941,7 +5019,27 @@
       }
     }
 
-    // Campanitas de las 3 tarjetas — reusa tal cual getNotificacionesActivas
+    async function cargarSolicitudes(){
+      const ids = ['trkvSolManuales','trkvSolSitio','trkvSolAtendidas','trkvSolDias','trkvSolProspectos'];
+      try {
+        const r = await apiGetConReintento('/api/getResumenSolicitudesAdmin');
+        document.getElementById('trkvSolManuales').textContent = r.manuales;
+        document.getElementById('trkvSolSitio').textContent = r.sitio;
+        document.getElementById('trkvSolAtendidas').textContent = (r.total ? Math.round((r.atendidas / r.total) * 100) : 0) + '%';
+        document.getElementById('trkvSolDias').textContent = r.dias_atencion != null ? r.dias_atencion + ' días' : '—';
+        document.getElementById('trkvSolProspectos').textContent = r.prospectos_generados;
+        const s = r.semaforo || {};
+        document.getElementById('trkvSolSignal').innerHTML = `
+          <span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo · ${s.ok || 0}</span>
+          <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento · ${s.warn || 0}</span>
+          <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgentes · ${s.hot || 0}</span>
+        `;
+      } catch(e){
+        ids.forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+
+    // Campanitas de las tarjetas — reusa tal cual getNotificacionesActivas
     // (la misma Function que ya alimenta la campana del topbar), solo cuenta
     // cuántos ítems trae cada grupo. Es una llamada aparte de la que ya hace
     // el topbar (viven en módulos/IIFEs distintos) — mismo criterio de
@@ -4950,7 +5048,7 @@
       try {
         const r = await apiGetConReintento('/api/getNotificacionesActivas');
         const grupos = r.grupos || {};
-        const mapa = { trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
+        const mapa = { trkvSolBell: grupos.solicitudes, trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
         Object.entries(mapa).forEach(([id, items]) => {
           const el = document.getElementById(id);
           const n = (items || []).length;
@@ -4961,6 +5059,7 @@
     }
 
     function cargarTodo(){
+      cargarSolicitudes();
       cargarComercial();
       cargarClientes();
       cargarGrupos();
@@ -11745,11 +11844,10 @@
       powerautomate: 'Power Automate', ia: 'IA Aplicada', ofimatica: 'Ofimática Básica',
     };
     const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
-    const ESTATUS = ['Nueva', 'En seguimiento', 'Cotizada', 'Ganada', 'Perdida', 'Descartada'];
     const ICO_MANUAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>';
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', horas: 'desc' };
+    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', programa: 'asc', horas: 'desc', canal: 'asc', estatus: 'asc', semaforo: 'desc', actualizacion: 'desc' };
     const ICO_SITIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18" stroke-linecap="round"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -11846,24 +11944,65 @@
       };
     }
 
-    const solFClienteAuto = crearAutocomplete({ inputId:'solFClienteNombre', listId:'solFClienteLista' });
+    // El cliente del filtro se elige de la lista (como en Grupos); al elegirlo o quitarlo se re-pinta la tabla
+    const solFClienteAuto = crearAutocomplete({ inputId:'solFClienteNombre', listId:'solFClienteLista', onChange: () => renderSolicitudes() });
 
-    // ══ SCORECARD ══
+    // ══ SCORECARD (año en curso) ══
     async function cargarKpisSolicitudes(){
+      const ids = ['solKpiManuales', 'solKpiSitio', 'solKpiAtendidas', 'solKpiDias', 'solKpiProspectos'];
       try {
         const r = await apiGetConReintento('/api/getResumenSolicitudesAdmin');
         document.getElementById('solKpiManuales').textContent = r.manuales;
         document.getElementById('solKpiSitio').textContent = r.sitio;
-        const pct = r.total ? Math.round((r.atendidas / r.total) * 100) : 0;
-        document.getElementById('solKpiAtendidas').textContent = pct + '%';
+        document.getElementById('solKpiAtendidas').textContent = (r.total ? Math.round((r.atendidas / r.total) * 100) : 0) + '%';
+        document.getElementById('solKpiDias').textContent = r.dias_atencion != null ? r.dias_atencion : '—';
+        document.getElementById('solKpiProspectos').textContent = r.prospectos_generados;
+        document.getElementById('solKpiAnio').textContent = r.anio;
       } catch(e){
-        ['solKpiManuales', 'solKpiSitio', 'solKpiAtendidas'].forEach(id => { document.getElementById(id).textContent = '—'; });
+        ids.forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }
 
-    // ══ LISTA / FILTROS / ORDEN ══
-    let solSort = 'fecha';
+    // ══ SEMÁFORO EN VIVO ══
+    // Solo cuenta para las "Nueva": cuántas horas llevan sin atenderse (desde que llegó la solicitud).
+    // Rojo > umbral urgente, ámbar > umbral de seguimiento, el resto a tiempo — umbrales en HORAS de
+    // Configuración → Notificaciones (window.UMBRALES_NOTIF). Una Cotizada deja de contar: muestra
+    // cuánto tardó en atenderse. El color nunca va solo: lleva punto + horas + palabra.
+    function umbralesSol(){
+      const u = window.UMBRALES_NOTIF || {};
+      return { urgente: u.solicitudesHoras || 72, seguimiento: u.solicitudesSeguimientoHoras || 24 };
+    }
+    function minutosAbierta(s){ return Math.max(0, (Date.now() - new Date(s.fecha_creacion).getTime()) / 60000); }
+    function fmtDur(horas){
+      if(horas < 48) return horas + ' h';
+      return Math.floor(horas / 24) + ' d ' + (horas % 24) + ' h';
+    }
+    const SEM_TEXTO = { ok: 'A tiempo', warn: 'Seguimiento', hot: 'Urgente' };
+    function claseSemaforo(s){
+      const u = umbralesSol();
+      const m = minutosAbierta(s);
+      return m > u.urgente * 60 ? 'hot' : m > u.seguimiento * 60 ? 'warn' : 'ok';
+    }
+    function semaforoHtml(s){
+      if(s.estatus === 'Nueva'){
+        const cls = claseSemaforo(s);
+        const u = umbralesSol();
+        const h = Math.floor(minutosAbierta(s) / 60);
+        return `<span class="cot-semaforo sol-semaforo ${cls}" title="Lleva ${fmtDur(h)} sin atenderse. Seguimiento a partir de ${u.seguimiento} h, urgente a partir de ${u.urgente} h."><span class="cot-semaforo-dot"></span>${fmtDur(h)} · ${SEM_TEXTO[cls]}</span>`;
+      }
+      if(s.estatus === 'Cotizada'){
+        const h = Math.max(0, Math.floor((new Date(s.fecha_estatus || s.fecha_creacion) - new Date(s.fecha_creacion)) / 3600000));
+        return `<span class="cot-semaforo sol-semaforo-fin" title="Se cotizó ${fmtDur(h)} después de llegar."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Atendida en ${fmtDur(h)}</span>`;
+      }
+      return '<span class="radm-hint">—</span>';
+    }
+
+    // ══ LISTA: se trae completa una vez; filtros, pestañas de estatus y orden se aplican aquí ══
+    let solTodas = [];
+    let solEstatusActivo = 'Nueva'; // 'Nueva' | 'Cotizada' | 'Descartada' | '' (todas)
+    let solSort = 'semaforo';
     let solDir = 'desc';
+    const solAbiertas = new Set(); // solicitudes con el desglose de programa desplegado
 
     function renderSortButtonsSolicitudes(){
       document.querySelectorAll('#solTab-consultar th[data-sort]').forEach(th => {
@@ -11872,7 +12011,6 @@
         th.querySelector('.th-sort-ico').innerHTML = activo ? (solDir === 'asc' ? ICO_SORT_ASC : ICO_SORT_DESC) : '';
       });
     }
-
     document.querySelectorAll('#solTab-consultar th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
         const sort = th.dataset.sort;
@@ -11882,8 +12020,7 @@
           solSort = sort;
           solDir = SORT_DEFAULT_DIR[sort];
         }
-        renderSortButtonsSolicitudes();
-        buscarSolicitudes();
+        renderSolicitudes();
       });
     });
 
@@ -11893,7 +12030,10 @@
     function temasDe(s){
       try { return JSON.parse(s.temas_json || '[]'); } catch(e){ return []; }
     }
-
+    // clave del programa para filtrar/ordenar: el nombre del estándar, o "Personalizado"
+    function programaClave(s){
+      return s.temario_tipo === 'estandar' ? (s.temario_nombre || 'Sin nombre') : 'Personalizado';
+    }
     function temarioResumenCorto(s){
       if(s.temario_tipo === 'estandar') return escapeHtml(s.temario_nombre || '—');
       const temas = temasDe(s);
@@ -11903,21 +12043,25 @@
       return escapeHtml(visibles) + (nombres.length > 2 ? ` +${nombres.length - 2} más` : '');
     }
 
-    // meta + temas — el desglose expandible por fila ahora también trae los 4
-    // campos que antes no se mostraban en ningún lado de la tabla
-    // (participantes/modalidad/ciudad_sede/fecha_tentativa), en vez de agregar
-    // columnas nuevas a una tabla que ya tiene 8.
-    function solicitudMetaHtml(s){
-      return `
-        <div class="cot-detalle-grid" style="margin-bottom:14px;">
-          <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(s.participantes || '—')}</div></div>
-          <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(s.modalidad || '—')}</div></div>
-          <div><div class="cot-detalle-item-label">Ciudad / sede</div><div class="cot-detalle-item-value">${escapeHtml(s.ciudad_sede || '—')}</div></div>
-          <div><div class="cot-detalle-item-label">Fecha tentativa</div><div class="cot-detalle-item-value">${escapeHtml(s.fecha_tentativa || '—')}</div></div>
-        </div>`;
+    const COLUMNA_ORDEN = {
+      fecha: s => new Date(s.fecha_creacion).getTime(),
+      cliente: s => (s.cliente || '').toLowerCase(),
+      herramienta: s => (TOOL_NAMES[s.herramienta] || s.herramienta || '').toLowerCase(),
+      programa: s => programaClave(s).toLowerCase(),
+      horas: s => (s.horas_totales == null ? -1 : Number(s.horas_totales)),
+      canal: s => s.canal_origen || '',
+      estatus: s => s.estatus || '',
+      semaforo: s => (s.estatus === 'Nueva' ? minutosAbierta(s) : -1), // las abiertas por urgencia; lo cerrado al final
+      actualizacion: s => new Date(s.fecha_estatus || s.fecha_creacion).getTime(),
+    };
+
+    function fmtHora(iso){
+      if(!iso) return '';
+      return new Date(iso).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
     }
 
-    function temarioDesgloseHtml(s){
+    // detalle de la fila (chip de programa): contacto, participantes, modalidad, comentarios y el desglose de temas
+    function solDetalleHtml(s){
       const temas = temasDe(s);
       const temasHtml = !temas.length ? '<div class="radm-empty-row">Sin desglose disponible.</div>' : temas.map(t => `
         <div class="sol-desglose-item">
@@ -11925,102 +12069,241 @@
           ${t.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(t.descripcion)}</div>` : ''}
         </div>
       `).join('');
-      return solicitudMetaHtml(s) + temasHtml;
+      const correo = s.contacto_correo ? `<a href="mailto:${escapeHtml(s.contacto_correo)}">${escapeHtml(s.contacto_correo)}</a>` : '—';
+      return `
+        <div class="cot-detalle-grid" style="margin-bottom:14px;">
+          <div><div class="cot-detalle-item-label">Contacto</div><div class="cot-detalle-item-value">${escapeHtml(s.contacto || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Correo</div><div class="cot-detalle-item-value">${correo}</div></div>
+          <div><div class="cot-detalle-item-label">Teléfono / WhatsApp</div><div class="cot-detalle-item-value">${escapeHtml(s.contacto_telefono || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(s.participantes || '—')}</div></div>
+          <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(s.modalidad || '—')}</div></div>
+        </div>
+        <div class="cot-detalle-item-label">Comentarios</div>
+        <div class="sol-comentarios">${s.notas ? escapeHtml(s.notas) : '<span class="radm-hint">Sin comentarios.</span>'}</div>
+        <div class="cot-detalle-item-label" style="margin-top:14px;">Temas</div>
+        ${temasHtml}`;
+    }
+
+    const ICO_ACC = {
+      cotizar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      vercot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h6" stroke-linecap="round"/></svg>',
+      editar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      descartar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6" stroke-linecap="round"/></svg>',
+      reabrir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      eliminar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    const ICO_TIPO = {
+      Prospecto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg>',
+      Cliente: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1" stroke-linecap="round"/><path d="M10 21v-4h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    const ICO_EST = {
+      Nueva: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>',
+      Cotizada: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      Descartada: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>',
+    };
+
+    function accionesHtml(s){
+      const b = (cls, ico, titulo) => `<button type="button" class="cot-icon-btn ${cls}" data-id="${s.id}" title="${titulo}" aria-label="${titulo}">${ico}</button>`;
+      const botones = [];
+      if(s.estatus === 'Nueva') botones.push(b('sol-cotizar-btn sol-acc-principal', ICO_ACC.cotizar, 'Cotizar esta solicitud'));
+      if(s.estatus === 'Cotizada') botones.push(b('sol-vercot-btn', ICO_ACC.vercot, 'Ver sus cotizaciones'));
+      if(s.estatus === 'Descartada') botones.push(b('sol-reabrir-btn', ICO_ACC.reabrir, 'Reabrir (vuelve a Nueva)'));
+      botones.push(b('sol-editar-btn', ICO_ACC.editar, 'Editar la solicitud'));
+      if(s.estatus === 'Nueva') botones.push(b('sol-descartar-btn', ICO_ACC.descartar, 'Descartar (no se borra, queda en Descartadas)'));
+      botones.push(b('sol-eliminar-btn sol-acc-peligro', ICO_ACC.eliminar, 'Eliminar de verdad'));
+      return `<div class="cot-row-actions sol-acciones">${botones.join('')}</div>`;
+    }
+
+    function filaHtml(s){
+      const esProspecto = s.tipo_cliente === 'Prospecto';
+      const tipo = esProspecto ? 'Prospecto' : 'Cliente';
+      const abierta = solAbiertas.has(s.id);
+      return `
+        <tr data-id="${s.id}">
+          <td><div>${fmtFecha(s.fecha_creacion)}</div><div class="sol-hora">${fmtHora(s.fecha_creacion)}</div></td>
+          <td>
+            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(s.cliente)}</span><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO[tipo]}${tipo}</span></div>
+            <div class="sol-cli-sub">${s.contacto ? escapeHtml(s.contacto) : '—'}</div>
+          </td>
+          <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
+          <td>
+            <button type="button" class="sol-temario-toggle" data-id="${s.id}" title="Ver detalle: contacto, comentarios y temas">
+              <span class="sol-temario-nombre">${temarioResumenCorto(s)}</span>
+              <span class="sol-temario-tipo-tag">${s.temario_tipo === 'estandar' ? 'Estándar' : 'Personalizado'}</span>
+              <svg class="sol-temario-chevron ${abierta ? 'open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </td>
+          <td class="radm-mono" style="text-align:right;">${s.horas_totales != null ? s.horas_totales : '—'}</td>
+          <td><span class="dip-status"><span style="width:13px;height:13px;display:inline-flex;">${s.canal_origen === 'Sitio' ? ICO_SITIO : ICO_MANUAL}</span>${escapeHtml(s.canal_origen)}</span></td>
+          <td><span class="sol-est sol-est-${s.estatus}">${ICO_EST[s.estatus] || ''}${escapeHtml(s.estatus)}</span></td>
+          <td>${semaforoHtml(s)}</td>
+          <td><div>${fmtFecha(s.fecha_estatus || s.fecha_creacion)}</div><div class="sol-hora">${fmtHora(s.fecha_estatus || s.fecha_creacion)}</div></td>
+          <td>${accionesHtml(s)}</td>
+        </tr>
+        <tr class="sol-desglose-row" id="sol-desglose-${s.id}" ${abierta ? '' : 'hidden'}>
+          <td colspan="10"><div class="sol-desglose">${solDetalleHtml(s)}</div></td>
+        </tr>`;
+    }
+
+    // opciones del filtro Programa, sacadas de lo que hay en la lista (se conserva la selección)
+    function actualizarOpcionesPrograma(){
+      const sel = document.getElementById('solFPrograma');
+      const actual = sel.value;
+      const claves = Array.from(new Set(solTodas.map(programaClave))).sort((a, b) => a.localeCompare(b, 'es'));
+      sel.innerHTML = '<option value="">Todos</option>' + claves.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      sel.value = claves.includes(actual) ? actual : '';
+    }
+
+    function filtrarSinEstatus(){
+      const cli = solFClienteAuto.getSeleccionado();
+      const tipo = document.getElementById('solFTipo').value;
+      const her = document.getElementById('solFHerramienta').value;
+      const prog = document.getElementById('solFPrograma').value;
+      return solTodas.filter(s =>
+        (!cli || s.cliente_id === cli.id) &&
+        (!tipo || (tipo === 'Prospecto') === (s.tipo_cliente === 'Prospecto')) &&
+        (!her || s.herramienta === her) &&
+        (!prog || programaClave(s) === prog)
+      );
+    }
+
+    function renderSolicitudes(){
+      const base = filtrarSinEstatus();
+      const cuenta = { Nueva: 0, Cotizada: 0, Descartada: 0 };
+      base.forEach(s => { if(cuenta[s.estatus] !== undefined) cuenta[s.estatus]++; });
+      document.getElementById('solCntNueva').textContent = cuenta.Nueva;
+      document.getElementById('solCntCotizada').textContent = cuenta.Cotizada;
+      document.getElementById('solCntDescartada').textContent = cuenta.Descartada;
+      document.getElementById('solCntTodas').textContent = base.length;
+      document.querySelectorAll('#solEstatusTabs .radm-tab').forEach(t => t.classList.toggle('active', t.dataset.est === solEstatusActivo));
+
+      const lista = (solEstatusActivo ? base.filter(s => s.estatus === solEstatusActivo) : base).slice();
+      const clave = COLUMNA_ORDEN[solSort] || COLUMNA_ORDEN.fecha;
+      const signo = solDir === 'asc' ? 1 : -1;
+      lista.sort((a, b) => {
+        const x = clave(a), y = clave(b);
+        const c = typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'es');
+        return c * signo || (new Date(b.fecha_creacion) - new Date(a.fecha_creacion)) || (b.id - a.id);
+      });
+      renderSortButtonsSolicitudes();
+
+      // alerta como en Grupos: cuántas abiertas ya están en rojo
+      const rojas = solTodas.filter(s => s.estatus === 'Nueva' && claseSemaforo(s) === 'hot').length;
+      const alerta = document.getElementById('solAlerta');
+      alerta.hidden = !rojas;
+      if(rojas){
+        const u = umbralesSol();
+        document.getElementById('solAlertaTexto').textContent = `${rojas} solicitud${rojas === 1 ? '' : 'es'} nueva${rojas === 1 ? '' : 's'} lleva${rojas === 1 ? '' : 'n'} más de ${u.urgente} h sin atenderse.`;
+      }
+
+      const body = document.getElementById('solListaBody');
+      if(!lista.length){
+        const hayFiltros = base.length !== solTodas.length;
+        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">${solTodas.length ? (hayFiltros || solEstatusActivo ? 'Sin solicitudes con estos filtros.' : 'Sin solicitudes.') : 'Todavía no hay solicitudes.'}</td></tr>`;
+        return;
+      }
+      body.innerHTML = lista.map(filaHtml).join('');
     }
 
     async function buscarSolicitudes(){
-      const params = new URLSearchParams();
-      const estatus = document.getElementById('solFEstatus').value;
-      const desde = document.getElementById('solFDesde').value;
-      const hasta = document.getElementById('solFHasta').value;
-      const seleccionado = solFClienteAuto.getSeleccionado();
-      if(estatus) params.set('estatus', estatus);
-      if(desde) params.set('desde', desde);
-      if(hasta) params.set('hasta', hasta);
-      if(seleccionado) params.set('clienteId', seleccionado.id);
-      params.set('sort', solSort);
-      params.set('dir', solDir);
-
       const body = document.getElementById('solListaBody');
-      body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Buscando...</td></tr>`;
+      if(!solTodas.length) body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>`;
       try {
-        const lista = await apiGetConReintento('/api/listSolicitudesAdmin?' + params.toString());
-        solListaCache = lista;
-        if(!lista.length){ body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
-        body.innerHTML = lista.map(s => `
-          <tr data-id="${s.id}">
-            <td>${escapeHtml(s.cliente)}</td>
-            <td>${s.contacto ? escapeHtml(s.contacto) : '—'}</td>
-            <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
-            <td>
-              <button type="button" class="sol-temario-toggle" data-id="${s.id}" title="Ver desglose de temas">
-                <span class="sol-temario-nombre">${temarioResumenCorto(s)}</span>
-                <span class="sol-temario-tipo-tag">${s.temario_tipo === 'estandar' ? 'Estándar' : 'Personalizado'}</span>
-                <svg class="sol-temario-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </td>
-            <td class="radm-mono" style="text-align:right;">${s.horas_totales != null ? s.horas_totales : '—'}</td>
-            <td><span class="dip-status"><span style="width:13px;height:13px;display:inline-flex;">${s.canal_origen === 'Sitio' ? ICO_SITIO : ICO_MANUAL}</span>${escapeHtml(s.canal_origen)}</span></td>
-            <td><select class="sol-estatus-select" data-id="${s.id}">${ESTATUS.map(e => `<option value="${e}" ${e === s.estatus ? 'selected' : ''}>${e}</option>`).join('')}</select></td>
-            <td>${fmtFecha(s.fecha_creacion)}</td>
-            <td>
-              <button type="button" class="cot-icon-btn sol-editar-btn" data-id="${s.id}" title="Editar la solicitud">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </td>
-          </tr>
-          <tr class="sol-desglose-row" id="sol-desglose-${s.id}" hidden>
-            <td colspan="9"><div class="sol-desglose">${temarioDesgloseHtml(s)}</div></td>
-          </tr>
-        `).join('');
+        solTodas = await apiGetConReintento('/api/listSolicitudesAdmin?sort=fecha&dir=desc');
+        actualizarOpcionesPrograma();
+        renderSolicitudes();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
-    let solListaCache = [];
+    const solPorId = id => solTodas.find(x => String(x.id) === String(id));
 
-    document.getElementById('solListaBody').addEventListener('click', e => {
-      const toggle = e.target.closest('.sol-temario-toggle');
-      const editarBtn = e.target.closest('.sol-editar-btn');
-      if(toggle){
-        const fila = document.getElementById('sol-desglose-' + toggle.dataset.id);
-        if(!fila) return;
-        fila.hidden = !fila.hidden;
-        toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
-      } else if(editarBtn){
-        const sol = solListaCache.find(x => String(x.id) === String(editarBtn.dataset.id));
-        if(sol) abrirEdicionSolicitud(sol);
-      }
-    });
-
-    document.getElementById('solBuscar').addEventListener('click', buscarSolicitudes);
-
-    function limpiarFiltrosSolicitudes(){
-      document.getElementById('solFEstatus').value = '';
-      document.getElementById('solFDesde').value = '';
-      document.getElementById('solFHasta').value = '';
-      solFClienteAuto.reset();
-    }
-    document.getElementById('solLimpiarFiltros').addEventListener('click', limpiarFiltrosSolicitudes);
-    document.getElementById('solVerTodos').addEventListener('click', () => { limpiarFiltrosSolicitudes(); buscarSolicitudes(); });
-
-    document.getElementById('solListaBody').addEventListener('change', async e => {
-      const sel = e.target.closest('.sol-estatus-select');
-      if(!sel) return;
-      const id = Number(sel.dataset.id);
-      const estatus = sel.value;
-      sel.disabled = true;
+    async function cambiarEstatus(id, estatus, mensajeOk){
       try {
         await apiPostJson('/api/actualizarEstatusSolicitud', { id, estatus });
-        toast('Estatus actualizado.', true);
+        toast(mensajeOk, true);
+        await buscarSolicitudes();
         cargarKpisSolicitudes();
+        if(window.refrescarNotificaciones) window.refrescarNotificaciones();
       } catch(err){
         toast('No se pudo actualizar: ' + err.message, false);
-        buscarSolicitudes();
+      }
+    }
+
+    async function confirmarEliminarSolicitud(s){
+      const tool = TOOL_NAMES[s.herramienta] || s.herramienta;
+      const aviso = s.estatus === 'Cotizada' ? ' Sus cotizaciones no se borran: se quedan sin solicitud ligada.' : '';
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar la solicitud de ${s.cliente} (${tool})? Se borra de verdad de la base de datos — no se puede deshacer.${aviso} La empresa y su contacto se quedan en Clientes.`, variante: 'destructivo' }))) return;
+      try {
+        await apiPostJson('/api/eliminarSolicitud', { id: s.id });
+        solAbiertas.delete(s.id);
+        toast('Solicitud eliminada.', true);
+        await buscarSolicitudes();
+        cargarKpisSolicitudes();
+        if(window.refrescarNotificaciones) window.refrescarNotificaciones();
+      } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    }
+
+    document.getElementById('solListaBody').addEventListener('click', async e => {
+      const toggle = e.target.closest('.sol-temario-toggle');
+      if(toggle){
+        const id = Number(toggle.dataset.id);
+        const fila = document.getElementById('sol-desglose-' + id);
+        if(!fila) return;
+        fila.hidden = !fila.hidden;
+        if(fila.hidden) solAbiertas.delete(id); else solAbiertas.add(id);
+        toggle.querySelector('.sol-temario-chevron').classList.toggle('open', !fila.hidden);
         return;
       }
-      sel.disabled = false;
+      const btn = e.target.closest('.cot-icon-btn[data-id]');
+      if(!btn) return;
+      const sol = solPorId(btn.dataset.id);
+      if(!sol) return;
+      if(btn.classList.contains('sol-cotizar-btn')){
+        if(window.cotizarDesdeSolicitud) window.cotizarDesdeSolicitud(sol);
+      } else if(btn.classList.contains('sol-vercot-btn')){
+        activarPanel('tracking-comercial');
+        document.querySelector('#cotTabs .dash-etab[data-cottab="tracking"]').click();
+      } else if(btn.classList.contains('sol-editar-btn')){
+        abrirEdicionSolicitud(sol);
+      } else if(btn.classList.contains('sol-descartar-btn')){
+        if(!(await confirmarAccion({ mensaje: `¿Descartar la solicitud de ${sol.cliente}? No se borra: pasa a Descartadas y puedes reabrirla cuando quieras.`, variante: 'advertencia', textoConfirmar: 'Descartar' }))) return;
+        cambiarEstatus(sol.id, 'Descartada', 'Solicitud descartada.');
+      } else if(btn.classList.contains('sol-reabrir-btn')){
+        cambiarEstatus(sol.id, 'Nueva', 'Solicitud reabierta.');
+      } else if(btn.classList.contains('sol-eliminar-btn')){
+        confirmarEliminarSolicitud(sol);
+      }
     });
+
+    // pestañas de estatus (Nuevas / Cotizadas / Descartadas / Todas)
+    document.getElementById('solEstatusTabs').addEventListener('click', e => {
+      const tab = e.target.closest('.radm-tab');
+      if(!tab) return;
+      solEstatusActivo = tab.dataset.est;
+      renderSolicitudes();
+    });
+    ['solFTipo', 'solFHerramienta', 'solFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderSolicitudes));
+
+    function limpiarFiltrosSolicitudes(){
+      document.getElementById('solFTipo').value = '';
+      document.getElementById('solFHerramienta').value = '';
+      document.getElementById('solFPrograma').value = '';
+      solFClienteAuto.reset(); // dispara onChange → renderSolicitudes
+      renderSolicitudes();
+    }
+    document.getElementById('solLimpiarFiltros').addEventListener('click', limpiarFiltrosSolicitudes);
+    document.getElementById('solActualizar').addEventListener('click', () => { buscarSolicitudes(); cargarKpisSolicitudes(); });
+    document.getElementById('solCrearBtn').addEventListener('click', () => { abrirFormSolicitud(null); activarTabSolicitud('crear'); });
+
+    // los umbrales (o la campana) cambiaron → recolorear sin pedir nada; y cada minuto, para que las horas "corran" en vivo
+    window.addEventListener('umbrales-notif', () => { if(solTodas.length) renderSolicitudes(); });
+    setInterval(() => {
+      const panel = document.getElementById('panel-solicitudes');
+      if(panel && panel.classList.contains('active') && document.getElementById('solTab-consultar').classList.contains('active') && solTodas.length) renderSolicitudes();
+    }, 60000);
+    // entrar al panel (sidebar, tarjeta de Tracking View o campana) refresca datos, como Grupos
+    window.alEntrarASolicitudes = () => { activarTabSolicitud('consultar'); buscarSolicitudes(); cargarKpisSolicitudes(); };
 
     // ══ ALTA/EDICIÓN DE SOLICITUD — vive en la pestaña "Crear Solicitud" ══
     // sol=null → alta; sol={...} (fila de listSolicitudesAdmin) → edición.
@@ -12309,18 +12592,10 @@
       activarTabSolicitud('crear');
     }
 
-    // ══ PESTAÑAS Consultar Solicitudes / Crear Solicitud ══
+    // ══ VISTAS: tracking (lista) / Crear-Editar. El botón "+ Crear Solicitud" abre el formulario; Cancelar y Guardar regresan aquí ══
     function activarTabSolicitud(key){
-      document.querySelectorAll('#solTabs .dash-etab').forEach(b => b.classList.toggle('active', b.dataset.soltab === key));
       document.querySelectorAll('#panel-solicitudes .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'solTab-' + key));
     }
-    document.getElementById('solTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.dash-etab');
-      if(!btn) return;
-      const key = btn.dataset.soltab;
-      activarTabSolicitud(key);
-      if(key === 'crear') abrirFormSolicitud(null); // clic directo en la pestaña siempre arranca en blanco
-    });
 
     renderSortButtonsSolicitudes();
     cargarKpisSolicitudes();
@@ -12617,8 +12892,8 @@
       body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">Cargando...</td></tr>`;
       try {
         const lista = await apiGetConReintento('/api/listSolicitudesAdmin?sort=fecha&dir=desc');
-        cotSolicitudesActivas = lista.filter(s => !['Ganada', 'Perdida', 'Descartada'].includes(s.estatus));
-        if(!cotSolicitudesActivas.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">No hay solicitudes activas para cotizar.</td></tr>`; return; }
+        cotSolicitudesActivas = lista.filter(s => s.estatus === 'Nueva');
+        if(!cotSolicitudesActivas.length){ body.innerHTML = `<tr><td colspan="7" class="radm-empty-row">No hay solicitudes nuevas para cotizar.</td></tr>`; return; }
         body.innerHTML = cotSolicitudesActivas.map(s => `
           <tr data-id="${s.id}">
             <td>${escapeHtml(s.cliente)}</td>
@@ -12646,6 +12921,14 @@
       }
     }
     function solicitudPorId(id){ return cotSolicitudesActivas.find(s => String(s.id) === String(id)); }
+
+    // Puerta de entrada desde el tracking de Solicitudes (botón "Cotizar"): abre Crear Cotización directo en el
+    // detalle de esa solicitud. La lista de fondo se carga igual para que "Volver" funcione.
+    window.cotizarDesdeSolicitud = async function(sol){
+      activarPanel('tracking-comercial');
+      document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
+      await abrirDetalleCotizar(sol);
+    };
 
     document.getElementById('cotSolicitudesListaBody').addEventListener('click', e => {
       const cotizarBtn = e.target.closest('.cot-sol-cotizar');
@@ -13438,6 +13721,12 @@
     // estrictamente por debajo de su urgente.
     const GRUPOS = [
       {
+        nombre:'Solicitudes sin atender',
+        icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l2 3h4l2-3h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12l2.5-7h11L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke-linejoin="round"/></svg>',
+        seguimiento:'solicitudesSeguimientoHoras', urgente:'solicitudesHoras', unidad:'horas',
+        nota:'Horas que lleva una solicitud Nueva sin atenderse (desde que llegó). Seguimiento (ámbar) la colorea en el tracking de Solicitudes; Urgente (rojo) es lo que además la mete a la campana. El sitio promete cotizar en 24 hr.',
+      },
+      {
         nombre:'Cotizaciones frías',
         icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         seguimiento:'cotizacionesSeguimientoDias', urgente:'cotizacionesDias',
@@ -13458,12 +13747,12 @@
     ];
     const NIVEL_LABEL = { seguimiento:'Seguimiento (ámbar)', urgente:'Urgente (rojo)' };
 
-    function filaHtml(nivel, campo, umbrales){
+    function filaHtml(nivel, campo, umbrales, unidad){
       return `
-        <div class="cfg-notif-sub" data-nivel="${nivel}">
+        <div class="cfg-notif-sub" data-nivel="${nivel}" data-unidad="${unidad}">
           <span class="cfg-notif-sub-label"><span class="cfg-notif-dot" style="background:${nivel === 'urgente' ? '#dc2626' : '#dfb35a'}"></span>${NIVEL_LABEL[nivel]}</span>
           <input type="number" min="1" step="1" class="cfg-notif-input" data-campo="${campo}" data-original="${umbrales[campo]}" value="${umbrales[campo]}">
-          <span class="cfg-notif-row-sufijo">días</span>
+          <span class="cfg-notif-row-sufijo">${unidad}</span>
           <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" style="min-width:auto;" disabled>Actualizar</button>
         </div>`;
     }
@@ -13476,8 +13765,8 @@
             <span class="cfg-notif-row-icon">${g.icono}</span>
             <span class="cfg-notif-row-nombre">${g.nombre}</span>
           </div>
-          ${filaHtml('seguimiento', g.seguimiento, umbrales)}
-          ${filaHtml('urgente', g.urgente, umbrales)}
+          ${filaHtml('seguimiento', g.seguimiento, umbrales, g.unidad || 'días')}
+          ${filaHtml('urgente', g.urgente, umbrales, g.unidad || 'días')}
           <div class="cfg-notif-row-nota">${g.nota}</div>
         </div>
       `).join('');
@@ -13498,11 +13787,12 @@
           const campo = input.dataset.campo;
           const nivel = sub.dataset.nivel;
           const nombreSenal = sub.closest('.cfg-notif-row').querySelector('.cfg-notif-row-nombre').textContent;
+          const unidad = sub.dataset.unidad || 'días';
           const nombre = `${NIVEL_LABEL[nivel]} de ${nombreSenal}`;
           const anterior = Number(input.dataset.original);
           const nuevo = Number(input.value);
           if(!Number.isInteger(nuevo) || nuevo < 1){ toast('El valor debe ser un entero mayor a 0.', false); return; }
-          if(!(await confirmarAccion({ mensaje: `¿Cambiar ${nombre} de ${anterior} a ${nuevo} días?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
+          if(!(await confirmarAccion({ mensaje: `¿Cambiar ${nombre} de ${anterior} a ${nuevo} ${unidad}?${nivel === 'urgente' ? ' Este número también dispara la campana.' : ''}`, variante: 'advertencia', textoConfirmar: 'Cambiar' }))) return;
 
           const textoOriginal = btn.textContent;
           btn.disabled = true; btn.textContent = 'Guardando...';
@@ -15845,9 +16135,11 @@
           f('participantes','NVARCHAR(50)',{opt:true,extra:'CHECK: 4 valores fijos'}),
           f('modalidad','NVARCHAR(30)',{opt:true,extra:'CHECK: Online/Presencial/Híbrido'}),
           f('canal_origen','Manual|Sitio'),
-          f('estatus','NVARCHAR(30)',{extra:'Nueva…Descartada'}),
+          f('estatus','NVARCHAR(30)',{extra:'Nueva|Cotizada|Descartada'}),
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('fecha_creacion','DATETIME2'),
+          f('fecha_estatus','DATETIME2',{extra:'último cambio de estatus'}),
+          f('creo_prospecto','BIT',{extra:'esta solicitud dio de alta al Prospecto'}),
         ]},
       { id:'Cotizacion', engine:'sql', pillar:'comercial', pk:'id',
         fields:[

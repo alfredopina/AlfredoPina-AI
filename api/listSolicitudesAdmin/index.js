@@ -1,6 +1,7 @@
 // listSolicitudesAdmin/index.js
-// Function protegida (rol "admin"): lista Solicitudes con filtros para el
-// panel Solicitudes — JOIN a Cliente/Contacto para mostrar nombres, nunca ids
+// Function protegida (rol "admin"): lista Solicitudes para el tracking de
+// Solicitudes (el front filtra y ordena en el navegador) y para la lista de
+// Crear Cotización — JOIN a Cliente/Contacto para mostrar nombres, nunca ids
 // (mismo patrón que listDiplomas). Orden (?sort=fecha|cliente|horas,
 // ?dir=asc|desc), default fecha/desc — mismo patrón de query parametrizado
 // con CASE WHEN que ya usa listClientesAdmin, sin SQL dinámico.
@@ -44,8 +45,9 @@ module.exports = async function (context, req) {
       SELECT s.id, s.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo,
              s.contacto_id, ct.nombre AS contacto,
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json, s.horas_totales,
-             s.canal_origen, s.estatus, s.notas, s.fecha_creacion,
-             s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad
+             s.canal_origen, s.estatus, s.notas, s.fecha_creacion, s.fecha_estatus, s.creo_prospecto,
+             s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad,
+             c.tipo_cliente, ct.correo AS contacto_correo, ct.telefono AS contacto_telefono
       FROM Solicitud s
       JOIN Cliente c ON c.id = s.cliente_id
       LEFT JOIN Contacto ct ON ct.id = s.contacto_id

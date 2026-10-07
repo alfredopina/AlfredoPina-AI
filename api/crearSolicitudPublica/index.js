@@ -10,8 +10,10 @@
 //   - pide un medio de contacto (correo y/o WhatsApp, campos separados; al menos uno) y crea el
 //     Contacto real del prospecto: es la única forma en que Alfredo puede
 //     responderle.
-//   - valida un honeypot (campo "web", oculto por CSS) como único filtro
-//     antispam — no hay rate-limit real todavía, ver CLAUDE_DETALLE.md.
+//   - antispam por capas (honeypot, tiempo mínimo, enlaces, límite por IP y por
+//     contacto, tope de correos de aviso): ver api/src/antispam-solicitud.js.
+//   - marca Solicitud.creo_prospecto cuando ESTA solicitud dio de alta a la
+//     empresa (alimenta la tarjeta "Prospectos generados" del admin).
 //
 // IDEMPOTENTE (corrige el bug de 3 Solicitudes por un solo envío): con la base
 // dormida, el primer intento tarda más que el límite de ~45 s de Static Web
@@ -30,6 +32,7 @@ const { resolverCliente } = require("../src/cliente-resolver");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { notificarSolicitudNueva } = require("../src/notificaciones-correo");
+const antispam = require("../src/antispam-solicitud");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
@@ -107,6 +110,26 @@ module.exports = async function (context, req) {
     const digitos = whatsappRaw.replace(/\D/g, "");
     if (digitos.length < 8 || digitos.length > 15) return bad(context, "El WhatsApp no parece válido (incluye la lada).");
     telefono = whatsappRaw.slice(0, 30);
+  }
+
+  // antispam: señales del formulario y límites por IP / por contacto (los contadores fallan abiertos)
+  const errSenales = antispam.validarSenales({ tf: body.tf, nombre: nombreContacto, empresa: empresaNombre, comentarios });
+  if (errSenales) return bad(context, errSenales);
+  const tabla = antispam.getTabla();
+  const ip = antispam.ipDe(req);
+  const claveIp = ip ? antispam.hashClave("ip|" + ip) : "";
+  const claveCto = antispam.claveContacto(correo, telefono);
+  const [ipExcede, ctoExcede] = await Promise.all([
+    antispam.excede(tabla, "ip", claveIp, antispam.LIMITE_IP, context),
+    antispam.excede(tabla, "contacto", claveCto, antispam.LIMITE_CONTACTO, context),
+  ]);
+  if (ipExcede || ctoExcede) {
+    context.res = {
+      status: 429,
+      headers: JSON_HEADERS,
+      body: { error: "Recibimos varias solicitudes desde tu conexión. Inténtalo más tarde o escríbenos a alfredo.pina@lifezen.com.mx." },
+    };
+    return;
   }
 
   const notas = [comentarios, part.nota].filter(Boolean).join("\n") || null;
@@ -197,22 +220,33 @@ module.exports = async function (context, req) {
       .input("ciudadSede", sql.NVarChar, ciudadSede)
       .input("participantes", sql.NVarChar, participantes)
       .input("modalidad", sql.NVarChar, modalidad)
+      .input("creoProspecto", sql.Bit, cliente.creado ? 1 : 0)
       .query(
         `INSERT INTO Solicitud
           (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-           fecha_tentativa, ciudad_sede, participantes, modalidad)
+           fecha_tentativa, ciudad_sede, participantes, modalidad, fecha_estatus, creo_prospecto)
          OUTPUT INSERTED.id
          VALUES
           (@clienteId, @contactoId, @herramienta, 'estandar', @temarioNombre, @temasJson, @horasTotales, 'Sitio', @notas,
-           @fechaTentativa, @ciudadSede, @participantes, @modalidad)`
+           @fechaTentativa, @ciudadSede, @participantes, @modalidad, SYSUTCDATETIME(), @creoProspecto)`
       );
 
     await transaction.commit();
-    // aviso por correo a Alfredo (apagado si no hay configuración; nunca lanza ni retrasa más de unos segundos)
-    await notificarSolicitudNueva({
-      id: insert.recordset[0].id, nombre: nombreContacto, empresa: empresaNombre, correo, telefono, programa: temarioNombre, herramienta,
-      horas: horasTotales, participantes: participantesRaw, modalidad, comentarios,
-    });
+    // solo una solicitud NUEVA cuenta para los límites (un reintento idempotente regresa antes de llegar aquí)
+    await Promise.all([
+      antispam.registrar(tabla, "ip", claveIp, antispam.LIMITE_IP, context),
+      antispam.registrar(tabla, "contacto", claveCto, antispam.LIMITE_CONTACTO, context),
+    ]);
+    // aviso por correo a Alfredo (apagado si no hay configuración; nunca lanza ni retrasa más de unos segundos).
+    // Tope global por hora: pasado el tope la solicitud igual queda en el admin, solo no se manda más correo.
+    if (await antispam.consumirCupo(tabla, "aviso", "global", antispam.LIMITE_AVISOS, context)) {
+      await notificarSolicitudNueva({
+        id: insert.recordset[0].id, nombre: nombreContacto, empresa: empresaNombre, correo, telefono, programa: temarioNombre, herramienta,
+        horas: horasTotales, participantes: participantesRaw, modalidad, comentarios,
+      });
+    } else {
+      context.log.warn("Tope de correos de aviso por hora alcanzado: la solicitud " + insert.recordset[0].id + " no mandó correo.");
+    }
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {
     try { await transaction.rollback(); } catch (_) { /* ya cerrada */ }

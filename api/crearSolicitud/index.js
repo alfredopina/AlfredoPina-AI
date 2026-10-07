@@ -92,14 +92,15 @@ module.exports = async function (context, req) {
       .input("ciudadSede", sql.NVarChar, ciudadSede)
       .input("participantes", sql.NVarChar, participantes)
       .input("modalidad", sql.NVarChar, modalidad)
+      .input("creoProspecto", sql.Bit, cliente.creado ? 1 : 0)
       .query(
         `INSERT INTO Solicitud
           (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-           fecha_tentativa, ciudad_sede, participantes, modalidad)
+           fecha_tentativa, ciudad_sede, participantes, modalidad, fecha_estatus, creo_prospecto)
          OUTPUT INSERTED.id
          VALUES
           (@clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson, @horasTotales, 'Manual', @notas,
-           @fechaTentativa, @ciudadSede, @participantes, @modalidad)`
+           @fechaTentativa, @ciudadSede, @participantes, @modalidad, SYSUTCDATETIME(), @creoProspecto)`
       );
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id, cliente } };
   } catch (err) {

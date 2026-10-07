@@ -158,6 +158,8 @@
 
   // Condiciones comerciales (vigencia, duración mínima, etc.): SOLO en el PDF de cotización. Aquí vive "Cómo contratar".
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  const ICO_PUBLICO = ico('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>');
+  const ICO_ALCANCE = ico('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>');
   const PASOS_CONTRATAR = [
     { t:'Solicita', d:'Elige tu programa y cuéntanos de tu equipo.', i:ico('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v5M9.5 14.5h5"/>') },
     { t:'Recibe tu cotización', d:'Te la entregamos en un máximo de 24 hr.', i:ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>') },
@@ -288,6 +290,11 @@
 
   const LEYENDA_PROYECTO = 'Al concluir el programa, el participante desarrollará un proyecto práctico basado en sus propios datos para aprobar el curso.';
 
+  function proyectoHeroHtml(progId, pr){
+    if(!pr.imagenMiniUrl) return '';
+    return `<button type="button" class="proy-hero-img" onclick="event.stopPropagation(); abrirProyecto('${progId}','${pr.id}')" aria-label="Ver ejemplo: ${escapeHtml(pr.nombre)}"><img src="${escapeHtml(pr.imagenMiniUrl)}" alt="Ejemplo: ${escapeHtml(pr.nombre)}" loading="lazy"></button>`;
+  }
+
   function proyectoCardHtml(progId, pr){
     const inner = (pr.imagenMiniUrl ? `<span class="proy-img"><img src="${escapeHtml(pr.imagenMiniUrl)}" alt="" loading="lazy"></span>` : '') +
       `<span class="proy-name">${escapeHtml(pr.nombre)}</span>` + (pr.resumen ? `<span class="proy-res">${escapeHtml(pr.resumen)}</span>` : '');
@@ -347,7 +354,9 @@
              <button type="button" class="tema-mas" aria-expanded="false" onclick="toggleTema(this)">Ver detalle ${chevronIcon}</button>`
           : '');
     }
+    const ref = (i % 2 ? 'B' : 'A') + (Math.floor(i / 2) + 1);
     return `<div class="tema-card">
+      <span class="tema-ref" aria-hidden="true">${ref}</span>
       <div class="tema-num">${i + 1}</div>
       <div class="tema-body"><b>${escapeHtml(t.nombre)}</b>${cuerpo}</div>
     </div>`;
@@ -392,8 +401,24 @@
     ].filter(Boolean).map(t => `<span class="scope-chip">${escapeHtml(t)}</span>`).join('');
     // proyectos del programa: mini-tarjetas; con imagen de ejemplo se abre en grande al tocarla
     const proyDetalle = (p.proyectosDetalle && p.proyectosDetalle.length) ? p.proyectosDetalle : (p.proyectos || []).map(nm => ({ nombre: nm }));
+    // el proyecto con imagen va de protagonista (grande, a la izquierda, junto a la leyenda); los demás, como ejemplos pequeños
+    const heroIdx = Math.max(0, proyDetalle.findIndex(pr => pr.imagenMiniUrl));
+    const proyHero = proyDetalle[heroIdx];
+    const proyOtros = proyDetalle.filter((_, i) => i !== heroIdx);
     const proyectosHtml = proyDetalle.length
-      ? `<div class="proy-bloque"><div class="proy-titulo">PROYECTO PRÁCTICO</div><p class="proy-leyenda">${LEYENDA_PROYECTO}</p><div class="proy-ejemplos">EJEMPLOS DE PROYECTO</div><div class="proy-grid">${proyDetalle.map(pr => proyectoCardHtml(p.id, pr)).join('')}</div></div>` : '';
+      ? `<div class="proy-banda">
+          <div class="proy-titulo">PROYECTO PRÁCTICO</div>
+          <div class="proy-banda-main">
+            ${proyectoHeroHtml(p.id, proyHero)}
+            <div class="proy-banda-texto">
+              <p class="proy-leyenda">${LEYENDA_PROYECTO}</p>
+              <div class="proy-hero-nombre">${escapeHtml(proyHero.nombre)}</div>
+              ${proyHero.resumen ? `<p class="proy-hero-res">${escapeHtml(proyHero.resumen)}</p>` : ''}
+              ${proyHero.imagenUrl ? `<button type="button" class="tema-mas" onclick="event.stopPropagation(); abrirProyecto('${p.id}','${proyHero.id}')">Ver el ejemplo en grande ${chevronIcon}</button>` : ''}
+            </div>
+          </div>
+          ${proyOtros.length ? `<div class="proy-ejemplos">OTROS EJEMPLOS</div><div class="proy-grid">${proyOtros.map(pr => proyectoCardHtml(p.id, pr)).join('')}</div>` : ''}
+        </div>` : '';
 
     return `
       <div class="program-fn" id="programFn-${p.id}">
@@ -407,8 +432,8 @@
           <div class="program-fn-inner">
             <div class="prog-resumen">${resumenHtml}</div>
             <div class="program-fn-obj prog-duo">
-              ${p.dirigido ? `<div class="prog-caja"><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div>` : ''}
-              ${p.alcance ? `<div class="prog-caja"><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div>` : ''}
+              ${p.dirigido ? `<div class="prog-celda"><span class="celda-ico">${ICO_PUBLICO}</span><div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div></div>` : ''}
+              ${p.alcance ? `<div class="prog-celda"><span class="celda-ico">${ICO_ALCANCE}</span><div><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div></div>` : ''}
             </div>
             <div class="temario-head">
               <div class="proy-titulo" style="margin:0;">TEMARIO</div>
@@ -416,7 +441,8 @@
             </div>
             <div class="temas-grid" id="temas-${p.id}">${temasHtml}</div>
             ${proyectosHtml}
-            <div class="builder-cta-row" style="margin-top:22px;">
+            <div class="prog-cierre">
+              <div class="prog-cierre-txt"><b>¿Listo para cotizar este programa?</b><span>Te entregamos la cotización en un máximo de 24 hr.</span></div>
               <button type="button" class="builder-cta" onclick="event.stopPropagation(); openLeadForm('${p.id}')">
                 Solicitar cotización
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>

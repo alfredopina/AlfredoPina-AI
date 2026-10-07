@@ -79,6 +79,23 @@ function ddCursos(aria) {
   ).join("\n        ");
   return '<div class="nav-dd">\n      <a href="/cursos" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
 }
+
+// Menú desplegable de Conóceme: las 5 secciones de la portada (antes una segunda barra bajo el encabezado).
+// Los destinos llevan "/#" para que funcionen también desde Cursos y Recursos.
+const SVG_C = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' + d + '</svg>';
+const CONOCEME_NAV = [
+  ["experiencia", "Experiencia", "#3d7fff", SVG_C('<path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/>')],
+  ["certificaciones", "Certificaciones", "#2dd4bf", SVG_C('<path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>')],
+  ["clientes", "Clientes", "#fbbf24", SVG_C('<path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/>')],
+  ["herramientas", "Herramientas", "#818cf8", SVG_C('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>')],
+  ["metodologia", "Metodología", "#f472b6", SVG_C('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/>')],
+];
+function ddConoceme(href) {
+  const items = CONOCEME_NAV.map(([id, nombre, color, svg]) =>
+    '<a href="/#' + id + '" style="--c:' + color + '">' + svg + nombre + '</a>'
+  ).join("\n        ");
+  return '<div class="nav-dd">\n      <a href="' + href + '" class="nav-dd-trigger" aria-haspopup="true">Conóceme ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
+}
 function nav(cfg) {
   const n = cfg.nav;
   const cur = (k) => (n.active === k ? ' aria-current="page"' : "");
@@ -89,7 +106,7 @@ function nav(cfg) {
   <div class="wrap">
     <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="${BRAND}logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
     <div class="nav-links" id="navLinks">
-      <a href="${n.conoceme || "/"}">Conóceme</a>
+      ${ddConoceme(n.conoceme || "/")}
       ${ddCursos(cur("cursos"))}
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>

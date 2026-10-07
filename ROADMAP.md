@@ -66,6 +66,7 @@ Aquí está el ahorro de horas y la estabilidad.
 Lo que hace crecer la demanda.
 - Marca: **un canal principal (LinkedIn)** con una publicación semanal sacada del material de los cursos; después YouTube, blog y boletín reciclando lo mismo. **Proyecto de contenido en Claude Cowork** (chats por canal: LinkedIn, YouTube, cursos y conferencias); su documento de arranque es privado y vive fuera de este repositorio.
 - Oferta: cursos cortos nuevos, IA y habilidades blandas (con preventa), actualización de cursos y recursos existentes, certificaciones vigentes.
+- **Pendiente (anotado 2026-10-06, después del congelamiento del sitio): manuales nuevos en HTML por Programa**, con la identidad v2, imprimibles a PDF, contenido original (no copiar a Microsoft) y bibliografía con enlaces verificados a Microsoft Learn; archivos de práctica con datos ficticios. Reemplaza los PowerPoint de hace 10-15 años. Empezar por Excel Básico-Intermedio (molde para el resto); primero el manual del alumno. Falta que Alfredo pase el temario actual y diga con qué versión de Office/Power BI imparte.
 - **Microsoft Certified Trainer (MCT):** revisar requisitos del programa y ponerle fecha límite. Aparte, decidir si se quiere el camino de socio/revendedor.
 - Conferencias.
 - Estabilidad: contratos marco o anuales con empresas, programas por trimestre, cursos abiertos con fechas fijas, ingreso recurrente (coaching, mentoría, comunidad).

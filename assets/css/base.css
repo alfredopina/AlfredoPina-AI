@@ -189,6 +189,7 @@ section[id],header[id],footer[id]{scroll-margin-top:150px;}
   nav.open .nav-links{
     display:flex; position:absolute; top:100%; left:0; right:0; flex-direction:column; align-items:stretch; gap:0;
     background:var(--bg); border-bottom:1px solid var(--line); padding:6px 20px 12px;
+    max-height:calc(100vh - 68px); max-height:calc(100dvh - 68px); overflow-y:auto;
   }
   nav.open .nav-links a,nav.open .nav-hidden-note{padding:13px 0; border-bottom:1px solid var(--line-soft); font-size:15px;}
   nav.open .nav-links a:last-child{border-bottom:none;}
@@ -233,5 +234,6 @@ footer.footer-min .footer-brand{margin-top:20px;}
   nav.open .nav-dd::after{display:none;}
   nav.open .nav-dd-chev{display:none;}
   nav.open .nav-dd-menu{position:static; opacity:1; visibility:visible; transform:none; min-width:0; background:none; border:none; box-shadow:none; padding:0 0 4px 14px;}
-  nav.open .nav-dd-menu a{padding:11px 0; border-bottom:1px solid var(--line-soft); font-size:14px;}
+  nav.open .nav-dd-menu a{padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:14px;}
+  nav.open .nav-dd-menu a:last-child{border-bottom:none;}
 }

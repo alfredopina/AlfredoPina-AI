@@ -53,7 +53,7 @@ module.exports = async function (context, req) {
              s.contacto_id, ct.nombre AS contacto, ct.area AS contacto_area, ct.correo AS contacto_correo,
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json,
              s.horas, s.precio_sugerido, s.descuento_pct, s.precio_final,
-             s.fecha_creacion, s.fecha_envio, s.fecha_estatus, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio, c.tipo_cliente,
+             s.fecha_creacion, s.fecha_envio, s.fecha_estatus, s.motivo_perdida, s.nota_cierre, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio, c.tipo_cliente,
              s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad, s.blob_path,
              DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias_estatus,
              CASE WHEN s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)

@@ -7,6 +7,7 @@
 // de cierre de forma indirecta (ver esa Function para ese otro criterio).
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { esMotivoValido } = require("../src/cotizacion-motivos");
 
 const ESTATUS_VALIDOS = ["Borrador", "Enviada", "En negociación", "Ganada", "Perdida", "Expirada", "Reemplazada"];
 
@@ -14,9 +15,17 @@ module.exports = async function (context, req) {
   const body = req.body || {};
   const id = Number(body.id);
   const estatus = (body.estatus || "").trim();
+  // al marcar Perdida, el admin manda el motivo (lista fija) y una nota opcional; en cualquier otro estatus se limpian
+  const motivo = estatus === "Perdida" && body.motivo ? String(body.motivo).trim() : null;
+  const nota = estatus === "Perdida" && body.nota ? String(body.nota).trim().slice(0, 500) : null;
 
   if (!id || !ESTATUS_VALIDOS.includes(estatus)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id o el estatus no es válido." } };
+    return;
+  }
+
+  if (motivo && !esMotivoValido(motivo)) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El motivo de pérdida no es válido." } };
     return;
   }
 
@@ -26,10 +35,14 @@ module.exports = async function (context, req) {
       .request()
       .input("id", sql.Int, id)
       .input("estatus", sql.NVarChar, estatus)
+      .input("motivo", sql.NVarChar, motivo)
+      .input("nota", sql.NVarChar, nota)
       .query(
         `UPDATE Cotizacion SET
            fecha_estatus = CASE WHEN estatus <> @estatus THEN SYSUTCDATETIME() ELSE fecha_estatus END,
            estatus = @estatus,
+           motivo_perdida = @motivo,
+           nota_cierre = @nota,
            fecha_envio = CASE WHEN @estatus = 'Enviada' AND fecha_envio IS NULL THEN SYSUTCDATETIME() ELSE fecha_envio END,
            fecha_cierre = CASE WHEN @estatus IN ('Ganada', 'Perdida') THEN COALESCE(fecha_cierre, CAST(SYSUTCDATETIME() AS DATE)) ELSE NULL END
          WHERE id = @id`

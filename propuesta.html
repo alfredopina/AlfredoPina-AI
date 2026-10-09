@@ -486,6 +486,8 @@
   aplicarVista('admin');
   function imprimir(){ const t = document.title; document.title = `Propuesta ${D.folio} - ${D.programa}`; window.print(); setTimeout(() => { document.title = t; }, 500); }
   $('btnImprimir').addEventListener('click', imprimir); $('btnImprimir2').addEventListener('click', imprimir);
+  // "Descargar" desde el admin: se abre en vista de cliente y dispara Imprimir (ahí se elige "Guardar como PDF")
+  if(/[?&]imprimir=1/.test(location.search)){ aplicarVista('cliente'); setTimeout(imprimir, 1400); }
   $('pbFolio').textContent = D.folio; $('pbFecha').textContent = 'Emitida ' + fecha(D.emitida) + ' · vigente hasta ' + fecha(D.vigencia);
   if(ctx.reemplazadaPor){ $('avisoVersion').hidden = false; const a = $('avisoVersionLink'); a.href = '/propuesta/' + ctx.reemplazadaPor.codigo; a.textContent = ctx.reemplazadaPor.folio; }
 

@@ -17,6 +17,7 @@ const { getUmbrales } = require("../src/notificaciones-config");
 const { calcularDiasInactivo } = require("../src/cliente-actividad");
 const { JSON_HEADERS } = require("../src/http");
 const { drenarConSql } = require("../src/solicitud-publica-cola");
+const { getPropuestasTable, listarEstadisticas, codigoDePropuesta } = require("../src/propuestas");
 
 // Solicitudes "Nueva" que llevan más de N HORAS sin atenderse (sin cotizar ni
 // descartar). Cuenta a cualquier cliente, Prospecto incluido: justo las del sitio
@@ -69,6 +70,58 @@ async function cotizacionesFrias(pool, umbral) {
     detalle: `Cotización ${r.herramienta}, sin respuesta`,
     dias: r.dias,
   }));
+}
+
+// Cotizaciones ya enviadas cuya vigencia venció: el cliente todavía podría aceptar, pero la propuesta dice "vencida".
+// Acción en el Tracking: "Extender vigencia" (mismo folio, mismo link).
+async function cotizacionesVencidas(pool) {
+  const result = await pool.request().query(`
+    SELECT s.id, c.nombre AS cliente, s.herramienta, s.folio,
+           DATEDIFF(day, s.fecha_vigencia, CAST(GETUTCDATE() AS DATE)) AS dias
+    FROM Cotizacion s
+    JOIN Cliente c ON c.id = s.cliente_id
+    WHERE s.estatus IN ('Enviada', 'En negociación') AND s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)
+    ORDER BY dias DESC
+  `);
+  return result.recordset.map((r) => ({
+    tipo: "cotizacion",
+    id: r.id,
+    cliente: r.cliente,
+    detalle: `Cotización ${r.folio || r.herramienta}, vigencia vencida`,
+    dias: r.dias,
+    pastilla: `vencida ${r.dias} d`,
+  }));
+}
+
+// El cliente pulsó "Aceptar propuesta" pero la cotización sigue abierta: falta que Alfredo confirme (Ganada + Grupo).
+// La aceptación vive en Table Storage (propuesta web), por eso se cruza por el código de la propuesta. Fail-soft.
+async function cotizacionesAceptadasPorConfirmar(pool) {
+  try {
+    const result = await pool.request().query(`
+      SELECT s.id, c.nombre AS cliente, s.herramienta, s.folio, s.blob_path
+      FROM Cotizacion s
+      JOIN Cliente c ON c.id = s.cliente_id
+      WHERE s.estatus IN ('Borrador', 'Enviada', 'En negociación') AND s.blob_path LIKE 'propuesta/%'
+    `);
+    if (!result.recordset.length) return [];
+    const stats = await listarEstadisticas(getPropuestasTable());
+    return result.recordset
+      .filter((r) => {
+        const e = stats[codigoDePropuesta(r.blob_path)];
+        return e && e.aceptadaEn;
+      })
+      .map((r) => ({
+        tipo: "cotizacion",
+        id: r.id,
+        cliente: r.cliente,
+        detalle: `Cotización ${r.folio || r.herramienta}, aceptada por el cliente: confirma y crea el Grupo`,
+        dias: null,
+        pastilla: "aceptada",
+      }));
+  } catch (err) {
+    console.warn("No se pudo cruzar la aceptación de propuestas:", err.message);
+    return [];
+  }
 }
 
 // Solo grupos en fase de cierre (Proyecto/Calificaciones/Diplomas) —
@@ -156,12 +209,20 @@ module.exports = async function (context, req) {
     const pool = await getPool();
     // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
     await drenarConSql(pool, context);
-    const [solicitudes, cotizaciones, grupos, clientes] = await Promise.all([
+    const [solicitudes, frias, vencidas, aceptadas, grupos, clientes] = await Promise.all([
       solicitudesSinAtender(pool, umbrales.solicitudesHoras),
       cotizacionesFrias(pool, umbrales.cotizacionesDias),
+      cotizacionesVencidas(pool),
+      cotizacionesAceptadasPorConfirmar(pool),
       gruposAtorados(pool, umbrales.gruposDias),
       clientesInactivos(pool, umbrales.clientesDias),
     ]);
+    // primero lo que ya dijo que sí, luego lo vencido, al final lo frío
+    // una misma cotización sale una sola vez, con su motivo más fuerte
+    const vistas = new Set(aceptadas.map((x) => x.id));
+    const vencidasSolas = vencidas.filter((x) => !vistas.has(x.id));
+    vencidasSolas.forEach((x) => vistas.add(x.id));
+    const cotizaciones = [...aceptadas, ...vencidasSolas, ...frias.filter((x) => !vistas.has(x.id))];
     const items = [...solicitudes, ...cotizaciones, ...grupos, ...clientes];
     context.res = {
       status: 200,

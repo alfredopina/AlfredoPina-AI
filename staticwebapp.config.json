@@ -309,6 +309,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/extenderVigenciaCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/verificarCodigoCliente",
       "allowedRoles": ["admin"]
     },

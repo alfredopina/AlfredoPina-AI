@@ -99,7 +99,7 @@
   .chip svg{width:14px; height:14px; color:var(--acc);}
   .chip.vig{border-color:var(--acc); background:var(--acc-soft);} .chip.vig b{color:var(--acc);}
   .obj-dir{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:30px;}
-  .od{border-left:2px solid var(--acc); padding:2px 0 2px 14px; font-size:14px; color:var(--text-dim);} .od b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; font-weight:500;}
+  .od{border-left:2px solid var(--acc); padding:2px 0 2px 14px; font-size:14px; color:var(--text-dim);} .od-wide{grid-column:1/-1;} .od b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; font-weight:500;}
   .quien{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:14px; box-shadow:0 30px 60px rgba(0,0,0,.35);}
   .quien::before{content:""; position:absolute; left:-1px; top:26px; bottom:26px; width:4px; background:var(--acc); border-radius:0 3px 3px 0;}
   .quien img{width:100%; aspect-ratio:4/4.3; object-fit:cover; object-position:50% 20%; border-radius:12px; display:block; filter:saturate(.95);}
@@ -271,6 +271,7 @@
         <div class="obj-dir rv d3">
           <div class="od"><b>Objetivo</b><span id="hObj"></span></div>
           <div class="od"><b>Dirigido a</b><span id="hDir"></span></div>
+          <div class="od od-wide"><b>Alcance</b><span id="hAlc"></span></div>
         </div>
       </div>
       <aside class="quien rv d2">
@@ -508,7 +509,7 @@
     `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes</span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
     `<span class="chip vig">${ico.cal}${dias < 0 ? 'Venció el' : 'Vigente hasta'} <b>${fecha(D.vigencia)}</b>${dias >= 0 ? ' · ' + (dias === 0 ? 'vence hoy' : dias + (dias === 1 ? ' día' : ' días')) : ''}</span>`;
   $('hObj').textContent = D.objetivo || ''; $('hDir').textContent = D.dirigido || '';
-  $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido;
+  $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hAlc').textContent = D.alcance || ''; $('hAlc').parentElement.hidden = !D.alcance; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido && !D.alcance;
 
   // la "barra de fórmula" se escribe sola (el título real de la portada se queda quieto debajo)
   const tokens = [['=', 'tk-eq'], ['PROPUESTA', 'tk-fn'], ['(', 'tk-p'], ['"' + D.programa + '"', 'tk-str'], ['; ', 'tk-p'], ['"' + D.cliente + '"', 'tk-str'], [')', 'tk-p']];

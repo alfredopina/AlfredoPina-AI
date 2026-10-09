@@ -12,7 +12,7 @@
 // pasa a "Cotizada".
 const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
-const { proyectosParaPropuesta } = require("../src/cotizacion-proyectos");
+const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
 const { codigoCortoUnico } = require("../src/codigo-corto");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
@@ -51,6 +51,10 @@ module.exports = async function (context, req) {
   const fechaVigenciaBody = (body.fecha_vigencia || "").trim();
   const dirigidoA = (body.dirigido_a || "").trim() || null;
   const objetivo = (body.objetivo || "").trim() || null;
+  const alcance = (body.alcance || "").trim() || null;
+  const proyectosElegidos = Array.isArray(body.proyectos) ? body.proyectos : [];
+  // editar un Borrador = se guarda en el mismo folio y el mismo link (versión nueva solo desde Enviada en adelante)
+  const actualizaId = body.actualiza_id ? Number(body.actualiza_id) : null;
 
   if (!HERRAMIENTAS.includes(herramienta)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Herramienta inválida." } };
@@ -111,10 +115,24 @@ module.exports = async function (context, req) {
 
   const yy = String(new Date().getFullYear()).slice(-2);
   let folio;
+  let existente = null;
   try {
-    const consecutivo = await siguienteConsecutivo(pool, cliente.id, yy);
-    folio = folioNuevo({ yy, codigoCliente: cliente.codigo, herramienta, consecutivo });
+    if (actualizaId) {
+      const r = await pool.request().input("id", sql.Int, actualizaId).query("SELECT id, folio, estatus, cliente_id, blob_path FROM Cotizacion WHERE id = @id");
+      existente = r.recordset[0];
+      if (!existente) throw Object.assign(new Error("Esa cotización ya no existe."), { status: 404 });
+      if (existente.estatus !== "Borrador") throw Object.assign(new Error("Solo un Borrador se edita en el lugar; las demás generan una versión nueva."), { status: 400 });
+      if (existente.cliente_id !== cliente.id) throw Object.assign(new Error("No se puede cambiar el cliente de un borrador."), { status: 400 });
+      folio = existente.folio;
+    } else {
+      const consecutivo = await siguienteConsecutivo(pool, cliente.id, yy);
+      folio = folioNuevo({ yy, codigoCliente: cliente.codigo, herramienta, consecutivo });
+    }
   } catch (err) {
+    if (err.status) {
+      context.res = { status: err.status, headers: JSON_HEADERS, body: { error: err.message } };
+      return;
+    }
     context.log.error("Error calculando el folio:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo calcular el folio: " + err.message } };
     return;
@@ -125,10 +143,14 @@ module.exports = async function (context, req) {
   let codigoPropuesta;
   const tablaPropuestas = getPropuestasTable();
   try {
-    const proyectos = temarioTipo === "estandar" ? await proyectosParaPropuesta(herramienta, temarioNombre) : [];
-    codigoPropuesta = await codigoCortoUnico(async (c) => {
-      try { await tablaPropuestas.getEntity("propuesta", c); return true; } catch (e) { return false; }
-    });
+    const proyectos = temarioTipo === "estandar" ? await proyectosParaPropuesta(herramienta, temarioNombre) : await proyectosPorIds(herramienta, proyectosElegidos);
+    // al editar un Borrador se conserva su link; si era una cotización vieja (PDF) se le crea código
+    codigoPropuesta = existente ? codigoDePropuesta(existente.blob_path) : null;
+    if (!codigoPropuesta) {
+      codigoPropuesta = await codigoCortoUnico(async (c) => {
+        try { await tablaPropuestas.getEntity("propuesta", c); return true; } catch (e) { return false; }
+      });
+    }
     const snapshot = armarSnapshot({
       folio,
       cliente: cliente.nombre,
@@ -143,6 +165,7 @@ module.exports = async function (context, req) {
       fechaTentativa,
       objetivo,
       dirigidoA,
+      alcance,
       proyectos,
       tarifaHora: precioHora,
       precioSugerido,
@@ -159,6 +182,39 @@ module.exports = async function (context, req) {
   }
 
   try {
+    if (existente) {
+      await pool
+        .request()
+        .input("id", sql.Int, existente.id)
+        .input("contactoId", sql.Int, contactoId)
+        .input("herramienta", sql.NVarChar, herramienta)
+        .input("temarioTipo", sql.NVarChar, temarioTipo)
+        .input("temarioNombre", sql.NVarChar, temarioNombre)
+        .input("temasJson", sql.NVarChar, JSON.stringify(temas))
+        .input("horas", sql.Decimal(6, 1), horas)
+        .input("precioSugerido", sql.Decimal(10, 2), precioSugerido)
+        .input("descuentoPct", sql.Decimal(5, 2), descuentoPct)
+        .input("precioFinal", sql.Decimal(10, 2), precioFinal)
+        .input("fechaVigencia", sql.Date, fechaVigencia)
+        .input("blobPath", sql.NVarChar, blobPath)
+        .input("fechaTentativa", sql.NVarChar, fechaTentativa)
+        .input("ciudadSede", sql.NVarChar, ciudadSede)
+        .input("participantes", sql.NVarChar, participantes)
+        .input("modalidad", sql.NVarChar, modalidad)
+        .query(
+          `UPDATE Cotizacion SET contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
+             temario_nombre = @temarioNombre, temas_json = @temasJson, horas = @horas, precio_sugerido = @precioSugerido,
+             descuento_pct = @descuentoPct, precio_final = @precioFinal, fecha_vigencia = @fechaVigencia, blob_path = @blobPath,
+             fecha_tentativa = @fechaTentativa, ciudad_sede = @ciudadSede, participantes = @participantes, modalidad = @modalidad
+           WHERE id = @id AND estatus = 'Borrador'`
+        );
+      context.res = {
+        status: 200,
+        headers: JSON_HEADERS,
+        body: { id: existente.id, folio, cliente, precioSugerido, descuentoPct, precioFinal, propuesta_codigo: codigoPropuesta, actualizada: true },
+      };
+      return;
+    }
     const insert = await pool
       .request()
       .input("folio", sql.NVarChar, folio)

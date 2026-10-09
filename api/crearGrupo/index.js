@@ -178,6 +178,16 @@ module.exports = async function (context, req) {
         fechaFin: datos.fechaFin,
         fechaCierre: datos.fechaCierre,
       });
+      // un Grupo que nace de una cotización la cierra como Ganada (si seguía abierta; no pisa Perdida/Reemplazada)
+      if (datos.cotizacionId) {
+        await new sql.Request(transaction)
+          .input("id", sql.Int, datos.cotizacionId)
+          .query(
+            `UPDATE Cotizacion SET estatus = 'Ganada', fecha_estatus = SYSUTCDATETIME(), motivo_perdida = NULL, nota_cierre = NULL,
+               fecha_envio = COALESCE(fecha_envio, SYSUTCDATETIME()), fecha_cierre = COALESCE(fecha_cierre, CAST(SYSUTCDATETIME() AS DATE))
+             WHERE id = @id AND estatus IN ('Borrador', 'Enviada', 'En negociación')`
+          );
+      }
       await transaction.commit();
       context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal } };
     } catch (err) {

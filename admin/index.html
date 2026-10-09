@@ -1318,6 +1318,7 @@
   }
   .cot-estatus-select:focus{ border-color:var(--blue-bright); }
   .cot-vencida{ color:var(--bad); font-weight:600; }
+  .cot-aceptada b{ color:var(--teal-bright, #14b8a6); }
 
   /* ---- Tablero de Cotizaciones (2026-10-09) ---- */
   .cot-top{ display:flex; justify-content:flex-start; align-items:center; gap:18px; flex-wrap:wrap; }
@@ -3223,10 +3224,29 @@
           </div>
         </div>
 
+        <div class="admin-dialog-overlay" id="cotVig" hidden>
+          <div class="admin-dialog admin-dialog-neutral" role="alertdialog" aria-modal="true" aria-labelledby="cotVigTitulo">
+            <div class="admin-dialog-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg></div>
+            <div class="admin-dialog-cuerpo">
+              <h3 class="admin-dialog-titulo" id="cotVigTitulo">Extender vigencia</h3>
+              <p class="admin-dialog-mensaje" id="cotVigSub"></p>
+              <div class="radm-field" style="margin-top:14px;">
+                <label for="cotVigFecha">NUEVA VIGENCIA</label>
+                <input type="date" id="cotVigFecha">
+              </div>
+              <p class="radm-hint" id="cotVigError" hidden style="color:var(--bad); margin:8px 0 0;"></p>
+              <div class="admin-dialog-acciones">
+                <button type="button" class="admin-dialog-btn" id="cotVigCancelar">Cancelar</button>
+                <button type="button" class="admin-dialog-btn admin-dialog-confirmar admin-dialog-btn-neutral" id="cotVigOk">Extender</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="dip-tabpanel active" id="cotTab-tracking">
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="cotKpis">
-            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Suma de las cotizaciones abiertas (Borrador, Enviada y En negociación)">
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Suma de las cotizaciones en juego (Enviada y En negociación; un Borrador aún no se ha ofrecido)">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div class="dkpi-value"><span id="cotKpiPipelineMonto">—</span><span class="dkpi-subinline" id="cotKpiPipelineSub"></span></div>
               <div class="dkpi-label">Pipeline activo</div>
@@ -4876,7 +4896,7 @@
                 <div class="notif-row-cliente">${escapeHtml(it.cliente)}</div>
                 <div class="notif-row-detalle">${escapeHtml(it.detalle)}</div>
               </div>
-              <span class="notif-day-pill">${it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d')}</span>
+              <span class="notif-day-pill">${it.pastilla ? it.pastilla : it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d')}</span>
             </div>
           `).join('')}
         </div>`;
@@ -13169,7 +13189,7 @@
       if(!c.propuesta_codigo) return '';
       const s = propStats[c.propuesta_codigo];
       if(!s) return '';
-      if(s.aceptadaEn) return `<div class="cot-cliente-sub"><b>Aceptada</b> por ${escapeHtml(s.aceptadaPor || 'el cliente')}</div>`;
+      if(s.aceptadaEn) return `<div class="cot-cliente-sub cot-aceptada"><b>Aceptada</b> por ${escapeHtml(s.aceptadaPor || 'el cliente')}${ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : ''}</div>`;
       if(s.vistas) return `<div class="cot-cliente-sub">Abierta ${s.vistas} ${s.vistas === 1 ? 'vez' : 'veces'}</div>`;
       return c.estatus === 'Borrador' ? '' : '<div class="cot-cliente-sub">Sin abrir</div>';
     }
@@ -13178,6 +13198,11 @@
       const link = PROPUESTA_BASE + c.propuesta_codigo;
       try { await navigator.clipboard.writeText(link); toast('Link de la propuesta copiado.', true); }
       catch(e){ window.prompt('Copia el link de la propuesta:', link); }
+      // copiar el link de un Borrador casi siempre es porque se lo vas a mandar al cliente
+      if(c.estatus === 'Borrador'){
+        const ok = await confirmarAccion({ titulo: '¿Ya se la enviaste?', mensaje: 'Copiaste el link de ' + c.folio + '. ¿La marcas como Enviada? Desde ese momento corre su tiempo de respuesta.', variante: 'neutral', textoConfirmar: 'Marcar como Enviada', textoCancelar: 'Todavía no' });
+        if(ok) await cambiarEstatusCot(c.id, 'Enviada');
+      }
     }
     const iconoLink = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const iconoVer = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -13350,7 +13375,8 @@
             <div class="cot-row-actions sol-acciones">
               <button type="button" class="cot-icon-btn cot-accion-ver" data-id="${c.id}" title="${c.propuesta_codigo ? 'Ver la propuesta (así la ve el cliente, sin contar la visita)' : 'Ver el PDF'}" aria-label="Ver">${iconoVer}</button>
               ${c.propuesta_codigo ? `<button type="button" class="cot-icon-btn cot-accion-link" data-id="${c.id}" title="Copiar el link de la propuesta para el cliente" aria-label="Copiar link">${iconoLink}</button>` : ''}
-              ${c.estatus === 'Reemplazada' ? '' : `<button type="button" class="cot-icon-btn cot-accion-editar" data-id="${c.id}" title="Editar: abre el formulario con todo precargado y al guardar crea una nueva versión (la anterior queda Reemplazada)" aria-label="Editar">${ICO_ACC_COT.editar}</button>`}
+              ${c.estatus === 'Reemplazada' ? '' : `<button type="button" class="cot-icon-btn cot-accion-editar" data-id="${c.id}" title="Editar: un Borrador se corrige en el lugar (mismo folio y link); desde Enviada en adelante se crea una versión nueva (la anterior queda Reemplazada)" aria-label="Editar">${ICO_ACC_COT.editar}</button>`}
+              ${ESTATUS_ACTIVOS.includes(c.estatus) ? `<button type="button" class="cot-icon-btn cot-accion-vigencia" data-id="${c.id}" title="Extender vigencia: más tiempo para esta propuesta, sin folio nuevo" aria-label="Extender vigencia">${ICO_VIGENCIA}</button>` : ''}
               <button type="button" class="cot-icon-btn cot-accion-descargar" data-id="${c.id}" title="Descargar la propuesta (se abre lista para guardar como PDF)" aria-label="Descargar">${ICO_DESCARGAR}</button>
               <button type="button" class="cot-icon-btn cot-accion-eliminar sol-acc-peligro" data-id="${c.id}" title="Eliminar de verdad" aria-label="Eliminar">${ICO_ACC_COT.eliminar}</button>
             </div>
@@ -13440,7 +13466,7 @@
       if(!c.propuesta_codigo) return '';
       const s = propStats[c.propuesta_codigo];
       if(!s) return '';
-      if(s.aceptadaEn) return 'Aceptada por ' + (s.aceptadaPor || 'el cliente');
+      if(s.aceptadaEn) return 'Aceptada por ' + (s.aceptadaPor || 'el cliente') + (ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : '');
       if(s.vistas) return `Abierta ${s.vistas} ${s.vistas === 1 ? 'vez' : 'veces'}`;
       return c.estatus === 'Borrador' ? '' : 'Sin abrir';
     }
@@ -13457,6 +13483,7 @@
         ${item('ver', iconoVer, 'Ver')}
         ${c.propuesta_codigo ? item('link', iconoLink, 'Copiar link') : ''}
         ${item('editar', ICO_ACC_COT.editar, 'Editar')}
+        ${ESTATUS_ACTIVOS.includes(c.estatus) ? item('vigencia', ICO_VIGENCIA, 'Extender vigencia') : ''}
         ${item('descargar', ICO_DESCARGAR, 'Descargar')}
         <hr>
         ${item('eliminar', ICO_ACC_COT.eliminar, 'Eliminar', 'class="cot-del"')}
@@ -13571,6 +13598,7 @@
       if(acc === 'ver') window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank');
       else if(acc === 'link') copiarLinkPropuesta(c);
       else if(acc === 'editar') accionEditar(id);
+      else if(acc === 'vigencia') extenderVigenciaCot(c);
       else if(acc === 'descargar') descargarCot(c);
       else if(acc === 'eliminar') confirmarEliminarCot(c);
       else if(acc === 'mover') moverCot(id, btn.dataset.k);
@@ -13682,6 +13710,47 @@
 
     function cotizacionPorId(id){ return cotTodas.find(c => String(c.id) === String(id)); }
 
+    const ICO_VIGENCIA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>';
+
+    // Extender vigencia: misma cotización, mismo folio y mismo link; solo se mueve la fecha límite
+    function pedirNuevaVigencia(c){
+      return new Promise(resolve => {
+        const m = document.getElementById('cotVig'), fecha = document.getElementById('cotVigFecha'), err = document.getElementById('cotVigError');
+        const hoy = new Date().toISOString().slice(0, 10);
+        const base = new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+        document.getElementById('cotVigSub').textContent = c.folio + ' · ' + (c.vencida ? 'venció' : 'vence') + ' el ' + String(c.fecha_vigencia || '').slice(0, 10) + '. El link y el folio no cambian.';
+        fecha.min = hoy; fecha.value = base; err.hidden = true;
+        const cerrar = valor => {
+          m.hidden = true;
+          document.body.classList.remove('admin-dialog-abierto');
+          document.removeEventListener('keydown', onKey);
+          m.onmousedown = null;
+          resolve(valor);
+        };
+        const onKey = ev => { if(ev.key === 'Escape') cerrar(null); };
+        document.addEventListener('keydown', onKey);
+        m.onmousedown = ev => { if(ev.target === m) cerrar(null); };
+        document.getElementById('cotVigCancelar').onclick = () => cerrar(null);
+        document.getElementById('cotVigOk').onclick = () => {
+          if(!fecha.value || fecha.value < hoy){ err.textContent = 'Elige una fecha de hoy en adelante.'; err.hidden = false; return; }
+          cerrar(fecha.value);
+        };
+        m.hidden = false;
+        document.body.classList.add('admin-dialog-abierto');
+        fecha.focus();
+      });
+    }
+    async function extenderVigenciaCot(c){
+      const fecha = await pedirNuevaVigencia(c);
+      if(!fecha) return;
+      try {
+        await apiPostJson('/api/extenderVigenciaCotizacion', { id: c.id, fecha_vigencia: fecha });
+        toast('Vigencia extendida hasta el ' + fecha.split('-').reverse().join('/') + '.', true);
+        await buscarCotizaciones();
+        if(window.refrescarNotificaciones) window.refrescarNotificaciones();
+      } catch(e){ toast('No se pudo extender: ' + e.message, false); }
+    }
+
     // Editar = el formulario de Crear Cotización con todo precargado; al guardar crea la nueva versión y la anterior
     // queda Reemplazada (el link que ya se compartió sigue abriendo, con un aviso).
     async function accionEditar(id){
@@ -13723,10 +13792,12 @@
       const linkBtn = e.target.closest('.cot-accion-link');
       const editarBtn = e.target.closest('.cot-accion-editar');
       const descBtn = e.target.closest('.cot-accion-descargar');
+      const vigBtn = e.target.closest('.cot-accion-vigencia');
       const elimBtn = e.target.closest('.cot-accion-eliminar');
       if(verBtn){ const c = cotizacionPorId(verBtn.dataset.id); if(c) window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank'); }
       else if(linkBtn) copiarLinkPropuesta(cotizacionPorId(linkBtn.dataset.id));
       else if(editarBtn) accionEditar(editarBtn.dataset.id);
+      else if(vigBtn){ const c = cotizacionPorId(vigBtn.dataset.id); if(c) extenderVigenciaCot(c); }
       else if(descBtn){ const c = cotizacionPorId(descBtn.dataset.id); if(c) descargarCot(c); }
       else if(elimBtn){ const c = cotizacionPorId(elimBtn.dataset.id); if(c) confirmarEliminarCot(c); }
     });
@@ -13842,6 +13913,7 @@
     // ── Vista 2: resumen de solo lectura de la Solicitud elegida + precio ──
     let cotSolicitudActual = null;
     let cotReemplazaFolioActual = null;
+    let cotActualizaIdActual = null; // Borrador que se edita en el lugar (mismo folio y link)
 
     function renderDetalleResumen(datos){
       const temas = temasDeCot(datos);
@@ -13921,6 +13993,7 @@
       opts = opts || {};
       cotSolicitudActual = sol;
       cotReemplazaFolioActual = opts.reemplazaAFolio || null;
+      cotActualizaIdActual = opts.actualizaId || null;
       renderDetalleResumen(sol);
       document.getElementById('cotFechaVigencia').value = defaultFechaVigencia();
       const descuentoInput = document.getElementById('cotDescuentoPct');
@@ -13929,7 +14002,9 @@
       else { descuentoInput.value = ''; delete descuentoInput.dataset.tocado; }
       if(opts.precioFinalInicial != null){ precioInput.value = opts.precioFinalInicial; precioInput.dataset.tocado = '1'; }
       else { precioInput.value = ''; delete precioInput.dataset.tocado; }
-      document.getElementById('cotReemplazaHint').textContent = cotReemplazaFolioActual
+      document.getElementById('cotReemplazaHint').textContent = cotActualizaIdActual
+        ? `Editando el borrador ${opts.folioActual} — se guarda en el mismo folio y el mismo link.`
+        : cotReemplazaFolioActual
         ? `Nueva versión de ${cotReemplazaFolioActual} — al crear, esa cotización pasa a "Reemplazada".`
         : '';
       mostrarVistaCrear('detalle');
@@ -13948,14 +14023,21 @@
     // Cursos en CLAUDE.md) — Solicitud solo guarda el NOMBRE del temario, así
     // que hay que resolverlo contra el catálogo cacheado, mismo patrón que ya
     // usa precargarTemarioEdit para el mismo problema con los temas.
+    // Los proyectos elegidos de una personalizada viajan como foto {id, nombre, resumen}; los de un estándar los trae el servidor
+    function proyectosDeSol(sol){
+      if(sol.temario_tipo !== 'personalizado' || !sol.proyectos_json) return [];
+      try { const a = typeof sol.proyectos_json === 'string' ? JSON.parse(sol.proyectos_json) : sol.proyectos_json; return Array.isArray(a) ? a : []; }
+      catch(e){ return []; }
+    }
     async function resolverDirigidoObjetivo(sol){
-      if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null };
-      if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return { dirigido_a: null, objetivo: null };
+      const vacio = { dirigido_a: null, objetivo: null, alcance: null };
+      if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null, alcance: sol.alcance || null };
+      if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return vacio;
       try {
         const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
         const match = (data.estandar || []).find(t => t.nombre === sol.temario_nombre);
-        return { dirigido_a: (match && match.dirigido) || null, objetivo: (match && match.objetivo) || null };
-      } catch(e){ return { dirigido_a: null, objetivo: null }; }
+        return { dirigido_a: (match && match.dirigido) || null, objetivo: (match && match.objetivo) || null, alcance: (match && match.alcance) || null };
+      } catch(e){ return vacio; }
     }
 
     document.getElementById('cotVistaPrevia').addEventListener('click', async () => {
@@ -13963,7 +14045,7 @@
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal)){ toast('Falta el precio final.', false); return; }
       const sol = cotSolicitudActual;
-      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
+      const { dirigido_a, objetivo, alcance } = await resolverDirigidoObjetivo(sol);
       const payload = {
         cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
         herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
@@ -13972,7 +14054,7 @@
         modalidad: sol.modalidad, participantes: sol.participantes,
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
-        dirigido_a, objetivo,
+        dirigido_a, objetivo, alcance, proyectos: proyectosDeSol(sol),
       };
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -13992,12 +14074,13 @@
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal) || precioFinal < 0){ toast('El precio final no es válido.', false); return; }
 
-      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
+      const { dirigido_a, objetivo, alcance } = await resolverDirigidoObjetivo(sol);
       const payload = {
         empresa: { clienteId: sol.cliente_id },
         contacto_id: sol.contacto_id || null,
         solicitud_id: sol.id || null,
         reemplaza_a_folio: cotReemplazaFolioActual,
+        actualiza_id: cotActualizaIdActual,
         herramienta: sol.herramienta,
         temario_tipo: sol.temario_tipo, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
         horas_totales: horasDe(sol),
@@ -14006,16 +14089,17 @@
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
-        dirigido_a, objetivo,
+        dirigido_a, objetivo, alcance, proyectos: proyectosDeSol(sol),
       };
 
       const btn = document.getElementById('cotCrear');
       btn.disabled = true; btn.textContent = 'Creando...';
       try {
         const r = await apiPostJson('/api/crearCotizacion', payload);
-        toast('Cotización creada: ' + r.folio + '. La propuesta ya tiene su link.', true);
+        toast(r.actualizada ? 'Borrador actualizado: ' + r.folio + '. Mismo folio y mismo link.' : 'Cotización creada: ' + r.folio + '. La propuesta ya tiene su link.', true);
         cotSolicitudActual = null;
         cotReemplazaFolioActual = null;
+        cotActualizaIdActual = null;
         mostrarVistaCrear('lista');
         cargarListaSolicitudesActivas();
         cargarKpisCotizaciones();
@@ -14044,9 +14128,13 @@
         temas_json: c.temas_json, horas_totales: c.horas,
         fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
         participantes: c.participantes, modalidad: c.modalidad,
+        objetivo: c.sol_objetivo, alcance: c.sol_alcance, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json,
       };
+      const enElLugar = c.estatus === 'Borrador';
       abrirDetalleCotizar(datosComoSolicitud, {
-        reemplazaAFolio: c.folio,
+        reemplazaAFolio: enElLugar ? null : c.folio,
+        actualizaId: enElLugar ? c.id : null,
+        folioActual: c.folio,
         precioFinalInicial: c.precio_final,
         descuentoInicial: c.descuento_pct,
       });

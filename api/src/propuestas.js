@@ -110,6 +110,7 @@ function armarSnapshot(d) {
     nivelTxt,
     objetivo: d.objetivo || null,
     dirigido: d.dirigidoA || null,
+    alcance: d.alcance || null,
     temas,
     proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null })),
     tarifaHora: Number(d.tarifaHora) || 0,
@@ -212,6 +213,23 @@ async function marcarReemplazada(table, codigo, nuevoCodigo, nuevoFolio) {
   }
 }
 
+// Extender vigencia SIN folio nuevo: solo se reescribe la fecha dentro del snapshot (Merge de los trozos); las
+// vistas y la aceptación se conservan (guardarPropuesta las resetearía). Regresa false si la propuesta no existe.
+async function actualizarVigenciaPropuesta(table, codigo, vigenciaISO) {
+  let e;
+  try {
+    e = await table.getEntity("propuesta", codigo);
+  } catch (err) {
+    if (err.statusCode === 404 || isTableNotFound(err)) return false;
+    throw err;
+  }
+  const snapshot = JSON.parse(unirTrozos(e));
+  snapshot.vigencia = String(vigenciaISO).slice(0, 10);
+  const { partes, n } = partirEnTrozos(JSON.stringify(snapshot));
+  await table.updateEntity({ partitionKey: "propuesta", rowKey: codigo, snapPartes: n, ...partes }, "Merge");
+  return true;
+}
+
 // Borra la propuesta web de una cotización eliminada. Nunca lanza: una propuesta huérfana no hace daño.
 async function eliminarPropuesta(table, codigo) {
   try {
@@ -248,6 +266,7 @@ module.exports = {
   registrarVistaPropuesta,
   registrarAceptacion,
   marcarReemplazada,
+  actualizarVigenciaPropuesta,
   eliminarPropuesta,
   listarEstadisticas,
 };

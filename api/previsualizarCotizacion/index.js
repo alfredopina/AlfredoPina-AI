@@ -3,7 +3,7 @@
 // contacto_nombre/tarifa_hora, que el front ya tiene resueltos en memoria) y regresa el SNAPSHOT de la propuesta como
 // JSON — SIN guardar nada (ni la base ni Table Storage). El admin lo abre en /propuesta/vista-previa, que lo lee de
 // localStorage. Por eso el folio es un placeholder y no resuelve/crea Cliente.
-const { proyectosParaPropuesta } = require("../src/cotizacion-proyectos");
+const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { armarSnapshot } = require("../src/propuestas");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -23,7 +23,7 @@ module.exports = async function (context, req) {
 
   try {
     const estandar = body.temario_tipo !== "personalizado" && (body.temario_nombre || "").trim();
-    const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : [];
+    const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : await proyectosPorIds(herramienta, body.proyectos);
     const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * 100) / 100 : precioFinal;
     const snapshot = armarSnapshot({
       folio: "VISTA PREVIA",
@@ -39,6 +39,7 @@ module.exports = async function (context, req) {
       fechaTentativa: (body.fecha_tentativa || "").trim() || null,
       objetivo: (body.objetivo || "").trim() || null,
       dirigidoA: (body.dirigido_a || "").trim() || null,
+      alcance: (body.alcance || "").trim() || null,
       proyectos,
       tarifaHora: Number.isFinite(tarifaHora) ? tarifaHora : 0,
       precioSugerido,

@@ -1,4 +1,5 @@
 // getResumenCotizacionesAdmin/index.js
+// (Pipeline = solo Enviada y En negociación: un Borrador aún no se le ofrece a nadie.)
 // Function protegida (rol "admin"): scorecard del panel Seguimiento — pipeline
 // activo, ganado/perdido, tasa de conversión y tiempo promedio de cierre,
 // todo ACUMULADO (ningún Tracking reinicia sus métricas solo; el tiempo de cierre
@@ -24,8 +25,8 @@ module.exports = async function (context, req) {
       .input("umbralSeguimiento", sql.Int, umbrales.cotizacionesSeguimientoDias)
       .query(`
       SELECT
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación')) AS pipeline_conteo,
-        (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación')) AS pipeline_monto,
+        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Enviada', 'En negociación')) AS pipeline_conteo,
+        (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion WHERE estatus IN ('Enviada', 'En negociación')) AS pipeline_monto,
 
         -- Desglose por antigüedad (mismo umbral que ya pinta el semáforo de
         -- Tracking Comercial, ver semaforoDe() en admin/index.html) — Tracking

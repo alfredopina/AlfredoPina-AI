@@ -48,4 +48,31 @@ async function proyectosParaPropuesta(herramienta, temarioNombre) {
   }
 }
 
-module.exports = { proyectosParaPropuesta };
+// Proyectos de una propuesta PERSONALIZADA: la Solicitud guarda una foto {id, nombre, resumen}; aquí se busca cada
+// id en el catálogo solo para recuperar su miniatura (si ya no existe, se queda con la foto, sin imagen). Fail-soft.
+async function proyectosPorIds(herramienta, elegidos) {
+  const lista = (Array.isArray(elegidos) ? elegidos : []).filter((p) => p && p.nombre).slice(0, MAX_PROYECTOS);
+  if (!lista.length) return [];
+  let porId = {};
+  try {
+    for (const p of await listar(getProyectosTable(), herramienta)) porId[p.rowKey] = p;
+  } catch (err) {
+    console.warn("No se pudo leer el catálogo de proyectos:", err.message);
+  }
+  let container = null;
+  try {
+    if (lista.some((p) => porId[p.id] && porId[p.id].imagenMiniBlob)) container = await getProyectosContainer();
+  } catch (err) {
+    console.warn("No se pudo abrir el contenedor de proyectos:", err.message);
+  }
+  return lista.map((p) => {
+    const vivo = porId[p.id];
+    return {
+      nombre: p.nombre,
+      resumen: p.resumen || (vivo && vivo.resumen) || "",
+      imagenUrl: vivo && vivo.imagenMiniBlob && container ? container.getBlobClient(vivo.imagenMiniBlob).url : null,
+    };
+  });
+}
+
+module.exports = { proyectosParaPropuesta, proyectosPorIds };

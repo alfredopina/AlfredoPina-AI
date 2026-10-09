@@ -103,6 +103,14 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   const est = await P.listarEstadisticas(tabla);
   check("estadísticas para el admin: vistas y aceptación por código", est.ab12cd34 && est.ab12cd34.vistas >= 2 && est.ab12cd34.aceptadaPor === "Ana Pérez");
 
+  // extender vigencia: cambia solo la fecha del snapshot, conserva vistas y aceptación
+  const antes = await tabla.getEntity("propuesta", "ab12cd34");
+  check("extender vigencia: true y la fecha nueva queda en el snapshot", (await P.actualizarVigenciaPropuesta(tabla, "ab12cd34", "2027-01-15")) === true && (await P.leerPropuesta(tabla, "ab12cd34")).snapshot.vigencia === "2027-01-15");
+  const despues = await P.leerPropuesta(tabla, "ab12cd34");
+  check("extender vigencia: conserva vistas y aceptación", despues.vivo.vistas === (antes.vistas || 0) && despues.vivo.aceptadaPor === "Ana Pérez");
+  check("extender vigencia en una propuesta inexistente: false", (await P.actualizarVigenciaPropuesta(tabla, "nada0000", "2027-01-15")) === false);
+  check("el snapshot lleva el alcance", P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], alcance: "Alcance X", precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() }).alcance === "Alcance X");
+
   console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

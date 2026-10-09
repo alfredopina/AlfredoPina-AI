@@ -193,7 +193,7 @@ module.exports = async function (context, req) {
       );
 
     if (reemplazaAFolio) {
-      const vieja = await pool.request().input("folio", sql.NVarChar, reemplazaAFolio).query("UPDATE Cotizacion SET estatus = 'Reemplazada' OUTPUT INSERTED.blob_path WHERE folio = @folio");
+      const vieja = await pool.request().input("folio", sql.NVarChar, reemplazaAFolio).query("UPDATE Cotizacion SET estatus = 'Reemplazada', fecha_estatus = SYSUTCDATETIME() OUTPUT INSERTED.blob_path WHERE folio = @folio");
       // el link ya compartido de la versión anterior sigue abriendo, con un aviso de que existe una más nueva
       const codigoViejo = vieja.recordset.length ? codigoDePropuesta(vieja.recordset[0].blob_path) : null;
       if (codigoViejo) await marcarReemplazada(tablaPropuestas, codigoViejo, codigoPropuesta, folio);

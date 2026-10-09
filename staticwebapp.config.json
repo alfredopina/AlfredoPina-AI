@@ -305,6 +305,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/eliminarCotizacion",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/verificarCodigoCliente",
       "allowedRoles": ["admin"]
     },

@@ -27,9 +27,11 @@ module.exports = async function (context, req) {
       .input("id", sql.Int, id)
       .input("estatus", sql.NVarChar, estatus)
       .query(
-        `UPDATE Cotizacion SET estatus = @estatus,
+        `UPDATE Cotizacion SET
+           fecha_estatus = CASE WHEN estatus <> @estatus THEN SYSUTCDATETIME() ELSE fecha_estatus END,
+           estatus = @estatus,
            fecha_envio = CASE WHEN @estatus = 'Enviada' AND fecha_envio IS NULL THEN SYSUTCDATETIME() ELSE fecha_envio END,
-           fecha_cierre = CASE WHEN @estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NULL THEN CAST(SYSUTCDATETIME() AS DATE) ELSE fecha_cierre END
+           fecha_cierre = CASE WHEN @estatus IN ('Ganada', 'Perdida') THEN COALESCE(fecha_cierre, CAST(SYSUTCDATETIME() AS DATE)) ELSE NULL END
          WHERE id = @id`
       );
     if (!result.rowsAffected[0]) {

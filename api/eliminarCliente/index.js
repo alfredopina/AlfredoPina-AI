@@ -30,14 +30,14 @@ module.exports = async function (context, req) {
     const bloqueos = await contarBloqueos(() => pool.request(), id);
     if (bloqueos.length) {
       const lista = bloqueos.map((b) => `${b.n} ${b.clave}`).join(", ");
-      const sinBoton = bloqueos.some((b) => ["Cotizaciones", "Diplomas"].includes(b.clave));
+      const sinBoton = bloqueos.some((b) => ["Diplomas"].includes(b.clave));
       context.res = {
         status: 409,
         headers: JSON_HEADERS,
         body: {
           error:
             `No se puede eliminar "${existe.recordset[0].nombre}": tiene ${lista}. Elimina o resuelve eso primero.` +
-            (sinBoton ? " (Cotizaciones y Diplomas todavía no tienen botón de eliminar.)" : ""),
+            (sinBoton ? " (Diplomas todavía no tiene botón de eliminar.)" : ""),
           bloqueos: Object.fromEntries(bloqueos.map((b) => [b.clave, b.n])),
         },
       };

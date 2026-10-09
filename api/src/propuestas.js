@@ -212,6 +212,15 @@ async function marcarReemplazada(table, codigo, nuevoCodigo, nuevoFolio) {
   }
 }
 
+// Borra la propuesta web de una cotización eliminada. Nunca lanza: una propuesta huérfana no hace daño.
+async function eliminarPropuesta(table, codigo) {
+  try {
+    await table.deleteEntity("propuesta", codigo);
+  } catch (err) {
+    if (err.statusCode !== 404 && !isTableNotFound(err)) console.warn("No se pudo borrar la propuesta:", err.message);
+  }
+}
+
 // { codigo: { vistas, ultimaVista, aceptadaEn, aceptadaPor } } para pintar los avisos en el admin
 async function listarEstadisticas(table) {
   const mapa = {};
@@ -239,5 +248,6 @@ module.exports = {
   registrarVistaPropuesta,
   registrarAceptacion,
   marcarReemplazada,
+  eliminarPropuesta,
   listarEstadisticas,
 };

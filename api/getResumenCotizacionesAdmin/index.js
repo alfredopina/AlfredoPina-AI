@@ -8,7 +8,7 @@
 // ya están Ganada/Perdida y se crearon este mes — simplificación explícita
 // (ver CLAUDE.md/handoff de esta fase: "usa tu criterio si hace falta
 // simplificar"). Alerta de "más de 10 días sin respuesta" del mockup se arma
-// en el front con la misma dias_abierta que ya regresa listCotizacionesAdmin,
+// en el front con la misma dias_estatus que ya regresa listCotizacionesAdmin,
 // no hace falta duplicarla aquí.
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
@@ -31,11 +31,11 @@ module.exports = async function (context, req) {
         -- Tracking Comercial, ver semaforoDe() en admin/index.html) — Tracking
         -- View (Fase 2) lo necesita para su tarjeta-resumen.
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbralSeguimiento) AS antiguedad_verde,
+          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) < @umbralSeguimiento) AS antiguedad_verde,
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) >= @umbralSeguimiento AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbral) AS antiguedad_amarillo,
+          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) >= @umbralSeguimiento AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbral) AS antiguedad_amarillo,
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Borrador', 'Enviada', 'En negociación') AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
+          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
 
         (SELECT COUNT(*) FROM Cotizacion
           WHERE estatus = 'Ganada') AS ganado_conteo,

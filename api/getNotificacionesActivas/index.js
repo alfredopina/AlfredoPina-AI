@@ -55,12 +55,11 @@ async function cotizacionesFrias(pool, umbral) {
     .input("umbral", sql.Int, umbral)
     .query(`
       SELECT s.id, c.nombre AS cliente, s.herramienta,
-             DATEDIFF(day, s.fecha_envio, GETUTCDATE()) AS dias
+             DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias
       FROM Cotizacion s
       JOIN Cliente c ON c.id = s.cliente_id
       WHERE s.estatus IN ('Enviada', 'En negociación')
-        AND s.fecha_envio IS NOT NULL
-        AND DATEDIFF(day, s.fecha_envio, GETUTCDATE()) >= @umbral
+        AND DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) >= @umbral
       ORDER BY dias DESC
     `);
   return result.recordset.map((r) => ({

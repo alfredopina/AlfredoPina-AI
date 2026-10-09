@@ -3,7 +3,7 @@
 // Seguimiento — JOIN a Cliente/Contacto (nombres, no ids) y a Solicitud
 // (origen, opcional). ?vista=activas|ganadas|perdidas|todas mapea a los 4
 // tabs del mockup aprobado (activas = Borrador/Enviada/En negociación); sin
-// vista, regresa activas por default. dias_abierta y vencida se calculan en
+// vista, regresa activas por default. dias_estatus (días desde el último cambio de estatus) y vencida se calculan en
 // la consulta (no en el front): vencida es SOLO informativa — nunca cambia el
 // estatus real, Alfredo decide qué hacer con una cotización vencida.
 // ?estatus= (exacto, ej. "Reemplazada") se agregó para "Ver Cotizaciones" —
@@ -53,9 +53,9 @@ module.exports = async function (context, req) {
              s.contacto_id, ct.nombre AS contacto, ct.area AS contacto_area, ct.correo AS contacto_correo,
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json,
              s.horas, s.precio_sugerido, s.descuento_pct, s.precio_final,
-             s.fecha_creacion, s.fecha_envio, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio,
+             s.fecha_creacion, s.fecha_envio, s.fecha_estatus, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio, c.tipo_cliente,
              s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad, s.blob_path,
-             DATEDIFF(day, s.fecha_creacion, GETUTCDATE()) AS dias_abierta,
+             DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias_estatus,
              CASE WHEN s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)
                        AND s.estatus IN ('Borrador', 'Enviada', 'En negociación')
                   THEN 1 ELSE 0 END AS vencida

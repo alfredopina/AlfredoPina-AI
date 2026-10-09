@@ -1308,9 +1308,16 @@
   .sol-acciones .cot-icon-btn{ width:32px; height:32px; }
   .sol-acciones .cot-icon-btn svg{ width:17px; height:17px; }
   .sol-tabla th, .sol-tabla td{ padding-left:7px; padding-right:7px; }
-  .sol-tabla td:nth-child(3){ white-space:normal; }
+  .sol-tabla td:nth-child(4){ white-space:normal; }
   .sol-acciones .sol-acc-principal{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .sol-acciones .sol-acc-peligro:hover{ color:var(--bad); border-color:var(--bad); }
+  .dkpi-subinline{ display:block; font-family:var(--body); font-size:11px; font-weight:400; color:var(--text-faint); margin-top:3px; white-space:nowrap; }
+  .cot-estatus-select{
+    font-family:var(--body); font-size:12.5px; color:var(--text); background-color:var(--panel-2);
+    border-width:1px; border-style:solid; border-color:var(--line); border-radius:6px; padding:6px 8px; outline:none; cursor:pointer;
+  }
+  .cot-estatus-select:focus{ border-color:var(--blue-bright); }
+  .cot-vencida{ color:var(--bad); font-weight:600; }
   .sol-comentarios{ font-size:12.5px; color:var(--text); line-height:1.6; white-space:pre-wrap; margin-top:4px; }
 
   /* ---- Formulario Crear/Modificar Solicitud (2026-10-08) ---- */
@@ -1470,20 +1477,6 @@
   }
 
   /* ---- PANEL COTIZACIONES — pestaña Seguimiento (mockup ya aprobado) ---- */
-  .cot-kpis{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; margin-bottom:20px; }
-  @media (max-width:1200px){ .cot-kpis{ grid-template-columns:repeat(3, 1fr); } }
-  @media (max-width:640px){ .cot-kpis{ grid-template-columns:repeat(2, 1fr); } }
-  .cot-kpi{
-    border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:16px 18px;
-    display:flex; flex-direction:column; gap:6px;
-  }
-  .cot-kpi.hero{ background:linear-gradient(135deg, var(--blue-soft), var(--panel)); border-color:var(--blue-bright); }
-  .cot-kpi-label{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.4px; text-transform:uppercase; }
-  .cot-kpi-value{ font-family:var(--display); font-weight:700; font-size:26px; color:var(--text); line-height:1.1; }
-  .cot-kpi-sub{ font-size:11.5px; color:var(--text-dim); display:flex; align-items:center; gap:5px; }
-  .cot-kpi-sub.up{ color:var(--good); }
-  .cot-kpi-sub.down{ color:var(--bad); }
-  .cot-kpi-sub svg{ width:11px; height:11px; flex:none; }
 
   /* Corregido 2026-09-16: usaba el ámbar fijo #dfb35a, pero la condición que
      enciende este banner (Cotizaciones/Grupos/Clientes) SIEMPRE es el umbral
@@ -2673,7 +2666,8 @@
             <thead>
               <tr>
                 <th data-sort="fecha">Creada<span class="th-sort-ico"></span></th>
-                <th data-sort="cliente">Cliente / Prospecto<span class="th-sort-ico"></span></th>
+                <th data-sort="cliente">Empresa<span class="th-sort-ico"></span></th>
+                <th data-sort="tipo">Tipo<span class="th-sort-ico"></span></th>
                 <th data-sort="herramienta">Herramienta<span class="th-sort-ico"></span></th>
                 <th data-sort="programa">Programa<span class="th-sort-ico"></span></th>
                 <th data-sort="horas">Hr<span class="th-sort-ico"></span></th>
@@ -2685,7 +2679,7 @@
               </tr>
             </thead>
             <tbody id="solListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -3143,38 +3137,34 @@
       <div class="admin-panel" id="panel-tracking-comercial" style="--c:var(--blue-bright)">
         <div id="cotToastTracking" class="radm-toast" hidden></div>
 
-        <div class="dash-etabs" id="cotTabs">
-          <button type="button" class="dash-etab active" data-cottab="tracking">Tracking</button>
-          <button type="button" class="dash-etab" data-cottab="crear">Crear</button>
-          <button type="button" class="dash-etab" data-cottab="ver">Histórico</button>
-        </div>
-
         <div class="dip-tabpanel active" id="cotTab-tracking">
-        <div class="cot-kpis" id="cotKpis">
-          <div class="cot-kpi">
-            <div class="cot-kpi-label">Pipeline activo</div>
-            <div class="cot-kpi-value" id="cotKpiPipelineMonto">—</div>
-            <div class="cot-kpi-sub" id="cotKpiPipelineSub">—</div>
-          </div>
-          <div class="cot-kpi">
-            <div class="cot-kpi-label">Ganado</div>
-            <div class="cot-kpi-value" id="cotKpiGanadoMonto">—</div>
-            <div class="cot-kpi-sub up" id="cotKpiGanadoSub">—</div>
-          </div>
-          <div class="cot-kpi">
-            <div class="cot-kpi-label">Perdido</div>
-            <div class="cot-kpi-value" id="cotKpiPerdidoMonto">—</div>
-            <div class="cot-kpi-sub down" id="cotKpiPerdidoSub">—</div>
-          </div>
-          <div class="cot-kpi">
-            <div class="cot-kpi-label">Tasa de conversión</div>
-            <div class="cot-kpi-value" id="cotKpiConversion">—</div>
-            <div class="cot-kpi-sub">de las cotizaciones cerradas</div>
-          </div>
-          <div class="cot-kpi hero">
-            <div class="cot-kpi-label">Tiempo promedio de cierre</div>
-            <div class="cot-kpi-value" id="cotKpiTiempoCierre">—</div>
-            <div class="cot-kpi-sub">cotizaciones cerradas</div>
+        <div class="cli-scorecard-block">
+          <div class="cli-kpi-row" id="cotKpis">
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Suma de las cotizaciones abiertas (Borrador, Enviada y En negociación)">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 15l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value"><span id="cotKpiPipelineMonto">—</span><span class="dkpi-subinline" id="cotKpiPipelineSub"></span></div>
+              <div class="dkpi-label">Pipeline activo</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--good)" title="Cotizaciones en estatus Ganada (acumulado)">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value"><span id="cotKpiGanadoMonto">—</span><span class="dkpi-subinline" id="cotKpiGanadoSub"></span></div>
+              <div class="dkpi-label">Ganado</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--text-faint)" title="Cotizaciones en estatus Perdida (acumulado)">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value"><span id="cotKpiPerdidoMonto">—</span><span class="dkpi-subinline" id="cotKpiPerdidoSub"></span></div>
+              <div class="dkpi-label">Perdido</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="De las cotizaciones cerradas (Ganada o Perdida), el porcentaje que se ganó — acumulado">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 5 5 19" stroke-linecap="round"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg></div>
+              <div class="dkpi-value" id="cotKpiConversion">—</div>
+              <div class="dkpi-label">Tasa de conversión</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Promedio de días entre que se creó una cotización y se cerró (Ganada o Perdida) — acumulado">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value" id="cotKpiTiempoCierre">—</div>
+              <div class="dkpi-label">Tiempo promedio de cierre</div>
+            </div>
           </div>
         </div>
 
@@ -3183,27 +3173,73 @@
           <span id="cotAlertaTexto"></span>
         </div>
 
-        <div class="radm-tabs" id="cotVistaTabs">
-          <button type="button" class="radm-tab active" data-vista="activas">Activas</button>
-          <button type="button" class="radm-tab" data-vista="ganadas">Ganadas</button>
-          <button type="button" class="radm-tab" data-vista="perdidas">Perdidas</button>
-          <button type="button" class="radm-tab" data-vista="todas">Todas</button>
+        <div class="sol-toolbar">
+          <div class="radm-tabs sol-estatus-tabs" id="cotEstatusTabs" style="margin-bottom:0;">
+            <button type="button" class="radm-tab active" data-est="activas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Activas<span class="radm-tab-count" id="cotCnt_activas">0</span></button>
+            <button type="button" class="radm-tab" data-est="ganadas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ganadas<span class="radm-tab-count" id="cotCnt_ganadas">0</span></button>
+            <button type="button" class="radm-tab" data-est="perdidas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Perdidas<span class="radm-tab-count" id="cotCnt_perdidas">0</span></button>
+            <button type="button" class="radm-tab" data-est="todas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="cotCnt_todas">0</span></button>
+          </div>
+          <div class="dip-filters" style="margin-bottom:0;">
+            <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
+              <label>CLIENTE / PROSPECTO</label>
+              <input type="text" id="cotFClienteNombre" placeholder="Cliente o prospecto..." autocomplete="off">
+              <div class="dip-autocomplete-list" id="cotFClienteLista" hidden></div>
+            </div>
+            <div class="radm-field">
+              <label>HERRAMIENTA</label>
+              <select id="cotFHerramienta">
+                <option value="">Todas</option>
+                <option value="excel">Excel</option>
+                <option value="powerbi">Power BI</option>
+                <option value="powerapps">Power Apps</option>
+                <option value="powerautomate">Power Automate</option>
+                <option value="ia">IA Aplicada</option>
+                <option value="ofimatica">Ofimática Básica</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>PROGRAMA</label>
+              <select id="cotFPrograma">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="radm-btn-add" id="cotCrearBtn" style="white-space:nowrap;">+ Crear Cotización</button>
+              <button type="button" class="cli-info-btn" id="cotHistoricoBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Histórico
+              </button>
+              <button type="button" class="cot-icon-btn" id="cotActualizar" title="Actualizar la lista y los indicadores">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="cot-icon-btn" id="cotLimpiarFiltros" title="Limpiar filtros">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="dip-table-wrap">
-          <table class="dip-table">
+          <table class="dip-table sol-tabla cot-tabla">
             <thead>
               <tr>
-                <th>Cliente</th>
-                <th>Programa</th>
-                <th>Monto</th>
-                <th>Días abierta</th>
-                <th>Estatus</th>
+                <th data-sort="fecha">Creada<span class="th-sort-ico"></span></th>
+                <th data-sort="empresa">Empresa<span class="th-sort-ico"></span></th>
+                <th data-sort="tipo">Tipo<span class="th-sort-ico"></span></th>
+                <th data-sort="herramienta">Herramienta<span class="th-sort-ico"></span></th>
+                <th data-sort="programa">Programa<span class="th-sort-ico"></span></th>
+                <th data-sort="monto">Monto<span class="th-sort-ico"></span></th>
+                <th data-sort="estatus">Estatus<span class="th-sort-ico"></span></th>
+                <th data-sort="dias" class="th-2l" title="Días desde el último cambio de estatus">Días en estatus<span class="th-sort-ico"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="cotListaBody">
-              <tr><td colspan="6" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -3212,6 +3248,10 @@
         <div class="dip-tabpanel" id="cotTab-crear">
           <!-- Vista 1 (default): lista de Solicitudes activas para cotizar -->
           <div id="cotSolicitudesListaVista">
+            <button type="button" class="radm-back" id="cotVolverDeCrear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Volver a Cotizaciones
+            </button>
             <p class="radm-hint" style="margin-bottom:16px;">Toda Cotización nace de una Solicitud. Elige "Cotizar" en la que quieras convertir, "Editar" si algo cambió antes de cotizar, o "Descartar" si ya no aplica (no se borra, solo se marca como descartada).</p>
             <div class="dip-table-wrap">
               <table class="dip-table">
@@ -3274,6 +3314,10 @@
         </div>
 
         <div class="dip-tabpanel" id="cotTab-ver">
+          <button type="button" class="radm-back" id="cotVolverDeVer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Volver a Cotizaciones
+          </button>
           <div class="dip-filters">
             <div class="radm-field dip-autocomplete-wrap dip-empresa-field">
               <label>CLIENTE</label>
@@ -4659,6 +4703,7 @@
     if(key === 'tracking-operacion' && typeof window.alEntrarAGrupos === 'function') window.alEntrarAGrupos();
     // Igual con Solicitudes (ver window.alEntrarASolicitudes en su IIFE): refresca lista y tarjetas al entrar.
     if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
+    if(key === 'tracking-comercial' && typeof window.alEntrarACotizaciones === 'function') window.alEntrarACotizaciones();
   }
 
   document.getElementById('adminNav').addEventListener('click', e => {
@@ -11991,7 +12036,7 @@
     const ICO_MANUAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3l7 17 2-7 7-2z" stroke-linejoin="round"/></svg>';
     const ICO_SORT_ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICO_SORT_DESC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', herramienta: 'asc', programa: 'asc', horas: 'desc', canal: 'asc', estatus: 'asc', semaforo: 'desc', actualizacion: 'desc' };
+    const SORT_DEFAULT_DIR = { fecha: 'desc', cliente: 'asc', tipo: 'asc', herramienta: 'asc', programa: 'asc', horas: 'desc', canal: 'asc', estatus: 'asc', semaforo: 'desc', actualizacion: 'desc' };
     const ICO_SITIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18" stroke-linecap="round"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg>';
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -12211,6 +12256,7 @@
     const COLUMNA_ORDEN = {
       fecha: s => new Date(s.fecha_creacion).getTime(),
       cliente: s => (s.cliente || '').toLowerCase(),
+      tipo: s => (s.tipo_cliente === 'Prospecto' ? 1 : 0),
       herramienta: s => (TOOL_NAMES[s.herramienta] || s.herramienta || '').toLowerCase(),
       programa: s => programaClave(s).toLowerCase(),
       horas: s => (s.horas_totales == null ? -1 : Number(s.horas_totales)),
@@ -12287,9 +12333,10 @@
         <tr data-id="${s.id}">
           <td><div>${fmtFecha(s.fecha_creacion)}</div><div class="sol-hora">${fmtHora(s.fecha_creacion)}</div></td>
           <td>
-            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(s.cliente)}</span><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO[tipo]}${tipo}</span></div>
+            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(s.cliente)}</span></div>
             <div class="sol-cli-sub">${s.contacto ? escapeHtml(s.contacto) : '—'}</div>
           </td>
+          <td><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO[tipo]}${tipo}</span></td>
           <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
           <td>
             <button type="button" class="sol-temario-toggle" data-id="${s.id}" title="Ver detalle: contacto, comentarios y temas">
@@ -12306,7 +12353,7 @@
           <td>${accionesHtml(s)}</td>
         </tr>
         <tr class="sol-desglose-row" id="sol-desglose-${s.id}" ${abierta ? '' : 'hidden'}>
-          <td colspan="10"><div class="sol-desglose">${solDetalleHtml(s)}</div></td>
+          <td colspan="11"><div class="sol-desglose">${solDetalleHtml(s)}</div></td>
         </tr>`;
     }
 
@@ -12362,7 +12409,7 @@
       const body = document.getElementById('solListaBody');
       if(!lista.length){
         const hayFiltros = base.length !== solTodas.length;
-        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">${solTodas.length ? (hayFiltros || solEstatusActivo ? 'Sin solicitudes con estos filtros.' : 'Sin solicitudes.') : 'Todavía no hay solicitudes.'}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">${solTodas.length ? (hayFiltros || solEstatusActivo ? 'Sin solicitudes con estos filtros.' : 'Sin solicitudes.') : 'Todavía no hay solicitudes.'}</td></tr>`;
         return;
       }
       body.innerHTML = lista.map(filaHtml).join('');
@@ -12370,13 +12417,13 @@
 
     async function buscarSolicitudes(){
       const body = document.getElementById('solListaBody');
-      if(!solTodas.length) body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>`;
+      if(!solTodas.length) body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>`;
       try {
         solTodas = await apiGetConReintento('/api/listSolicitudesAdmin?sort=fecha&dir=desc');
         actualizarOpcionesPrograma();
         renderSolicitudes();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
     const solPorId = id => solTodas.find(x => String(x.id) === String(id));
@@ -12426,7 +12473,7 @@
         if(window.cotizarDesdeSolicitud) window.cotizarDesdeSolicitud(sol);
       } else if(btn.classList.contains('sol-vercot-btn')){
         activarPanel('tracking-comercial');
-        document.querySelector('#cotTabs .dash-etab[data-cottab="tracking"]').click();
+        window.activarTabCot('tracking');
       } else if(btn.classList.contains('sol-editar-btn')){
         abrirEdicionSolicitud(sol);
       } else if(btn.classList.contains('sol-descartar-btn')){
@@ -13042,11 +13089,11 @@
       try {
         const r = await apiGetConReintento('/api/getResumenCotizacionesAdmin');
         document.getElementById('cotKpiPipelineMonto').textContent = fmtMoney(r.pipeline_monto);
-        document.getElementById('cotKpiPipelineSub').textContent = `${r.pipeline_conteo} cotización${r.pipeline_conteo === 1 ? '' : 'es'} abierta${r.pipeline_conteo === 1 ? '' : 's'}`;
+        document.getElementById('cotKpiPipelineSub').textContent = `${r.pipeline_conteo} abierta${r.pipeline_conteo === 1 ? '' : 's'}`;
         document.getElementById('cotKpiGanadoMonto').textContent = fmtMoney(r.ganado_monto);
-        document.getElementById('cotKpiGanadoSub').textContent = `${r.ganado_conteo} cerrada${r.ganado_conteo === 1 ? '' : 's'}`;
+        document.getElementById('cotKpiGanadoSub').textContent = `${r.ganado_conteo} cot.`;
         document.getElementById('cotKpiPerdidoMonto').textContent = fmtMoney(r.perdido_monto);
-        document.getElementById('cotKpiPerdidoSub').textContent = `${r.perdido_conteo} cerrada${r.perdido_conteo === 1 ? '' : 's'}`;
+        document.getElementById('cotKpiPerdidoSub').textContent = `${r.perdido_conteo} cot.`;
         document.getElementById('cotKpiConversion').textContent = r.tasa_conversion + '%';
         document.getElementById('cotKpiTiempoCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
       } catch(e){
@@ -13063,29 +13110,13 @@
       const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
       // Un Borrador nunca se envió — "sin respuesta" no le aplica, se excluye
       // (mismo criterio que getNotificacionesActivas, ver "Ya resueltos").
-      const criticas = lista.filter(c => c.estatus !== 'Borrador' && c.dias_abierta >= umbral);
+      const criticas = lista.filter(c => (c.estatus === 'Enviada' || c.estatus === 'En negociación') && c.dias_estatus >= umbral);
       if(!criticas.length){ banner.hidden = true; return; }
       const nombres = criticas.slice(0, 2).map(c => escapeHtml(c.cliente));
       const resto = criticas.length > 2 ? ` y ${criticas.length - 2} más` : '';
       document.getElementById('cotAlertaTexto').innerHTML =
         `<b>${criticas.length} cotizaci${criticas.length === 1 ? 'ón' : 'ones'}</b> llev${criticas.length === 1 ? 'a' : 'an'} más de ${umbral} días sin respuesta — ${nombres.join(' y ')}${resto}.`;
       banner.hidden = false;
-    }
-
-    // ══ TABLA / VISTAS (Activas/Ganadas/Perdidas/Todas) ══
-    let cotVistaActual = 'activas';
-    let cotListaCache = [];
-
-    function semaforoDe(c){
-      // Un Borrador nunca se envió — "sin respuesta" no le aplica (mismo
-      // criterio que actualizarAlerta/getNotificacionesActivas), así que no
-      // le corresponde ningún color de urgencia, solo un estado neutro.
-      if(c.estatus === 'Borrador') return null;
-      const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
-      const umbralSeguimiento = (window.UMBRALES_NOTIF || {}).cotizacionesSeguimientoDias || 6;
-      if(c.vencida || c.dias_abierta >= umbral) return { clase:'hot', texto: `${c.dias_abierta} días · Urgente` };
-      if(c.dias_abierta >= umbralSeguimiento) return { clase:'warn', texto: `${c.dias_abierta} días · Seguimiento` };
-      return { clase:'ok', texto: `${c.dias_abierta} días · A tiempo` };
     }
 
     // ── propuesta web: link para el cliente, avisos de apertura/aceptación ──
@@ -13112,125 +13143,279 @@
     const iconoLink = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const iconoVer = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>';
 
+    // ══ TRACKING DE COTIZACIONES ══
+    // Se trae TODO una vez (menos las versiones Reemplazadas, que viven en Histórico); los botones de estatus
+    // (Activas/Ganadas/Perdidas/Todas), los filtros y el orden por columna corren aquí, en el navegador.
+    const ESTATUS_ACTIVOS = ['Borrador', 'Enviada', 'En negociación'];
+    const ESTATUS_ELEGIBLES = ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida']; // Expirada/Reemplazada las pone el sistema
+    let cotEstatusActivo = 'activas';
+    let cotSort = 'dias';
+    let cotDir = 'desc';
+    let cotTodas = [];
+    let cotListaCache = [];
+    const SORT_DEFAULT_DIR_COT = { fecha: 'desc', empresa: 'asc', tipo: 'asc', herramienta: 'asc', programa: 'asc', monto: 'desc', estatus: 'asc', dias: 'desc' };
+    const ICO_SORT_ASC_COT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M6 11l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_SORT_DESC_COT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_TIPO_COT = {
+      Prospecto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.4 5.5-5.4s4.5 1.8 5.5 5.4" stroke-linecap="round"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg>',
+      Cliente: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1" stroke-linecap="round"/><path d="M10 21v-4h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    const ICO_ACC_COT = {
+      editar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      eliminar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+
+    const cotFClienteAuto = (function(){
+      const input = document.getElementById('cotFClienteNombre');
+      const lista = document.getElementById('cotFClienteLista');
+      let seleccionado = null;
+      let timer = null;
+      input.addEventListener('input', () => {
+        seleccionado = null;
+        renderCotizaciones();
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if(!q){ lista.hidden = true; return; }
+        timer = setTimeout(async () => {
+          try {
+            const clientes = await apiGetConReintento('/api/buscarClientesAdmin?q=' + encodeURIComponent(q));
+            if(!clientes.length){ lista.hidden = true; return; }
+            lista.innerHTML = clientes.map(c =>
+              `<div class="dip-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}"><b>${escapeHtml(c.nombre)}</b><span>${escapeHtml(c.codigo)}${c.tipo_cliente === 'Prospecto' ? ' · Prospecto' : ''}</span></div>`
+            ).join('');
+            lista.hidden = false;
+          } catch(e){ /* silencioso */ }
+        }, 250);
+      });
+      lista.addEventListener('click', e => {
+        const item = e.target.closest('.dip-autocomplete-item');
+        if(!item) return;
+        seleccionado = { id: Number(item.dataset.id), nombre: item.dataset.nombre };
+        input.value = item.dataset.nombre;
+        lista.hidden = true;
+        renderCotizaciones();
+      });
+      document.addEventListener('click', e => { if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true; });
+      return { getSeleccionado: () => seleccionado, reset: () => { seleccionado = null; input.value = ''; lista.hidden = true; } };
+    })();
+
+    // Días en estatus: solo lo ENVIADO tiene semáforo (días desde su último cambio de estatus, umbrales de
+    // Configuración → Alertas; los mismos que la alerta de "cotizaciones frías"). Borrador = sin enviar;
+    // lo cerrado = cuánto tardó en cerrarse, sin color. Nunca solo color: punto + días + palabra.
+    function semaforoDe(c){
+      if(c.estatus === 'Enviada' || c.estatus === 'En negociación'){
+        const umbral = (window.UMBRALES_NOTIF || {}).cotizacionesDias || 10;
+        const umbralSeguimiento = (window.UMBRALES_NOTIF || {}).cotizacionesSeguimientoDias || 6;
+        const d = c.dias_estatus;
+        if(d >= umbral) return { clase:'hot', texto: `${d} d · Urgente` };
+        if(d >= umbralSeguimiento) return { clase:'warn', texto: `${d} d · Seguimiento` };
+        return { clase:'ok', texto: `${d} d · A tiempo` };
+      }
+      return null;
+    }
+    function diasEstatusHtml(c){
+      const sem = semaforoDe(c);
+      if(sem) return `<span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span>`;
+      if(c.estatus === 'Borrador') return '<span class="cot-semaforo sol-semaforo-fin">Sin enviar</span>';
+      if(c.estatus === 'Ganada' || c.estatus === 'Perdida'){
+        const d = Math.max(0, Math.round((new Date(c.fecha_estatus) - new Date(c.fecha_creacion)) / 86400000));
+        return `<span class="cot-semaforo sol-semaforo-fin" title="Se cerró ${d} día${d === 1 ? '' : 's'} después de crearse">Cerrada en ${d} d</span>`;
+      }
+      return '<span class="radm-hint">—</span>';
+    }
+    function vigenciaHtml(c){
+      if(!ESTATUS_ACTIVOS.includes(c.estatus) || !c.fecha_vigencia) return '';
+      const f = new Date(String(c.fecha_vigencia).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
+      return c.vencida
+        ? `<div class="cot-cliente-sub cot-vencida">Vencida el ${f}</div>`
+        : `<div class="cot-cliente-sub">Vigente hasta ${f}</div>`;
+    }
+
+    // Los días de una cotización se ordenan: lo enviado por urgencia, luego los borradores, al final lo cerrado
+    const COLUMNA_ORDEN_COT = {
+      fecha: c => new Date(c.fecha_creacion).getTime(),
+      empresa: c => (c.cliente || '').toLowerCase(),
+      tipo: c => (c.tipo_cliente === 'Prospecto' ? 1 : 0),
+      herramienta: c => (TOOL_NAMES[c.herramienta] || c.herramienta || '').toLowerCase(),
+      programa: c => programaClaveCot(c).toLowerCase(),
+      monto: c => Number(c.precio_final) || 0,
+      estatus: c => ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida', 'Expirada', 'Reemplazada'].indexOf(c.estatus),
+      dias: c => (c.estatus === 'Enviada' || c.estatus === 'En negociación') ? (c.dias_estatus || 0) : (c.estatus === 'Borrador' ? -1 : -2),
+    };
+    const programaClaveCot = c => c.temario_nombre || 'Personalizado';
+
+    function renderSortCot(){
+      document.querySelectorAll('#cotTab-tracking th[data-sort]').forEach(th => {
+        const activo = th.dataset.sort === cotSort;
+        th.classList.toggle('th-activo', activo);
+        th.querySelector('.th-sort-ico').innerHTML = activo ? (cotDir === 'asc' ? ICO_SORT_ASC_COT : ICO_SORT_DESC_COT) : '';
+      });
+    }
+    document.querySelectorAll('#cotTab-tracking th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const sort = th.dataset.sort;
+        if(cotSort === sort) cotDir = cotDir === 'asc' ? 'desc' : 'asc';
+        else { cotSort = sort; cotDir = SORT_DEFAULT_DIR_COT[sort]; }
+        renderCotizaciones();
+      });
+    });
+
+    function filtrarSinEstatusCot(){
+      const cli = cotFClienteAuto.getSeleccionado();
+      const her = document.getElementById('cotFHerramienta').value;
+      const prog = document.getElementById('cotFPrograma').value;
+      return cotTodas.filter(c =>
+        (!cli || c.cliente_id === cli.id) && (!her || c.herramienta === her) && (!prog || programaClaveCot(c) === prog));
+    }
+    const enTabCot = (c, tab) =>
+      tab === 'activas' ? ESTATUS_ACTIVOS.includes(c.estatus) : tab === 'ganadas' ? c.estatus === 'Ganada' : tab === 'perdidas' ? c.estatus === 'Perdida' : true;
+
+    function actualizarOpcionesProgramaCot(){
+      const sel = document.getElementById('cotFPrograma');
+      const actual = sel.value;
+      const claves = Array.from(new Set(cotTodas.map(programaClaveCot))).sort((a, b) => a.localeCompare(b, 'es'));
+      sel.innerHTML = '<option value="">Todos</option>' + claves.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+      sel.value = claves.includes(actual) ? actual : '';
+    }
+
+    function filaCotHtml(c){
+      const esProspecto = c.tipo_cliente === 'Prospecto';
+      const tipo = esProspecto ? 'Prospecto' : 'Cliente';
+      const opciones = ESTATUS_ELEGIBLES.includes(c.estatus) ? ESTATUS_ELEGIBLES : ESTATUS_ELEGIBLES.concat(c.estatus);
+      return `
+        <tr data-id="${c.id}">
+          <td><div>${fmtFecha(c.fecha_creacion)}</div><div class="sol-hora" title="Folio">${escapeHtml(c.folio)}</div></td>
+          <td>
+            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(c.cliente)}</span></div>
+            <div class="sol-cli-sub">${c.contacto ? escapeHtml(c.contacto) + (c.contacto_area ? ' · ' + escapeHtml(c.contacto_area) : '') : '—'}</div>
+          </td>
+          <td><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO_COT[tipo]}${tipo}</span></td>
+          <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</td>
+          <td>${escapeHtml(programaClaveCot(c))}</td>
+          <td><div class="radm-mono">${fmtMoney(c.precio_final)}</div>${vigenciaHtml(c)}</td>
+          <td>
+            <select class="cot-estatus-select" data-id="${c.id}" aria-label="Estatus de ${escapeHtml(c.folio)}">
+              ${opciones.map(e => `<option value="${e}" ${e === c.estatus ? 'selected' : ''} ${ESTATUS_ELEGIBLES.includes(e) ? '' : 'disabled'}>${e}</option>`).join('')}
+            </select>
+            ${propEstadoHtml(c)}
+          </td>
+          <td>${diasEstatusHtml(c)}</td>
+          <td>
+            <div class="cot-row-actions sol-acciones">
+              <button type="button" class="cot-icon-btn cot-accion-ver" data-id="${c.id}" title="${c.propuesta_codigo ? 'Ver la propuesta (así la ve el cliente, sin contar la visita)' : 'Ver el PDF'}" aria-label="Ver">${iconoVer}</button>
+              ${c.propuesta_codigo ? `<button type="button" class="cot-icon-btn cot-accion-link" data-id="${c.id}" title="Copiar el link de la propuesta para el cliente" aria-label="Copiar link">${iconoLink}</button>` : ''}
+              <button type="button" class="cot-icon-btn cot-accion-editar" data-id="${c.id}" title="Editar: abre el formulario con todo precargado y al guardar crea una nueva versión (la anterior queda Reemplazada)" aria-label="Editar">${ICO_ACC_COT.editar}</button>
+              <button type="button" class="cot-icon-btn cot-accion-eliminar sol-acc-peligro" data-id="${c.id}" title="Eliminar de verdad" aria-label="Eliminar">${ICO_ACC_COT.eliminar}</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    function renderCotizaciones(){
+      const base = filtrarSinEstatusCot();
+      ['activas', 'ganadas', 'perdidas', 'todas'].forEach(t => {
+        document.getElementById('cotCnt_' + t).textContent = base.filter(c => enTabCot(c, t)).length;
+      });
+      document.querySelectorAll('#cotEstatusTabs .radm-tab').forEach(t => t.classList.toggle('active', t.dataset.est === cotEstatusActivo));
+
+      const lista = base.filter(c => enTabCot(c, cotEstatusActivo));
+      const clave = COLUMNA_ORDEN_COT[cotSort] || COLUMNA_ORDEN_COT.fecha;
+      const signo = cotDir === 'asc' ? 1 : -1;
+      lista.sort((a, b) => {
+        const x = clave(a), y = clave(b);
+        const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'es');
+        return r * signo || (new Date(b.fecha_creacion) - new Date(a.fecha_creacion)) || (b.id - a.id);
+      });
+      renderSortCot();
+      cotListaCache = lista;
+
+      const body = document.getElementById('cotListaBody');
+      if(!lista.length){
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">${cotTodas.length ? 'Sin cotizaciones con estos filtros.' : 'Todavía no hay cotizaciones.'}</td></tr>`;
+        return;
+      }
+      body.innerHTML = lista.map(filaCotHtml).join('');
+    }
+
     async function buscarCotizaciones(){
       const body = document.getElementById('cotListaBody');
-      body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Buscando...</td></tr>`;
+      if(!cotTodas.length) body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>`;
       try {
-        const [cruda] = await Promise.all([apiGetConReintento('/api/listCotizacionesAdmin?vista=' + cotVistaActual), cargarPropStats()]);
-        // Tracking: lo más urgente primero — vencidas, luego más días sin respuesta; los Borradores (sin semáforo) al final.
-        const lista = cotVistaActual === 'activas'
-          ? cruda.slice().sort((a, b) => {
-              const k = c => (c.estatus === 'Borrador' ? -1 : (c.vencida ? 100000 : 0) + (c.dias_abierta || 0));
-              return k(b) - k(a);
-            })
-          : cruda;
-        cotListaCache = lista;
-        if(cotVistaActual === 'activas') actualizarAlerta(lista);
-        else document.getElementById('cotAlerta').hidden = true;
-        if(!lista.length){ body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Sin resultados.</td></tr>`; return; }
-        body.innerHTML = lista.map(c => {
-          const sem = semaforoDe(c);
-          const badgeClase = ESTATUS_BADGE[c.estatus] || 'draft';
-          const puedeEnviar = ['Borrador', 'Enviada', 'En negociación'].includes(c.estatus);
-          return `
-            <tr data-id="${c.id}">
-              <td>
-                <div class="cot-cliente-nombre">${escapeHtml(c.cliente)}</div>
-                ${c.contacto ? `<div class="cot-cliente-sub">${escapeHtml(c.contacto)}${c.contacto_area ? ' · ' + escapeHtml(c.contacto_area) : ''}</div>` : ''}
-              </td>
-              <td>
-                <div>${escapeHtml(c.temario_nombre || (c.temario_tipo === 'personalizado' ? 'Programa personalizado' : '—'))}</div>
-                <div class="cot-curso-tool">${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</div>
-              </td>
-              <td class="radm-mono">${fmtMoney(c.precio_final)}</td>
-              <td>${sem ? `<span class="cot-semaforo ${sem.clase}"><span class="cot-semaforo-dot"></span>${sem.texto}</span>` : `<span class="radm-mono" style="color:var(--text-dim);">Sin enviar</span>`}</td>
-              <td><span class="cot-badge ${badgeClase}">${escapeHtml(c.estatus)}</span>${propEstadoHtml(c)}</td>
-              <td>
-                <div class="cot-row-actions">
-                  <button type="button" class="cot-icon-btn cot-accion-ver" data-id="${c.id}" title="${c.propuesta_codigo ? 'Ver la propuesta (así la ve el cliente, sin contar la visita)' : 'Ver el PDF'}">${iconoVer}</button>
-                  <button type="button" class="cot-icon-btn cot-accion-enviar" data-id="${c.id}" ${puedeEnviar ? '' : 'disabled'} title="${c.propuesta_codigo ? 'Marca Enviada, copia el link y abre un correo prellenado' : 'Marca Enviada, abre el PDF y un correo prellenado'}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 3 18 9-18 9 4-9-4-9Z" stroke-linejoin="round"/></svg>
-                  </button>
-                  ${c.propuesta_codigo ? `<button type="button" class="cot-icon-btn cot-accion-link" data-id="${c.id}" title="Copiar el link de la propuesta para el cliente">${iconoLink}</button>` : ''}
-                  <button type="button" class="cot-icon-btn cot-accion-version" data-id="${c.id}" title="Nueva versión — precarga el formulario de Crear Cotización para ajustar y reemplazar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"/></svg>
-                  </button>
-                  <button type="button" class="cot-icon-btn cot-accion-seguimiento" data-id="${c.id}" title="Correo de seguimiento">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </button>
-                </div>
-              </td>
-            </tr>`;
-        }).join('');
+        const [cruda] = await Promise.all([apiGetConReintento('/api/listCotizacionesAdmin?vista=todas'), cargarPropStats()]);
+        cotTodas = cruda.filter(c => c.estatus !== 'Reemplazada');
+        actualizarAlerta(cotTodas);
+        actualizarOpcionesProgramaCot();
+        renderCotizaciones();
       } catch(e){
-        body.innerHTML = `<tr><td colspan="6" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="9" class="radm-empty-row">Error: ${escapeHtml(e.message)}</td></tr>`;
       }
     }
 
-    document.getElementById('cotVistaTabs').addEventListener('click', e => {
+    document.getElementById('cotEstatusTabs').addEventListener('click', e => {
       const btn = e.target.closest('.radm-tab');
       if(!btn) return;
-      cotVistaActual = btn.dataset.vista;
-      document.querySelectorAll('#cotVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b === btn));
-      buscarCotizaciones();
+      cotEstatusActivo = btn.dataset.est;
+      renderCotizaciones();
     });
+    ['cotFHerramienta', 'cotFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderCotizaciones));
+    document.getElementById('cotLimpiarFiltros').addEventListener('click', () => {
+      document.getElementById('cotFHerramienta').value = '';
+      document.getElementById('cotFPrograma').value = '';
+      cotFClienteAuto.reset();
+      renderCotizaciones();
+    });
+    document.getElementById('cotActualizar').addEventListener('click', () => { buscarCotizaciones(); cargarKpisCotizaciones(); });
+    document.getElementById('cotCrearBtn').addEventListener('click', () => activarTabCot('crear'));
+    document.getElementById('cotHistoricoBtn').addEventListener('click', () => activarTabCot('ver'));
 
-    function cotizacionPorId(id){ return cotListaCache.find(c => String(c.id) === String(id)); }
+    function cotizacionPorId(id){ return cotTodas.find(c => String(c.id) === String(id)); }
 
-    async function accionEnviar(id){
+    // Editar = el formulario de Crear Cotización con todo precargado; al guardar crea la nueva versión y la anterior
+    // queda Reemplazada (el link que ya se compartió sigue abriendo, con un aviso).
+    async function accionEditar(id){
       const c = cotizacionPorId(id);
       if(!c) return;
-      try {
-        await apiPostJson('/api/actualizarEstatusCotizacion', { id: c.id, estatus: 'Enviada' });
-        const curso = c.temario_nombre || (TOOL_NAMES[c.herramienta] || c.herramienta);
-        const asunto = encodeURIComponent(`Cotización — ${curso} — ${c.cliente}`);
-        let cuerpo;
-        if(c.propuesta_codigo){
-          // propuesta web: se manda el link (y se copia, por si el correo prellenado no abre)
-          const link = PROPUESTA_BASE + c.propuesta_codigo;
-          try { await navigator.clipboard.writeText(link); } catch(e){ /* no es crítico: el link va en el cuerpo del correo */ }
-          toast('Marcada como Enviada. Link de la propuesta copiado.', true);
-          cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nTe comparto la propuesta para ${curso} (${c.cliente}) por ${fmtMoney(c.precio_final)} MXN + IVA:\n${link}\n\nAhí encuentras el temario, lo que incluye y cómo se mide. Si necesitas el PDF, lo guardas desde el botón Imprimir.\n\nQuedo al pendiente,\nAlfredo`);
-        } else {
-          toast('Marcada como Enviada.', true);
-          window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank');
-          cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nTe comparto la cotización para ${curso} (${c.cliente}) por ${fmtMoney(c.precio_final)} MXN — adjunto el PDF que acabo de descargar.\n\nQuedo al pendiente,\nAlfredo`);
-        }
-        window.location.href = `mailto:${c.contacto_correo || ''}?subject=${asunto}&body=${cuerpo}`;
-        buscarCotizaciones();
-        cargarKpisCotizaciones();
-      } catch(e){ toast('No se pudo marcar como enviada: ' + e.message, false); }
-    }
-
-    function accionCorreoSeguimiento(id){
-      const c = cotizacionPorId(id);
-      if(!c) return;
-      const curso = c.temario_nombre || (TOOL_NAMES[c.herramienta] || c.herramienta);
-      const asunto = encodeURIComponent(`Seguimiento — cotización ${c.cliente}`);
-      const cuerpo = encodeURIComponent(`Hola${c.contacto ? ' ' + c.contacto : ''},\n\nSolo dando seguimiento a la propuesta de ${curso} para ${c.cliente}. Quedo atento a tus comentarios.\n\nSaludos,\nAlfredo`);
-      window.location.href = `mailto:${c.contacto_correo || ''}?subject=${asunto}&body=${cuerpo}`;
-    }
-
-    async function accionNuevaVersion(id){
-      const c = cotizacionPorId(id);
-      if(!c) return;
-      // "Nueva versión" se dispara desde la pestaña Tracking — Crear vive en
-      // el mismo panel, solo hay que cambiar de pestaña.
-      document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
+      activarTabCot('crear');
       await precargarFormDesdeCotizacion(c);
     }
 
+    async function cambiarEstatusCot(id, estatus){
+      try {
+        await apiPostJson('/api/actualizarEstatusCotizacion', { id, estatus });
+        toast('Estatus actualizado.', true);
+        await buscarCotizaciones();
+        cargarKpisCotizaciones();
+        if(window.refrescarNotificaciones) window.refrescarNotificaciones();
+      } catch(e){
+        toast('No se pudo actualizar: ' + e.message, false);
+        renderCotizaciones(); // regresa el select a su valor real
+      }
+    }
+
+    async function confirmarEliminarCot(c){
+      if(!(await confirmarAccion({ mensaje: `¿Eliminar la cotización ${c.folio} de ${c.cliente}? Se borra de verdad de la base de datos y su propuesta web (el link deja de abrir) — no se puede deshacer. Si era la única de su solicitud, la solicitud vuelve a Nueva.`, variante: 'destructivo' }))) return;
+      try {
+        const r = await apiPostJson('/api/eliminarCotizacion', { id: c.id });
+        toast('Cotización eliminada.' + (r.solicitudReabierta ? ' Su solicitud volvió a Nueva.' : ''), true);
+        await buscarCotizaciones();
+        cargarKpisCotizaciones();
+        if(window.refrescarNotificaciones) window.refrescarNotificaciones();
+      } catch(e){ toast('No se pudo eliminar: ' + e.message, false); }
+    }
+
     document.getElementById('cotListaBody').addEventListener('click', e => {
-      const enviarBtn = e.target.closest('.cot-accion-enviar');
-      const versionBtn = e.target.closest('.cot-accion-version');
-      const seguimientoBtn = e.target.closest('.cot-accion-seguimiento');
       const verBtn = e.target.closest('.cot-accion-ver');
       const linkBtn = e.target.closest('.cot-accion-link');
+      const editarBtn = e.target.closest('.cot-accion-editar');
+      const elimBtn = e.target.closest('.cot-accion-eliminar');
       if(verBtn){ const c = cotizacionPorId(verBtn.dataset.id); if(c) window.open('/api/getCotizacionPdf?folio=' + encodeURIComponent(c.folio), '_blank'); }
       else if(linkBtn) copiarLinkPropuesta(cotizacionPorId(linkBtn.dataset.id));
-      else if(enviarBtn && !enviarBtn.disabled) accionEnviar(enviarBtn.dataset.id);
-      else if(versionBtn) accionNuevaVersion(versionBtn.dataset.id);
-      else if(seguimientoBtn) accionCorreoSeguimiento(seguimientoBtn.dataset.id);
+      else if(editarBtn) accionEditar(editarBtn.dataset.id);
+      else if(elimBtn){ const c = cotizacionPorId(elimBtn.dataset.id); if(c) confirmarEliminarCot(c); }
+    });
+    document.getElementById('cotListaBody').addEventListener('change', e => {
+      const sel = e.target.closest('.cot-estatus-select');
+      if(sel) cambiarEstatusCot(Number(sel.dataset.id), sel.value);
     });
 
     // ══ CREAR COTIZACIÓN — nace de una Solicitud, no de captura libre ══
@@ -13314,7 +13499,7 @@
     // detalle de esa solicitud. La lista de fondo se carga igual para que "Volver" funcione.
     window.cotizarDesdeSolicitud = async function(sol){
       activarPanel('tracking-comercial');
-      document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
+      window.activarTabCot('crear');
       await abrirDetalleCotizar(sol);
     };
 
@@ -13519,7 +13704,7 @@
         cargarKpisCotizaciones();
         // Tracking es una pestaña del mismo panel — cambiar de pestaña ya
         // dispara su propio refresco (ver el handler de #cotTabs).
-        document.querySelector('#cotTabs .dash-etab[data-cottab="tracking"]').click();
+        window.activarTabCot('tracking');
       } catch(e){
         toast('No se pudo crear: ' + e.message, false);
       }
@@ -13638,7 +13823,7 @@
     }
 
     function accionRecotizar(c){
-      document.querySelector('#cotTabs .dash-etab[data-cottab="crear"]').click();
+      window.activarTabCot('crear');
       precargarFormDesdeCotizacion(c);
     }
 
@@ -13666,17 +13851,17 @@
     document.getElementById('cotVLimpiarFiltros').addEventListener('click', limpiarFiltrosVer);
     document.getElementById('cotVVerTodos').addEventListener('click', () => { limpiarFiltrosVer(); buscarCotizacionesVer(); });
 
-    // ── pestañas (Tracking / Crear / Histórico, un solo panel) ──
-    document.getElementById('cotTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.dash-etab');
-      if(!btn) return;
-      const key = btn.dataset.cottab;
-      document.querySelectorAll('#cotTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+    // ── vistas del panel (Tracking / Crear / Histórico): se navega con botones, como Grupos ──
+    function activarTabCot(key){
       document.querySelectorAll('#panel-tracking-comercial .dip-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'cotTab-' + key));
       if(key === 'tracking'){ cargarKpisCotizaciones(); buscarCotizaciones(); }
       else if(key === 'crear'){ mostrarVistaCrear('lista'); cargarListaSolicitudesActivas(); cargarTarifasCache(); }
-      else if(key === 'ver' && !cotVBuscado){ cotVBuscado = true; buscarCotizacionesVer(); }
-    });
+      else if(key === 'ver'){ cotVBuscado = true; buscarCotizacionesVer(); }
+    }
+    window.activarTabCot = activarTabCot;
+    window.alEntrarACotizaciones = () => activarTabCot('tracking');
+    document.getElementById('cotVolverDeCrear').addEventListener('click', () => activarTabCot('tracking'));
+    document.getElementById('cotVolverDeVer').addEventListener('click', () => activarTabCot('tracking'));
 
     mostrarVistaCrear('lista');
     cargarKpisCotizaciones();

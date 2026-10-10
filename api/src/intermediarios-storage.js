@@ -35,9 +35,15 @@ async function getLogoIntermediarioBuffer(clienteId) {
   }
 }
 
+// true si ese Intermediario ya tiene su logo subido (para congelar en la propuesta si hay logo que mostrar)
+async function existeLogoIntermediario(clienteId) {
+  const container = await getIntermediariosContainer();
+  return container.getBlockBlobClient(`${clienteId}.png`).exists();
+}
+
 async function eliminarLogoIntermediario(clienteId) {
   const container = await getIntermediariosContainer();
   await container.getBlockBlobClient(`${clienteId}.png`).deleteIfExists();
 }
 
-module.exports = { subirLogoIntermediario, getLogoIntermediarioBuffer, eliminarLogoIntermediario };
+module.exports = { subirLogoIntermediario, getLogoIntermediarioBuffer, eliminarLogoIntermediario, existeLogoIntermediario };

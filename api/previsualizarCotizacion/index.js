@@ -5,6 +5,7 @@
 // localStorage. Por eso el folio es un placeholder y no resuelve/crea Cliente.
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
+const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -22,12 +23,22 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // vía intermediario: `cliente_nombre` es el Intermediario, `cliente_final_nombre` el cliente real; el permiso de mostrar el logo
+    // (mostrar_logo) lo manda el admin porque esta vista previa no toca SQL; aquí solo se confirma que el logo exista
+    let intermediario = null;
+    const intermId = Number(body.intermediario_id) || null;
+    if (intermId) {
+      const logoOk = body.intermediario_mostrar_logo ? await existeLogoIntermediario(intermId).catch(() => false) : false;
+      intermediario = { nombre: clienteNombre, logoUrl: logoOk ? "/api/getLogoIntermediario?cliente=" + intermId : null };
+    }
     const estandar = body.temario_tipo !== "personalizado" && (body.temario_nombre || "").trim();
     const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : await proyectosPorIds(herramienta, body.proyectos);
     const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * 100) / 100 : precioFinal;
     const snapshot = armarSnapshot({
       folio: "VISTA PREVIA",
       cliente: clienteNombre,
+      clienteFinal: intermediario ? (body.cliente_final_nombre || "").trim() || null : null,
+      intermediario,
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,
       programa: estandar ? body.temario_nombre.trim() : "Programa personalizado",

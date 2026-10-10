@@ -1373,6 +1373,10 @@
   }
   .cot-estatus-select:focus{ border-color:var(--blue-bright); }
   .cot-vencida{ color:var(--bad); font-weight:600; }
+  .cot-interm{ margin:0 0 14px; padding:14px 16px; background-color:var(--panel-2); border:1px solid var(--line); border-radius:10px; display:flex; flex-direction:column; gap:12px; }
+  .cot-interm .radm-switch-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .cot-interm .radm-form-row{ margin:0; }
+  .cot-via{ display:inline-flex; align-items:center; gap:5px; color:var(--blue-bright); }
   .cot-seg{ display:inline-flex; align-items:center; gap:5px; color:#dfb35a; font-weight:600; }
   .cot-seg svg{ width:13px; height:13px; flex:none; }
   #cotSegBtn svg{ width:14px; height:14px; }
@@ -1422,6 +1426,7 @@
   .cot-cb svg{ width:16px; height:16px; }
   .cot-dias{ display:flex; align-items:center; gap:4px 10px; flex-wrap:wrap; min-width:0; align-self:end; min-height:22px; }
   .cot-ex{ font-size:11.5px; color:var(--text-dim); }
+  .cot-ex.cot-via{ color:var(--blue-bright); }
   .cot-tool{ display:flex; justify-content:flex-end; align-self:end; position:relative; }
   .cot-tool svg{ width:19px; height:19px; }
   .cot-tool:hover::after{ content:attr(data-tip); position:absolute; right:0; bottom:26px; white-space:nowrap; font-family:var(--mono); font-size:11px; color:var(--text); background-color:var(--panel); border:1px solid var(--line); padding:3px 7px; z-index:6; }
@@ -3593,6 +3598,25 @@
             </button>
 
             <div class="cot-detalle-card" id="cotDetalleResumen"></div>
+
+            <div class="cot-interm" id="cotIntermForm">
+              <div class="radm-switch-row">
+                <label class="radm-switch"><input type="checkbox" id="cotIntermToggle"><span class="radm-switch-track"></span></label>
+                <span class="radm-switch-label">Vía intermediario</span>
+                <span class="radm-hint">El cliente de la solicitud pasa a ser el cliente final y la cotización se emite a nombre del intermediario.</span>
+              </div>
+              <div class="radm-form-row" id="cotIntermCampos" hidden>
+                <div class="radm-field">
+                  <label>INTERMEDIARIO <span class="dip-req">*</span></label>
+                  <select id="cotIntermSel"><option value="">Elige un intermediario…</option></select>
+                </div>
+                <div class="radm-field">
+                  <label>ATT. (CONTACTO DEL INTERMEDIARIO)</label>
+                  <select id="cotIntermContacto"><option value="">Sin contacto</option></select>
+                </div>
+              </div>
+              <div class="radm-hint" id="cotIntermHint"></div>
+            </div>
 
             <div class="cot-precio-form">
               <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
@@ -13620,6 +13644,85 @@
     wireInfoPop('cotInfoSemBtn', 'cotInfoSemPopover', renderInfoSemaforoCot);
     wireInfoPop('cotInfoFasesBtn', 'cotInfoFasesPopover', renderInfoFasesCot);
 
+    // ══ Cotización VÍA INTERMEDIARIO (2026-10-11) ══
+    // Mismo modelo que Grupo: cliente_id = el Intermediario (a quien se cotiza y cobra; su código va en el folio) y
+    // cliente_final_id = el cliente/prospecto real de la solicitud. La propuesta lleva "En colaboración con" + su logo.
+    let cotIntermLista = null;
+    async function cargarIntermediarios(){
+      if(cotIntermLista) return cotIntermLista;
+      const todos = await apiGetConReintento('/api/listClientesAdmin');
+      cotIntermLista = (todos || []).filter(c => c.tipo_cliente === 'Intermediario');
+      return cotIntermLista;
+    }
+    // nombre que se muestra en el Tracking: el cliente real; el intermediario va como "vía …"
+    const nombreClienteCot = c => c.cliente_final || c.cliente;
+    const viaCot = c => c.cliente_final ? c.cliente : '';
+
+    async function cargarContactosInterm(id, contactoId){
+      const sel = document.getElementById('cotIntermContacto');
+      if(!id){ sel.innerHTML = '<option value="">Sin contacto</option>'; return; }
+      sel.innerHTML = '<option value="">Cargando…</option>';
+      try {
+        const cs = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id);
+        sel.innerHTML = '<option value="">Sin contacto</option>' + cs.map(c => '<option value="' + c.id + '">' + escapeHtml(c.nombre) + (c.es_principal ? ' (principal)' : '') + '</option>').join('');
+        const principal = cs.find(c => c.es_principal);
+        sel.value = contactoId ? String(contactoId) : (principal ? String(principal.id) : '');
+      } catch(e){ sel.innerHTML = '<option value="">No se pudieron cargar</option>'; }
+    }
+    function actualizarHintInterm(){
+      const sol = cotSolicitudActual, hint = document.getElementById('cotIntermHint');
+      const id = Number(document.getElementById('cotIntermSel').value) || null;
+      const im = id && (cotIntermLista || []).find(c => c.id === id);
+      if(!sol || !im){ hint.textContent = ''; return; }
+      hint.textContent = 'Se cotiza a nombre de ' + im.nombre + ' (su código va en el folio). Cliente final: ' + sol.cliente + '.' +
+        (im.mostrar_logo ? ' Su logo saldrá en la portada si ya lo subiste en Clientes.' : ' Su logo NO saldrá: tiene desactivado "Mostrar en Reportes/cotizaciones".');
+    }
+    async function mostrarCamposInterm(idSel, contactoId){
+      document.getElementById('cotIntermCampos').hidden = false;
+      const sel = document.getElementById('cotIntermSel');
+      try {
+        const lista = await cargarIntermediarios();
+        const propio = cotSolicitudActual && cotSolicitudActual.cliente_id;
+        sel.innerHTML = '<option value="">Elige un intermediario…</option>' + lista.filter(c => c.id !== propio).map(c => '<option value="' + c.id + '">' + escapeHtml(c.nombre) + '</option>').join('');
+        if(idSel) sel.value = String(idSel);
+        if(!lista.length) document.getElementById('cotIntermHint').textContent = 'Todavía no hay clientes tipo Intermediario: créalos en Clientes (tipo "Intermediario").';
+      } catch(e){ toast('No se pudieron cargar los intermediarios: ' + e.message, false); }
+      await cargarContactosInterm(Number(sel.value) || null, contactoId);
+      if(Number(sel.value)) actualizarHintInterm();
+    }
+    // al abrir el formulario: sin intermediario, o precargado (editar una cotización vía intermediario)
+    async function prepararIntermForm(opts){
+      const t = document.getElementById('cotIntermToggle'), sel = document.getElementById('cotIntermSel');
+      t.checked = false; t.disabled = false; sel.disabled = false;
+      document.getElementById('cotIntermCampos').hidden = true;
+      document.getElementById('cotIntermHint').textContent = '';
+      const im = opts && opts.intermediario;
+      if(im){ t.checked = true; await mostrarCamposInterm(im.id, im.contactoId); }
+      if(opts && opts.actualizaId){
+        // editar un Borrador en el lugar conserva el folio, que lleva el código del intermediario: para cambiarlo, versión nueva
+        t.disabled = true; sel.disabled = true;
+        if(t.checked) document.getElementById('cotIntermHint').textContent = 'En un Borrador no se puede cambiar el intermediario (cambiaría el folio): crea una versión nueva desde una cotización Enviada.';
+      }
+    }
+    // null = cotización normal · {error:true} = encendido sin elegir · {id, nombre, mostrar_logo, contactoId, contactoNombre}
+    function leerInterm(){
+      if(!document.getElementById('cotIntermToggle').checked) return null;
+      const id = Number(document.getElementById('cotIntermSel').value) || null;
+      if(!id) return { error: true };
+      const c = (cotIntermLista || []).find(x => x.id === id) || {};
+      const cs = document.getElementById('cotIntermContacto');
+      const contactoId = Number(cs.value) || null;
+      return { id, nombre: c.nombre || '', mostrar_logo: !!c.mostrar_logo, contactoId, contactoNombre: contactoId ? (cs.options[cs.selectedIndex] || {}).textContent.replace(' (principal)', '') : '' };
+    }
+    document.getElementById('cotIntermToggle').addEventListener('change', e => {
+      if(e.target.checked) mostrarCamposInterm(null, null);
+      else { document.getElementById('cotIntermCampos').hidden = true; document.getElementById('cotIntermHint').textContent = ''; }
+    });
+    document.getElementById('cotIntermSel').addEventListener('change', async e => {
+      await cargarContactosInterm(Number(e.target.value) || null, null);
+      actualizarHintInterm();
+    });
+
     // ══ SEGUIMIENTO de cotizaciones (reglas fijas, 2026-10-10) ══
     // Como las sugerencias de fase de Grupos, pero por tiempo en el estatus actual:
     //   Borrador > 24 h → recordar que la envíes · Enviada > 24 h → confirmar que el cliente la recibió (pasa a En negociación)
@@ -13707,7 +13810,7 @@
         document.getElementById('cotSegPaso').textContent = total > 1 ? n + ' de ' + total + ' · puedes cerrar con Esc' : '';
         document.getElementById('cotSegPaso').hidden = total <= 1;
         document.getElementById('cotSegResumen').innerHTML =
-          fila('Cliente', escapeHtml(c.cliente) + (c.contacto ? ' · ' + escapeHtml(c.contacto) : '')) +
+          fila('Cliente', escapeHtml(nombreClienteCot(c)) + (viaCot(c) ? ' (vía ' + escapeHtml(viaCot(c)) + ')' : '') + (c.contacto ? ' · ' + escapeHtml(c.contacto) : '')) +
           fila('Folio', escapeHtml(c.folio)) +
           fila('Programa', escapeHtml(c.temario_nombre || 'Personalizado')) +
           fila('Monto', fmtMoney(c.precio_final)) +
@@ -13846,7 +13949,7 @@
       const her = document.getElementById('cotFHerramienta').value;
       const prog = document.getElementById('cotFPrograma').value;
       return cotTodas.filter(c =>
-        (!cli || c.cliente_id === cli.id) && (!her || c.herramienta === her) && (!prog || programaClaveCot(c) === prog));
+        (!cli || c.cliente_id === cli.id || c.cliente_final_id === cli.id) && (!her || c.herramienta === her) && (!prog || programaClaveCot(c) === prog));
     }
     const enTabCot = (c, tab) =>
       tab === 'activas' ? ESTATUS_ACTIVOS.includes(c.estatus) : tab === 'ganadas' ? c.estatus === 'Ganada' : tab === 'perdidas' ? c.estatus === 'Perdida' : true;
@@ -13871,8 +13974,8 @@
         <tr data-id="${c.id}">
           <td><div>${fmtFecha(c.fecha_creacion)}</div><div class="sol-hora" title="Folio">${escapeHtml(c.folio)}</div></td>
           <td>
-            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(c.cliente)}</span></div>
-            <div class="sol-cli-sub">${c.contacto ? escapeHtml(c.contacto) + (c.contacto_area ? ' · ' + escapeHtml(c.contacto_area) : '') : '—'}</div>
+            <div class="sol-cli"><span class="sol-cli-nombre">${escapeHtml(nombreClienteCot(c))}</span></div>
+            <div class="sol-cli-sub">${viaCot(c) ? 'vía ' + escapeHtml(viaCot(c)) + (c.contacto ? ' · ' : '') : ''}${c.contacto ? escapeHtml(c.contacto) + (c.contacto_area ? ' · ' + escapeHtml(c.contacto_area) : '') : '—'}</div>
           </td>
           <td><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO_COT[tipo]}${tipo}</span></td>
           <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</td>
@@ -14022,14 +14125,14 @@
       const vig = vigenciaTextoCot(c);
       return `
         <div class="cot-card ${fase === 'Ganada' ? 'gan' : ''}" style="border-left-color:${COLOR_FASE[fase] || '#8b93a1'}" draggable="true" data-id="${c.id}">
-          <div class="cot-emp" title="${escapeHtml(c.cliente)}">${escapeHtml(c.cliente)}</div>
+          <div class="cot-emp" title="${escapeHtml(nombreClienteCot(c))}${viaCot(c) ? ' · vía ' + escapeHtml(viaCot(c)) : ''}">${escapeHtml(nombreClienteCot(c))}</div>
           <div class="cot-mon">${fmtMoney(c.precio_final)}</div>
           <div class="cot-prog" title="${escapeHtml(programa)}">${escapeHtml(programa)}</div>
           <div class="cot-ctl">
             <button type="button" class="cot-cb" data-acc="menu" data-id="${c.id}" title="Acciones" aria-label="Acciones" aria-haspopup="menu" aria-expanded="${cotMenu === c.id}">${ICO_AJUSTES}</button>
             ${cotMenu === c.id ? menuCotHtml(c) : ''}
           </div>
-          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
+          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
           <div class="cot-tool" style="color:${meta.color || 'var(--text-dim)'}" data-tip="${escapeHtml(c.folio)}" title="${escapeHtml(c.folio)}" aria-label="Folio ${escapeHtml(c.folio)}">${meta.icon || ''}</div>
         </div>`;
     }
@@ -14170,6 +14273,7 @@
         if(ok && r.accion === 'grupo' && window.crearGrupoDesdeCotizacion){
           window.crearGrupoDesdeCotizacion({
             cliente: { id: c.cliente_id, nombre: c.cliente, codigo: c.cliente_codigo },
+            clienteFinal: c.cliente_final_id ? { id: c.cliente_final_id, nombre: c.cliente_final, codigo: '' } : null,
             cotizacionId: c.id, nombreCurso: c.temario_nombre || '', herramienta: c.herramienta, horas: c.horas,
           });
         }
@@ -14523,6 +14627,7 @@
       else { descuentoInput.value = ''; delete descuentoInput.dataset.tocado; }
       if(opts.precioFinalInicial != null){ precioInput.value = opts.precioFinalInicial; precioInput.dataset.tocado = '1'; }
       else { precioInput.value = ''; delete precioInput.dataset.tocado; }
+      prepararIntermForm(opts);
       document.getElementById('cotReemplazaHint').textContent = cotActualizaIdActual
         ? `Editando el borrador ${opts.folioActual} — se guarda en el mismo folio y el mismo link.`
         : cotReemplazaFolioActual
@@ -14567,8 +14672,11 @@
       if(!Number.isFinite(precioFinal)){ toast('Falta el precio final.', false); return; }
       const sol = cotSolicitudActual;
       const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
+      const im = leerInterm();
+      if(im && im.error){ toast('Elige el intermediario.', false); return; }
       const payload = {
-        cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
+        cliente_nombre: im ? im.nombre : sol.cliente, contacto_nombre: im ? (im.contactoNombre || '') : (sol.contacto || ''),
+        ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo } : {}),
         herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
         horas_totales: horasDe(sol), precio_final: precioFinal, tarifa_hora: tarifasCache[sol.herramienta] || null,
         temario_tipo: sol.temario_tipo,
@@ -14597,9 +14705,12 @@
       if(!Number.isFinite(precioFinal) || precioFinal < 0){ toast('El precio final no es válido.', false); return; }
 
       const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
+      const im = leerInterm();
+      if(im && im.error){ toast('Elige el intermediario.', false); return; }
       const payload = {
         empresa: { clienteId: sol.cliente_id },
-        contacto_id: sol.contacto_id || null,
+        contacto_id: im ? im.contactoId : (sol.contacto_id || null),
+        ...(im ? { intermediario_id: im.id } : {}),
         solicitud_id: sol.id || null,
         reemplaza_a_folio: cotReemplazaFolioActual,
         actualiza_id: cotActualizaIdActual,
@@ -14642,9 +14753,11 @@
     // lista de Solicitudes (aunque sí liga con su Solicitud de origen si la
     // tiene, para poder editarla desde ahí) ──
     function precargarFormDesdeCotizacion(c){
+      const viaInterm = !!c.cliente_final_id;
       const datosComoSolicitud = {
         id: c.solicitud_id || null,
-        cliente_id: c.cliente_id, cliente: c.cliente, cliente_codigo: c.cliente_codigo,
+        // vía intermediario: el "cliente" del formulario es el cliente FINAL; el intermediario viaja en opts.intermediario
+        cliente_id: viaInterm ? c.cliente_final_id : c.cliente_id, cliente: viaInterm ? c.cliente_final : c.cliente, cliente_codigo: c.cliente_codigo,
         contacto_id: c.contacto_id, contacto: c.contacto,
         herramienta: c.herramienta, temario_tipo: c.temario_tipo, temario_nombre: c.temario_nombre,
         temas_json: c.temas_json, horas_totales: c.horas,
@@ -14657,6 +14770,7 @@
         reemplazaAFolio: enElLugar ? null : c.folio,
         actualizaId: enElLugar ? c.id : null,
         folioActual: c.folio,
+        intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id } : null,
         precioFinalInicial: c.precio_final,
         descuentoInicial: c.descuento_pct,
       });
@@ -16526,6 +16640,11 @@
         document.getElementById('gruNotas').value = g.notas || '';
       } else if(precarga){
         gruClienteAuto.set(precarga.cliente);
+        if(precarga.clienteFinal){
+          document.getElementById('gruToggleClienteFinal').checked = true;
+          document.getElementById('gruClienteFinalRow').hidden = false;
+          gruClienteFinalAuto.set(precarga.clienteFinal);
+        }
         document.getElementById('gruToggleCotizacion').checked = true;
         document.getElementById('gruCotizacionField').hidden = false;
         cargarCotizacionesCliente(precarga.cliente).then(() => { document.getElementById('gruCotizacion').value = String(precarga.cotizacionId); });
@@ -17815,6 +17934,7 @@
         fields:[
           f('id','INT',{pk:true}),
           f('cliente_id','INT',{fk:'Cliente.id'}),
+          f('cliente_final_id','INT',{fk:'Cliente.id',opt:true,extra:'vía intermediario'}),
           f('contacto_id','INT',{fk:'Contacto.id',opt:true}),
           f('herramienta','NVARCHAR(50)'),
           f('temario_tipo','estandar|personalizado'),
@@ -18197,7 +18317,8 @@
       { from:'Solicitud', to:'Cliente', kind:'fk' },
       { from:'Solicitud', to:'Contacto', kind:'fk' },
       { from:'Cotizacion', to:'Solicitud', kind:'fk' },
-      { from:'Cotizacion', to:'Cliente', kind:'fk' },
+      { from:'Cotizacion', to:'Cliente', kind:'fk', label:'cliente_id', offset:-16 },
+      { from:'Cotizacion', to:'Cliente', kind:'fk', label:'cliente_final_id · opcional', offset:16 },
       { from:'Cotizacion', to:'Contacto', kind:'fk' },
       { from:'Cotizacion', to:'Cotizacion', kind:'fk', self:true, label:'reemplaza_a_folio' },
       { from:'Alumno', to:'Cliente', kind:'fk' },

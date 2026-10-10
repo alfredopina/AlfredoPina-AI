@@ -49,7 +49,7 @@ module.exports = async function (context, req) {
 
     const where = condiciones.length ? "WHERE " + condiciones.join(" AND ") : "";
     const result = await request.query(`
-      SELECT s.id, s.folio, s.solicitud_id, s.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo,
+      SELECT s.id, s.folio, s.solicitud_id, s.cliente_id, s.cliente_final_id, cf.nombre AS cliente_final, c.nombre AS cliente, c.codigo AS cliente_codigo,
              s.contacto_id, ct.nombre AS contacto, ct.area AS contacto_area, ct.correo AS contacto_correo,
              s.herramienta, s.temario_tipo, s.temario_nombre, s.temas_json,
              s.horas, s.precio_sugerido, s.descuento_pct, s.precio_final,
@@ -64,6 +64,7 @@ module.exports = async function (context, req) {
       FROM Cotizacion s
       JOIN Cliente c ON c.id = s.cliente_id
       LEFT JOIN Contacto ct ON ct.id = s.contacto_id
+      LEFT JOIN Cliente cf ON cf.id = s.cliente_final_id
       LEFT JOIN Solicitud so ON so.id = s.solicitud_id
       ${where}
       ORDER BY s.fecha_creacion DESC

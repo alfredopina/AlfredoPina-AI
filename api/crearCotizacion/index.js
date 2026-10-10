@@ -15,6 +15,7 @@ const { resolverCliente } = require("../src/cliente-resolver");
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { esPrecioManual, armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
 const { codigoCortoUnico } = require("../src/codigo-corto");
+const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
@@ -35,6 +36,9 @@ module.exports = async function (context, req) {
   const body = req.body || {};
   const empresa = body.empresa || {};
   const contactoId = body.contacto_id ? Number(body.contacto_id) : null;
+  // vía intermediario: `empresa` sigue siendo el cliente de la solicitud (queda como cliente FINAL) y `intermediario_id` pasa a ser
+  // a quien se cotiza (cliente_id, folio y contacto salen de él)
+  const intermediarioId = body.intermediario_id ? Number(body.intermediario_id) : null;
   const solicitudId = body.solicitud_id ? Number(body.solicitud_id) : null;
   const reemplazaAFolio = (body.reemplaza_a_folio || "").trim() || null;
   const herramienta = (body.herramienta || "").trim().toLowerCase();
@@ -81,11 +85,24 @@ module.exports = async function (context, req) {
   }
 
   let pool, cliente, contactoNombre;
+  let clienteFinal = null;
+  let interm = null;
   try {
     pool = await getPool();
     cliente = await resolverCliente(pool, empresa);
+    if (intermediarioId) {
+      const r = await pool.request().input("id", sql.Int, intermediarioId).query("SELECT id, nombre, codigo, tipo_cliente, mostrar_logo FROM Cliente WHERE id = @id");
+      const row = r.recordset[0];
+      if (!row || row.tipo_cliente !== "Intermediario") throw new Error("El intermediario elegido no es un cliente tipo Intermediario.");
+      if (row.id === cliente.id) throw new Error("El intermediario y el cliente final no pueden ser el mismo.");
+      clienteFinal = cliente;
+      cliente = { id: row.id, nombre: row.nombre, codigo: row.codigo };
+      interm = row;
+    }
     if (contactoId) {
-      const r = await pool.request().input("id", sql.Int, contactoId).query("SELECT nombre FROM Contacto WHERE id = @id");
+      // en modo intermediario el contacto debe ser del intermediario (a quien va dirigida la propuesta)
+      const r = await pool.request().input("id", sql.Int, contactoId).input("cid", sql.Int, cliente.id)
+        .query("SELECT nombre FROM Contacto WHERE id = @id" + (interm ? " AND cliente_id = @cid" : ""));
       contactoNombre = r.recordset.length ? r.recordset[0].nombre : null;
     }
   } catch (err) {
@@ -117,11 +134,12 @@ module.exports = async function (context, req) {
   let existente = null;
   try {
     if (actualizaId) {
-      const r = await pool.request().input("id", sql.Int, actualizaId).query("SELECT id, folio, estatus, cliente_id, blob_path FROM Cotizacion WHERE id = @id");
+      const r = await pool.request().input("id", sql.Int, actualizaId).query("SELECT id, folio, estatus, cliente_id, cliente_final_id, blob_path FROM Cotizacion WHERE id = @id");
       existente = r.recordset[0];
       if (!existente) throw Object.assign(new Error("Esa cotización ya no existe."), { status: 404 });
       if (existente.estatus !== "Borrador") throw Object.assign(new Error("Solo un Borrador se edita en el lugar; las demás generan una versión nueva."), { status: 400 });
       if (existente.cliente_id !== cliente.id) throw Object.assign(new Error("No se puede cambiar el cliente de un borrador."), { status: 400 });
+      if ((existente.cliente_final_id || null) !== (clienteFinal ? clienteFinal.id : null)) throw Object.assign(new Error("Para cambiar de intermediario crea una versión nueva (cambia el folio)."), { status: 400 });
       folio = existente.folio;
     } else {
       const consecutivo = await siguienteConsecutivo(pool, cliente.id, yy);
@@ -150,9 +168,12 @@ module.exports = async function (context, req) {
         try { await tablaPropuestas.getEntity("propuesta", c); return true; } catch (e) { return false; }
       });
     }
+    const logoOk = interm && interm.mostrar_logo ? await existeLogoIntermediario(interm.id).catch(() => false) : false;
     const snapshot = armarSnapshot({
       folio,
       cliente: cliente.nombre,
+      clienteFinal: clienteFinal ? clienteFinal.nombre : null,
+      intermediario: interm ? { nombre: interm.nombre, logoUrl: logoOk ? "/api/getLogoIntermediario?cliente=" + interm.id : null } : null,
       contacto: contactoNombre,
       herramienta,
       programa: temarioTipo === "estandar" && temarioNombre ? temarioNombre : "Programa personalizado",
@@ -210,7 +231,7 @@ module.exports = async function (context, req) {
       context.res = {
         status: 200,
         headers: JSON_HEADERS,
-        body: { id: existente.id, folio, cliente, precioSugerido, descuentoPct, precioFinal, propuesta_codigo: codigoPropuesta, actualizada: true },
+        body: { id: existente.id, folio, cliente, cliente_final: clienteFinal, precioSugerido, descuentoPct, precioFinal, propuesta_codigo: codigoPropuesta, actualizada: true },
       };
       return;
     }
@@ -219,6 +240,7 @@ module.exports = async function (context, req) {
       .input("folio", sql.NVarChar, folio)
       .input("solicitudId", sql.Int, solicitudId)
       .input("clienteId", sql.Int, cliente.id)
+      .input("clienteFinalId", sql.Int, clienteFinal ? clienteFinal.id : null)
       .input("contactoId", sql.Int, contactoId)
       .input("herramienta", sql.NVarChar, herramienta)
       .input("temarioTipo", sql.NVarChar, temarioTipo)
@@ -237,12 +259,12 @@ module.exports = async function (context, req) {
       .input("modalidad", sql.NVarChar, modalidad)
       .query(
         `INSERT INTO Cotizacion
-          (folio, solicitud_id, cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json,
+          (folio, solicitud_id, cliente_id, cliente_final_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json,
            horas, precio_sugerido, descuento_pct, precio_final, fecha_vigencia, reemplaza_a_folio, blob_path,
            fecha_tentativa, ciudad_sede, participantes, modalidad)
          OUTPUT INSERTED.id
          VALUES
-          (@folio, @solicitudId, @clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson,
+          (@folio, @solicitudId, @clienteId, @clienteFinalId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson,
            @horas, @precioSugerido, @descuentoPct, @precioFinal, @fechaVigencia, @reemplazaAFolio, @blobPath,
            @fechaTentativa, @ciudadSede, @participantes, @modalidad)`
       );

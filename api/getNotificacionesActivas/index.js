@@ -55,10 +55,11 @@ async function cotizacionesFrias(pool, umbral) {
     .request()
     .input("umbral", sql.Int, umbral)
     .query(`
-      SELECT s.id, c.nombre AS cliente, s.herramienta,
+      SELECT s.id, COALESCE(cf.nombre, c.nombre) AS cliente, s.herramienta,
              DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias
       FROM Cotizacion s
       JOIN Cliente c ON c.id = s.cliente_id
+      LEFT JOIN Cliente cf ON cf.id = s.cliente_final_id
       WHERE s.estatus IN ('Enviada', 'En negociación')
         AND DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) >= @umbral
       ORDER BY dias DESC
@@ -76,10 +77,11 @@ async function cotizacionesFrias(pool, umbral) {
 // Acción en el Tracking: "Extender vigencia" (mismo folio, mismo link).
 async function cotizacionesVencidas(pool) {
   const result = await pool.request().query(`
-    SELECT s.id, c.nombre AS cliente, s.herramienta, s.folio,
+    SELECT s.id, COALESCE(cf.nombre, c.nombre) AS cliente, s.herramienta, s.folio,
            DATEDIFF(day, s.fecha_vigencia, CAST(GETUTCDATE() AS DATE)) AS dias
     FROM Cotizacion s
     JOIN Cliente c ON c.id = s.cliente_id
+      LEFT JOIN Cliente cf ON cf.id = s.cliente_final_id
     WHERE s.estatus IN ('Enviada', 'En negociación') AND s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)
     ORDER BY dias DESC
   `);
@@ -98,9 +100,10 @@ async function cotizacionesVencidas(pool) {
 async function cotizacionesAceptadasPorConfirmar(pool) {
   try {
     const result = await pool.request().query(`
-      SELECT s.id, c.nombre AS cliente, s.herramienta, s.folio, s.blob_path
+      SELECT s.id, COALESCE(cf.nombre, c.nombre) AS cliente, s.herramienta, s.folio, s.blob_path
       FROM Cotizacion s
       JOIN Cliente c ON c.id = s.cliente_id
+      LEFT JOIN Cliente cf ON cf.id = s.cliente_final_id
       WHERE s.estatus IN ('Borrador', 'Enviada', 'En negociación') AND s.blob_path LIKE 'propuesta/%'
     `);
     if (!result.recordset.length) return [];

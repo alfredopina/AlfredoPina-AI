@@ -116,6 +116,10 @@ function armarSnapshot(d) {
   return {
     folio: d.folio,
     cliente: d.cliente,
+    // vía intermediario: `cliente` es el Intermediario (a quien se cotiza); `clienteFinal` el cliente real; `intermediario.logoUrl` solo si
+    // tiene logo y autorizó mostrarlo (se congela al crear la propuesta)
+    clienteFinal: d.clienteFinal || null,
+    intermediario: d.intermediario ? { nombre: d.intermediario.nombre, logoUrl: d.intermediario.logoUrl || null } : null,
     contacto: d.contacto || null,
     herramienta: d.herramienta,
     herramientaNombre: TOOL_LABELS[d.herramienta] || d.herramienta,

@@ -2,6 +2,8 @@
 const Module = require("module");
 const consultas = [];
 const propGuardadas = [];
+let intermRow = null;
+let logoExiste = true;
 const fila = { id: 7, folio: "AP26-ACME-EXCEL-01", estatus: "Borrador", cliente_id: 1, blob_path: "propuesta/abcd1234" };
 const fakePool = {
   request() {
@@ -9,6 +11,8 @@ const fakePool = {
       async query(sqlText) {
         consultas.push({ sqlText, inputs: this._in });
         if (/FROM Cotizacion WHERE id/.test(sqlText)) return { recordset: [fila] };
+        if (/FROM Cliente WHERE id/.test(sqlText)) return { recordset: intermRow ? [intermRow] : [] };
+        if (/INSERT INTO Cotizacion/.test(sqlText)) return { recordset: [{ id: 99 }] };
         if (/TarifaHerramienta/.test(sqlText)) return { recordset: [{ precio_hora: 500 }] };
         if (/FROM Cotizacion WHERE cliente_id/.test(sqlText)) return { recordset: [] };
         return { recordset: [], rowsAffected: [1] };
@@ -20,6 +24,7 @@ const origLoad = Module._load;
 Module._load = function (req, ...a) {
   if (/backoffice-db$/.test(req)) return { getPool: async () => fakePool, sql: { Int: 1, NVarChar: 1, Decimal: () => 1, Date: 1 } };
   if (/cliente-resolver$/.test(req)) return { resolverCliente: async () => ({ id: Number(process.env.CLI || 1), nombre: "Acme", codigo: "ACME" }) };
+  if (/intermediarios-storage$/.test(req)) return { existeLogoIntermediario: async () => logoExiste };
   if (/cotizacion-proyectos$/.test(req)) return { proyectosParaPropuesta: async () => [], proyectosPorIds: async (h, e) => e.map((p) => ({ nombre: p.nombre, resumen: p.resumen, imagenUrl: null })) };
   if (/\/propuestas$/.test(req)) {
     const real = origLoad.call(this, req, ...a);
@@ -45,6 +50,39 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   process.env.CLI = "2";
   r = await llamar({ ...base, actualiza_id: 7 });
   check("cambiar de cliente al editar: 400", r.status === 400);
-  console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
+// ── vía intermediario ──
+  process.env.CLI = "2"; // el cliente de la solicitud (cliente FINAL)
+  intermRow = { id: 5, nombre: "Intermedia SA", codigo: "INT", tipo_cliente: "Intermediario", mostrar_logo: 1 };
+  propGuardadas.length = 0; consultas.length = 0;
+  r = await llamar({ ...base, intermediario_id: 5 });
+  const ins = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  check("vía intermediario: 200, la cotización queda a nombre del intermediario y guarda al cliente final", r.status === 200 && ins && ins.inputs.clienteId === 5 && ins.inputs.clienteFinalId === 2);
+  check("el folio usa el código del intermediario", /^AP\d\d-INT-EXCEL-\d\d$/.test(r.body.folio));
+  const sn = propGuardadas[0].snapshot;
+  check("la propuesta lleva intermediario, cliente final y el logo (permiso + archivo)", sn.cliente === "Intermedia SA" && sn.clienteFinal === "Acme" && sn.intermediario.nombre === "Intermedia SA" && sn.intermediario.logoUrl === "/api/getLogoIntermediario?cliente=5");
+  logoExiste = false; propGuardadas.length = 0;
+  await llamar({ ...base, intermediario_id: 5 });
+  check("sin logo subido: sin logoUrl (solo texto)", propGuardadas[0].snapshot.intermediario.logoUrl === null);
+  logoExiste = true; intermRow.mostrar_logo = 0; propGuardadas.length = 0;
+  await llamar({ ...base, intermediario_id: 5 });
+  check("con 'mostrar logo' apagado: sin logoUrl", propGuardadas[0].snapshot.intermediario.logoUrl === null);
+  intermRow.mostrar_logo = 1; intermRow.tipo_cliente = "Directo";
+  r = await llamar({ ...base, intermediario_id: 5 });
+  check("elegir un cliente que no es Intermediario: 400", r.status === 400);
+  intermRow.tipo_cliente = "Intermediario"; process.env.CLI = "5";
+  r = await llamar({ ...base, intermediario_id: 5 });
+  check("intermediario = cliente final: 400", r.status === 400);
+  process.env.CLI = "2"; consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base });
+  const ins2 = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  check("cotización normal: sin cliente final ni intermediario", r.status === 200 && ins2.inputs.clienteFinalId === null && propGuardadas[0].snapshot.intermediario === null && propGuardadas[0].snapshot.clienteFinal === null);
+  fila.estatus = "Borrador"; fila.cliente_id = 5; fila.cliente_final_id = null;
+  r = await llamar({ ...base, intermediario_id: 5, actualiza_id: 7 });
+  check("editar en el lugar un Borrador cambiándole el intermediario: 400", r.status === 400);
+  fila.cliente_final_id = 2;
+  r = await llamar({ ...base, intermediario_id: 5, actualiza_id: 7 });
+  check("editar en el lugar un Borrador vía intermediario (mismos clientes): 200", r.status === 200 && r.body.actualizada === true);
+
+    console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

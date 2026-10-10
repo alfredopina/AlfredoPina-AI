@@ -1103,8 +1103,31 @@
      derecha de la línea de Ordenar, y su popover (mismo patrón posicional
      que .gru-msel-panel de Grupos: absoluto, se cierra al hacer clic afuera). */
   .cli-info-wrap{ position:relative; margin-left:auto; }
-  .cot-info-row{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .cot-info-row .cli-info-wrap{ margin-left:0; }
+  /* ── Estándar de Trackings (2026-10-10): tarjetas → alerta → VISTAS (atajos de fase) → FILTROS (máx. 3) → tabla ──
+     Vistas = segmentos rellenos a la izquierda; los popovers Info van a la derecha de la MISMA línea con otro estilo
+     (contorno punteado) para que no se confundan con una vista. Filtros: actualizar y limpiar pegados a los filtros;
+     Crear / Histórico a la derecha. */
+  .trk-vistas{ display:flex; flex-direction:column; gap:12px; background-color:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; }
+  .trk-vistas-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .trk-vistas-label{ display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); }
+  .trk-vistas-label svg{ width:14px; height:14px; flex:none; }
+  .trk-vistas .radm-tabs{ margin-bottom:0; gap:6px; justify-content:flex-start; flex-wrap:wrap; }
+  .trk-vistas .radm-tab{ border-radius:20px; padding:6px 13px; font-size:12px; }
+  .trk-vistas .radm-tab.active{ background-color:var(--blue-bright); border-color:var(--blue-bright); color:#0a0d12; font-weight:700; }
+  .trk-vistas .radm-tab.active .radm-tab-count{ color:#0a0d12; border-color:rgba(10,13,18,.35); background-color:rgba(10,13,18,.12); }
+  .trk-sep{ width:1px; height:22px; background-color:var(--line); flex:none; }
+  .trk-sep[hidden], .radm-switch-row[hidden], .radm-field[hidden]{ display:none; }
+  .trk-vistas-info{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .trk-vistas-info .cli-info-wrap{ margin-left:0; }
+  .trk-vistas-info .cli-info-btn{ background-color:transparent; border-style:dashed; border-color:rgba(107,159,255,.55); color:var(--blue-bright); }
+  .trk-vistas-info .cli-info-btn:hover, .trk-vistas-info .cli-info-btn.active{ background-color:var(--blue-soft); border-style:solid; border-color:var(--blue-bright); }
+  .trk-fases-cap{ font-family:var(--mono); font-size:10px; letter-spacing:.3px; text-transform:uppercase; color:var(--text-faint); margin-bottom:10px; }
+  .trk-vistas .resumen-track{ margin-bottom:2px; }
+  .trk-acc-der{ margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .dip-filters #cotVersionesWrap{ align-self:flex-end; height:38px; display:flex; align-items:center; }
+  .trk-result{ align-self:flex-end; height:38px; display:inline-flex; align-items:center; font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap; }
+  .cot-icon-btn.hay-filtros{ position:relative; border-color:var(--blue-bright); color:var(--blue-bright); }
+  .cot-icon-btn.hay-filtros::after{ content:""; position:absolute; top:-3px; right:-3px; width:9px; height:9px; border-radius:50%; background-color:var(--blue-bright); box-shadow:0 0 0 2px var(--panel); }
   .cli-info-btn{
     display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
     background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
@@ -1323,12 +1346,6 @@
   .cot-aceptada b{ color:var(--teal-bright, #14b8a6); }
 
   /* ---- Tablero de Cotizaciones (2026-10-09) ---- */
-  .cot-top{ display:flex; justify-content:flex-start; align-items:center; gap:18px; flex-wrap:wrap; }
-  /* el selector de vista (Contenedor / Tabla) queda fijo a la izquierda; lo propio de la Tabla (versiones y estatus) va después */
-  .cot-top #cotVistaToggle{ order:0; }
-  .cot-top #cotVersionesWrap{ order:1; }
-  .cot-top #cotEstatusTabs{ order:2; margin-left:auto; }
-  .cot-top .radm-tabs[hidden], .cot-top .radm-switch-row[hidden]{ display:none; }
   .cot-board-wrap{ overflow-x:auto; padding-bottom:8px; }
   .cot-lanes{ display:grid; grid-template-columns:repeat(3, minmax(250px, 1fr)) minmax(280px, 1.1fr); min-width:1040px; align-items:stretch; }
   .cot-lane{ padding:0 10px 12px; border-right:1px solid var(--line-soft); min-height:380px; }
@@ -2715,23 +2732,26 @@
         </div>
 
         <div class="sol-toolbar">
-          <div class="cot-top">
-          <div class="radm-tabs sol-estatus-tabs" id="solEstatusTabs" style="margin-bottom:0;">
+        <div class="trk-vistas">
+          <div class="trk-vistas-row">
+            <span class="trk-vistas-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Vistas</span>
+            <div class="radm-tabs sol-estatus-tabs" id="solEstatusTabs" style="margin-bottom:0;">
             <button type="button" class="radm-tab active" data-est="Nueva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Nuevas<span class="radm-tab-count" id="solCntNueva">0</span></button>
             <button type="button" class="radm-tab" data-est="Cotizada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Cotizadas<span class="radm-tab-count" id="solCntCotizada">0</span></button>
             <button type="button" class="radm-tab" data-est="Descartada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Descartadas<span class="radm-tab-count" id="solCntDescartada">0</span></button>
             <button type="button" class="radm-tab" data-est=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="solCntTodas">0</span></button>
-          </div>
-          <div class="cot-info-row">
+            </div>
+            <div class="trk-vistas-info">
               <div class="cli-info-wrap">
-                <button type="button" class="cli-info-btn" id="solInfoSemBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Semáforo
-                </button>
-                <div class="cli-info-popover" id="solInfoSemPopover" hidden></div>
+              <button type="button" class="cli-info-btn" id="solInfoSemBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+              Info Semáforo
+              </button>
+              <div class="cli-info-popover" id="solInfoSemPopover" hidden></div>
               </div>
+            </div>
           </div>
-          </div>
+        </div>
           <div class="dip-filters" style="margin-bottom:0;">
             <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2760,13 +2780,16 @@
               </select>
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn-add" id="solCrearBtn" style="white-space:nowrap;">+ Crear Solicitud</button>
               <button type="button" class="cot-icon-btn" id="solActualizar" title="Actualizar la lista y los indicadores">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <button type="button" class="cot-icon-btn" id="solLimpiarFiltros" title="Limpiar filtros">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
+            </div>
+            <span class="trk-result" id="solResultado"></span>
+            <div class="trk-acc-der">
+              <button type="button" class="radm-btn-add" id="solCrearBtn" style="white-space:nowrap;">+ Crear Solicitud</button>
             </div>
           </div>
         </div>
@@ -3139,6 +3162,33 @@
           </div>
 
           <div class="sol-toolbar">
+          <div class="trk-vistas">
+            <div class="trk-vistas-row">
+              <span class="trk-vistas-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Vistas</span>
+              <div class="radm-tabs" id="cliVistas" style="margin-bottom:0;">
+                <button type="button" class="radm-tab active" data-sem=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todos<span class="radm-tab-count" id="cliCntTodos">0</span></button>
+                <button type="button" class="radm-tab" data-sem="verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Activos<span class="radm-tab-count" id="cliCntVerde">0</span></button>
+                <button type="button" class="radm-tab" data-sem="amarillo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tibios<span class="radm-tab-count" id="cliCntAmarillo">0</span></button>
+                <button type="button" class="radm-tab" data-sem="rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16v.01" stroke-linecap="round"/></svg>Inactivos<span class="radm-tab-count" id="cliCntRojo">0</span></button>
+              </div>
+              <div class="trk-vistas-info">
+                <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="cliInfoComplBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                Info Completado
+                </button>
+                <div class="cli-info-popover" id="cliInfoComplPopover" hidden></div>
+                </div>
+                <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="cliInfoDiasBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                Info Semáforo
+                </button>
+                <div class="cli-info-popover" id="cliInfoDiasPopover" hidden></div>
+                </div>
+              </div>
+            </div>
+          </div>
             <div class="dip-filters" style="margin-bottom:0;">
               <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3157,8 +3207,7 @@
                   <option value="Prospecto">Prospecto</option>
                 </select>
               </div>
-              <div class="radm-field">
-                <label>SEMÁFORO</label>
+              <div class="radm-field" hidden>
                 <select id="cliFiltroSemaforo">
                   <option value="">Todos</option>
                   <option value="verde">Activo</option>
@@ -3167,27 +3216,16 @@
                 </select>
               </div>
               <div class="dip-filter-actions">
-                <button type="button" class="radm-btn-add" id="cliNuevoBtn" style="white-space:nowrap;">+ Nuevo Cliente</button>
-                <button type="button" class="cot-icon-btn" id="cliActualizar" title="Actualizar la lista y los indicadores">
+                  <button type="button" class="cot-icon-btn" id="cliActualizar" title="Actualizar la lista y los indicadores">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <button type="button" class="cot-icon-btn" id="cliLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
                 </button>
-                <div class="cli-info-wrap">
-                  <button type="button" class="cli-info-btn" id="cliInfoComplBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                    Info Completado
-                  </button>
-                  <div class="cli-info-popover" id="cliInfoComplPopover" hidden></div>
-                </div>
-                <div class="cli-info-wrap">
-                  <button type="button" class="cli-info-btn" id="cliInfoDiasBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                    Info Semáforo
-                  </button>
-                  <div class="cli-info-popover" id="cliInfoDiasPopover" hidden></div>
-                </div>
+              </div>
+              <span class="trk-result" id="cliResultado"></span>
+              <div class="trk-acc-der">
+                <button type="button" class="radm-btn-add" id="cliNuevoBtn" style="white-space:nowrap;">+ Nuevo Cliente</button>
               </div>
             </div>
           </div>
@@ -3330,38 +3368,38 @@
         </div>
 
         <div class="sol-toolbar">
-          <div class="cot-top">
-            <div class="radm-tabs sol-estatus-tabs" id="cotEstatusTabs" style="margin-bottom:0;" hidden>
-              <button type="button" class="radm-tab active" data-est="activas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Activas<span class="radm-tab-count" id="cotCnt_activas">0</span></button>
-              <button type="button" class="radm-tab" data-est="ganadas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ganadas<span class="radm-tab-count" id="cotCnt_ganadas">0</span></button>
-              <button type="button" class="radm-tab" data-est="perdidas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Perdidas<span class="radm-tab-count" id="cotCnt_perdidas">0</span></button>
-              <button type="button" class="radm-tab" data-est="todas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="cotCnt_todas">0</span></button>
-            </div>
-            <div class="radm-switch-row" id="cotVersionesWrap" hidden>
-              <label class="radm-switch"><input type="checkbox" id="cotVersiones"><span class="radm-switch-track"></span></label>
-              <span class="radm-switch-label">Incluir versiones anteriores</span>
-            </div>
+        <div class="trk-vistas">
+          <div class="trk-vistas-row">
+            <span class="trk-vistas-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Vistas</span>
             <div class="radm-tabs sol-estatus-tabs" id="cotVistaToggle" style="margin-bottom:0;">
-              <button type="button" class="radm-tab active" data-vista="tablero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>Contenedor</button>
-              <button type="button" class="radm-tab" data-vista="tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16" stroke-linecap="round"/></svg>Tabla</button>
+            <button type="button" class="radm-tab active" data-vista="tablero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>Contenedor</button>
+            <button type="button" class="radm-tab" data-vista="tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16" stroke-linecap="round"/></svg>Tabla</button>
             </div>
-            <div class="cot-info-row">
+            <span class="trk-sep" id="cotSep" hidden></span>
+            <div class="radm-tabs sol-estatus-tabs" id="cotEstatusTabs" style="margin-bottom:0;" hidden>
+            <button type="button" class="radm-tab active" data-est="activas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Activas<span class="radm-tab-count" id="cotCnt_activas">0</span></button>
+            <button type="button" class="radm-tab" data-est="ganadas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ganadas<span class="radm-tab-count" id="cotCnt_ganadas">0</span></button>
+            <button type="button" class="radm-tab" data-est="perdidas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Perdidas<span class="radm-tab-count" id="cotCnt_perdidas">0</span></button>
+            <button type="button" class="radm-tab" data-est="todas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="cotCnt_todas">0</span></button>
+            </div>
+            <div class="trk-vistas-info">
               <div class="cli-info-wrap">
-                <button type="button" class="cli-info-btn" id="cotInfoSemBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Semáforo
-                </button>
-                <div class="cli-info-popover" id="cotInfoSemPopover" hidden></div>
+              <button type="button" class="cli-info-btn" id="cotInfoSemBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+              Info Semáforo
+              </button>
+              <div class="cli-info-popover" id="cotInfoSemPopover" hidden></div>
               </div>
               <div class="cli-info-wrap">
-                <button type="button" class="cli-info-btn" id="cotInfoFasesBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Fases
-                </button>
-                <div class="cli-info-popover" id="cotInfoFasesPopover" hidden></div>
+              <button type="button" class="cli-info-btn" id="cotInfoFasesBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+              Info Fases
+              </button>
+              <div class="cli-info-popover" id="cotInfoFasesPopover" hidden></div>
               </div>
             </div>
           </div>
+        </div>
           <div class="dip-filters" style="margin-bottom:0;">
             <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3389,14 +3427,21 @@
                 <option value="">Todos</option>
               </select>
             </div>
+            <div class="radm-switch-row" id="cotVersionesWrap" hidden>
+              <label class="radm-switch"><input type="checkbox" id="cotVersiones"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">Versiones anteriores</span>
+            </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn-add" id="cotCrearBtn" style="white-space:nowrap;">+ Crear Cotización</button>
               <button type="button" class="cot-icon-btn" id="cotActualizar" title="Actualizar la lista y los indicadores">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <button type="button" class="cot-icon-btn" id="cotLimpiarFiltros" title="Limpiar filtros">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
+            </div>
+            <span class="trk-result" id="cotResultado"></span>
+            <div class="trk-acc-der">
+              <button type="button" class="radm-btn-add" id="cotCrearBtn" style="white-space:nowrap;">+ Crear Cotización</button>
             </div>
           </div>
         </div>
@@ -3535,24 +3580,42 @@
           </div>
         </div>
 
-        <div class="stepper-resumen-card">
-          <div class="stepper-resumen-head">
-            <span class="stepper-resumen-title">Grupos activos por fase</span>
-            <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
-              <button type="button" class="radm-tab active" data-vista="activos">Activos</button>
-              <button type="button" class="radm-tab" data-vista="cerrados">Cerrados</button>
-              <button type="button" class="radm-tab" data-vista="todas">Todos</button>
-            </div>
-          </div>
-          <div id="groStepperResumen"></div>
-        </div>
-
         <div class="cot-alert" id="groAlerta" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span id="groAlertaTexto"></span>
         </div>
 
         <div class="sol-toolbar">
+        <div class="trk-vistas">
+          <div class="trk-vistas-row">
+            <span class="trk-vistas-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Vistas</span>
+            <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
+            <button type="button" class="radm-tab active" data-vista="activos">Activos<span class="radm-tab-count" id="groCnt_activos">0</span></button>
+            <button type="button" class="radm-tab" data-vista="cerrados">Cerrados<span class="radm-tab-count" id="groCnt_cerrados">0</span></button>
+            <button type="button" class="radm-tab" data-vista="todas">Todos<span class="radm-tab-count" id="groCnt_todas">0</span></button>
+            </div>
+            <div class="trk-vistas-info">
+              <div class="cli-info-wrap">
+              <button type="button" class="cli-info-btn" id="groInfoBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+              Info Semáforo
+              </button>
+              <div class="cli-info-popover" id="groInfoPopover" hidden></div>
+              </div>
+              <div class="cli-info-wrap">
+              <button type="button" class="cli-info-btn" id="groInfoCambiosBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+              Info Fases
+              </button>
+              <div class="cli-info-popover" id="groInfoCambiosPopover" hidden></div>
+              </div>
+            </div>
+          </div>
+          <div class="trk-fases">
+            <div class="trk-fases-cap">Fases · toca una para filtrar la tabla</div>
+            <div id="groStepperResumen"></div>
+          </div>
+        </div>
           <div class="dip-filters" style="margin-bottom:0;">
             <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px; height:14px;"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3581,31 +3644,20 @@
               </select>
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="tracking" style="white-space:nowrap;">+ Crear Grupo</button>
-              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="consultar" data-origen="tracking">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Histórico
-              </button>
               <button type="button" class="cot-icon-btn" id="groActualizar" title="Actualizar la lista y los indicadores">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <button type="button" class="cot-icon-btn" id="groLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
-              <div class="cli-info-wrap">
-                <button type="button" class="cli-info-btn" id="groInfoBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Semáforo
-                </button>
-                <div class="cli-info-popover" id="groInfoPopover" hidden></div>
-              </div>
-              <div class="cli-info-wrap">
-                <button type="button" class="cli-info-btn" id="groInfoCambiosBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Fases
-                </button>
-                <div class="cli-info-popover" id="groInfoCambiosPopover" hidden></div>
-              </div>
+            </div>
+            <span class="trk-result" id="groResultado"></span>
+            <div class="trk-acc-der">
+              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="consultar" data-origen="tracking">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Histórico
+              </button>
+              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="tracking" style="white-space:nowrap;">+ Crear Grupo</button>
             </div>
           </div>
         </div>
@@ -3718,17 +3770,15 @@
               </select>
             </div>
             <div class="dip-filter-actions">
-              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="tracking" data-origen="consultar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Tracking
-              </button>
-              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="consultar" style="white-space:nowrap;">+ Crear Grupo</button>
               <button type="button" class="cot-icon-btn" id="gruActualizar" title="Actualizar la lista">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <button type="button" class="cot-icon-btn" id="gruLimpiarFiltros" title="Limpiar filtros y mostrar todos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
               </button>
+            </div>
+            <span class="trk-result" id="gruResultado"></span>
+            <div class="trk-acc-der">
               <div class="cli-info-wrap">
                 <button type="button" class="cli-info-btn" id="gruInfoBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
@@ -3736,6 +3786,11 @@
                 </button>
                 <div class="cli-info-popover" id="gruInfoPopover" hidden></div>
               </div>
+              <button type="button" class="cli-info-btn gru-nav-btn" data-grutab="tracking" data-origen="consultar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Tracking
+              </button>
+              <button type="button" class="radm-btn-add gru-nav-btn" data-grutab="crear" data-origen="consultar" style="white-space:nowrap;">+ Crear Grupo</button>
             </div>
           </div>
         </div>
@@ -11163,10 +11218,31 @@
         return true;
       });
     }
+    // Vistas = atajos del semáforo (Todos / Activos / Tibios / Inactivos). Mandan sobre el <select> oculto
+    // #cliFiltroSemaforo (así el resto de la lógica de filtros no cambia); los contadores respetan el filtro de Tipo.
+    function pintarVistasCli(){
+      const tipo = document.getElementById('cliFiltroTipo').value;
+      const base = cliClientesRaw.filter(c => !tipo || (c.tipo_cliente || 'Directo') === tipo);
+      const n = k => base.filter(c => c.semaforo === k).length;
+      document.getElementById('cliCntTodos').textContent = base.length;
+      document.getElementById('cliCntVerde').textContent = n('verde');
+      document.getElementById('cliCntAmarillo').textContent = n('amarillo');
+      document.getElementById('cliCntRojo').textContent = n('rojo');
+      const activa = document.getElementById('cliFiltroSemaforo').value;
+      document.querySelectorAll('#cliVistas .radm-tab').forEach(b => b.classList.toggle('active', b.dataset.sem === activa));
+    }
     function aplicarFiltrosYOrden(){
       cliClientes = ordenarListaCliente(filtrarListaCliente(cliClientesRaw));
+      pintarVistasCli();
       renderLista();
     }
+    document.getElementById('cliVistas').addEventListener('click', e => {
+      const b = e.target.closest('.radm-tab'); if(!b) return;
+      document.getElementById('cliFiltroSemaforo').value = b.dataset.sem;
+      try { localStorage.setItem('admin-vista-cli', b.dataset.sem); } catch(err){}
+      aplicarFiltrosYOrden();
+    });
+    try { const v = localStorage.getItem('admin-vista-cli'); if(v) document.getElementById('cliFiltroSemaforo').value = v; } catch(err){}
 
     function renderSortButtons(){
       document.querySelectorAll('#panel-clientes th[data-sort]').forEach(th => {
@@ -12421,8 +12497,8 @@
       btn.addEventListener('click', e => {
         e.stopPropagation();
         const abrir = pop.hidden;
-        document.querySelectorAll('.cot-info-row .cli-info-popover').forEach(p => { p.hidden = true; });
-        document.querySelectorAll('.cot-info-row .cli-info-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.trk-vistas-info .cli-info-popover').forEach(p => { p.hidden = true; });
+        document.querySelectorAll('.trk-vistas-info .cli-info-btn').forEach(b => b.classList.remove('active'));
         if(abrir){ renderFn(pop); pop.hidden = false; btn.classList.add('active'); }
       });
       document.addEventListener('click', e => {
@@ -12433,7 +12509,7 @@
 
     // ══ LISTA: se trae completa una vez; filtros, pestañas de estatus y orden se aplican aquí ══
     let solTodas = [];
-    let solEstatusActivo = 'Nueva'; // 'Nueva' | 'Cotizada' | 'Descartada' | '' (todas)
+    let solEstatusActivo = (() => { try { const v = localStorage.getItem('admin-vista-sol'); return ['Nueva', 'Cotizada', 'Descartada', ''].includes(v) ? v : null; } catch(e){ return null; } })() ?? 'Nueva'; // 'Nueva' | 'Cotizada' | 'Descartada' | '' (todas)
     let solSort = 'semaforo';
     let solDir = 'desc';
     const solAbiertas = new Set(); // solicitudes con el desglose de programa desplegado
@@ -12715,6 +12791,7 @@
       const tab = e.target.closest('.radm-tab');
       if(!tab) return;
       solEstatusActivo = tab.dataset.est;
+      try { localStorage.setItem('admin-vista-sol', solEstatusActivo); } catch(e){}
       renderSolicitudes();
     });
     ['solFHerramienta', 'solFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderSolicitudes));
@@ -13374,7 +13451,7 @@
     // (Activas/Ganadas/Perdidas/Todas), los filtros y el orden por columna corren aquí, en el navegador.
     const ESTATUS_ACTIVOS = ['Borrador', 'Enviada', 'En negociación'];
     const ESTATUS_ELEGIBLES = ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida']; // Expirada/Reemplazada las pone el sistema
-    let cotEstatusActivo = 'activas';
+    let cotEstatusActivo = (() => { try { const v = localStorage.getItem('admin-vista-cot-sub'); return ['activas', 'ganadas', 'perdidas', 'todas'].includes(v) ? v : null; } catch(e){ return null; } })() || 'activas';
     let cotSort = 'dias';
     let cotDir = 'desc';
     let cotTodas = [];
@@ -13494,8 +13571,8 @@
       btn.addEventListener('click', e => {
         e.stopPropagation();
         const abrir = pop.hidden;
-        document.querySelectorAll('.cot-info-row .cli-info-popover').forEach(p => { p.hidden = true; });
-        document.querySelectorAll('.cot-info-row .cli-info-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.trk-vistas-info .cli-info-popover').forEach(p => { p.hidden = true; });
+        document.querySelectorAll('.trk-vistas-info .cli-info-btn').forEach(b => b.classList.remove('active'));
         if(abrir){ renderFn(pop); pop.hidden = false; btn.classList.add('active'); }
       });
       document.addEventListener('click', e => {
@@ -13645,6 +13722,7 @@
       const btn = e.target.closest('.radm-tab');
       if(!btn) return;
       cotEstatusActivo = btn.dataset.est;
+      try { localStorage.setItem('admin-vista-cot-sub', cotEstatusActivo); } catch(e){}
       renderCotizaciones();
     });
     ['cotFHerramienta', 'cotFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderCotizaciones));
@@ -13771,6 +13849,7 @@
       document.getElementById('cotVistaTablero').hidden = cotVista !== 'tablero';
       document.getElementById('cotVistaTabla').hidden = cotVista !== 'tabla';
       document.getElementById('cotEstatusTabs').hidden = cotVista !== 'tabla';
+      document.getElementById('cotSep').hidden = cotVista !== 'tabla';
       document.getElementById('cotVersionesWrap').hidden = cotVista !== 'tabla';
       document.querySelectorAll('#cotVistaToggle .radm-tab').forEach(b => b.classList.toggle('active', b.dataset.vista === cotVista));
     }
@@ -14370,6 +14449,32 @@
     mostrarVistaCrear('lista');
     cargarKpisCotizaciones();
     buscarCotizaciones();
+  })();
+
+  // ── Estándar de Trackings: contador de resultados + punto en "limpiar filtros" cuando hay filtros activos ──
+  (function(){
+    // "N resultados": cuenta las filas reales de cada tabla (sin las de "Cargando…" / "Sin …"), se actualiza sola al renderizar
+    [['solListaBody', 'solResultado'], ['cotListaBody', 'cotResultado'], ['cliListaBody', 'cliResultado'], ['groListaBody', 'groResultado'], ['gruListaBody', 'gruResultado']].forEach(([tb, out]) => {
+      const cuerpo = document.getElementById(tb), el = document.getElementById(out);
+      if(!cuerpo || !el) return;
+      const pintar = () => {
+        const filas = cuerpo.querySelectorAll(':scope > tr[data-id]:not(.sol-desglose-row)');
+        el.textContent = filas.length + (filas.length === 1 ? ' resultado' : ' resultados');
+      };
+      new MutationObserver(pintar).observe(cuerpo, { childList: true });
+      pintar();
+    });
+    document.querySelectorAll('.sol-toolbar .dip-filters').forEach(f => {
+      const btn = f.querySelector('[id$="LimpiarFiltros"]');
+      if(!btn) return;
+      const sync = () => {
+        const hay = [...f.querySelectorAll('input[type="text"], select')].some(e => !e.closest('[hidden]') && e.value);
+        btn.classList.toggle('hay-filtros', hay);
+      };
+      ['input', 'change'].forEach(ev => f.addEventListener(ev, sync));
+      btn.addEventListener('click', () => setTimeout(sync, 80));
+      sync();
+    });
   })();
 
   // ── Respaldos (dentro de Configuración) ──
@@ -15953,7 +16058,8 @@
     // toast ya panel-aware arriba) y su función abrirModificarGrupo para las
     // acciones "Editar"/"Mover" de cada fila — sin duplicar esa lógica.
     const FASES_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas'];
-    let groVista = 'activos';
+    let groVista = (() => { try { const v = localStorage.getItem('admin-vista-gro'); return ['activos', 'cerrados', 'todas'].includes(v) ? v : null; } catch(e){ return null; } })() || 'activos';
+    document.querySelectorAll('#groVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b.dataset.vista === groVista));
     let groListaCache = [];
     let groSort = 'dias_en_fase'; // default de todos los Tracking: lo más urgente primero
     let groDir = 'desc';
@@ -15977,6 +16083,7 @@
         document.getElementById('groKpiActivos').textContent = r.activos;
         document.getElementById('groKpiCerrados').textContent = r.cerrados;
         document.getElementById('groKpiTotalAnio').textContent = r.activos + r.cerrados;
+        ['activos', 'cerrados', 'todas'].forEach(k => { const el = document.getElementById('groCnt_' + k); if(el) el.textContent = k === 'activos' ? r.activos : k === 'cerrados' ? r.cerrados : r.activos + r.cerrados; });
         document.getElementById('groKpiDiasCierre').textContent = r.dias_promedio_cierre != null ? r.dias_promedio_cierre : '—';
         document.getElementById('groKpiDirectos').textContent = r.grupos_directos;
         document.getElementById('groKpiDirectosPct').textContent = r.pct_directos;
@@ -16344,6 +16451,7 @@
       const btn = e.target.closest('.radm-tab');
       if(!btn) return;
       groVista = btn.dataset.vista;
+      try { localStorage.setItem('admin-vista-gro', groVista); } catch(e){}
       document.querySelectorAll('#groVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b === btn));
       // Cambiar de vista suelta el filtro de fase del stepper — "Todos" es
       // ahora el reemplazo directo del botón "Ver todos" que existía antes

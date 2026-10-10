@@ -35,6 +35,21 @@ Lo que ya funcionó en el pilar del cuerpo es el método a copiar: **pocas accio
 6. **Comprar, no construir,** lo regulado (timbrado de facturas SAT: se integra un proveedor autorizado).
 7. **Preventa antes de producir:** los cursos nuevos se validan con 1 o 2 clientes antes de armar el temario completo.
 
+## Orden macro del sitio (acordado con Alfredo 2026-10-10 — manda sobre el resto de este documento para el SITIO)
+
+**Hecho:** la sección comercial (Solicitudes, Cotizaciones, propuesta web, alertas y notificaciones por correo, Configuración cerrada). Solo falta subir datos reales.
+
+**Pendientes del sitio, en este orden:**
+1. Subir datos reales (clientes, solicitudes, cotizaciones, programas).
+2. **Cotización de Proyectos** (cotizar proyectos, no solo programas).
+3. **Materiales de Excel.**
+4. **Módulo de facturación / cobranza** (diseño en la memoria privada del proyecto: Tracking de cuentas por cobrar + integración Facturama por niveles; el Excel de Viridiana es la fuente).
+5. **Power BI:** viaje · temas · proyectos · programas · materiales.
+6. **Dashboard** (mínimo primero: leads, cotizaciones pendientes, ingreso del mes contra meta, próximos cursos).
+7. **Power Apps, Power Automate, Ofimática e IA Aplicada:** lo mismo de cada uno (viaje · temas · proyectos · programas · materiales).
+
+**Inmediato después (bloque de endurecimiento):** auditoría de seguridad · limpieza · tier gratuito (límites de Azure: `staticwebapp.config.json` ya pesa ~14.5 de 20 KB, tamaño de la API, vCore-segundos) · memoria (CLAUDE.md y memoria del proyecto) · lo que salga de esas revisiones. Incluye el ícono de estado de la base de datos (pendiente 2026-10-11).
+
 ## Frentes de trabajo
 
 ### Frente 0 — Cimientos (en curso)

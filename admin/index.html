@@ -1579,7 +1579,7 @@
   @media (max-width:900px){ .trkv-grid{ grid-template-columns:1fr; } }
   .trkv-card{
     position:relative;
-    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:28px 30px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:28px 48px 28px 30px;
     display:flex; flex-direction:column; gap:20px; cursor:pointer; transition:border-color .15s, transform .15s;
   }
   .trkv-card:hover, .trkv-card:focus-visible{ border-color:var(--blue-bright); transform:translateY(-2px); outline:none; }
@@ -1592,11 +1592,16 @@
   .trkv-go{ position:absolute; top:50%; right:20px; transform:translateY(-50%); color:var(--text-faint); }
   .trkv-go svg{ width:18px; height:18px; display:block; transition:transform .15s; }
   .trkv-card:hover .trkv-go svg{ transform:translateX(3px); }
-  .trkv-kpis{ display:flex; gap:22px; flex-wrap:wrap; }
-  .trkv-kpi{ display:flex; flex-direction:column; gap:3px; }
-  .trkv-kpi-label{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); }
-  .trkv-kpi-value{ font-family:var(--display); font-weight:700; font-size:22px; color:var(--text); font-variant-numeric:tabular-nums; }
-  .trkv-signal{ display:flex; flex-wrap:wrap; gap:7px; margin-top:auto; }
+  .trkv-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:12px 14px; }
+  .trkv-kpi{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .trkv-kpi-label{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); line-height:1.3; min-height:2.6em; }
+  .trkv-kpi-value{ font-family:var(--display); font-weight:700; font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* Semáforos: siempre al pie de la tarjeta, repartidos en 3 columnas iguales y un poco más grandes que el pill normal */
+  .trkv-signal{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:auto; }
+  .trkv-signal .cot-semaforo{ justify-content:center; font-size:12.5px; padding:9px 8px; gap:8px; white-space:normal; text-align:center; }
+  .trkv-signal .cot-semaforo-dot{ width:9px; height:9px; }
+  .trkv-mid{ min-height:116px; display:flex; flex-direction:column; justify-content:center; }
+  @media (max-width:640px){ .trkv-kpis{ grid-template-columns:repeat(3, minmax(0, 1fr)); } .trkv-signal{ grid-template-columns:1fr; } }
   .trkv-card--soon{ cursor:default; border-style:dashed; }
   .trkv-card--soon:hover{ border-color:var(--line); transform:none; }
   .trkv-card--soon h3{ color:var(--text-dim); }
@@ -1623,12 +1628,33 @@
   .trkv-stepper-grande .resumen-track .step-node{ width:44px; height:44px; font-size:16px; }
   .trkv-stepper-grande .resumen-track .step-item::after{ top:22px; }
   .trkv-stepper-grande .step-label{ font-size:12px; }
-  /* Resumen de contenedores de Cotizaciones: mismo componente que el de Grupos + el monto bajo el nombre */
-  .trkv-stepper-cot .step-monto{ margin-top:4px; height:22px; line-height:22px; white-space:nowrap; font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--text-dim); font-variant-numeric:tabular-nums; }
-  .trkv-stepper-cot .step-monto.cot-vv{ padding:0 6px; font-size:12.5px; line-height:20px; height:22px; box-sizing:border-box; }
-  /* la tarjeta de Grupos reserva el alto de la línea de montos para que los dos resúmenes queden a la par */
-  #trkvGruStepper{ padding-bottom:26px; }
-  .trkv-stepper-cot .step-item.max .step-label{ color:#dfb35a; }
+  /* Resumen de contenedores de Cotizaciones: 5 "canastas" cortas en fila con el lenguaje del tablero (placa de color por
+     fase + número vivo de cotizaciones y monto), a propósito distinto del stepper de Grupos */
+  .trkv-bins{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; }
+  .trkv-bin{ display:flex; flex-direction:column; min-width:0; }
+  .trkv-bin-plate{ display:flex; align-items:center; justify-content:center; text-align:center; min-height:34px; padding:4px 6px; border-width:1px; border-style:solid; border-radius:7px 7px 0 0; font-size:11.5px; font-weight:600; line-height:1.2; color:var(--text); }
+  .trkv-bin-body{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px 12px; border-width:1px; border-style:solid; border-top:none; border-radius:0 0 12px 12px; background-color:var(--panel-2); }
+  .trkv-bin .cot-vv{ padding:1px 8px; font-family:var(--display); font-size:24px; line-height:1.15; font-variant-numeric:tabular-nums; }
+  .trkv-bin .cot-vv.m{ font-size:13px; font-weight:600; font-family:var(--mono); padding:2px 6px; white-space:nowrap; }
+  /* Alertas disponibles de cada sección, debajo de las tarjetas */
+  .trkv-alertas{ margin-top:22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 26px 14px; }
+  .trkv-al-title{ display:flex; align-items:center; gap:9px; margin:0 0 4px; font-family:var(--display); font-size:16px; font-weight:600; }
+  .trkv-al-title svg{ width:19px; height:19px; color:var(--text-dim); }
+  .trkv-al-grid{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:0 26px; }
+  @media (max-width:1300px){ .trkv-al-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:700px){ .trkv-al-grid{ grid-template-columns:1fr; } }
+  .trkv-al{ padding:14px 0 10px; min-width:0; }
+  .trkv-al-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-family:var(--display); font-size:13.5px; font-weight:600; }
+  .trkv-al-count{ margin-left:auto; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; background-color:rgba(220,38,38,.16); color:#fca5a5; }
+  .trkv-al-count.cero{ background-color:var(--panel-2); color:var(--text-faint); }
+  .trkv-al-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid var(--line); cursor:pointer; }
+  .trkv-al-row:hover .trkv-al-cli{ color:var(--blue-bright); }
+  .trkv-al-cli{ font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .trkv-al-det{ font-size:11.5px; color:var(--text-dim); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .trkv-al-row > div{ min-width:0; }
+  .trkv-al-vacio{ display:flex; align-items:center; gap:7px; padding:9px 0; border-top:1px solid var(--line); font-size:12px; color:var(--text-faint); }
+  .trkv-al-vacio svg{ width:14px; height:14px; color:var(--teal); flex:none; }
+  .trkv-al-mas{ display:block; width:100%; text-align:left; padding:8px 0 2px; border:none; border-top:1px solid var(--line); background:none; font-family:var(--mono); font-size:11px; color:var(--blue-bright); cursor:pointer; }
   .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
@@ -2499,8 +2525,8 @@
               <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
             </div>
+            <div class="trkv-mid"><div id="trkvComStepper" class="trkv-bins"></div></div>
             <div class="trkv-signal" id="trkvComSignal"></div>
-            <div id="trkvComStepper" class="trkv-stepper-grande trkv-stepper-cot"></div>
           </article>
 
           <article class="trkv-card" tabindex="0" data-goto="tracking-operacion">
@@ -2520,10 +2546,15 @@
               <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvGruDias">—</span></div>
               <div class="trkv-kpi"><span class="trkv-kpi-label">Directos</span><span class="trkv-kpi-value" id="trkvGruDirectos">—</span></div>
             </div>
+            <div class="trkv-mid"><div id="trkvGruStepper" class="trkv-stepper-grande"></div></div>
             <div class="trkv-signal" id="trkvGruSignal"></div>
-            <div id="trkvGruStepper" class="trkv-stepper-grande"></div>
           </article>
         </div>
+
+        <section class="trkv-alertas" aria-label="Alertas activas de cada sección">
+          <h3 class="trkv-al-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3Z" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>Alertas activas</h3>
+          <div class="trkv-al-grid" id="trkvAlertas"></div>
+        </section>
       </div>
       <div class="admin-panel" id="panel-dashboard">
         <div class="dash-etabs" id="dashTabs">
@@ -5079,32 +5110,43 @@
       `;
     }
 
-    // Resumen de contenedores: cuadro = # de cotizaciones (el de MÁS cotizaciones respira en ámbar, como el cuello de
-    // botella de Grupos); bajo el nombre, el monto (el MÁS alto, en azul vivo, igual que el tablero)
+    // Resumen de contenedores: placa de color por fase (mismos colores del tablero) y debajo # de cotizaciones y monto.
+    // Vivos como en el tablero: el contenedor con MÁS cotizaciones en ámbar, el de MAYOR monto en azul.
     const CONTENEDORES_RESUMEN = ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida'];
+    const COLOR_CONT = { 'Borrador':'#7dc4f5', 'Enviada':'#559bf2', 'En negociación':'#3d7fff', 'Ganada':'#183b87', 'Perdida':'#8b93a1' };
+    const BORDE_CONT = { 'Ganada':'#6f9be0' };
+    const hexA = (hex, a) => 'rgba(' + parseInt(hex.slice(1, 3), 16) + ',' + parseInt(hex.slice(3, 5), 16) + ',' + parseInt(hex.slice(5, 7), 16) + ',' + a + ')';
+    function fmtMoneyCorto(n){
+      n = Number(n) || 0;
+      if(n >= 1e6) return '$' + (Math.round(n / 1e5) / 10).toLocaleString('es-MX') + 'M';
+      if(n >= 1e4) return '$' + Math.round(n / 1e3).toLocaleString('es-MX') + 'k';
+      if(n >= 1e3) return '$' + (Math.round(n / 100) / 10).toLocaleString('es-MX') + 'k';
+      return fmtMoney(n);
+    }
     function stepperContenedores(c){
       const n = k => (c[k] && c[k].n) || 0;
       const monto = k => (c[k] && c[k].monto) || 0;
       const maxN = Math.max(0, ...CONTENEDORES_RESUMEN.map(n));
       const maxM = Math.max(0, ...CONTENEDORES_RESUMEN.map(monto));
-      const items = CONTENEDORES_RESUMEN.map(k => {
-        const esMaxN = maxN > 0 && n(k) === maxN;
-        const esMaxM = maxM > 0 && monto(k) === maxM;
-        return `<div class="step-item ${esMaxN ? 'max' : ''}" style="position:relative">
-          <span class="step-node" title="Cotizaciones en ${k}">${n(k)}</span>
-          <div class="step-label">${k}</div>
-          <div class="step-monto ${esMaxM ? 'cot-vv monto' : ''}" title="Monto acumulado en ${k}">${fmtMoney(monto(k))}</div>
+      return CONTENEDORES_RESUMEN.map(k => {
+        const col = BORDE_CONT[k] || COLOR_CONT[k];
+        const fill = k === 'Ganada' ? hexA(COLOR_CONT[k], .6) : hexA(COLOR_CONT[k], .2);
+        return `<div class="trkv-bin">
+          <span class="trkv-bin-plate" style="background-color:${fill};border-color:${col}">${k}</span>
+          <div class="trkv-bin-body" style="border-color:${col}">
+            <span class="cot-vv ${maxN > 0 && n(k) === maxN ? 'cant' : ''}" title="Cotizaciones en ${k}">${n(k)}</span>
+            <span class="cot-vv m ${maxM > 0 && monto(k) === maxM ? 'monto' : ''}" title="Monto acumulado en ${k}: ${fmtMoney(monto(k))}">${fmtMoneyCorto(monto(k))}</span>
+          </div>
         </div>`;
       }).join('');
-      return `<div class="step-track resumen-track">${items}</div>`;
     }
 
     async function cargarComercial(){
       try {
         const r = await apiGetConReintento('/api/getResumenCotizacionesAdmin');
-        document.getElementById('trkvComPipeline').textContent = fmtMoney(r.pipeline_monto);
-        document.getElementById('trkvComGanado').textContent = fmtMoney(r.ganado_monto);
-        document.getElementById('trkvComPerdido').textContent = fmtMoney(r.perdido_monto);
+        [['trkvComPipeline', r.pipeline_monto], ['trkvComGanado', r.ganado_monto], ['trkvComPerdido', r.perdido_monto]].forEach(([id, v]) => {
+          const el = document.getElementById(id); el.textContent = fmtMoneyCorto(v); el.title = fmtMoney(v);
+        });
         document.getElementById('trkvComConversion').textContent = r.tasa_conversion + '%';
         document.getElementById('trkvComCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
         document.getElementById('trkvComSignal').innerHTML = pillsAntiguedad(r.antiguedad || {});
@@ -5182,6 +5224,7 @@
       try {
         const r = await apiGetConReintento('/api/getNotificacionesActivas');
         const grupos = r.grupos || {};
+        pintarAlertasTV(grupos);
         const mapa = { trkvSolBell: grupos.solicitudes, trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
         Object.entries(mapa).forEach(([id, items]) => {
           const el = document.getElementById(id);
@@ -5189,8 +5232,41 @@
           el.hidden = !n;
           if(n) el.querySelector('.trkv-bell-count').textContent = n > 99 ? '99+' : String(n);
         });
-      } catch(e){ /* silencioso — es un badge informativo extra, la campana del topbar ya avisa si algo falla de verdad */ }
+      } catch(e){
+        /* la campana del topbar ya avisa si algo falla de verdad; aquí solo se deja un aviso discreto */
+        const cont = document.getElementById('trkvAlertas');
+        if(cont && !cont.children.length) cont.innerHTML = '<div class="trkv-al-vacio">No se pudieron cargar las alertas.</div>';
+      }
     }
+
+    // Alertas activas de cada sección (las mismas de la campana), en el mismo orden de las tarjetas; clic = ir a esa sección
+    const ALERTAS_TV = [
+      { k:'solicitudes', nombre:'Solicitudes', ir:'solicitudes' },
+      { k:'clientes', nombre:'Clientes', ir:'clientes' },
+      { k:'cotizaciones', nombre:'Cotizaciones', ir:'tracking-comercial' },
+      { k:'grupos', nombre:'Grupos', ir:'tracking-operacion' },
+    ];
+    const MAX_ALERTAS_TV = 5;
+    function pintarAlertasTV(grupos){
+      const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      document.getElementById('trkvAlertas').innerHTML = ALERTAS_TV.map(sec => {
+        const items = (grupos && grupos[sec.k]) || [];
+        const filas = items.slice(0, MAX_ALERTAS_TV).map(it => `
+          <div class="trkv-al-row" data-ir="${sec.ir}">
+            <div><div class="trkv-al-cli">${esc(it.cliente)}</div><div class="trkv-al-det" title="${esc(it.detalle)}">${esc(it.detalle)}</div></div>
+            <span class="notif-day-pill">${esc(it.pastilla ? it.pastilla : it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d'))}</span>
+          </div>`).join('');
+        const mas = items.length > MAX_ALERTAS_TV ? `<button type="button" class="trkv-al-mas" data-ir="${sec.ir}">+ ${items.length - MAX_ALERTAS_TV} más en ${sec.nombre}</button>` : '';
+        return `<div class="trkv-al">
+          <div class="trkv-al-head">${sec.nombre}<span class="trkv-al-count ${items.length ? '' : 'cero'}">${items.length}</span></div>
+          ${filas || `<div class="trkv-al-vacio">${check}Sin alertas</div>`}${mas}
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('trkvAlertas').addEventListener('click', e => {
+      const t = e.target.closest('[data-ir]'); if(t) activarPanel(t.dataset.ir);
+    });
 
     function cargarTodo(){
       cargarSolicitudes();

@@ -1656,13 +1656,15 @@
   .trkv-bin-row .cot-vv{ padding:1px 6px; font-size:17px; line-height:1.2; font-variant-numeric:tabular-nums; }
   .trkv-bin-row .cot-vv.m{ font-size:15px; }
   /* Alertas disponibles de cada sección, debajo de las tarjetas */
-  .trkv-alertas{ margin-top:22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 26px 14px; }
-  .trkv-al-title{ display:flex; align-items:center; gap:9px; margin:0 0 4px; font-family:var(--display); font-size:16px; font-weight:600; }
-  .trkv-al-title svg{ width:19px; height:19px; color:var(--text-dim); }
-  .trkv-al-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 44px; }
+  /* Alertas: franja de fondo propio (más hundida que las tarjetas) y cada sección como su propio recuadro con encabezado marcado */
+  .trkv-alertas{ margin-top:22px; background-color:var(--bg); border:1px solid var(--line); border-top:3px solid #dc2626; border-radius:12px; padding:20px 22px 22px; }
+  .trkv-al-title{ display:flex; align-items:center; gap:9px; margin:0 0 14px; font-family:var(--display); font-size:17px; font-weight:700; }
+  .trkv-al-title svg{ width:20px; height:20px; color:#dc2626; }
+  .trkv-al-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
   @media (max-width:760px){ .trkv-al-grid{ grid-template-columns:1fr; } }
-  .trkv-al{ padding:14px 0 10px; min-width:0; }
-  .trkv-al-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-family:var(--display); font-size:13.5px; font-weight:600; }
+  .trkv-al{ min-width:0; background-color:var(--panel); border:1px solid var(--line); border-radius:10px; padding:0 16px 8px; overflow:hidden; }
+  .trkv-al-head{ display:flex; align-items:center; gap:9px; margin:0 -16px 6px; padding:11px 16px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font-family:var(--display); font-size:14.5px; font-weight:700; }
+  .trkv-al-head svg{ width:17px; height:17px; flex:none; color:var(--blue-bright); }
   .trkv-al-count{ margin-left:auto; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; background-color:rgba(220,38,38,.16); color:#fca5a5; }
   .trkv-al-count.cero{ background-color:var(--panel-2); color:var(--text-faint); }
   .trkv-al-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid var(--line); cursor:pointer; }
@@ -5326,10 +5328,10 @@
 
     // Alertas activas de cada sección (las mismas de la campana), en el mismo orden de las tarjetas; clic = ir a esa sección
     const ALERTAS_TV = [
-      { k:'solicitudes', nombre:'Solicitudes', ir:'solicitudes' },
-      { k:'clientes', nombre:'Clientes', ir:'clientes' },
-      { k:'cotizaciones', nombre:'Cotizaciones', ir:'tracking-comercial' },
-      { k:'grupos', nombre:'Grupos', ir:'tracking-operacion' },
+      { k:'solicitudes', nombre:'Solicitudes', ir:'solicitudes', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h4l1.5 3h5L16 13h4M4 13l2-8h12l2 8v6H4v-6Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      { k:'clientes', nombre:'Clientes', ir:'clientes', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4" stroke-linecap="round"/></svg>' },
+      { k:'cotizaciones', nombre:'Cotizaciones', ir:'tracking-comercial', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h4" stroke-linecap="round"/></svg>' },
+      { k:'grupos', nombre:'Grupos', ir:'tracking-operacion', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5S15.5 16.5 15.5 20M17 11a3 3 0 1 0 0-6M21.5 19c0-2.5-1.5-4-3.5-4.6" stroke-linecap="round"/></svg>' },
     ];
     const MAX_ALERTAS_TV = 3; // las 3 más urgentes: el servidor ya las entrega ordenadas de más a menos urgente
     function pintarAlertasTV(grupos){
@@ -5344,7 +5346,7 @@
           </div>`).join('');
         const mas = items.length > MAX_ALERTAS_TV ? `<button type="button" class="trkv-al-mas" data-ir="${sec.ir}">+ ${items.length - MAX_ALERTAS_TV} más en ${sec.nombre}</button>` : '';
         return `<div class="trkv-al">
-          <div class="trkv-al-head">${sec.nombre}<span class="trkv-al-count ${items.length ? '' : 'cero'}">${items.length}</span></div>
+          <div class="trkv-al-head">${sec.ico}${sec.nombre}<span class="trkv-al-count ${items.length ? '' : 'cero'}">${items.length}</span></div>
           ${filas || `<div class="trkv-al-vacio">${check}Sin alertas</div>`}${mas}
         </div>`;
       }).join('');

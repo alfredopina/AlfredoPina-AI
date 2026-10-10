@@ -227,17 +227,22 @@
 
   }
 
-  /* portada en pantallas anchas: más ancho útil y letra más grande para que el contenido llene la pantalla en vez de quedar amontonado al centro */
+  /* portada en pantallas anchas: más ancho útil y letra que escala con el ANCHO y con el ALTO de la ventana (min(vw, vh)), para
+     que en una laptop —o con el navegador ampliado— todo quepa en la primera pantalla y en un monitor grande llene el espacio */
   @media screen and (min-width:1000px){
     #propuesta .wrap{max-width:min(1320px, 92vw);}
-    .hero-top h1{font-size:clamp(48px,6.6vw,100px);} .hero-top .eyebrow{font-size:12.5px;}
-    .hero{grid-template-columns:1.5fr 1fr; gap:clamp(48px,6vw,96px); margin-top:clamp(24px,3.5vh,48px); align-items:stretch;}
-    .hero > div:first-child{display:flex; flex-direction:column; justify-content:space-between; gap:28px;}
-    .para{font-size:clamp(17px,1.5vw,21px); margin-top:0;}
-    .chips{gap:12px; margin-top:0;} .chip{font-size:clamp(12px,1.05vw,14px); padding:clamp(8px,1vh,12px) clamp(12px,1vw,16px);}
-    .obj-dir{margin-top:0; gap:20px clamp(24px,3vw,48px);} .od{font-size:clamp(14px,1.2vw,17px); line-height:1.65;} .od b{font-size:11.5px;}
-    .quien{padding:14px;} .quien img{aspect-ratio:4/2.65;} .quien h3{font-size:clamp(20px,1.7vw,26px);} .kpi b{font-size:clamp(28px,2.6vw,38px);} .kpi span{font-size:11.5px;} .kpis{gap:20px 22px;}
-    #propuesta{padding-top:84px; padding-bottom:72px;}
+    #propuesta{padding-top:clamp(56px,9vh,96px); padding-bottom:clamp(40px,6vh,72px);}
+    .hero-top .eyebrow{font-size:clamp(11px,1.5vh,12.5px);}
+    .hero-top h1{font-size:clamp(38px, min(6.2vw, 10.5vh), 96px); margin-top:clamp(10px,2vh,20px); align-items:flex-start; gap:.24em; line-height:1.04;}
+    .hero-top h1 .h-ico{width:.8em; height:.8em; margin-top:.1em;}
+    .hero{grid-template-columns:1.5fr 1fr; gap:clamp(40px,5vw,96px); margin-top:clamp(14px,2.6vh,48px); align-items:stretch;}
+    .hero > div:first-child{display:flex; flex-direction:column; justify-content:space-between; gap:clamp(14px,2.4vh,28px);}
+    .para{font-size:clamp(15px, min(1.5vw, 2.6vh), 21px); margin-top:0;}
+    .chips{gap:clamp(8px,1.2vh,12px); margin-top:0;} .chip{font-size:clamp(11.5px, min(1.05vw, 1.9vh), 14px); padding:clamp(6px,1.1vh,12px) clamp(10px,1vw,16px);}
+    .obj-dir{margin-top:0; gap:clamp(12px,2vh,20px) clamp(20px,3vw,48px);} .od{font-size:clamp(13px, min(1.2vw, 2.15vh), 17px); line-height:1.6;} .od b{font-size:11px;}
+    .quien{padding:clamp(10px,1.6vh,14px);} .quien img{aspect-ratio:auto; height:clamp(130px, 24vh, 270px);} .quien .q-b{padding:clamp(8px,1.6vh,14px) 6px 4px;}
+    .quien h3{font-size:clamp(18px, min(1.7vw, 3vh), 26px);} .quien .q-r{margin-bottom:clamp(8px,1.6vh,16px);}
+    .kpi b{font-size:clamp(24px, min(2.6vw, 4.6vh), 38px);} .kpi span{font-size:clamp(10px,1.5vh,11.5px);} .kpis{gap:clamp(10px,2vh,20px) 22px;}
   }
   .print-brand{display:none;}
   /* revelado al hacer scroll */

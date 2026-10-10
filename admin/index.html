@@ -1116,7 +1116,7 @@
   .trk-vistas .radm-tab.active{ background-color:var(--blue-bright); border-color:var(--blue-bright); color:#0a0d12; font-weight:700; }
   .trk-vistas .radm-tab.active .radm-tab-count{ color:#0a0d12; border-color:rgba(10,13,18,.35); background-color:rgba(10,13,18,.12); }
   .trk-sep{ width:1px; height:22px; background-color:var(--line); flex:none; }
-  .trk-sep[hidden], .radm-switch-row[hidden], .radm-field[hidden]{ display:none; }
+  .trk-sep[hidden], .radm-tabs[hidden], .radm-switch-row[hidden], .radm-field[hidden]{ display:none; }
   .trk-vistas-info{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .trk-vistas-info .cli-info-wrap{ margin-left:0; }
   .trk-vistas-info .cli-info-btn{ background-color:transparent; border-style:dashed; border-color:rgba(107,159,255,.55); color:var(--blue-bright); }
@@ -2741,7 +2741,7 @@
             <button type="button" class="radm-tab active" data-est="Nueva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Nuevas<span class="radm-tab-count" id="solCntNueva">0</span></button>
             <button type="button" class="radm-tab" data-est="Cotizada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Cotizadas<span class="radm-tab-count" id="solCntCotizada">0</span></button>
             <button type="button" class="radm-tab" data-est="Descartada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Descartadas<span class="radm-tab-count" id="solCntDescartada">0</span></button>
-            <button type="button" class="radm-tab" data-est=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="solCntTodas">0</span></button>
+            <button type="button" class="radm-tab" data-est=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todo<span class="radm-tab-count" id="solCntTodas">0</span></button>
             </div>
             <div class="trk-vistas-info">
               <div class="cli-info-wrap">
@@ -3168,10 +3168,10 @@
             <div class="trk-vistas-row">
               <span class="trk-vistas-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Vistas</span>
               <div class="radm-tabs" id="cliVistas" style="margin-bottom:0;">
-                <button type="button" class="radm-tab active" data-sem=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todos<span class="radm-tab-count" id="cliCntTodos">0</span></button>
                 <button type="button" class="radm-tab" data-sem="verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Activos<span class="radm-tab-count" id="cliCntVerde">0</span></button>
                 <button type="button" class="radm-tab" data-sem="amarillo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tibios<span class="radm-tab-count" id="cliCntAmarillo">0</span></button>
                 <button type="button" class="radm-tab" data-sem="rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16v.01" stroke-linecap="round"/></svg>Inactivos<span class="radm-tab-count" id="cliCntRojo">0</span></button>
+                <button type="button" class="radm-tab active" data-sem=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todo<span class="radm-tab-count" id="cliCntTodos">0</span></button>
               </div>
               <div class="trk-vistas-info">
                 <div class="cli-info-wrap">
@@ -3382,7 +3382,7 @@
             <button type="button" class="radm-tab active" data-est="activas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Activas<span class="radm-tab-count" id="cotCnt_activas">0</span></button>
             <button type="button" class="radm-tab" data-est="ganadas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ganadas<span class="radm-tab-count" id="cotCnt_ganadas">0</span></button>
             <button type="button" class="radm-tab" data-est="perdidas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Perdidas<span class="radm-tab-count" id="cotCnt_perdidas">0</span></button>
-            <button type="button" class="radm-tab" data-est="todas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="cotCnt_todas">0</span></button>
+            <button type="button" class="radm-tab" data-est="todas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todo<span class="radm-tab-count" id="cotCnt_todas">0</span></button>
             </div>
             <div class="trk-vistas-info">
               <div class="cli-info-wrap">
@@ -3594,7 +3594,7 @@
             <div class="radm-tabs" id="groVistaTabs" style="margin-bottom:0;">
             <button type="button" class="radm-tab active" data-vista="activos">Activos<span class="radm-tab-count" id="groCnt_activos">0</span></button>
             <button type="button" class="radm-tab" data-vista="cerrados">Cerrados<span class="radm-tab-count" id="groCnt_cerrados">0</span></button>
-            <button type="button" class="radm-tab" data-vista="todas">Todos<span class="radm-tab-count" id="groCnt_todas">0</span></button>
+            <button type="button" class="radm-tab" data-vista="todas">Todo<span class="radm-tab-count" id="groCnt_todas">0</span></button>
             </div>
             <div class="trk-vistas-info">
               <div class="cli-info-wrap">
@@ -11868,6 +11868,7 @@
       document.getElementById('cliBuscar').value = '';
       document.getElementById('cliFiltroTipo').value = '';
       document.getElementById('cliFiltroSemaforo').value = '';
+      try { localStorage.setItem('admin-vista-cli', ''); } catch(e){}
       cargarClientes('');
     });
     document.getElementById('cliActualizar').addEventListener('click', () => {
@@ -12799,6 +12800,8 @@
     ['solFHerramienta', 'solFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderSolicitudes));
 
     function limpiarFiltrosSolicitudes(){
+      solEstatusActivo = ''; // vista "Todo"
+      try { localStorage.setItem('admin-vista-sol', ''); } catch(e){}
       document.getElementById('solFHerramienta').value = '';
       document.getElementById('solFPrograma').value = '';
       solFClienteAuto.reset(); // dispara onChange → renderSolicitudes
@@ -13729,6 +13732,8 @@
     });
     ['cotFHerramienta', 'cotFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderCotizaciones));
     document.getElementById('cotLimpiarFiltros').addEventListener('click', () => {
+      cotEstatusActivo = 'todas'; // subvista "Todo" de la Tabla
+      try { localStorage.setItem('admin-vista-cot-sub', 'todas'); } catch(e){}
       document.getElementById('cotFHerramienta').value = '';
       document.getElementById('cotFPrograma').value = '';
       cotFClienteAuto.reset();
@@ -16472,6 +16477,11 @@
       buscarGruposTracking();
     });
     document.getElementById('groLimpiarFiltros').addEventListener('click', () => {
+      groVista = 'todas'; // vista "Todo" y sin filtro de fase
+      groFaseFiltro = null;
+      try { localStorage.setItem('admin-vista-gro', 'todas'); } catch(e){}
+      document.querySelectorAll('#groVistaTabs .radm-tab').forEach(b => b.classList.toggle('active', b.dataset.vista === 'todas'));
+      renderStepperResumen();
       groFClienteAuto.reset(); // dispara buscarGruposTrackingDebounced() vía onChange — se cancela abajo para no duplicar la búsqueda
       clearTimeout(groBuscarDebounce);
       document.getElementById('groFHerramienta').value = '';

@@ -227,6 +227,18 @@
 
   }
 
+  /* portada en pantallas anchas: más ancho útil y letra más grande para que el contenido llene la pantalla en vez de quedar amontonado al centro */
+  @media screen and (min-width:1000px){
+    #propuesta .wrap{max-width:min(1320px, 92vw);}
+    .hero-top h1{font-size:clamp(48px,6.6vw,100px);} .hero-top .eyebrow{font-size:12.5px;}
+    .hero{grid-template-columns:1.5fr 1fr; gap:clamp(48px,6vw,96px); margin-top:clamp(24px,3.5vh,48px); align-items:stretch;}
+    .hero > div:first-child{display:flex; flex-direction:column; justify-content:space-between; gap:28px;}
+    .para{font-size:clamp(17px,1.5vw,21px); margin-top:0;}
+    .chips{gap:12px; margin-top:0;} .chip{font-size:clamp(12px,1.05vw,14px); padding:clamp(8px,1vh,12px) clamp(12px,1vw,16px);}
+    .obj-dir{margin-top:0; gap:20px clamp(24px,3vw,48px);} .od{font-size:clamp(14px,1.2vw,17px); line-height:1.65;} .od b{font-size:11.5px;}
+    .quien{padding:14px;} .quien img{aspect-ratio:4/2.65;} .quien h3{font-size:clamp(20px,1.7vw,26px);} .kpi b{font-size:clamp(28px,2.6vw,38px);} .kpi span{font-size:11.5px;} .kpis{gap:20px 22px;}
+    #propuesta{padding-top:84px; padding-bottom:72px;}
+  }
   .print-brand{display:none;}
   /* revelado al hacer scroll */
   .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1);} .rv.in{opacity:1; transform:none;}

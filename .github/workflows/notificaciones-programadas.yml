@@ -1,0 +1,65 @@
+name: Notificaciones programadas
+# Avisos por correo que se miden por tiempo. Las Functions administradas de Static Web Apps no soportan timerTrigger,
+# así que este cron las dispara por HTTP (mismo patrón que el respaldo semanal; mismo secreto BACKUP_CRON_SECRET, que ya
+# existe en GitHub y en Azure). Los horarios van en UTC; Monterrey es UTC-6 todo el año (México ya no usa horario de verano).
+#   - Solicitudes atoradas: 7, 10, 13, 16 y 19 h de Monterrey
+#   - Resumen semanal: lunes 7:00 de Monterrey
+# Se enciende o apaga también desde el admin (Configuración → Notificaciones); si está apagado, la Function responde 200 y no hace nada.
+on:
+  schedule:
+    - cron: '0 13,16,19,22,1 * * *'
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      tarea:
+        description: 'Qué probar a mano'
+        type: choice
+        options: [atoradas, resumen]
+        default: atoradas
+      forzar:
+        description: 'Resumen: mandarlo aunque ya haya salido uno hace menos de 20 h'
+        type: boolean
+        default: false
+
+env:
+  BASE: https://icy-smoke-071e3ec10.7.azurestaticapps.net/api
+
+jobs:
+  atoradas:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 13,16,19,22,1 * * *' || github.event_name == 'workflow_dispatch' && inputs.tarea == 'atoradas'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Revisar solicitudes atoradas
+        run: |
+          respuesta=$(curl -s -w "\n%{http_code}" -X POST "$BASE/notificarSolicitudesAtoradas" \
+            -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}")
+          status="${respuesta##*$'\n'}"
+          cuerpo="${respuesta%$'\n'*}"
+          echo "Status: $status"
+          echo "Respuesta: $cuerpo"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error::La revision de solicitudes atoradas fallo (status $status). 401 = BACKUP_CRON_SECRET no coincide en Azure y GitHub."
+            exit 1
+          fi
+
+  resumen:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 13 * * 1' || github.event_name == 'workflow_dispatch' && inputs.tarea == 'resumen'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar el resumen semanal (reintenta mientras la base despierta)
+        run: |
+          forzar=""
+          if [ "${{ inputs.forzar }}" = "true" ]; then forzar="?forzar=1"; fi
+          for intento in 1 2 3 4 5 6; do
+            respuesta=$(curl -s -m 60 -w "\n%{http_code}" -X POST "$BASE/enviarResumenSemanal$forzar" \
+              -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}")
+            status="${respuesta##*$'\n'}"
+            cuerpo="${respuesta%$'\n'*}"
+            echo "Intento $intento — Status: $status — $cuerpo"
+            if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then exit 0; fi
+            # 503 = la base sigue despertando; 000/504 = se cortó la espera. Se reintenta; el resto no tiene caso repetirlo.
+            if [ "$status" != "503" ] && [ "$status" != "504" ] && [ "$status" != "000" ]; then break; fi
+            sleep 120
+          done
+          echo "::error::El resumen semanal no se pudo enviar (último status $status). Puedes relanzarlo a mano: Actions → Notificaciones programadas → Run workflow → resumen."
+          exit 1

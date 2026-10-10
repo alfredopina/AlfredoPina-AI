@@ -1206,6 +1206,21 @@
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
 
+  /* Configuración → Notificaciones (avisos por correo): una fila por aviso con su interruptor; el estado también va en
+     TEXTO ("Activado"/"Desactivado"), nunca solo en el color del interruptor. */
+  .cfg-correo-fila{ border:1px solid var(--line); border-radius:9px; padding:12px 14px; background:var(--panel); display:flex; align-items:flex-start; gap:14px; }
+  .cfg-correo-fila + .cfg-correo-fila{ margin-top:10px; }
+  .cfg-correo-fila.cfg-correo-general{ border-color:var(--blue-dim, var(--line)); margin-bottom:14px; }
+  .cfg-correo-texto{ flex:1; min-width:0; }
+  .cfg-correo-nombre{ font-family:var(--display); font-weight:600; font-size:14px; color:var(--text); }
+  .cfg-correo-desc{ font-size:12.5px; color:var(--text-dim); line-height:1.55; margin-top:3px; }
+  .cfg-correo-estado{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin-top:7px; white-space:nowrap; text-align:center; }
+  .cfg-correo-sw{ display:flex; flex-direction:column; align-items:center; flex:none; min-width:84px; }
+  .cfg-correo-destino{ display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .cfg-correo-destino input{ flex:1; min-width:200px; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px; color:var(--text); font:inherit; font-size:13px; }
+  .cfg-correo-destino input.cfg-notif-dirty{ border-color:var(--warn, #dfb35a); }
+  .cfg-correo-fila.cfg-correo-apagada .cfg-correo-nombre, .cfg-correo-fila.cfg-correo-apagada .cfg-correo-desc{ opacity:.6; }
+
   /* Configuración → Alertas — 3 filas con nota de contexto debajo de
      cada una (a diferencia de .cfg-tarifas-grid, que es una rejilla de
      tarjetas cortas sin espacio para texto extra). */
@@ -2635,6 +2650,20 @@
           </div>
         </div>
         <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgCorreoHead">
+            <span class="cfg-card-title">NOTIFICACIONES</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgCorreoBody" hidden>
+            <div class="cfg-note">
+              Avisos por <b>correo</b> para enterarte de lo que pasa cuando no estás en el admin. Llegan desde notificaciones@alfredopina.ai. No son lo mismo que las <b>Alertas</b> de abajo: esas se miden por tiempo y aparecen en el ícono de alertas del admin; estos te llegan al correo cuando ocurre algo.
+            </div>
+            <div class="cfg-correo-lista" id="cfgCorreoLista" style="margin-top:14px;">
+              <div class="radm-empty-row">Cargando…</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgNotifHead">
             <span class="cfg-card-title">ALERTAS</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2647,7 +2676,7 @@
               <div class="radm-empty-row">Cargando umbrales…</div>
             </div>
             <div class="cfg-note" style="margin-top:14px;">
-              El resumen semanal (un correo con todas estas señales de un jalón) todavía no está construido — queda pendiente para más adelante.
+              El resumen semanal (un correo con estas señales de un jalón, los lunes) se enciende o apaga en la tarjeta Notificaciones, arriba.
             </div>
           </div>
         </div>
@@ -14917,6 +14946,140 @@
     document.getElementById('cfgNotifHead').addEventListener('click', () => {
       const body = document.getElementById('cfgNotifBody');
       const head = document.getElementById('cfgNotifHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargar(); }
+    });
+  })();
+
+  // Configuración → Notificaciones (avisos por correo). Interruptor general + uno por aviso + destinatarios del resumen.
+  // Cada interruptor guarda al instante (Table Storage, api/src/notificaciones-ajustes.js); si falla vuelve a su estado.
+  (function(){
+    const AVISOS = [
+      { clave:'nuevaSolicitud', nombre:'Solicitud nueva', desc:'Cuando alguien envía el formulario de solicitud del sitio.' },
+      { clave:'propuestaAbierta', nombre:'Propuesta abierta', desc:'Cuando un cliente abre su propuesta por primera vez. Se confirma tras unos segundos con la página abierta, para no avisarte por los filtros de seguridad de correo que abren los links solos.' },
+      { clave:'propuestaAceptada', nombre:'Propuesta aceptada', desc:'Cuando un cliente pulsa "Aceptar propuesta".' },
+      { clave:'solicitudAtorada', nombre:'Solicitud atorada (falla)', desc:'Cuando una solicitud del sitio lleva más de 4 horas esperando sin procesarse (pasa a la base al abrir el admin). Se revisa cada 3 horas, de 7 am a 7 pm. Es tu red de seguridad si el aviso inmediato no llegó.' },
+      { clave:'resumenSemanal', nombre:'Resumen semanal', desc:'Los lunes a las 7:00 (hora de Monterrey): cómo está todo (solicitudes, cotizaciones, grupos de la semana) y lo nuevo desde el resumen anterior (encuestas, diagnósticos, aperturas de reportes y diplomas).', destino:true },
+    ];
+    let ajustes = null;
+
+    // ayudas propias (cada IIFE del admin trae las suyas, no hay globales)
+    const escapeHtml = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    async function apiGet(url){
+      const res = await fetch(url, { cache:'no-store' });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function toast(msg, ok){
+      const el = document.getElementById('bakToast');
+      if(!el) return;
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    const filaHtml = (clave, nombre, desc, extra, esGeneral) => `
+      <div class="cfg-correo-fila${esGeneral ? ' cfg-correo-general' : ''}" data-clave="${clave}">
+        <div class="cfg-correo-texto">
+          <div class="cfg-correo-nombre">${nombre}</div>
+          <div class="cfg-correo-desc">${desc}</div>
+          ${extra || ''}
+        </div>
+        <div class="cfg-correo-sw">
+          <label class="radm-switch"><input type="checkbox" data-clave="${clave}" aria-label="${nombre}"><span class="radm-switch-track"></span></label>
+          <span class="cfg-correo-estado"></span>
+        </div>
+      </div>`;
+
+    function pintarEstado(){
+      const cont = document.getElementById('cfgCorreoLista');
+      const general = ajustes.general !== false;
+      cont.querySelectorAll('input[type=checkbox]').forEach(cb => {
+        const k = cb.dataset.clave;
+        cb.checked = ajustes[k] !== false;
+        cb.disabled = k !== 'general' && !general;
+        const fila = cb.closest('.cfg-correo-fila');
+        // con el general apagado ningún aviso sale, aunque su propio interruptor siga encendido: se dice "En pausa"
+        fila.querySelector('.cfg-correo-estado').textContent = (k !== 'general' && !general) ? 'En pausa' : (cb.checked ? 'Activado' : 'Desactivado');
+        fila.classList.toggle('cfg-correo-apagada', k !== 'general' && !general);
+      });
+    }
+
+    function pintar(){
+      const cont = document.getElementById('cfgCorreoLista');
+      const destinoHtml = `
+        <div class="cfg-correo-destino">
+          <input type="text" id="cfgCorreoDestino" placeholder="Vacío = solo a tu correo de siempre" value="${escapeHtml(ajustes.destinoResumen || '')}" data-original="${escapeHtml(ajustes.destinoResumen || '')}" aria-label="Destinatarios del resumen semanal">
+          <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" id="cfgCorreoDestinoBtn" style="min-width:auto;" disabled>Guardar</button>
+        </div>
+        <div class="cfg-correo-desc" style="margin-top:6px;">Destinatarios del resumen, separados por coma (por ejemplo, tu correo y el de Viridiana).</div>`;
+      cont.innerHTML = filaHtml('general', 'Enviar avisos por correo', 'Interruptor general: apagado, no sale ningún correo de los de abajo, sin importar cómo estén sus interruptores.', '', true)
+        + AVISOS.map(a => filaHtml(a.clave, a.nombre, a.desc, a.destino ? destinoHtml : '', false)).join('');
+      pintarEstado();
+
+      cont.querySelectorAll('input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', async () => {
+          const clave = cb.dataset.clave, valor = cb.checked;
+          cb.disabled = true;
+          try {
+            ajustes = await apiPostJson('/api/actualizarConfiguracionCorreo', { [clave]: valor });
+            toast(valor ? 'Aviso activado.' : 'Aviso desactivado.', true);
+          } catch(e){
+            cb.checked = !valor;
+            toast('No se pudo guardar: ' + e.message, false);
+          }
+          pintarEstado();
+        });
+      });
+
+      const input = document.getElementById('cfgCorreoDestino'), btn = document.getElementById('cfgCorreoDestinoBtn');
+      input.addEventListener('input', () => {
+        const sucio = input.value.trim() !== (input.dataset.original || '');
+        input.classList.toggle('cfg-notif-dirty', sucio);
+        btn.disabled = !sucio;
+      });
+      btn.addEventListener('click', async () => {
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        try {
+          ajustes = await apiPostJson('/api/actualizarConfiguracionCorreo', { destinoResumen: input.value.trim() });
+          input.value = ajustes.destinoResumen || '';
+          input.dataset.original = input.value;
+          input.classList.remove('cfg-notif-dirty');
+          toast('Destinatarios guardados.', true);
+        } catch(e){
+          toast(e.message, false);
+          btn.disabled = false;
+        } finally {
+          btn.textContent = 'Guardar';
+        }
+      });
+    }
+
+    async function cargar(){
+      const cont = document.getElementById('cfgCorreoLista');
+      try {
+        ajustes = await apiGet('/api/getConfiguracionCorreo');
+        pintar();
+      } catch(e){
+        cont.innerHTML = `<div class="radm-empty-row">No se pudieron cargar los ajustes: ${e.message}</div>`;
+      }
+    }
+
+    let cargado = false;
+    document.getElementById('cfgCorreoHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgCorreoBody');
+      const head = document.getElementById('cfgCorreoHead');
       const expandir = body.hidden;
       body.hidden = !expandir;
       head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);

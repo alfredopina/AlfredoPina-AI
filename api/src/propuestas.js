@@ -180,6 +180,7 @@ async function leerPropuesta(table, codigo) {
         vistas: e.vistas || 0,
         primeraVista: e.primeraVista || null,
         ultimaVista: e.ultimaVista || null,
+        vistaConfirmadaEn: e.vistaConfirmadaEn || null,
         aceptadaEn: e.aceptadaEn || null,
         aceptadaPor: e.aceptadaPor || null,
         aceptadaComentario: e.aceptadaComentario || null,
@@ -205,6 +206,25 @@ async function registrarVistaPropuesta(table, codigo) {
     (e) => ({ vistas: (e.vistas || 0) + 1, ultimaVista: ahora, primeraVista: e.primeraVista || ahora }),
     () => ({ vistas: 1, ultimaVista: ahora, primeraVista: ahora })
   );
+}
+
+// El cliente de verdad tuvo la propuesta abierta unos segundos (la página lo confirma con un aviso propio; los escáneres
+// de seguridad de correo que solo "tocan" el link no corren el JavaScript de la página, así que no llegan aquí).
+// Solo la PRIMERA confirmación cuenta y dispara el correo. Regresa { primera, snapshot, vivo } o null si no existe.
+async function confirmarVistaCliente(table, codigo) {
+  const p = await leerPropuesta(table, codigo);
+  if (!p) return null;
+  if (p.vivo.vistaConfirmadaEn) return { primera: false, snapshot: p.snapshot, vivo: p.vivo };
+  const ahora = new Date().toISOString();
+  let primera = false;
+  await actualizarConReintento(
+    table,
+    "propuesta",
+    codigo,
+    (e) => { primera = !e.vistaConfirmadaEn; return primera ? { vistaConfirmadaEn: ahora } : {}; },
+    () => { primera = true; return { vistaConfirmadaEn: ahora }; }
+  );
+  return { primera, snapshot: p.snapshot, vivo: { ...p.vivo, vistaConfirmadaEn: ahora } };
 }
 
 // Solo la PRIMERA aceptación queda guardada (un segundo envío no pisa el nombre ni repite el aviso).
@@ -305,6 +325,7 @@ module.exports = {
   guardarPropuesta,
   leerPropuesta,
   registrarVistaPropuesta,
+  confirmarVistaCliente,
   registrarAceptacion,
   marcarReemplazada,
   actualizarVigenciaPropuesta,

@@ -8,19 +8,27 @@
 //   NOTIFICACIONES_REMITENTE  p. ej. notificaciones@alfredopina.ai (debe existir en MailFrom addresses del dominio)
 //   NOTIFICACIONES_DESTINO    a dónde llegan los avisos (uno o varios correos separados por coma)
 // Sin los tres, todo queda apagado (no falla, no envía): el sitio nunca debe romperse por un aviso.
+const ajustes = require("./notificaciones-ajustes");
+
 const TIMEOUT_MS = 6000;
 
-function configuracion() {
+// `destinoExtra` (lista) reemplaza a NOTIFICACIONES_DESTINO cuando viene con correos (p. ej. el resumen semanal)
+function configuracion(destinoExtra) {
   const conexion = process.env.ACS_EMAIL_CONNECTION;
   const remitente = process.env.NOTIFICACIONES_REMITENTE;
-  const destino = (process.env.NOTIFICACIONES_DESTINO || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const destino = destinoExtra && destinoExtra.length
+    ? destinoExtra
+    : (process.env.NOTIFICACIONES_DESTINO || "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!conexion || !remitente || !destino.length) return null;
   return { conexion, remitente, destino };
 }
 
 // nunca lanza: regresa { enviado, motivo? }
-async function enviarCorreo({ asunto, texto, html }) {
-  const cfg = configuracion();
+// `tipo` (opcional) = uno de notificaciones-ajustes.TIPOS: si el interruptor general o el de ese tipo está apagado en
+// Configuración → Notificaciones, no sale nada (motivo "desactivado"). `destino` (opcional) = lista de correos.
+async function enviarCorreo({ asunto, texto, html, tipo, destino }) {
+  if (tipo && !(await ajustes.activo(tipo))) return { enviado: false, motivo: "desactivado" };
+  const cfg = configuracion(destino);
   if (!cfg) return { enviado: false, motivo: "sin configurar" };
   try {
     const { EmailClient } = require("@azure/communication-email");
@@ -67,7 +75,29 @@ async function notificarSolicitudNueva(d) {
     `</table>` +
     `<p style="margin:18px 0 0"><a href="${enlace}" style="color:#1f5fe0">Abrir el admin (Solicitudes)</a></p>` +
     `</div>`;
-  return enviarCorreo({ asunto, texto, html });
+  return enviarCorreo({ asunto, texto, html, tipo: "nuevaSolicitud" });
 }
 
-module.exports = { enviarCorreo, notificarSolicitudNueva, configuracion };
+// Aviso con tabla etiqueta/valor y un enlace (mismo estilo que los de arriba). `filas` = [[etiqueta, valor], …]; los
+// vacíos se omiten. Regresa { texto, html } listos para enviarCorreo.
+function armarAviso({ titulo, filas, enlace, textoEnlace }) {
+  const f = (filas || []).filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "");
+  const texto = f.map(([k, v]) => `${k}: ${v}`).join("\n") + (enlace ? `\n\n${textoEnlace || "Abrir"}: ${enlace}` : "");
+  const html =
+    `<div style="font-family:Arial,Helvetica,sans-serif;color:#181c24;max-width:560px"><h2 style="margin:0 0 12px;font-size:18px">${esc(titulo)}</h2>` +
+    `<table style="border-collapse:collapse;width:100%;font-size:14px">` +
+    f.map(([k, v]) => `<tr><td style="padding:6px 12px 6px 0;color:#5b6270;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0;white-space:pre-line">${esc(v)}</td></tr>`).join("") +
+    `</table>` +
+    (enlace ? `<p style="margin:18px 0 0"><a href="${esc(enlace)}" style="color:#1f5fe0">${esc(textoEnlace || "Abrir")}</a></p>` : "") +
+    `</div>`;
+  return { texto, html };
+}
+
+// "2026-10-12T15:04:00.000Z" → "12 oct 2026, 9:04 a.m." en hora de Monterrey
+function fechaLocal(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.toLocaleString("es-MX", { timeZone: "America/Monterrey", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+module.exports = { enviarCorreo, notificarSolicitudNueva, configuracion, armarAviso, fechaLocal, esc };

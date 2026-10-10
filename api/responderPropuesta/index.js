@@ -55,6 +55,7 @@ module.exports = async function (context, req) {
       const enlace = `https://www.alfredopina.ai/propuesta/${codigo}`;
       const filas = [["Propuesta", `${s.folio} — ${s.programa}`], ["Cliente", s.cliente], ["Aceptó", nombre], ["Contacto", r.contacto], ["Adicionales que agregó", (r.adicionales || []).map((a) => a.n).join(", ")], ["Comentarios", comentario]].filter(([, v]) => v && String(v).trim());
       await enviarCorreo({
+        tipo: "propuestaAceptada",
         asunto: `Propuesta aceptada: ${s.folio} — ${s.cliente}`.slice(0, 150),
         texto: filas.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n\nVer la propuesta: ${enlace}`,
         html:

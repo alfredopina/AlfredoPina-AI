@@ -77,6 +77,7 @@ Lo que hace crecer la demanda.
 ### Frente 4 — Administración
 Menos horas de oficina; se lleva en paralelo con Viridiana, sin urgencia.
 - Facturación, cobranza y contabilidad (integrar proveedor, no construir).
+- **Cobranza (diseño acordado 2026-10-08; se construye ~2 semanas después de cerrar comercial y cursos abiertos, antes si hace falta para dic-ene):** Tracking de cuentas por cobrar que nace de una Cotización ganada, con semáforo por vencimiento (el plazo de gobierno cuenta desde el contra-recibo), pagos como filas y alertas. Viridiana factura con **Facturama** y lleva el control en un Excel (UUID, folio, RFC, razón social, uso CFDI, total, estatus, complemento de pago) que es la fuente a integrar. Integración por niveles: 1) folio/UUID capturado en el sitio, 2) lectura por API de Facturama, 3) clientes sincronizados, 4) timbrar desde el sitio (solo con botón explícito de Viri). Detalle en la memoria privada del proyecto.
 - Consolidar nubes: hoy se pagan Dropbox, Google Drive y OneDrive.
 - Inventario de activos: dominios, sitios, cuentas, marcas, licencias.
 - **Meta:** un solo lugar para archivos y un inventario de todo lo que se paga.

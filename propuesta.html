@@ -530,10 +530,25 @@
       if(!r.ok) return sinPropuesta('No pudimos cargar la propuesta', 'Intenta de nuevo en un momento. Si sigue igual, escríbeme: alfredo.pina@lifezen.com.mx.');
       const d = await r.json();
       pintar(d.propuesta, {admin:d.admin || null, aceptada:d.aceptada, aceptadaInfo:d.aceptadaInfo || null, reemplazadaPor:d.reemplazadaPor});
+      if(!d.admin) confirmarPresencia(codigo);
     } catch(e){
       sinPropuesta('No pudimos cargar la propuesta', 'Revisa tu conexión e intenta de nuevo.');
     }
   })();
+
+  // Aviso al dueño de que el cliente SÍ tuvo la propuesta abierta: tras ~8 s con la pestaña visible se manda una sola
+  // confirmación (los escáneres de seguridad de correo solo "tocan" el link y no corren esto). Una vez por pestaña.
+  function confirmarPresencia(cod){
+    try { if(sessionStorage.getItem('pc-' + cod)) return; } catch(e){}
+    let visibles = 0;
+    const t = setInterval(() => {
+      if(document.visibilityState !== 'visible') return;
+      if(++visibles < 8) return;
+      clearInterval(t);
+      try { sessionStorage.setItem('pc-' + cod, '1'); } catch(e){}
+      fetch('/api/confirmarVistaPropuesta', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo:cod}), keepalive:true}).catch(() => {});
+    }, 1000);
+  }
 
   function pintar(S, ctx){
   document.body.classList.remove('cargando');

@@ -397,6 +397,14 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/getConfiguracionCorreo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/actualizarConfiguracionCorreo",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getNotificacionesActivas",
       "allowedRoles": ["admin"]
     },

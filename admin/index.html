@@ -2647,16 +2647,6 @@
           Volver
         </button>
         <div class="cfg-card">
-          <button type="button" class="cfg-card-head" id="cfgPerfilHead">
-            <span class="cfg-card-title">PERFIL</span>
-            <span class="admin-nav-soon">PRONTO</span>
-            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </button>
-          <div class="cfg-card-body" id="cfgPerfilBody" hidden>
-            <div class="cfg-note">Datos de tu marca y firma para documentos (cotizaciones, diplomas). Pendiente — se diseña más adelante en el proyecto, cerca del cierre.</div>
-          </div>
-        </div>
-        <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgCorreoHead">
             <span class="cfg-card-title">NOTIFICACIONES</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2688,18 +2678,6 @@
           </div>
         </div>
         <div class="cfg-card">
-          <button type="button" class="cfg-card-head" id="cfgActividadHead">
-            <span class="cfg-card-title">ACTIVIDAD</span>
-            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </button>
-          <div class="cfg-card-body" id="cfgActividadBody" hidden>
-            <div class="cfg-note">Quién ha entrado al panel y cuántas veces — útil ahora que van a ser 2 administradores.</div>
-            <div class="cfg-actividad-list" id="cfgActividadLista">
-              <div class="radm-empty-row">Cargando actividad…</div>
-            </div>
-          </div>
-        </div>
-        <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgTarifasHead">
             <span class="cfg-card-title">TARIFAS POR HORA</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2724,6 +2702,18 @@
             </button>
             <div class="radm-list" id="bakLista">
               <div class="radm-empty-row">Cargando respaldos…</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgActividadHead">
+            <span class="cfg-card-title">ACTIVIDAD</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgActividadBody" hidden>
+            <div class="cfg-note">Quién ha entrado al panel y cuántas veces — útil ahora que van a ser 2 administradores.</div>
+            <div class="cfg-actividad-list" id="cfgActividadLista">
+              <div class="radm-empty-row">Cargando actividad…</div>
             </div>
           </div>
         </div>
@@ -4951,23 +4941,6 @@
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
   document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
 
-  // Acordeón simple para las 2 tarjetas de Configuración que todavía son solo
-  // un "PRONTO" — sin datos que cargar, así que no necesitan su propio IIFE.
-  // Actividad/Tarifas/Respaldos (con datos reales) llevan su propio manejo,
-  // cada una en su IIFE, más abajo.
-  function wireCfgCardSimple(headId, bodyId){
-    const head = document.getElementById(headId);
-    const body = document.getElementById(bodyId);
-    head.addEventListener('click', () => {
-      const expandir = body.hidden;
-      body.hidden = !expandir;
-      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
-    });
-  }
-  wireCfgCardSimple('cfgPerfilHead', 'cfgPerfilBody');
-  // cfgNotifHead ya no usa el acordeón genérico — tiene datos reales que
-  // cargar perezoso (umbrales), mismo criterio que Actividad/Tarifas/
-  // Respaldos, ver su propio IIFE más abajo.
 
   // Botón "Despertar" — dispara un SELECT 1 contra apcweb-backoffice (Function
   // despertarBackoffice) solo para sacarla del auto-pause antes de que Alfredo

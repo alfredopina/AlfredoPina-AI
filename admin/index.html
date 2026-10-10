@@ -1692,26 +1692,8 @@
   .trkv-bin-row{ display:flex; align-items:center; justify-content:center; gap:4px; margin-top:10px; white-space:nowrap; font-family:var(--display); color:var(--text-faint); }
   .trkv-bin-row .cot-vv{ padding:1px 6px; font-size:17px; line-height:1.2; font-variant-numeric:tabular-nums; }
   .trkv-bin-row .cot-vv.m{ font-size:15px; }
-  /* Alertas disponibles de cada sección, debajo de las tarjetas */
-  /* Alertas: franja de fondo propio (más hundida que las tarjetas) y cada sección como su propio recuadro con encabezado marcado */
-  .trkv-alertas{ margin-top:22px; background-color:var(--bg); border:1px solid var(--line); border-top:3px solid #dc2626; border-radius:12px; padding:20px 22px 22px; }
-  .trkv-al-title{ display:flex; align-items:center; gap:9px; margin:0 0 14px; font-family:var(--display); font-size:17px; font-weight:700; }
-  .trkv-al-title svg{ width:20px; height:20px; color:#dc2626; }
-  .trkv-al-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
-  @media (max-width:760px){ .trkv-al-grid{ grid-template-columns:1fr; } }
-  .trkv-al{ min-width:0; background-color:var(--panel); border:1px solid var(--line); border-radius:10px; padding:0 16px 8px; overflow:hidden; }
-  .trkv-al-head{ display:flex; align-items:center; gap:9px; margin:0 -16px 6px; padding:11px 16px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font-family:var(--display); font-size:14.5px; font-weight:700; }
-  .trkv-al-head svg{ width:17px; height:17px; flex:none; color:var(--blue-bright); }
-  .trkv-al-count{ margin-left:auto; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; background-color:rgba(220,38,38,.16); color:#fca5a5; }
   .trkv-al-count.cero{ background-color:var(--panel-2); color:var(--text-faint); }
-  .trkv-al-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid var(--line); cursor:pointer; }
   .trkv-al-row:hover .trkv-al-cli{ color:var(--blue-bright); }
-  .trkv-al-cli{ font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .trkv-al-det{ font-size:11.5px; color:var(--text-dim); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .trkv-al-row > div{ min-width:0; }
-  .trkv-al-vacio{ display:flex; align-items:center; gap:7px; padding:9px 0; border-top:1px solid var(--line); font-size:12px; color:var(--text-faint); }
-  .trkv-al-vacio svg{ width:14px; height:14px; color:var(--teal); flex:none; }
-  .trkv-al-mas{ display:block; width:100%; text-align:left; padding:8px 0 2px; border:none; border-top:1px solid var(--line); background:none; font-family:var(--mono); font-size:11px; color:var(--blue-bright); cursor:pointer; }
   .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
@@ -1820,12 +1802,43 @@
      .gro-notas-popover: position:fixed con coordenadas calculadas en JS
      junto a btnNotificaciones (el botón no vive dentro de un wrapper
      position:relative que sirva de ancla para un position:absolute). */
-  .notif-badge{
-    position:absolute; top:-5px; right:-5px; min-width:15px; height:15px; padding:0 4px;
-    background-color:#dc2626; color:#fff; font-family:var(--mono); font-size:9.5px; font-weight:700;
-    border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;
-    box-shadow:0 0 0 2px var(--panel);
-  }
+  /* Campana "viva": con alertas se rellena y se pone en rojo con pulso (sin número; el conteo va en el tooltip) */
+  #btnNotificaciones.notif-vivo{ background-color:#dc2626; border-color:#dc2626; color:#fff; animation:notif-pulso 2.2s ease-in-out infinite; }
+  #btnNotificaciones.notif-vivo:hover{ background-color:#ef4444; border-color:#ef4444; }
+  @keyframes notif-pulso{ 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.45); } 50%{ box-shadow:0 0 0 6px rgba(220,38,38,0); } }
+  @media (prefers-reduced-motion:reduce){ #btnNotificaciones.notif-vivo{ animation:none; } }
+
+  /* ── Página de Alertas (panel-alertas) ── */
+  .alr-page-head{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .alr-page-head h2{ display:flex; align-items:center; gap:9px; margin:0; font-family:var(--display); font-size:19px; font-weight:700; }
+  .alr-page-head h2 svg{ width:21px; height:21px; color:#dc2626; }
+  .alr-sub{ font-size:12.5px; color:var(--text-dim); }
+  .alr-cfg{ margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); text-decoration:none; }
+  .alr-cfg:hover{ text-decoration:underline; }
+  .alr-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
+  @media (max-width:900px){ .alr-grid{ grid-template-columns:1fr; } }
+  .alr-sec{ min-width:0; background-color:var(--panel); border:1px solid var(--line); border-top:3px solid #dc2626; border-radius:10px; padding:0 18px 10px; overflow:hidden; scroll-margin-top:16px; }
+  .alr-head{ display:flex; align-items:center; gap:9px; margin:0 -18px 6px; padding:12px 18px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font-family:var(--display); font-size:15px; font-weight:700; }
+  .alr-head svg{ width:18px; height:18px; flex:none; color:var(--blue-bright); }
+  .alr-head small{ font-family:var(--body); font-size:11.5px; font-weight:400; color:var(--text-faint); margin-left:4px; }
+  .alr-count{ margin-left:auto; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:10px; padding:1px 9px; background-color:rgba(220,38,38,.16); color:#fca5a5; }
+  .alr-count.cero{ background-color:var(--panel-2); color:var(--text-faint); }
+  .alr-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:9px 0; background:none; border:none; border-top:1px solid var(--line); color:inherit; font:inherit; text-align:left; cursor:pointer; }
+  .alr-row:first-of-type{ border-top:none; }
+  .alr-row:hover .alr-cli, .alr-row:focus-visible .alr-cli{ color:var(--blue-bright); }
+  .alr-row:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:2px; }
+  .alr-row-txt{ display:flex; flex-direction:column; min-width:0; }
+  .alr-cli{ font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .alr-det{ font-size:12px; color:var(--text-dim); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .alr-vacio{ display:flex; align-items:center; gap:8px; padding:12px 0; font-size:12.5px; color:var(--text-faint); }
+  .alr-vacio svg{ width:16px; height:16px; color:var(--teal); flex:none; }
+  .alr-estado{ grid-column:1 / -1; justify-content:center; }
+  .alr-mas{ display:block; width:100%; text-align:left; padding:9px 0 2px; border:none; border-top:1px solid var(--line); background:none; font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); cursor:pointer; }
+  .alr-estado .alr-mas{ display:inline; width:auto; border:none; padding:0 0 0 8px; }
+  /* la fila a la que te llevó una alerta se enfoca un momento */
+  @keyframes fila-flash{ 0%,35%{ background-color:rgba(61,127,255,.35); box-shadow:inset 3px 0 0 var(--blue-bright); } 100%{ background-color:transparent; box-shadow:inset 3px 0 0 transparent; } }
+  tr.fila-resaltada > td{ animation:fila-flash 3.4s ease-out; }
+  @media (prefers-reduced-motion:reduce){ tr.fila-resaltada > td{ animation:none; background-color:rgba(61,127,255,.22); } }
   #btnNotificaciones{ position:relative; }
   #btnNotificaciones.notif-abierto{ color:var(--blue-bright); background-color:var(--blue-soft); }
 
@@ -2476,27 +2489,8 @@
         </button>
         <button type="button" class="admin-icon-btn" id="btnNotificaciones" title="Alertas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="notif-badge" id="notifBadge" hidden>0</span>
         </button>
 
-        <div class="notif-popover" id="notifPopover" hidden>
-          <div class="notif-head">
-            <div>
-              <span class="notif-fx">fx =ALERTAS()</span>
-              <span class="notif-sub" id="notifSub">Cargando…</span>
-            </div>
-            <button type="button" class="notif-close" id="notifClose" title="Cerrar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
-            </button>
-          </div>
-          <div class="notif-body" id="notifBody"></div>
-          <div class="notif-foot">
-            <span id="notifFootUmbrales"></span>
-            <a href="#" id="notifFootConfig">Configurar
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-        </div>
         <button type="button" class="admin-icon-btn" id="btnPendientes" title="Pendientes">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -2607,12 +2601,16 @@
             <div class="trkv-signal" id="trkvGruSignal"></div>
           </article>
         </div>
-
-        <section class="trkv-alertas" aria-label="Alertas activas de cada sección">
-          <h3 class="trkv-al-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3Z" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>Alertas activas</h3>
-          <div class="trkv-al-grid" id="trkvAlertas"></div>
-        </section>
       </div>
+      <div class="admin-panel" id="panel-alertas" style="--c:var(--blue-bright)">
+        <div class="alr-page-head">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Alertas activas</h2>
+          <span class="alr-sub" id="alrSub">Cargando…</span>
+          <a href="#" class="alr-cfg" id="alrConfig">Configurar umbrales →</a>
+        </div>
+        <div class="alr-grid" id="alrGrid"></div>
+      </div>
+
       <div class="admin-panel" id="panel-dashboard">
         <div class="dash-etabs" id="dashTabs">
           <button type="button" class="dash-etab active" data-dashtab="comercial">Comercial</button>
@@ -4941,7 +4939,7 @@
   })();
 
   const TITLES = {
-    'tracking-view': 'Tracking View',
+    'tracking-view': 'Tracking View', alertas: 'Alertas',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
     diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', clientes: 'Clientes',
     'tracking-comercial': 'Cotizaciones', 'tracking-operacion': 'Grupos',
@@ -4969,6 +4967,7 @@
     // Igual con Solicitudes (ver window.alEntrarASolicitudes en su IIFE): refresca lista y tarjetas al entrar.
     if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
     if(key === 'tracking-comercial' && typeof window.alEntrarACotizaciones === 'function') window.alEntrarACotizaciones();
+    if(key === 'alertas' && typeof window.alEntrarAAlertas === 'function') window.alEntrarAAlertas();
   }
 
   document.getElementById('adminNav').addEventListener('click', e => {
@@ -5061,114 +5060,106 @@
     let datos = null; // { total, umbrales, grupos:{cotizaciones,grupos,clientes} }
 
     const bell = document.getElementById('btnNotificaciones');
-    const badge = document.getElementById('notifBadge');
-    const popover = document.getElementById('notifPopover');
-    const body = document.getElementById('notifBody');
-    const sub = document.getElementById('notifSub');
-    const footUmbrales = document.getElementById('notifFootUmbrales');
+    const ICO_ALERTA = bell.innerHTML;
+    const ICO_ALERTA_VIVA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke="#7f1d1d" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
-    function pintarBadge(){
-      if(!datos || !datos.total){ badge.hidden = true; return; }
-      badge.hidden = false;
-      badge.textContent = datos.total > 99 ? '99+' : String(datos.total);
+    // La campana ya no abre un popover ni muestra número: con alertas se rellena y se pone en rojo "vivo" (relleno + pulso +
+    // texto en el tooltip, nunca solo color) y un clic lleva a la página de Alertas. Sin alertas vuelve a contorno y en calma.
+    function pintarCampana(){
+      const n = datos && datos.total ? datos.total : 0;
+      const vivo = n > 0;
+      bell.classList.toggle('notif-vivo', vivo);
+      bell.innerHTML = vivo ? ICO_ALERTA_VIVA : ICO_ALERTA;
+      const txt = vivo ? n + (n === 1 ? ' alerta activa' : ' alertas activas') + ' — clic para verlas' : 'Alertas — todo al día';
+      bell.title = txt;
+      bell.setAttribute('aria-label', txt);
     }
+    bell.addEventListener('click', () => activarPanel('alertas'));
 
-    function grupoHtml(clave, icono, nombre, panelDestino){
-      const items = (datos.grupos && datos.grupos[clave]) || [];
-      if(!items.length) return '';
-      return `
-        <div class="notif-grp">
-          <div class="notif-grp-head">${icono}<b>${nombre}</b><span class="notif-grp-count">${items.length}</span></div>
-          ${items.map(it => `
-            <div class="notif-row" data-panel="${panelDestino}">
-              <div class="notif-row-text">
-                <div class="notif-row-cliente">${escapeHtml(it.cliente)}</div>
-                <div class="notif-row-detalle">${escapeHtml(it.detalle)}</div>
-              </div>
-              <span class="notif-day-pill">${it.pastilla ? it.pastilla : it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d')}</span>
-            </div>
-          `).join('')}
-        </div>`;
-    }
-
-    function pintarPopover(){
+    // ── Página de Alertas (panel-alertas): las mismas alertas de la campana, por sección, en el mismo orden de las tarjetas
+    // del Tracking View. Se pinta desde `datos`; una sección nueva (p. ej. Facturación) es una entrada más de esta lista. ──
+    const SECCIONES_ALERTA = [
+      { k: 'solicitudes', nombre: 'Solicitudes', sub: 'sin atender', ico: ICO.sol },
+      { k: 'clientes', nombre: 'Clientes', sub: 'inactivos', ico: ICO.cli },
+      { k: 'cotizaciones', nombre: 'Cotizaciones', sub: 'aceptadas, vencidas y sin respuesta', ico: ICO.cot },
+      { k: 'grupos', nombre: 'Grupos', sub: 'atorados', ico: ICO.gru },
+    ];
+    const ALERTAS_POR_SECCION = 5;
+    const seccionesAbiertas = new Set();
+    function pastillaAlerta(it){ return it.pastilla ? it.pastilla : it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d'); }
+    function pintarPagina(){
+      const grid = document.getElementById('alrGrid'), sub = document.getElementById('alrSub');
+      if(!grid) return;
       if(!datos){
-        if(cargando){
-          body.innerHTML = `<div class="radm-empty-row">Cargando… (la base puede tardar unos segundos en despertar)</div>`;
-          sub.textContent = 'Cargando…';
-          footUmbrales.textContent = '';
-          return;
-        }
-        body.innerHTML = `
-          <div class="radm-empty-row">No se pudieron cargar las alertas${ultimoError ? ': ' + escapeHtml(ultimoError) : ''}.</div>
-          <div style="padding:0 10px 10px;">
-            <button type="button" class="radm-btn radm-btn-ghost" id="notifReintentar" style="min-width:auto;">Reintentar</button>
-          </div>`;
-        sub.textContent = '';
-        footUmbrales.textContent = '';
-        const btnReintentar = document.getElementById('notifReintentar');
-        if(btnReintentar) btnReintentar.addEventListener('click', cargarNotificaciones);
+        sub.textContent = cargando ? 'Cargando…' : '';
+        grid.innerHTML = cargando
+          ? '<div class="alr-vacio alr-estado">Cargando… (la base puede tardar unos segundos en despertar)</div>'
+          : '<div class="alr-vacio alr-estado">No se pudieron cargar las alertas' + (ultimoError ? ': ' + escapeHtml(ultimoError) : '') + '. <button type="button" class="alr-mas" id="alrReintentar">Reintentar</button></div>';
+        const r = document.getElementById('alrReintentar'); if(r) r.addEventListener('click', cargarNotificaciones);
         return;
       }
-      if(!datos.total){
-        body.innerHTML = `<div class="notif-vacio">${ICO.check}<span>Todo al día.</span></div>`;
-      } else {
-        body.innerHTML = [
-          grupoHtml('solicitudes', ICO.sol, 'Solicitudes sin atender', 'solicitudes'),
-          grupoHtml('cotizaciones', ICO.cot, 'Cotizaciones frías', 'tracking-comercial'),
-          grupoHtml('grupos', ICO.gru, 'Grupos atorados', 'tracking-operacion'),
-          grupoHtml('clientes', ICO.cli, 'Clientes inactivos', 'clientes'),
-        ].join('');
-        body.querySelectorAll('.notif-row').forEach(row => {
-          row.addEventListener('click', () => {
-            cerrarPopover();
-            activarPanel(row.dataset.panel);
-          });
-        });
-      }
-      sub.textContent = datos.total
-        ? `${datos.total} activa${datos.total === 1 ? '' : 's'} requieren tu atención`
-        : 'Sin pendientes por ahora';
-      const u = datos.umbrales || window.UMBRALES_NOTIF;
-      footUmbrales.textContent = `Umbrales: ${u.solicitudesHoras} h · ${u.cotizacionesDias} · ${u.gruposDias} · ${u.clientesDias} días`;
+      sub.textContent = datos.total ? datos.total + (datos.total === 1 ? ' activa requiere' : ' activas requieren') + ' tu atención' : 'Sin pendientes por ahora';
+      grid.innerHTML = SECCIONES_ALERTA.map(sec => {
+        const items = (datos.grupos && datos.grupos[sec.k]) || [];
+        const abierta = seccionesAbiertas.has(sec.k);
+        const visibles = abierta ? items : items.slice(0, ALERTAS_POR_SECCION);
+        const filas = visibles.map(it => '<button type="button" class="alr-row" data-k="' + sec.k + '" data-id="' + escapeHtml(it.id) + '">' +
+          '<span class="alr-row-txt"><span class="alr-cli">' + escapeHtml(it.cliente) + '</span><span class="alr-det" title="' + escapeHtml(it.detalle) + '">' + escapeHtml(it.detalle) + '</span></span>' +
+          '<span class="notif-day-pill">' + escapeHtml(pastillaAlerta(it)) + '</span></button>').join('');
+        const mas = items.length > ALERTAS_POR_SECCION
+          ? '<button type="button" class="alr-mas" data-mas="' + sec.k + '">' + (abierta ? 'Ver menos' : 'Ver ' + (items.length - ALERTAS_POR_SECCION) + ' más') + '</button>' : '';
+        return '<section class="alr-sec" data-sec="' + sec.k + '"><div class="alr-head">' + sec.ico + '<span>' + sec.nombre + ' <small>' + sec.sub + '</small></span><span class="alr-count' + (items.length ? '' : ' cero') + '">' + items.length + '</span></div>' +
+          (filas || '<div class="alr-vacio">' + ICO.check + 'Todo al día</div>') + mas + '</section>';
+      }).join('');
     }
+    window.pintarAlertasPagina = pintarPagina;
 
-    function abrirPopover(){
-      pintarPopover();
-      const rect = bell.getBoundingClientRect();
-      popover.style.top = (rect.bottom + 8) + 'px';
-      popover.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
-      popover.hidden = false;
-      bell.classList.add('notif-abierto');
+    // Resalta una fila de tabla (la alerta que te trajo aquí): espera a que la tabla termine de cargar y la enfoca un momento
+    function resaltarFila(tbodyId, id){
+      let intentos = 0, listo = false;
+      const t = setInterval(() => {
+        const fila = document.querySelector('#' + tbodyId + ' > tr[data-id="' + id + '"]');
+        if(fila && !listo){
+          listo = true;
+          fila.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          fila.classList.remove('fila-resaltada'); void fila.offsetWidth; fila.classList.add('fila-resaltada');
+        }
+        if(++intentos > 24 || (listo && intentos > 6)) clearInterval(t);
+      }, 250);
     }
-    function cerrarPopover(){
-      popover.hidden = true;
-      bell.classList.remove('notif-abierto');
+    // Cada alerta te lleva directo a lo que pide: cotización → su ventana de seguimiento; las demás → su tabla, sin filtros y con la fila resaltada
+    function irAAlerta(k, id){
+      if(k === 'cotizaciones'){ window.__alertaCotId = id; activarPanel('tracking-comercial'); return; }
+      const cfg = { solicitudes: ['solicitudes', 'solLimpiarFiltros', 'solListaBody'], clientes: ['clientes', 'cliLimpiarFiltros', 'cliListaBody'], grupos: ['tracking-operacion', 'groLimpiarFiltros', 'groListaBody'] }[k];
+      if(!cfg) return;
+      activarPanel(cfg[0]);
+      setTimeout(() => { const l = document.getElementById(cfg[1]); if(l) l.click(); resaltarFila(cfg[2], id); }, 200);
     }
-    bell.addEventListener('click', () => { popover.hidden ? abrirPopover() : cerrarPopover(); });
-    document.getElementById('notifClose').addEventListener('click', cerrarPopover);
-    document.addEventListener('click', e => {
-      if(!popover.hidden && !e.target.closest('#notifPopover') && !e.target.closest('#btnNotificaciones')){
-        cerrarPopover();
-      }
+    document.getElementById('alrGrid').addEventListener('click', e => {
+      const mas = e.target.closest('[data-mas]');
+      if(mas){ const k = mas.dataset.mas; seccionesAbiertas.has(k) ? seccionesAbiertas.delete(k) : seccionesAbiertas.add(k); pintarPagina(); return; }
+      const fila = e.target.closest('.alr-row');
+      if(fila) irAAlerta(fila.dataset.k, fila.dataset.id);
     });
-    document.addEventListener('keydown', e => {
-      if(e.key === 'Escape' && !popover.hidden) cerrarPopover();
-    });
-    document.getElementById('notifFootConfig').addEventListener('click', e => {
+    document.getElementById('alrConfig').addEventListener('click', e => {
       e.preventDefault();
-      cerrarPopover();
       activarPanel('config');
-      const head = document.getElementById('cfgNotifHead');
-      const cfgBody = document.getElementById('cfgNotifBody');
-      if(cfgBody.hidden) head.click();
+      const head = document.getElementById('cfgNotifHead'), cfgBody = document.getElementById('cfgNotifBody');
+      if(cfgBody && cfgBody.hidden && head) head.click();
     });
+    window.alEntrarAAlertas = () => {
+      pintarPagina();
+      cargarNotificaciones();
+      if(window.__alrScroll){
+        const k = window.__alrScroll; window.__alrScroll = null;
+        setTimeout(() => { const s = document.querySelector('.alr-sec[data-sec="' + k + '"]'); if(s) s.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 80);
+      }
+    };
 
     // getNotificacionesActivas le pega a apcweb-backoffice (SQL serverless,
     // auto-pausa) — necesita el mismo reintento con pausas crecientes que ya
     // usa el resto del admin contra esa base (ver "Ya resuelto" en CLAUDE.md:
     // apiGet a secas contra esa base falla en silencio si estaba dormida).
-    // Se dejó fuera en la primera versión de este IIFE — corregido.
     const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
     async function pedirNotificaciones(){
       for(let intento = 0; ; intento++){
@@ -5188,27 +5179,24 @@
     let cargando = true;
     async function cargarNotificaciones(){
       cargando = true;
-      if(!popover.hidden) pintarPopover();
+      if(!datos) pintarPagina();
       try {
         const b = await pedirNotificaciones();
         datos = b;
         ultimoError = null;
         window.UMBRALES_NOTIF = b.umbrales || window.UMBRALES_NOTIF;
         window.dispatchEvent(new Event('umbrales-notif')); // el tracking de Solicitudes recolorea su semáforo con los umbrales nuevos
-        pintarBadge();
+        pintarCampana();
       } catch(e){
-        // el badge se queda sin número, pero el popover SÍ muestra el error
-        // real (esto es admin-only, no hay razón para ocultarlo como en las
-        // Functions públicas) — con un botón para reintentar sin recargar.
         ultimoError = e.message;
       } finally {
         cargando = false;
-        if(!popover.hidden) pintarPopover();
+        pintarPagina();
       }
     }
     cargarNotificaciones();
-    // Expuesto para que Configuración → Alertas refresque badge/popover
-    // y los umbrales compartidos en cuanto Alfredo guarda un cambio.
+    // Expuesto para que Configuración → Alertas (y cualquier acción que resuelva una alerta) refresque la campana, la página
+    // de Alertas y los umbrales compartidos sin recargar.
     window.refrescarNotificaciones = cargarNotificaciones;
   })();
 
@@ -5380,7 +5368,6 @@
       try {
         const r = await apiGetConReintento('/api/getNotificacionesActivas');
         const grupos = r.grupos || {};
-        pintarAlertasTV(grupos);
         const mapa = { trkvSolBell: grupos.solicitudes, trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
         Object.entries(mapa).forEach(([id, items]) => {
           const el = document.getElementById(id);
@@ -5388,41 +5375,8 @@
           el.hidden = !n;
           if(n) el.querySelector('.trkv-bell-count').textContent = n > 99 ? '99+' : String(n);
         });
-      } catch(e){
-        /* la campana del topbar ya avisa si algo falla de verdad; aquí solo se deja un aviso discreto */
-        const cont = document.getElementById('trkvAlertas');
-        if(cont && !cont.children.length) cont.innerHTML = '<div class="trkv-al-vacio">No se pudieron cargar las alertas.</div>';
-      }
+      } catch(e){ /* silencioso: la campana ya avisa si algo falla de verdad */ }
     }
-
-    // Alertas activas de cada sección (las mismas de la campana), en el mismo orden de las tarjetas; clic = ir a esa sección
-    const ALERTAS_TV = [
-      { k:'solicitudes', nombre:'Solicitudes', ir:'solicitudes', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h4l1.5 3h5L16 13h4M4 13l2-8h12l2 8v6H4v-6Z" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-      { k:'clientes', nombre:'Clientes', ir:'clientes', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4" stroke-linecap="round"/></svg>' },
-      { k:'cotizaciones', nombre:'Cotizaciones', ir:'tracking-comercial', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h4" stroke-linecap="round"/></svg>' },
-      { k:'grupos', nombre:'Grupos', ir:'tracking-operacion', ico:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5S15.5 16.5 15.5 20M17 11a3 3 0 1 0 0-6M21.5 19c0-2.5-1.5-4-3.5-4.6" stroke-linecap="round"/></svg>' },
-    ];
-    const MAX_ALERTAS_TV = 3; // las 3 más urgentes: el servidor ya las entrega ordenadas de más a menos urgente
-    function pintarAlertasTV(grupos){
-      const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-      const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      document.getElementById('trkvAlertas').innerHTML = ALERTAS_TV.map(sec => {
-        const items = (grupos && grupos[sec.k]) || [];
-        const filas = items.slice(0, MAX_ALERTAS_TV).map(it => `
-          <div class="trkv-al-row" data-ir="${sec.ir}">
-            <div><div class="trkv-al-cli">${esc(it.cliente)}</div><div class="trkv-al-det" title="${esc(it.detalle)}">${esc(it.detalle)}</div></div>
-            <span class="notif-day-pill">${esc(it.pastilla ? it.pastilla : it.horas != null ? it.horas + ' h' : (it.dias == null ? '—' : it.dias + ' d'))}</span>
-          </div>`).join('');
-        const mas = items.length > MAX_ALERTAS_TV ? `<button type="button" class="trkv-al-mas" data-ir="${sec.ir}">+ ${items.length - MAX_ALERTAS_TV} más en ${sec.nombre}</button>` : '';
-        return `<div class="trkv-al">
-          <div class="trkv-al-head">${sec.ico}${sec.nombre}<span class="trkv-al-count ${items.length ? '' : 'cero'}">${items.length}</span></div>
-          ${filas || `<div class="trkv-al-vacio">${check}Sin alertas</div>`}${mas}
-        </div>`;
-      }).join('');
-    }
-    document.getElementById('trkvAlertas').addEventListener('click', e => {
-      const t = e.target.closest('[data-ir]'); if(t) activarPanel(t.dataset.ir);
-    });
 
     function cargarTodo(){
       cargarSolicitudes();
@@ -5436,6 +5390,13 @@
       const ir = () => activarPanel(card.dataset.goto);
       card.addEventListener('click', ir);
       card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); } });
+    });
+
+    // las campanitas de cada tarjeta son atajos a su sección de la página de Alertas
+    [['trkvSolBell', 'solicitudes'], ['trkvCliBell', 'clientes'], ['trkvComBell', 'cotizaciones'], ['trkvGruBell', 'grupos']].forEach(([id, k]) => {
+      const el = document.getElementById(id);
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', e => { e.stopPropagation(); window.__alrScroll = k; activarPanel('alertas'); });
     });
 
     cargarTodo();
@@ -13830,6 +13791,15 @@
       segRevisando = true;
       try { await correrColaSeg(items); } finally { segRevisando = false; }
     }
+    async function abrirSeguimientoDe(id){
+      const c = cotizacionPorId(id) || cotCruda.find(x => String(x.id) === String(id));
+      if(!c){ toast('No encontré esa cotización.', false); return; }
+      const t = tipoSeg(c);
+      if(!t){ toast('Esa cotización ya no pide seguimiento.', true); return; }
+      if(segRevisando) return;
+      segRevisando = true;
+      try { await correrColaSeg([{ c, t }]); } finally { segRevisando = false; }
+    }
     document.getElementById('cotSegBtn').addEventListener('click', abrirSeguimientoManual);
     let cotCargaPromise = Promise.resolve();
 
@@ -14700,7 +14670,11 @@
     }
     window.activarTabCot = activarTabCot;
     // al entrar desde el menú: carga y, una vez que llegan los datos, revisa los seguimientos pendientes (solo Alfredo)
-    window.alEntrarACotizaciones = () => { activarTabCot('tracking'); cotCargaPromise.then(revisarSeguimientosCot); };
+    window.alEntrarACotizaciones = () => {
+      activarTabCot('tracking');
+      const id = window.__alertaCotId; window.__alertaCotId = null; // viene de la página de Alertas: abre SOLO esa cotización
+      cotCargaPromise.then(() => id ? abrirSeguimientoDe(id) : revisarSeguimientosCot());
+    };
     document.getElementById('cotVolverDeCrear').addEventListener('click', () => activarTabCot('tracking'));
 
     mostrarVistaCrear('lista');

@@ -31,7 +31,7 @@ async function proyectosParaPropuesta(herramienta, temarioNombre) {
     const proyectos = (await listar(getProyectosTable(), herramienta))
       .filter((p) => p.estado === "publicado")
       .sort((a, b) => (a.orden || 0) - (b.orden || 0))
-      .map((p) => ({ id: p.rowKey, nombre: p.nombre || "", resumen: p.resumen || "", imagenMiniBlob: p.imagenMiniBlob || "", imagenBlob: p.imagenBlob || "", imagenUrl: p.imagenUrl || "", temaIds: parseTemaIds(p.temaIds) }));
+      .map((p) => ({ id: p.rowKey, nombre: p.nombre || "", resumen: p.resumen || "", imagenMiniBlob: p.imagenMiniBlob || "", imagenBlob: p.imagenBlob || "", imagenUrl: p.imagenUrl || "", objetivo: p.objetivo || "", temaIds: parseTemaIds(p.temaIds) }));
 
     const temaIds = new Set(parseTemaIds(programa.temaIds));
     const elegidos = proyectosDePrograma(programa, proyectos, temaIds).slice(0, MAX_PROYECTOS);
@@ -40,6 +40,7 @@ async function proyectosParaPropuesta(herramienta, temarioNombre) {
     return elegidos.map((p) => ({
       nombre: p.nombre,
       resumen: p.resumen,
+      objetivo: p.objetivo,
       imagenUrl: p.imagenMiniBlob && container ? container.getBlobClient(p.imagenMiniBlob).url : null,
       imagenGrandeUrl: p.imagenUrl || (p.imagenBlob && container ? container.getBlobClient(p.imagenBlob).url : null),
     }));
@@ -71,6 +72,7 @@ async function proyectosPorIds(herramienta, elegidos) {
     return {
       nombre: p.nombre,
       resumen: p.resumen || (vivo && vivo.resumen) || "",
+      objetivo: (vivo && vivo.objetivo) || "",
       imagenUrl: vivo && vivo.imagenMiniBlob && container ? container.getBlobClient(vivo.imagenMiniBlob).url : null,
       imagenGrandeUrl: vivo ? vivo.imagenUrl || (vivo.imagenBlob && container ? container.getBlobClient(vivo.imagenBlob).url : null) || null : null,
     };

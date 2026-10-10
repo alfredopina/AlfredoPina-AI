@@ -99,12 +99,14 @@
   .chip.vig{border-color:var(--acc); background:var(--acc-soft);} .chip.vig b{color:var(--acc);}
   .obj-dir{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:30px;}
   .od{border-left:2px solid var(--acc); padding:2px 0 2px 14px; font-size:14px; color:var(--text-dim);} .od-wide{grid-column:1/-1;} .od b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; font-weight:500;}
-  /* quién: la foto se funde con el fondo (como en el hero del sitio) en vez de verse como una tarjeta pegada */
-  .quien{position:relative;}
-  .q-foto{position:relative; -webkit-mask-image:radial-gradient(ellipse 52% 54% at 50% 42%, #000 42%, transparent 100%); mask-image:radial-gradient(ellipse 52% 54% at 50% 42%, #000 42%, transparent 100%);}
-  .q-foto img{width:100%; aspect-ratio:4/4.7; object-fit:cover; object-position:50% 18%; display:block; filter:grayscale(.3) brightness(.56) contrast(1.2) saturate(1.1);}
-  .q-foto::after{content:""; position:absolute; inset:0; background:linear-gradient(160deg, var(--acc-soft), transparent 45%); mix-blend-mode:screen; pointer-events:none;}
-  .quien .q-b{position:relative; margin-top:-78px; padding:0 6px;} .quien h3{font-family:var(--display); font-size:22px;} .quien .q-r{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin:2px 0 16px;}
+  /* foto: mismo recurso del hero del sitio (a todo lo alto, oscurecida y fundida con el fondo por degradados) */
+  #propuesta{overflow:hidden;} #propuesta .wrap{position:relative; z-index:2; width:100%;}
+  .hero-photo-bg{position:absolute; top:0; right:0; height:100%; width:62%; z-index:0; pointer-events:none;
+    -webkit-mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 55%); mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 55%);}
+  .hero-photo-bg img{width:100%; height:100%; object-fit:cover; object-position:70% top; display:block; filter:grayscale(.3) brightness(.52) contrast(1.25) saturate(1.1);}
+  .hero-photo-fade{position:absolute; inset:0; z-index:2; background:linear-gradient(180deg, rgba(10,13,18,.55) 0%, transparent 22%, transparent 66%, rgba(10,13,18,.88) 100%);}
+  .hero-photo-bg::after{content:""; position:absolute; inset:0; background:linear-gradient(160deg, var(--acc-soft), transparent 45%); mix-blend-mode:screen;}
+  .quien{position:relative; align-self:end;} .quien h3{font-family:var(--display); font-size:22px;} .quien .q-r{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin:2px 0 16px;}
   .kpis{display:grid; grid-template-columns:1fr 1fr; gap:16px 18px;} .kpi b{display:block; font-family:var(--display); font-size:30px; color:var(--acc); line-height:1; font-variant-numeric:tabular-nums;} .kpi span{display:block; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim);}
   .scroll-hint{position:absolute; left:50%; bottom:20px; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; gap:6px;}
   .scroll-hint i{width:1px; height:26px; background:linear-gradient(var(--acc), transparent); animation:baja 1.8s ease-in-out infinite;}
@@ -139,6 +141,8 @@
   .proy-fig.deco{aspect-ratio:16/10; display:flex; align-items:flex-end; gap:9px; padding:30px 32px 0;}
   .proy-fig.deco i{flex:1; background:var(--acc); border-radius:4px 4px 0 0; opacity:.85; transform:scaleY(0); transform-origin:bottom; transition:transform .9s cubic-bezier(.2,.8,.2,1);} .proy-row.in .proy-fig.deco i{transform:scaleY(1);}
   .proy-tx h3{font-family:var(--display); font-size:clamp(24px,3vw,32px); line-height:1.15; letter-spacing:-.01em; margin:10px 0 12px;} .proy-tx p{color:var(--text-dim); font-size:16px; line-height:1.65;}
+  .proy-obj{margin-top:20px; border-left:2px solid var(--acc); padding-left:14px; font-size:14.5px; color:var(--text-dim); line-height:1.6;}
+  .proy-obj b{display:flex; align-items:center; gap:7px; margin-bottom:3px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); font-weight:500;} .proy-obj b svg{width:14px; height:14px; opacity:.65;}
   .proy-vacio{display:grid; gap:6px; padding:8px 0;} .proy-vacio b{font-family:var(--display); font-size:22px;} .proy-vacio span{color:var(--text-dim);}
   .total-linea{display:flex; align-items:center; gap:12px; margin-top:30px; font-family:var(--mono); font-size:13px; color:var(--text-dim);}
   .total-linea b{color:var(--acc); font-size:22px; font-family:var(--display);}
@@ -205,14 +209,14 @@
   .tema-mas svg{width:12px; height:12px; transition:transform .2s;} .tema-mas.open svg{transform:rotate(180deg);}
 
   /* inversión: adicionales sin costo + notas */
-  .inv-l{display:grid; gap:18px;}
-  .adic{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 22px 6px;}
-  .adic-h{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:4px 12px; margin-bottom:4px;} .adic-h b{font-family:var(--display); font-size:17px;} .adic-h span{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
-  .adic-it{display:flex; gap:16px; align-items:center; justify-content:space-between; padding:14px 0; border-top:1px solid var(--line-soft);}
-  .adic-tx b{display:block; font-size:14.5px; font-weight:600;} .adic-tx span{display:block; font-size:12.5px; color:var(--text-dim); margin-top:3px; line-height:1.5;}
-  .adic-bt{flex:none; display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:9px 13px; cursor:pointer; transition:.15s;}
-  .adic-bt svg{width:13px; height:13px;} .adic-bt:hover{border-color:var(--acc); color:var(--acc);}
-  .adic-it.on .adic-bt{border-color:var(--teal); color:var(--teal); background:rgba(20,184,166,.1);} .adic-bt:disabled{cursor:default; opacity:.85; pointer-events:none;}
+  .inv-l{display:grid; gap:12px; align-content:start;}
+  .adic{padding:0 22px;}
+  .adic-h{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin:4px 0 4px;}
+  .adic-it{display:flex; gap:10px; align-items:center; padding:6px 0; cursor:pointer;}
+  .adic-bt{flex:none; width:24px; height:24px; display:grid; place-items:center; padding:0; background:none; border:none; border-radius:6px; color:var(--text-dim); cursor:pointer; transition:color .15s, transform .15s;}
+  .adic-bt svg{width:17px; height:17px;} .adic-it:hover .adic-bt{color:var(--acc);} .adic-it.on .adic-bt{color:var(--teal);}
+  .adic-tx{min-width:0; font-size:13.5px; line-height:1.4;} .adic-tx b{font-weight:600;} .adic-tx span{margin-left:8px; font-size:12px; color:var(--text-dim);}
+  .adic.bloqueado .adic-it{cursor:default;} .adic.bloqueado .adic-it:not(.on){opacity:.4;} .adic-bt:disabled{pointer-events:none;}
   .incluye .extra em{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--acc); border:1px solid var(--acc); border-radius:4px; padding:1px 6px; margin-left:4px; flex:none; align-self:center;}
   .acept-nota{margin-top:14px; font-size:13px; color:var(--text-dim); line-height:1.5;}
   .btn.ghost svg.wa{width:17px; height:17px;}
@@ -220,7 +224,7 @@
   .monto{font-variant-numeric:tabular-nums;}
   @media (max-width:900px){
     #propuesta{padding-top:48px;} .rr, .proy-row{grid-template-columns:1fr;} .proy-row.inv .proy-fig{order:0;} .rr{padding:22px;} .meta-card{padding:22px;}
-    .quien .q-b{margin-top:-56px;} .adic-it{flex-wrap:wrap;}
+    .hero-photo-bg{width:100%; opacity:.32;} .hero-photo-fade{background:linear-gradient(180deg, rgba(10,13,18,.5), rgba(10,13,18,.9) 60%, var(--bg));}
   }
 
   .print-brand{display:none;}
@@ -268,7 +272,7 @@
     .print-brand{display:flex; align-items:center; justify-content:space-between; padding:0 0 12px; border-bottom:1px solid var(--line); margin-bottom:10px;} .print-brand img{height:24px;} .print-brand div{text-align:right; font-family:var(--mono); font-size:10px; color:var(--text-dim);} .print-brand b{display:block; color:var(--text); font-size:11px;}
     .tk-str{color:#0d7a66;} .tk-fn{color:var(--acc-ink);} .tk-p{color:#586277;} .cursor{display:none;}
     .formula{background:var(--panel); border-color:var(--line);} .chip, .od, .stat span{color:var(--text-dim);} .celda.on{background:var(--panel); border-color:var(--line);}
-    .quien .q-foto img{filter:none;} .quien .q-foto{-webkit-mask-image:none; mask-image:none;} .q-foto::after{display:none;} .quien .q-b{margin-top:10px;} .kpi b{font-size:22px;}
+    .hero-photo-bg{display:none;} .kpi b{font-size:22px;}
     .proy-exp, .adic, .acept-nota, #dlgImg{display:none !important;} .proy-row{break-inside:avoid; grid-template-columns:1.2fr 1fr; gap:20px;} .proy-tx h3{font-size:20px;} .proy-tx p{font-size:12.5px;}
     .rr{break-inside:avoid; padding:14px 16px; grid-template-columns:1fr 1fr; gap:16px;} .chart{min-height:0; padding:18px 14px 12px; background:#fff;} .c-bar i{transition:none;} .c-bar .a{width:80%;} .c-bar .b{width:20%;}
     .formula-sticky .formula{background:var(--panel); backdrop-filter:none; box-shadow:none;} .formula-sticky .formula::after{display:none;} .celda.on{transform:none; box-shadow:none;} .ruta.foco .celda.in:not(.on){opacity:1; filter:none;}
@@ -315,6 +319,7 @@
 <div class="print-brand"><img src="/assets/img/brand/logo-principal-claro.svg" alt="alfredopina.ai"><div><b id="pbFolio"></b><span id="pbFecha"></span></div></div>
 <!-- 1 · PORTADA -->
 <section id="propuesta">
+  <div class="hero-photo-bg"><img src="/assets/img/alfredo-hero.jpg" alt="" aria-hidden="true"><div class="hero-photo-fade"></div></div>
   <div class="wrap">
     <div class="hero">
       <div>
@@ -329,7 +334,6 @@
         </div>
       </div>
       <aside class="quien rv d2">
-        <div class="q-foto"><img src="/assets/img/alfredo-hero.jpg" alt="Alfredo Piña"></div>
         <div class="q-b">
           <h3>Alfredo Piña</h3>
           <div class="q-r">INSTRUCTOR Y CONSULTOR · EXCEL, POWER BI, POWER PLATFORM E IA</div>
@@ -404,7 +408,7 @@
     <div class="eyebrow rv">04 · <b>Inversión</b></div>
     <h2 class="sec-t rv d1">Tu propuesta</h2>
     <div class="inv">
-      <div class="inv-l"><div class="resumen rv" id="resumen"></div><div class="adic rv d1" id="adicWrap" hidden><div class="adic-h"><b>Adicionales</b><span>Sin costo · agrégalos a tu propuesta</span></div><div id="adic"></div></div></div>
+      <div class="inv-l"><div class="resumen rv" id="resumen"></div><div class="adic rv d1" id="adicWrap" hidden><div class="adic-h">Adicionales · sin costo</div><div id="adic"></div></div></div>
       <div class="precio rv d1">
         <div class="lbl">Inversión total</div>
         <div class="monto"><span id="monto">$0</span><small>MXN</small></div>
@@ -655,6 +659,7 @@
   // proyecto final: casi todos los programas tienen uno solo, así que la imagen va grande a un lado y el texto al otro
   const FORMAS = [[30,55,44,72,60,88], [40,62,34,78,52,90,66]];
   const expandir = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const objIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   const proys = D.proyectos || [];
   if(!proys.length){
     $('proys').innerHTML = '<div class="proy-vacio"><b>Aplicas lo aprendido a un caso real de tu operación.</b><span>El proyecto final se define contigo al iniciar el programa.</span></div>';
@@ -664,7 +669,7 @@
       const fig = src
         ? `<figure class="proy-fig"><img src="${esc(src)}" alt="${esc(p.n)}" loading="lazy"><button type="button" class="proy-exp" data-src="${esc(src)}" data-alt="${esc(p.n)}" aria-label="Ampliar la imagen del proyecto" title="Ampliar">${expandir}</button></figure>`
         : `<figure class="proy-fig deco" aria-hidden="true">${(i % 3 === 1 ? [40,62,34,78,52,90,66] : FORMAS[i % 2]).map((h, k) => `<i style="height:${h}%; transition-delay:${k * 70}ms"></i>`).join('')}</figure>`;
-      return `<article class="proy-row rv${i % 2 ? ' inv' : ''}">${fig}<div class="proy-tx"><div class="eyebrow">${proys.length > 1 ? 'Proyecto ' + (i + 1) + ' de ' + proys.length : 'Lo que construirás'}</div><h3>${esc(p.n)}</h3>${p.r ? `<p>${esc(p.r)}</p>` : ''}</div></article>`;
+      return `<article class="proy-row rv${i % 2 ? ' inv' : ''}">${fig}<div class="proy-tx"><div class="eyebrow">${proys.length > 1 ? 'Proyecto ' + (i + 1) + ' de ' + proys.length : 'Lo que construirás'}</div><h3>${esc(p.n)}</h3>${p.r ? `<p>${esc(p.r)}</p>` : ''}${p.o ? `<div class="proy-obj"><b>${objIco}Objetivo</b>${esc(p.o)}</div>` : ''}</div></article>`;
     }).join('');
     $('proys').addEventListener('click', e => {
       const b = e.target.closest('.proy-exp'); if(!b) return;
@@ -702,13 +707,13 @@
       adic.filter(a => elegidos.has(a.id)).map(a => `<div class="extra">${check}<span>${esc(a.n)}</span><em>Adicional</em></div>`).join('');
   }
   function pintaAdic(){
-    $('adic').innerHTML = adic.map(a => `<div class="adic-it${elegidos.has(a.id) ? ' on' : ''}"><div class="adic-tx"><b>${esc(a.n)}</b><span>${esc(a.d)}</span></div>` +
-      `<button type="button" class="adic-bt" data-id="${esc(a.id)}" aria-pressed="${elegidos.has(a.id)}"${ctx.aceptada ? ' disabled' : ''}>${elegidos.has(a.id) ? check + 'Agregado' : mas + 'Agregar'}</button></div>`).join('');
+    $('adicWrap').classList.toggle('bloqueado', !!ctx.aceptada);
+    $('adic').innerHTML = adic.map(a => `<div class="adic-it${elegidos.has(a.id) ? ' on' : ''}" data-id="${esc(a.id)}"><button type="button" class="adic-bt" aria-pressed="${elegidos.has(a.id)}" aria-label="${elegidos.has(a.id) ? 'Quitar' : 'Agregar'} ${esc(a.n)}"${ctx.aceptada ? ' disabled' : ''}>${elegidos.has(a.id) ? check : mas}</button><div class="adic-tx"><b>${esc(a.n)}</b><span>${esc(a.d)}</span></div></div>`).join('');
   }
   $('adicWrap').hidden = !adic.length;
   $('adic').addEventListener('click', e => {
-    const b = e.target.closest('.adic-bt'); if(!b || ctx.aceptada) return;
-    elegidos.has(b.dataset.id) ? elegidos.delete(b.dataset.id) : elegidos.add(b.dataset.id);
+    const it = e.target.closest('.adic-it'); if(!it || ctx.aceptada) return;
+    elegidos.has(it.dataset.id) ? elegidos.delete(it.dataset.id) : elegidos.add(it.dataset.id);
     pintaAdic(); pintaIncluye();
   });
   pintaAdic(); pintaIncluye();

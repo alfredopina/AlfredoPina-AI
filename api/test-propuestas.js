@@ -117,6 +117,15 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   const sn = P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() });
   check("adicionales por herramienta: Excel y Power BI llevan diagnóstico, las demás no", sn.adicionales.some((a) => a.id === "diagnostico") && !P.adicionalesPara("ia").some((a) => a.id === "diagnostico") && P.adicionalesPara("ia").length === 2);
   check("precio manual: igual al calculado no es manual; distinto sí", P.esPrecioManual({ precioSugerido: 1000, descuentoPct: 10, precioFinal: 900 }) === false && P.esPrecioManual({ precioSugerido: 1000, descuentoPct: 10, precioFinal: 1200 }) === true);
+  // propuesta emitida ANTES de los adicionales: el snapshot no trae el campo y se completa con el catálogo de su herramienta
+  const viejo = { ...P.armarSnapshot({ folio: "OLD", cliente: "C", herramienta: "excel", programa: "P", temas: [], precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() }) };
+  delete viejo.adicionales;
+  await P.guardarPropuesta(tabla, { codigo: "viejo001", snapshot: viejo });
+  const leido = await P.leerPropuesta(tabla, "viejo001");
+  check("propuesta vieja sin adicionales: se completan con el catálogo de su herramienta", leido.snapshot.adicionales.map((a) => a.id).join() === "kickoff,grabacion,diagnostico");
+  const ac = await P.registrarAceptacion(tabla, "viejo001", { nombre: "X", comentario: "", adicionales: ["grabacion"], contacto: "" });
+  check("y se pueden aceptar con adicionales aunque la propuesta sea vieja", ac.primera === true && ac.adicionales.length === 1 && ac.adicionales[0].id === "grabacion");
+
   console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

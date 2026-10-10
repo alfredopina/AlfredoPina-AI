@@ -32,9 +32,9 @@ const TOOL_LABELS = {
 // Adicionales sin costo que el cliente puede "agregar" en la propuesta (se congelan en el snapshot, como TERMINOS).
 // `solo` = herramientas a las que aplica (sin `solo` aplica a todas). El diagnóstico de nivel existe solo en Excel y Power BI.
 const ADICIONALES = [
-  { id: "kickoff", n: "Sesión kickoff", d: "Una sesión corta de arranque para alinear objetivos, alcance y logística antes de iniciar." },
-  { id: "grabacion", n: "Grabación de sesiones", d: "Acceso a la grabación de cada sesión para repasar o ponerse al corriente." },
-  { id: "diagnostico", n: "Diagnóstico de nivel", d: "Evaluación previa a cada participante para conocer su nivel real y ajustar el contenido del curso a lo que el grupo necesita.", solo: ["excel", "powerbi"] },
+  { id: "kickoff", n: "Sesión kickoff", d: "Sesión corta de arranque para alinear objetivos y logística." },
+  { id: "grabacion", n: "Grabación de sesiones", d: "Acceso a la grabación de cada sesión." },
+  { id: "diagnostico", n: "Diagnóstico de nivel", d: "Evaluación previa del nivel de cada participante.", solo: ["excel", "powerbi"] },
 ];
 function adicionalesPara(herramienta) {
   return ADICIONALES.filter((a) => !a.solo || a.solo.includes(herramienta)).map(({ id, n, d }) => ({ id, n, d }));
@@ -130,7 +130,7 @@ function armarSnapshot(d) {
     dirigido: d.dirigidoA || null,
     alcance: d.alcance || null,
     temas,
-    proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null })),
+    proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null, o: p.objetivo || "" })),
     adicionales: adicionalesPara(d.herramienta),
     manual: Boolean(d.precioManual),
     tarifaHora: Number(d.tarifaHora) || 0,
@@ -161,6 +161,12 @@ async function guardarPropuesta(table, { codigo, snapshot }) {
   );
 }
 
+// Las propuestas emitidas antes de los adicionales no traen el campo: se completa con el catálogo de su herramienta.
+function conAdicionales(snapshot) {
+  if (snapshot && !Array.isArray(snapshot.adicionales)) snapshot.adicionales = adicionalesPara(snapshot.herramienta);
+  return snapshot;
+}
+
 function parseIds(txt) {
   try { const a = JSON.parse(txt || "[]"); return Array.isArray(a) ? a.filter((x) => typeof x === "string") : []; } catch (e) { return []; }
 }
@@ -170,7 +176,7 @@ async function leerPropuesta(table, codigo) {
   try {
     const e = await table.getEntity("propuesta", codigo);
     return {
-      snapshot: JSON.parse(unirTrozos(e)),
+      snapshot: conAdicionales(JSON.parse(unirTrozos(e))),
       vivo: {
         vistas: e.vistas || 0,
         primeraVista: e.primeraVista || null,
@@ -214,7 +220,7 @@ async function registrarAceptacion(table, codigo, { nombre, comentario, adiciona
     if (err.statusCode === 404 || isTableNotFound(err)) return null;
     throw err;
   }
-  const snapshot = JSON.parse(unirTrozos(e));
+  const snapshot = conAdicionales(JSON.parse(unirTrozos(e)));
   if (e.aceptadaEn) return { primera: false, snapshot };
   const ofrecidos = new Map((snapshot.adicionales || []).map((a) => [a.id, a]));
   const elegidos = [...new Set((Array.isArray(adicionales) ? adicionales : []).map(String))].filter((id) => ofrecidos.has(id)).map((id) => ofrecidos.get(id));

@@ -1103,6 +1103,8 @@
      derecha de la línea de Ordenar, y su popover (mismo patrón posicional
      que .gru-msel-panel de Grupos: absoluto, se cierra al hacer clic afuera). */
   .cli-info-wrap{ position:relative; margin-left:auto; }
+  .cot-info-row{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .cot-info-row .cli-info-wrap{ margin-left:0; }
   .cli-info-btn{
     display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--text-dim);
     background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; cursor:pointer;
@@ -2713,11 +2715,22 @@
         </div>
 
         <div class="sol-toolbar">
+          <div class="cot-top">
           <div class="radm-tabs sol-estatus-tabs" id="solEstatusTabs" style="margin-bottom:0;">
             <button type="button" class="radm-tab active" data-est="Nueva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>Nuevas<span class="radm-tab-count" id="solCntNueva">0</span></button>
             <button type="button" class="radm-tab" data-est="Cotizada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Cotizadas<span class="radm-tab-count" id="solCntCotizada">0</span></button>
             <button type="button" class="radm-tab" data-est="Descartada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></svg>Descartadas<span class="radm-tab-count" id="solCntDescartada">0</span></button>
             <button type="button" class="radm-tab" data-est=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg>Todas<span class="radm-tab-count" id="solCntTodas">0</span></button>
+          </div>
+          <div class="cot-info-row">
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="solInfoSemBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info Semáforo
+                </button>
+                <div class="cli-info-popover" id="solInfoSemPopover" hidden></div>
+              </div>
+          </div>
           </div>
           <div class="dip-filters" style="margin-bottom:0;">
             <span class="sol-sort-label" style="display:inline-flex; align-items:center; height:38px;" title="Filtrar">
@@ -3171,7 +3184,7 @@
                 <div class="cli-info-wrap">
                   <button type="button" class="cli-info-btn" id="cliInfoDiasBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                    Info Días
+                    Info Semáforo
                   </button>
                   <div class="cli-info-popover" id="cliInfoDiasPopover" hidden></div>
                 </div>
@@ -3331,6 +3344,22 @@
             <div class="radm-tabs sol-estatus-tabs" id="cotVistaToggle" style="margin-bottom:0;">
               <button type="button" class="radm-tab active" data-vista="tablero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>Contenedor</button>
               <button type="button" class="radm-tab" data-vista="tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16" stroke-linecap="round"/></svg>Tabla</button>
+            </div>
+            <div class="cot-info-row">
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="cotInfoSemBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info Semáforo
+                </button>
+                <div class="cli-info-popover" id="cotInfoSemPopover" hidden></div>
+              </div>
+              <div class="cli-info-wrap">
+                <button type="button" class="cli-info-btn" id="cotInfoFasesBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                  Info Fases
+                </button>
+                <div class="cli-info-popover" id="cotInfoFasesPopover" hidden></div>
+              </div>
             </div>
           </div>
           <div class="dip-filters" style="margin-bottom:0;">
@@ -3566,14 +3595,14 @@
               <div class="cli-info-wrap">
                 <button type="button" class="cli-info-btn" id="groInfoBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Días en Fase
+                  Info Semáforo
                 </button>
                 <div class="cli-info-popover" id="groInfoPopover" hidden></div>
               </div>
               <div class="cli-info-wrap">
                 <button type="button" class="cli-info-btn" id="groInfoCambiosBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Cambios de Fase
+                  Info Fases
                 </button>
                 <div class="cli-info-popover" id="groInfoCambiosPopover" hidden></div>
               </div>
@@ -3703,7 +3732,7 @@
               <div class="cli-info-wrap">
                 <button type="button" class="cli-info-btn" id="gruInfoBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
-                  Info Días en Fase
+                  Info Semáforo
                 </button>
                 <div class="cli-info-popover" id="gruInfoPopover" hidden></div>
               </div>
@@ -12367,6 +12396,41 @@
       return '<span class="radm-hint">—</span>';
     }
 
+    // Popover "Info Semáforo": se arma al abrirlo con los umbrales VIGENTES (window.UMBRALES_NOTIF, que Configuración →
+    // Alertas actualiza al guardar), así nunca muestra números viejos.
+    function renderInfoSemaforoSol(pop){
+      const u = umbralesSol();
+      pop.innerHTML = `
+        <div class="cli-info-pop-title">Semáforo de Solicitudes</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Solo cuenta mientras está "Nueva"</strong><span class="cli-info-step-sub">Horas desde que llegó sin cotizarse ni descartarse. Si la capturas con "Recibida el", cuenta desde esa fecha, no desde que la escribiste.</span></div></li>
+          <li class="cli-info-step"><span class="cli-info-step-num">2</span><div class="cli-info-step-body"><strong>Al cotizarla deja de correr</strong><span class="cli-info-step-sub">Muestra cuánto tardó en atenderse (palomita + horas, sin color). Una Descartada no tiene semáforo.</span></div></li>
+          <li class="cli-info-step cli-info-step--danger"><span class="cli-info-step-num">!</span><div class="cli-info-step-body"><strong>El rojo dispara la campana</strong><span class="cli-info-step-sub">Alerta de Solicitudes sin atender; el ámbar solo colorea el semáforo, nunca notifica.</span></div></li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Semáforo — los umbrales se editan en Configuración → Alertas</div>
+          <div class="cli-info-semaforo-legend">
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo</span><span>hasta ${u.seguimiento} h</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento</span><span>más de ${u.seguimiento} h, hasta ${u.urgente} h</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgente</span><span>más de ${u.urgente} h</span></div>
+          </div>
+        </div>`;
+    }
+    function wireInfoPop(btnId, popId, renderFn){
+      const btn = document.getElementById(btnId), pop = document.getElementById(popId);
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const abrir = pop.hidden;
+        document.querySelectorAll('.cot-info-row .cli-info-popover').forEach(p => { p.hidden = true; });
+        document.querySelectorAll('.cot-info-row .cli-info-btn').forEach(b => b.classList.remove('active'));
+        if(abrir){ renderFn(pop); pop.hidden = false; btn.classList.add('active'); }
+      });
+      document.addEventListener('click', e => {
+        if(!pop.hidden && !e.target.closest('#' + btnId) && !e.target.closest('#' + popId)){ pop.hidden = true; btn.classList.remove('active'); }
+      });
+    }
+    wireInfoPop('solInfoSemBtn', 'solInfoSemPopover', renderInfoSemaforoSol);
+
     // ══ LISTA: se trae completa una vez; filtros, pestañas de estatus y orden se aplican aquí ══
     let solTodas = [];
     let solEstatusActivo = 'Nueva'; // 'Nueva' | 'Cotizada' | 'Descartada' | '' (todas)
@@ -13387,6 +13451,60 @@
       }
       return '<span class="radm-hint">—</span>';
     }
+    // Popovers "Info Semáforo" e "Info Fases": se arman al abrirlos con los umbrales VIGENTES de Configuración → Alertas
+    // (window.UMBRALES_NOTIF), los mismos que usa semaforoDe() y la campana.
+    function renderInfoSemaforoCot(pop){
+      const u = window.UMBRALES_NOTIF || {};
+      const seg = u.cotizacionesSeguimientoDias ?? 6;
+      const urg = u.cotizacionesDias ?? 10;
+      pop.innerHTML = `
+        <div class="cli-info-pop-title">Semáforo de Cotizaciones · días en estatus</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Solo lo Enviado tiene semáforo</strong><span class="cli-info-step-sub">Cuenta los días desde el último cambio de estatus de una cotización Enviada o En negociación; cada cambio reinicia el conteo.</span></div></li>
+          <li class="cli-info-step cli-info-step--fallback"><span class="cli-info-step-num">2</span><div class="cli-info-step-body"><strong>Borrador = "Sin enviar"</strong><span class="cli-info-step-sub">Nadie la está ignorando: no corre tiempo ni dispara alertas.</span></div></li>
+          <li class="cli-info-step cli-info-step--fallback"><span class="cli-info-step-num">3</span><div class="cli-info-step-body"><strong>Ganada / Perdida = "Cerrada en N d"</strong><span class="cli-info-step-sub">Cuánto tardó en cerrarse, sin color.</span></div></li>
+          <li class="cli-info-step cli-info-step--danger"><span class="cli-info-step-num">!</span><div class="cli-info-step-body"><strong>El rojo dispara la campana</strong><span class="cli-info-step-sub">Cotización sin respuesta. La vigencia vencida es aparte: avisa en rojo pero no cambia la fase (se corrige con "Extender vigencia").</span></div></li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Semáforo — los umbrales se editan en Configuración → Alertas</div>
+          <div class="cli-info-semaforo-legend">
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>A tiempo</span><span>menos de ${seg} días</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>Seguimiento</span><span>${seg} a ${urg - 1} días</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>Urgente</span><span>${urg} días o más</span></div>
+          </div>
+        </div>`;
+    }
+    function renderInfoFasesCot(pop){
+      pop.innerHTML = `
+        <div class="cli-info-pop-title">Fases de una Cotización</div>
+        <ol class="cli-info-steps">
+          <li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Borrador</strong><span class="cli-info-step-sub">Creada, todavía no se la mandas al cliente. No cuenta en el Pipeline.</span></div></li>
+          <li class="cli-info-step"><span class="cli-info-step-num">2</span><div class="cli-info-step-body"><strong>Enviada</strong><span class="cli-info-step-sub">Ya se la enviaste (al copiar el link de un Borrador se te pregunta). Desde aquí corre el tiempo de respuesta.</span></div></li>
+          <li class="cli-info-step"><span class="cli-info-step-num">3</span><div class="cli-info-step-body"><strong>En negociación</strong><span class="cli-info-step-sub">El cliente respondió y hay ajustes, dudas o descuento en curso.</span></div></li>
+          <li class="cli-info-step"><span class="cli-info-step-num">4</span><div class="cli-info-step-body"><strong>Ganada</strong><span class="cli-info-step-sub">Aceptada. Al arrastrarla se ofrece Crear Grupo, y al crear un Grupo desde ella se marca sola.</span></div></li>
+          <li class="cli-info-step"><span class="cli-info-step-num">5</span><div class="cli-info-step-body"><strong>Perdida</strong><span class="cli-info-step-sub">No se concretó: pide motivo (lista fija) y una nota opcional.</span></div></li>
+        </ol>
+        <div class="cli-info-pop-foot">
+          <div class="cli-info-pop-foot-title">Cómo funciona</div>
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.5;">Arrastra una tarjeta a otro contenedor para cambiar su fase. Pipeline = Enviada + En negociación. Editar un Borrador lo corrige en el lugar; desde Enviada en adelante crea una versión nueva y la anterior queda "Reemplazada" (la pone el sistema, igual que "Expirada").</div>
+        </div>`;
+    }
+    function wireInfoPop(btnId, popId, renderFn){
+      const btn = document.getElementById(btnId), pop = document.getElementById(popId);
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const abrir = pop.hidden;
+        document.querySelectorAll('.cot-info-row .cli-info-popover').forEach(p => { p.hidden = true; });
+        document.querySelectorAll('.cot-info-row .cli-info-btn').forEach(b => b.classList.remove('active'));
+        if(abrir){ renderFn(pop); pop.hidden = false; btn.classList.add('active'); }
+      });
+      document.addEventListener('click', e => {
+        if(!pop.hidden && !e.target.closest('#' + btnId) && !e.target.closest('#' + popId)){ pop.hidden = true; btn.classList.remove('active'); }
+      });
+    }
+    wireInfoPop('cotInfoSemBtn', 'cotInfoSemPopover', renderInfoSemaforoCot);
+    wireInfoPop('cotInfoFasesBtn', 'cotInfoFasesPopover', renderInfoFasesCot);
+
     function vigenciaHtml(c){
       if(!ESTATUS_ACTIVOS.includes(c.estatus) || !c.fecha_vigencia) return '';
       const f = new Date(String(c.fecha_vigencia).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
@@ -16261,7 +16379,7 @@
       const seguimiento = u.gruposSeguimientoDias ?? 10;
       const urgente = u.gruposDias ?? 21;
       popoverEl.innerHTML = `
-        <div class="cli-info-pop-title">Fase y Días en fase</div>
+        <div class="cli-info-pop-title">Semáforo · Días en fase</div>
         <ol class="cli-info-steps">
           <li class="cli-info-step">
             <span class="cli-info-step-num">1</span>
@@ -16294,13 +16412,15 @@
           </div>
         </div>`;
     }
-    // Popover "Info Cambios de Fase" — documenta las 4 reglas automáticas de
+    // Popover "Info Fases" (antes "Info Cambios de Fase") — documenta las 4 reglas automáticas de
     // más abajo (sugerenciaFaseDe/revisarSugerenciasFase). Estático, a
     // diferencia del de Días en Fase, porque estas reglas no dependen de un
     // umbral configurable en Notificaciones.
     function renderInfoCambiosFasePopover(popoverEl){
       popoverEl.innerHTML = `
-        <div class="cli-info-pop-title">Cambios de fase automáticos</div>
+        <div class="cli-info-pop-title">Fases del Grupo</div>
+        <div class="cli-info-pop-sub">Por iniciar → En curso → Proyecto → Calificaciones → Diplomas → Cerrado. Se derivan de los estatus del curso y de cierre, nunca se capturan a mano.</div>
+        <div class="cli-info-pop-foot-title" style="margin-top:12px;">Cambios de fase automáticos</div>
         <ol class="cli-info-steps">
           <li class="cli-info-step">
             <span class="cli-info-step-num">1</span>

@@ -29,6 +29,8 @@ module.exports = async function (context, req) {
       propuesta: p.snapshot,
       reemplazadaPor: p.vivo.reemplazadaPorCodigo ? { codigo: p.vivo.reemplazadaPorCodigo, folio: p.vivo.reemplazadaPorFolio } : null,
       aceptada: Boolean(p.vivo.aceptadaEn),
+      // lo que el cliente ve de su propia aceptación (sin nombre ni contacto): cuándo y qué adicionales agregó
+      aceptadaInfo: p.vivo.aceptadaEn ? { en: p.vivo.aceptadaEn, adicionales: p.vivo.aceptadaAdicionales } : null,
     };
     if (admin) cuerpo.admin = { vistas: p.vivo.vistas, primeraVista: p.vivo.primeraVista, ultimaVista: p.vivo.ultimaVista, aceptadaEn: p.vivo.aceptadaEn, aceptadaPor: p.vivo.aceptadaPor, aceptadaComentario: p.vivo.aceptadaComentario };
     context.res = { status: 200, headers: { ...JSON_HEADERS, "Cache-Control": "no-store" }, body: cuerpo };

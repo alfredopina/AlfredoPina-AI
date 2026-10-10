@@ -13,7 +13,7 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { resolverCliente } = require("../src/cliente-resolver");
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
-const { armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
+const { esPrecioManual, armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
 const { codigoCortoUnico } = require("../src/codigo-corto");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -167,6 +167,7 @@ module.exports = async function (context, req) {
       dirigidoA,
       alcance,
       proyectos,
+      precioManual: precioFinalBody != null && esPrecioManual({ precioSugerido, descuentoPct, precioFinal }),
       tarifaHora: precioHora,
       precioSugerido,
       precioFinal,

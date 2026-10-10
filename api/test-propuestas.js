@@ -87,8 +87,9 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   r = await llamar(responder, { body: { codigo: "zz99zz99", nombre: "Ana Pérez" }, headers: {} });
   check("aceptar una propuesta inexistente: 404", r.status === 404);
 
-  r = await llamar(responder, { body: { codigo: "ab12cd34", nombre: "Ana Pérez", comentario: "Va, arrancamos en noviembre" }, headers: {} });
+  r = await llamar(responder, { body: { codigo: "ab12cd34", nombre: "Ana Pérez", comentario: "Va, arrancamos en noviembre", contacto: "ana@acme.com", adicionales: ["kickoff", "inventado", "diagnostico"] }, headers: {} });
   check("primera aceptación: 200 y UN correo a Alfredo con el folio y el nombre", r.status === 200 && correos.length === 1 && /AP26-KEME-POWERBI-01/.test(correos[0].asunto) && /Ana Pérez/.test(correos[0].texto));
+  check("el correo trae el contacto y los adicionales válidos (ignora los inventados)", /ana@acme.com/.test(correos[0].texto) && /Sesión kickoff/.test(correos[0].texto) && /Diagnóstico de nivel/.test(correos[0].texto) && !/inventado/.test(correos[0].texto));
   r = await llamar(responder, { body: { codigo: "ab12cd34", nombre: "Otra Persona" }, headers: {} });
   check("segunda aceptación: 200 pero no repite el correo ni pisa el nombre", r.status === 200 && correos.length === 1);
   r = await get("ab12cd34", principal(["admin"]));
@@ -100,6 +101,8 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   await P.marcarReemplazada(tabla, "inexistent", "x", "y");
   check("marcarReemplazada sobre una propuesta inexistente no lanza", true);
 
+  r = await get("ab12cd34", {});
+  check("el cliente ve cuándo aceptó y qué adicionales agregó, sin nombre ni contacto", r.body.aceptada === true && r.body.aceptadaInfo.adicionales.join() === "kickoff,diagnostico" && !JSON.stringify(r.body).includes("ana@acme.com") && !JSON.stringify(r.body).includes("Ana Pérez"));
   const est = await P.listarEstadisticas(tabla);
   check("estadísticas para el admin: vistas y aceptación por código", est.ab12cd34 && est.ab12cd34.vistas >= 2 && est.ab12cd34.aceptadaPor === "Ana Pérez");
 
@@ -111,6 +114,9 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   check("extender vigencia en una propuesta inexistente: false", (await P.actualizarVigenciaPropuesta(tabla, "nada0000", "2027-01-15")) === false);
   check("el snapshot lleva el alcance", P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], alcance: "Alcance X", precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() }).alcance === "Alcance X");
 
+  const sn = P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() });
+  check("adicionales por herramienta: Excel y Power BI llevan diagnóstico, las demás no", sn.adicionales.some((a) => a.id === "diagnostico") && !P.adicionalesPara("ia").some((a) => a.id === "diagnostico") && P.adicionalesPara("ia").length === 2);
+  check("precio manual: igual al calculado no es manual; distinto sí", P.esPrecioManual({ precioSugerido: 1000, descuentoPct: 10, precioFinal: 900 }) === false && P.esPrecioManual({ precioSugerido: 1000, descuentoPct: 10, precioFinal: 1200 }) === true);
   console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

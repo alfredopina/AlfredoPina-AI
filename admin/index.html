@@ -13218,7 +13218,7 @@
       if(!c.propuesta_codigo) return '';
       const s = propStats[c.propuesta_codigo];
       if(!s) return '';
-      if(s.aceptadaEn) return `<div class="cot-cliente-sub cot-aceptada"><b>Aceptada</b> por ${escapeHtml(s.aceptadaPor || 'el cliente')}${ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : ''}</div>`;
+      if(s.aceptadaEn) return `<div class="cot-cliente-sub cot-aceptada"><b>Aceptada</b> por ${escapeHtml(s.aceptadaPor || 'el cliente')}${s.adicionales ? ' · +' + s.adicionales + (s.adicionales === 1 ? ' adicional' : ' adicionales') : ''}${ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : ''}</div>`;
       if(s.vistas) return `<div class="cot-cliente-sub">Abierta ${s.vistas} ${s.vistas === 1 ? 'vez' : 'veces'}</div>`;
       return c.estatus === 'Borrador' ? '' : '<div class="cot-cliente-sub">Sin abrir</div>';
     }
@@ -13495,7 +13495,7 @@
       if(!c.propuesta_codigo) return '';
       const s = propStats[c.propuesta_codigo];
       if(!s) return '';
-      if(s.aceptadaEn) return 'Aceptada por ' + (s.aceptadaPor || 'el cliente') + (ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : '');
+      if(s.aceptadaEn) return 'Aceptada por ' + (s.aceptadaPor || 'el cliente') + (s.adicionales ? ' · +' + s.adicionales + (s.adicionales === 1 ? ' adicional' : ' adicionales') : '') + (ESTATUS_ACTIVOS.includes(c.estatus) ? ' · por confirmar' : '');
       if(s.vistas) return `Abierta ${s.vistas} ${s.vistas === 1 ? 'vez' : 'veces'}`;
       return c.estatus === 'Borrador' ? '' : 'Sin abrir';
     }
@@ -14083,6 +14083,7 @@
         modalidad: sol.modalidad, participantes: sol.participantes,
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
+        descuento_pct: document.getElementById('cotDescuentoPct').value || null,
         dirigido_a, objetivo, alcance, proyectos: proyectosDeSol(sol),
       };
       const btn = document.getElementById('cotVistaPrevia');

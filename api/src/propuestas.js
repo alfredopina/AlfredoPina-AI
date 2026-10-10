@@ -29,6 +29,24 @@ const TOOL_LABELS = {
   powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Ofimática Básica",
 };
 
+// Adicionales sin costo que el cliente puede "agregar" en la propuesta (se congelan en el snapshot, como TERMINOS).
+// `solo` = herramientas a las que aplica (sin `solo` aplica a todas). El diagnóstico de nivel existe solo en Excel y Power BI.
+const ADICIONALES = [
+  { id: "kickoff", n: "Sesión kickoff", d: "Una sesión corta de arranque para alinear objetivos, alcance y logística antes de iniciar." },
+  { id: "grabacion", n: "Grabación de sesiones", d: "Acceso a la grabación de cada sesión para repasar o ponerse al corriente." },
+  { id: "diagnostico", n: "Diagnóstico de nivel", d: "Evaluación previa a cada participante para conocer su nivel real y ajustar el contenido del curso a lo que el grupo necesita.", solo: ["excel", "powerbi"] },
+];
+function adicionalesPara(herramienta) {
+  return ADICIONALES.filter((a) => !a.solo || a.solo.includes(herramienta)).map(({ id, n, d }) => ({ id, n, d }));
+}
+
+// "Manual" = el precio final se escribió a mano y no sale de horas × tarifa − descuento. En ese caso la propuesta
+// muestra solo el total (sin desglose ni línea de ajuste): subirle a un cliente grande no debe verse como un recargo.
+function esPrecioManual({ precioSugerido, descuentoPct, precioFinal }) {
+  const esperado = Math.round(Number(precioSugerido) * (1 - (Number(descuentoPct) || 0) / 100) * 100) / 100;
+  return Math.abs(Number(precioFinal) - esperado) > 0.5;
+}
+
 function getConexion() {
   const conn = process.env.RECURSOS_STORAGE_CONNECTION;
   if (!conn) throw new Error("RECURSOS_STORAGE_CONNECTION no está configurada.");
@@ -112,7 +130,9 @@ function armarSnapshot(d) {
     dirigido: d.dirigidoA || null,
     alcance: d.alcance || null,
     temas,
-    proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null })),
+    proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null })),
+    adicionales: adicionalesPara(d.herramienta),
+    manual: Boolean(d.precioManual),
     tarifaHora: Number(d.tarifaHora) || 0,
     sugerido,
     total,
@@ -141,6 +161,10 @@ async function guardarPropuesta(table, { codigo, snapshot }) {
   );
 }
 
+function parseIds(txt) {
+  try { const a = JSON.parse(txt || "[]"); return Array.isArray(a) ? a.filter((x) => typeof x === "string") : []; } catch (e) { return []; }
+}
+
 // { snapshot, vivo } | null. `vivo` = lo que cambia después de emitida.
 async function leerPropuesta(table, codigo) {
   try {
@@ -154,6 +178,8 @@ async function leerPropuesta(table, codigo) {
         aceptadaEn: e.aceptadaEn || null,
         aceptadaPor: e.aceptadaPor || null,
         aceptadaComentario: e.aceptadaComentario || null,
+        aceptadaContacto: e.aceptadaContacto || null,
+        aceptadaAdicionales: parseIds(e.aceptadaAdicionales),
         reemplazadaPorCodigo: e.reemplazadaPorCodigo || null,
         reemplazadaPorFolio: e.reemplazadaPorFolio || null,
       },
@@ -178,7 +204,9 @@ async function registrarVistaPropuesta(table, codigo) {
 
 // Solo la PRIMERA aceptación queda guardada (un segundo envío no pisa el nombre ni repite el aviso).
 // Regresa { primera: boolean, snapshot } o null si la propuesta no existe.
-async function registrarAceptacion(table, codigo, { nombre, comentario }) {
+// `adicionales` = ids que el cliente agregó (solo se guardan los que de verdad ofrece esa propuesta); `contacto` = correo o
+// teléfono opcional por si acepta alguien distinto al contacto de la cotización.
+async function registrarAceptacion(table, codigo, { nombre, comentario, adicionales, contacto }) {
   let e;
   try {
     e = await table.getEntity("propuesta", codigo);
@@ -188,9 +216,14 @@ async function registrarAceptacion(table, codigo, { nombre, comentario }) {
   }
   const snapshot = JSON.parse(unirTrozos(e));
   if (e.aceptadaEn) return { primera: false, snapshot };
+  const ofrecidos = new Map((snapshot.adicionales || []).map((a) => [a.id, a]));
+  const elegidos = [...new Set((Array.isArray(adicionales) ? adicionales : []).map(String))].filter((id) => ofrecidos.has(id)).map((id) => ofrecidos.get(id));
   try {
     await table.updateEntity(
-      { partitionKey: "propuesta", rowKey: codigo, aceptadaEn: new Date().toISOString(), aceptadaPor: nombre, aceptadaComentario: comentario || "" },
+      {
+        partitionKey: "propuesta", rowKey: codigo, aceptadaEn: new Date().toISOString(), aceptadaPor: nombre, aceptadaComentario: comentario || "",
+        aceptadaContacto: contacto || "", aceptadaAdicionales: JSON.stringify(elegidos.map((a) => a.id)),
+      },
       "Merge",
       { etag: e.etag }
     );
@@ -198,7 +231,7 @@ async function registrarAceptacion(table, codigo, { nombre, comentario }) {
     if (err.statusCode === 412) return { primera: false, snapshot }; // otro envío ganó la carrera
     throw err;
   }
-  return { primera: true, snapshot };
+  return { primera: true, snapshot, adicionales: elegidos, contacto: contacto || "" };
 }
 
 // La versión vieja sigue abriendo, pero con un aviso de que ya existe una más reciente. Nunca lanza.
@@ -244,10 +277,10 @@ async function listarEstadisticas(table) {
   const mapa = {};
   try {
     const entidades = table.listEntities({
-      queryOptions: { filter: "PartitionKey eq 'propuesta'", select: ["rowKey", "vistas", "ultimaVista", "aceptadaEn", "aceptadaPor"] },
+      queryOptions: { filter: "PartitionKey eq 'propuesta'", select: ["rowKey", "vistas", "ultimaVista", "aceptadaEn", "aceptadaPor", "aceptadaAdicionales"] },
     });
     for await (const e of entidades) {
-      mapa[e.rowKey] = { vistas: e.vistas || 0, ultimaVista: e.ultimaVista || null, aceptadaEn: e.aceptadaEn || null, aceptadaPor: e.aceptadaPor || null };
+      mapa[e.rowKey] = { vistas: e.vistas || 0, ultimaVista: e.ultimaVista || null, aceptadaEn: e.aceptadaEn || null, aceptadaPor: e.aceptadaPor || null, adicionales: parseIds(e.aceptadaAdicionales).length };
     }
   } catch (err) {
     if (!isTableNotFound(err)) throw err;
@@ -257,6 +290,9 @@ async function listarEstadisticas(table) {
 
 module.exports = {
   TERMINOS,
+  ADICIONALES,
+  adicionalesPara,
+  esPrecioManual,
   getPropuestasTable,
   codigoDePropuesta,
   blobPathDePropuesta,

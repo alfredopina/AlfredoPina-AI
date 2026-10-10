@@ -16,6 +16,8 @@ module.exports = async function (context, req) {
   const codigo = String(body.codigo || "").trim().toLowerCase();
   const nombre = String(body.nombre || "").trim();
   const comentario = String(body.comentario || "").trim();
+  const contacto = String(body.contacto || "").trim();
+  const adicionales = Array.isArray(body.adicionales) ? body.adicionales.slice(0, 10) : [];
 
   if (String(body.web || "").trim()) { // honeypot: los robots llenan este campo, la gente no lo ve
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
@@ -33,13 +35,17 @@ module.exports = async function (context, req) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El comentario es muy largo (máximo 1000 caracteres)." } };
     return;
   }
+  if (contacto.length > 120) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El correo o teléfono es muy largo." } };
+    return;
+  }
   if (esAdmin(req)) {
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, simulado: true } };
     return;
   }
 
   try {
-    const r = await registrarAceptacion(getPropuestasTable(), codigo, { nombre, comentario });
+    const r = await registrarAceptacion(getPropuestasTable(), codigo, { nombre, comentario, adicionales, contacto });
     if (!r) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa propuesta no existe o ya no está disponible." } };
       return;
@@ -47,7 +53,7 @@ module.exports = async function (context, req) {
     if (r.primera) {
       const s = r.snapshot;
       const enlace = `https://www.alfredopina.ai/propuesta/${codigo}`;
-      const filas = [["Propuesta", `${s.folio} — ${s.programa}`], ["Cliente", s.cliente], ["Aceptó", nombre], ["Comentarios", comentario]].filter(([, v]) => v && String(v).trim());
+      const filas = [["Propuesta", `${s.folio} — ${s.programa}`], ["Cliente", s.cliente], ["Aceptó", nombre], ["Contacto", r.contacto], ["Adicionales que agregó", (r.adicionales || []).map((a) => a.n).join(", ")], ["Comentarios", comentario]].filter(([, v]) => v && String(v).trim());
       await enviarCorreo({
         asunto: `Propuesta aceptada: ${s.folio} — ${s.cliente}`.slice(0, 150),
         texto: filas.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n\nVer la propuesta: ${enlace}`,

@@ -4,7 +4,7 @@
 // JSON — SIN guardar nada (ni la base ni Table Storage). El admin lo abre en /propuesta/vista-previa, que lo lee de
 // localStorage. Por eso el folio es un placeholder y no resuelve/crea Cliente.
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
-const { armarSnapshot } = require("../src/propuestas");
+const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -40,6 +40,7 @@ module.exports = async function (context, req) {
       objetivo: (body.objetivo || "").trim() || null,
       dirigidoA: (body.dirigido_a || "").trim() || null,
       alcance: (body.alcance || "").trim() || null,
+      precioManual: body.descuento_pct != null && body.descuento_pct !== "" && Number.isFinite(tarifaHora) && tarifaHora > 0 ? esPrecioManual({ precioSugerido, descuentoPct: body.descuento_pct, precioFinal }) : false,
       proyectos,
       tarifaHora: Number.isFinite(tarifaHora) ? tarifaHora : 0,
       precioSugerido,

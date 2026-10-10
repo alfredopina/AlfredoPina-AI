@@ -57,6 +57,7 @@ module.exports = async function (context, req) {
              s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad, s.blob_path,
              so.objetivo AS sol_objetivo, so.dirigido_a AS sol_dirigido_a, so.proyectos_json AS sol_proyectos_json,
              DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias_estatus,
+             DATEDIFF(HOUR, s.fecha_estatus, GETUTCDATE()) AS horas_estatus,
              CASE WHEN s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)
                        AND s.estatus IN ('Borrador', 'Enviada', 'En negociación')
                   THEN 1 ELSE 0 END AS vencida

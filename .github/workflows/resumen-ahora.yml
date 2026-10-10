@@ -1,0 +1,26 @@
+name: Enviar resumen semanal ahora
+# Botón de un solo clic para probar (o repetir) el resumen semanal fuera del lunes: sin menús ni opciones.
+# Manda el resumen aunque ya haya salido uno hace menos de 20 h (forzar). El resumen programado del lunes vive en
+# notificaciones-programadas.yml. Misma Function, mismo secreto (BACKUP_CRON_SECRET).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  resumen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar el resumen semanal (reintenta mientras la base despierta)
+        run: |
+          for intento in 1 2 3 4 5 6; do
+            respuesta=$(curl -s -m 60 -w "\n%{http_code}" -X POST "https://icy-smoke-071e3ec10.7.azurestaticapps.net/api/enviarResumenSemanal?forzar=1" \
+              -H "x-backup-secret: ${{ secrets.BACKUP_CRON_SECRET }}")
+            status="${respuesta##*$'\n'}"
+            cuerpo="${respuesta%$'\n'*}"
+            echo "Intento $intento — Status: $status — $cuerpo"
+            if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then exit 0; fi
+            # 503 = la base sigue despertando; 000/504 = se cortó la espera. Se reintenta; el resto no tiene caso repetirlo.
+            if [ "$status" != "503" ] && [ "$status" != "504" ] && [ "$status" != "000" ]; then break; fi
+            sleep 120
+          done
+          echo "::error::El resumen semanal no se pudo enviar (último status $status)."
+          exit 1

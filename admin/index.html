@@ -1632,17 +1632,16 @@
      fase + número vivo de cotizaciones y monto), a propósito distinto del stepper de Grupos */
   .trkv-bins{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; }
   .trkv-bin{ display:flex; flex-direction:column; min-width:0; }
-  .trkv-bin-plate{ display:flex; align-items:center; justify-content:center; text-align:center; min-height:34px; padding:4px 6px; border-width:1px; border-style:solid; border-radius:7px 7px 0 0; font-size:11.5px; font-weight:600; line-height:1.2; color:var(--text); }
-  .trkv-bin-body{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px 12px; border-width:1px; border-style:solid; border-top:none; border-radius:0 0 12px 12px; background-color:var(--panel-2); }
-  .trkv-bin .cot-vv{ padding:1px 8px; font-family:var(--display); font-size:24px; line-height:1.15; font-variant-numeric:tabular-nums; }
-  .trkv-bin .cot-vv.m{ font-size:13px; font-weight:600; font-family:var(--mono); padding:2px 6px; white-space:nowrap; }
+  .trkv-bin-plate{ display:flex; align-items:center; justify-content:center; text-align:center; min-height:34px; padding:4px 6px; border-width:1px; border-style:solid; border-radius:7px; font-size:11.5px; font-weight:600; line-height:1.2; color:var(--text); }
+  .trkv-bin-row{ display:flex; align-items:center; justify-content:center; gap:4px; margin-top:10px; white-space:nowrap; font-family:var(--display); color:var(--text-faint); }
+  .trkv-bin-row .cot-vv{ padding:1px 6px; font-size:17px; line-height:1.2; font-variant-numeric:tabular-nums; }
+  .trkv-bin-row .cot-vv.m{ font-size:15px; }
   /* Alertas disponibles de cada sección, debajo de las tarjetas */
   .trkv-alertas{ margin-top:22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 26px 14px; }
   .trkv-al-title{ display:flex; align-items:center; gap:9px; margin:0 0 4px; font-family:var(--display); font-size:16px; font-weight:600; }
   .trkv-al-title svg{ width:19px; height:19px; color:var(--text-dim); }
-  .trkv-al-grid{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:0 26px; }
-  @media (max-width:1300px){ .trkv-al-grid{ grid-template-columns:1fr 1fr; } }
-  @media (max-width:700px){ .trkv-al-grid{ grid-template-columns:1fr; } }
+  .trkv-al-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 44px; }
+  @media (max-width:760px){ .trkv-al-grid{ grid-template-columns:1fr; } }
   .trkv-al{ padding:14px 0 10px; min-width:0; }
   .trkv-al-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-family:var(--display); font-size:13.5px; font-weight:600; }
   .trkv-al-count{ margin-left:auto; font-family:var(--mono); font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; background-color:rgba(220,38,38,.16); color:#fca5a5; }
@@ -5126,17 +5125,19 @@
     function stepperContenedores(c){
       const n = k => (c[k] && c[k].n) || 0;
       const monto = k => (c[k] && c[k].monto) || 0;
-      const maxN = Math.max(0, ...CONTENEDORES_RESUMEN.map(n));
-      const maxM = Math.max(0, ...CONTENEDORES_RESUMEN.map(monto));
+      // mismos "elementos vivos" que el tablero: solo entre las 3 abiertas, un único ganador por indicador y, si empatan,
+      // el de la etapa más temprana (comparación estricta en orden). Ganada y Perdida nunca son vivas.
+      let mt = 0, mc = 0, km = '', kc = '';
+      ['Borrador', 'Enviada', 'En negociación'].forEach(k => {
+        if(monto(k) > mt){ mt = monto(k); km = k; }
+        if(n(k) > mc){ mc = n(k); kc = k; }
+      });
       return CONTENEDORES_RESUMEN.map(k => {
         const col = BORDE_CONT[k] || COLOR_CONT[k];
         const fill = k === 'Ganada' ? hexA(COLOR_CONT[k], .6) : hexA(COLOR_CONT[k], .2);
         return `<div class="trkv-bin">
           <span class="trkv-bin-plate" style="background-color:${fill};border-color:${col}">${k}</span>
-          <div class="trkv-bin-body" style="border-color:${col}">
-            <span class="cot-vv ${maxN > 0 && n(k) === maxN ? 'cant' : ''}" title="Cotizaciones en ${k}">${n(k)}</span>
-            <span class="cot-vv m ${maxM > 0 && monto(k) === maxM ? 'monto' : ''}" title="Monto acumulado en ${k}: ${fmtMoney(monto(k))}">${fmtMoneyCorto(monto(k))}</span>
-          </div>
+          <div class="trkv-bin-row"><span class="cot-vv ${k === kc ? 'cant' : ''}" title="Cotizaciones en ${k}">${n(k)}</span>|<span class="cot-vv m ${k === km ? 'monto' : ''}" title="Monto acumulado en ${k}: ${fmtMoney(monto(k))}">${fmtMoneyCorto(monto(k))}</span></div>
         </div>`;
       }).join('');
     }
@@ -5246,7 +5247,7 @@
       { k:'cotizaciones', nombre:'Cotizaciones', ir:'tracking-comercial' },
       { k:'grupos', nombre:'Grupos', ir:'tracking-operacion' },
     ];
-    const MAX_ALERTAS_TV = 5;
+    const MAX_ALERTAS_TV = 3; // las 3 más urgentes: el servidor ya las entrega ordenadas de más a menos urgente
     function pintarAlertasTV(grupos){
       const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';

@@ -23,6 +23,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase, FASES } = require("../src/grupo-fase");
 const { getUmbrales } = require("../src/notificaciones-config");
+const { getMetricasDesde } = require("../src/metricas-desde");
 
 const FASES_STEPPER = FASES.filter((f) => f !== "Cerrado");
 const FASES_CIERRE = ["Proyecto", "Calificaciones", "Diplomas"];
@@ -31,13 +32,15 @@ module.exports = async function (context, req) {
   try {
     const pool = await getPool();
     const umbrales = await getUmbrales();
+    // "Contar desde" (Configuración → Métricas): solo los Grupos cerrados desde esa fecha; activos, fases y semáforo son estado vivo
+    const desde = (await getMetricasDesde()).grupos;
     const [totales, activosRaw, directos] = await Promise.all([
-      pool.request().query(`
+      pool.request().input("desde", sql.DateTime2, desde ? new Date(desde) : null).query(`
         SELECT
           (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre IS NULL OR estatus_cierre <> 'Cerrado') AS activos,
-          (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre = 'Cerrado') AS cerrados,
+          (SELECT COUNT(*) FROM Grupo WHERE estatus_cierre = 'Cerrado' AND (@desde IS NULL OR fecha_cierre >= @desde)) AS cerrados,
           (SELECT AVG(CAST(DATEDIFF(day, fecha_fin, fecha_cierre) AS FLOAT)) FROM Grupo
-            WHERE estatus_cierre = 'Cerrado' AND fecha_fin IS NOT NULL AND fecha_cierre IS NOT NULL) AS dias_promedio_cierre
+            WHERE estatus_cierre = 'Cerrado' AND fecha_fin IS NOT NULL AND fecha_cierre IS NOT NULL AND (@desde IS NULL OR fecha_cierre >= @desde)) AS dias_promedio_cierre
       `),
       pool.request().query(`
         SELECT g.estatus_curso, g.estatus_cierre,
@@ -78,6 +81,7 @@ module.exports = async function (context, req) {
         semaforo_cierre: semaforoCierre,
         grupos_directos: d.directos,
         total_activos: d.total_activos,
+        contando_desde: desde,
         pct_directos: d.total_activos ? Math.round((d.directos / d.total_activos) * 100) : 0,
       },
     };

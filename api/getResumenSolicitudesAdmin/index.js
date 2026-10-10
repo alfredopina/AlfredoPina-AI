@@ -14,13 +14,16 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { getUmbrales, DEFAULTS } = require("../src/notificaciones-config");
 const { JSON_HEADERS } = require("../src/http");
 const { drenarConSql } = require("../src/solicitud-publica-cola");
+const { getMetricasDesde } = require("../src/metricas-desde");
 
 module.exports = async function (context, req) {
   try {
     const pool = await getPool();
     // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
     await drenarConSql(pool, context);
-    const result = await pool.request().query(
+    // "Contar desde" (Configuración → Métricas): las 5 tarjetas cuentan solo lo creado desde esa fecha; el semáforo de abajo es trabajo vivo y no se filtra
+    const desde = (await getMetricasDesde()).solicitudes;
+    const result = await pool.request().input("desde", sql.DateTime2, desde ? new Date(desde) : null).query(
       `SELECT
          SUM(CASE WHEN s.canal_origen = 'Manual' THEN 1 ELSE 0 END) AS manuales,
          SUM(CASE WHEN s.canal_origen = 'Sitio' THEN 1 ELSE 0 END) AS sitio,
@@ -31,6 +34,7 @@ module.exports = async function (context, req) {
        FROM Solicitud s
        LEFT JOIN (SELECT solicitud_id, MIN(fecha_creacion) AS primera FROM Cotizacion WHERE solicitud_id IS NOT NULL GROUP BY solicitud_id) p
          ON p.solicitud_id = s.id
+       WHERE (@desde IS NULL OR s.fecha_creacion >= @desde)
 `
     );
     const r = result.recordset[0];
@@ -60,6 +64,7 @@ module.exports = async function (context, req) {
         prospectos_generados: r.prospectos_generados || 0,
         horas_atencion: r.horas_atencion == null ? null : Math.max(0, Math.round(r.horas_atencion * 10) / 10),
         semaforo: { ok: sm.ok || 0, warn: sm.warn || 0, hot: sm.hot || 0 },
+        contando_desde: desde,
       },
     };
   } catch (err) {

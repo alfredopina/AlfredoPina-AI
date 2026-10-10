@@ -405,6 +405,22 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/probarNotificacionCorreo",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getEstadoSistema",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getMetricasDesde",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/reiniciarMetricas",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/getNotificacionesActivas",
       "allowedRoles": ["admin"]
     },

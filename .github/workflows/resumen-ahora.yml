@@ -1,7 +1,9 @@
 name: Enviar resumen semanal ahora
 # Botón de un solo clic para probar (o repetir) el resumen semanal fuera del lunes: sin menús ni opciones.
-# Manda el resumen aunque ya haya salido uno hace menos de 20 h (forzar). El resumen programado del lunes vive en
-# notificaciones-programadas.yml. Misma Function, mismo secreto (BACKUP_CRON_SECRET).
+# Modo prueba (?forzar=1): manda el resumen sin importar los interruptores ni el anti-duplicado de 20 h, solo a
+# NOTIFICACIONES_DESTINO (Alfredo) y SIN mover el punto de comparación del resumen real del lunes. El resumen programado vive en
+# notificaciones-programadas.yml. Misma Function, mismo secreto (BACKUP_CRON_SECRET). Desde el admin también hay un botón
+# equivalente (Configuración → Notificaciones → Enviar resumen ahora).
 on:
   workflow_dispatch: {}
 

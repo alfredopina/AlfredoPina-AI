@@ -1221,6 +1221,21 @@
   .cfg-correo-destino input.cfg-notif-dirty{ border-color:var(--warn, #dfb35a); }
   .cfg-correo-fila.cfg-correo-apagada .cfg-correo-nombre, .cfg-correo-fila.cfg-correo-apagada .cfg-correo-desc{ opacity:.6; }
 
+  /* Configuración → Notificaciones: bloque de pruebas · Métricas de los Tracking · Estado del sistema */
+  .cfg-correo-pruebas{ margin-top:14px; border:1px dashed var(--line); border-radius:9px; padding:12px 14px; }
+  .cfg-correo-pruebas-btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .cfg-met-btns{ display:flex; flex-direction:column; gap:8px; flex:none; align-items:stretch; }
+  .cfg-met-desde{ margin-top:6px; color:var(--text); }
+  .cfg-estado-fila{ display:flex; align-items:flex-start; gap:12px; border:1px solid var(--line); border-radius:9px; padding:11px 14px; background:var(--panel); }
+  .cfg-estado-fila + .cfg-estado-fila{ margin-top:10px; }
+  .cfg-estado-revisar{ border-color:var(--warn, #dfb35a); }
+  .cfg-estado-ico{ width:18px; height:18px; flex:none; margin-top:2px; color:var(--text-dim); }
+  .cfg-estado-ico svg{ width:100%; height:100%; }
+  .cfg-estado-revisar .cfg-estado-ico{ color:var(--warn, #dfb35a); }
+  .cfg-estado-texto{ flex:1; min-width:0; }
+  .cfg-estado-chip{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); border:1px solid var(--line); border-radius:999px; padding:3px 10px; white-space:nowrap; flex:none; }
+  .cfg-estado-revisar .cfg-estado-chip{ color:var(--text); border-color:var(--warn, #dfb35a); }
+
   /* Configuración → Alertas — 3 filas con nota de contexto debajo de
      cada una (a diferencia de .cfg-tarifas-grid, que es una rejilla de
      tarjetas cortas sin espacio para texto extra). */
@@ -2678,6 +2693,20 @@
           </div>
         </div>
         <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgMetHead">
+            <span class="cfg-card-title">MÉTRICAS DE LOS TRACKING</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgMetBody" hidden>
+            <div class="cfg-note">
+              Las tarjetas de Solicitudes, Cotizaciones y Grupos son <b>acumuladas</b>: cuentan todo lo que ha pasado y nunca se reinician solas. Aquí decides cuándo empezar a contar de nuevo (por ejemplo, al arrancar un año). <b>No se borra nada</b>: solo se guarda desde qué fecha cuentan, y puedes volver a contar todo el historial cuando quieras. Lo que está vivo hoy (semáforos, pipeline, grupos activos) nunca se reinicia.
+            </div>
+            <div class="cfg-correo-lista" id="cfgMetLista" style="margin-top:14px;">
+              <div class="radm-empty-row">Cargando…</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card">
           <button type="button" class="cfg-card-head" id="cfgTarifasHead">
             <span class="cfg-card-title">TARIFAS POR HORA</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2703,6 +2732,17 @@
             <div class="radm-list" id="bakLista">
               <div class="radm-empty-row">Cargando respaldos…</div>
             </div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <button type="button" class="cfg-card-head" id="cfgEstadoHead">
+            <span class="cfg-card-title">ESTADO DEL SISTEMA</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgEstadoBody" hidden>
+            <div class="cfg-note">Una mirada rápida a si todo está vivo, sin entrar a Azure. Solo lee Table Storage y los respaldos: abrirla <b>no despierta la base de datos</b> ni gasta tu cuota gratis.</div>
+            <button type="button" class="radm-btn radm-btn-ghost" id="cfgEstadoActualizar" style="margin:12px 0 14px;min-width:auto;">Actualizar</button>
+            <div class="cfg-estado-lista" id="cfgEstadoLista"></div>
           </div>
         </div>
         <div class="cfg-card">
@@ -15206,8 +15246,41 @@
         </div>
         <div class="cfg-correo-desc" style="margin-top:6px;">Destinatarios del resumen, separados por coma (por ejemplo, tu correo y el de Viridiana).</div>`;
       cont.innerHTML = filaHtml('general', 'Enviar avisos por correo', 'Interruptor general: apagado, no sale ningún correo de los de abajo, sin importar cómo estén sus interruptores.', '', true)
-        + AVISOS.map(a => filaHtml(a.clave, a.nombre, a.desc, a.destino ? destinoHtml : '', false)).join('');
+        + AVISOS.map(a => filaHtml(a.clave, a.nombre, a.desc, a.destino ? destinoHtml : '', false)).join('')
+        + `<div class="cfg-correo-pruebas">
+            <div class="cfg-correo-nombre">Probar</div>
+            <div class="cfg-correo-desc">Las pruebas llegan solo a tu correo de siempre (no a los destinatarios del resumen) y no dependen de los interruptores de arriba. El resumen de prueba no cuenta como el del lunes: no mueve desde cuándo se cuenta lo nuevo.</div>
+            <div class="cfg-correo-pruebas-btns">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cfgCorreoProbarBtn" style="min-width:auto;">Enviar correo de prueba</button>
+              <button type="button" class="radm-btn radm-btn-ghost" id="cfgCorreoResumenBtn" style="min-width:auto;">Enviar resumen ahora</button>
+            </div>
+            <div class="cfg-correo-desc" id="cfgCorreoPruebaEstado" role="status" style="margin-top:8px;"></div>
+          </div>`;
       pintarEstado();
+
+      // botones de prueba: una acción a la vez; el resultado se dice en texto debajo, además del aviso
+      const estadoPrueba = document.getElementById('cfgCorreoPruebaEstado');
+      const lanzar = async (btn, accion, textoEnvio, textoOk) => {
+        const otros = cont.querySelectorAll('.cfg-correo-pruebas-btns button');
+        const original = btn.textContent;
+        otros.forEach(b => { b.disabled = true; });
+        btn.textContent = 'Enviando...';
+        estadoPrueba.textContent = textoEnvio;
+        try {
+          const r = await apiPostJson('/api/probarNotificacionCorreo', { accion });
+          const donde = r.destino ? ' a ' + r.destino.join(', ') : '';
+          estadoPrueba.textContent = textoOk + donde + '. Revisa tu bandeja (y spam, la primera vez).';
+          toast('Enviado.', true);
+        } catch(e){
+          estadoPrueba.textContent = 'No se pudo enviar: ' + e.message;
+          toast('No se pudo enviar: ' + e.message, false);
+        } finally {
+          btn.textContent = original;
+          otros.forEach(b => { b.disabled = false; });
+        }
+      };
+      document.getElementById('cfgCorreoProbarBtn').addEventListener('click', e => lanzar(e.currentTarget, 'prueba', 'Enviando el correo de prueba…', 'Correo de prueba enviado'));
+      document.getElementById('cfgCorreoResumenBtn').addEventListener('click', e => lanzar(e.currentTarget, 'resumen', 'Armando el resumen (si la base estaba dormida puede tardar medio minuto)…', 'Resumen de prueba enviado a tu correo de siempre'));
 
       cont.querySelectorAll('input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', async () => {
@@ -15266,6 +15339,173 @@
       head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
       if(expandir && !cargado){ cargado = true; cargar(); }
     });
+  })();
+
+  // Configuración → Métricas de los Tracking ("contar desde"). Ningún Tracking reinicia sus tarjetas acumuladas solo: aquí
+  // Alfredo decide cuándo. No borra nada, solo guarda desde qué fecha cuentan (api/src/metricas-desde.js).
+  (function(){
+    const TRACKINGS = [
+      { clave:'solicitudes', nombre:'Solicitudes', cuenta:'Las 5 tarjetas (manuales, del sitio, total, atendidas, prospectos y horas de atención) cuentan las solicitudes creadas desde esa fecha. El semáforo de solicitudes sin atender no se reinicia: es trabajo vivo.' },
+      { clave:'cotizaciones', nombre:'Cotizaciones', cuenta:'Ganado, perdido, tasa de conversión y tiempo de cierre cuentan las cotizaciones cerradas desde esa fecha. El pipeline y la antigüedad (lo que está abierto hoy) no se reinician.' },
+      { clave:'grupos', nombre:'Grupos', cuenta:'Los grupos cerrados y los días promedio de cierre cuentan desde esa fecha. Los grupos activos, las fases y el semáforo no se reinician.' },
+    ];
+    let desde = null;
+
+    const fmt = (iso) => new Date(iso).toLocaleString('es-MX', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' });
+    async function apiGet(url){
+      const res = await fetch(url, { cache:'no-store' });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function toast(msg, ok){
+      const el = document.getElementById('bakToast');
+      if(!el) return;
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    function pintar(){
+      const cont = document.getElementById('cfgMetLista');
+      cont.innerHTML = TRACKINGS.map(t => {
+        const fecha = desde && desde[t.clave];
+        return `
+          <div class="cfg-correo-fila" data-tracking="${t.clave}">
+            <div class="cfg-correo-texto">
+              <div class="cfg-correo-nombre">${t.nombre}</div>
+              <div class="cfg-correo-desc">${t.cuenta}</div>
+              <div class="cfg-correo-desc cfg-met-desde"><b>${fecha ? 'Contando desde: ' + fmt(fecha) : 'Contando todo el historial'}</b></div>
+            </div>
+            <div class="cfg-met-btns">
+              <button type="button" class="radm-btn radm-btn-ghost cfg-met-reiniciar" style="min-width:auto;">Reiniciar ahora</button>
+              ${fecha ? '<button type="button" class="radm-btn radm-btn-ghost cfg-met-quitar" style="min-width:auto;">Volver a contar todo</button>' : ''}
+            </div>
+          </div>`;
+      }).join('') + '<div class="cfg-note" style="margin-top:12px;">Clientes no aparece aquí: todas sus tarjetas son del estado de hoy (cuántos clientes hay, cuántos están completos, el semáforo), no un historial que se acumule.</div>';
+
+      cont.querySelectorAll('.cfg-correo-fila').forEach(fila => {
+        const clave = fila.dataset.tracking;
+        const t = TRACKINGS.find(x => x.clave === clave);
+        const cambiar = async (accion) => {
+          const btns = fila.querySelectorAll('button');
+          btns.forEach(b => { b.disabled = true; });
+          try {
+            desde = await apiPostJson('/api/reiniciarMetricas', { tracking: clave, accion });
+            toast(accion === 'reiniciar' ? 'Listo: ' + t.nombre + ' cuenta desde ahora.' : t.nombre + ' vuelve a contar todo el historial.', true);
+          } catch(e){
+            toast('No se pudo guardar: ' + e.message, false);
+          }
+          pintar();
+        };
+        fila.querySelector('.cfg-met-reiniciar').addEventListener('click', async () => {
+          if(!(await confirmarAccion({
+            titulo: 'Reiniciar las métricas de ' + t.nombre,
+            mensaje: 'Las tarjetas acumuladas de ' + t.nombre + ' empezarán a contar desde este momento y se verán casi en cero. No se borra ningún dato: puedes volver a contar todo el historial cuando quieras con "Volver a contar todo".',
+            variante: 'advertencia', textoConfirmar: 'Sí, reiniciar',
+          }))) return;
+          cambiar('reiniciar');
+        });
+        const q = fila.querySelector('.cfg-met-quitar');
+        if(q) q.addEventListener('click', async () => {
+          if(!(await confirmarAccion({
+            titulo: 'Volver a contar todo en ' + t.nombre,
+            mensaje: 'Las tarjetas de ' + t.nombre + ' volverán a contar todo el historial, como antes del reinicio.',
+            variante: 'neutral', textoConfirmar: 'Sí, contar todo',
+          }))) return;
+          cambiar('quitar');
+        });
+      });
+    }
+
+    async function cargar(){
+      const cont = document.getElementById('cfgMetLista');
+      try {
+        desde = await apiGet('/api/getMetricasDesde');
+        pintar();
+      } catch(e){
+        cont.innerHTML = `<div class="radm-empty-row">No se pudo cargar: ${e.message}</div>`;
+      }
+    }
+
+    let cargado = false;
+    document.getElementById('cfgMetHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgMetBody');
+      const head = document.getElementById('cfgMetHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargar(); }
+    });
+  })();
+
+  // Configuración → Estado del sistema: "¿está todo vivo?" sin entrar a Azure. Lee solo Table Storage y blobs (api/getEstadoSistema),
+  // nunca SQL: abrirlo no despierta la base. Cada fila dice su estado en TEXTO ("En orden" / "Revisar") además del ícono.
+  (function(){
+    const fmt = (iso) => new Date(iso).toLocaleString('es-MX', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' });
+    const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_AVISO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3Z" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>';
+    async function apiGet(url){
+      const res = await fetch(url, { cache:'no-store' });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    const fila = (ok, nombre, valor) => `
+      <div class="cfg-estado-fila ${ok ? '' : 'cfg-estado-revisar'}">
+        <span class="cfg-estado-ico">${ok ? ICO_OK : ICO_AVISO}</span>
+        <div class="cfg-estado-texto"><div class="cfg-correo-nombre">${nombre}</div><div class="cfg-correo-desc">${valor}</div></div>
+        <span class="cfg-estado-chip">${ok ? 'En orden' : 'Revisar'}</span>
+      </div>`;
+
+    function pintar(e){
+      const cont = document.getElementById('cfgEstadoLista');
+      const filas = [];
+      if(e.cola && !e.cola.error){
+        const n = e.cola.pendientes;
+        if(!n) filas.push(fila(true, 'Solicitudes del sitio en espera', 'Ninguna: todo lo que llegó ya está en la base.'));
+        else filas.push(fila(e.cola.masAntiguaHoras < 4, 'Solicitudes del sitio en espera', n + (n === 1 ? ' solicitud espera' : ' solicitudes esperan') + ' pasar a la base (la más antigua lleva ' + e.cola.masAntiguaHoras + ' h). Pasan solas al abrir el admin.'));
+      } else filas.push(fila(false, 'Solicitudes del sitio en espera', 'No se pudo leer la cola.'));
+      if(e.respaldo && !e.respaldo.error){
+        if(!e.respaldo.en) filas.push(fila(false, 'Último respaldo de Table Storage', 'Todavía no hay ninguno. Usa "Respaldar ahora" en Respaldos.'));
+        else {
+          const dias = Math.floor((Date.now() - Date.parse(e.respaldo.en)) / 86400000);
+          filas.push(fila(dias <= 8, 'Último respaldo de Table Storage', fmt(e.respaldo.en) + ' (' + (e.respaldo.origen === 'auto' ? 'automático' : e.respaldo.origen === 'manual' ? 'manual' : 'origen desconocido') + ', hace ' + dias + (dias === 1 ? ' día' : ' días') + '). El automático sale los lunes.'));
+        }
+      } else filas.push(fila(false, 'Último respaldo de Table Storage', 'No se pudo leer.'));
+      filas.push(fila(true, 'Último resumen semanal', e.resumen && e.resumen.en ? fmt(e.resumen.en) : 'Aún no ha salido ninguno (el primero sale el próximo lunes a las 7:00).'));
+      const c = e.correo || {};
+      if(!c.configurado) filas.push(fila(false, 'Correo de avisos', 'Falta configurar Azure Communication Services (ACS_EMAIL_CONNECTION, NOTIFICACIONES_REMITENTE y NOTIFICACIONES_DESTINO). Hasta entonces no sale ningún correo.'));
+      else if(c.general === false) filas.push(fila(false, 'Correo de avisos', 'Configurado, pero el interruptor general de Notificaciones está apagado: no sale nada.'));
+      else filas.push(fila(true, 'Correo de avisos', 'Configurado desde ' + c.remitente + '. ' + c.avisosActivos + ' de ' + c.avisosTotal + ' avisos encendidos.'));
+      cont.innerHTML = filas.join('');
+    }
+
+    async function cargar(){
+      const cont = document.getElementById('cfgEstadoLista');
+      cont.innerHTML = '<div class="radm-empty-row">Revisando…</div>';
+      try { pintar(await apiGet('/api/getEstadoSistema')); }
+      catch(e){ cont.innerHTML = `<div class="radm-empty-row">No se pudo revisar: ${e.message}</div>`; }
+    }
+
+    let cargado = false;
+    document.getElementById('cfgEstadoHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgEstadoBody');
+      const head = document.getElementById('cfgEstadoHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargar(); }
+    });
+    document.getElementById('cfgEstadoActualizar').addEventListener('click', cargar);
   })();
 
   // Stepper de fase de Grupo — componente compartido entre el panel Grupos

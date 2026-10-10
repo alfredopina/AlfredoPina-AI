@@ -17,7 +17,7 @@ on:
         options: [atoradas, resumen]
         default: atoradas
       forzar:
-        description: 'Resumen: mandarlo aunque ya haya salido uno hace menos de 20 h'
+        description: 'Resumen en modo prueba: solo a tu correo, sin importar interruptores ni el anti-duplicado, y sin mover el punto de comparación'
         type: boolean
         default: false
 

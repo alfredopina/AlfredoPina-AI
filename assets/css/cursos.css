@@ -163,7 +163,6 @@ section.wrap, .lead-dialog{ --c-bright: color-mix(in srgb, var(--c) 82%, white);
 
 .program-fn-obj p{ font-size:13px; color:var(--text-dim); line-height:1.65; }
 
-.program-fn-alcance{ white-space:pre-line; }
 
 .curso-panel{ display:none; }
 

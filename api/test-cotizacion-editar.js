@@ -30,13 +30,13 @@ Module._load = function (req, ...a) {
 const fn = require("./crearCotizacion");
 let fallos = 0;
 const check = (n, ok) => { console.log((ok ? "  OK " : "  FALLA ") + n); if (!ok) fallos++; };
-const base = { empresa: { clienteId: 1 }, herramienta: "excel", temario_tipo: "personalizado", temas: [{ nombre: "T1", nivel: 1 }], horas_totales: 8, precio_final: 1200, alcance: "Alc", objetivo: "Obj", proyectos: [{ id: "p1", nombre: "Tablero", resumen: "r" }] };
+const base = { empresa: { clienteId: 1 }, herramienta: "excel", temario_tipo: "personalizado", temas: [{ nombre: "T1", nivel: 1 }], horas_totales: 8, precio_final: 1200, objetivo: "Obj", proyectos: [{ id: "p1", nombre: "Tablero", resumen: "r" }] };
 async function llamar(body) { const ctx = { log: { error() {} }, res: null }; await fn(ctx, { body }); return ctx.res; }
 (async () => {
   let r = await llamar({ ...base, actualiza_id: 7 });
   check("editar Borrador: 200, mismo folio, actualizada", r.status === 200 && r.body.folio === "AP26-ACME-EXCEL-01" && r.body.actualizada === true);
   check("conserva el código de la propuesta", r.body.propuesta_codigo === "abcd1234" && propGuardadas[0].codigo === "abcd1234");
-  check("el snapshot lleva alcance y proyectos de la personalizada", propGuardadas[0].snapshot.alcance === "Alc" && propGuardadas[0].snapshot.proyectos[0].n === "Tablero");
+  check("el snapshot lleva los proyectos de la personalizada y ya no lleva alcance", propGuardadas[0].snapshot.proyectos[0].n === "Tablero" && !("alcance" in propGuardadas[0].snapshot));
   check("hace UPDATE (no INSERT) solo sobre Borrador", consultas.some((c) => /UPDATE Cotizacion SET/.test(c.sqlText) && /estatus = 'Borrador'/.test(c.sqlText)) && !consultas.some((c) => /INSERT INTO Cotizacion/.test(c.sqlText)));
   fila.estatus = "Enviada";
   r = await llamar({ ...base, actualiza_id: 7 });

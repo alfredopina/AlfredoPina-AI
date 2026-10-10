@@ -1,7 +1,7 @@
 // crearTemario/index.js
 // Function protegida (rol "admin"): alta o edición de un temario estándar
 // (upsert por herramienta+id; "Replace", así que cada guardado debe mandar todos los campos).
-// Campos de texto libre: objetivo, dirigido y alcance (el alcance es por programa; "tags" se quitó
+// Campos de texto libre: objetivo y dirigido ("alcance" y "tags" se quitaron;
 // 2026-10-06 — no alimentaban nada). temaIds es la lista ORDENADA de temas incluidos
 // (referencia al banco de Temas) — se guarda como JSON string en la columna.
 const { getTemasTable, getTemariosTable, getProyectosTable, ensureTable, isTableNotFound } = require("../src/cursos-tables");
@@ -17,7 +17,6 @@ module.exports = async function (context, req) {
   const nombre = (body.nombre || "").trim();
   const objetivo = (body.objetivo || "").trim();
   const dirigido = (body.dirigido || "").trim();
-  const alcance = (body.alcance || "").trim().slice(0, 4000);
   const proyectoIds = Array.isArray(body.proyectoIds) ? body.proyectoIds.filter((x) => typeof x === "string" && x) : null; // null = no se manda (el programa no fija proyectos)
   const horasRaw = body.horasManual;
   const horasManual = horasRaw === undefined || horasRaw === null || horasRaw === "" ? null : Number(horasRaw);
@@ -78,7 +77,7 @@ module.exports = async function (context, req) {
 
     const temariosTable = getTemariosTable();
     await ensureTable(temariosTable);
-    const entidad = { partitionKey: herramienta, rowKey: id, nombre, objetivo, dirigido, alcance, temaIds: JSON.stringify(temaIds), estado, orden };
+    const entidad = { partitionKey: herramienta, rowKey: id, nombre, objetivo, dirigido, temaIds: JSON.stringify(temaIds), estado, orden };
     if (proyectoIds !== null) entidad.proyectoIds = JSON.stringify(proyectoIds);
     if (horasManual !== null) entidad.horasManual = horasManual;
     await temariosTable.upsertEntity(entidad, "Replace");

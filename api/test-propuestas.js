@@ -112,7 +112,7 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   const despues = await P.leerPropuesta(tabla, "ab12cd34");
   check("extender vigencia: conserva vistas y aceptación", despues.vivo.vistas === (antes.vistas || 0) && despues.vivo.aceptadaPor === "Ana Pérez");
   check("extender vigencia en una propuesta inexistente: false", (await P.actualizarVigenciaPropuesta(tabla, "nada0000", "2027-01-15")) === false);
-  check("el snapshot lleva el alcance", P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], alcance: "Alcance X", precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() }).alcance === "Alcance X");
+  check("el snapshot ya no lleva alcance", !("alcance" in P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], alcance: "Alcance X", precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() })));
 
   const sn = P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() });
   check("adicionales por herramienta: Excel y Power BI llevan diagnóstico, las demás no", sn.adicionales.some((a) => a.id === "diagnostico") && !P.adicionalesPara("ia").some((a) => a.id === "diagnostico") && P.adicionalesPara("ia").length === 2);

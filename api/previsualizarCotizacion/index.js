@@ -39,7 +39,6 @@ module.exports = async function (context, req) {
       fechaTentativa: (body.fecha_tentativa || "").trim() || null,
       objetivo: (body.objetivo || "").trim() || null,
       dirigidoA: (body.dirigido_a || "").trim() || null,
-      alcance: (body.alcance || "").trim() || null,
       precioManual: body.descuento_pct != null && body.descuento_pct !== "" && Number.isFinite(tarifaHora) && tarifaHora > 0 ? esPrecioManual({ precioSugerido, descuentoPct: body.descuento_pct, precioFinal }) : false,
       proyectos,
       tarifaHora: Number.isFinite(tarifaHora) ? tarifaHora : 0,

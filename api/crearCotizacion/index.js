@@ -51,7 +51,6 @@ module.exports = async function (context, req) {
   const fechaVigenciaBody = (body.fecha_vigencia || "").trim();
   const dirigidoA = (body.dirigido_a || "").trim() || null;
   const objetivo = (body.objetivo || "").trim() || null;
-  const alcance = (body.alcance || "").trim() || null;
   const proyectosElegidos = Array.isArray(body.proyectos) ? body.proyectos : [];
   // editar un Borrador = se guarda en el mismo folio y el mismo link (versión nueva solo desde Enviada en adelante)
   const actualizaId = body.actualiza_id ? Number(body.actualiza_id) : null;
@@ -165,7 +164,6 @@ module.exports = async function (context, req) {
       fechaTentativa,
       objetivo,
       dirigidoA,
-      alcance,
       proyectos,
       precioManual: precioFinalBody != null && esPrecioManual({ precioSugerido, descuentoPct, precioFinal }),
       tarifaHora: precioHora,

@@ -412,7 +412,7 @@
   .cadm-prog-body[hidden]{ display:none; }
   .cadm-prog-body .radm-form-row:first-child{ margin-top:16px; }
   .cadm-form .radm-field textarea{ min-height:84px; line-height:1.55; }
-  .cadm-form textarea.cadm-objetivo{ min-height:132px; } /* el espacio grande es del objetivo; dirigido y alcance suelen ser cortos */
+  .cadm-form textarea.cadm-objetivo{ min-height:132px; } /* el espacio grande es del objetivo; dirigido suele ser corto */
   .cadm-thumb{ width:64px; height:36px; object-fit:cover; border-radius:5px; border:1px solid var(--line); flex:none; background:var(--panel-2); }
   .cadm-img{ display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
   .cadm-img-prev{ width:240px; aspect-ratio:16/9; border:1px dashed var(--line); border-radius:8px; background:var(--panel-2); display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
@@ -5940,10 +5940,6 @@
               <label>DIRIGIDO A</label>
               <textarea class="cadm-f-dirigido">${isNew ? '' : escapeHtml(p.dirigido)}</textarea>
             </div>
-            <div class="radm-field">
-              <label>ALCANCE</label>
-              <textarea class="cadm-f-alcance">${isNew ? '' : escapeHtml(p.alcance)}</textarea>
-            </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field" style="flex:1 1 100%;">
@@ -6025,7 +6021,6 @@
         const nombre = root.querySelector('.cadm-f-nombre').value.trim();
         const objetivo = root.querySelector('.cadm-f-objetivo').value.trim();
         const dirigido = root.querySelector('.cadm-f-dirigido').value.trim();
-        const alcance = root.querySelector('.cadm-f-alcance').value.trim();
         const estado = root.querySelector('.cadm-f-estado').checked ? 'publicado' : 'borrador';
         const temaIds = Array.from(root.querySelectorAll('.cadm-t-pick:checked')).map(c => c.value);
         const proyectoIds = Array.from(root.querySelectorAll('.cadm-pr-pick:checked')).map(c => c.value);
@@ -6040,7 +6035,7 @@
 
         try {
           await apiPostJson('/api/crearTemario', {
-            herramienta:cadmTool, id, nombre, objetivo, dirigido, alcance, temaIds, proyectoIds, horasManual, estado,
+            herramienta:cadmTool, id, nombre, objetivo, dirigido, temaIds, proyectoIds, horasManual, estado,
             orden: p ? p.orden : Date.now(),
           });
           toast('Programa guardado.', true);
@@ -12682,7 +12677,7 @@
     // ══ CREAR / MODIFICAR SOLICITUD — un solo formulario (2026-10-08) ══
     // sol=null → alta; sol={...} (fila de listSolicitudesAdmin) → modificar, con todo precargado. Dos switches definen
     // el formulario: ¿Es cliente? (cliente existente vs Prospecto nuevo con código único) y ¿Es curso estándar?
-    // (programa vs temas + objetivo/alcance/dirigido a). Modificar es el MISMO formulario: ahí se corrige el nombre
+    // (programa vs temas + objetivo/dirigido a). Modificar es el MISMO formulario: ahí se corrige el nombre
     // del Prospecto o se cambia a un cliente existente (api/src/solicitud-guardar.js explica qué pasa con su contacto).
     function abrirFormSolicitud(sol){
       const editando = !!sol;
@@ -12792,7 +12787,6 @@
             <div id="solPersonalizadoWrap" hidden>
               <div class="radm-form-row">
                 <div class="radm-field"><label>OBJETIVO</label><textarea id="solObjetivo" rows="3" placeholder="Qué debe lograr el equipo al terminar."></textarea></div>
-                <div class="radm-field"><label>ALCANCE</label><textarea id="solAlcance" rows="3" placeholder="Qué incluye y qué no."></textarea></div>
                 <div class="radm-field"><label>DIRIGIDO A</label><textarea id="solDirigido" rows="3" placeholder="Perfil de los participantes."></textarea></div>
               </div>
             </div>
@@ -13041,7 +13035,6 @@
         });
         if(!esEstandar()){
           payload.objetivo = $('solObjetivo').value.trim();
-          payload.alcance = $('solAlcance').value.trim();
           payload.dirigido_a = $('solDirigido').value.trim();
         }
         if($('solParticipantes').value === 'otro' && !/^\d+$/.test(payload.participantes)){ toast('Escribe cuántas personas participarán (un número).', false); return; }
@@ -13130,7 +13123,6 @@
         horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
         actualizarHorasHint();
         $('solObjetivo').value = sol.objetivo || '';
-        $('solAlcance').value = sol.alcance || '';
         $('solDirigido').value = sol.dirigido_a || '';
 
         // participantes: el número exacto (si lo hay) viaja en los comentarios como "Participantes: N"
@@ -14136,13 +14128,13 @@
       catch(e){ return []; }
     }
     async function resolverDirigidoObjetivo(sol){
-      const vacio = { dirigido_a: null, objetivo: null, alcance: null };
-      if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null, alcance: sol.alcance || null };
+      const vacio = { dirigido_a: null, objetivo: null };
+      if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null };
       if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return vacio;
       try {
         const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
         const match = (data.estandar || []).find(t => t.nombre === sol.temario_nombre);
-        return { dirigido_a: (match && match.dirigido) || null, objetivo: (match && match.objetivo) || null, alcance: (match && match.alcance) || null };
+        return { dirigido_a: (match && match.dirigido) || null, objetivo: (match && match.objetivo) || null };
       } catch(e){ return vacio; }
     }
 
@@ -14151,7 +14143,7 @@
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal)){ toast('Falta el precio final.', false); return; }
       const sol = cotSolicitudActual;
-      const { dirigido_a, objetivo, alcance } = await resolverDirigidoObjetivo(sol);
+      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
       const payload = {
         cliente_nombre: sol.cliente, contacto_nombre: sol.contacto || '',
         herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
@@ -14161,7 +14153,7 @@
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
-        dirigido_a, objetivo, alcance, proyectos: proyectosDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
       };
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -14181,7 +14173,7 @@
       const precioFinal = Number(document.getElementById('cotPrecioFinal').value);
       if(!Number.isFinite(precioFinal) || precioFinal < 0){ toast('El precio final no es válido.', false); return; }
 
-      const { dirigido_a, objetivo, alcance } = await resolverDirigidoObjetivo(sol);
+      const { dirigido_a, objetivo } = await resolverDirigidoObjetivo(sol);
       const payload = {
         empresa: { clienteId: sol.cliente_id },
         contacto_id: sol.contacto_id || null,
@@ -14196,7 +14188,7 @@
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
-        dirigido_a, objetivo, alcance, proyectos: proyectosDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
       };
 
       const btn = document.getElementById('cotCrear');
@@ -14235,7 +14227,7 @@
         temas_json: c.temas_json, horas_totales: c.horas,
         fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
         participantes: c.participantes, modalidad: c.modalidad,
-        objetivo: c.sol_objetivo, alcance: c.sol_alcance, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json,
+        objetivo: c.sol_objetivo, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json,
       };
       const enElLugar = c.estatus === 'Borrador';
       abrirDetalleCotizar(datosComoSolicitud, {

@@ -36,7 +36,6 @@ module.exports = async function (context, req) {
           nombre: t.nombre || "",
           objetivo: t.objetivo || "",
           dirigido: t.dirigido || "",
-          alcance: t.alcance || "",
           temaIds: parseTemaIds(t.temaIds),
           temas,
           horas: horasEfectivas(t, horasSugeridas), // las efectivas (ajuste manual o suma)

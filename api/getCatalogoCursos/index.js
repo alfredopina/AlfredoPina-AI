@@ -63,7 +63,6 @@ module.exports = async function (context, req) {
           nombre: t.nombre || "",
           objetivo: t.objetivo || "",
           dirigido: t.dirigido || "",
-          alcance: t.alcance || "",
           horas,
           nivelLabel,
           temas,

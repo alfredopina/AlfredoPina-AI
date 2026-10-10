@@ -83,7 +83,7 @@ const prospecto = {
   await rechaza(g.crearSolicitudManual(f.nuevaRequest, prospecto), 409, /ACM ya existe \(Acme SA de CV\)/);
   assert.strictEqual(f.hubo("INSERT").length, 0, "no inserta nada");
 
-  // ── crear: personalizado guarda objetivo/alcance/dirigido ──
+  // ── crear: personalizado guarda objetivo/dirigido (el alcance ya no existe) ──
   f = fabrica((t) => {
     if (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente")) return [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }];
     if (t.startsWith("INSERT INTO Solicitud")) return [{ id: 101 }];
@@ -91,13 +91,13 @@ const prospecto = {
   });
   r = await g.crearSolicitudManual(f.nuevaRequest, {
     ...base, temario_tipo: "personalizado", temario_nombre: "ignorado", es_cliente: true, empresa: { clienteId: 20 },
-    objetivo: " Automatizar reportes ", alcance: "3 sesiones", dirigido_a: "Finanzas", horas_totales: "12.25",
+    objetivo: " Automatizar reportes ", dirigido_a: "Finanzas", horas_totales: "12.25",
   });
   const p2 = f.hubo("INSERT INTO Solicitud")[0].params;
   assert.strictEqual(p2.creoProspecto, 0);
   assert.strictEqual(p2.contactoId, null);
   assert.strictEqual(p2.temarioNombre, null, "personalizado no lleva nombre de programa");
-  assert.deepStrictEqual([p2.objetivo, p2.alcance, p2.dirigidoA], ["Automatizar reportes", "3 sesiones", "Finanzas"]);
+  assert.deepStrictEqual([p2.objetivo, p2.dirigidoA], ["Automatizar reportes", "Finanzas"]);
   assert.strictEqual(p2.horas, 12.3, "horas a un decimal (columna DECIMAL(6,1))");
   assert.strictEqual(p2.proyectosJson, null, "sin proyectos elegidos no se guarda nada");
   assert.strictEqual(f.hubo("INSERT INTO Cliente").length, 0, "cliente existente: no crea empresa");

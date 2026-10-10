@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="/assets/js/herramientas.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* PROPUESTA de cotización. Se abre como /propuesta/{código} (ver staticwebapp.config.json) y lee su snapshot de Table
@@ -83,30 +84,28 @@
 
   /* ── portada ── */
   #propuesta{padding-top:64px; min-height:calc(100vh - var(--head-h)); display:flex; align-items:center;}
-  .hero{display:grid; grid-template-columns:1.35fr 1fr; gap:48px; align-items:center;}
+  .hero{display:grid; grid-template-columns:1.7fr .8fr; gap:48px; align-items:start;}
   .formula{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:clamp(12px,1.5vw,14.5px); background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin:18px 0 26px; overflow:hidden; white-space:nowrap;}
   .formula .fx{font-style:italic; color:var(--blue-bright); font-weight:600; padding-right:10px; border-right:1px solid var(--line);}
   .formula .tipo{overflow:hidden; text-overflow:ellipsis;}
   .tk-eq{color:var(--blue-bright);} .tk-fn{color:var(--acc);} .tk-str{color:#7fe3c8;} .tk-p{color:var(--text-dim);}
   .cursor{display:inline-block; width:8px; height:1.15em; background:var(--acc); vertical-align:-3px; margin-left:2px; animation:parpadeo 1s steps(1) infinite;}
   @keyframes parpadeo{50%{opacity:0;}}
-  .hero h1{font-family:var(--display); font-weight:700; font-size:clamp(38px,6.4vw,72px); line-height:1.02; letter-spacing:-.03em;}
-  .hero h1 em{font-style:normal; color:var(--acc);}
+  .hero-top h1{font-family:var(--display); font-weight:700; font-size:clamp(38px,6.4vw,72px); line-height:1.02; letter-spacing:-.03em;}
+  .hero-top h1 em{font-style:normal; color:var(--acc);}
   .para{margin-top:20px; font-size:17px; color:var(--text-dim);} .para b{color:var(--text); font-weight:600;}
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:26px;}
   .chip{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 12px;}
   .chip svg{width:14px; height:14px; color:var(--acc);}
   .chip.vig{border-color:var(--acc); background:var(--acc-soft);} .chip.vig b{color:var(--acc);}
   .obj-dir{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:30px;}
-  .od{border-left:2px solid var(--acc); padding:2px 0 2px 14px; font-size:14px; color:var(--text-dim);} .od-wide{grid-column:1/-1;} .od b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; font-weight:500;}
-  /* foto: mismo recurso del hero del sitio (a todo lo alto, oscurecida y fundida con el fondo por degradados) */
-  #propuesta{overflow:hidden;} #propuesta .wrap{position:relative; z-index:2; width:100%;}
-  .hero-photo-bg{position:absolute; top:0; right:0; height:100%; width:62%; z-index:0; pointer-events:none;
-    -webkit-mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 55%); mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 55%);}
-  .hero-photo-bg img{width:100%; height:100%; object-fit:cover; object-position:70% top; display:block; filter:grayscale(.3) brightness(.52) contrast(1.25) saturate(1.1);}
-  .hero-photo-fade{position:absolute; inset:0; z-index:2; background:linear-gradient(180deg, rgba(10,13,18,.55) 0%, transparent 22%, transparent 66%, rgba(10,13,18,.88) 100%);}
-  .hero-photo-bg::after{content:""; position:absolute; inset:0; background:linear-gradient(160deg, var(--acc-soft), transparent 45%); mix-blend-mode:screen;}
-  .quien{position:relative; align-self:end;} .quien h3{font-family:var(--display); font-size:22px;} .quien .q-r{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin:2px 0 16px;}
+  .od{border-left:2px solid var(--acc); padding:2px 0 2px 14px; font-size:14px; color:var(--text-dim);} .od b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:3px; font-weight:500;}
+  /* tarjeta de quién soy (como en la primera versión, más compacta para que el título tome todo el ancho) */
+  .quien{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:12px; box-shadow:0 30px 60px rgba(0,0,0,.35);}
+  .quien::before{content:""; position:absolute; left:-1px; top:26px; bottom:26px; width:4px; background:var(--acc); border-radius:0 3px 3px 0;}
+  .quien img{width:100%; aspect-ratio:4/3.1; object-fit:cover; object-position:50% 18%; border-radius:12px; display:block; filter:saturate(.95);}
+  .quien .q-b{padding:14px 6px 4px;}
+  .quien h3{font-family:var(--display); font-size:22px;} .quien .q-r{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin:2px 0 16px;}
   .kpis{display:grid; grid-template-columns:1fr 1fr; gap:16px 18px;} .kpi b{display:block; font-family:var(--display); font-size:30px; color:var(--acc); line-height:1; font-variant-numeric:tabular-nums;} .kpi span{display:block; margin-top:4px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim);}
   .scroll-hint{position:absolute; left:50%; bottom:20px; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; gap:6px;}
   .scroll-hint i{width:1px; height:26px; background:linear-gradient(var(--acc), transparent); animation:baja 1.8s ease-in-out infinite;}
@@ -187,8 +186,9 @@
 
   /* ── v2 de la propuesta (hero con aire, vigencia con semáforo, barra de fórmulas de lujo, adicionales) ── */
   #propuesta{padding-top:84px;}
-  .hero h1{margin-top:22px; font-size:clamp(40px,6.8vw,78px);}
-  .para{margin-top:28px;} .chips{margin-top:34px; gap:10px;} .obj-dir{margin-top:44px; gap:18px 22px;}
+  .hero-top{margin-bottom:6px;} .hero-top h1{margin-top:20px; font-size:clamp(40px,6.4vw,76px); display:flex; align-items:center; gap:.28em; text-wrap:balance;}
+  .hero-top h1 .h-ico{flex:none; display:inline-grid; place-items:center; width:.82em; height:.82em; color:var(--acc);} .hero-top h1 .h-ico svg{width:100%; height:100%;}
+  .para{margin-top:8px;} .chips{margin-top:30px; gap:10px;} .obj-dir{margin-top:44px; gap:18px 22px;}
   .od b{display:flex; align-items:center; gap:7px;} .od b svg{width:14px; height:14px; flex:none; opacity:.65;}
   .chip.vig.ok{border-color:var(--teal); background:rgba(20,184,166,.12);} .chip.vig.ok b, .chip.vig.ok svg{color:var(--teal);}
   .chip.vig.warn{border-color:var(--ambar); background:rgba(223,179,90,.12);} .chip.vig.warn b, .chip.vig.warn svg{color:var(--ambar);}
@@ -213,8 +213,8 @@
   .adic{padding:0 22px;}
   .adic-h{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin:4px 0 4px;}
   .adic-it{display:flex; gap:10px; align-items:center; padding:6px 0; cursor:pointer;}
-  .adic-bt{flex:none; width:24px; height:24px; display:grid; place-items:center; padding:0; background:none; border:none; border-radius:6px; color:var(--text-dim); cursor:pointer; transition:color .15s, transform .15s;}
-  .adic-bt svg{width:17px; height:17px;} .adic-it:hover .adic-bt{color:var(--acc);} .adic-it.on .adic-bt{color:var(--teal);}
+  .adic-bt{flex:none; width:28px; height:28px; display:grid; place-items:center; padding:0; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; color:var(--text); cursor:pointer; transition:color .15s, border-color .15s, background-color .15s;}
+  .adic-bt svg{width:15px; height:15px;} .adic-it:hover .adic-bt{color:var(--acc); border-color:var(--acc);} .adic-it.on .adic-bt{color:var(--teal); border-color:var(--teal); background-color:rgba(20,184,166,.1);}
   .adic-tx{min-width:0; font-size:13.5px; line-height:1.4;} .adic-tx b{font-weight:600;} .adic-tx span{margin-left:8px; font-size:12px; color:var(--text-dim);}
   .adic.bloqueado .adic-it{cursor:default;} .adic.bloqueado .adic-it:not(.on){opacity:.4;} .adic-bt:disabled{pointer-events:none;}
   .incluye .extra em{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--acc); border:1px solid var(--acc); border-radius:4px; padding:1px 6px; margin-left:4px; flex:none; align-self:center;}
@@ -224,7 +224,7 @@
   .monto{font-variant-numeric:tabular-nums;}
   @media (max-width:900px){
     #propuesta{padding-top:48px;} .rr, .proy-row{grid-template-columns:1fr;} .proy-row.inv .proy-fig{order:0;} .rr{padding:22px;} .meta-card{padding:22px;}
-    .hero-photo-bg{width:100%; opacity:.32;} .hero-photo-fade{background:linear-gradient(180deg, rgba(10,13,18,.5), rgba(10,13,18,.9) 60%, var(--bg));}
+
   }
 
   .print-brand{display:none;}
@@ -261,7 +261,7 @@
     .admin-bar, .demo-switch, header.top, nav.bottom, .progress, .bg-grid, .bg-glow, .scroll-hint, .cta, .toast, dialog, .formula-sticky .cursor{display:none !important;}
     section{padding:0; min-height:0; display:block; page-break-after:always; break-after:page;} section:last-of-type{page-break-after:auto; break-after:auto;}
     #propuesta{padding-top:6mm;} .rv{opacity:1 !important; transform:none !important;}
-    .hero{grid-template-columns:1.3fr 1fr; gap:26px;} .hero h1{font-size:42px;} .quien{box-shadow:none;}
+    .hero{grid-template-columns:1.3fr 1fr; gap:26px;} .hero-top h1{font-size:42px;} .quien{box-shadow:none;}
     .formula-sticky{position:static; margin:16px 0 0;} .formula-sticky .formula{box-shadow:none;}
     .ruta{margin-top:18px;} .ruta-fill{display:none;} .celda{break-inside:avoid; margin-bottom:12px; padding:12px 16px;} .celda::after{display:none;} .celda h3{font-size:15.5px;} .celda p{font-size:12px;}
     .ruta::before{display:none;} .celda, .celda:nth-child(odd), .celda:nth-child(even){width:calc(50% - 6px); margin-left:0 !important; margin-right:0 !important; display:inline-block; vertical-align:top;} .celda:nth-child(even){margin-left:8px !important;}
@@ -272,7 +272,7 @@
     .print-brand{display:flex; align-items:center; justify-content:space-between; padding:0 0 12px; border-bottom:1px solid var(--line); margin-bottom:10px;} .print-brand img{height:24px;} .print-brand div{text-align:right; font-family:var(--mono); font-size:10px; color:var(--text-dim);} .print-brand b{display:block; color:var(--text); font-size:11px;}
     .tk-str{color:#0d7a66;} .tk-fn{color:var(--acc-ink);} .tk-p{color:#586277;} .cursor{display:none;}
     .formula{background:var(--panel); border-color:var(--line);} .chip, .od, .stat span{color:var(--text-dim);} .celda.on{background:var(--panel); border-color:var(--line);}
-    .hero-photo-bg{display:none;} .kpi b{font-size:22px;}
+    .kpi b{font-size:22px;}
     .proy-exp, .adic, .acept-nota, #dlgImg{display:none !important;} .proy-row{break-inside:avoid; grid-template-columns:1.2fr 1fr; gap:20px;} .proy-tx h3{font-size:20px;} .proy-tx p{font-size:12.5px;}
     .rr{break-inside:avoid; padding:14px 16px; grid-template-columns:1fr 1fr; gap:16px;} .chart{min-height:0; padding:18px 14px 12px; background:#fff;} .c-bar i{transition:none;} .c-bar .a{width:80%;} .c-bar .b{width:20%;}
     .formula-sticky .formula{background:var(--panel); backdrop-filter:none; box-shadow:none;} .formula-sticky .formula::after{display:none;} .celda.on{transform:none; box-shadow:none;} .ruta.foco .celda.in:not(.on){opacity:1; filter:none;}
@@ -319,21 +319,22 @@
 <div class="print-brand"><img src="/assets/img/brand/logo-principal-claro.svg" alt="alfredopina.ai"><div><b id="pbFolio"></b><span id="pbFecha"></span></div></div>
 <!-- 1 · PORTADA -->
 <section id="propuesta">
-  <div class="hero-photo-bg"><img src="/assets/img/alfredo-hero.jpg" alt="" aria-hidden="true"><div class="hero-photo-fade"></div></div>
   <div class="wrap">
+    <div class="hero-top">
+      <div class="eyebrow rv">Propuesta de capacitación · <b id="fFolio"></b></div>
+      <h1 class="rv d1" id="hTitulo"></h1>
+    </div>
     <div class="hero">
       <div>
-        <div class="eyebrow rv">Propuesta de capacitación · <b id="fFolio"></b></div>
-        <h1 class="rv d1" id="hTitulo"></h1>
         <p class="para rv d2" id="hPara"></p>
         <div class="chips rv d2" id="hChips"></div>
         <div class="obj-dir rv d3">
           <div class="od"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>Objetivo</b><span id="hObj"></span></div>
           <div class="od"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c0-3.500 3-5.500 6.500-5.500S15.500 16.500 15.500 20M17 11a3 3 0 1 0 0-6M21.500 19c0-2.500-1.500-4-3.500-4.600" stroke-linecap="round"/></svg>Dirigido a</b><span id="hDir"></span></div>
-          <div class="od od-wide"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>Alcance</b><span id="hAlc"></span></div>
         </div>
       </div>
       <aside class="quien rv d2">
+        <img src="/assets/img/alfredo-hero.jpg" alt="Alfredo Piña">
         <div class="q-b">
           <h3>Alfredo Piña</h3>
           <div class="q-r">INSTRUCTOR Y CONSULTOR · EXCEL, POWER BI, POWER PLATFORM E IA</div>
@@ -569,7 +570,8 @@
 
   // ── portada ──
   $('fFolio').textContent = D.folio;
-  $('hTitulo').innerHTML = esc(D.programa).replace(/^(\S+(?:\s\S+)?)/, '<em>$1</em>');
+  const icoHerr = (window.HERRAMIENTAS_UI && window.HERRAMIENTAS_UI[D.herramienta] && window.HERRAMIENTAS_UI[D.herramienta].icon) || '';
+  $('hTitulo').innerHTML = (icoHerr ? `<span class="h-ico" aria-hidden="true">${icoHerr}</span>` : '') + `<span>${esc(D.programa).replace(/^(\S+(?:\s\S+)?)/, '<em>$1</em>')}</span>`;
   $('hPara').innerHTML = `Preparada para <b>${esc(D.cliente)}</b>${D.contacto ? ' · Att. ' + esc(D.contacto) : ''}`;
   const ico = {
     clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>',
@@ -594,7 +596,7 @@
     `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes</span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
     `<span class="chip vig ${vigEstado}">${vigEstado === 'ok' ? ico.calOk : ico.alerta}${vigTxt}</span>`;
   $('hObj').textContent = D.objetivo || ''; $('hDir').textContent = D.dirigido || '';
-  $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hAlc').textContent = D.alcance || ''; $('hAlc').parentElement.hidden = !D.alcance; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido && !D.alcance;
+  $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido;
 
   // ── temario: ruta con celdas A1, A2… (sin horas por tema: se trabaja por bloques) ──
   const barras = n => `<svg viewBox="0 0 15 12"><rect class="${n>=1?'f':'v'}" x="0" y="7" width="4" height="5" rx="1"/><rect class="${n>=2?'f':'v'}" x="5.500" y="3.500" width="4" height="8.500" rx="1"/><rect class="${n>=3?'f':'v'}" x="11" y="0" width="4" height="12" rx="1"/></svg>`;

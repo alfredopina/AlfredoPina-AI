@@ -128,7 +128,6 @@ function armarSnapshot(d) {
     nivelTxt,
     objetivo: d.objetivo || null,
     dirigido: d.dirigidoA || null,
-    alcance: d.alcance || null,
     temas,
     proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null, o: p.objetivo || "" })),
     adicionales: adicionalesPara(d.herramienta),

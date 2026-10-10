@@ -13,7 +13,7 @@
 //   - Participantes/modalidad como el formulario público; un número exacto se traduce al rango de la columna
 //     (CHECK de sql/007) y el número viaja en los comentarios como una línea "Participantes: N".
 //   - "Recibida el" (opcional) fija fecha_creacion: una llamada capturada tarde no debe verse como lenta.
-//   - Objetivo/alcance/dirigido a solo existen en personalizado (el estándar los trae de su programa).
+//   - Objetivo/dirigido a solo existen en personalizado (el estándar los trae de su programa).
 const { sql } = require("./backoffice-db");
 const { limpiarCodigo } = require("./cliente-resolver");
 const { contarBloqueos } = require("./cliente-dependencias");
@@ -110,7 +110,7 @@ function normalizar(body) {
 
   return {
     herramienta, temarioTipo, temarioNombre: personalizado ? null : temarioNombre, temas, horas, modalidad,
-    participantes: part.columna, notas, objetivo: texto(body.objetivo), alcance: texto(body.alcance), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
+    participantes: part.columna, notas, objetivo: texto(body.objetivo), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
     recibida, esCliente, clienteId, nombre, codigo, contactoId, contactoDatos,
   };
 }
@@ -195,7 +195,6 @@ async function crearSolicitudManual(nuevaRequest, body) {
     .input("participantes", sql.NVarChar, d.participantes)
     .input("modalidad", sql.NVarChar, d.modalidad)
     .input("objetivo", sql.NVarChar, d.objetivo)
-    .input("alcance", sql.NVarChar, d.alcance)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("recibida", sql.DateTime2, d.recibida)
@@ -203,11 +202,11 @@ async function crearSolicitudManual(nuevaRequest, body) {
     .query(
       `INSERT INTO Solicitud
         (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-         participantes, modalidad, objetivo, alcance, dirigido_a, proyectos_json, fecha_creacion, fecha_estatus, creo_prospecto)
+         participantes, modalidad, objetivo, dirigido_a, proyectos_json, fecha_creacion, fecha_estatus, creo_prospecto)
        OUTPUT INSERTED.id
        VALUES
         (@clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson, @horas, 'Manual', @notas,
-         @participantes, @modalidad, @objetivo, @alcance, @dirigidoA, @proyectosJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
+         @participantes, @modalidad, @objetivo, @dirigidoA, @proyectosJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
     );
   return { id: ins.recordset[0].id, cliente: { id: cliente.id, nombre: cliente.nombre, codigo: cliente.codigo } };
 }
@@ -265,7 +264,6 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
     .input("participantes", sql.NVarChar, d.participantes)
     .input("modalidad", sql.NVarChar, d.modalidad)
     .input("objetivo", sql.NVarChar, d.objetivo)
-    .input("alcance", sql.NVarChar, d.alcance)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("recibida", sql.DateTime2, d.recibida)
@@ -274,7 +272,7 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
       `UPDATE Solicitud SET
          cliente_id = @clienteId, contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
          temario_nombre = @temarioNombre, temas_json = @temasJson, horas_totales = @horas, notas = @notas,
-         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, alcance = @alcance, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson,
+         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson,
          creo_prospecto = @creoProspecto,
          fecha_estatus = CASE WHEN @recibida IS NOT NULL AND estatus = 'Nueva' THEN @recibida ELSE fecha_estatus END,
          fecha_creacion = COALESCE(@recibida, fecha_creacion)

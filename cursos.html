@@ -168,7 +168,6 @@
   // Condiciones comerciales (vigencia, duración mínima, etc.): SOLO en el PDF de cotización. Aquí vive "Cómo contratar".
   const ico = (d, ancho = 1.5) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + ancho + '" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">' + d + '</svg>';
   const ICO_PUBLICO = ico('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>', 2);
-  const ICO_ALCANCE = ico('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>', 2);
   const PASOS_CONTRATAR = [
     { t:'Solicita', d:'Elige tu programa y cuéntanos de tu equipo.', i:ico('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v5M9.5 14.5h5"/>') },
     { t:'Recibe tu cotización', d:'Te la entregamos en un máximo de 24 hr.', i:ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>') },
@@ -182,7 +181,7 @@
     { t:'Agenda a tu criterio', d:'Sesiones de 2 hr hasta un día.', i:ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v3l2 1"/>') },
     { t:'Tu plataforma de comunicación', d:'Teams, Zoom, Meet o la tuya.', i:ico('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>') },
     { t:'Presencial in company', d:'En tus instalaciones, sin costo en Monterrey.', i:ico('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>') },
-    { t:'Sesión Kick off (Opcional)', d:'Arranque con objetivos y alcance.', i:ico('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>') },
+    { t:'Sesión Kick off (Opcional)', d:'Arranque con objetivos y logística.', i:ico('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>') },
     { t:'Grabación de las sesiones', d:'Disponible por tiempo limitado.', i:ico('<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>') },
     { t:'Proyecto final con tus datos', d:'Un proyecto práctico enfocado en tu información.', i:ico('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/><path d="M13 14l2 2 3-4"/>') },
     { t:'Diploma y credencial en LinkedIn', d:'Diploma y credencial para tu perfil.', i:ico('<circle cx="12" cy="9" r="5"/><path d="M8.5 13.5 7 21l5-3 5 3-1.5-7.5"/>') },
@@ -452,7 +451,6 @@
             <div class="prog-resumen">${resumenHtml}</div>
             <div class="program-fn-obj prog-duo">
               ${p.dirigido ? `<div class="prog-celda"><span class="celda-ico">${ICO_PUBLICO}</span><div><h4>DIRIGIDO A</h4><p>${escapeHtml(p.dirigido)}</p></div></div>` : ''}
-              ${p.alcance ? `<div class="prog-celda"><span class="celda-ico">${ICO_ALCANCE}</span><div><h4>ALCANCE</h4><p class="program-fn-alcance">${escapeHtml(p.alcance)}</p></div></div>` : ''}
             </div>
             <div class="temario-head">
               <div class="proy-titulo" style="margin:0;">TEMARIO</div>

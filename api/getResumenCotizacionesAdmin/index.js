@@ -55,6 +55,13 @@ module.exports = async function (context, req) {
           WHERE estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NOT NULL) AS tiempo_cierre_dias
     `);
     const r = result.recordset[0];
+    // resumen por contenedor (mismos 5 del tablero): cantidad y monto, acumulados
+    const porEstatus = await pool.request().query(`
+      SELECT estatus, COUNT(*) AS n, ISNULL(SUM(precio_final), 0) AS monto
+      FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida') GROUP BY estatus`);
+    const contenedores = {};
+    for (const k of ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida']) contenedores[k] = { n: 0, monto: 0 };
+    for (const row of porEstatus.recordset) contenedores[row.estatus] = { n: row.n, monto: Number(row.monto) };
     const tasaConversion = r.cerradas_90d ? Math.round((r.ganadas_90d / r.cerradas_90d) * 100) : 0;
     context.res = {
       status: 200,
@@ -68,6 +75,7 @@ module.exports = async function (context, req) {
         perdido_monto: r.perdido_monto,
         tasa_conversion: tasaConversion,
         tiempo_cierre_dias: r.tiempo_cierre_dias != null ? Math.round(r.tiempo_cierre_dias * 10) / 10 : null,
+        contenedores,
         antiguedad: { verde: r.antiguedad_verde, amarillo: r.antiguedad_amarillo, rojo: r.antiguedad_rojo },
       },
     };

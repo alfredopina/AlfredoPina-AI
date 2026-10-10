@@ -1623,6 +1623,12 @@
   .trkv-stepper-grande .resumen-track .step-node{ width:44px; height:44px; font-size:16px; }
   .trkv-stepper-grande .resumen-track .step-item::after{ top:22px; }
   .trkv-stepper-grande .step-label{ font-size:12px; }
+  /* Resumen de contenedores de Cotizaciones: mismo componente que el de Grupos + el monto bajo el nombre */
+  .trkv-stepper-cot .step-monto{ margin-top:4px; height:22px; line-height:22px; white-space:nowrap; font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--text-dim); font-variant-numeric:tabular-nums; }
+  .trkv-stepper-cot .step-monto.cot-vv{ padding:0 6px; font-size:12.5px; line-height:20px; height:22px; box-sizing:border-box; }
+  /* la tarjeta de Grupos reserva el alto de la línea de montos para que los dos resúmenes queden a la par */
+  #trkvGruStepper{ padding-bottom:26px; }
+  .trkv-stepper-cot .step-item.max .step-label{ color:#dfb35a; }
   .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
@@ -2456,26 +2462,6 @@
             <div class="trkv-signal" id="trkvSolSignal"></div>
           </article>
 
-          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
-            <div class="trkv-card-head">
-              <span class="admin-nav-live-dot"></span>
-              <h3>Cotizaciones</h3>
-              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya disparó una alerta">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span class="trkv-bell-count">0</span>
-              </span>
-              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
-            </div>
-            <div class="trkv-kpis">
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Ganado</span><span class="trkv-kpi-value" id="trkvComGanado">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Perdido</span><span class="trkv-kpi-value" id="trkvComPerdido">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
-              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
-            </div>
-            <div class="trkv-signal" id="trkvComSignal"></div>
-          </article>
-
           <article class="trkv-card" tabindex="0" data-goto="clientes">
             <div class="trkv-card-head">
               <span class="admin-nav-live-dot"></span>
@@ -2494,6 +2480,27 @@
               <div class="trkv-kpi"><span class="trkv-kpi-label">Directos</span><span class="trkv-kpi-value" id="trkvCliDirectos">—</span></div>
             </div>
             <div class="trkv-signal" id="trkvCliSignal"></div>
+          </article>
+
+          <article class="trkv-card" tabindex="0" data-goto="tracking-comercial">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Cotizaciones</h3>
+              <span class="trkv-bell" id="trkvComBell" hidden title="Cotizaciones frías que ya disparó una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-kpis">
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Pipeline activo</span><span class="trkv-kpi-value" id="trkvComPipeline">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Ganado</span><span class="trkv-kpi-value" id="trkvComGanado">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Perdido</span><span class="trkv-kpi-value" id="trkvComPerdido">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Conversión</span><span class="trkv-kpi-value" id="trkvComConversion">—</span></div>
+              <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cierre</span><span class="trkv-kpi-value" id="trkvComCierre">—</span></div>
+            </div>
+            <div class="trkv-signal" id="trkvComSignal"></div>
+            <div id="trkvComStepper" class="trkv-stepper-grande trkv-stepper-cot"></div>
           </article>
 
           <article class="trkv-card" tabindex="0" data-goto="tracking-operacion">
@@ -5072,6 +5079,26 @@
       `;
     }
 
+    // Resumen de contenedores: cuadro = # de cotizaciones (el de MÁS cotizaciones respira en ámbar, como el cuello de
+    // botella de Grupos); bajo el nombre, el monto (el MÁS alto, en azul vivo, igual que el tablero)
+    const CONTENEDORES_RESUMEN = ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida'];
+    function stepperContenedores(c){
+      const n = k => (c[k] && c[k].n) || 0;
+      const monto = k => (c[k] && c[k].monto) || 0;
+      const maxN = Math.max(0, ...CONTENEDORES_RESUMEN.map(n));
+      const maxM = Math.max(0, ...CONTENEDORES_RESUMEN.map(monto));
+      const items = CONTENEDORES_RESUMEN.map(k => {
+        const esMaxN = maxN > 0 && n(k) === maxN;
+        const esMaxM = maxM > 0 && monto(k) === maxM;
+        return `<div class="step-item ${esMaxN ? 'max' : ''}" style="position:relative">
+          <span class="step-node" title="Cotizaciones en ${k}">${n(k)}</span>
+          <div class="step-label">${k}</div>
+          <div class="step-monto ${esMaxM ? 'cot-vv monto' : ''}" title="Monto acumulado en ${k}">${fmtMoney(monto(k))}</div>
+        </div>`;
+      }).join('');
+      return `<div class="step-track resumen-track">${items}</div>`;
+    }
+
     async function cargarComercial(){
       try {
         const r = await apiGetConReintento('/api/getResumenCotizacionesAdmin');
@@ -5081,7 +5108,9 @@
         document.getElementById('trkvComConversion').textContent = r.tasa_conversion + '%';
         document.getElementById('trkvComCierre').textContent = r.tiempo_cierre_dias != null ? r.tiempo_cierre_dias + ' días' : '—';
         document.getElementById('trkvComSignal').innerHTML = pillsAntiguedad(r.antiguedad || {});
+        document.getElementById('trkvComStepper').innerHTML = stepperContenedores(r.contenedores || {});
       } catch(e){
+        document.getElementById('trkvComStepper').innerHTML = '';
         ['trkvComPipeline','trkvComGanado','trkvComPerdido','trkvComConversion','trkvComCierre'].forEach(id => { document.getElementById(id).textContent = '—'; });
       }
     }

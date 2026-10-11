@@ -6741,12 +6741,6 @@
         <div class="radm-newcurso">
           <div class="radm-form-row">
             <div class="radm-field">
-              <label>ID DEL MATERIAL (minúsculas, sin espacios)</label>
-              <input type="text" id="radmNewId" class="radm-mono" placeholder="excel-bi">
-            </div>
-          </div>
-          <div class="radm-form-row">
-            <div class="radm-field">
               <label>NOMBRE</label>
               <input type="text" id="radmNewNombre" placeholder="Básico-Intermedio">
             </div>
@@ -6767,13 +6761,15 @@
         if(radmCursoId) selectCurso(radmCursoId);
       });
       document.getElementById('radmBtnCrearCurso').addEventListener('click', async () => {
-        const id = document.getElementById('radmNewId').value.trim().toLowerCase();
         const nombre = document.getElementById('radmNewNombre').value.trim();
         const codigo = document.getElementById('radmNewCodigo').value.trim();
-        if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)){
-          toast('El id solo puede tener minúsculas, números y guiones (ej. excel-bi).', false); return;
-        }
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
+        // El id es solo una llave interna (va en la ruta de los archivos): se genera solo a partir del nombre,
+        // sin acentos y con guiones, y si ya existe se le agrega -2, -3…
+        const base = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if(!base){ toast('Escribe un nombre con letras o números.', false); return; }
+        let id = base, n = 2;
+        while(radmCursos.some(c => c.id === id)) id = base + '-' + (n++);
         try {
           await apiPostJson('/api/crearCurso', { herramienta:radmTool, curso:id, nombre, codigo, estado:'borrador', orden:Date.now() });
           toast('Material creado.', true);

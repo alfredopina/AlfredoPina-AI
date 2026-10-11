@@ -89,7 +89,7 @@ module.exports = async function (context, req) {
   let interm = null;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, empresa);
+    cliente = await resolverCliente(pool, empresa, "Prospecto", { origen: "Cotización" });
     if (intermediarioId) {
       const r = await pool.request().input("id", sql.Int, intermediarioId).query("SELECT id, nombre, codigo, tipo_cliente, mostrar_logo FROM Cliente WHERE id = @id");
       const row = r.recordset[0];

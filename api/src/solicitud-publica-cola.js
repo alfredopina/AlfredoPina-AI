@@ -113,7 +113,7 @@ async function insertarEnSql(pool, sql, resolverCliente, llave, datos, recibidoE
       return { id: previa.recordset[0].id, duplicada: true };
     }
 
-    const cliente = await resolverCliente(nuevaRequest, { nombre: datos.empresaNombre, codigo: derivarCodigo(datos.empresaNombre) });
+    const cliente = await resolverCliente(nuevaRequest, { nombre: datos.empresaNombre, codigo: derivarCodigo(datos.empresaNombre) }, "Prospecto", { origen: "Sitio" });
 
     const insertContacto = await nuevaRequest()
       .input("clienteId", sql.Int, cliente.id)

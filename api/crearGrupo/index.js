@@ -95,9 +95,9 @@ module.exports = async function (context, req) {
   let pool, cliente, clienteFinal;
   try {
     pool = await getPool();
-    cliente = await resolverCliente(pool, body.cliente, "Directo");
+    cliente = await resolverCliente(pool, body.cliente, "Directo", { origen: "Grupos" });
     if (!cliente) throw new Error("Falta el cliente.");
-    clienteFinal = body.cliente_final ? await resolverCliente(pool, body.cliente_final, "Indirecto") : null;
+    clienteFinal = body.cliente_final ? await resolverCliente(pool, body.cliente_final, "Indirecto", { origen: "Grupos" }) : null;
   } catch (err) {
     context.log.error("Error resolviendo el cliente:", err.message);
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: err.message } };

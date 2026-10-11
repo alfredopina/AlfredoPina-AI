@@ -52,7 +52,7 @@ module.exports = async function (context, req) {
       .input("clienteDesde", sql.Int, clienteDesde)
       .input("tipoCliente", sql.NVarChar, tipoCliente)
       .query(
-        "INSERT INTO Cliente (nombre, codigo, notas, cliente_desde, tipo_cliente) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde, @tipoCliente)"
+        "INSERT INTO Cliente (nombre, codigo, notas, cliente_desde, tipo_cliente, origen_alta) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde, @tipoCliente, 'Clientes')"
       );
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {

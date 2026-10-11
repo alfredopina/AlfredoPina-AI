@@ -90,7 +90,7 @@ module.exports = async function (context, req) {
   try {
     await transaction.begin();
 
-    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa, "Prospecto", { crearError: errorSeguro });
+    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa, "Prospecto", { crearError: errorSeguro, origen: "Diagnóstico" });
 
     const insertRespuesta = await new sql.Request(transaction)
       .input("nombre", sql.NVarChar, nombre)

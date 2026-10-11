@@ -3305,10 +3305,12 @@
             <table class="dip-table">
               <thead>
                 <tr>
+                  <th data-sort="fecha_creacion">Creado<span class="th-sort-ico"></span></th>
                   <th data-sort="nombre">Cliente<span class="th-sort-ico"></span></th>
                   <th data-sort="tipo_cliente">Tipo<span class="th-sort-ico"></span></th>
                   <th data-sort="num_contactos">Contactos<span class="th-sort-ico"></span></th>
                   <th data-sort="antiguedad">Antigüedad<span class="th-sort-ico"></span></th>
+                  <th data-sort="origen_alta">Origen<span class="th-sort-ico"></span></th>
                   <th data-sort="completado">
                     Completado
                     <span class="cli-info-ico" title="Completo = código + antigüedad + un Contacto Principal con correo y teléfono. Si el Cliente es Indirecto, basta con que algún contacto tenga correo (no exige que sea el Principal ni que tenga teléfono).">
@@ -3328,7 +3330,7 @@
                 </tr>
               </thead>
               <tbody id="cliListaBody">
-                <tr><td colspan="8" class="radm-empty-row">Cargando clientes…</td></tr>
+                <tr><td colspan="10" class="radm-empty-row">Cargando clientes…</td></tr>
               </tbody>
             </table>
           </div>
@@ -11174,7 +11176,7 @@
     // completado/dias_inactivo no los ordena el backend (no son columnas
     // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
     // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
-    const SORT_CLIENTE = ['completado', 'dias_inactivo', 'tipo_cliente', 'num_contactos', 'semaforo'];
+    const SORT_CLIENTE = ['completado', 'dias_inactivo', 'tipo_cliente', 'num_contactos', 'semaforo', 'fecha_creacion', 'origen_alta'];
     const SORT_DEFAULT_DIR = { nombre: 'asc', antiguedad: 'asc', completado: 'asc', dias_inactivo: 'desc', tipo_cliente: 'asc', num_contactos: 'desc', semaforo: 'desc' };
     // Orden de severidad para poder ordenar la columna Semáforo — mismos 3
     // valores que ya regresa calcularDiasInactivo, nunca un color nuevo.
@@ -11224,6 +11226,19 @@
     function fmtFecha(iso){
       if(!iso) return '—';
       return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
+    }
+    // Alta del cliente: fecha + hora locales (la base guarda UTC). Los clientes anteriores al registro no tienen dato real: "—"
+    function creadoHtml(iso, origen){
+      if(!iso) return '<span class="radm-hint" title="Sin ninguna interacción registrada">—</span>';
+      const d = new Date(iso);
+      const aprox = origen === 'Anterior';
+      return '<div' + (aprox ? ' title="Primera interacción registrada: el alta es anterior al registro de fecha y origen"' : '') + '>' + (aprox ? '≈ ' : '') + d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' }) + '</div><div class="sol-hora">' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' }) + '</div>';
+    }
+    const ORIGEN_LABEL = { 'Anterior': 'Anterior', 'Clientes': 'Clientes', 'Solicitud': 'Solicitud', 'Sitio': 'Sitio web', 'Cotización': 'Cotización', 'Grupos': 'Grupos', 'Diagnóstico': 'Diagnóstico' };
+    function origenHtml(o){
+      if(o === 'Anterior') return '<span class="sol-temario-tipo-tag" style="border-color:var(--line); color:var(--text-faint);" title="Alta anterior al registro: la fecha de Creado es su primera interacción">Anterior</span>';
+      if(!o) return '<span class="radm-hint" title="Sin ninguna interacción registrada">—</span>';
+      return '<span class="sol-temario-tipo-tag" style="border-color:var(--line); color:var(--text-dim);">' + escapeHtml(ORIGEN_LABEL[o] || o) + '</span>';
     }
     const TIPO_COLOR = { Intermediario: '#a78bfa', Indirecto: '#f97316', Prospecto: 'var(--blue-bright)' };
     function tipoBadge(tipo){
@@ -11317,6 +11332,8 @@
       function valor(c){
         if(cliSort === 'completado') return c.completado ? 1 : 0;
         if(cliSort === 'tipo_cliente') return c.tipo_cliente || 'Directo';
+        if(cliSort === 'fecha_creacion') return c.fecha_creacion ? new Date(c.fecha_creacion).getTime() : -1; // sin fecha (altas anteriores al registro) al final al ordenar de más nuevo a más viejo
+        if(cliSort === 'origen_alta') return c.origen_alta || '';
         if(cliSort === 'num_contactos') return c.num_contactos;
         if(cliSort === 'semaforo') return SEMAFORO_ORDEN[c.semaforo] ?? 99;
         // los Prospectos no entran al semáforo (dias_inactivo null): al final, no como "el más urgente"
@@ -11346,7 +11363,7 @@
 
     async function cargarClientes(q){
       const body = document.getElementById('cliListaBody');
-      body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Buscando...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Buscando...</td></tr>`;
       try {
         const params = new URLSearchParams();
         if(q) params.set('q', q);
@@ -11386,10 +11403,11 @@
 
     function renderLista(){
       const body = document.getElementById('cliListaBody');
-      if(!cliClientes.length){ body.innerHTML = `<tr><td colspan="8" class="radm-empty-row">Sin clientes todavía.</td></tr>`; return; }
+      if(!cliClientes.length){ body.innerHTML = `<tr><td colspan="10" class="radm-empty-row">Sin clientes todavía.</td></tr>`; return; }
 
       body.innerHTML = cliClientes.map(c => `
         <tr data-id="${c.id}">
+          <td>${creadoHtml(c.fecha_creacion, c.origen_alta)}</td>
           <td>
             <span style="display:block; max-width:170px; overflow-wrap:break-word;">${escapeHtml(c.nombre)}</span>
             <span class="cot-cliente-sub radm-mono">${escapeHtml(c.codigo)}</span>
@@ -11402,6 +11420,7 @@
             </button>
           </td>
           <td>${antiguedadTexto(c.cliente_desde) || '—'}</td>
+          <td>${origenHtml(c.origen_alta)}</td>
           <td>${completadoHtml(c.completado, c.tipo_cliente)}</td>
           <td>${diasInactivoHtml(c.dias_inactivo)}</td>
           <td>${semaforoHtml(c.semaforo)}</td>
@@ -11415,7 +11434,7 @@
           </td>
         </tr>
         <tr class="sol-desglose-row" id="cli-desglose-${c.id}" hidden>
-          <td colspan="8"><div class="sol-desglose" id="cli-desglose-body-${c.id}"><span class="radm-hint">Cargando…</span></div></td>
+          <td colspan="10"><div class="sol-desglose" id="cli-desglose-body-${c.id}"><span class="radm-hint">Cargando…</span></div></td>
         </tr>
       `).join('');
 
@@ -17909,6 +17928,8 @@
           f('codigo','NVARCHAR(20)',{badge:'UNIQUE'}),
           f('notas','NVARCHAR(MAX)',{opt:true}),
           f('cliente_desde','INT',{opt:true,extra:'año de antigüedad'}),
+          f('fecha_creacion','DATETIME2',{opt:true,extra:'alta (UTC); NULL = anterior al registro'}),
+          f('origen_alta','NVARCHAR(30)',{opt:true,extra:'Clientes|Solicitud|Sitio|Cotización|Grupos|Diagnóstico'}),
           f('tipo_cliente','NVARCHAR(20)',{extra:'Directo|Intermediario|Indirecto|Prospecto, default Directo'}),
         ]},
       { id:'Contacto', engine:'sql', pillar:'comercial', pk:'id',

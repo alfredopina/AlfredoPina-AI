@@ -135,7 +135,7 @@ async function insertarProspecto(nuevaRequest, nombre, codigo) {
   const r = await nuevaRequest()
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto')");
+    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente, origen_alta) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, 'Prospecto', 'Solicitud')");
   return { ...r.recordset[0], tipo_cliente: "Prospecto" };
 }
 

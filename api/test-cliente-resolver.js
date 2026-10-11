@@ -70,6 +70,14 @@ async function rechaza(promesa) {
   pool = fakePool((t) => (t.startsWith("INSERT") ? [{ id: 12, nombre: "G", codigo: "G" }] : []));
   await resolverCliente(pool, { nombre: "G", codigo: "g" }, "Directo");
   check("desde Grupo nace Directo", pool.llamadas.find((c) => c.texto.startsWith("INSERT")).params.tipo === "Directo");
+  // origen del alta (Cliente.origen_alta): lo declara quien crea la empresa; sin él queda NULL
+  pool = fakePool((t) => (t.startsWith("INSERT") ? [{ id: 13, nombre: "S", codigo: "S" }] : []));
+  await resolverCliente(pool, { nombre: "S", codigo: "S" }, "Prospecto", { origen: "Sitio" });
+  const insO = pool.llamadas.find((c) => c.texto.startsWith("INSERT"));
+  check("el alta guarda su origen (Sitio) en origen_alta", insO.params.origen === "Sitio" && /origen_alta/.test(insO.texto));
+  pool = fakePool((t) => (t.startsWith("INSERT") ? [{ id: 14, nombre: "T", codigo: "T" }] : []));
+  await resolverCliente(pool, { nombre: "T", codigo: "T" });
+  check("sin origen declarado queda NULL", pool.llamadas.find((c) => c.texto.startsWith("INSERT")).params.origen === null);
 
   // 8) empresa null (cliente_final opcional)
   check("empresa null regresa null", (await resolverCliente(pool, null, "Indirecto")) === null);

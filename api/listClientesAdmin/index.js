@@ -19,7 +19,7 @@ const SORTS = ["nombre", "antiguedad"];
 const DIRS = ["asc", "desc"];
 
 const QUERY = `
-  SELECT c.id, c.nombre, c.codigo, c.notas, c.cliente_desde, c.tipo_cliente, c.mostrar_logo,
+  SELECT c.id, c.nombre, c.codigo, c.notas, c.cliente_desde, c.tipo_cliente, c.mostrar_logo, c.fecha_creacion, c.origen_alta,
          (SELECT COUNT(*) FROM Contacto WHERE cliente_id = c.id) AS num_contactos,
          cp.correo AS principal_correo, cp.telefono AS principal_telefono,
          (SELECT MAX(fecha_creacion) FROM Solicitud
@@ -103,6 +103,8 @@ module.exports = async function (context, req) {
         codigo: c.codigo,
         notas: c.notas,
         cliente_desde: c.cliente_desde,
+        fecha_creacion: c.fecha_creacion,
+        origen_alta: c.origen_alta,
         tipo_cliente: c.tipo_cliente,
         mostrar_logo: !!c.mostrar_logo,
         num_contactos: c.num_contactos,

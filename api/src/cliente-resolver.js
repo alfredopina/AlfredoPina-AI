@@ -21,6 +21,7 @@ function nuevaRequestDe(exec) {
   return typeof exec === "function" ? exec : () => exec.request();
 }
 
+// opciones.origen: de dónde se da de alta la empresa nueva (Cliente.origen_alta): Solicitud, Sitio, Cotización, Grupos, Diagnóstico…
 // opciones.crearError(mensaje): para Functions que distinguen errores "seguros"
 // de mostrar al usuario (enviarDiagnostico); por default un Error normal.
 async function resolverCliente(exec, empresa, tipoNuevo = "Prospecto", opciones = {}) {
@@ -46,7 +47,8 @@ async function resolverCliente(exec, empresa, tipoNuevo = "Prospecto", opciones 
     .input("nombre", sql.NVarChar, nombre)
     .input("codigo", sql.NVarChar, codigo)
     .input("tipo", sql.NVarChar, tipoNuevo)
-    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, @tipo)");
+    .input("origen", sql.NVarChar, opciones.origen || null)
+    .query("INSERT INTO Cliente (nombre, codigo, tipo_cliente, origen_alta) OUTPUT INSERTED.id, INSERTED.nombre, INSERTED.codigo VALUES (@nombre, @codigo, @tipo, @origen)");
   // creado: true cuando ESTA llamada dio de alta la empresa (Solicitud.creo_prospecto lo usa)
   return { ...insert.recordset[0], creado: true };
 }

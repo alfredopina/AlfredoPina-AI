@@ -1226,6 +1226,11 @@
   .cfg-correo-pruebas-btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
   .cfg-met-btns{ display:flex; flex-direction:column; gap:8px; flex:none; align-items:stretch; }
   .cfg-met-desde{ margin-top:6px; color:var(--text); }
+  .cfg-met-rango{ display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .cfg-met-rango label{ display:flex; flex-direction:column; gap:4px; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .cfg-met-rango input[type=date]{ background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:7px 9px; color:var(--text); font:inherit; font-size:13px; }
+  .cfg-met-rango input[type=date]:focus{ outline:none; border-color:var(--blue-bright); }
+  .cfg-met-rango input[type=date].cfg-notif-dirty{ border-color:var(--warn, #dfb35a); }
   .cfg-estado-fila{ display:flex; align-items:flex-start; gap:12px; border:1px solid var(--line); border-radius:9px; padding:11px 14px; background:var(--panel); }
   .cfg-estado-fila + .cfg-estado-fila{ margin-top:10px; }
   .cfg-estado-revisar{ border-color:var(--warn, #dfb35a); }
@@ -2702,7 +2707,7 @@
           </button>
           <div class="cfg-card-body" id="cfgMetBody" hidden>
             <div class="cfg-note">
-              Las tarjetas de Solicitudes, Cotizaciones y Grupos son <b>acumuladas</b>: cuentan todo lo que ha pasado y nunca se reinician solas. Aquí decides cuándo empezar a contar de nuevo (por ejemplo, al arrancar un año). <b>No se borra nada</b>: solo se guarda desde qué fecha cuentan, y puedes volver a contar todo el historial cuando quieras. Lo que está vivo hoy (semáforos, pipeline, grupos activos) nunca se reinicia.
+              Las tarjetas de Solicitudes, Cotizaciones y Grupos son <b>acumuladas</b>: cuentan todo lo que ha pasado y nunca se reinician solas. Aquí decides desde cuándo cuentan: <b>reiniciar ahora</b> (por ejemplo, al arrancar un año) o fijar un <b>rango de fechas</b> «desde – hasta», útil para hacer pruebas. <b>No se borra nada</b>: solo se guarda el rango, y puedes volver a contar todo el historial cuando quieras. Lo que está vivo hoy (semáforos, pipeline, grupos activos) nunca se reinicia.
             </div>
             <div class="cfg-correo-lista" id="cfgMetLista" style="margin-top:14px;">
               <div class="radm-empty-row">Cargando…</div>
@@ -15448,17 +15453,34 @@
     });
   })();
 
-  // Configuración → Métricas de los Tracking ("contar desde"). Ningún Tracking reinicia sus tarjetas acumuladas solo: aquí
-  // Alfredo decide cuándo. No borra nada, solo guarda desde qué fecha cuentan (api/src/metricas-desde.js).
+  // Configuración → Métricas de los Tracking ("contar desde / hasta"). Ningún Tracking reinicia sus tarjetas acumuladas solo:
+  // aquí Alfredo decide cuándo — reiniciar ahora, o fijar un rango de fechas (útil para pruebas). No borra nada, solo guarda
+  // el rango (api/src/metricas-desde.js).
   (function(){
     const TRACKINGS = [
-      { clave:'solicitudes', nombre:'Solicitudes', cuenta:'Las 5 tarjetas (manuales, del sitio, total, atendidas, prospectos y horas de atención) cuentan las solicitudes creadas desde esa fecha. El semáforo de solicitudes sin atender no se reinicia: es trabajo vivo.' },
-      { clave:'cotizaciones', nombre:'Cotizaciones', cuenta:'Ganado, perdido, tasa de conversión y tiempo de cierre cuentan las cotizaciones cerradas desde esa fecha. El pipeline y la antigüedad (lo que está abierto hoy) no se reinician.' },
-      { clave:'grupos', nombre:'Grupos', cuenta:'Los grupos cerrados y los días promedio de cierre cuentan desde esa fecha. Los grupos activos, las fases y el semáforo no se reinician.' },
+      { clave:'solicitudes', nombre:'Solicitudes', cuenta:'Las 5 tarjetas (manuales, del sitio, total, atendidas, prospectos y horas de atención) cuentan las solicitudes creadas dentro del rango. El semáforo de solicitudes sin atender no se reinicia: es trabajo vivo.' },
+      { clave:'cotizaciones', nombre:'Cotizaciones', cuenta:'Ganado, perdido, tasa de conversión y tiempo de cierre cuentan las cotizaciones cerradas dentro del rango (por su fecha de cierre). El pipeline y la antigüedad (lo que está abierto hoy) no se reinician.' },
+      { clave:'grupos', nombre:'Grupos', cuenta:'Los grupos cerrados y los días promedio de cierre cuentan los cerrados dentro del rango (por su fecha de cierre). Los grupos activos, las fases y el semáforo no se reinician.' },
     ];
-    let desde = null;
+    let rango = null; // { solicitudes:{desde,hasta}, … }
 
-    const fmt = (iso) => new Date(iso).toLocaleString('es-MX', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' });
+    const TZ = 'America/Monterrey';
+    const fecha = (iso) => new Date(iso).toLocaleDateString('es-MX', { timeZone:TZ, day:'numeric', month:'short', year:'numeric' });
+    const fechaHora = (iso) => new Date(iso).toLocaleString('es-MX', { timeZone:TZ, day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' });
+    // medianoche de Monterrey (06:00 UTC) = se eligió un día en el calendario → solo fecha; si no, fue "reiniciar ahora" → con hora
+    const esDia = (iso) => /T06:00:00\.000Z$/.test(iso);
+    // "2026-10-12" (valor del calendario) → "12 oct 2026"
+    const hum = (ymd) => new Date(ymd + 'T12:00:00-06:00').toLocaleDateString('es-MX', { timeZone:TZ, day:'numeric', month:'short', year:'numeric' });
+    // para el <input type="date">: "desde" tal cual; "hasta" se guarda como el inicio del día SIGUIENTE, así que se resta un minuto
+    const aInput = (iso, esHasta) => iso ? new Date(Date.parse(iso) - (esHasta ? 60000 : 0)).toLocaleDateString('en-CA', { timeZone:TZ }) : '';
+
+    function textoRango(r){
+      if(!r.desde && !r.hasta) return 'Contando todo el historial';
+      if(r.desde && r.hasta) return 'Contando del ' + (esDia(r.desde) ? fecha(r.desde) : fechaHora(r.desde)) + ' al ' + fecha(Date.parse(r.hasta) - 60000);
+      if(r.desde) return 'Contando desde: ' + (esDia(r.desde) ? fecha(r.desde) : fechaHora(r.desde));
+      return 'Contando hasta el ' + fecha(Date.parse(r.hasta) - 60000);
+    }
+
     async function apiGet(url){
       const res = await fetch(url, { cache:'no-store' });
       const body = await res.json().catch(() => ({}));
@@ -15484,51 +15506,80 @@
     function pintar(){
       const cont = document.getElementById('cfgMetLista');
       cont.innerHTML = TRACKINGS.map(t => {
-        const fecha = desde && desde[t.clave];
+        const r = (rango && rango[t.clave]) || { desde:null, hasta:null };
+        const conRango = !!(r.desde || r.hasta);
+        const vd = aInput(r.desde, false), vh = aInput(r.hasta, true);
         return `
           <div class="cfg-correo-fila" data-tracking="${t.clave}">
             <div class="cfg-correo-texto">
               <div class="cfg-correo-nombre">${t.nombre}</div>
               <div class="cfg-correo-desc">${t.cuenta}</div>
-              <div class="cfg-correo-desc cfg-met-desde"><b>${fecha ? 'Contando desde: ' + fmt(fecha) : 'Contando todo el historial'}</b></div>
+              <div class="cfg-correo-desc cfg-met-desde"><b>${textoRango(r)}</b></div>
+              <div class="cfg-met-rango">
+                <label>Desde <input type="date" class="cfg-met-fecha" data-campo="desde" value="${vd}" data-original="${vd}"></label>
+                <label>Hasta <input type="date" class="cfg-met-fecha" data-campo="hasta" value="${vh}" data-original="${vh}"></label>
+                <button type="button" class="radm-btn radm-btn-ghost cfg-met-aplicar" style="min-width:auto;" disabled>Aplicar rango</button>
+              </div>
             </div>
             <div class="cfg-met-btns">
               <button type="button" class="radm-btn radm-btn-ghost cfg-met-reiniciar" style="min-width:auto;">Reiniciar ahora</button>
-              ${fecha ? '<button type="button" class="radm-btn radm-btn-ghost cfg-met-quitar" style="min-width:auto;">Volver a contar todo</button>' : ''}
+              ${conRango ? '<button type="button" class="radm-btn radm-btn-ghost cfg-met-quitar" style="min-width:auto;">Volver a contar todo</button>' : ''}
             </div>
           </div>`;
-      }).join('') + '<div class="cfg-note" style="margin-top:12px;">Clientes no aparece aquí: todas sus tarjetas son del estado de hoy (cuántos clientes hay, cuántos están completos, el semáforo), no un historial que se acumule.</div>';
+      }).join('') + '<div class="cfg-note" style="margin-top:12px;">El día «Hasta» cuenta completo. Puedes dejar una de las dos fechas vacía (por ejemplo, solo «Hasta» para ver lo que había hasta cierto día). Clientes no aparece aquí: todas sus tarjetas son del estado de hoy, no un historial que se acumule.</div>';
 
       cont.querySelectorAll('.cfg-correo-fila').forEach(fila => {
         const clave = fila.dataset.tracking;
         const t = TRACKINGS.find(x => x.clave === clave);
-        const cambiar = async (accion) => {
+        const cambiar = async (cuerpo, okMsg) => {
           const btns = fila.querySelectorAll('button');
           btns.forEach(b => { b.disabled = true; });
           try {
-            desde = await apiPostJson('/api/reiniciarMetricas', { tracking: clave, accion });
-            toast(accion === 'reiniciar' ? 'Listo: ' + t.nombre + ' cuenta desde ahora.' : t.nombre + ' vuelve a contar todo el historial.', true);
+            rango = await apiPostJson('/api/reiniciarMetricas', Object.assign({ tracking: clave }, cuerpo));
+            toast(okMsg, true);
           } catch(e){
             toast('No se pudo guardar: ' + e.message, false);
           }
           pintar();
         };
+
+        // rango de fechas: el botón se habilita solo si algo cambió, hay al menos una fecha y no van al revés
+        const inD = fila.querySelector('[data-campo=desde]'), inH = fila.querySelector('[data-campo=hasta]'), aplicar = fila.querySelector('.cfg-met-aplicar');
+        const revisar = () => {
+          const d = inD.value, h = inH.value;
+          const cambio = d !== inD.dataset.original || h !== inH.dataset.original;
+          inD.classList.toggle('cfg-notif-dirty', d !== inD.dataset.original);
+          inH.classList.toggle('cfg-notif-dirty', h !== inH.dataset.original);
+          aplicar.disabled = !(cambio && (d || h) && !(d && h && d > h));
+          aplicar.title = (d && h && d > h) ? '«Hasta» no puede ser anterior a «Desde».' : '';
+        };
+        inD.addEventListener('input', revisar); inH.addEventListener('input', revisar);
+        aplicar.addEventListener('click', async () => {
+          const d = inD.value, h = inH.value;
+          if(!(await confirmarAccion({
+            titulo: 'Fijar el rango de ' + t.nombre,
+            mensaje: 'Las tarjetas acumuladas de ' + t.nombre + ' contarán ' + (d && h ? 'del ' + hum(d) + ' al ' + hum(h) : d ? 'desde el ' + hum(d) : 'hasta el ' + hum(h)) + ' (el último día cuenta completo). No se borra ningún dato; puedes volver a contar todo cuando quieras.',
+            variante: 'advertencia', textoConfirmar: 'Sí, aplicar rango',
+          }))) return;
+          cambiar({ accion:'rango', desde:d, hasta:h }, 'Listo: ' + t.nombre + ' cuenta solo ese rango.');
+        });
+
         fila.querySelector('.cfg-met-reiniciar').addEventListener('click', async () => {
           if(!(await confirmarAccion({
             titulo: 'Reiniciar las métricas de ' + t.nombre,
             mensaje: 'Las tarjetas acumuladas de ' + t.nombre + ' empezarán a contar desde este momento y se verán casi en cero. No se borra ningún dato: puedes volver a contar todo el historial cuando quieras con "Volver a contar todo".',
             variante: 'advertencia', textoConfirmar: 'Sí, reiniciar',
           }))) return;
-          cambiar('reiniciar');
+          cambiar({ accion:'reiniciar' }, 'Listo: ' + t.nombre + ' cuenta desde ahora.');
         });
         const q = fila.querySelector('.cfg-met-quitar');
         if(q) q.addEventListener('click', async () => {
           if(!(await confirmarAccion({
             titulo: 'Volver a contar todo en ' + t.nombre,
-            mensaje: 'Las tarjetas de ' + t.nombre + ' volverán a contar todo el historial, como antes del reinicio.',
+            mensaje: 'Las tarjetas de ' + t.nombre + ' volverán a contar todo el historial, como antes de fijar el rango o reiniciar.',
             variante: 'neutral', textoConfirmar: 'Sí, contar todo',
           }))) return;
-          cambiar('quitar');
+          cambiar({ accion:'quitar' }, t.nombre + ' vuelve a contar todo el historial.');
         });
       });
     }
@@ -15536,7 +15587,7 @@
     async function cargar(){
       const cont = document.getElementById('cfgMetLista');
       try {
-        desde = await apiGet('/api/getMetricasDesde');
+        rango = await apiGet('/api/getMetricasDesde');
         pintar();
       } catch(e){
         cont.innerHTML = `<div class="radm-empty-row">No se pudo cargar: ${e.message}</div>`;

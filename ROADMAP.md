@@ -48,6 +48,14 @@ Lo que ya funcionó en el pilar del cuerpo es el método a copiar: **pocas accio
 6. **Dashboard** (mínimo primero: leads, cotizaciones pendientes, ingreso del mes contra meta, próximos cursos).
 7. **Power Apps, Power Automate, Ofimática e IA Aplicada:** lo mismo de cada uno (viaje · temas · proyectos · programas · materiales).
 
+**También en el check macro (agregados 2026-10-10; la ubicación es propuesta, Alfredo ajusta el orden):**
+- **Antes del punto 1 (subir datos reales):** (a) **respaldo de los datos de SQL**: revisar cuántos días de retención tiene la base y **probar una restauración una vez** (el respaldo semanal solo cubre Table Storage); (b) **revisión legal del Aviso de Privacidad y Términos** (siguen en V1) antes de cargar datos personales reales; con DC-3 vienen además las CURP.
+- **Cursos abiertos (estrategia 2 del coach, valle de dic-ene):** página de inscripción, cobro y lista de espera. Hoy el sitio no tiene nada que lo soporte. **Con fecha: debe estar listo antes de diciembre**, así que va justo después de la cotización de Proyectos (punto 2), no al final.
+- **Con el punto 4 (facturación):** **acceso de Viridiana** — qué puede ver y hacer (roles; hoy es admin completa o nada), y decidir si hace falta la bitácora de quién cambia qué. Ella usará facturación y cobranza.
+- **Con el punto 6 (dashboard):** **medición del sitio** (analítica de visitas y de dónde vienen las solicitudes; pospuesta desde 2026-09-10), para los indicadores semanales que pidió el coach.
+- **Tareas de Alfredo que desbloquean cosas (no son construcción):** **DC-3 y credenciales** — renovar las 4 certificaciones Associate, actualizar su registro STPS de persona física con todos los programas, y pasar el archivo de Viridiana; después se construye el módulo DC-3. **Migración de correo a Microsoft 365** — después de los cursos de octubre; toca el buzón registrado en la STPS (`contacto@lifezen.com.mx`), el proveedor de las notificaciones y el DMARC.
+- **Regla del congelamiento (por confirmar con Alfredo):** esta lista es el plan acordado; lo que se congela son las ideas nuevas fuera de ella.
+
 **Inmediato después (bloque de endurecimiento):** auditoría de seguridad · limpieza · tier gratuito (límites de Azure: `staticwebapp.config.json` ya pesa ~14.5 de 20 KB, tamaño de la API, vCore-segundos) · memoria (CLAUDE.md y memoria del proyecto) · lo que salga de esas revisiones. Incluye el ícono de estado de la base de datos (pendiente 2026-10-11).
 
 ## Frentes de trabajo

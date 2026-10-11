@@ -57,41 +57,68 @@ const llamar = async (fn, req = {}) => { const c = { log: { error() {}, warn() {
   // ── contar desde ──
   delete process.env.RECURSOS_STORAGE_CONNECTION;
   const M = require("./src/metricas-desde");
-  let d = await M.getMetricasDesde();
-  check("sin Storage: cuenta todo (todas null) y no lanza", M.TRACKINGS.every((t) => d[t] === null));
+  let d = await M.getMetricasRango();
+  check("sin Storage: cuenta todo (sin desde ni hasta) y no lanza", M.TRACKINGS.every((t) => d[t].desde === null && d[t].hasta === null));
   process.env.RECURSOS_STORAGE_CONNECTION = "x";
-  d = await M.getMetricasDesde();
-  check("con Storage vacío: cuenta todo", M.TRACKINGS.every((t) => d[t] === null));
-  d = await M.cambiarMetricasDesde("solicitudes", "reiniciar", new Date("2026-10-12T15:00:00Z"));
-  check("reiniciar guarda la fecha solo de ese Tracking", d.solicitudes === "2026-10-12T15:00:00.000Z" && d.cotizaciones === null && d.grupos === null);
-  d = await M.cambiarMetricasDesde("grupos", "reiniciar", new Date("2026-10-13T15:00:00Z"));
-  check("los demás Trackings no se pisan", d.solicitudes === "2026-10-12T15:00:00.000Z" && d.grupos === "2026-10-13T15:00:00.000Z");
+  d = await M.getMetricasRango();
+  check("con Storage vacío: cuenta todo", M.TRACKINGS.every((t) => d[t].desde === null && d[t].hasta === null));
+  d = await M.cambiarMetricasDesde("solicitudes", "reiniciar", { ahora: new Date("2026-10-12T15:00:00Z") });
+  check("reiniciar guarda 'desde' solo de ese Tracking, sin fin", d.solicitudes.desde === "2026-10-12T15:00:00.000Z" && d.solicitudes.hasta === null && d.cotizaciones.desde === null && d.grupos.desde === null);
+  d = await M.cambiarMetricasDesde("grupos", "reiniciar", { ahora: new Date("2026-10-13T15:00:00Z") });
+  check("los demás Trackings no se pisan", d.solicitudes.desde === "2026-10-12T15:00:00.000Z" && d.grupos.desde === "2026-10-13T15:00:00.000Z");
   d = await M.cambiarMetricasDesde("solicitudes", "quitar");
-  check("quitar vuelve a contar todo (y no toca los otros)", d.solicitudes === null && d.grupos === "2026-10-13T15:00:00.000Z");
+  check("quitar vuelve a contar todo (y no toca los otros)", d.solicitudes.desde === null && d.solicitudes.hasta === null && d.grupos.desde === "2026-10-13T15:00:00.000Z");
   await assert.rejects(() => M.cambiarMetricasDesde("clientes", "reiniciar"), /Tracking/);
   await assert.rejects(() => M.cambiarMetricasDesde("grupos", "borrar"), /Acción/);
   check("Clientes (sin métricas acumuladas) y acciones raras se rechazan", true);
 
+  // rango de fechas (pruebas): el día "hasta" cuenta completo; hora de Monterrey (UTC-6)
+  d = await M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "2026-10-12", hasta: "2026-10-15" });
+  check("rango: desde = inicio del día en Monterrey y hasta = inicio del día SIGUIENTE (incluye el 15 completo)", d.cotizaciones.desde === "2026-10-12T06:00:00.000Z" && d.cotizaciones.hasta === "2026-10-16T06:00:00.000Z");
+  d = await M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "2026-10-12", hasta: "" });
+  check("rango con solo 'desde': sin fin (y borra el 'hasta' anterior)", d.cotizaciones.desde === "2026-10-12T06:00:00.000Z" && d.cotizaciones.hasta === null);
+  d = await M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "", hasta: "2026-10-15" });
+  check("rango con solo 'hasta': sin inicio", d.cotizaciones.desde === null && d.cotizaciones.hasta === "2026-10-16T06:00:00.000Z");
+  d = await M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "2026-10-15", hasta: "2026-10-15" });
+  check("rango de un solo día es válido", d.cotizaciones.desde === "2026-10-15T06:00:00.000Z" && d.cotizaciones.hasta === "2026-10-16T06:00:00.000Z");
+  await assert.rejects(() => M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "2026-10-16", hasta: "2026-10-12" }), /anterior/);
+  await assert.rejects(() => M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "", hasta: "" }), /al menos una fecha/);
+  await assert.rejects(() => M.cambiarMetricasDesde("cotizaciones", "rango", { desde: "12/10/2026" }), /fecha/);
+  check("rango: 'hasta' anterior a 'desde', sin fechas o con formato raro se rechazan", true);
+  d = await M.cambiarMetricasDesde("cotizaciones", "reiniciar", { ahora: new Date("2026-10-20T15:00:00Z") });
+  check("reiniciar después de un rango borra el 'hasta'", d.cotizaciones.desde === "2026-10-20T15:00:00.000Z" && d.cotizaciones.hasta === null);
+  d = await M.getMetricasDesde();
+  check("getMetricasDesde (compatibilidad) devuelve solo los 'desde'", d.cotizaciones === "2026-10-20T15:00:00.000Z" && d.solicitudes === null);
+  await M.cambiarMetricasDesde("cotizaciones", "quitar");
+
   const reiniciar = require("./reiniciarMetricas");
   let r = await llamar(reiniciar, { body: { tracking: "cotizaciones", accion: "reiniciar" } });
-  check("Function reiniciarMetricas: 200 con la fecha", r.status === 200 && !!r.body.cotizaciones);
+  check("Function reiniciarMetricas: 200 con el rango", r.status === 200 && !!r.body.cotizaciones.desde);
+  r = await llamar(reiniciar, { body: { tracking: "cotizaciones", accion: "rango", desde: "2026-10-12", hasta: "2026-10-15" } });
+  check("Function reiniciarMetricas: acción rango guarda desde y hasta", r.status === 200 && r.body.cotizaciones.desde === "2026-10-12T06:00:00.000Z" && r.body.cotizaciones.hasta === "2026-10-16T06:00:00.000Z");
+  r = await llamar(reiniciar, { body: { tracking: "cotizaciones", accion: "rango", desde: "2026-10-16", hasta: "2026-10-12" } });
+  check("Function reiniciarMetricas: rango al revés → 400 con mensaje", r.status === 400 && /anterior/.test(r.body.error));
   r = await llamar(reiniciar, { body: { tracking: "clientes", accion: "reiniciar" } });
   check("Function reiniciarMetricas: Tracking sin métricas → 400", r.status === 400);
   r = await llamar(require("./getMetricasDesde"));
-  check("Function getMetricasDesde devuelve las fechas", r.status === 200 && !!r.body.cotizaciones && !!r.body.grupos);
+  check("Function getMetricasDesde devuelve el rango de cada Tracking", r.status === 200 && r.body.cotizaciones.desde === "2026-10-12T06:00:00.000Z" && r.body.grupos.desde === "2026-10-13T15:00:00.000Z" && r.body.solicitudes.hasta === null);
 
-  // ── las tres Functions de resumen respetan "contar desde" ──
+  // ── las tres Functions de resumen respetan "contar desde / hasta" ──
   const corre = async (fn) => { consultas.length = 0; const res = await llamar(fn); return { res, consultas: consultas.slice() }; };
-  await M.cambiarMetricasDesde("solicitudes", "quitar"); await M.cambiarMetricasDesde("cotizaciones", "quitar"); await M.cambiarMetricasDesde("grupos", "quitar");
-  for (const [nombre, patron] of [["getResumenSolicitudesAdmin", /s\.fecha_creacion >= @desde/], ["getResumenCotizacionesAdmin", /COALESCE\(fecha_cierre, fecha_estatus\) >= @desde/], ["getResumenGruposAdmin", /fecha_cierre >= @desde/]]) {
+  for (const t of M.TRACKINGS) await M.cambiarMetricasDesde(t, "quitar");
+  for (const [nombre, patron, patronHasta] of [["getResumenSolicitudesAdmin", /s\.fecha_creacion >= @desde/, /s\.fecha_creacion < @hasta/], ["getResumenCotizacionesAdmin", /COALESCE\(fecha_cierre, fecha_estatus\) >= @desde/, /COALESCE\(fecha_cierre, fecha_estatus\) < @hasta/], ["getResumenGruposAdmin", /fecha_cierre >= @desde/, /fecha_cierre < @hasta/]]) {
     let x = await corre(require("./" + nombre));
     const con = x.consultas.filter((c) => "desde" in c.params);
-    check(nombre + ": sin reinicio manda @desde = NULL y responde contando_desde null", x.res.status === 200 && con.length >= 1 && con.every((c) => c.params.desde === null) && x.res.body.contando_desde === null && con.some((c) => patron.test(c.texto)));
+    check(nombre + ": sin rango manda @desde y @hasta = NULL y responde contando_* null", x.res.status === 200 && con.length >= 1 && con.every((c) => c.params.desde === null && c.params.hasta === null) && x.res.body.contando_desde === null && x.res.body.contando_hasta === null && con.some((c) => patron.test(c.texto)) && con.some((c) => patronHasta.test(c.texto)));
     const clave = nombre.includes("Solicitudes") ? "solicitudes" : nombre.includes("Cotizaciones") ? "cotizaciones" : "grupos";
-    await M.cambiarMetricasDesde(clave, "reiniciar", new Date("2026-10-12T15:00:00Z"));
+    await M.cambiarMetricasDesde(clave, "reiniciar", { ahora: new Date("2026-10-12T15:00:00Z") });
     x = await corre(require("./" + nombre));
     const con2 = x.consultas.filter((c) => "desde" in c.params);
-    check(nombre + ": con reinicio manda la fecha y la devuelve", x.res.status === 200 && con2.length >= 1 && con2.every((c) => c.params.desde instanceof Date && c.params.desde.toISOString() === "2026-10-12T15:00:00.000Z") && x.res.body.contando_desde === "2026-10-12T15:00:00.000Z");
+    check(nombre + ": con reinicio manda el desde y deja el hasta en NULL", x.res.status === 200 && con2.length >= 1 && con2.every((c) => c.params.desde instanceof Date && c.params.desde.toISOString() === "2026-10-12T15:00:00.000Z" && c.params.hasta === null) && x.res.body.contando_desde === "2026-10-12T15:00:00.000Z" && x.res.body.contando_hasta === null);
+    await M.cambiarMetricasDesde(clave, "rango", { desde: "2026-10-12", hasta: "2026-10-15" });
+    x = await corre(require("./" + nombre));
+    const con3 = x.consultas.filter((c) => "desde" in c.params);
+    check(nombre + ": con rango manda ambas fechas y las devuelve", x.res.status === 200 && con3.length >= 1 && con3.every((c) => c.params.desde.toISOString() === "2026-10-12T06:00:00.000Z" && c.params.hasta.toISOString() === "2026-10-16T06:00:00.000Z") && x.res.body.contando_desde === "2026-10-12T06:00:00.000Z" && x.res.body.contando_hasta === "2026-10-16T06:00:00.000Z");
     await M.cambiarMetricasDesde(clave, "quitar");
   }
   const xc = await corre(require("./getResumenCotizacionesAdmin"));

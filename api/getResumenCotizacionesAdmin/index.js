@@ -14,18 +14,20 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { getUmbrales } = require("../src/notificaciones-config");
-const { getMetricasDesde } = require("../src/metricas-desde");
+const { getMetricasRango } = require("../src/metricas-desde");
 
 module.exports = async function (context, req) {
   try {
     const pool = await getPool();
     const umbrales = await getUmbrales();
-    // "Contar desde" (Configuración → Métricas): solo las cerradas (Ganada/Perdida) desde esa fecha de cierre; pipeline y antigüedad son estado vivo
-    const desde = (await getMetricasDesde()).cotizaciones;
+    // "Contar desde / hasta" (Configuración → Métricas): solo las cerradas (Ganada/Perdida) dentro del rango de su fecha de cierre; pipeline y antigüedad son estado vivo
+    const { desde, hasta } = (await getMetricasRango()).cotizaciones;
     const paramDesde = desde ? new Date(desde) : null;
+    const paramHasta = hasta ? new Date(hasta) : null;
     const result = await pool
       .request()
       .input("desde", sql.DateTime2, paramDesde)
+      .input("hasta", sql.DateTime2, paramHasta)
       .input("umbral", sql.Int, umbrales.cotizacionesDias)
       .input("umbralSeguimiento", sql.Int, umbrales.cotizacionesSeguimientoDias)
       .query(`
@@ -44,27 +46,27 @@ module.exports = async function (context, req) {
           WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
 
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS ganado_conteo,
+          WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS ganado_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion
-          WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS ganado_monto,
+          WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS ganado_monto,
 
         (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus = 'Perdida' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS perdido_conteo,
+          WHERE estatus = 'Perdida' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS perdido_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion
-          WHERE estatus = 'Perdida' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS perdido_monto,
+          WHERE estatus = 'Perdida' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS perdido_monto,
 
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Ganada', 'Perdida') AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS cerradas_90d,
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde)) AS ganadas_90d,
+        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Ganada', 'Perdida') AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS cerradas_90d,
+        (SELECT COUNT(*) FROM Cotizacion WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS ganadas_90d,
 
         (SELECT AVG(CAST(DATEDIFF(day, fecha_creacion, fecha_cierre) AS FLOAT)) FROM Cotizacion
-          WHERE estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NOT NULL AND (@desde IS NULL OR fecha_cierre >= @desde)) AS tiempo_cierre_dias
+          WHERE estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NOT NULL AND (@desde IS NULL OR fecha_cierre >= @desde) AND (@hasta IS NULL OR fecha_cierre < @hasta)) AS tiempo_cierre_dias
     `);
     const r = result.recordset[0];
     // resumen por contenedor (mismos 5 del tablero): cantidad y monto, acumulados
-    const porEstatus = await pool.request().input("desde", sql.DateTime2, paramDesde).query(`
+    const porEstatus = await pool.request().input("desde", sql.DateTime2, paramDesde).input("hasta", sql.DateTime2, paramHasta).query(`
       SELECT estatus, COUNT(*) AS n, ISNULL(SUM(precio_final), 0) AS monto
       FROM Cotizacion WHERE estatus IN ('Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida')
-        AND (estatus NOT IN ('Ganada', 'Perdida') OR (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde))
+        AND (estatus NOT IN ('Ganada', 'Perdida') OR (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta))
       GROUP BY estatus`);
     const contenedores = {};
     for (const k of ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida']) contenedores[k] = { n: 0, monto: 0 };
@@ -84,6 +86,7 @@ module.exports = async function (context, req) {
         tiempo_cierre_dias: r.tiempo_cierre_dias != null ? Math.round(r.tiempo_cierre_dias * 10) / 10 : null,
         contenedores,
         contando_desde: desde,
+        contando_hasta: hasta,
         antiguedad: { verde: r.antiguedad_verde, amarillo: r.antiguedad_amarillo, rojo: r.antiguedad_rojo },
       },
     };

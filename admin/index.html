@@ -367,6 +367,24 @@
   .radm-toast.ok{ color:var(--good); border-color:var(--good); background:color-mix(in srgb, var(--good) 10%, var(--panel)); }
   .radm-toast.err{ color:var(--bad); border-color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, var(--panel)); }
 
+  /* Presentaciones */
+  .pres-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:20px; }
+  .pres-lead{ margin:0; max-width:760px; color:var(--text-dim); font-size:14px; line-height:1.55; }
+  .pres-form{ display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:22px; max-width:760px; }
+  .pres-form[hidden]{ display:none; }
+  .pres-wide{ grid-column:1 / -1; }
+  .pres-actions{ grid-column:1 / -1; display:flex; gap:12px; }
+  .pres-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:18px; }
+  .pres-card{ display:flex; flex-direction:column; gap:14px; border:1px solid var(--line); border-top:3px solid var(--c); border-radius:10px; background:var(--panel); padding:22px; }
+  .pres-card-top{ display:flex; align-items:center; gap:12px; }
+  .pres-card-ic{ width:34px; height:34px; color:var(--c); flex:none; }
+  .pres-card-ic svg{ width:100%; height:100%; }
+  .pres-card h3{ margin:0; font:600 18px/1.25 var(--display); color:var(--text); }
+  .pres-tool{ font-family:var(--mono); font-size:11px; letter-spacing:.4px; color:var(--c); }
+  .pres-meta{ display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .pres-card-act{ display:flex; gap:10px; margin-top:auto; padding-top:6px; }
+  .pres-vacio{ grid-column:1 / -1; padding:40px 20px; text-align:center; color:var(--text-faint); border:1px dashed var(--line); border-radius:10px; }
+  @media (max-width:900px){ .pres-grid{ grid-template-columns:1fr; } .pres-head{ flex-direction:column; } }
   .radm-tools-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
   .radm-tool-card{
     display:flex; flex-direction:column; gap:10px; border:1px solid var(--line); border-radius:10px;
@@ -2466,6 +2484,10 @@
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>
         Materiales
       </button>
+      <button class="admin-nav-item" data-panel="presentaciones">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        Presentaciones
+      </button>
 
       <div class="admin-nav-group">SITIO</div>
       <button class="admin-nav-item" data-panel="dashboard">
@@ -3190,6 +3212,22 @@
           <div id="radmNewCursoArea"></div>
           <div id="radmCursoArea"></div>
         </div>
+      </div>
+
+      <div class="admin-panel" id="panel-presentaciones">
+        <div id="presToast" class="radm-toast" hidden></div>
+        <div class="pres-head">
+          <p class="pres-lead">Las presentaciones de curso que usas para dar clase. <b>Abrir</b> las proyecta desde aquí; <b>Descargar</b> te da el archivo para usarlo sin internet. Cada vez que termines una presentación en tu equipo, súbela otra vez con el mismo nombre y se reemplaza.</p>
+          <button type="button" class="radm-btn" style="--c:var(--blue-bright)" id="presNueva">Subir presentación</button>
+        </div>
+        <form class="pres-form" id="presForm" hidden>
+          <div class="radm-field pres-wide"><label for="presArchivo">Archivo (.html)</label><input type="file" id="presArchivo" accept=".html,text/html" required></div>
+          <div class="radm-field"><label for="presHerr">Herramienta</label><select id="presHerr" required></select></div>
+          <div class="radm-field pres-wide"><label for="presTitulo">Nombre del programa</label><input type="text" id="presTitulo" maxlength="140" required></div>
+          <div class="radm-field"><label for="presHoras">Horas</label><input type="text" id="presHoras" maxlength="20" placeholder="10 hr"></div>
+          <div class="pres-actions"><button type="submit" class="radm-btn" style="--c:var(--blue-bright)" id="presGuardar">Subir</button><button type="button" class="radm-btn radm-btn-ghost" style="--c:var(--text-dim)" id="presCancelar">Cancelar</button></div>
+        </form>
+        <div class="pres-grid" id="presGrid"></div>
       </div>
 
       <div class="admin-panel" id="panel-clientes" style="--c:var(--blue-bright)">
@@ -4972,7 +5010,7 @@
   const TITLES = {
     'tracking-view': 'Tracking View', alertas: 'Alertas',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
-    diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', clientes: 'Clientes',
+    diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', presentaciones: 'Presentaciones', clientes: 'Clientes',
     'tracking-comercial': 'Cotizaciones', 'tracking-operacion': 'Grupos',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     marca: 'Marca', modelo: 'Modelo', config: 'Configuración',
@@ -4999,6 +5037,7 @@
     if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
     if(key === 'tracking-comercial' && typeof window.alEntrarACotizaciones === 'function') window.alEntrarACotizaciones();
     if(key === 'alertas' && typeof window.alEntrarAAlertas === 'function') window.alEntrarAAlertas();
+    if(key === 'presentaciones' && typeof window.alEntrarAPresentaciones === 'function') window.alEntrarAPresentaciones();
   }
 
   document.getElementById('adminNav').addEventListener('click', e => {
@@ -19311,6 +19350,100 @@
       }
     });
   })();
+</script>
+
+<script>
+// PANEL PRESENTACIONES — las presentaciones de curso (un .html autocontenido) viven en un contenedor
+// Blob privado ("presentaciones"), NO en el repo. Se suben desde aquí con el archivo que genera el
+// constructor de Materiales; volver a subir con el mismo nombre y herramienta reemplaza la anterior.
+// "Abrir" baja el HTML por la API (protegida con rol admin) y lo abre en una pestaña nueva con un blob: local.
+(function(){
+  const TOOLS = window.HERRAMIENTAS_UI || {};
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let cargado = false;
+
+  function toast(msg, ok){
+    const el = $('presToast');
+    el.textContent = msg; el.className = 'radm-toast ' + (ok ? 'ok' : 'err'); el.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 5000);
+  }
+  async function api(url, opts){
+    const res = await fetch(url, opts);
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || 'Error de red');
+    return body;
+  }
+  const fecha = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' }); };
+  const peso = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+
+  function pintar(items){
+    const g = $('presGrid');
+    if(!items.length){ g.innerHTML = '<div class="pres-vacio">Todavía no hay presentaciones subidas.</div>'; return; }
+    g.innerHTML = items.map(p => {
+      const t = TOOLS[p.herramienta] || { nombre: p.herramienta, color: 'var(--blue-bright)', icon: '' };
+      return '<article class="pres-card" style="--c:' + t.color + '">' +
+        '<div class="pres-card-top"><span class="pres-card-ic">' + t.icon + '</span><div><div class="pres-tool">' + esc(t.nombre) + '</div><h3>' + esc(p.titulo) + '</h3></div></div>' +
+        '<div class="pres-meta">' + (p.horas ? '<span>' + esc(p.horas) + '</span>' : '') + (p.diapositivas ? '<span>' + p.diapositivas + ' diapositivas</span>' : '') + '<span>' + peso(p.bytes) + '</span><span>Actualizada ' + esc(fecha(p.subido)) + '</span></div>' +
+        '<div class="pres-card-act"><button type="button" class="radm-btn" data-a="abrir" data-id="' + esc(p.id) + '">Abrir</button><button type="button" class="radm-btn radm-btn-ghost" style="--c:var(--text-dim)" data-a="bajar" data-id="' + esc(p.id) + '">Descargar</button></div>' +
+        '</article>';
+    }).join('');
+  }
+
+  async function cargar(){
+    try { pintar((await api('/api/listPresentacionesAdmin')).items); cargado = true; }
+    catch(err){ $('presGrid').innerHTML = '<div class="pres-vacio">No se pudieron cargar: ' + esc(err.message) + '</div>'; }
+  }
+  window.alEntrarAPresentaciones = cargar;
+
+  $('presHerr').innerHTML = '<option value="">Elige…</option>' + Object.keys(TOOLS).map(k => '<option value="' + k + '">' + esc(TOOLS[k].nombre) + '</option>').join('');
+
+  $('presNueva').addEventListener('click', () => { $('presForm').hidden = false; $('presForm').scrollIntoView({ block:'nearest' }); });
+  $('presCancelar').addEventListener('click', () => { $('presForm').hidden = true; $('presForm').reset(); });
+
+  // al elegir el archivo se propone el nombre (su <title>) y las diapositivas se cuentan solas
+  let diapos = 0;
+  $('presArchivo').addEventListener('change', async e => {
+    const f = e.target.files[0]; if(!f) return;
+    const txt = await f.text();
+    const m = /<title>([^<]*)<\/title>/i.exec(txt);
+    if(m && !$('presTitulo').value) $('presTitulo').value = m[1].trim();
+    diapos = (txt.match(/<section class="slide[ "]/g) || []).length;
+  });
+
+  function aBase64(file){
+    return new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = () => fail(new Error('No se pudo leer el archivo.')); r.readAsDataURL(file); });
+  }
+
+  $('presForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = $('presArchivo').files[0]; if(!f) return;
+    const btn = $('presGuardar'); btn.disabled = true; btn.textContent = 'Subiendo…';
+    try {
+      await api('/api/subirPresentacion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+        herramienta: $('presHerr').value, titulo: $('presTitulo').value, horas: $('presHoras').value, diapositivas: diapos, fileBase64: await aBase64(f),
+      }) });
+      toast('Presentación subida.', true);
+      $('presForm').hidden = true; $('presForm').reset();
+      await cargar();
+    } catch(err){ toast(err.message, false); }
+    finally { btn.disabled = false; btn.textContent = 'Subir'; }
+  });
+
+  $('presGrid').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-a]'); if(!b) return;
+    const id = b.dataset.id, abrir = b.dataset.a === 'abrir';
+    const w = abrir ? window.open('', '_blank') : null; // se abre ya (clic del usuario) para que el navegador no la bloquee
+    b.disabled = true;
+    try {
+      const { html } = await api('/api/getPresentacionAdmin?id=' + encodeURIComponent(id));
+      const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+      if(abrir){ if(w) w.location = url; else window.open(url, '_blank'); }
+      else { const a = document.createElement('a'); a.href = url; a.download = id.split('/').pop(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000); }
+    } catch(err){ if(w) w.close(); toast(err.message, false); }
+    finally { b.disabled = false; }
+  });
+})();
 </script>
 
 </body>

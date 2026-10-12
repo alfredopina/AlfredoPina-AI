@@ -81,6 +81,18 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/subirPresentacion",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/listPresentacionesAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/getPresentacionAdmin",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/crearCurso",
       "allowedRoles": ["admin"]
     },

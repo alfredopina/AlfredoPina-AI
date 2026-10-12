@@ -108,6 +108,7 @@ function armarSnapshot(d) {
     nivelTxt = min === max ? NIVEL_LABEL[min] : `${NIVEL_LABEL[min]} a ${NIVEL_LABEL[max]}`;
   }
 
+  const grupos = Math.max(1, Math.round(Number(d.grupos)) || 1);
   const sugerido = redondea2(Number(d.precioSugerido) || 0);
   const total = redondea2(Number(d.precioFinal) || 0);
   // descuento efectivo (el precio final se puede editar a mano sin pasar por el %)
@@ -137,12 +138,21 @@ function armarSnapshot(d) {
     adicionales: adicionalesPara(d.herramienta),
     manual: Boolean(d.precioManual),
     tarifaHora: Number(d.tarifaHora) || 0,
+    // varios grupos: `sugerido` y `total` son de TODOS los grupos; por grupo = entre N. El descuento solo vale con una OC por el total
+    grupos,
+    sugeridoGrupo: redondea2(sugerido / grupos),
+    totalGrupo: redondea2(total / grupos),
+    participantesNum: d.participantesNum || null,
     sugerido,
     total,
     descuentoPct,
     emitida: iso(d.emitida),
     vigencia: iso(d.vigencia).slice(0, 10), // solo la fecha (YYYY-MM-DD): evita que la zona horaria la corra un día
-    terminos: TERMINOS,
+    terminos: grupos > 1
+      ? [...TERMINOS,
+          ...(descuentoPct > 0 ? [`El descuento de esta propuesta aplica con una orden de compra (OC) por el total de los ${grupos} grupos; si se contratan o imparten menos grupos, el precio se ajusta a la tarifa que corresponda.`] : []),
+          `Los ${grupos} grupos deben agendarse dentro de los 6 meses siguientes a la aceptación de la propuesta.`]
+      : TERMINOS,
   };
 }
 

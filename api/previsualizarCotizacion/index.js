@@ -6,6 +6,7 @@
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
+const { normalizarGrupos, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
@@ -16,6 +17,7 @@ module.exports = async function (context, req) {
   const horas = Number(body.horas_totales);
   const precioFinal = Number(body.precio_final);
   const tarifaHora = Number(body.tarifa_hora);
+  const numGrupos = normalizarGrupos(body.num_grupos);
 
   if (!clienteNombre || !herramienta || !temas.length || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos para generar la vista previa." } };
@@ -33,7 +35,7 @@ module.exports = async function (context, req) {
     }
     const estandar = body.temario_tipo !== "personalizado" && (body.temario_nombre || "").trim();
     const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : await proyectosPorIds(herramienta, body.proyectos);
-    const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * 100) / 100 : precioFinal;
+    const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * numGrupos * 100) / 100 : precioFinal;
     const snapshot = armarSnapshot({
       folio: "VISTA PREVIA",
       cliente: clienteNombre,
@@ -53,6 +55,8 @@ module.exports = async function (context, req) {
       precioManual: body.descuento_pct != null && body.descuento_pct !== "" && Number.isFinite(tarifaHora) && tarifaHora > 0 ? esPrecioManual({ precioSugerido, descuentoPct: body.descuento_pct, precioFinal }) : false,
       proyectos,
       tarifaHora: Number.isFinite(tarifaHora) ? tarifaHora : 0,
+      grupos: numGrupos,
+      participantesNum: normalizarParticipantesNum(body.participantes_num),
       precioSugerido,
       precioFinal,
       emitida: new Date(),

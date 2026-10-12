@@ -33,7 +33,7 @@ function blobName(herramienta, slug) {
 }
 
 // Sube o reemplaza (mismo herramienta+título → mismo blob) una presentación.
-async function subirPresentacion({ herramienta, titulo, horas, diapositivas, buffer }) {
+async function subirPresentacion({ herramienta, titulo, horas, diapositivas, buffer, tipo, clave, verificado, indice }) {
   const container = getContainer();
   await container.createIfNotExists();
   const slug = slugify(titulo);
@@ -49,6 +49,10 @@ async function subirPresentacion({ herramienta, titulo, horas, diapositivas, buf
       subido: enc(subido),
     },
   });
+  // el índice (título y tema de cada diapositiva) viaja aparte para que el Centro busque sin bajar el HTML
+  const extra = { tipo: tipo || "Curso", clave: clave || titulo, verificado: verificado || "", indice: indice || [] };
+  const datos = Buffer.from(JSON.stringify(extra), "utf8");
+  await container.getBlockBlobClient(nombre.slice(0, -5) + ".json").uploadData(datos, { blobHTTPHeaders: { blobContentType: "application/json" } });
   return { id: nombre, subido };
 }
 
@@ -57,7 +61,14 @@ async function listarPresentaciones() {
   if (!(await container.exists())) return [];
   const items = [];
   for await (const b of container.listBlobsFlat({ includeMetadata: true })) {
+    if (!b.name.endsWith(".html")) continue;
     const m = b.metadata || {};
+    let extra = {};
+    try {
+      extra = JSON.parse((await container.getBlockBlobClient(b.name.slice(0, -5) + ".json").downloadToBuffer()).toString("utf8"));
+    } catch (err) {
+      if (err.statusCode !== 404) throw err;
+    }
     items.push({
       id: b.name,
       titulo: dec(m.titulo) || b.name,
@@ -66,6 +77,10 @@ async function listarPresentaciones() {
       diapositivas: Number(dec(m.diapositivas)) || null,
       subido: dec(m.subido) || (b.properties.lastModified ? b.properties.lastModified.toISOString() : ""),
       bytes: b.properties.contentLength || 0,
+      tipo: extra.tipo || "Curso",
+      clave: extra.clave || "",
+      verificado: extra.verificado || "",
+      indice: Array.isArray(extra.indice) ? extra.indice : [],
     });
   }
   items.sort((a, b) => (a.subido < b.subido ? 1 : -1));

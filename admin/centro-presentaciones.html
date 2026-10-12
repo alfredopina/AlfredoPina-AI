@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Centro de Presentaciones · alfredopina.ai</title>
+<style>
+/* atajos.css — ventana de atajos de teclado (compartida por las presentaciones y el Centro de Presentaciones). */
+.atj{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(5,7,10,.82);padding:24px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.atj.open{display:flex}
+.atj-box{width:min(1180px,100%);max-height:100%;overflow:auto;background:var(--panel,#10141b);border:1px solid var(--line,#1d2530);border-top:4px solid var(--blue,#3d7fff);border-radius:12px;padding:28px 32px 30px;color:var(--text,#edf0f4);font-family:var(--body,'Inter','Segoe UI',system-ui,sans-serif)}
+.atj-box header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:6px}
+.atj-box h2{font:700 30px/1.1 var(--display,'Space Grotesk','Segoe UI',sans-serif);letter-spacing:-.01em;margin:0}
+.atj-sub{font-size:15px;color:var(--text-dim,#a4acb9);margin:0 0 20px}
+.atj-x{background:none;border:1px solid var(--line,#1d2530);color:var(--text,#edf0f4);border-radius:8px;padding:8px 14px;font:600 13px var(--mono,Consolas,monospace);cursor:pointer;white-space:nowrap}
+.atj-x:hover,.atj-x:focus-visible{border-color:var(--blue,#3d7fff);outline:none}
+.atj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.atj-card{background:var(--panel-2,#141a23);border:1px solid var(--line,#1d2530);border-radius:10px;padding:16px 18px 14px}
+.atj-card h3{font:600 12px/1 var(--mono,Consolas,monospace);letter-spacing:.14em;text-transform:uppercase;color:var(--blue-bright,#6b9fff);margin:0 0 12px}
+.atj-row{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--line-soft,#161c26);font-size:15px;color:var(--text-dim,#a4acb9)}
+.atj-row:first-of-type{border-top:0}
+.atj-keys{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.atj-keys kbd{display:inline-block;min-width:30px;text-align:center;padding:5px 9px;font:600 13px/1 var(--mono,Consolas,monospace);color:var(--text,#edf0f4);background:var(--bg,#0a0d12);border:1px solid var(--line,#2a3441);border-bottom-width:3px;border-radius:6px}
+.atj-keys i{font-style:normal;color:var(--text-faint,#79828f);font-size:12px}
+.atj-row b{color:var(--text,#edf0f4);font-weight:600}
+@media print{.atj{display:none!important}}
+
+/* inicio.css — Centro de Presentaciones (identidad v2: fondo oscuro, cuadrícula tenue, color por herramienta con ícono y texto) */
+:root{
+  --bg:#0a0d12; --panel:#10141b; --panel-2:#141a23; --line:#1d2530; --line-soft:#161c26;
+  --blue:#3d7fff; --blue-bright:#6b9fff; --blue-soft:rgba(61,127,255,.14);
+  --text:#edf0f4; --text-dim:#a4acb9; --text-faint:#79828f; --amber:#dfb35a; --teal:#14b8a6;
+  --display:'Space Grotesk','Segoe UI',system-ui,sans-serif; --body:'Inter','Segoe UI',system-ui,sans-serif; --mono:'JetBrains Mono',Consolas,monospace;
+  --c:#3d7fff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+.bgrid{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 85% 60% at 50% 12%,#000 35%,transparent 90%);mask-image:radial-gradient(ellipse 85% 60% at 50% 12%,#000 35%,transparent 90%)}
+header,main,.pie{position:relative;z-index:1}
+kbd{font:600 11px/1 var(--mono);background:var(--bg);color:var(--text-dim);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:3px 7px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;max-width:1280px;margin:0 auto;padding:20px 32px}
+.brand{width:250px}
+.top-act{display:flex;gap:10px}
+.tb{display:flex;align-items:center;gap:8px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 13px;font:600 13px var(--body);cursor:pointer;transition:border-color .15s,transform .15s}
+.tb svg{width:17px;height:17px;color:var(--blue-bright)}
+.tb:hover,.tb:focus-visible{border-color:var(--blue);outline:none;transform:translateY(-1px)}
+main{max-width:1280px;margin:0 auto;padding:0 32px 40px}
+.hero{padding:34px 0 8px}
+.eyebrow{font:600 13px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--blue-bright)}
+h1{font:700 clamp(46px,7vw,92px)/.98 var(--display);letter-spacing:-.03em;margin:16px 0 22px}
+h1 em{font-style:normal;color:var(--blue-bright)}
+.hero-row{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap}.hero-bus{flex:1 1 380px;max-width:640px;padding-bottom:30px}.buscador{position:relative;display:flex;align-items:center;margin:0 0 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;transition:border-color .15s,box-shadow .15s}
+.buscador:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.buscador>svg{width:20px;height:20px;margin-left:16px;color:var(--text-faint);flex:none}
+.buscador input{flex:1;background:none;border:0;color:var(--text);font:500 16px var(--body);padding:16px 16px 16px 12px;outline:none}
+.res{position:absolute;left:0;right:0;top:calc(100% + 8px);background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:420px;overflow:auto;z-index:20;box-shadow:0 24px 60px -20px rgba(0,0,0,.7)}
+.res[hidden]{display:none}
+.res button{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line-soft);color:var(--text);padding:11px 16px;cursor:pointer;font:500 14px var(--body)}
+.res button:last-child{border-bottom:0}
+.res button.on,.res button:hover{background:var(--blue-soft)}
+.res .k{font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-bright)}
+.res .s{grid-column:2;font-size:12px;color:var(--text-faint)}
+.res .vacio{padding:16px;color:var(--text-faint);font-size:14px}
+.stats{font:500 13px var(--mono);color:var(--text-faint);letter-spacing:.04em}
+.sec{font:600 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin:34px 0 14px}
+/* Continuar */
+.continuar{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.cont{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:linear-gradient(135deg,var(--blue-soft),transparent 70%),var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:11px;padding:15px 18px;text-decoration:none;color:var(--text);transition:transform .15s,border-color .15s}
+.cont:hover,.cont:focus-visible{transform:translateY(-2px);border-color:var(--blue-bright);outline:none}
+.cont .ic{width:34px;height:34px}
+.cont b{display:block;font:600 15px var(--display)}.cont small{display:block;font-size:12px;color:var(--text-dim);margin-top:3px}
+.cont .bar{height:5px;background:var(--line);border-radius:3px;margin-top:9px;overflow:hidden}.cont .bar i{display:block;height:100%;background:var(--blue-bright)}
+.cont .go{font:600 12px var(--mono);letter-spacing:.06em;color:var(--blue-bright);text-transform:uppercase;white-space:nowrap}
+/* Tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:14px}
+.tile{--c:#3d7fff;position:relative;text-align:left;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:20px 18px 16px;color:var(--text);cursor:pointer;font-family:var(--body);transition:transform .2s,box-shadow .2s,border-color .2s;overflow:hidden}
+.tile::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:var(--c);opacity:.08;transition:opacity .2s,transform .3s}
+.tile:hover,.tile:focus-visible{transform:translateY(-4px);outline:none;border-color:var(--c);box-shadow:0 18px 40px -22px var(--c)}
+.tile:hover::after{opacity:.16;transform:scale(1.3)}
+.tile[aria-pressed=true]{background:var(--panel-2);border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 20px 44px -22px var(--c)}
+.tile .ic{width:44px;height:44px;margin-bottom:14px}
+.tile b{display:block;font:700 19px/1.1 var(--display);letter-spacing:-.01em}
+.tile small{display:block;margin-top:6px;font:500 12.5px var(--mono);color:var(--text-dim)}
+.tile .no{position:absolute;right:14px;top:14px;font:600 11px var(--mono);color:var(--text-faint);border:1px solid var(--line);border-radius:5px;padding:2px 7px}
+.tile .sel{display:none;margin-top:9px;font:600 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.tile[aria-pressed=true] .sel{display:block}
+/* Programas */
+.progs{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:18px}
+.pc{--c:#3d7fff;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:13px;padding:22px 24px 20px;animation:subir .45s ease both;transition:transform .2s,box-shadow .2s}
+.pc:hover{transform:translateY(-3px);box-shadow:0 24px 50px -30px var(--c)}
+@keyframes subir{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.pc-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.chip{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);color:var(--text-dim);border-radius:6px;padding:5px 9px;background:var(--panel-2)}
+.chip.t{color:var(--c);border-color:var(--c)}
+.fresh{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:600 11.5px var(--mono);color:var(--teal)}
+.fresh svg{width:15px;height:15px}
+.fresh.warn{color:var(--amber)}
+.pc h3{font:700 25px/1.12 var(--display);letter-spacing:-.015em;margin-bottom:8px}
+.meta{font-size:14px;color:var(--text-dim);margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px 16px}
+.meta span{display:inline-flex;align-items:center;gap:6px}
+.btns{display:flex;flex-wrap:wrap;gap:9px}
+.b{display:inline-flex;align-items:center;gap:7px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font:600 13px var(--body);cursor:pointer;text-decoration:none;transition:border-color .15s,transform .15s}
+.b:hover,.b:focus-visible{border-color:var(--blue-bright);outline:none;transform:translateY(-1px)}
+.b.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.b.pri:hover{background:#4f8cff}
+.retomar{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:13px;color:var(--text-dim)}
+.retomar a{color:var(--blue-bright);font-weight:600;text-decoration:none}
+.retomar a:hover{text-decoration:underline}
+.vacio{grid-column:1/-1;background:var(--panel);border:1px dashed var(--line);border-radius:13px;padding:34px;color:var(--text-dim);font-size:15px;line-height:1.55}
+.vacio b{color:var(--text)}
+/* Dock */
+.dock{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.dc{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:12px;min-height:260px;scroll-margin-top:20px}
+.dc.foco{border-color:var(--blue-bright);box-shadow:0 0 0 3px var(--blue-soft)}
+.dc h3{display:flex;align-items:center;gap:9px;font:700 16px var(--display)}
+.dc h3 svg{width:20px;height:20px;color:var(--blue-bright)}
+.dc h3 kbd{margin-left:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sv{font:500 11.5px var(--mono);color:var(--teal)}
+.clk{font:700 54px/1 var(--mono);letter-spacing:.01em}.clk.low{color:var(--amber)}.clk.fin{animation:parpadeo .6s steps(2) 6}
+@keyframes parpadeo{50%{opacity:.25}}
+.clk-l{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-top:-6px}
+.cd input{width:74px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font:600 14px var(--mono)}
+.cd span{font:500 13px var(--mono);color:var(--text-dim)}
+.dc textarea{flex:1;min-height:150px;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:500 14.5px/1.55 var(--body)}
+.dc textarea:focus{outline:2px solid var(--blue);outline-offset:-1px}
+.chk{list-style:none;display:flex;flex-direction:column;gap:3px}
+.chk label{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:13.5px;line-height:1.4;color:var(--text-dim);padding:5px 4px;border-radius:6px;cursor:pointer}
+.chk label:hover{background:var(--panel-2)}
+.chk input{width:17px;height:17px;margin-top:2px;accent-color:#14b8a6}
+.chk input:checked+span{color:var(--text-faint);text-decoration:line-through}
+.qrs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qrb{background:none;border:0;color:var(--text);cursor:pointer;text-align:center;font:600 12px var(--body)}
+.qrb .q{background:#fff;border-radius:10px;padding:8px;margin-bottom:8px;transition:transform .2s}
+.qrb:hover .q,.qrb:focus-visible .q{transform:scale(1.04)}.qrb:focus-visible{outline:none}
+.qrb svg{display:block;width:100%;height:auto}
+.hint{font-size:12px;color:var(--text-faint)}
+.qrm{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:rgba(5,7,10,.94);padding:24px}.qrm[hidden]{display:none}
+.qrm-box{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:100%}
+.qrm-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center}
+.qrm-grid figure{text-align:center}
+.qrm-grid .q{background:#fff;border-radius:16px;padding:16px;width:min(380px,42vw,60vh)}
+.qrm-grid .q svg{display:block;width:100%;height:auto}
+.qrm-grid figcaption{margin-top:14px;font:700 22px var(--display)}.qrm-grid small{display:block;margin-top:4px;font:500 13px var(--mono);color:var(--text-dim)}
+.pie{max-width:1280px;margin:0 auto;padding:10px 32px 40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;font:500 12px var(--mono);color:var(--text-faint)}
+@media (max-width:640px){.top,main,.pie{padding-left:16px;padding-right:16px}.progs{grid-template-columns:1fr}.dock{grid-template-columns:1fr}.brand{width:190px}.tb span{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.ic{display:block;flex:none}
+
+</style>
+</head>
+<body>
+<div class="bgrid" aria-hidden="true"></div>
+<header class="top">
+  <div class="brand" id="logo" aria-label="alfredopina.ai"></div>
+  <div class="top-act">
+    <button type="button" class="tb" id="b-buscar" title="Buscar (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg><span>Buscar</span><kbd>/</kbd></button>
+    <button type="button" class="tb" id="b-atajos" title="Atajos de teclado (?)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span>Atajos</span><kbd>?</kbd></button>
+  </div>
+</header>
+<main>
+  <section class="hero">
+    <p class="eyebrow">Centro de Presentaciones</p>
+    <div class="hero-row">
+      <h1>Tus clases,<br>a <em>un clic</em>.</h1>
+      <div class="hero-bus">
+        <div class="buscador" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>
+          <input id="q" type="search" autocomplete="off" placeholder="Busca un programa o una diapositiva de cualquier curso…" aria-label="Buscar">
+          <div class="res" id="res" role="listbox" hidden></div>
+        </div>
+        <p class="stats" id="stats"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="continuar" id="continuar" hidden aria-label="Continuar donde me quedé"></section>
+
+  <section aria-label="Herramientas">
+    <h2 class="sec">Herramientas</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-label="Programas" id="progs-wrap">
+    <h2 class="sec" id="progs-t">Programas</h2>
+    <div class="progs" id="progs" aria-live="polite"></div>
+  </section>
+
+  <section aria-label="Herramientas de clase">
+    <h2 class="sec">Para la clase</h2>
+    <div class="dock">
+      <article class="dc" id="d-timer"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 3h6"/></svg>Cronómetro <kbd>T</kbd></h3>
+        <div class="clk" id="clk">00:00</div><p class="clk-l" id="clk-l">Tiempo transcurrido</p>
+        <div class="row"><button type="button" class="b pri" id="t-go">Iniciar</button><button type="button" class="b" id="t-rs">Reiniciar</button></div>
+        <div class="row cd"><input id="t-min" type="number" min="1" max="240" value="10" aria-label="Minutos"><span>min</span><button type="button" class="b" id="t-cd">Cuenta regresiva</button></div></article>
+      <article class="dc" id="d-notas"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h5"/></svg>Bloc de notas <kbd>N</kbd></h3>
+        <textarea id="notas" placeholder="Ideas, pendientes, preguntas del grupo… se guarda solo."></textarea>
+        <div class="row"><button type="button" class="b" id="n-cp">Copiar</button><button type="button" class="b" id="n-dl">Descargar .txt</button><button type="button" class="b" id="n-bo">Borrar</button><span class="sv" id="n-sv"></span></div></article>
+      <article class="dc" id="d-clase"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Antes de dar clase <kbd>L</kbd></h3>
+        <ul class="chk" id="chk"></ul><div class="row"><button type="button" class="b" id="c-rs">Reiniciar lista</button><span class="sv" id="c-sv"></span></div></article>
+      <article class="dc" id="d-qr"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 17v4"/></svg>Mis QR <kbd>Q</kbd></h3>
+        <div class="qrs" id="qrs"></div><p class="hint">Haz clic en un código para ampliarlo y proyectarlo.</p></article>
+    </div>
+  </section>
+</main>
+<footer class="pie"><span>Centro de Presentaciones · generado <b id="gen"></b></span><span>Versión del sitio · pulsa <kbd>?</kbd> para ver los atajos</span></footer>
+<div class="qrm" id="qrm" hidden role="dialog" aria-label="Códigos QR"><div class="qrm-box"><div class="qrm-grid" id="qrm-g"></div><button type="button" class="b" id="qrm-x">Cerrar (Esc)</button></div></div>
+<script>window.__DATOS={"generado":"en vivo","herramientas":[{"id":"excel","carpeta":"excel","nombre":"Excel","color":"#22c55e","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#22c55e\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"Excel\">\u003cg stroke-width=\"1.25\" opacity=\".55\">\u003crect x=\"3\" y=\"3\" width=\"18\" height=\"18\"/>\u003cpath d=\"M9 3v18M15 3v18M3 9h18M3 15h18\"/>\u003c/g>\u003crect x=\"9\" y=\"9\" width=\"12\" height=\"12\" stroke-width=\"2\" fill=\"#22c55e\" fill-opacity=\".14\"/>\u003crect x=\"18.5\" y=\"18.5\" width=\"4.5\" height=\"4.5\" fill=\"#22c55e\" stroke=\"none\"/>\u003c/svg>\n"},{"id":"powerbi","carpeta":"power-bi","nombre":"Power BI","color":"#f2c94c","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#f2c94c\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"Power BI\">\u003cg fill=\"#f2c94c\" stroke=\"none\">\u003cg fill-opacity=\".36\">\u003crect x=\"9.5\" y=\"16\" width=\"5\" height=\"5\"/>\u003crect x=\"16\" y=\"16\" width=\"5\" height=\"5\"/>\u003crect x=\"16\" y=\"9.5\" width=\"5\" height=\"5\"/>\u003c/g>\u003crect x=\"3\" y=\"16\" width=\"5\" height=\"5\"/>\u003crect x=\"9.5\" y=\"9.5\" width=\"5\" height=\"5\"/>\u003crect x=\"16\" y=\"3\" width=\"5\" height=\"5\"/>\u003c/g>\u003c/svg>\n"},{"id":"powerapps","carpeta":"power-apps","nombre":"Power Apps","color":"#c026d3","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#c026d3\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"Power Apps\">\u003crect x=\"2.5\" y=\"6\" width=\"17\" height=\"14\"/>\u003cpath d=\"M2.5 10h17\" stroke-width=\"1.5\"/>\u003crect x=\"5\" y=\"12.5\" width=\"5\" height=\"5\" stroke-width=\"1.5\"/>\u003crect x=\"12\" y=\"12.5\" width=\"5\" height=\"5\" stroke-width=\"1.5\" stroke-dasharray=\"1.5 1.5\"/>\u003crect x=\"17\" y=\"2\" width=\"5\" height=\"5\" fill=\"#c026d3\" stroke=\"none\"/>\u003c/svg>\n"},{"id":"powerautomate","carpeta":"power-automate","nombre":"Power Automate","color":"#06b6d4","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#06b6d4\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"Power Automate\">\u003crect x=\"3\" y=\"10\" width=\"4\" height=\"4\"/>\u003cpath d=\"M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4\"/>\u003crect x=\"15\" y=\"4.5\" width=\"4.5\" height=\"4.5\"/>\u003crect x=\"15\" y=\"15.25\" width=\"4.5\" height=\"4.5\" fill=\"#06b6d4\"/>\u003c/svg>\n"},{"id":"ia","carpeta":"ia-aplicada","nombre":"IA Aplicada","color":"#a78bfa","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#a78bfa\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"IA Aplicada\">\u003cpath d=\"M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z\" fill=\"#a78bfa\"/>\u003crect x=\"18\" y=\"3\" width=\"3.5\" height=\"3.5\" stroke-width=\"1.5\"/>\u003c/svg>\n"},{"id":"ofimatica","carpeta":"ofimatica","nombre":"Ofimática","color":"#f97316","icono":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"100%\" fill=\"none\" stroke=\"#f97316\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" role=\"img\" aria-label=\"Ofimática Básica\">\u003cpath fill=\"#f97316\" stroke=\"none\" fill-rule=\"evenodd\" d=\"M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z\"/>\u003crect x=\"13\" y=\"13\" width=\"7.5\" height=\"7.5\" stroke-width=\"1.5\"/>\u003crect x=\"15.5\" y=\"15.5\" width=\"2.5\" height=\"2.5\" fill=\"#f97316\" stroke=\"none\"/>\u003c/svg>\n"}],"programas":[],"qr":[{"id":"linkedin","etiqueta":"Sígueme en LinkedIn","url":"https://www.linkedin.com/in/alfredopinacortez","svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 41 41\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Código QR: Sígueme en LinkedIn\">\u003crect width=\"41\" height=\"41\" fill=\"#ffffff\"/>\u003cpath d=\"M4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM27 4h1v1h-1zM30 4h1v1h-1zM31 4h1v1h-1zM32 4h1v1h-1zM33 4h1v1h-1zM34 4h1v1h-1zM35 4h1v1h-1zM36 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM14 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM22 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM7 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM13 6h1v1h-1zM14 6h1v1h-1zM18 6h1v1h-1zM19 6h1v1h-1zM23 6h1v1h-1zM24 6h1v1h-1zM25 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM33 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM7 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM14 7h1v1h-1zM15 7h1v1h-1zM19 7h1v1h-1zM22 7h1v1h-1zM23 7h1v1h-1zM25 7h1v1h-1zM27 7h1v1h-1zM30 7h1v1h-1zM32 7h1v1h-1zM33 7h1v1h-1zM34 7h1v1h-1zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM13 8h1v1h-1zM14 8h1v1h-1zM17 8h1v1h-1zM18 8h1v1h-1zM19 8h1v1h-1zM20 8h1v1h-1zM24 8h1v1h-1zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM13 9h1v1h-1zM14 9h1v1h-1zM15 9h1v1h-1zM16 9h1v1h-1zM18 9h1v1h-1zM21 9h1v1h-1zM22 9h1v1h-1zM23 9h1v1h-1zM25 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM32 10h1v1h-1zM33 10h1v1h-1zM34 10h1v1h-1zM35 10h1v1h-1zM36 10h1v1h-1zM12 11h1v1h-1zM13 11h1v1h-1zM20 11h1v1h-1zM23 11h1v1h-1zM24 11h1v1h-1zM25 11h1v1h-1zM26 11h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM26 12h1v1h-1zM28 12h1v1h-1zM30 12h1v1h-1zM31 12h1v1h-1zM32 12h1v1h-1zM33 12h1v1h-1zM34 12h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM11 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM15 13h1v1h-1zM16 13h1v1h-1zM17 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM22 13h1v1h-1zM23 13h1v1h-1zM27 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM33 13h1v1h-1zM34 13h1v1h-1zM36 13h1v1h-1zM7 14h1v1h-1zM10 14h1v1h-1zM11 14h1v1h-1zM12 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM21 14h1v1h-1zM26 14h1v1h-1zM28 14h1v1h-1zM32 14h1v1h-1zM34 14h1v1h-1zM35 14h1v1h-1zM4 15h1v1h-1zM7 15h1v1h-1zM14 15h1v1h-1zM16 15h1v1h-1zM17 15h1v1h-1zM20 15h1v1h-1zM21 15h1v1h-1zM22 15h1v1h-1zM23 15h1v1h-1zM24 15h1v1h-1zM27 15h1v1h-1zM29 15h1v1h-1zM32 15h1v1h-1zM33 15h1v1h-1zM34 15h1v1h-1zM35 15h1v1h-1zM4 16h1v1h-1zM7 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM14 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM25 16h1v1h-1zM26 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM29 16h1v1h-1zM31 16h1v1h-1zM32 16h1v1h-1zM33 16h1v1h-1zM35 16h1v1h-1zM4 17h1v1h-1zM5 17h1v1h-1zM6 17h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM11 17h1v1h-1zM12 17h1v1h-1zM16 17h1v1h-1zM17 17h1v1h-1zM19 17h1v1h-1zM21 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h1v1h-1zM34 17h1v1h-1zM35 17h1v1h-1zM36 17h1v1h-1zM5 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM12 18h1v1h-1zM15 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM32 18h1v1h-1zM34 18h1v1h-1zM35 18h1v1h-1zM4 19h1v1h-1zM5 19h1v1h-1zM6 19h1v1h-1zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM12 19h1v1h-1zM13 19h1v1h-1zM14 19h1v1h-1zM16 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM25 19h1v1h-1zM29 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM33 19h1v1h-1zM34 19h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM12 20h1v1h-1zM15 20h1v1h-1zM18 20h1v1h-1zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h1v1h-1zM29 20h1v1h-1zM31 20h1v1h-1zM32 20h1v1h-1zM36 20h1v1h-1zM4 21h1v1h-1zM5 21h1v1h-1zM6 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM12 21h1v1h-1zM17 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM28 21h1v1h-1zM29 21h1v1h-1zM30 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM34 21h1v1h-1zM36 21h1v1h-1zM5 22h1v1h-1zM6 22h1v1h-1zM9 22h1v1h-1zM10 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM19 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM25 22h1v1h-1zM31 22h1v1h-1zM32 22h1v1h-1zM34 22h1v1h-1zM35 22h1v1h-1zM11 23h1v1h-1zM12 23h1v1h-1zM14 23h1v1h-1zM15 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM25 23h1v1h-1zM26 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM30 23h1v1h-1zM31 23h1v1h-1zM32 23h1v1h-1zM33 23h1v1h-1zM34 23h1v1h-1zM36 23h1v1h-1zM4 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM8 24h1v1h-1zM9 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM18 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h1v1h-1zM32 24h1v1h-1zM33 24h1v1h-1zM4 25h1v1h-1zM5 25h1v1h-1zM6 25h1v1h-1zM9 25h1v1h-1zM15 25h1v1h-1zM19 25h1v1h-1zM20 25h1v1h-1zM21 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM27 25h1v1h-1zM30 25h1v1h-1zM33 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM23 26h1v1h-1zM28 26h1v1h-1zM29 26h1v1h-1zM33 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM8 27h1v1h-1zM12 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM20 27h1v1h-1zM23 27h1v1h-1zM24 27h1v1h-1zM25 27h1v1h-1zM26 27h1v1h-1zM27 27h1v1h-1zM28 27h1v1h-1zM29 27h1v1h-1zM30 27h1v1h-1zM31 27h1v1h-1zM32 27h1v1h-1zM33 27h1v1h-1zM34 27h1v1h-1zM35 27h1v1h-1zM4 28h1v1h-1zM7 28h1v1h-1zM9 28h1v1h-1zM10 28h1v1h-1zM11 28h1v1h-1zM12 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM21 28h1v1h-1zM22 28h1v1h-1zM23 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM30 28h1v1h-1zM31 28h1v1h-1zM32 28h1v1h-1zM33 28h1v1h-1zM35 28h1v1h-1zM36 28h1v1h-1zM12 29h1v1h-1zM16 29h1v1h-1zM20 29h1v1h-1zM21 29h1v1h-1zM22 29h1v1h-1zM23 29h1v1h-1zM24 29h1v1h-1zM27 29h1v1h-1zM28 29h1v1h-1zM32 29h1v1h-1zM34 29h1v1h-1zM35 29h1v1h-1zM36 29h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM9 30h1v1h-1zM10 30h1v1h-1zM13 30h1v1h-1zM14 30h1v1h-1zM16 30h1v1h-1zM17 30h1v1h-1zM18 30h1v1h-1zM19 30h1v1h-1zM20 30h1v1h-1zM21 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h1v1h-1zM35 30h1v1h-1zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM15 31h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM27 31h1v1h-1zM28 31h1v1h-1zM32 31h1v1h-1zM33 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h1v1h-1zM7 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h1v1h-1zM15 32h1v1h-1zM16 32h1v1h-1zM18 32h1v1h-1zM20 32h1v1h-1zM24 32h1v1h-1zM25 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM29 32h1v1h-1zM30 32h1v1h-1zM31 32h1v1h-1zM32 32h1v1h-1zM33 32h1v1h-1zM35 32h1v1h-1zM4 33h1v1h-1zM6 33h1v1h-1zM7 33h1v1h-1zM8 33h1v1h-1zM10 33h1v1h-1zM12 33h1v1h-1zM16 33h1v1h-1zM17 33h1v1h-1zM19 33h1v1h-1zM21 33h1v1h-1zM22 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h1v1h-1zM32 33h1v1h-1zM34 33h1v1h-1zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h1v1h-1zM7 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM12 34h1v1h-1zM13 34h1v1h-1zM15 34h1v1h-1zM16 34h1v1h-1zM17 34h1v1h-1zM19 34h1v1h-1zM20 34h1v1h-1zM21 34h1v1h-1zM24 34h1v1h-1zM25 34h1v1h-1zM26 34h1v1h-1zM27 34h1v1h-1zM28 34h1v1h-1zM29 34h1v1h-1zM30 34h1v1h-1zM31 34h1v1h-1zM34 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM15 35h1v1h-1zM16 35h1v1h-1zM18 35h1v1h-1zM19 35h1v1h-1zM25 35h1v1h-1zM26 35h1v1h-1zM27 35h1v1h-1zM29 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM33 35h1v1h-1zM34 35h1v1h-1zM4 36h1v1h-1zM5 36h1v1h-1zM6 36h1v1h-1zM7 36h1v1h-1zM8 36h1v1h-1zM9 36h1v1h-1zM10 36h1v1h-1zM12 36h1v1h-1zM13 36h1v1h-1zM14 36h1v1h-1zM17 36h1v1h-1zM19 36h1v1h-1zM21 36h1v1h-1zM26 36h1v1h-1zM27 36h1v1h-1zM28 36h1v1h-1zM29 36h1v1h-1zM30 36h1v1h-1zM31 36h1v1h-1zM35 36h1v1h-1z\" fill=\"#000000\"/>\u003c/svg>"},{"id":"sitio","etiqueta":"Mi sitio y mis recursos","url":"https://www.alfredopina.ai","svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 33 33\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Código QR: Mi sitio y mis recursos\">\u003crect width=\"33\" height=\"33\" fill=\"#ffffff\"/>\u003cpath d=\"M4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM14 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM26 4h1v1h-1zM27 4h1v1h-1zM28 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM22 5h1v1h-1zM28 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM7 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM13 6h1v1h-1zM14 6h1v1h-1zM15 6h1v1h-1zM16 6h1v1h-1zM19 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM25 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM7 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM15 7h1v1h-1zM17 7h1v1h-1zM18 7h1v1h-1zM19 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM25 7h1v1h-1zM26 7h1v1h-1zM28 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM13 8h1v1h-1zM14 8h1v1h-1zM15 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM19 9h1v1h-1zM22 9h1v1h-1zM28 9h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM25 10h1v1h-1zM26 10h1v1h-1zM27 10h1v1h-1zM28 10h1v1h-1zM12 11h1v1h-1zM15 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM22 12h1v1h-1zM23 12h1v1h-1zM24 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM7 13h1v1h-1zM11 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM27 13h1v1h-1zM10 14h1v1h-1zM13 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM19 14h1v1h-1zM21 14h1v1h-1zM22 14h1v1h-1zM23 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM28 14h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM8 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM20 15h1v1h-1zM21 15h1v1h-1zM23 15h1v1h-1zM28 15h1v1h-1zM4 16h1v1h-1zM7 16h1v1h-1zM9 16h1v1h-1zM10 16h1v1h-1zM14 16h1v1h-1zM15 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM19 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM4 17h1v1h-1zM5 17h1v1h-1zM6 17h1v1h-1zM7 17h1v1h-1zM8 17h1v1h-1zM14 17h1v1h-1zM16 17h1v1h-1zM17 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM25 17h1v1h-1zM27 17h1v1h-1zM4 18h1v1h-1zM7 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM19 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM4 19h1v1h-1zM6 19h1v1h-1zM7 19h1v1h-1zM8 19h1v1h-1zM11 19h1v1h-1zM12 19h1v1h-1zM13 19h1v1h-1zM16 19h1v1h-1zM18 19h1v1h-1zM19 19h1v1h-1zM20 19h1v1h-1zM21 19h1v1h-1zM23 19h1v1h-1zM24 19h1v1h-1zM28 19h1v1h-1zM4 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM9 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM17 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM22 20h1v1h-1zM23 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM12 21h1v1h-1zM13 21h1v1h-1zM15 21h1v1h-1zM17 21h1v1h-1zM19 21h1v1h-1zM20 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM4 22h1v1h-1zM5 22h1v1h-1zM6 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM9 22h1v1h-1zM10 22h1v1h-1zM13 22h1v1h-1zM14 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h1v1h-1zM27 22h1v1h-1zM28 22h1v1h-1zM4 23h1v1h-1zM10 23h1v1h-1zM12 23h1v1h-1zM13 23h1v1h-1zM16 23h1v1h-1zM20 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM4 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM16 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM19 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM4 25h1v1h-1zM6 25h1v1h-1zM7 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM15 25h1v1h-1zM22 25h1v1h-1zM24 25h1v1h-1zM25 25h1v1h-1zM26 25h1v1h-1zM27 25h1v1h-1zM28 25h1v1h-1zM4 26h1v1h-1zM6 26h1v1h-1zM7 26h1v1h-1zM8 26h1v1h-1zM10 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM16 26h1v1h-1zM19 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM4 27h1v1h-1zM10 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM24 27h1v1h-1zM25 27h1v1h-1zM28 27h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM7 28h1v1h-1zM8 28h1v1h-1zM9 28h1v1h-1zM10 28h1v1h-1zM12 28h1v1h-1zM13 28h1v1h-1zM15 28h1v1h-1zM16 28h1v1h-1zM17 28h1v1h-1zM23 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM27 28h1v1h-1zM28 28h1v1h-1z\" fill=\"#000000\"/>\u003c/svg>"}],"logo":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 979.12 135\" width=\"100%\" role=\"img\" aria-label=\"alfredopina.ai\">\u003cpath d=\"M21.3 104L29.57 64.6L13.97 64.6L16.03 54.8L31.63 54.8L33.5 45.9Q34.95 39 40.19 35Q45.43 31 53.03 31L69.13 31L67.11 40.6L51.21 40.6Q48.41 40.6 46.57 42Q44.73 43.4 44.18 46L42.33 54.8L64.13 54.8L62.07 64.6L40.27 64.6L32 104ZM64.3 104L89.56 75.6L77.05 49L89.45 49L95.96 64.2Q96.41 65.4 96.82 66.75Q97.24 68.1 97.45 69Q97.94 68.1 98.92 66.75Q99.91 65.4 100.86 64.2L113.75 49L126.15 49L102.44 75.7L115.7 104L103.3 104L96.07 87.5Q95.62 86.3 95.23 84.8Q94.85 83.3 94.64 82.4Q94.05 83.3 92.98 84.8Q91.92 86.3 90.87 87.5L76.6 104Z\" fill=\"#6b9fff\"/>\u003crect x=\"175\" y=\"0\" width=\"3\" height=\"135\" fill=\"#ffffff\" fill-opacity=\"0.16\"/>\u003cpath d=\"M258.99 103.61Q253.01 103.61 248.18 101.48Q243.35 99.36 240.53 95.33Q237.72 91.31 237.72 85.44Q237.72 79.69 240.53 75.78Q243.35 71.87 248.3 69.86Q253.24 67.85 259.57 67.85L276.01 67.85L276.01 64.4Q276.01 59.91 273.25 57.09Q270.49 54.28 264.63 54.28Q258.88 54.28 255.94 56.98Q253.01 59.68 252.09 63.93L239.9 59.91Q241.28 55.43 244.33 51.75Q247.38 48.07 252.44 45.82Q257.5 43.58 264.86 43.58Q276.01 43.58 282.39 49.16Q288.77 54.74 288.77 65.32L288.77 87.63Q288.77 91.08 292 91.08L296.83 91.08L296.83 102L287.51 102Q283.37 102 280.73 99.93Q278.08 97.86 278.08 94.3L278.08 94.07L276.13 94.07Q275.44 95.68 273.71 97.98Q271.99 100.28 268.48 101.94Q264.97 103.61 258.99 103.61ZM261.18 92.8Q267.73 92.8 271.87 89.06Q276.01 85.33 276.01 79L276.01 77.85L260.37 77.85Q256.12 77.85 253.47 79.69Q250.83 81.53 250.83 85.1Q250.83 88.55 253.59 90.67Q256.35 92.8 261.18 92.8ZM306.02 102L306.02 21.5L319.25 21.5L319.25 102ZM344.21 102L344.21 56.11L329.03 56.11L329.03 45.19L344.21 45.19L344.21 33.69Q344.21 28.05 347.48 24.78Q350.76 21.5 356.17 21.5L370.89 21.5L370.89 32.42L360.54 32.42Q357.32 32.42 357.32 35.88L357.32 45.19L372.96 45.19L372.96 56.11L357.32 56.11L357.32 102ZM382.85 102L382.85 45.19L395.84 45.19L395.84 51.75L397.8 51.75Q399.06 48.18 402.05 46.57Q405.04 44.96 409.18 44.96L416.08 44.96L416.08 56.69L408.95 56.69Q403.2 56.69 399.64 59.74Q396.07 62.79 396.07 69.11L396.07 102ZM450.01 103.61Q441.5 103.61 435 99.99Q428.5 96.37 424.88 89.75Q421.26 83.14 421.26 74.29L421.26 72.91Q421.26 63.93 424.82 57.38Q428.39 50.83 434.83 47.2Q441.27 43.58 449.66 43.58Q457.94 43.58 464.15 47.2Q470.36 50.83 473.81 57.38Q477.26 63.93 477.26 72.68L477.26 77.39L434.6 77.39Q434.83 84.06 439.31 88.09Q443.8 92.11 450.35 92.11Q456.79 92.11 459.9 89.29Q463 86.48 464.61 82.91L475.54 88.55Q473.93 91.65 470.88 95.16Q467.83 98.67 462.77 101.14Q457.71 103.61 450.01 103.61ZM434.71 67.38L463.81 67.38Q463.35 61.75 459.49 58.42Q455.64 55.08 449.55 55.08Q443.22 55.08 439.43 58.42Q435.63 61.75 434.71 67.38ZM512.34 103.61Q505.44 103.61 499.46 100.22Q493.48 96.83 489.91 90.27Q486.35 83.72 486.35 74.52L486.35 72.68Q486.35 63.48 489.91 56.92Q493.48 50.36 499.4 46.97Q505.32 43.58 512.34 43.58Q517.63 43.58 521.31 44.85Q524.99 46.11 527.23 48.07Q529.47 50.02 530.74 52.32L532.69 52.32L532.69 21.5L545.8 21.5L545.8 102L532.92 102L532.92 94.53L530.97 94.53Q528.9 97.98 524.64 100.79Q520.39 103.61 512.34 103.61ZM516.25 92.11Q523.38 92.11 528.09 87.45Q532.81 82.8 532.81 74.17L532.81 73.02Q532.81 64.28 528.15 59.68Q523.49 55.08 516.25 55.08Q509.12 55.08 504.34 59.68Q499.57 64.28 499.57 73.02L499.57 74.17Q499.57 82.8 504.34 87.45Q509.12 92.11 516.25 92.11ZM587.78 103.61Q579.27 103.61 572.54 100.1Q565.81 96.6 561.96 90.1Q558.11 83.6 558.11 74.52L558.11 72.68Q558.11 63.59 561.96 57.04Q565.81 50.48 572.54 47.03Q579.27 43.58 587.78 43.58Q596.29 43.58 602.96 47.03Q609.63 50.48 613.48 57.04Q617.33 63.59 617.33 72.68L617.33 74.52Q617.33 83.6 613.48 90.1Q609.63 96.6 602.96 100.1Q596.29 103.61 587.78 103.61ZM587.78 91.88Q595.02 91.88 599.62 87.22Q604.22 82.57 604.22 74.17L604.22 73.02Q604.22 64.63 599.62 59.97Q595.02 55.31 587.78 55.31Q580.53 55.31 575.93 59.97Q571.33 64.63 571.33 73.02L571.33 74.17Q571.33 82.57 575.93 87.22Q580.53 91.88 587.78 91.88ZM629.64 125L629.64 45.19L642.63 45.19L642.63 52.67L644.59 52.67Q646.54 49.1 650.85 46.34Q655.17 43.58 663.22 43.58Q670.12 43.58 676.04 46.97Q681.96 50.36 685.53 56.92Q689.09 63.48 689.09 72.68L689.09 74.52Q689.09 83.72 685.53 90.27Q681.96 96.83 676.1 100.22Q670.23 103.61 663.22 103.61Q657.81 103.61 654.19 102.35Q650.57 101.08 648.32 99.01Q646.08 96.94 644.82 94.87L642.86 94.87L642.86 125ZM659.31 92.11Q666.55 92.11 671.21 87.45Q675.87 82.8 675.87 74.17L675.87 73.02Q675.87 64.28 671.15 59.68Q666.44 55.08 659.31 55.08Q652.17 55.08 647.4 59.68Q642.63 64.28 642.63 73.02L642.63 74.17Q642.63 82.8 647.4 87.45Q652.17 92.11 659.31 92.11ZM701.4 102L701.4 45.19L714.62 45.19L714.62 102ZM707.95 37.94Q704.39 37.94 701.8 35.59Q699.21 33.23 699.21 29.32Q699.21 25.41 701.8 23.05Q704.39 20.69 707.95 20.69Q711.75 20.69 714.22 23.05Q716.69 25.41 716.69 29.32Q716.69 33.23 714.22 35.59Q711.75 37.94 707.95 37.94ZM729.69 102L729.69 45.19L742.68 45.19L742.68 53.13L744.64 53.13Q746.13 49.91 750.04 47.03Q753.95 44.15 761.89 44.15Q768.44 44.15 773.5 47.15Q778.56 50.14 781.38 55.43Q784.2 60.72 784.2 67.96L784.2 102L770.97 102L770.97 69Q770.97 62.1 767.58 58.7Q764.19 55.31 757.97 55.31Q750.96 55.31 746.94 59.97Q742.91 64.63 742.91 73.25L742.91 102ZM816.28 103.61Q810.3 103.61 805.47 101.48Q800.64 99.36 797.82 95.33Q795.01 91.31 795.01 85.44Q795.01 79.69 797.82 75.78Q800.64 71.87 805.58 69.86Q810.53 67.85 816.86 67.85L833.3 67.85L833.3 64.4Q833.3 59.91 830.54 57.09Q827.78 54.28 821.92 54.28Q816.17 54.28 813.23 56.98Q810.3 59.68 809.38 63.93L797.19 59.91Q798.57 55.43 801.62 51.75Q804.67 48.07 809.72 45.82Q814.79 43.58 822.15 43.58Q833.3 43.58 839.68 49.16Q846.07 54.74 846.07 65.32L846.07 87.63Q846.07 91.08 849.29 91.08L854.12 91.08L854.12 102L844.8 102Q840.66 102 838.02 99.93Q835.37 97.86 835.37 94.3L835.37 94.07L833.42 94.07Q832.72 95.68 831 97.98Q829.28 100.28 825.77 101.94Q822.26 103.61 816.28 103.61ZM818.46 92.8Q825.02 92.8 829.16 89.06Q833.3 85.33 833.3 79L833.3 77.85L817.66 77.85Q813.41 77.85 810.76 79.69Q808.12 81.53 808.12 85.1Q808.12 88.55 810.88 90.67Q813.64 92.8 818.46 92.8Z\" fill=\"#edf0f4\"/>\u003cpath d=\"M871.48 103.61Q867.11 103.61 864.18 100.74Q861.25 97.86 861.25 93.38Q861.25 89.01 864.18 86.13Q867.11 83.26 871.48 83.26Q875.85 83.26 878.72 86.13Q881.6 89.01 881.6 93.49Q881.6 97.98 878.72 100.79Q875.85 103.61 871.48 103.61ZM912.19 103.61Q906.21 103.61 901.38 101.48Q896.55 99.36 893.73 95.33Q890.92 91.31 890.92 85.44Q890.92 79.69 893.73 75.78Q896.55 71.87 901.49 69.86Q906.44 67.85 912.77 67.85L929.21 67.85L929.21 64.4Q929.21 59.91 926.45 57.09Q923.69 54.28 917.83 54.28Q912.08 54.28 909.14 56.98Q906.21 59.68 905.29 63.93L893.1 59.91Q894.48 55.43 897.53 51.75Q900.58 48.07 905.64 45.82Q910.7 43.58 918.06 43.58Q929.21 43.58 935.59 49.16Q941.97 54.74 941.97 65.32L941.97 87.63Q941.97 91.08 945.2 91.08L950.03 91.08L950.03 102L940.71 102Q936.57 102 933.93 99.93Q931.28 97.86 931.28 94.3L931.28 94.07L929.33 94.07Q928.64 95.68 926.91 97.98Q925.19 100.28 921.68 101.94Q918.17 103.61 912.19 103.61ZM914.37 92.8Q920.93 92.8 925.07 89.06Q929.21 85.33 929.21 79L929.21 77.85L913.57 77.85Q909.32 77.85 906.67 79.69Q904.03 81.53 904.03 85.1Q904.03 88.55 906.79 90.67Q909.55 92.8 914.37 92.8ZM959.22 102L959.22 45.19L972.45 45.19L972.45 102ZM965.78 37.94Q962.21 37.94 959.63 35.59Q957.04 33.23 957.04 29.32Q957.04 25.41 959.63 23.05Q962.21 20.69 965.78 20.69Q969.58 20.69 972.05 23.05Q974.52 25.41 974.52 29.32Q974.52 33.23 972.05 35.59Q969.58 37.94 965.78 37.94Z\" fill=\"#6b9fff\"/>\u003c/svg>\n"};</script>
+<script>
+/* atajos.js — ventana visual de atajos (presentaciones y Centro). API: APAtajos.open('presentacion'|'centro'), .close(), .toggle(tipo), .abierto() */
+window.APAtajos=(function(){
+  var DATOS={
+    presentacion:[
+      ['Navegar',[[['→','↓','Espacio'],'<b>Avanza</b>: revela el siguiente bloque y luego pasa de diapositiva'],[['←','↑'],'<b>Retrocede</b>'],[['Inicio'],'Primera diapositiva'],[['Fin'],'Última diapositiva'],[['1','2','↵'],'Ir a la diapositiva <b>12</b> (escribe el número y Enter)']]],
+      ['Vistas',[[['I'],'<b>Índice del curso</b>: temas y subtemas, con punto de retorno'],[['G'],'<b>Vista general</b>: todas las diapositivas, con búsqueda'],[['S'],'<b>Modo presentador</b>: notas, siguiente y cronómetro en tu laptop'],[['F'],'Pantalla completa'],[['T'],'<b>Tema</b> oscuro / claro (para salas muy iluminadas)'],[['C'],'Volver al <b>Centro de Presentaciones</b>'],[['P'],'Imprimir o guardar como PDF'],[['?'],'Esta ayuda']]],
+      ['Video y audio',[[['V'],'Pausa o reanuda el video'],[['J','<i>/</i>','L'],'Atrasa o adelanta <b>10 segundos</b>'],[['Z'],'Video en pantalla completa'],[['A'],'Reproduce o pausa el audio']]],
+      ['Celular y mouse',[[['↔'],'Desliza el dedo a izquierda o derecha para cambiar'],[['‹','›'],'Botones de la esquina inferior derecha (aparecen al mover el mouse)'],[['#12'],'Cambia el número al final de la dirección del navegador']]]
+    ],
+    centro:[
+      ['Moverte',[[['/'],'<b>Buscar</b> un programa o una diapositiva de cualquier curso'],[['1','…','6'],'Abrir la herramienta 1 a 6'],[['Esc'],'Cerrar ventanas y la búsqueda']]],
+      ['Herramientas',[[['N'],'<b>Bloc de notas</b> general'],[['T'],'<b>Cronómetro</b> y temporizador'],[['L'],'Lista <b>antes de dar clase</b>'],[['Q'],'Mostrar mis <b>QR</b> en grande'],[['?'],'Esta ayuda']]],
+      ['Dentro de una presentación',[[['G'],'Vista general'],[['S'],'Modo presentador'],[['F'],'Pantalla completa'],[['C'],'Volver al Centro']]]
+    ]
+  };
+  var el=null;
+  function build(tipo){
+    var h='<div class="atj-box"><header><h2>Atajos de teclado</h2><button class="atj-x" type="button">Cerrar (Esc)</button></header><p class="atj-sub">'+(tipo==='centro'?'En el Centro de Presentaciones':'Para dar tu presentación sin tocar el mouse')+'</p><div class="atj-grid">';
+    DATOS[tipo].forEach(function(g){ h+='<div class="atj-card"><h3>'+g[0]+'</h3>'; g[1].forEach(function(r){ h+='<div class="atj-row"><div class="atj-keys">'+r[0].map(function(k){ return /^<i>/.test(k)?k.replace(/<\/?i>/g,'').replace(/^(.*)$/,'<i>$1</i>'):'<kbd>'+k+'</kbd>'; }).join('')+'</div><div>'+r[1]+'</div></div>'; }); h+='</div>'; });
+    h+='</div></div>';
+    return h;
+  }
+  function open(tipo){
+    if(!el){ el=document.createElement('div'); el.className='atj'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Atajos de teclado');
+      el.addEventListener('click',function(e){ if(e.target===el||e.target.classList.contains('atj-x')) close(); }); document.body.appendChild(el); }
+    el.innerHTML=build(tipo||'presentacion'); el.classList.add('open'); var x=el.querySelector('.atj-x'); if(x) x.focus();
+  }
+  function close(){ if(el) el.classList.remove('open'); }
+  function abierto(){ return !!(el&&el.classList.contains('open')); }
+  function toggle(t){ abierto()?close():open(t); }
+  document.addEventListener('keydown',function(e){ if(abierto()&&(e.key==='Escape'||e.key==='?')){ e.preventDefault(); e.stopPropagation(); close(); } },true);
+  return {open:open,close:close,toggle:toggle,abierto:abierto};
+})();
+
+/* inicio.js — Centro de Presentaciones. Sin dependencias, sin internet. Los datos los embebe build-inicio.js en window.__DATOS. */
+window.arrancarCentro=function(){
+  var D=window.__DATOS, $=function(i){return document.getElementById(i);};
+  function irA(h){ if(window.__abrirSitio&&/^abrir:/.test(h)) window.__abrirSitio(h); else location.href=h; }
+  function ls(){ try{ return window.localStorage; }catch(e){ return null; } }
+  var L=ls();
+  function get(k,def){ try{ var v=L&&L.getItem(k); return v===null||v===undefined?def:v; }catch(e){ return def; } }
+  function set(k,v){ try{ if(L) L.setItem(k,v); }catch(e){} }
+  function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function norm(t){ return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+  var herr={}; D.herramientas.forEach(function(h){ herr[h.id]=h; });
+  function icono(hid){ return '<span class="ic">'+(herr[hid]?herr[hid].icono:'')+'</span>'; }
+  function readPos(p){ try{ var v=get('ap:pos:'+p.key,null); return v?JSON.parse(v):null; }catch(e){ return null; } }
+
+  $('logo').innerHTML=D.logo; $('gen').textContent=D.generado;
+  var totalD=D.programas.reduce(function(a,p){return a+p.diapos.length;},0);
+  $('stats').textContent=D.programas.length+(D.programas.length===1?' programa':' programas')+' · '+totalD+' diapositivas indexadas · '+D.herramientas.filter(function(h){return D.programas.some(function(p){return p.herr===h.id;});}).length+' de 6 herramientas con contenido';
+
+  /* ── Herramientas y programas ── */
+  var sel=null;
+  function conteo(h){ return D.programas.filter(function(p){return p.herr===h.id;}).length; }
+  function renderTiles(){
+    $('tiles').innerHTML=D.herramientas.map(function(h,i){ var n=conteo(h);
+      return '<button type="button" class="tile" data-h="'+h.id+'" style="--c:'+h.color+'" aria-pressed="'+(sel===h.id)+'"><span class="no">'+(i+1)+'</span><span class="ic">'+h.icono+'</span><b>'+esc(h.nombre)+'</b><small>'+(n?n+(n===1?' programa':' programas'):'sin programas aún')+'</small><span class="sel">Mostrando</span></button>'; }).join('');
+  }
+  function fresco(v){
+    if(!v) return '<span class="fresh warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2zM12 10v5M12 18v.5"/></svg>Sin fecha de verificación</span>';
+    var dias=Math.max(0,Math.floor((Date.now()-new Date(v+'T12:00:00').getTime())/86400000));
+    var txt=dias===0?'hoy':dias===1?'hace 1 día':'hace '+dias+' días';
+    return dias>90?'<span class="fresh warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2zM12 10v5M12 18v.5"/></svg>Revisar · verificado '+txt+'</span>':'<span class="fresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l5 5L20 6"/></svg>Verificado '+v+' · '+txt+'</span>';
+  }
+  function cardPrograma(p,h,i){
+    var pos=readPos(p), meta='<span>'+p.diapos.length+' diapositivas</span><span>'+(p.manual?'Manual en PDF':'Sin manual')+'</span>'+(p.videos?'<span>'+p.videos+' archivos de video/audio</span>':'');
+    return '<article class="pc" style="--c:'+h.color+';animation-delay:'+(i*70)+'ms"><div class="pc-top"><span class="chip t">'+esc(p.tipo)+'</span>'+(p.horas?'<span class="chip">'+esc(p.horas)+' hr</span>':'')+fresco(p.verificado)+'</div>'
+      +'<h3>'+esc(p.nombre)+'</h3><div class="meta">'+meta+'</div>'
+      +'<div class="btns"><a class="b pri" href="'+p.url+'#1">Presentar</a><a class="b" href="'+p.url+'?clase#1">Modo clase</a><a class="b" href="'+p.url+'?general#1">Vista general</a>'+(p.manual?'<a class="b" href="'+p.manual+'" target="_blank" rel="noopener">Manual PDF</a>':'')+'</div>'
+      +(pos&&pos.i>0?'<p class="retomar">Última vez: diapositiva '+(pos.i+1)+' de '+p.diapos.length+' · <a href="'+p.url+'#'+(pos.i+1)+'">Retomar ahí</a></p>':'')+'</article>';
+  }
+  function renderProgs(){
+    var h=herr[sel]; if(!h) return;
+    $('progs-t').textContent='Programas de '+h.nombre;
+    var ps=D.programas.filter(function(p){return p.herr===h.id;});
+    $('progs').innerHTML=ps.length?ps.map(function(p,i){ return cardPrograma(p,h,i); }).join(''):'<div class="vacio"><b>Aún no hay programas de '+esc(h.nombre)+'.</b><br>Para crear uno: copia la carpeta de otro programa dentro de <b>'+esc(h.carpeta)+'</b>, ponle el nombre <b>Curso_ Nombre comercial (N hr)</b> o <b>Conferencia_ Nombre comercial (N hr)</b>, edita su <b>fuente\\contenido.json</b> y corre <b>construir.cmd</b>. Este centro se actualiza solo.</div>';
+  }
+  function elegir(id,scroll){ sel=id; renderTiles(); renderProgs(); set('ap:herr',id); if(scroll) $('progs-wrap').scrollIntoView({behavior:'smooth',block:'start'}); }
+
+  /* ── Continuar donde me quedé ── */
+  function renderContinuar(){
+    var items=D.programas.map(function(p){ return {p:p,pos:readPos(p)}; }).filter(function(x){ return x.pos&&x.pos.i>0; }).sort(function(a,b){ return b.pos.t-a.pos.t; }).slice(0,3);
+    var el=$('continuar'); if(!items.length){ el.hidden=true; return; }
+    el.hidden=false;
+    el.innerHTML=items.map(function(x){ var h=herr[x.p.herr], pc=Math.round((x.pos.i+1)/x.p.diapos.length*100);
+      return '<a class="cont" style="--c:'+h.color+'" href="'+x.p.url+'#'+(x.pos.i+1)+'">'+icono(h.id)+'<div><b>Retomar · '+esc(x.p.nombre)+'</b><small>Diapositiva '+(x.pos.i+1)+' de '+x.p.diapos.length+(x.pos.titulo?' · '+esc(x.pos.titulo):'')+'</small><div class="bar"><i style="width:'+pc+'%"></i></div></div><span class="go">Continuar</span></a>'; }).join('');
+  }
+
+  /* ── Búsqueda global (programas y diapositivas) ── */
+  var q=$('q'), res=$('res'), cur=-1, opts=[];
+  function buscar(txt){
+    var t=norm(txt).trim(); if(!t){ res.hidden=true; opts=[]; return; }
+    var out=[];
+    D.programas.forEach(function(p){ if(norm(p.nombre+' '+p.tipo).indexOf(t)>=0) out.push({k:'Programa',t:p.nombre,s:p.tipo+(p.horas?' · '+p.horas+' hr':'')+' · '+herr[p.herr].nombre,href:p.url+'#1'}); });
+    D.programas.forEach(function(p){ p.diapos.forEach(function(d,i){ if(out.length<14&&norm(d.t+' '+d.m).indexOf(t)>=0) out.push({k:'Diapositiva '+(i+1),t:d.t,s:p.nombre+(d.m?' · '+d.m:''),href:p.url+'#'+(i+1)}); }); });
+    opts=out.slice(0,12); cur=opts.length?0:-1;
+    res.hidden=false;
+    res.innerHTML=opts.length?opts.map(function(o,i){ return '<button type="button" role="option" data-i="'+i+'" class="'+(i===0?'on':'')+'"><span class="k">'+esc(o.k)+'</span><span>'+esc(o.t)+'</span><span class="s">'+esc(o.s)+'</span></button>'; }).join(''):'<div class="vacio" style="border:0;padding:16px">Sin resultados para «'+esc(txt)+'».</div>';
+  }
+  function marcar(n){ var bs=res.querySelectorAll('button'); if(!bs.length) return; cur=(n+bs.length)%bs.length; [].forEach.call(bs,function(b,i){ b.classList.toggle('on',i===cur); }); bs[cur].scrollIntoView({block:'nearest'}); }
+  q.addEventListener('input',function(){ buscar(q.value); });
+  q.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'){ e.preventDefault(); marcar(cur+1); } else if(e.key==='ArrowUp'){ e.preventDefault(); marcar(cur-1); }
+    else if(e.key==='Enter'&&opts[cur]){ irA(opts[cur].href); } else if(e.key==='Escape'){ q.value=''; res.hidden=true; q.blur(); }
+  });
+  res.addEventListener('click',function(e){ var b=e.target.closest('button[data-i]'); if(b) irA(opts[parseInt(b.getAttribute('data-i'),10)].href); });
+  document.addEventListener('click',function(e){ if(!e.target.closest('.buscador')) res.hidden=true; });
+  function foco(card){ var c=$(card); if(!c) return; c.scrollIntoView({behavior:'smooth',block:'center'}); c.classList.add('foco'); setTimeout(function(){c.classList.remove('foco');},1600); return c; }
+
+  /* ── Cronómetro y temporizador ── */
+  var T={run:false,t0:0,acc:0,cd:0,modo:'up'}, tt=null;
+  function mmss(ms){ var s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60); s%=60; function p(n){return (n<10?'0':'')+n;} return (h?h+':':'')+p(m)+':'+p(s); }
+  function pintaT(){ var ms=T.acc+(T.run?Date.now()-T.t0:0), clk=$('clk');
+    if(T.modo==='down'){ var left=T.cd-ms; clk.textContent=mmss(left); clk.classList.toggle('low',left<=60000&&left>0); if(left<=0&&T.run){ finT(); } } else { clk.textContent=mmss(ms); clk.classList.remove('low'); } }
+  function finT(){ T.run=false; T.acc=T.cd; clearInterval(tt); $('t-go').textContent='Iniciar'; var clk=$('clk'); clk.textContent='00:00'; clk.classList.remove('low'); clk.classList.add('fin'); setTimeout(function(){clk.classList.remove('fin');},4000);
+    try{ var a=new (window.AudioContext||window.webkitAudioContext)(), o=a.createOscillator(), g=a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value=880; g.gain.value=.15; o.start(); o.stop(a.currentTime+.6); }catch(e){} }
+  $('t-go').onclick=function(){ if(T.run){ T.acc+=Date.now()-T.t0; T.run=false; clearInterval(tt); this.textContent='Reanudar'; } else { T.t0=Date.now(); T.run=true; tt=setInterval(pintaT,250); this.textContent='Pausar'; } pintaT(); };
+  $('t-rs').onclick=function(){ T.run=false; T.acc=0; T.modo='up'; clearInterval(tt); $('t-go').textContent='Iniciar'; $('clk-l').textContent='Tiempo transcurrido'; pintaT(); };
+  $('t-cd').onclick=function(){ var m=Math.max(1,parseInt($('t-min').value,10)||10); T.modo='down'; T.cd=m*60000; T.acc=0; T.t0=Date.now(); T.run=true; clearInterval(tt); tt=setInterval(pintaT,250); $('t-go').textContent='Pausar'; $('clk-l').textContent='Cuenta regresiva de '+m+' min'; pintaT(); };
+
+  /* ── Bloc de notas (se guarda solo en este navegador) ── */
+  var nt=$('notas'); nt.value=get('ap:bloc',''); var ntm=null;
+  nt.addEventListener('input',function(){ set('ap:bloc',nt.value); $('n-sv').textContent='Guardado'; clearTimeout(ntm); ntm=setTimeout(function(){ $('n-sv').textContent=''; },1400); });
+  $('n-cp').onclick=function(){ nt.select(); try{ document.execCommand('copy'); $('n-sv').textContent='Copiado'; }catch(e){} };
+  $('n-dl').onclick=function(){ var b=new Blob([nt.value],{type:'text/plain;charset=utf-8'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='notas-'+new Date().toISOString().slice(0,10)+'.txt'; document.body.appendChild(a); a.click(); setTimeout(function(){a.remove();},500); };
+  $('n-bo').onclick=function(){ if(nt.value&&confirm('¿Borrar todas las notas del bloc?')){ nt.value=''; set('ap:bloc',''); } };
+
+  /* ── Antes de dar clase ── */
+  var ITEMS=['Proyector conectado en modo <b>extendido</b> (Windows + P › Extender)','Abre la presentación en <b>Chrome o Edge</b> y pulsa <b>F</b> para pantalla completa','Abre el <b>modo presentador</b> (S) y arrástralo a tu laptop','Prueba el audio y, si hay videos, uno de ellos','Material publicado en el admin y <b>código de acceso</b> verificado','Revisa la <b>fecha de verificación</b> del programa (¿hay que actualizar algo?)','Activa «No molestar»: notificaciones y correo cerrados','Ten a la mano tus <b>QR</b> (Q) para el cierre'];
+  var estado={}; try{ estado=JSON.parse(get('ap:chk','{}'))||{}; }catch(e){}
+  $('chk').innerHTML=ITEMS.map(function(t,i){ return '<li><label><input type="checkbox" data-i="'+i+'"'+(estado[i]?' checked':'')+'><span>'+t+'</span></label></li>'; }).join('');
+  $('chk').addEventListener('change',function(e){ var c=e.target; if(c.type!=='checkbox') return; estado[c.getAttribute('data-i')]=c.checked; set('ap:chk',JSON.stringify(estado)); var n=ITEMS.filter(function(_,i){return estado[i];}).length; $('c-sv').textContent=n===ITEMS.length?'Todo listo':n+' de '+ITEMS.length; });
+  $('c-rs').onclick=function(){ estado={}; set('ap:chk','{}'); [].forEach.call($('chk').querySelectorAll('input'),function(c){c.checked=false;}); $('c-sv').textContent=''; };
+
+  /* ── QR ── */
+  $('qrs').innerHTML=D.qr.map(function(c){ return '<button type="button" class="qrb" data-q="'+c.id+'" aria-label="Ampliar: '+esc(c.etiqueta)+'"><div class="q">'+c.svg+'</div>'+esc(c.etiqueta)+'</button>'; }).join('');
+  function abrirQR(){ $('qrm-g').innerHTML=D.qr.map(function(c){ return '<figure><div class="q">'+c.svg+'</div><figcaption>'+esc(c.etiqueta)+'<small>'+esc(c.url.replace('https://',''))+'</small></figcaption></figure>'; }).join(''); $('qrm').hidden=false; $('qrm-x').focus(); }
+  function cerrarQR(){ $('qrm').hidden=true; }
+  $('qrs').addEventListener('click',abrirQR); $('qrm-x').onclick=cerrarQR; $('qrm').addEventListener('click',function(e){ if(e.target===$('qrm')) cerrarQR(); });
+
+  /* ── Atajos y eventos globales ── */
+  $('b-buscar').onclick=function(){ q.focus(); q.scrollIntoView({behavior:'smooth',block:'center'}); };
+  $('b-atajos').onclick=function(){ APAtajos.open('centro'); };
+  $('tiles').addEventListener('click',function(e){ var b=e.target.closest('.tile'); if(b) elegir(b.getAttribute('data-h'),true); });
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey) return; if(APAtajos.abierto()) return;
+    var tag=e.target&&e.target.tagName, k=e.key;
+    if(tag==='INPUT'||tag==='TEXTAREA'){ return; }
+    if(!$('qrm').hidden){ if(k==='Escape'||k==='q'||k==='Q') cerrarQR(); return; }
+    if(k==='/'){ e.preventDefault(); q.focus(); }
+    else if(k==='?'){ APAtajos.open('centro'); }
+    else if(/^[1-6]$/.test(k)){ elegir(D.herramientas[parseInt(k,10)-1].id,true); }
+    else if(k==='n'||k==='N'){ e.preventDefault(); foco('d-notas'); nt.focus(); }
+    else if(k==='t'||k==='T'){ foco('d-timer'); }
+    else if(k==='l'||k==='L'){ foco('d-clase'); }
+    else if(k==='q'||k==='Q'){ abrirQR(); }
+  });
+
+  /* ── Arranque: la herramienta del último programa usado, o la primera con contenido ── */
+  var ult=D.programas.map(function(p){ return {p:p,pos:readPos(p)}; }).filter(function(x){return x.pos;}).sort(function(a,b){return b.pos.t-a.pos.t;})[0];
+  var inicial=(ult&&ult.p.herr)||get('ap:herr',null)||(D.programas[0]&&D.programas[0].herr)||D.herramientas[0].id;
+  if(!herr[inicial]) inicial=D.herramientas[0].id;
+  sel=inicial; renderTiles(); renderProgs(); renderContinuar();
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden){ renderContinuar(); renderProgs(); } });
+  addEventListener('pageshow',function(){ renderContinuar(); renderProgs(); });
+};
+
+</script>
+<script>/* sitio.js — arranque del Centro de Presentaciones cuando vive dentro del admin (Productos → Presentaciones).
+   Los programas no vienen embebidos: se piden en vivo a la API (contenedor privado) y «abrir» baja el HTML
+   de la presentación y lo abre en una pestaña nueva (blob:), con sus mismos modos (?clase, ?general) y diapositiva (#n). */
+(function(){
+  var D=window.__DATOS;
+  function aviso(t){ var m=document.querySelector('main'); if(m) m.insertAdjacentHTML('afterbegin','<p style="margin:18px 0;padding:14px 16px;border:1px solid var(--line);border-radius:10px;color:var(--text-dim)">'+t+'</p>'); }
+
+  window.__abrirSitio=function(h){
+    var s=h.slice(6), hash='', qs='', i=s.indexOf('#');
+    if(i>=0){ hash=s.slice(i); s=s.slice(0,i); }
+    i=s.indexOf('?'); if(i>=0){ qs=s.slice(i); s=s.slice(0,i); }
+    var w=window.open('','_blank');   // se abre ya, dentro del clic, para que el navegador no la bloquee
+    fetch('/api/getPresentacionAdmin?id='+encodeURIComponent(s)).then(function(r){ return r.json().then(function(b){ if(!r.ok) throw new Error(b.error||'Error de red'); return b; }); }).then(function(b){
+      // el modo (?clase / ?general) no cabe en un blob:, así que viaja dentro; el botón «Centro» de la presentación solo cierra la pestaña
+      var inj='<script>window.__APQ='+JSON.stringify(qs)+';document.addEventListener("click",function(e){if(e.target.closest("[data-a=home]")){e.preventDefault();window.close();}},true);<\/script>';
+      var html=b.html.replace('<head>',function(){ return '<head>'+inj; });
+      var url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+      if(w) w.location.href=url+hash; else window.open(url+hash,'_blank');
+    }).catch(function(e){ if(w) w.close(); alert('No se pudo abrir la presentación: '+e.message); });
+  };
+
+  fetch('/api/listPresentacionesAdmin').then(function(r){ return r.json().then(function(b){ if(!r.ok) throw new Error(b.error||'Error de red'); return b; }); }).then(function(b){
+    D.programas=b.items.map(function(p){
+      return { herr:p.herramienta, key:p.clave||p.titulo, tipo:p.tipo||'Curso', nombre:p.titulo, horas:String(p.horas||'').replace(/[^\d.,]/g,'').replace(',','.'),
+        url:'abrir:'+p.id, manual:'', videos:0, verificado:p.verificado||'', actualizado:(p.subido||'').slice(0,10), diapos:p.indice||[] };
+    });
+    window.arrancarCentro();
+    if(!D.programas.length) aviso('Todavía no hay presentaciones subidas. Usa «Subir presentación» arriba.');
+  }).catch(function(e){ window.arrancarCentro(); aviso('No se pudieron cargar las presentaciones: '+e.message); });
+
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href^="abrir:"]'); if(!a) return;
+    e.preventDefault(); window.__abrirSitio(a.getAttribute('href'));
+  });
+})();
+</script>
+</body>
+</html>

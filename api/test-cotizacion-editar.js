@@ -83,6 +83,24 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   r = await llamar({ ...base, intermediario_id: 5, actualiza_id: 7 });
   check("editar en el lugar un Borrador vía intermediario (mismos clientes): 200", r.status === 200 && r.body.actualizada === true);
 
+  // ── varios grupos ──
+  intermRow = null; process.env.CLI = "2";
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, num_grupos: 3, participantes_num: 12, participantes: "10 a 15" });
+  const g3 = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  check("3 grupos: precio de lista × 3 y 10 % sugerido", r.status === 200 && g3.inputs.numGrupos === 3 && g3.inputs.precioSugerido === 12000 && g3.inputs.descuentoPct === 10 && g3.inputs.precioFinal === 10800);
+  const sg = propGuardadas[0].snapshot;
+  check("la propuesta lleva grupos, precio por grupo y participantes exactos", sg.grupos === 3 && sg.sugeridoGrupo === 4000 && sg.totalGrupo === 3600 && sg.total === 10800 && sg.participantesNum === 12);
+  check("los términos piden OC por el total y fijan 6 meses", sg.terminos.some((t) => /orden de compra \(OC\) por el total de los 3 grupos/.test(t)) && sg.terminos.some((t) => /6 meses/.test(t)));
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, num_grupos: 2, participantes: "10 a 15" });
+  const g2 = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  check("2 grupos: 5 %", g2.inputs.descuentoPct === 5 && g2.inputs.precioFinal === 7600);
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, num_grupos: 1, participantes: "10 a 15" });
+  const g1 = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  check("1 grupo: igual que siempre y sin términos de OC", g1.inputs.numGrupos === 1 && g1.inputs.precioFinal === 4000 && propGuardadas[0].snapshot.grupos === 1 && !propGuardadas[0].snapshot.terminos.some((t) => /orden de compra/.test(t)));
+
     console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

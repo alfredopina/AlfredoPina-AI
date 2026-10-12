@@ -27,7 +27,9 @@ module.exports = async function (context, req) {
     if (buffer.length > MAX_BYTES) return fail(400, "La presentación pesa demasiado (máx. 8 MB).");
     const head = buffer.slice(0, 400).toString("utf8").toLowerCase();
     if (!head.includes("<!doctype html") && !head.includes("<html")) return fail(400, "El archivo no parece una presentación .html.");
-    const r = await subirPresentacion({ herramienta, titulo, horas, diapositivas, buffer });
+    const indice = (Array.isArray(body.indice) ? body.indice : []).slice(0, 400).map((d) => ({ t: String((d && d.t) || "").slice(0, 160), m: String((d && d.m) || "").slice(0, 120) }));
+    const tipo = body.tipo === "Conferencia" ? "Conferencia" : "Curso";
+    const r = await subirPresentacion({ herramienta, titulo, horas, diapositivas, buffer, tipo, clave: String(body.clave || titulo).slice(0, 160), verificado: String(body.verificado || "").slice(0, 10), indice });
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, id: r.id, subido: r.subido } };
   } catch (err) {
     context.log.error("Error subiendo la presentación:", err.message);

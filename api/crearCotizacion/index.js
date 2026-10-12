@@ -16,6 +16,7 @@ const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-p
 const { esPrecioManual, armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
 const { codigoCortoUnico } = require("../src/codigo-corto");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
+const { normalizarGrupos, descuentoSugerido, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
@@ -23,7 +24,6 @@ const { JSON_HEADERS } = require("../src/http");
 const TEMARIO_TIPOS = ["estandar", "personalizado"];
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
-const GRUPOS_CHICOS = ["Solo yo", "5 a 10"];
 
 
 // consecutivo por Cliente+Año: lee los folios ya usados (formato viejo y nuevo)
@@ -50,6 +50,8 @@ module.exports = async function (context, req) {
   const ciudadSede = (body.ciudad_sede || "").trim() || null;
   const participantes = (body.participantes || "").trim() || null;
   const modalidad = (body.modalidad || "").trim() || null;
+  const numGrupos = normalizarGrupos(body.num_grupos);
+  const participantesNum = normalizarParticipantesNum(body.participantes_num);
   const descuentoPctBody = body.descuento_pct != null && body.descuento_pct !== "" ? Number(body.descuento_pct) : null;
   const precioFinalBody = body.precio_final != null && body.precio_final !== "" ? Number(body.precio_final) : null;
   const fechaVigenciaBody = (body.fecha_vigencia || "").trim();
@@ -122,8 +124,9 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const precioSugerido = Math.round(horas * precioHora * 100) / 100;
-  const descuentoPct = descuentoPctBody != null ? descuentoPctBody : (GRUPOS_CHICOS.includes(participantes) ? 10 : 0);
+  // precio de lista de TODOS los grupos (horas × tarifa × grupos); el descuento sugerido sale de las reglas de cotizacion-grupos.js
+  const precioSugerido = Math.round(horas * precioHora * numGrupos * 100) / 100;
+  const descuentoPct = descuentoPctBody != null ? descuentoPctBody : descuentoSugerido({ participantes, grupos: numGrupos });
   const precioFinal = precioFinalBody != null ? precioFinalBody : Math.round(precioSugerido * (1 - descuentoPct / 100) * 100) / 100;
   const fechaVigencia = fechaVigenciaBody
     ? new Date(fechaVigenciaBody)
@@ -186,6 +189,8 @@ module.exports = async function (context, req) {
       objetivo,
       dirigidoA,
       proyectos,
+      grupos: numGrupos,
+      participantesNum,
       precioManual: precioFinalBody != null && esPrecioManual({ precioSugerido, descuentoPct, precioFinal }),
       tarifaHora: precioHora,
       precioSugerido,
@@ -221,11 +226,14 @@ module.exports = async function (context, req) {
         .input("ciudadSede", sql.NVarChar, ciudadSede)
         .input("participantes", sql.NVarChar, participantes)
         .input("modalidad", sql.NVarChar, modalidad)
+        .input("numGrupos", sql.Int, numGrupos)
+        .input("participantesNum", sql.Int, participantesNum)
         .query(
           `UPDATE Cotizacion SET contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
              temario_nombre = @temarioNombre, temas_json = @temasJson, horas = @horas, precio_sugerido = @precioSugerido,
              descuento_pct = @descuentoPct, precio_final = @precioFinal, fecha_vigencia = @fechaVigencia, blob_path = @blobPath,
-             fecha_tentativa = @fechaTentativa, ciudad_sede = @ciudadSede, participantes = @participantes, modalidad = @modalidad
+             fecha_tentativa = @fechaTentativa, ciudad_sede = @ciudadSede, participantes = @participantes, modalidad = @modalidad,
+             num_grupos = @numGrupos, participantes_num = @participantesNum
            WHERE id = @id AND estatus = 'Borrador'`
         );
       context.res = {
@@ -257,16 +265,18 @@ module.exports = async function (context, req) {
       .input("ciudadSede", sql.NVarChar, ciudadSede)
       .input("participantes", sql.NVarChar, participantes)
       .input("modalidad", sql.NVarChar, modalidad)
+        .input("numGrupos", sql.Int, numGrupos)
+        .input("participantesNum", sql.Int, participantesNum)
       .query(
         `INSERT INTO Cotizacion
           (folio, solicitud_id, cliente_id, cliente_final_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json,
            horas, precio_sugerido, descuento_pct, precio_final, fecha_vigencia, reemplaza_a_folio, blob_path,
-           fecha_tentativa, ciudad_sede, participantes, modalidad)
+           fecha_tentativa, ciudad_sede, participantes, modalidad, num_grupos, participantes_num)
          OUTPUT INSERTED.id
          VALUES
           (@folio, @solicitudId, @clienteId, @clienteFinalId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson,
            @horas, @precioSugerido, @descuentoPct, @precioFinal, @fechaVigencia, @reemplazaAFolio, @blobPath,
-           @fechaTentativa, @ciudadSede, @participantes, @modalidad)`
+           @fechaTentativa, @ciudadSede, @participantes, @modalidad, @numGrupos, @participantesNum)`
       );
 
     if (reemplazaAFolio) {

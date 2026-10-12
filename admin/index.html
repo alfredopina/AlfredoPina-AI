@@ -3669,6 +3669,16 @@
               <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
               <div class="radm-form-row" style="margin:0;">
                 <div class="radm-field">
+                  <label>NÚMERO DE GRUPOS</label>
+                  <input type="number" id="cotNumGrupos" min="1" max="20" step="1" value="1">
+                  <span class="radm-hint">2 grupos = 5 % · 3 o más = 10 %</span>
+                </div>
+                <div class="radm-field">
+                  <label>PARTICIPANTES POR GRUPO (OPCIONAL)</label>
+                  <input type="number" id="cotParticipantesNum" min="1" max="500" step="1" placeholder="Número exacto">
+                  <span class="radm-hint">Para mostrar el costo por participante</span>
+                </div>
+                <div class="radm-field">
                   <label>DESCUENTO %</label>
                   <input type="number" id="cotDescuentoPct" min="0" max="100" step="1">
                 </div>
@@ -13445,6 +13455,9 @@
       Ganada: 'won', Perdida: 'lost', Reemplazada: 'replaced', Expirada: 'expired',
     };
     const GRUPOS_CHICOS = ['Solo yo', '5 a 10'];
+    // mismas reglas que api/src/cotizacion-grupos.js: 2 grupos 5 %, 3 o más 10 %; no se acumula con el 10 % de grupos chicos (gana el mayor)
+    const gruposDeForm = () => Math.min(20, Math.max(1, Math.round(Number(document.getElementById('cotNumGrupos').value)) || 1));
+    const descuentoPorGruposCot = n => n >= 3 ? 10 : n === 2 ? 5 : 0;
     const NIVEL_LABEL = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
 
     function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -14040,7 +14053,7 @@
           </td>
           <td><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO_COT[tipo]}${tipo}</span></td>
           <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</td>
-          <td>${escapeHtml(programaClaveCot(c))}</td>
+          <td>${escapeHtml(programaClaveCot(c))}${(c.num_grupos || 1) > 1 ? `<div class="sol-hora">${c.num_grupos} grupos</div>` : ''}</td>
           <td><div class="radm-mono">${fmtMoney(c.precio_final)}</div>${vigenciaHtml(c)}</td>
           <td>
             <select class="cot-estatus-select" data-id="${c.id}" aria-label="Estatus de ${escapeHtml(c.folio)}">
@@ -14193,7 +14206,7 @@
             <button type="button" class="cot-cb" data-acc="menu" data-id="${c.id}" title="Acciones" aria-label="Acciones" aria-haspopup="menu" aria-expanded="${cotMenu === c.id}">${ICO_AJUSTES}</button>
             ${cotMenu === c.id ? menuCotHtml(c) : ''}
           </div>
-          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
+          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${(c.num_grupos || 1) > 1 ? `<span class="cot-ex" title="Cotización de varios grupos: el monto es el total">${c.num_grupos} grupos</span>` : ''}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
           <div class="cot-tool" style="color:${meta.color || 'var(--text-dim)'}" data-tip="${escapeHtml(c.folio)}" title="${escapeHtml(c.folio)}" aria-label="Folio ${escapeHtml(c.folio)}">${meta.icon || ''}</div>
         </div>`;
     }
@@ -14336,6 +14349,7 @@
             cliente: { id: c.cliente_id, nombre: c.cliente, codigo: c.cliente_codigo },
             clienteFinal: c.cliente_final_id ? { id: c.cliente_final_id, nombre: c.cliente_final, codigo: '' } : null,
             cotizacionId: c.id, nombreCurso: c.temario_nombre || '', herramienta: c.herramienta, horas: c.horas,
+            numGrupos: c.num_grupos || 1, numero: 1,
           });
         }
         return;
@@ -14653,18 +14667,26 @@
         return;
       }
       const precioHora = tarifasCache[herramienta];
-      const precioSugerido = horas * precioHora;
-      const descuentoSugerido = GRUPOS_CHICOS.includes(cotSolicitudActual.participantes) ? 10 : 0;
+      const grupos = gruposDeForm();
+      const precioSugerido = horas * precioHora * grupos; // lista de TODOS los grupos
+      const descuentoSugerido = Math.max(GRUPOS_CHICOS.includes(cotSolicitudActual.participantes) ? 10 : 0, descuentoPorGruposCot(grupos));
       const descuentoInput = document.getElementById('cotDescuentoPct');
       if(!descuentoInput.dataset.tocado) descuentoInput.value = descuentoSugerido;
       const descuentoPct = Number(descuentoInput.value) || 0;
       const precioFinal = Math.round(precioSugerido * (1 - descuentoPct / 100) * 100) / 100;
       const precioFinalInput = document.getElementById('cotPrecioFinal');
       if(!precioFinalInput.dataset.tocado) precioFinalInput.value = precioFinal.toFixed(2);
-      calcEl.innerHTML = `${horas} hr × ${fmtMoney(precioHora)}/hr = <b>${fmtMoney(precioSugerido)}</b>` +
+      calcEl.innerHTML = `${horas} hr × ${fmtMoney(precioHora)}/hr${grupos > 1 ? ' × ' + grupos + ' grupos' : ''} = <b>${fmtMoney(precioSugerido)}</b>` +
+        (grupos > 1 ? ` · ${fmtMoney(precioFinal / grupos)} por grupo` : '') +
         (descuentoPct ? ` · descuento ${descuentoPct}% → <b>${fmtMoney(precioFinal)}</b>` : '');
       actualizarPrecioFinalFmt();
     }
+    // cambiar el número de grupos es un cambio de fondo: el descuento y el precio vuelven a sugerirse (siguen siendo editables)
+    document.getElementById('cotNumGrupos').addEventListener('input', () => {
+      delete document.getElementById('cotDescuentoPct').dataset.tocado;
+      delete document.getElementById('cotPrecioFinal').dataset.tocado;
+      actualizarPrecioSugerido();
+    });
     document.getElementById('cotDescuentoPct').addEventListener('input', () => {
       document.getElementById('cotDescuentoPct').dataset.tocado = '1';
       actualizarPrecioSugerido();
@@ -14682,6 +14704,8 @@
       cotActualizaIdActual = opts.actualizaId || null;
       renderDetalleResumen(sol);
       document.getElementById('cotFechaVigencia').value = defaultFechaVigencia();
+      document.getElementById('cotNumGrupos').value = opts.numGrupos || 1;
+      document.getElementById('cotParticipantesNum').value = opts.participantesNum || '';
       const descuentoInput = document.getElementById('cotDescuentoPct');
       const precioInput = document.getElementById('cotPrecioFinal');
       if(opts.descuentoInicial != null){ descuentoInput.value = opts.descuentoInicial; descuentoInput.dataset.tocado = '1'; }
@@ -14744,6 +14768,7 @@
         modalidad: sol.modalidad, participantes: sol.participantes,
         ciudad_sede: sol.ciudad_sede, fecha_tentativa: sol.fecha_tentativa,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
+        num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
         dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
       };
@@ -14781,6 +14806,7 @@
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
         precio_final: precioFinal,
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
+        num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
         dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
@@ -14834,6 +14860,8 @@
         intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id } : null,
         precioFinalInicial: c.precio_final,
         descuentoInicial: c.descuento_pct,
+        numGrupos: c.num_grupos || 1,
+        participantesNum: c.participantes_num || null,
       });
     }
 
@@ -16254,7 +16282,7 @@
       const wrap = document.getElementById(targetWrapId);
 
       wrap.innerHTML = `
-        <h3 class="radm-form-title">${editando ? 'Editando Grupo: ' + escapeHtml(g.grupo_codigo || g.cliente) : 'Nuevo Grupo'}</h3>
+        <h3 class="radm-form-title">${editando ? 'Editando Grupo: ' + escapeHtml(g.grupo_codigo || g.cliente) : 'Nuevo Grupo' + (precarga && precarga.numGrupos > 1 ? ' · ' + precarga.numero + ' de ' + precarga.numGrupos + ' de la cotización' : '')}</h3>
         <div class="radm-form">
           <div class="radm-toggles-block" style="display:flex; flex-direction:row; flex-wrap:wrap; gap:18px; padding:14px 16px; border:1px solid var(--line); border-radius:10px; margin-bottom:20px; background:var(--panel-2);">
             <div class="radm-switch-row">
@@ -16707,6 +16735,13 @@
             toast('Grupo guardado.', true);
           }
           volverDeModificar();
+          // cotización de varios grupos: ofrece crear el siguiente (los grupos que falten se pueden crear después a mano)
+          if(!editando && precarga && precarga.numGrupos > precarga.numero){
+            const sig = precarga.numero + 1;
+            const si = await confirmarAccion({ variante: 'neutral', titulo: 'Grupo ' + precarga.numero + ' de ' + precarga.numGrupos + ' creado',
+              mensaje: 'La cotización cubre ' + precarga.numGrupos + ' grupos. ¿Creas ahora el grupo ' + sig + '?', textoConfirmar: 'Crear grupo ' + sig, textoCancelar: 'Después' });
+            if(si) window.crearGrupoDesdeCotizacion(Object.assign({}, precarga, { numero: sig }));
+          }
         } catch(e){
           toast('No se pudo guardar: ' + e.message, false);
           btn.disabled = false; btn.textContent = editando ? 'Guardar cambios' : 'Guardar';
@@ -16758,6 +16793,10 @@
         if(precarga.herramienta) gruHerramientasMsel.set([precarga.herramienta]);
         document.getElementById('gruNombreCurso').value = precarga.nombreCurso || '';
         if(precarga.horas) document.getElementById('gruHoras').value = precarga.horas;
+        if(precarga.numGrupos > 1){
+          document.getElementById('gruToggleMultiGrupo').checked = true;
+          document.getElementById('gruGrupoField').hidden = false;
+        }
       }
     }
 
@@ -18075,6 +18114,8 @@
           f('horas','DECIMAL(6,1)'),
           f('precio_sugerido','DECIMAL(10,2)',{opt:true}),
           f('descuento_pct','DECIMAL(5,2)',{opt:true}),
+          f('num_grupos','INT',{extra:'default 1; el precio es el total de todos los grupos'}),
+          f('participantes_num','INT',{opt:true,extra:'exacto por grupo'}),
           f('precio_final','DECIMAL(10,2)'),
           f('fecha_creacion','DATETIME2'),
           f('fecha_envio','DATETIME2',{opt:true}),

@@ -53,7 +53,7 @@ module.exports = async function (context, req) {
     if (r.primera) {
       const s = r.snapshot;
       const enlace = `https://www.alfredopina.ai/propuesta/${codigo}`;
-      const filas = [["Propuesta", `${s.folio} — ${s.programa}`], ["Cliente", s.cliente], ["Cliente final", s.clienteFinal], ["Aceptó", nombre], ["Contacto", r.contacto], ["Adicionales que agregó", (r.adicionales || []).map((a) => a.n).join(", ")], ["Comentarios", comentario]].filter(([, v]) => v && String(v).trim());
+      const filas = [["Propuesta", `${s.folio} — ${s.programa}`], ["Cliente", s.cliente], ["Cliente final", s.clienteFinal], ["Grupos", s.grupos > 1 ? s.grupos + " grupos (el descuento va con OC por el total)" : ""], ["Aceptó", nombre], ["Contacto", r.contacto], ["Adicionales que agregó", (r.adicionales || []).map((a) => a.n).join(", ")], ["Comentarios", comentario]].filter(([, v]) => v && String(v).trim());
       await enviarCorreo({
         tipo: "propuestaAceptada",
         asunto: `Propuesta aceptada: ${s.folio} — ${s.cliente}`.slice(0, 150),

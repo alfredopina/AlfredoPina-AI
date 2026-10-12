@@ -436,9 +436,9 @@
     <div class="inv">
       <div class="inv-l"><div class="resumen rv" id="resumen"></div><div class="adic rv d1" id="adicWrap" hidden><div class="adic-h">Adicionales · sin costo</div><div id="adic"></div></div></div>
       <div class="precio rv d1">
-        <div class="lbl">Inversión total</div>
+        <div class="lbl" id="lblInv">Inversión total</div>
         <div class="monto"><span id="monto">$0</span><small>MXN</small></div>
-        <div class="mas-iva">Antes de impuestos · se agrega IVA</div>
+        <div class="mas-iva" id="masIva">Antes de impuestos · se agrega IVA</div>
         <div class="desg" id="desg"></div>
         <div class="formula-mini" id="fmini"></div>
         <div class="incluye" id="incluye"></div>
@@ -641,7 +641,7 @@
   else vigTxt = `Vigente hasta <b>${fecha(D.vigencia)}</b> · ${dias} días`;
   $('hChips').innerHTML =
     `<span class="chip">${ico.clock}<b>${D.horas} horas</b></span>${D.modalidad ? `<span class="chip">${ico.mode}${esc(D.modalidad)}</span>` : ''}` +
-    `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes</span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
+    `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes${D.grupos > 1 ? ' por grupo' : ''}</span>` : ''}${D.grupos > 1 ? `<span class="chip">${ico.users}<b>${D.grupos} grupos</b></span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
     `<span class="chip vig ${vigEstado}">${vigEstado === 'ok' ? ico.calOk : ico.alerta}${vigTxt}</span>`;
   $('hObj').textContent = D.objetivo || ''; $('hDir').textContent = D.dirigido || '';
   $('hObj').parentElement.hidden = !D.objetivo; $('hDir').parentElement.hidden = !D.dirigido; $('hObj').closest('.obj-dir').hidden = !D.objetivo && !D.dirigido;
@@ -731,16 +731,31 @@
   $('tTotalTxt').textContent = `en ${D.temas.length} bloques más el proyecto final · ` + `=SUMA(A1:A${D.temas.length})`;
 
   // ── inversión ──
+  // varios grupos: la cifra grande es el precio POR GRUPO (se compara contra un grupo, no contra la suma); el total va en el desglose
+  const G = D.grupos || 1, multi = G > 1;
+  const montoHero = multi ? (D.totalGrupo || D.total / G) : D.total;
+  $('lblInv').textContent = multi ? 'Inversión por grupo' : 'Inversión total';
+  if(multi) $('masIva').textContent = 'Por grupo · antes de impuestos · se agrega IVA';
   $('resumen').innerHTML = [
-    ['PROGRAMA', D.programa], ['DURACIÓN', D.horas + ' horas'], D.modalidad ? ['MODALIDAD', D.modalidad] : null, D.participantes ? ['PARTICIPANTES', D.participantes] : null,
+    ['PROGRAMA', D.programa], ['DURACIÓN', D.horas + (multi ? ' horas por grupo' : ' horas')], multi ? ['GRUPOS', G + ' · ' + (D.horas * G) + ' h en total'] : null, D.modalidad ? ['MODALIDAD', D.modalidad] : null, D.participantes ? ['PARTICIPANTES', D.participantes + (multi ? ' por grupo' : '')] : null,
     D.ciudad ? ['SEDE', D.ciudad] : null, D.fechaTentativa ? ['FECHA TENTATIVA', D.fechaTentativa] : null, ['EMITIDA', fecha(D.emitida)], ['VIGENCIA', 'Hasta ' + fecha(D.vigencia)],
   ].filter(Boolean).map(([k, v]) => `<div class="rrow"><span>${k}</span><span>${esc(v)}</span></div>`).join('');
   // Desglose solo cuando el precio sale de horas × tarifa (− descuento). Si el precio se ajustó a mano, o quedó por encima
   // del sugerido, se muestra únicamente el total: un ajuste hacia arriba nunca debe verse como recargo.
   const dif = D.sugerido - D.total;
   const mostrarDesg = !D.manual && dif >= -0.5;
-  $('desg').hidden = !mostrarDesg; $('fmini').hidden = !mostrarDesg;
-  if(mostrarDesg){
+  $('desg').hidden = !(mostrarDesg || multi); $('fmini').hidden = !mostrarDesg;
+  if(multi){
+    // con precio manual no se muestra lista ni ahorro: solo grupos, total y costo por participante
+    const ahorro = D.sugerido - D.total, conAhorro = mostrarDesg && ahorro > 0.5;
+    $('desg').innerHTML =
+      `<div><span>${G} grupos · ${D.horas} h por grupo</span><b>${D.horas * G} h en total</b></div>` +
+      (conAhorro ? `<div><span>Un solo grupo (precio de lista)</span><b>${money(D.sugeridoGrupo)}</b></div>` : '') +
+      `<div><span>Total del programa · ${G} grupos</span><b>${money(D.total)}</b></div>` +
+      (conAhorro ? `<div class="desc"><span>Ahorro por ${G} grupos (${String(D.descuentoPct).replace('.0', '')} %)</span><b>− ${money(ahorro)}</b></div>` : '') +
+      (D.participantesNum ? `<div><span>≈ por participante (cada grupo)</span><b>${money(montoHero / D.participantesNum)}</b></div>` : '');
+    if(mostrarDesg) $('fmini').textContent = D.descuentoPct ? `=HORAS × TARIFA × GRUPOS × (1 − ${String(D.descuentoPct).replace('.0', '')}%)` : '=HORAS × TARIFA × GRUPOS';
+  } else if(mostrarDesg){
     $('desg').innerHTML = `<div><span>${D.horas} h × ${money(D.tarifaHora)} por hora</span><b>${money(D.sugerido)}</b></div>` +
       (dif > 0.5 ? `<div class="desc"><span>${D.descuentoPct ? 'Descuento (' + String(D.descuentoPct).replace('.0', '') + ' %)' : 'Descuento'}</span><b>− ${money(dif)}</b></div>` : '');
     $('fmini').textContent = D.descuentoPct ? `=HORAS × TARIFA × (1 − ${String(D.descuentoPct).replace('.0', '')}%)` : '=HORAS × TARIFA';
@@ -814,7 +829,7 @@
   function contar(el, a, b, ms, fmt){ if(RM){ el.textContent = fmt(b); return; } const t0 = performance.now(); (function f(t){ const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(a + (b - a) * e); if(k < 1) requestAnimationFrame(f); })(t0); }
   const hechos = new Set();
   // el precio baja de arriba hacia abajo: arranca en 99,999 (o 999,999…, según el tamaño del real) y cae hasta el monto
-  const topeMonto = Math.pow(10, String(Math.round(D.total)).length) - 1;
+  const topeMonto = Math.pow(10, String(Math.round(montoHero)).length) - 1;
   $('monto').textContent = money(topeMonto);
   const kpiTxt = b => (+b.dataset.n).toLocaleString('es-MX') + '+';
   const io = new IntersectionObserver(es => es.forEach(en => {
@@ -822,7 +837,7 @@
     const t = en.target;
     t.classList.add('in');
     if(t.classList.contains('quien') && !hechos.has('kpi')){ hechos.add('kpi'); document.querySelectorAll('.kpi b').forEach(b => contar(b, 0, +b.dataset.n, 1700, v => Math.round(v).toLocaleString('es-MX') + '+')); }
-    if(t.classList.contains('precio') && !hechos.has('monto')){ hechos.add('monto'); contar($('monto'), topeMonto, D.total, 2000, v => money(Math.round(v))); }
+    if(t.classList.contains('precio') && !hechos.has('monto')){ hechos.add('monto'); contar($('monto'), topeMonto, montoHero, 2000, v => money(Math.round(v))); }
     if(t.dataset.chart === 'proyecto' && !hechos.has('proyecto')){ hechos.add('proyecto'); contar($('pNum'), 0, 80, 1500, v => Math.round(v)); contar($('aNum'), 0, 20, 1500, v => Math.round(v)); }
     if(t.dataset.chart === 'reporte' && !hechos.has('gauge')){ hechos.add('gauge'); const arc = $('gArc'); arc.style.transition = RM ? 'none' : 'stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)'; arc.style.strokeDashoffset = 220 * (1 - .87); contar($('gNum'), 0, 87, 1400, v => Math.round(v)); }
   }), {threshold:.18});
@@ -830,7 +845,7 @@
 
   // valores finales sin depender de la animación (movimiento reducido e impresión)
   function valoresFinales(){
-    $('monto').textContent = money(D.total);
+    $('monto').textContent = money(montoHero);
     $('gNum').textContent = '87'; $('gArc').style.transition = 'none'; $('gArc').style.strokeDashoffset = 220 * .13;
     $('pNum').textContent = '80'; $('aNum').textContent = '20';
     document.querySelectorAll('.kpi b').forEach(b => { b.textContent = kpiTxt(b); });

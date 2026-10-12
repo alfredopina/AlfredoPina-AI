@@ -2104,7 +2104,16 @@
   /* Toolbar (buscador) — vive fuera de #pendGrid a propósito: si estuviera
      dentro, cada render() (que reemplaza el innerHTML completo) le quitaría
      el foco al input en cada tecleo. */
-  .pend-toolbar{ margin-bottom:16px; }
+  .pend-toolbar{ margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px 18px; flex-wrap:wrap; }
+  /* Zoom del tablero: usa la propiedad zoom (la rejilla se re-acomoda, así caben más contenedores por fila y hay menos scroll hacia abajo) */
+  .pend-zoom{ display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px 10px; }
+  .pend-zoom > svg{ width:16px; height:16px; color:var(--text-faint); flex:none; }
+  .pend-zoom input[type=range]{ width:130px; accent-color:var(--blue-bright); cursor:pointer; }
+  .pend-zoom-btn{ width:26px; height:26px; flex:none; border:1px solid var(--line); border-radius:6px; background:var(--panel-2); color:var(--text); font-size:16px; line-height:1; cursor:pointer; }
+  .pend-zoom-btn:hover:not(:disabled){ border-color:var(--blue-bright); }
+  .pend-zoom-btn:disabled{ opacity:.4; cursor:default; }
+  .pend-zoom-val{ min-width:54px; border:1px solid var(--line); border-radius:6px; background:none; color:var(--text); font-family:var(--mono); font-size:12px; padding:4px 8px; cursor:pointer; }
+  .pend-zoom-val:hover{ border-color:var(--blue-bright); }
   .pend-search{
     display:flex; align-items:center; gap:8px; max-width:360px; background:var(--panel); border:1px solid var(--line);
     border-radius:8px; padding:9px 12px;
@@ -4685,6 +4694,13 @@
           <div class="pend-search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
             <input type="text" id="pendBuscar" placeholder="Buscar en tus pendientes…">
+          </div>
+          <div class="pend-zoom" role="group" aria-label="Zoom de los contenedores">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35M8 11h6" stroke-linecap="round"/></svg>
+            <button type="button" class="pend-zoom-btn" id="pendZoomMenos" aria-label="Alejar" title="Alejar (ver más contenedores a la vez)">−</button>
+            <input type="range" id="pendZoomRango" min="50" max="120" step="10" value="100" aria-label="Zoom de los contenedores">
+            <button type="button" class="pend-zoom-btn" id="pendZoomMas" aria-label="Acercar" title="Acercar">+</button>
+            <button type="button" class="pend-zoom-val" id="pendZoomVal" title="Volver al 100 %">100 %</button>
           </div>
         </div>
         <div class="pend-grid" id="pendGrid"></div>
@@ -18024,6 +18040,31 @@
       pendSearch = e.target.value.trim().toLowerCase();
       render();
     });
+
+    // Zoom del tablero (50 %–120 %): se aplica con la propiedad zoom a #pendGrid, que re-acomoda las columnas (al alejar caben
+    // más contenedores por fila y hay menos scroll hacia abajo). Se recuerda entre sesiones en este navegador.
+    (function(){
+      const MIN = 50, MAX = 120, PASO = 10, CLAVE = 'pendZoom';
+      const grid = document.getElementById('pendGrid');
+      const rango = document.getElementById('pendZoomRango'), val = document.getElementById('pendZoomVal');
+      const menos = document.getElementById('pendZoomMenos'), mas = document.getElementById('pendZoomMas');
+      const limitar = (n) => Math.min(MAX, Math.max(MIN, Math.round(n / PASO) * PASO));
+      function poner(n, guardar){
+        const z = limitar(n);
+        grid.style.zoom = z === 100 ? '' : String(z / 100);
+        rango.value = z; val.textContent = z + ' %';
+        val.title = z === 100 ? 'Zoom al 100 %' : 'Volver al 100 %';
+        menos.disabled = z <= MIN; mas.disabled = z >= MAX;
+        if(guardar){ try { localStorage.setItem(CLAVE, String(z)); } catch(e){} }
+      }
+      let inicial = 100;
+      try { const g = Number(localStorage.getItem(CLAVE)); if(g) inicial = g; } catch(e){}
+      poner(inicial, false);
+      rango.addEventListener('input', () => poner(Number(rango.value), true));
+      menos.addEventListener('click', () => poner(Number(rango.value) - PASO, true));
+      mas.addEventListener('click', () => poner(Number(rango.value) + PASO, true));
+      val.addEventListener('click', () => poner(100, true));
+    })();
 
     cargarPendientes();
   })();

@@ -87,6 +87,18 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   r = await consultarEstadoBase({ env: ENV, fetchFn: gm, ahora: 1 });
   check("métrica falla → estado sigue bien, cuota null", r.estado === "despierta" && r.cuotaSegundos === null);
 
+  // diagnóstico de la cuota: el porqué sale en cuotaDiag y la agregación puede ser average
+  _reiniciarCache();
+  const h = crearFetch({ status: "Online" });
+  r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("insights") ? { ok: false, status: 400, json: async () => ({ error: { code: "BadRequest" } }) } : h(u, o)), ahora: 1 });
+  check("métrica con 400 → cuotaDiag explica", r.cuotaSegundos === null && /http 400/.test(r.cuotaDiag) && /BadRequest/.test(r.cuotaDiag));
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("insights") ? { ok: true, status: 200, json: async () => ({ value: [{ name: { value: "free_amount_remaining" }, timeseries: [{ data: [{ average: 5000.4 }] }] }] }) } : h(u, o)), ahora: 1 });
+  check("agregación average también sirve", r.cuotaSegundos === 5000 && r.cuotaDiag === undefined);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("insights") ? { ok: true, status: 200, json: async () => ({ value: [] }) } : h(u, o)), ahora: 1 });
+  check("sin datos → cuotaDiag lo dice", r.cuotaSegundos === null && /sin datos/.test(r.cuotaDiag));
+
   // la Function: protegida por ruta y devuelve el cuerpo
   const ctx = {};
   process.env.ESTADO_BD_TENANT_ID = "";

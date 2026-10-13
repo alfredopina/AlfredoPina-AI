@@ -31,7 +31,7 @@ function leerConfiguracion(env) {
   return c.tenant && c.cliente && c.secreto && /^\/subscriptions\/[^/]+\/resourceGroups\/[^/]+\/providers\/Microsoft\.Sql\/servers\/[^/]+\/databases\/[^/]+$/i.test(c.recurso) ? c : null;
 }
 
-const cache = { token: null, venceEn: 0, metrica: null, metricaEn: 0 };
+const cache = { token: null, venceEn: 0, metrica: null, metricaEn: 0, diag: null };
 
 async function obtenerToken(cfg, fetchFn, ahora) {
   if (cache.token && ahora < cache.venceEn - 60000) return cache.token;
@@ -47,23 +47,33 @@ async function obtenerToken(cfg, fetchFn, ahora) {
   return cache.token;
 }
 
-// Segundos de núcleo virtual gratis que quedan en el mes (métrica free_amount_remaining). Mejor esfuerzo: si falla, null.
+// Segundos de núcleo virtual gratis que quedan en el mes (métrica free_amount_remaining). Mejor esfuerzo: si falla, null
+// y cache.diag guarda el porqué (sale en la respuesta como cuotaDiag para poder diagnosticarlo sin herramientas).
+// Sin "aggregation": Azure usa la agregación propia de la métrica; se toma el primer valor numérico que venga.
 async function leerCuota(cfg, token, fetchFn, ahora) {
   if (cache.metricaEn && ahora - cache.metricaEn < VIDA_METRICA_MS) return cache.metrica;
   cache.metricaEn = ahora; // también tras un fallo: no insistir en cada sondeo
+  cache.diag = null;
   try {
-    const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=free_amount_remaining&aggregation=Minimum&interval=PT1H&timespan=${encodeURIComponent(new Date(ahora - 3 * 3600000).toISOString() + "/" + new Date(ahora).toISOString())}`;
+    const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=free_amount_remaining&interval=PT1H&timespan=${encodeURIComponent(new Date(ahora - 24 * 3600000).toISOString() + "/" + new Date(ahora).toISOString())}`;
     const r = await fetchFn(url, { headers: { Authorization: "Bearer " + token } });
-    if (!r.ok) { cache.metrica = null; return null; }
+    if (!r.ok) {
+      let cuerpo = "";
+      try { cuerpo = JSON.stringify(await r.json()).slice(0, 300); } catch (e) { /* sin cuerpo */ }
+      cache.metrica = null; cache.diag = "http " + r.status + " " + cuerpo;
+      return null;
+    }
     const j = await r.json();
-    const series = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
-    const ult = series.filter((d) => typeof d.minimum === "number").pop();
-    cache.metrica = ult ? Math.round(ult.minimum) : null;
-  } catch (e) { cache.metrica = null; }
+    const serie = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
+    const valor = (d) => [d.average, d.minimum, d.maximum, d.total].find((v) => typeof v === "number");
+    const ult = serie.filter((d) => valor(d) !== undefined).pop();
+    cache.metrica = ult ? Math.round(valor(ult)) : null;
+    if (!ult) cache.diag = "sin datos: " + ((j.value || []).length) + " métrica(s), " + serie.length + " punto(s)" + (j.value && j.value[0] ? ", nombre " + JSON.stringify((j.value[0].name || {}).value) : "");
+  } catch (e) { cache.metrica = null; cache.diag = "error " + e.message; }
   return cache.metrica;
 }
 
-// → { estado: dormida|despertando|despierta|desconocido, crudo, cuotaSegundos, motivo? } — nunca lanza
+// → { estado: dormida|despertando|despierta|desconocido, crudo, cuotaSegundos, cuotaDiag?, motivo? } — nunca lanza
 async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora = Date.now() } = {}) {
   const cfg = leerConfiguracion(env);
   if (!cfg) return { estado: "desconocido", crudo: null, cuotaSegundos: null, motivo: "sin-configurar" };
@@ -79,12 +89,14 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const j = await r.json();
     const crudo = (j.properties && j.properties.status) || null;
     const cuotaSegundos = await leerCuota(cfg, token, fetchFn, ahora);
-    return { estado: mapearEstado(crudo), crudo, cuotaSegundos };
+    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos };
+    if (cuotaSegundos === null && cache.diag) resp.cuotaDiag = cache.diag;
+    return resp;
   } catch (err) {
     return { estado: "desconocido", crudo: null, cuotaSegundos: null, motivo: "error" };
   }
 }
 
-function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; }
+function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; cache.diag = null; }
 
 module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, _reiniciarCache };

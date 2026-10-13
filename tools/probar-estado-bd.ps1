@@ -44,3 +44,20 @@ try {
   Write-Host ('Pausa automatica (min): ' + $db.properties.autoPauseDelay)
   if ($db.properties.freeLimitExhaustionBehavior) { Write-Host ('Al agotar cuota gratis: ' + $db.properties.freeLimitExhaustionBehavior) }
 } catch { Mostrar-Error '2) leer la base (403 = el rol Lector aun no propaga o esta en otro ambito; 404 = Id. de recurso mal escrito)' $_; exit 1 }
+
+# 3) Métricas: qué ofrece Azure para esa base y qué responde con la cuota gratis (diagnóstico del tooltip)
+Write-Host ''
+Write-Host '--- Metricas disponibles en la base ---' -ForegroundColor Cyan
+try {
+  $def = Invoke-RestMethod -Method Get -Uri "https://management.azure.com$($recurso)/providers/microsoft.insights/metricDefinitions?api-version=2018-01-01" -Headers @{ Authorization = "Bearer $token" }
+  foreach ($d in $def.value) { Write-Host ('  ' + $d.name.value + '  (' + $d.unit + ', agregaciones: ' + ($d.supportedAggregationTypes -join ',') + ')') }
+} catch { Mostrar-Error '3a) listar metricas' $_ }
+
+Write-Host ''
+Write-Host '--- Respuesta de free_amount_remaining (ultimas 24 h) ---' -ForegroundColor Cyan
+try {
+  $ini = (Get-Date).ToUniversalTime().AddHours(-24).ToString('yyyy-MM-ddTHH:mm:ssZ')
+  $fin = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  $m = Invoke-RestMethod -Method Get -Uri "https://management.azure.com$($recurso)/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=free_amount_remaining&interval=PT1H&timespan=$ini/$fin" -Headers @{ Authorization = "Bearer $token" }
+  $m | ConvertTo-Json -Depth 8
+} catch { Mostrar-Error '3b) consultar free_amount_remaining' $_ }

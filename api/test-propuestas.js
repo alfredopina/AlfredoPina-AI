@@ -112,6 +112,11 @@ const principal = (roles) => ({ "x-ms-client-principal": Buffer.from(JSON.string
   const despues = await P.leerPropuesta(tabla, "ab12cd34");
   check("extender vigencia: conserva vistas y aceptación", despues.vivo.vistas === (antes.vistas || 0) && despues.vivo.aceptadaPor === "Ana Pérez");
   check("extender vigencia en una propuesta inexistente: false", (await P.actualizarVigenciaPropuesta(tabla, "nada0000", "2027-01-15")) === false);
+  // reiniciar vistas: vuelve a cero pero conserva snapshot y aceptación
+  check("reiniciar vistas: true", (await P.reiniciarVistasPropuesta(tabla, "ab12cd34")) === true);
+  const rv = await P.leerPropuesta(tabla, "ab12cd34");
+  check("reiniciar vistas: en cero, sin fechas, y la aceptación y el snapshot siguen", rv.vivo.vistas === 0 && !rv.vivo.primeraVista && !rv.vivo.ultimaVista && !rv.vivo.vistaConfirmadaEn && rv.vivo.aceptadaPor === "Ana Pérez" && rv.snapshot.vigencia === "2027-01-15");
+  check("reiniciar vistas en una propuesta inexistente: false", (await P.reiniciarVistasPropuesta(tabla, "nada0000")) === false);
   check("el snapshot ya no lleva alcance", !("alcance" in P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], alcance: "Alcance X", precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() })));
 
   const sn = P.armarSnapshot({ folio: "F", cliente: "C", herramienta: "excel", programa: "P", temas: [], precioSugerido: 1, precioFinal: 1, emitida: new Date(), vigencia: new Date() });

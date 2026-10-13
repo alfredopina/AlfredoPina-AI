@@ -331,6 +331,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/reiniciarVistasPropuesta",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/verificarCodigoCliente",
       "allowedRoles": ["admin"]
     },

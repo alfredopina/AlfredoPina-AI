@@ -181,3 +181,7 @@ Antes se multiplicaba el precio a mano por los grupos y el descuento se improvis
 - **Al ganar:** el diálogo "Ganada + crear grupo" abre Crear Grupo con "¿Más de 1 Grupo?" activado y título "N de M de la cotización"; al guardar pregunta si se crea el siguiente (quedó "Después" para dejarlo a mano). **Sin facturación por grupo** (descartado a propósito).
 - El monto de la cotización en el tracking es el TOTAL de los grupos (marca "N grupos" en tarjeta y fila).
 - **Despliegue:** `sql/037` debe correrse ANTES de que el código nuevo guarde cotizaciones (el INSERT ya escribe `num_grupos`).
+
+## Reiniciar vistas de una propuesta (2026-10-13)
+
+"Abierta N veces" cuenta toda apertura sin sesión de admin, incluidas las del propio Alfredo desde otro navegador o dispositivo (las de su sesión de admin no cuentan). Menú de la tarjeta (tablero) → **Reiniciar vistas** (solo si hay vistas y la propuesta no está aceptada): `reiniciarVistasPropuesta` deja en cero `vistas`, `primeraVista`, `ultimaVista` y `vistaConfirmadaEn` (Table Storage, sin SQL) y conserva snapshot y aceptación. **Por qué también la confirmación:** así la próxima apertura real del cliente vuelve a mandar el correo "Abrieron tu propuesta", que solo sale la primera vez. Para evitar que se cuenten de entrada: abrir el link con la sesión de admin activa o usar "Ver" del menú.

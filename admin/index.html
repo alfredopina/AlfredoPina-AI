@@ -14414,6 +14414,7 @@
         ${c.propuesta_codigo ? item('link', iconoLink, 'Copiar link') : ''}
         ${item('editar', ICO_ACC_COT.editar, 'Editar')}
         ${ESTATUS_ACTIVOS.includes(c.estatus) ? item('vigencia', ICO_VIGENCIA, 'Extender vigencia') : ''}
+        ${puedeReiniciarVistas(c) ? item('vistas', ICO_VISTAS, 'Reiniciar vistas') : ''}
         ${item('descargar', ICO_DESCARGAR, 'Descargar')}
         <hr>
         ${item('eliminar', ICO_ACC_COT.eliminar, 'Eliminar', 'class="cot-del"')}
@@ -14531,6 +14532,7 @@
       else if(acc === 'link') copiarLinkPropuesta(c);
       else if(acc === 'editar') accionEditar(id);
       else if(acc === 'vigencia') extenderVigenciaCot(c);
+      else if(acc === 'vistas') reiniciarVistasCot(c);
       else if(acc === 'descargar') descargarCot(c);
       else if(acc === 'eliminar') confirmarEliminarCot(c);
       else if(acc === 'mover') moverCot(id, btn.dataset.k);
@@ -14673,6 +14675,25 @@
         document.body.classList.add('admin-dialog-abierto');
         fecha.focus();
       });
+    }
+    // "Abierta N veces" cuenta también tus propias aperturas desde otro navegador o dispositivo (donde no tienes sesión de admin):
+    // este botón la deja en cero para que el contador y el aviso de "Abrieron tu propuesta" reflejen solo al cliente.
+    const ICO_VISTAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12s3.5-6.5 9-6.5S21 12 21 12s-3.5 6.5-9 6.5S3 12 3 12Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6"/><path d="M4 4l16 16" stroke-linecap="round"/></svg>';
+    function puedeReiniciarVistas(c){
+      const s = c.propuesta_codigo && propStats[c.propuesta_codigo];
+      return !!(s && s.vistas && !s.aceptadaEn);
+    }
+    async function reiniciarVistasCot(c){
+      const s = propStats[c.propuesta_codigo] || {};
+      const ok = await confirmarAccion({ variante: 'neutral', titulo: 'Reiniciar vistas de ' + c.folio,
+        mensaje: 'La propuesta aparece abierta ' + (s.vistas || 0) + (s.vistas === 1 ? ' vez' : ' veces') + '. Se deja en cero para que solo cuente al cliente; la próxima apertura real vuelve a avisarte por correo.',
+        textoConfirmar: 'Reiniciar vistas' });
+      if(!ok) return;
+      try {
+        await apiPostJson('/api/reiniciarVistasPropuesta', { codigo: c.propuesta_codigo });
+        toast('Vistas reiniciadas.', true);
+        await buscarCotizaciones();
+      } catch(e){ toast('No se pudieron reiniciar: ' + e.message, false); }
     }
     async function extenderVigenciaCot(c){
       const fecha = await pedirNuevaVigencia(c);

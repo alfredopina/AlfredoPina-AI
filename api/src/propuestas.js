@@ -241,6 +241,18 @@ async function confirmarVistaCliente(table, codigo) {
   return { primera, snapshot: p.snapshot, vivo: { ...p.vivo, vistaConfirmadaEn: ahora } };
 }
 
+// Deja las vistas en cero (por si Alfredo la abrió desde otro dispositivo antes de enviarla). Conserva snapshot y aceptación; las
+// cadenas vacías se leen como "nunca" (leerPropuesta usa || null). Regresa false si la propuesta no existe.
+async function reiniciarVistasPropuesta(table, codigo) {
+  try {
+    await table.updateEntity({ partitionKey: "propuesta", rowKey: codigo, vistas: 0, primeraVista: "", ultimaVista: "", vistaConfirmadaEn: "" }, "Merge");
+    return true;
+  } catch (err) {
+    if (err.statusCode === 404 || isTableNotFound(err)) return false;
+    throw err;
+  }
+}
+
 // Solo la PRIMERA aceptación queda guardada (un segundo envío no pisa el nombre ni repite el aviso).
 // Regresa { primera: boolean, snapshot } o null si la propuesta no existe.
 // `adicionales` = ids que el cliente agregó (solo se guardan los que de verdad ofrece esa propuesta); `contacto` = correo o
@@ -340,6 +352,7 @@ module.exports = {
   leerPropuesta,
   registrarVistaPropuesta,
   confirmarVistaCliente,
+  reiniciarVistasPropuesta,
   registrarAceptacion,
   marcarReemplazada,
   actualizarVigenciaPropuesta,

@@ -97,6 +97,21 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
   }
 }
 
+// Cuota gratis mensual de la base (oferta "Free database offer": 100 000 vCore-segundos al mes). Con "Continue using database for
+// additional charges" (irreversible), al agotarla la base sigue y se cobra: el portal marca $0.000174 por vCore-segundo. Al mínimo de
+// 0.5 núcleos, una hora despierta gasta 1 800 vCore-s ≈ $0.31. Niveles: baja ≤ 20 % (20 000 s) · crítica ≤ 5 % (5 000 s).
+const CUOTA_MENSUAL_S = 100000;
+const VCORES_MINIMOS = 0.5;
+const PRECIO_VCORE_S = 0.000174;
+function resumenCuota(restanteSeg) {
+  if (typeof restanteSeg !== "number" || !isFinite(restanteSeg) || restanteSeg < 0) return null;
+  const nivel = restanteSeg <= CUOTA_MENSUAL_S * 0.05 ? "critica" : restanteSeg <= CUOTA_MENSUAL_S * 0.2 ? "baja" : "ok";
+  return {
+    restante: Math.round(restanteSeg), total: CUOTA_MENSUAL_S, porcentaje: Math.min(100, Math.round((restanteSeg / CUOTA_MENSUAL_S) * 100)), nivel,
+    horasAlMinimo: Math.floor(restanteSeg / (VCORES_MINIMOS * 3600)), costoHoraDespiertaUsd: Math.round(VCORES_MINIMOS * 3600 * PRECIO_VCORE_S * 100) / 100,
+  };
+}
+
 function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; cache.diag = null; }
 
-module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, _reiniciarCache };
+module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, _reiniciarCache };

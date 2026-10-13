@@ -1,7 +1,7 @@
 // test-estado-base.js — estado de la base (dormida/despertando/despierta) vía Azure Resource Manager, sin red:
 // fetch simulado. Verifica el mapeo de estados, que nunca lance, el caché del token y que jamás se toque SQL.
 const assert = require("assert");
-const { consultarEstadoBase, mapearEstado, leerConfiguracion, _reiniciarCache } = require("./src/estado-base");
+const { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, _reiniciarCache } = require("./src/estado-base");
 
 let fallos = 0;
 function check(nombre, cond) { if (cond) console.log("  ok  " + nombre); else { fallos++; console.log("  FALLA  " + nombre); } }
@@ -98,6 +98,14 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   _reiniciarCache();
   r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("insights") ? { ok: true, status: 200, json: async () => ({ value: [] }) } : h(u, o)), ahora: 1 });
   check("sin datos → cuotaDiag lo dice", r.cuotaSegundos === null && /sin datos/.test(r.cuotaDiag));
+
+  // resumen de la cuota gratis (Estado del sistema)
+  let q = resumenCuota(35298);
+  check("cuota 35 298 s → ok, 35 %, unas 19 h al mínimo, $0.31 por hora despierta", q.nivel === "ok" && q.porcentaje === 35 && q.horasAlMinimo === 19 && q.costoHoraDespiertaUsd === 0.31);
+  check("cuota 20 000 s (20 %) → baja", resumenCuota(20000).nivel === "baja" && resumenCuota(20001).nivel === "ok");
+  check("cuota 5 000 s (5 %) → crítica", resumenCuota(5000).nivel === "critica" && resumenCuota(5001).nivel === "baja");
+  check("cuota 0 → crítica, 0 h", resumenCuota(0).nivel === "critica" && resumenCuota(0).horasAlMinimo === 0);
+  check("sin dato / negativo / basura → null", resumenCuota(null) === null && resumenCuota(-1) === null && resumenCuota("x") === null && resumenCuota(NaN) === null);
 
   // la Function: protegida por ruta y devuelve el cuerpo
   const ctx = {};

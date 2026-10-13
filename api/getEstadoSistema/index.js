@@ -5,10 +5,13 @@
 //   respaldo ..... último respaldo de Table Storage (automático o manual)
 //   resumen ...... cuándo salió el último resumen semanal real
 //   correo ....... si Azure Communication Services está configurado y cuántos avisos están encendidos
+//   base ......... estado de apcweb-backoffice (dormida/despertando/despierta) y cuota gratis del mes: se lo pregunta a Azure Resource
+//                  Manager (api/src/estado-base.js), NO a SQL, así que tampoco despierta la base
 const { getColaTable } = require("../src/solicitud-publica-cola");
 const { getRespaldosContainer } = require("../src/backup-tables");
 const ajustes = require("../src/notificaciones-ajustes");
 const { configuracion } = require("../src/notificaciones-correo");
+const { consultarEstadoBase, resumenCuota } = require("../src/estado-base");
 const { JSON_HEADERS } = require("../src/http");
 
 async function leerCola() {
@@ -43,9 +46,12 @@ async function seccion(fn) {
 }
 
 module.exports = async function (context) {
-  const [cola, respaldo, previo, a] = await Promise.all([
-    seccion(leerCola), seccion(ultimoRespaldo), seccion(() => ajustes.leerUltimoResumen()), seccion(() => ajustes.getAjustes()),
+  const [cola, respaldo, previo, a, baseRaw] = await Promise.all([
+    seccion(leerCola), seccion(ultimoRespaldo), seccion(() => ajustes.leerUltimoResumen()), seccion(() => ajustes.getAjustes()), seccion(() => consultarEstadoBase()),
   ]);
+  const base = baseRaw && !baseRaw.error
+    ? { estado: baseRaw.estado, motivo: baseRaw.motivo || null, cuota: resumenCuota(baseRaw.cuotaSegundos), cuotaDiag: baseRaw.cuotaDiag || null }
+    : { estado: "desconocido", motivo: "error", cuota: null, cuotaDiag: null };
   const cfg = configuracion();
   const avisos = a && !a.error ? ajustes.TIPOS.filter((t) => a[t] !== false).length : null;
   context.res = {
@@ -53,6 +59,7 @@ module.exports = async function (context) {
     headers: { ...JSON_HEADERS, "Cache-Control": "no-store" },
     body: {
       cola,
+      base,
       respaldo: respaldo && !respaldo.error ? respaldo : respaldo === null ? { en: null } : respaldo,
       resumen: previo && !previo.error ? { en: previo.en || null } : { en: null },
       correo: { configurado: Boolean(cfg), remitente: cfg ? cfg.remitente : null, general: a && !a.error ? a.general !== false : null, avisosActivos: avisos, avisosTotal: ajustes.TIPOS.length },

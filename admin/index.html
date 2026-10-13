@@ -15873,8 +15873,8 @@
     });
   })();
 
-  // Configuración → Estado del sistema: "¿está todo vivo?" sin entrar a Azure. Lee solo Table Storage y blobs (api/getEstadoSistema),
-  // nunca SQL: abrirlo no despierta la base. Cada fila dice su estado en TEXTO ("En orden" / "Revisar") además del ícono.
+  // Configuración → Estado del sistema: "¿está todo vivo?" sin entrar a Azure. Lee Table Storage, blobs y el estado/cuota de la base
+  // (api/getEstadoSistema; la base se la pregunta a Azure Resource Manager), nunca SQL: abrirlo no despierta la base. Cada fila dice su estado en TEXTO ("En orden" / "Revisar") además del ícono.
   (function(){
     const fmt = (iso) => new Date(iso).toLocaleString('es-MX', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' });
     const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -15900,6 +15900,24 @@
         if(!n) filas.push(fila(true, 'Solicitudes del sitio en espera', 'Ninguna: todo lo que llegó ya está en la base.'));
         else filas.push(fila(e.cola.masAntiguaHoras < 4, 'Solicitudes del sitio en espera', n + (n === 1 ? ' solicitud espera' : ' solicitudes esperan') + ' pasar a la base (la más antigua lleva ' + e.cola.masAntiguaHoras + ' h). Pasan solas al abrir el admin.'));
       } else filas.push(fila(false, 'Solicitudes del sitio en espera', 'No se pudo leer la cola.'));
+
+      // Base de datos: estado y cuota gratis del mes (le pregunta a Azure; no despierta la base). Cuota baja ≤ 20 %, crítica ≤ 5 %: el
+      // nivel viene calculado del servidor (api/src/estado-base.js → resumenCuota). Sin "pausar al agotar": al acabarse, la base sigue y se cobra.
+      const b = e.base || {};
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const miles = (n) => Number(n).toLocaleString('es-MX');
+      const TXT_ESTADO = { dormida: 'Dormida: no está gastando cuota.', despertando: 'Despertando: en cuanto termine empieza a gastar cuota.', despierta: 'Despierta: gasta cuota hasta que se vuelva a dormir (20-30 min sin uso).' };
+      if(TXT_ESTADO[b.estado]) filas.push(fila(true, 'Base de datos', TXT_ESTADO[b.estado]));
+      else if(b.motivo === 'sin-configurar') filas.push(fila(false, 'Base de datos', 'Falta configurar la consulta a Azure (ESTADO_BD_TENANT_ID, ESTADO_BD_CLIENT_ID, ESTADO_BD_CLIENT_SECRET y ESTADO_BD_RESOURCE_ID). La base funciona igual, pero no se puede ver su estado.'));
+      else filas.push(fila(false, 'Base de datos', 'No se pudo consultar a Azure. Si dejó de funcionar de golpe, revisa que no haya caducado el secreto de la app "apcweb-estado-bd" en Entra (dura 12 meses) y que siga con rol Lector.'));
+      if(b.cuota){
+        const q = b.cuota;
+        const dato = miles(q.restante) + ' de ' + miles(q.total) + ' s de núcleo virtual (' + q.porcentaje + ' %), unas ' + q.horasAlMinimo + ' h despierta al mínimo. Se renueva al inicio de cada mes.';
+        const aviso = ' Al agotarse la base NO se detiene: sigue y Azure cobra unos $' + q.costoHoraDespiertaUsd.toFixed(2) + ' USD por hora despierta. Evita abrir el admin sin necesidad hasta que se renueve.';
+        if(q.nivel === 'ok') filas.push(fila(true, 'Cuota gratis del mes', dato));
+        else filas.push(fila(false, 'Cuota gratis del mes', (q.nivel === 'critica' ? 'Casi agotada: ' : 'Cuota baja: ') + dato + aviso));
+      } else if(TXT_ESTADO[b.estado]) filas.push(fila(false, 'Cuota gratis del mes', 'Azure no devolvió el dato de la cuota.' + (b.cuotaDiag ? ' (' + esc(b.cuotaDiag) + ')' : '')));
+
       if(e.respaldo && !e.respaldo.error){
         if(!e.respaldo.en) filas.push(fila(false, 'Último respaldo de Table Storage', 'Todavía no hay ninguno. Usa "Respaldar ahora" en Respaldos.'));
         else {

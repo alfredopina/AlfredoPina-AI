@@ -50,7 +50,7 @@ module.exports = async function (context) {
     seccion(leerCola), seccion(ultimoRespaldo), seccion(() => ajustes.leerUltimoResumen()), seccion(() => ajustes.getAjustes()), seccion(() => consultarEstadoBase()),
   ]);
   const base = baseRaw && !baseRaw.error
-    ? { estado: baseRaw.estado, motivo: baseRaw.motivo || null, cuota: resumenCuota(baseRaw.cuotaSegundos), cuotaDiag: baseRaw.cuotaDiag || null }
+    ? { estado: baseRaw.estado, motivo: baseRaw.motivo || null, config: baseRaw.config || null, cuota: resumenCuota(baseRaw.cuotaSegundos), cuotaDiag: baseRaw.cuotaDiag || null }
     : { estado: "desconocido", motivo: "error", cuota: null, cuotaDiag: null };
   const cfg = configuracion();
   const avisos = a && !a.error ? ajustes.TIPOS.filter((t) => a[t] !== false).length : null;

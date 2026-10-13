@@ -4041,6 +4041,15 @@
       <div class="admin-panel" id="panel-encuestas" style="--c:var(--blue-bright)">
         <div id="encToast" class="radm-toast" hidden></div>
 
+        <div class="diag-pend" id="encPendCard" hidden>
+          <div class="diag-pend-top">
+            <svg class="diag-pend-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 13l2.5-7.5A2 2 0 0 1 7.4 4h9.2a2 2 0 0 1 1.9 1.5L21 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z" stroke-linejoin="round"/><path d="M3 13h5l1.5 2.5h5L16 13h5" stroke-linejoin="round"/></svg>
+            <div class="diag-pend-texto"><b id="encPendTitulo"></b><span id="encPendDetalle"></span></div>
+            <button type="button" class="radm-btn" id="encPendImportar">Importar ahora</button>
+          </div>
+          <div class="diag-pend-lista" id="encPendLista" hidden></div>
+        </div>
+
         <div class="dash-etabs" id="encTabs">
           <button type="button" class="dash-etab active" data-enctab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-enctab="preguntas">Preguntas</button>
@@ -7809,6 +7818,7 @@
         const data = await apiGet('/api/getContadorRespuestas');
         document.getElementById('encContadorTotal').textContent = data.total;
         document.getElementById('encContadorHoy').textContent = data.hoy;
+        pintarPendientes(data.pendientes);
         (data.links || []).forEach(x => {
           const l = encLinks.find(t => t.token === x.token);
           if(l){ l.respuestas = x.respuestas; l.abierta = x.abierta; }
@@ -7821,6 +7831,111 @@
       }
     }
     document.getElementById('encContadorRefresh').addEventListener('click', reanudarContador);
+
+    // ══ RESPUESTAS POR IMPORTAR ══ (mismo esquema que Diagnósticos)
+    // enviarRespuesta ya NO escribe en SQL: deja cada envío en una cola (Table Storage, nunca se duerme) para que contestar la
+    // encuesta no despierte ni mantenga despierta la base (ver api/src/encuesta-cola.js). Aquí se importan a SQL: solo al abrir este
+    // panel (si hay pendientes) y con "Importar ahora". La tarjeta avisa cuántas esperan y deja ver/descartar las atoradas
+    // (p. ej. su grupo o su empresa ya no existe).
+    const encPendCard = document.getElementById('encPendCard');
+    const ICO_ALERTA_ENC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    let encImportacionEnCurso = null;
+
+    function pintarPendientes(p){
+      if(encImportacionEnCurso) return; // mientras importa, la tarjeta muestra su propio estado
+      if(!p || !p.total){ encPendCard.hidden = true; return; }
+      encPendCard.hidden = false;
+      encPendCard.classList.toggle('con-error', p.errores > 0);
+      document.getElementById('encPendTitulo').textContent = p.total + (p.total === 1 ? ' respuesta de encuesta espera' : ' respuestas de encuesta esperan') + ' pasar a la base de datos' + (p.errores ? ' · ' + p.errores + ' con error' : '');
+      document.getElementById('encPendDetalle').textContent = p.errores
+        ? 'Las que tienen error se muestran abajo: revisa el motivo y descártalas o corrige la causa y vuelve a importar.'
+        : 'Se importan solas al abrir este panel. "Importar ahora" despierta la base si está dormida.';
+      const lista = document.getElementById('encPendLista');
+      lista.hidden = !(p.lista && p.lista.length);
+      lista.innerHTML = (p.lista || []).map(x => `
+        <div class="diag-pend-fila">
+          ${ICO_ALERTA_ENC}
+          <span><span class="quien">${escapeHtml(x.nombre || 'Anónimo')}</span> · ${escapeHtml(x.empresa || '—')} · ${escapeHtml(x.curso || '—')} · ${x.recibidoEn ? new Date(x.recibidoEn).toLocaleDateString('es-MX') : ''}</span>
+          <span class="motivo">Error: ${escapeHtml(x.error)}</span>
+          <button type="button" class="radm-btn radm-btn-danger diag-pend-descartar" data-id="${escapeHtml(x.id)}" data-nombre="${escapeHtml(x.nombre || 'Anónimo')}">Descartar</button>
+        </div>`).join('');
+    }
+
+    // POST con reintento y pausas crecientes — la base puede estar dormida (mismo patrón duplicado en cada IIFE del admin)
+    async function importarPostEnc(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiPostJson(url, {}); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    // Importa todo lo pendiente (varias rondas: cada llamada del servidor procesa un tramo). Si ya hay una en curso, espera ESA.
+    function importarPendientes(){
+      if(encImportacionEnCurso) return encImportacionEnCurso;
+      encImportacionEnCurso = (async () => {
+        const btn = document.getElementById('encPendImportar');
+        encPendCard.hidden = false;
+        btn.disabled = true; btn.textContent = 'Importando…';
+        document.getElementById('encPendDetalle').textContent = 'Pasando las respuestas a la base — si estaba dormida puede tardar cerca de un minuto.';
+        let importadas = 0;
+        try {
+          for(let ronda = 0; ronda < 12; ronda++){
+            const r = await importarPostEnc('/api/importarEncuestasPendientes');
+            importadas += r.importadas;
+            if(!r.importadas || !r.restantes) break; // sin avance, o ya no queda nada: lo atorado no se reintenta en bucle
+          }
+          if(importadas) toast('Se importaron ' + importadas + (importadas === 1 ? ' respuesta.' : ' respuestas.'), true);
+        } catch(e){
+          toast('No se pudieron importar las respuestas: ' + e.message, false);
+        } finally {
+          btn.disabled = false; btn.textContent = 'Importar ahora';
+          encImportacionEnCurso = null;
+        }
+        try { pintarPendientes((await apiGet('/api/getContadorRespuestas')).pendientes); } catch(e){ /* la tarjeta queda como estaba */ }
+        return importadas;
+      })();
+      return encImportacionEnCurso;
+    }
+    document.getElementById('encPendImportar').addEventListener('click', async () => {
+      await importarPendientes();
+      if(document.getElementById('encTab-resultados').classList.contains('active')) buscarResultados();
+    });
+
+    // Mira la cola (Table Storage, no toca SQL) y, si hay envíos por importar, los importa. Nunca lanza.
+    async function revisarPendientes(){
+      try {
+        const data = await apiGet('/api/getContadorRespuestas');
+        pintarPendientes(data.pendientes);
+        if(data.pendientes && data.pendientes.total > data.pendientes.errores) await importarPendientes();
+      } catch(e){ /* sin conexión: no estorba */ }
+    }
+    // al abrir el panel desde el menú lateral
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(b && b.dataset.panel === 'encuestas') revisarPendientes();
+    });
+
+    document.getElementById('encPendLista').addEventListener('click', async e => {
+      const b = e.target.closest('.diag-pend-descartar');
+      if(!b) return;
+      if(!(await confirmarAccion({ mensaje: '¿Descartar el envío de "' + b.dataset.nombre + '"? Es un borrado real y no se puede deshacer.', variante: 'destructivo', textoConfirmar: 'Descartar' }))) return;
+      b.disabled = true;
+      try {
+        await apiPostJson('/api/descartarEncuestaPendiente', { id: b.dataset.id });
+        toast('Envío descartado.', true);
+        const data = await apiGet('/api/getContadorRespuestas');
+        document.getElementById('encContadorTotal').textContent = data.total;
+        document.getElementById('encContadorHoy').textContent = data.hoy;
+        pintarPendientes(data.pendientes);
+      } catch(err){
+        b.disabled = false;
+        toast('No se pudo descartar: ' + err.message, false);
+      }
+    });
 
     // ── acciones de las 2 tarjetas de link (grupo / genérico) ──
     function descargarBlob(blob, filename){
@@ -8163,6 +8278,7 @@
 
       document.getElementById('encResultadosBody').innerHTML = `<tr><td colspan="${N_COLS_RES}" class="radm-empty-row">Buscando...</td></tr>`;
       try {
+        await revisarPendientes(); // lo que aún espera en la cola entra antes de listar
         const data = await apiGetConReintento('/api/listRespuestasEncuesta?' + params.toString());
         encResultadosRaw = data.respuestas || [];
         encEscalaRes = data.escala && data.escala.length === 5 ? data.escala : ESCALA_DEFAULT.slice();
@@ -15906,8 +16022,14 @@
       const b = e.base || {};
       const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const miles = (n) => Number(n).toLocaleString('es-MX');
-      const TXT_ESTADO = { dormida: 'Dormida: no está gastando cuota.', despertando: 'Despertando: en cuanto termine empieza a gastar cuota.', despierta: 'Despierta: gasta cuota hasta que se vuelva a dormir (20-30 min sin uso).' };
-      if(TXT_ESTADO[b.estado]) filas.push(fila(true, 'Base de datos', TXT_ESTADO[b.estado]));
+      const TXT_ESTADO = { dormida: 'Dormida: no está gastando cuota.', despertando: 'Despertando: en cuanto termine empieza a gastar cuota.', despierta: 'Despierta: gasta cuota hasta que se vuelva a dormir.' };
+      // configuración real de la base, leída de Azure (núcleos mínimo/máximo y minutos sin uso antes de pausarse)
+      const cfg = b.config || {};
+      const extraCfg = [
+        cfg.nucleosMin != null && cfg.nucleosMax != null ? 'Núcleos: mínimo ' + cfg.nucleosMin + ', máximo ' + cfg.nucleosMax : '',
+        cfg.pausaMin > 0 ? 'se duerme tras ' + cfg.pausaMin + ' min sin uso' : '',
+      ].filter(Boolean).join(' · ');
+      if(TXT_ESTADO[b.estado]) filas.push(fila(true, 'Base de datos', TXT_ESTADO[b.estado] + (extraCfg ? ' ' + extraCfg + '.' : '')));
       else if(b.motivo === 'sin-configurar') filas.push(fila(false, 'Base de datos', 'Falta configurar la consulta a Azure (ESTADO_BD_TENANT_ID, ESTADO_BD_CLIENT_ID, ESTADO_BD_CLIENT_SECRET y ESTADO_BD_RESOURCE_ID). La base funciona igual, pero no se puede ver su estado.'));
       else filas.push(fila(false, 'Base de datos', 'No se pudo consultar a Azure. Si dejó de funcionar de golpe, revisa que no haya caducado el secreto de la app "apcweb-estado-bd" en Entra (dura 12 meses) y que siga con rol Lector.'));
       if(b.cuota){

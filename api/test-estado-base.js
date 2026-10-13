@@ -18,7 +18,7 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
     llamadas.push({ url, opts });
     if (url.includes("login.microsoftonline.com")) return tokenOk ? respuesta(200, { access_token: "tok", expires_in: 3599 }) : respuesta(401, {});
     if (url.includes("microsoft.insights/metrics")) return respuesta(200, { value: [{ timeseries: [{ data: [{ minimum: metrica + 5 }, { minimum: metrica }, {}] }] }] });
-    if (url.includes("/databases/")) return bdStatus === 200 ? respuesta(200, { properties: { status } }) : respuesta(bdStatus, {});
+    if (url.includes("/databases/")) return bdStatus === 200 ? respuesta(200, { properties: { status, minCapacity: 0.5, autoPauseDelay: 60 }, sku: { capacity: 2 } }) : respuesta(bdStatus, {});
     throw new Error("url inesperada " + url);
   };
   f.llamadas = llamadas;
@@ -98,6 +98,11 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   _reiniciarCache();
   r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("insights") ? { ok: true, status: 200, json: async () => ({ value: [] }) } : h(u, o)), ahora: 1 });
   check("sin datos → cuotaDiag lo dice", r.cuotaSegundos === null && /sin datos/.test(r.cuotaDiag));
+
+  // configuración real de la base (núcleos y pausa automática), leída de Azure
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: crearFetch({ status: "Online" }), ahora: 1 });
+  check("devuelve núcleos mín/máx y minutos de pausa automática", r.config && r.config.nucleosMin === 0.5 && r.config.nucleosMax === 2 && r.config.pausaMin === 60);
 
   // resumen de la cuota gratis (Estado del sistema)
   let q = resumenCuota(35298);

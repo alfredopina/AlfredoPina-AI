@@ -10,12 +10,16 @@
 // envío (ver encuesta-links.js) y esto solo lee esos contadores — se puede
 // consultar cada 10 s sin costo de base.
 const { getEncuestaLinksTable, leerContadores } = require("../src/encuesta-links");
+const { getColaTable, resumenPendientes } = require("../src/encuesta-cola");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   try {
     const data = await leerContadores(getEncuestaLinksTable());
-    context.res = { status: 200, headers: JSON_HEADERS, body: data };
+    // envíos que esperan en la cola para pasar a SQL (tarjeta "por importar" del panel) — también Table Storage, no toca SQL
+    let pendientes = null;
+    try { pendientes = await resumenPendientes(getColaTable()); } catch (errCola) { context.log.warn("No se pudo leer la cola de encuestas:", errCola.message); }
+    context.res = { status: 200, headers: JSON_HEADERS, body: { ...data, pendientes } };
   } catch (err) {
     context.log.error("Error leyendo los contadores de encuesta:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo contar: " + err.message } };

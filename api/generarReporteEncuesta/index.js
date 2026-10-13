@@ -10,6 +10,7 @@
 // Resultados antes de generar. Un reporte ya generado NO cambia si después se
 // borra una respuesta — hay que eliminarlo y volver a generarlo.
 const { getPool, sql } = require("../src/backoffice-db");
+const { importarConSql } = require("../src/encuesta-cola");
 const { leerRespuestasFiltradas } = require("../src/encuesta-consulta");
 const { getEncuestaConfigTable, leerEscala } = require("../src/encuesta-tables");
 const { calcularSnapshot } = require("../src/encuesta-reporte-calc");
@@ -42,6 +43,7 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
+    await importarConSql(pool, context); // lo que aún espera en la cola entra al reporte (nunca lanza)
     const { respuestas, globales } = await leerRespuestasFiltradas(pool, sql, filtros);
     if (!respuestas.length) {
       context.res = { status: 400, headers: JSON_HEADERS, body: { error: "No hay respuestas con esos filtros." } };

@@ -387,7 +387,7 @@
   // Storage, nunca se pausan, y getInstructores siempre fue Blob Storage) pero
   // se deja el mismo mecanismo por si un fetch falla por una razón de red
   // pasajera, y se reusa tal cual para el envío final (enviarRespuesta), que
-  // sí sigue en SQL — ver más abajo, cerca de "despertarEncuesta". Los errores
+  // ya NO toca SQL: lo deja en una cola (Table Storage) — ver api/src/encuesta-cola.js. Los errores
   // 4xx (link inválido, encuesta cerrada, validación) NO se reintentan: el
   // servidor ya contestó que no, esperar 27s no lo va a cambiar.
   const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
@@ -502,14 +502,6 @@
       // NO se bloquea (puede haber un error legítimo o un equipo compartido)
       try { if(localStorage.getItem(CLAVE_ENVIADA)) document.getElementById('encAviso').classList.add('show'); } catch(e){ /* sin localStorage: sin aviso, no pasa nada */ }
 
-      // Prewarm silencioso de apcweb-backoffice — solo cuando el link es
-      // válido y está abierto (un link inválido o cerrado no tiene por qué
-      // despertar la base). El banco de preguntas y el link ya no dependen de
-      // SQL, pero enviarRespuesta (el envío final) sí. Se dispara en paralelo,
-      // sin bloquear ni avisar nada si falla: para cuando el alumno termine de
-      // contestar (varios minutos), la base ya tuvo tiempo de sobra para
-      // despertar sola.
-      fetch('/api/despertarEncuesta').catch(() => {});
     } catch(e){
       document.getElementById('encLoading').hidden = true;
       const err = document.getElementById('encError');
@@ -597,10 +589,8 @@
     else Object.assign(payload, { empresa, curso, instructor });
 
     // Reintento con las mismas pausas crecientes que la carga (ver
-    // pedirDatosEncuesta arriba) — despertarEncuesta() ya se disparó al
-    // cargar la página, pero si de todos modos la base seguía dormida al
-    // momento de enviar (una encuesta larga puede tardar varios minutos en
-    // contestarse), el envío no debe morir en el primer intento. Un 4xx (la
+    // pedirDatosEncuesta arriba): ante un fallo de red/servidor el envío no debe
+    // morir en el primer intento (el mismo envioId evita duplicados). Un 4xx (la
     // encuesta cerró, el banco cambió, validación) no se reintenta.
     let ultimoError;
     let enviado = false;

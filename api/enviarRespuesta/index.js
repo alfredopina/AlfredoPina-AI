@@ -1,45 +1,41 @@
 // enviarRespuesta/index.js
-// Function pública: recibe un envío completo de encuesta.html (cabecera +
-// respuestas) y lo inserta en una transacción.
+// Function pública: recibe un envío completo de encuesta.html (cabecera + respuestas), lo valida y lo deja en la COLA
+// (Table Storage) — NUNCA toca SQL: contestar la encuesta no despierta ni mantiene despierta la base (ver
+// api/src/encuesta-cola.js y cola-tabla.js). El envío pasa a SQL cuando Alfredo abre el panel Encuestas o pulsa
+// "Importar ahora" (importarEncuestasPendientes).
 //
 // Dos modos (Fase 1 de Encuestas, 2026-09-19):
-// - CON token (link por grupo): el cliente/curso/instructor/herramientas/
-//   horas/modalidad salen del snapshot guardado en Table Storage al generar
-//   el link — el navegador NO manda ni puede alterar esos datos — y se guarda
-//   grupo_id. Si el link está cerrado se rechaza aquí (no solo en la pantalla).
-// - SIN token (link genérico): igual que antes — empresa (autocomplete o
-//   nueva), curso e instructor los teclea la persona, sin grupo_id.
+// - CON token (link por grupo): el cliente/curso/instructor/herramientas/horas/modalidad salen del snapshot guardado en
+//   Table Storage al generar el link — el navegador NO manda ni puede alterar esos datos — y se guarda grupo_id. Si el link
+//   está cerrado se rechaza aquí (no solo en la pantalla). Ese snapshot se COPIA a la fila al encolar.
+// - SIN token (link genérico): la persona elige su empresa de la lista (clienteId) y teclea curso e instructor, sin grupo_id.
+//   Que la empresa exista (y no sea Prospecto) se valida al IMPORTAR.
 //
-// Las respuestas se validan contra el banco REAL de Table Storage (ver
-// encuesta-logic.js/validarRespuestas): todas las de escala con un entero 1-5,
-// ningún id que no exista, y el texto/categoría/tipo que se guarda como copia
-// congelada en cada renglón sale del banco, nunca del navegador.
+// Las respuestas se validan contra el banco REAL de Table Storage (encuesta-logic.js/validarRespuestas): todas las de escala
+// con un entero 1-5, ningún id que no exista, y el texto/categoría/tipo que se guarda como copia congelada en cada renglón
+// sale del banco, nunca del navegador.
 //
-// Después del commit se suma 1 en los contadores de Table Storage (mejor
-// esfuerzo — si eso falla, la respuesta YA quedó guardada y no se le avisa un
-// error a quien contestó).
+// `envioId` (UUID que genera el navegador UNA vez por clic en "Enviar" y reusa en cada reintento) es la llave de la fila: si el
+// primer intento sí se guardó pero la confirmación se perdió, el reintento choca y se responde ok sin volver a encolar ni contar.
 //
-// Sin protección anti-spam/anti-duplicados en el servidor — sigue siendo
-// intencional (link controlado por QR en vivo); el aviso suave de "ya
-// contestaste" vive en el navegador (localStorage), no bloquea.
-const { getPool, sql } = require("../src/backoffice-db");
-const { resolverClienteExistente } = require("../src/cliente-resolver");
+// Los contadores en vivo (Table Storage) suman al ENCOLAR (mejor esfuerzo — si falla, el envío YA quedó guardado y no se le
+// avisa error a quien contestó); importar a SQL no vuelve a sumar.
+//
+// Sin protección anti-spam/anti-duplicados en el servidor — sigue siendo intencional (link controlado por QR en vivo; la encuesta
+// es anónima); el aviso suave de "ya contestaste" vive en el navegador (localStorage), no bloquea.
+const crypto = require("crypto");
 const { getEncuestaPreguntasTable, listarTodas, bancoVigente } = require("../src/encuesta-tables");
 const { getEncuestaLinksTable, leerLink, ajustarContadores } = require("../src/encuesta-links");
 const { validarRespuestas, errorSeguro, fechaMexico, CORREO_RE, esInstructorMarca } = require("../src/encuesta-logic");
+const { getColaTable, encolar } = require("../src/encuesta-cola");
 const { JSON_HEADERS } = require("../src/http");
-
 
 module.exports = async function (context, req) {
   const body = req.body || {};
   const token = (body.token || "").trim();
   const nombre = (body.nombre || "").trim().slice(0, 200) || null;
   const correo = (body.correo || "").trim().slice(0, 200) || null;
-  // llave anti-duplicado (sql/020): la genera el navegador UNA vez por clic en
-  // "Enviar" y la reusa en cada reintento — si el primer intento sí se guardó
-  // pero la confirmación se perdió, el reintento choca contra el índice único
-  // y se responde ok sin volver a insertar ni contar.
-  const envioId = /^[A-Za-z0-9_-]{8,40}$/.test(String(body.envioId || "")) ? String(body.envioId) : null;
+  const envioId = /^[A-Za-z0-9_-]{8,40}$/.test(String(body.envioId || "")) ? String(body.envioId) : crypto.randomUUID();
 
   try {
     if (correo && !CORREO_RE.test(correo)) throw errorSeguro("El correo no se ve válido — revísalo o déjalo en blanco.");
@@ -58,76 +54,33 @@ module.exports = async function (context, req) {
       instructor = (body.instructor || "").trim();
       if (!curso || !instructor) throw errorSeguro("Faltan datos (curso o instructor).");
     }
+    let empresa = null;
+    if (!link) {
+      const clienteId = Number((body.empresa || {}).clienteId);
+      if (!Number.isInteger(clienteId) || clienteId <= 0) throw errorSeguro("Selecciona tu empresa de la lista — si no aparece, pídele el link o el QR a tu instructor.");
+      empresa = { clienteId, nombre: String((body.empresa || {}).nombre || "").trim().slice(0, 120) };
+    }
 
     // 2. Respuestas contra el banco real
     const banco = bancoVigente(await listarTodas(getEncuestaPreguntasTable()));
     const detalle = validarRespuestas(banco, body.respuestas);
 
-    // Permiso de testimonio (sql/027): solo vale si de verdad hay comentario,
-    // hay nombre para firmarlo y el instructor es Alfredo — lo demás es un
-    // navegador desactualizado o un envío manipulado.
+    // Permiso de testimonio (sql/027): solo vale si de verdad hay comentario, hay nombre para firmarlo y el instructor es Alfredo —
+    // lo demás es un navegador desactualizado o un envío manipulado.
     const hayComentario = detalle.some((d) => d.tipo === "texto" && String(d.valor || "").trim());
     const autorizaTestimonio = body.autorizaTestimonio === true && Boolean(nombre) && hayComentario && esInstructorMarca(instructor);
 
-    // 3. SQL
-    const pool = await getPool();
-    const clienteId = link ? Number(link.clienteId) : (await resolverClienteExistente(pool, body.empresa || {}, errorSeguro)).id;
+    // 3. Cola (Table Storage)
+    const ahora = new Date();
+    const datos = {
+      token: link ? token : null,
+      linkSnap: link ? { grupoId: link.grupoId, clienteId: link.clienteId, clienteNombre: link.clienteNombre, herramientas: link.herramientas, modalidad: link.modalidad, horas: link.horas, generadoEn: link.generadoEn } : null,
+      empresa, curso: curso.slice(0, 200), instructor: instructor.slice(0, 120), nombre, correo, autorizaTestimonio, fecha: fechaMexico(ahora),
+      detalle: detalle.map((d) => ({ preguntaId: d.preguntaId, valor: d.valor, texto: String(d.texto || "").slice(0, 500), categoria: d.categoria, tipo: d.tipo })),
+    };
+    const r = await encolar(getColaTable(), envioId, datos, ahora);
 
-    const transaction = new sql.Transaction(pool);
-    let duplicado = false;
-    try {
-      await transaction.begin();
-
-      const insertRespuesta = await new sql.Request(transaction)
-        .input("envioId", sql.NVarChar, envioId)
-        .input("autorizaTestimonio", sql.Bit, autorizaTestimonio ? 1 : 0)
-        .input("nombre", sql.NVarChar, nombre)
-        .input("clienteId", sql.Int, clienteId)
-        .input("curso", sql.NVarChar, curso.slice(0, 200))
-        .input("instructor", sql.NVarChar, instructor.slice(0, 120))
-        .input("fecha", sql.Date, new Date(fechaMexico(new Date())))
-        .input("grupoId", sql.Int, link ? Number(link.grupoId) : null)
-        .input("correo", sql.NVarChar, correo)
-        .input("herramientas", sql.NVarChar, link ? link.herramientas : null)
-        .input("modalidad", sql.NVarChar, link ? link.modalidad : null)
-        .input("horas", sql.Decimal(6, 1), link ? link.horas : null)
-        .input("linkGeneradoEn", sql.DateTime2, link ? new Date(link.generadoEn) : null)
-        .query(
-          `INSERT INTO EncuestaRespuesta (nombre, cliente_id, curso, instructor, fecha, grupo_id, correo, herramientas, modalidad, horas, link_generado_en, envio_id, autoriza_testimonio)
-           OUTPUT INSERTED.id
-           VALUES (@nombre, @clienteId, @curso, @instructor, @fecha, @grupoId, @correo, @herramientas, @modalidad, @horas, @linkGeneradoEn, @envioId, @autorizaTestimonio)`
-        );
-      const respuestaId = insertRespuesta.recordset[0].id;
-
-      for (const d of detalle) {
-        await new sql.Request(transaction)
-          .input("respuestaId", sql.Int, respuestaId)
-          .input("preguntaId", sql.NVarChar, d.preguntaId)
-          .input("valor", sql.NVarChar, d.valor)
-          .input("texto", sql.NVarChar, d.texto.slice(0, 500))
-          .input("categoria", sql.NVarChar, d.categoria)
-          .input("tipo", sql.NVarChar, d.tipo)
-          .query(
-            `INSERT INTO EncuestaRespuestaDetalle (respuesta_id, pregunta_id, valor, pregunta_texto, categoria, tipo)
-             VALUES (@respuestaId, @preguntaId, @valor, @texto, @categoria, @tipo)`
-          );
-      }
-
-      await transaction.commit();
-    } catch (err) {
-      try {
-        await transaction.rollback();
-      } catch (rollbackErr) {
-        context.log.error("Error haciendo rollback:", rollbackErr.message);
-      }
-      // 2601/2627 = violación de índice/constraint único → ese envio_id ya se
-      // guardó en un intento anterior: se responde ok (no es un error para
-      // quien contestó) y NO se vuelve a contar.
-      if (envioId && (err.number === 2601 || err.number === 2627)) duplicado = true;
-      else throw err;
-    }
-
-    if (!duplicado) {
+    if (r.nueva) {
       try {
         await ajustarContadores(getEncuestaLinksTable(), { token: link ? token : null, delta: 1 });
       } catch (err) {
@@ -135,7 +88,7 @@ module.exports = async function (context, req) {
       }
     }
 
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
+    context.res = { status: 200, headers: JSON_HEADERS, body: r.nueva ? { ok: true } : { ok: true, duplicada: true } };
   } catch (err) {
     if (err.safe) {
       context.res = { status: err.status || 400, headers: JSON_HEADERS, body: { error: err.message } };

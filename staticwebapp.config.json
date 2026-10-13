@@ -481,6 +481,14 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/importarEncuestasPendientes",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/descartarEncuestaPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listPreguntasDiagnosticoAdmin",
       "allowedRoles": ["admin"]
     },

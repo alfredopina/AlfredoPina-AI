@@ -89,7 +89,11 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const j = await r.json();
     const crudo = (j.properties && j.properties.status) || null;
     const cuotaSegundos = await leerCuota(cfg, token, fetchFn, ahora);
-    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos };
+    // configuración real de la base (lo que el portal muestra en "Proceso y almacenamiento"): núcleos mínimo/máximo y pausa automática
+    const p = j.properties || {};
+    const num = (v) => (typeof v === "number" && isFinite(v) ? v : null);
+    const config = { nucleosMin: num(p.minCapacity), nucleosMax: num(j.sku && j.sku.capacity), pausaMin: num(p.autoPauseDelay) };
+    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, config };
     if (cuotaSegundos === null && cache.diag) resp.cuotaDiag = cache.diag;
     return resp;
   } catch (err) {

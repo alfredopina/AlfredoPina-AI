@@ -18,32 +18,30 @@
 const crypto = require("crypto");
 const { TableClient } = require("@azure/data-tables");
 const { ensureTable, HERRAMIENTAS } = require("./diagnostico-tables");
+const { crearCola, MAX_POR_CORRIDA } = require("./cola-tabla");
 
 const TABLA = "DiagnosticoPendientes";
 const TABLA_HUELLAS = "DiagnosticoHuellas";
-const PARTICION = "pend";
 const DIAS_HUELLA = 30;
-const MAX_POR_CORRIDA = 25;
-const PRESUPUESTO_MS = 30000;
-const MAX_JSON = 30000; // una propiedad de Table Storage admite 32 K caracteres
 
-function conexion() {
+// la mecánica de la cola (encolar idempotente, resumen, importar con tope) es la genérica de cola-tabla.js
+const cola = crearCola({ tabla: TABLA });
+const getColaTable = cola.getTable;
+function getHuellasTable() {
   const conn = process.env.RECURSOS_STORAGE_CONNECTION;
   if (!conn) throw new Error("RECURSOS_STORAGE_CONNECTION no está configurada.");
-  return conn;
+  return TableClient.fromConnectionString(conn, TABLA_HUELLAS);
 }
-function getColaTable() { return TableClient.fromConnectionString(conexion(), TABLA); }
-function getHuellasTable() { return TableClient.fromConnectionString(conexion(), TABLA_HUELLAS); }
 
-const listas = new Set();
-async function asegurar(table, nombre) {
-  if (listas.has(nombre)) return;
+let huellasLista = false;
+async function asegurarHuellas(table) {
+  if (huellasLista) return;
   await ensureTable(table);
-  listas.add(nombre);
+  huellasLista = true;
 }
-function _reiniciar() { listas.clear(); }
+function _reiniciar() { huellasLista = false; cola.reiniciar(); }
 
-function notFound(err) { return err && err.statusCode === 404; }
+const notFound = (err) => err && err.statusCode === 404;
 
 // ── identidad de la persona ──
 function normalizarNombre(s) {
@@ -61,7 +59,7 @@ function huellaDe(empresa, herramienta, nombre) {
 
 // "nueva" | "mismo" (mismo envío reintentado) | "repetida" (otra vez la misma persona)
 async function registrarHuella(table, h, envioId, ahora = new Date()) {
-  await asegurar(table, TABLA_HUELLAS);
+  await asegurarHuellas(table);
   for (let vuelta = 0; vuelta < 3; vuelta++) {
     let previa = null;
     try { previa = await table.getEntity(h.pk, h.rk); } catch (err) { if (!notFound(err)) throw err; }
@@ -90,40 +88,22 @@ async function liberarHuella(table, h) {
 // datos = { nombre, herramienta, empresa:{clienteId}|{nombre,codigo}, area, correo, tiempoRespuestaSeg, detalles:[{preguntaId,nivel,opcion,fue}] }
 // → { nueva:false } si ese envío ya estaba (reintento del navegador).
 async function encolar(table, envioId, datos, huella, ahora = new Date()) {
-  await asegurar(table, TABLA);
-  const json = JSON.stringify(datos);
-  if (json.length > MAX_JSON) throw new Error("El envío es demasiado grande.");
-  try {
-    await table.createEntity({
-      partitionKey: PARTICION, rowKey: envioId, recibidoEn: ahora.toISOString(),
-      herramienta: datos.herramienta, nombre: datos.nombre.slice(0, 120),
-      empresaTxt: String((datos.empresa && datos.empresa.nombre) || (datos.empresa && datos.empresa.clienteId ? "cliente #" + datos.empresa.clienteId : "")).slice(0, 120),
-      huellaPk: huella.pk, huellaRk: huella.rk, intentos: 0, ultimoError: "", datos: json,
-    });
-    return { nueva: true };
-  } catch (err) {
-    if (err.statusCode === 409) return { nueva: false };
-    throw err;
-  }
+  return cola.encolar(table, envioId, {
+    herramienta: datos.herramienta, nombre: datos.nombre.slice(0, 120),
+    empresaTxt: String((datos.empresa && datos.empresa.nombre) || (datos.empresa && datos.empresa.clienteId ? "cliente #" + datos.empresa.clienteId : "")).slice(0, 120),
+    huellaPk: huella.pk, huellaRk: huella.rk, datos: JSON.stringify(datos),
+  }, ahora);
 }
 
 // ── lectura para el admin (solo Table Storage: no despierta la base) ──
 // { total, excel, powerbi, errores, lista:[{id,nombre,empresa,herramienta,recibidoEn,intentos,error}] } (lista = solo las que tienen error)
 async function resumenPendientes(table) {
-  const r = { total: 0, excel: 0, powerbi: 0, errores: 0, lista: [] };
-  try {
-    for await (const e of table.listEntities({ queryOptions: { filter: `PartitionKey eq '${PARTICION}'`, select: ["rowKey", "herramienta", "nombre", "empresaTxt", "recibidoEn", "intentos", "ultimoError"] } })) {
-      r.total++;
-      if (HERRAMIENTAS.includes(e.herramienta)) r[e.herramienta]++;
-      if (e.ultimoError) {
-        r.errores++;
-        if (r.lista.length < 20) r.lista.push({ id: e.rowKey, nombre: e.nombre, empresa: e.empresaTxt, herramienta: e.herramienta, recibidoEn: e.recibidoEn, intentos: e.intentos || 0, error: e.ultimoError });
-      }
-    }
-  } catch (err) {
-    if (!notFound(err)) throw err; // sin tabla = nada pendiente
-  }
-  return r;
+  const r = await cola.resumen(table, {
+    select: ["herramienta", "nombre", "empresaTxt"],
+    agrupar: (e, acc) => { if (HERRAMIENTAS.includes(e.herramienta)) acc[e.herramienta] = (acc[e.herramienta] || 0) + 1; },
+    fila: (e) => ({ id: e.rowKey, nombre: e.nombre, empresa: e.empresaTxt, herramienta: e.herramienta, recibidoEn: e.recibidoEn, intentos: e.intentos || 0, error: e.ultimoError }),
+  });
+  return { total: r.total, excel: r.excel || 0, powerbi: r.powerbi || 0, errores: r.errores, lista: r.lista };
 }
 
 // ── importar a SQL ──
@@ -189,50 +169,10 @@ async function insertarEnSql(pool, sql, resolverCliente, envioId, datos, recibid
   }
 }
 
-// Importa la cola. NUNCA lanza. `insertar(envioId, datos, recibidoEn)` escribe en SQL (en producción, insertarEnSql).
-// Una sola corrida a la vez por instancia: las demás llamadas esperan ESA misma. Corta al llegar al tope de tiempo o de
-// filas; `restantes` le dice al admin si debe volver a llamar. Las filas sin error van primero; las que ya fallaron se
-// reintentan al final (la causa pudo arreglarse: p. ej. se restauró el cliente).
-let enCurso = null;
-async function importarPendientes(table, insertar, context, opciones = {}) {
-  if (enCurso) return enCurso;
-  const max = opciones.max || MAX_POR_CORRIDA;
-  const presupuesto = opciones.presupuestoMs || PRESUPUESTO_MS;
-  enCurso = (async () => {
-    const inicio = Date.now();
-    const r = { importadas: 0, errores: 0, restantes: 0 };
-    try {
-      await asegurar(table, TABLA);
-      const pendientes = [];
-      for await (const e of table.listEntities({ queryOptions: { filter: `PartitionKey eq '${PARTICION}'` } })) pendientes.push(e);
-      pendientes.sort((a, b) => (a.ultimoError ? 1 : 0) - (b.ultimoError ? 1 : 0) || String(a.recibidoEn).localeCompare(String(b.recibidoEn)));
-      let tocadas = 0;
-      for (const e of pendientes) {
-        if (tocadas >= max || Date.now() - inicio > presupuesto) break;
-        tocadas++;
-        try {
-          await insertar(e.rowKey, JSON.parse(e.datos), new Date(e.recibidoEn));
-          try { await table.deleteEntity(PARTICION, e.rowKey); } catch (errDel) { if (!notFound(errDel)) throw errDel; }
-          r.importadas++;
-        } catch (err) {
-          r.errores++;
-          if (context) context.log.error("Cola de diagnósticos: no se pudo importar " + e.rowKey + ":", err.message);
-          try {
-            await table.updateEntity({ partitionKey: PARTICION, rowKey: e.rowKey, intentos: (e.intentos || 0) + 1, ultimoError: String(err.safe ? err.message : "No se pudo guardar en la base (" + err.message + ")").slice(0, 300) }, "Merge");
-          } catch (_) { /* si no se puede anotar el error, se reintenta la próxima vez */ }
-        }
-      }
-      r.restantes = pendientes.length - r.importadas;
-    } catch (err) {
-      if (context) context.log.error("Cola de diagnósticos: no se pudo importar:", err.message);
-    }
-    return r;
-  })();
-  try {
-    return await enCurso;
-  } finally {
-    enCurso = null;
-  }
+// Importa la cola (ver cola-tabla.js: nunca lanza, tope de filas/tiempo, una corrida a la vez, las fallidas al final).
+// `insertar(envioId, datos, recibidoEn)` escribe en SQL (en producción, insertarEnSql).
+function importarPendientes(table, insertar, context, opciones) {
+  return cola.importar(table, insertar, context, opciones);
 }
 
 // Atajo para las Functions del admin: importa con la base real. Nunca lanza.
@@ -250,9 +190,9 @@ async function importarConSql(pool, context, opciones) {
 // Descarta un pendiente (borrado real, con confirmación en el front): libera la huella para que la persona pueda reintentar.
 // → { herramienta } | null si ya no estaba.
 async function descartar(table, huellas, envioId) {
-  let fila;
-  try { fila = await table.getEntity(PARTICION, envioId); } catch (err) { if (notFound(err)) return null; throw err; }
-  await table.deleteEntity(PARTICION, envioId);
+  const fila = await cola.leer(table, envioId);
+  if (!fila) return null;
+  await cola.borrar(table, envioId);
   if (fila.huellaPk && fila.huellaRk) { try { await liberarHuella(huellas, { pk: fila.huellaPk, rk: fila.huellaRk }); } catch (_) { /* caduca sola */ } }
   return { herramienta: fila.herramienta };
 }

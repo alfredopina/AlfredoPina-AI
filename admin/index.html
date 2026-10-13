@@ -1468,18 +1468,16 @@
   .cot-card.gan::before{ content:""; position:absolute; left:-3px; top:0; bottom:0; width:1px; background-color:#6f9be0; }
   .cot-emp{ font-weight:600; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .cot-mon{ font-weight:600; font-size:17px; text-align:right; font-family:var(--display); }
-  .cot-prog{ font-size:12.5px; color:var(--text-dim); align-self:center; }
-  .cot-ctl{ display:flex; align-items:center; justify-content:flex-end; position:relative; }
-  .cot-cb{ width:28px; height:28px; padding:0; border:1px solid var(--line); background-color:var(--panel); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:6px; }
+  .cot-prog{ font-size:12.5px; color:var(--text-dim); align-self:center; grid-column:1 / -1; }
+  .cot-ctl{ display:flex; align-items:flex-end; justify-content:flex-end; align-self:end; position:relative; }
+  .cot-cb{ width:38px; height:38px; padding:0; border:1px solid var(--line); background-color:var(--panel); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:6px; }
   .cot-cb:hover{ color:var(--blue-bright); border-color:var(--blue-bright); }
-  .cot-cb svg{ width:16px; height:16px; }
+  .cot-cb svg{ width:21px; height:21px; }
   .cot-dias{ display:flex; align-items:center; gap:4px 10px; flex-wrap:wrap; min-width:0; align-self:end; min-height:22px; }
   .cot-ex{ font-size:11.5px; color:var(--text-dim); }
   .cot-ex.cot-via{ color:var(--blue-bright); }
-  .cot-tool{ display:flex; justify-content:flex-end; align-self:end; position:relative; }
-  .cot-tool svg{ width:19px; height:19px; }
-  .cot-tool:hover::after{ content:attr(data-tip); position:absolute; right:0; bottom:26px; white-space:nowrap; font-family:var(--mono); font-size:11px; color:var(--text); background-color:var(--panel); border:1px solid var(--line); padding:3px 7px; z-index:6; }
-  .cot-pop{ position:absolute; right:0; top:32px; z-index:20; min-width:156px; background-color:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; }
+  .cot-pop{ position:absolute; right:0; bottom:calc(100% + 4px); z-index:20; min-width:156px; background-color:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; }
+  .cot-pop.abajo{ top:calc(100% + 4px); bottom:auto; }
   .cot-pop button{ display:flex; align-items:center; gap:8px; width:100%; height:30px; padding:0 9px; border:none; background:none; font-family:var(--body); font-size:12.5px; color:var(--text-dim); text-align:left; cursor:pointer; border-radius:5px; }
   .cot-pop button:hover{ background-color:var(--panel-2); color:var(--text); }
   .cot-pop button.cot-del:hover{ color:var(--bad); }
@@ -14432,18 +14430,21 @@
         propTextoCot(c),
       ].filter(Boolean).map(t => `<span class="cot-ex">${escapeHtml(t)}</span>`).join('');
       const vig = vigenciaTextoCot(c);
-      return `
-        <div class="cot-card ${fase === 'Ganada' ? 'gan' : ''}" style="border-left-color:${COLOR_FASE[fase] || '#8b93a1'}" draggable="true" data-id="${c.id}">
-          <div class="cot-emp" title="${escapeHtml(nombreClienteCot(c))}${viaCot(c) ? ' · vía ' + escapeHtml(viaCot(c)) : ''}">${escapeHtml(nombreClienteCot(c))}</div>
+      // el color de la herramienta tiñe la tarjeta (el nombre del programa ya dice cuál es; el color del borde izquierdo sigue siendo la fase)
+      const tinteHerr = meta.color ? `background-color:${rgbaCot(meta.color, 0.13)};border-top-color:${rgbaCot(meta.color, 0.4)};border-right-color:${rgbaCot(meta.color, 0.4)};border-bottom-color:${rgbaCot(meta.color, 0.4)};` : '';
+      const html = `
+        <div class="cot-card ${fase === 'Ganada' ? 'gan' : ''}" style="border-left-color:${COLOR_FASE[fase] || '#8b93a1'};${tinteHerr}" draggable="true" data-id="${c.id}" title="${escapeHtml(c.folio)}">
+          <div class="cot-emp">${escapeHtml(nombreClienteCot(c))}</div>
           <div class="cot-mon">${fmtMoney(c.precio_final)}</div>
-          <div class="cot-prog" title="${escapeHtml(programa)}">${escapeHtml(programa)}</div>
+          <div class="cot-prog">${escapeHtml(programa)}</div>
+          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${(c.num_grupos || 1) > 1 ? `<span class="cot-ex" title="Cotización de varios grupos: el monto es el total">${c.num_grupos} grupos</span>` : ''}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
           <div class="cot-ctl">
             <button type="button" class="cot-cb" data-acc="menu" data-id="${c.id}" title="Acciones" aria-label="Acciones" aria-haspopup="menu" aria-expanded="${cotMenu === c.id}">${ICO_AJUSTES}</button>
             ${cotMenu === c.id ? menuCotHtml(c) : ''}
           </div>
-          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${(c.num_grupos || 1) > 1 ? `<span class="cot-ex" title="Cotización de varios grupos: el monto es el total">${c.num_grupos} grupos</span>` : ''}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
-          <div class="cot-tool" style="color:${meta.color || 'var(--text-dim)'}" data-tip="${escapeHtml(c.folio)}" title="${escapeHtml(c.folio)}" aria-label="Folio ${escapeHtml(c.folio)}">${meta.icon || ''}</div>
         </div>`;
+      // el tooltip de TODA la tarjeta es el folio: se quitan los title internos (si no, taparían al de la tarjeta)
+      return html.replace(/(<div class="cot-card[^>]*>)|s+title="[^"]*"/g, (m, tarjeta) => tarjeta || '');
     }
 
     function encabezadoCotHtml(k, l, vivoMonto, vivoCant){
@@ -14480,6 +14481,11 @@
         return `<div class="cot-panel ${cls}" data-k="${k}">${encabezadoCotHtml(k, l, false, false)}${vis.map(tarjetaCotHtml).join('') || '<div class="cot-vacio">Sin cotizaciones</div>'}${boton}</div>`;
       }).join('');
       document.getElementById('cotBoard').innerHTML = `<div class="cot-lanes">${lanes}<div class="cot-cerr">${paneles}</div></div>`;
+      const pop = document.querySelector('#cotBoard .cot-pop');
+      if(pop){
+        const wrap = document.querySelector('.cot-board-wrap').getBoundingClientRect();
+        if(pop.getBoundingClientRect().top < wrap.top) pop.classList.add('abajo');
+      }
     }
 
     function aplicarVistaCot(){

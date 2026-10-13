@@ -101,6 +101,7 @@ Propuesta (por decidir): (1) agregar al respaldo semanal las tablas de contenido
 
 ## Después (2027)
 
+- **Manual técnico del sistema (inicios de 2027):** un documento para entregar a un desarrollador que no estuvo aquí y que pueda entender y mantener todo sin depender de Alfredo ni de Claude. Debe cubrir con lenguaje técnico: arquitectura y diagrama de componentes; aplicaciones y recursos de Azure (Static Web App, Functions, Table Storage, SQL, Communication Services, app de Entra); dónde vive cada **llave, secreto y variable** y cómo rotarlos (nunca los valores); catálogo de las ~175 Functions con su ruta y acceso; modelo de datos y colas; cómo se despliega, se prueba y se revierte; las reglas técnicas y por qué existen; procedimientos de operación (respaldo, restauración, vencimientos); quién tiene acceso a qué; y cómo reconstruirlo desde cero. Parte de lo que ya existe y solo hay que consolidar: `RUNBOOK.md`, `VIGENCIAS.md`, `docs/` y el inventario de la auditoría. Es también la mejor cura del riesgo de que todo dependa de una sola persona.
 - Seguir creciendo capacidades y **aterrizajes para otras estrategias de venta** (instructores, productos digitales, lo que enseñen las dos primeras líneas).
 - **B2C**, cliente final, con un experimento pequeño antes de construir.
 - **data-master:** empresa hermana, con identidad y datos separados.

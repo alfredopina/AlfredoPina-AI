@@ -469,6 +469,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/getEstadoBase",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listPreguntasDiagnosticoAdmin",
       "allowedRoles": ["admin"]
     },

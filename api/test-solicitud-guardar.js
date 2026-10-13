@@ -111,6 +111,16 @@ const prospecto = {
   await g.crearSolicitudManual(f.nuevaRequest, { ...base, es_cliente: true, empresa: { clienteId: 20 }, proyectos: proy });
   assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.proyectosJson, null, "el estándar no guarda proyectos propios");
 
+  // ── crear: temas a tu medida (solo personalizado; una personalizada puede ir solo con ellos) ──
+  const tc = [{ nombre: " Macros para cierre contable ", objetivo: "Automatizar el cierre", extra: "x" }, { nombre: "  ", objetivo: "sin nombre" }];
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 105 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, temario_tipo: "personalizado", temas: [], es_cliente: true, empresa: { clienteId: 20 }, temas_custom: tc });
+  assert.deepStrictEqual(JSON.parse(f.hubo("INSERT INTO Solicitud")[0].params.temasCustomJson), [{ nombre: "Macros para cierre contable", objetivo: "Automatizar el cierre" }], "solo personalizada con temas a tu medida: se guarda, recortada y sin filas vacías");
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 106 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, es_cliente: true, empresa: { clienteId: 20 }, temas_custom: tc });
+  assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.temasCustomJson, null, "el estándar no guarda temas a tu medida");
+  await assert.rejects(() => g.crearSolicitudManual(fabrica(() => []).nuevaRequest, { ...base, temario_tipo: "personalizado", temas: [], es_cliente: true, empresa: { clienteId: 20 }, temas_custom: [] }), /al menos un tema/, "personalizada sin ningún tema se rechaza");
+
   // ── crear: contacto de otro cliente se rechaza ──
   f = fabrica((t) => {
     if (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente")) return [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }];

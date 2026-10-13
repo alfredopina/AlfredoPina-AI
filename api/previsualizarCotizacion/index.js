@@ -6,6 +6,7 @@
 const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-proyectos");
 const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
+const { normalizarTemasCustom } = require("../src/temas-custom");
 const { normalizarGrupos, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -19,7 +20,7 @@ module.exports = async function (context, req) {
   const tarifaHora = Number(body.tarifa_hora);
   const numGrupos = normalizarGrupos(body.num_grupos);
 
-  if (!clienteNombre || !herramienta || !temas.length || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
+  if (!clienteNombre || !herramienta || (!temas.length && !(body.temario_tipo === "personalizado" && normalizarTemasCustom(body.temas_custom).length)) || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos para generar la vista previa." } };
     return;
   }
@@ -45,6 +46,7 @@ module.exports = async function (context, req) {
       herramienta,
       programa: estandar ? body.temario_nombre.trim() : "Programa personalizado",
       temas,
+      temasCustom: body.temario_tipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [],
       horas,
       modalidad: (body.modalidad || "").trim() || null,
       participantes: (body.participantes || "").trim() || null,

@@ -185,3 +185,11 @@ Antes se multiplicaba el precio a mano por los grupos y el descuento se improvis
 ## Reiniciar vistas de una propuesta (2026-10-13)
 
 "Abierta N veces" cuenta toda apertura sin sesión de admin, incluidas las del propio Alfredo desde otro navegador o dispositivo (las de su sesión de admin no cuentan). Menú de la tarjeta (tablero) → **Reiniciar vistas** (solo si hay vistas y la propuesta no está aceptada): `reiniciarVistasPropuesta` deja en cero `vistas`, `primeraVista`, `ultimaVista` y `vistaConfirmadaEn` (Table Storage, sin SQL) y conserva snapshot y aceptación. **Por qué también la confirmación:** así la próxima apertura real del cliente vuelve a mandar el correo "Abrieron tu propuesta", que solo sale la primera vez. Para evitar que se cuenten de entrada: abrir el link con la sesión de admin activa o usar "Ver" del menú.
+
+## Temas a tu medida en la Solicitud personalizada (2026-10-13)
+
+Para un tema que el cliente pidió y que no está (ni debe estar) en el catálogo de Productos. En una Solicitud **personalizada**, sección "Temas a tu medida" (opcional, hasta 10): cada tema lleva **nombre** y **objetivo del tema** (no horas ni nivel: la propuesta trabaja por bloques y las horas totales las escribe Alfredo). Una personalizada puede ir solo con temas a tu medida (sin temas del catálogo).
+- **Datos:** `Solicitud.temas_custom_json` (`sql/038_solicitud_temas_custom.sql`), normalizado por `api/src/temas-custom.js` (recorta, quita filas sin nombre). El estándar los ignora.
+- **Cotización:** viajan de la Solicitud igual que los proyectos (`temas_custom` en el payload) y quedan congelados en el snapshot (`temasCustom: [{n, o}]`). El "Objetivo" general de la solicitud ya existía y sigue igual; el objetivo de cada tema es aparte.
+- **Propuesta:** dentro de la Ruta de aprendizaje, después de los temas del catálogo, con numeración propia **M1, M2…**, borde punteado y la etiqueta "A tu medida"; cuentan en "N bloques de trabajo" y en la fórmula (`=SUMA(A1:A14, M1:M2)`). En impresión se distinguen con fondo ligero y la misma etiqueta; se oculta la línea "En N bloques…" porque la tarjeta de meta ya lo repite (así un temario de 16 bloques sigue cabiendo en una hoja).
+- **Idea futura (no construida):** botón "Pasar a Productos" para promover un tema a medida que se repite al catálogo.

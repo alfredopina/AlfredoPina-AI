@@ -101,6 +101,20 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   const g1 = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
   check("1 grupo: igual que siempre y sin términos de OC", g1.inputs.numGrupos === 1 && g1.inputs.precioFinal === 4000 && propGuardadas[0].snapshot.grupos === 1 && !propGuardadas[0].snapshot.terminos.some((t) => /orden de compra/.test(t)));
 
+  // ── temas a tu medida ──
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temas: [{ nombre: "T1", nivel: 1 }], temas_custom: [{ nombre: " Macros de cierre ", objetivo: "Automatizar el cierre", extra: 1 }, { nombre: "" }] });
+  check("personalizada con temas a tu medida: el snapshot los lleva (recortados, sin vacíos)", r.status === 200 && JSON.stringify(propGuardadas[0].snapshot.temasCustom) === JSON.stringify([{ n: "Macros de cierre", o: "Automatizar el cierre" }]));
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temas: [], temas_custom: [{ nombre: "Solo a medida", objetivo: "x" }] });
+  check("personalizada solo con temas a tu medida: se permite", r.status === 200 && propGuardadas[0].snapshot.temasCustom.length === 1 && propGuardadas[0].snapshot.temas.length === 0);
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temas: [], temas_custom: [] });
+  check("sin temas de ningún tipo: 400", r.status === 400);
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temario_tipo: "estandar", temario_nombre: "Excel Básico", temas_custom: [{ nombre: "No aplica", objetivo: "x" }] });
+  check("el estándar ignora los temas a tu medida", r.status === 200 && propGuardadas[0].snapshot.temasCustom.length === 0);
+
     console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

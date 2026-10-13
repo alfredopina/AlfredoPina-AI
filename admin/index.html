@@ -1532,6 +1532,15 @@
   .sol-card{ border-width:1px; border-style:solid; border-color:var(--line); border-radius:10px; background-color:var(--panel); padding:16px 18px 6px; margin-bottom:18px; }
   .sol-card-title{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); margin-bottom:14px; }
   .sol-subform{ border-left:3px solid var(--blue-bright); padding-left:14px; margin:-2px 0 14px; }
+  .sol-custom{ margin:4px 0 18px; padding:12px 14px; border:1px dashed var(--line); border-radius:10px; background-color:var(--panel-2); }
+  .sol-custom-h{ font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--text-dim); margin-bottom:10px; }
+  .sol-custom-h .radm-hint{ display:block; margin-top:3px; letter-spacing:0; text-transform:none; }
+  .sol-custom-fila{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto; gap:8px; align-items:start; margin-bottom:8px; }
+  .sol-custom-fila .radm-field{ margin:0; } .sol-custom-fila .radm-field textarea{ min-height:42px; }
+  .sol-custom-x{ width:34px; height:34px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid var(--line); background-color:var(--panel); color:var(--text-dim); border-radius:6px; cursor:pointer; }
+  .sol-custom-x:hover{ color:var(--bad); border-color:var(--bad); }
+  .sol-custom-x svg{ width:15px; height:15px; }
+  @media (max-width:700px){ .sol-custom-fila{ grid-template-columns:1fr auto; } .sol-custom-fila .radm-field:nth-child(2){ grid-column:1 / -1; grid-row:2; } }
   .sol-subform[hidden], #solBloqueCliente[hidden], #solBloqueProspecto[hidden], #solPersonalizadoWrap[hidden], .sol-aviso[hidden]{ display:none; }
   .sol-combo{ position:relative; }
   .sol-combo input{ padding-right:34px; }
@@ -13190,6 +13199,8 @@
       const temasGuardados = editando ? temasDe(sol) : [];
       let proyectosGuardados = [];
       if(editando){ try { proyectosGuardados = JSON.parse(sol.proyectos_json || '[]'); } catch(e){ proyectosGuardados = []; } }
+      let temasCustom = [];
+      if(editando){ try { const a = JSON.parse(sol.temas_custom_json || '[]'); temasCustom = Array.isArray(a) ? a.map(t => ({ nombre: t.nombre || '', objetivo: t.objetivo || '' })) : []; } catch(e){ temasCustom = []; } }
 
       wrap.innerHTML = `
         <button type="button" class="radm-back" id="solVolver">
@@ -13288,6 +13299,11 @@
             </div>
             <div id="solTemarioBody"></div>
             <div id="solPersonalizadoWrap" hidden>
+              <div class="sol-custom">
+                <div class="sol-custom-h">TEMAS A TU MEDIDA<span class="radm-hint">Opcional · temas que te pidieron y no están en el catálogo. Salen en la propuesta como "A tu medida".</span></div>
+                <div id="solCustomLista"></div>
+                <button type="button" class="radm-btn radm-btn-ghost" id="solCustomAdd">+ Agregar tema a tu medida</button>
+              </div>
               <div class="radm-form-row">
                 <div class="radm-field"><label>OBJETIVO</label><textarea id="solObjetivo" rows="3" placeholder="Qué debe lograr el equipo al terminar."></textarea></div>
                 <div class="radm-field"><label>DIRIGIDO A</label><textarea id="solDirigido" rows="3" placeholder="Perfil de los participantes."></textarea></div>
@@ -13352,6 +13368,31 @@
       let verifSeq = 0, verifTimer = null, codigoExiste = null;
       const esCliente = () => $('solEsCliente').checked;
       const esEstandar = () => $('solEsEstandar').checked;
+
+      // ───── temas a tu medida (solo personalizado): lista de { nombre, objetivo } ─────
+      const ICO_QUITAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/></svg>';
+      function renderTemasCustom(){
+        $('solCustomLista').innerHTML = temasCustom.map((t, i) => `
+          <div class="sol-custom-fila">
+            <div class="radm-field"><input type="text" data-i="${i}" data-k="nombre" maxlength="200" placeholder="Nombre del tema" value="${escapeHtml(t.nombre)}"></div>
+            <div class="radm-field"><textarea rows="1" data-i="${i}" data-k="objetivo" maxlength="1000" placeholder="Objetivo de este tema">${escapeHtml(t.objetivo)}</textarea></div>
+            <button type="button" class="sol-custom-x" data-quitar="${i}" aria-label="Quitar este tema" title="Quitar">${ICO_QUITAR}</button>
+          </div>`).join('');
+        $('solCustomAdd').hidden = temasCustom.length >= 10;
+      }
+      $('solCustomLista').addEventListener('input', e => {
+        const el = e.target.closest('[data-k]'); if(!el) return;
+        temasCustom[Number(el.dataset.i)][el.dataset.k] = el.value;
+      });
+      $('solCustomLista').addEventListener('click', e => {
+        const b = e.target.closest('[data-quitar]'); if(!b) return;
+        temasCustom.splice(Number(b.dataset.quitar), 1); renderTemasCustom();
+      });
+      $('solCustomAdd').addEventListener('click', () => {
+        temasCustom.push({ nombre: '', objetivo: '' }); renderTemasCustom();
+        const ult = $('solCustomLista').querySelector('.sol-custom-fila:last-child input'); if(ult) ult.focus();
+      });
+      renderTemasCustom();
 
       // ───── horas sugeridas ─────
       const temarioSel = window.TemarioSelector.crear({ bodyEl: $('solTemarioBody'), onChange: alCambiarSeleccion });
@@ -13525,8 +13566,11 @@
       $('solGuardar').addEventListener('click', async () => {
         const herramienta = $('solHerramienta').value;
         if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-        const temarioPayload = temarioSel.getPayload();
-        if(!temarioPayload){ toast(esEstandar() ? 'Selecciona un programa.' : 'Selecciona al menos un tema.', false); return; }
+        let temarioPayload = temarioSel.getPayload();
+        const customOk = esEstandar() ? [] : temasCustom.filter(t => t.nombre.trim()).map(t => ({ nombre: t.nombre.trim(), objetivo: t.objetivo.trim() }));
+        // una personalizada puede ser solo de temas a tu medida (sin temas del catálogo): las horas las escribe Alfredo
+        if(!temarioPayload && customOk.length) temarioPayload = { temario_tipo: 'personalizado', temario_nombre: null, horas_totales: Number($('solHoras').value) || 0, temas: [] };
+        if(!temarioPayload){ toast(esEstandar() ? 'Selecciona un programa.' : 'Selecciona al menos un tema (o escribe uno a tu medida).', false); return; }
         const horas = Number($('solHoras').value);
         if(!Number.isFinite(horas) || horas <= 0){ toast('Escribe las horas.', false); return; }
 
@@ -13539,6 +13583,7 @@
         if(!esEstandar()){
           payload.objetivo = $('solObjetivo').value.trim();
           payload.dirigido_a = $('solDirigido').value.trim();
+          payload.temas_custom = customOk;
         }
         if($('solParticipantes').value === 'otro' && !/^\d+$/.test(payload.participantes)){ toast('Escribe cuántas personas participarán (un número).', false); return; }
 
@@ -14882,7 +14927,13 @@
         <div class="sol-desglose-item">
           <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">${NIVEL_LABEL[t.nivel] ? NIVEL_LABEL[t.nivel] + ' · ' : ''}${t.horas} hr</span></div>
           ${t.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(t.descripcion)}</div>` : ''}
-        </div>`).join('') : '<div class="radm-empty-row">Sin desglose disponible.</div>';
+        </div>`).join('') : '';
+      const customHtml = temasCustomDeSol(datos).map(t => `
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">A tu medida</span></div>
+          ${t.objetivo ? `<div class="sol-desglose-desc">${escapeHtml(t.objetivo)}</div>` : ''}
+        </div>`).join('');
+      const temasTodos = temasHtml + customHtml || '<div class="radm-empty-row">Sin desglose disponible.</div>';
 
       document.getElementById('cotDetalleResumen').innerHTML = `
         <div class="cot-detalle-head">
@@ -14905,7 +14956,7 @@
           <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(datos.modalidad || '—')}</div></div>
         </div>
         <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || 'Programa personalizado')}</div>
-        <div class="sol-desglose">${temasHtml}</div>
+        <div class="sol-desglose">${temasTodos}</div>
       `;
       document.getElementById('cotDetalleEditarBtn').addEventListener('click', () => {
         if(cotSolicitudActual && cotSolicitudActual.id) window.editarSolicitudEnForm(cotSolicitudActual);
@@ -14996,6 +15047,12 @@
     // que hay que resolverlo contra el catálogo cacheado, mismo patrón que ya
     // usa precargarTemarioEdit para el mismo problema con los temas.
     // Los proyectos elegidos de una personalizada viajan como foto {id, nombre, resumen}; los de un estándar los trae el servidor
+    // temas a tu medida de una personalizada: viajan tal cual a la propuesta ({nombre, objetivo})
+    function temasCustomDeSol(sol){
+      if(sol.temario_tipo !== 'personalizado' || !sol.temas_custom_json) return [];
+      try { const a = typeof sol.temas_custom_json === 'string' ? JSON.parse(sol.temas_custom_json) : sol.temas_custom_json; return Array.isArray(a) ? a : []; }
+      catch(e){ return []; }
+    }
     function proyectosDeSol(sol){
       if(sol.temario_tipo !== 'personalizado' || !sol.proyectos_json) return [];
       try { const a = typeof sol.proyectos_json === 'string' ? JSON.parse(sol.proyectos_json) : sol.proyectos_json; return Array.isArray(a) ? a : []; }
@@ -15031,7 +15088,7 @@
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
-        dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol),
       };
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -15070,7 +15127,7 @@
         num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
-        dirigido_a, objetivo, proyectos: proyectosDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol),
       };
 
       const btn = document.getElementById('cotCrear');
@@ -15111,7 +15168,7 @@
         temas_json: c.temas_json, horas_totales: c.horas,
         fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
         participantes: c.participantes, modalidad: c.modalidad,
-        objetivo: c.sol_objetivo, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json,
+        objetivo: c.sol_objetivo, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json, temas_custom_json: c.sol_temas_custom_json,
       };
       const enElLugar = c.estatus === 'Borrador';
       abrirDetalleCotizar(datosComoSolicitud, {

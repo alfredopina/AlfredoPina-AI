@@ -15,6 +15,7 @@
 //   - "Recibida el" (opcional) fija fecha_creacion: una llamada capturada tarde no debe verse como lenta.
 //   - Objetivo/dirigido a solo existen en personalizado (el estándar los trae de su programa).
 const { sql } = require("./backoffice-db");
+const { normalizarTemasCustom } = require("./temas-custom");
 const { limpiarCodigo } = require("./cliente-resolver");
 const { contarBloqueos } = require("./cliente-dependencias");
 const { HERRAMIENTAS } = require("./herramientas");
@@ -55,7 +56,8 @@ function normalizar(body) {
   const temarioNombre = String(body.temario_nombre || "").trim() || null;
   if (temarioTipo === "estandar" && !temarioNombre) throw falla(400, "Falta el programa.");
   const temas = Array.isArray(body.temas) ? body.temas : [];
-  if (!temas.length) throw falla(400, temarioTipo === "estandar" ? "Falta el desglose de temas." : "Selecciona al menos un tema.");
+  const temasCustom = temarioTipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [];
+  if (!temas.length && !temasCustom.length) throw falla(400, temarioTipo === "estandar" ? "Falta el desglose de temas." : "Selecciona al menos un tema o escribe uno a tu medida.");
   const horas = Math.round(Number(body.horas_totales) * 10) / 10;
   if (!Number.isFinite(horas) || horas <= 0 || horas > 9999) throw falla(400, "Las horas no son válidas.");
 
@@ -111,6 +113,7 @@ function normalizar(body) {
   return {
     herramienta, temarioTipo, temarioNombre: personalizado ? null : temarioNombre, temas, horas, modalidad,
     participantes: part.columna, notas, objetivo: texto(body.objetivo), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
+    temasCustomJson: temasCustom.length ? JSON.stringify(temasCustom) : null,
     recibida, esCliente, clienteId, nombre, codigo, contactoId, contactoDatos,
   };
 }
@@ -197,16 +200,17 @@ async function crearSolicitudManual(nuevaRequest, body) {
     .input("objetivo", sql.NVarChar, d.objetivo)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
+    .input("temasCustomJson", sql.NVarChar, d.temasCustomJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `INSERT INTO Solicitud
         (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-         participantes, modalidad, objetivo, dirigido_a, proyectos_json, fecha_creacion, fecha_estatus, creo_prospecto)
+         participantes, modalidad, objetivo, dirigido_a, proyectos_json, temas_custom_json, fecha_creacion, fecha_estatus, creo_prospecto)
        OUTPUT INSERTED.id
        VALUES
         (@clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson, @horas, 'Manual', @notas,
-         @participantes, @modalidad, @objetivo, @dirigidoA, @proyectosJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
+         @participantes, @modalidad, @objetivo, @dirigidoA, @proyectosJson, @temasCustomJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
     );
   return { id: ins.recordset[0].id, cliente: { id: cliente.id, nombre: cliente.nombre, codigo: cliente.codigo } };
 }
@@ -266,13 +270,14 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
     .input("objetivo", sql.NVarChar, d.objetivo)
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
+    .input("temasCustomJson", sql.NVarChar, d.temasCustomJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `UPDATE Solicitud SET
          cliente_id = @clienteId, contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
          temario_nombre = @temarioNombre, temas_json = @temasJson, horas_totales = @horas, notas = @notas,
-         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson,
+         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson, temas_custom_json = @temasCustomJson,
          creo_prospecto = @creoProspecto,
          fecha_estatus = CASE WHEN @recibida IS NOT NULL AND estatus = 'Nueva' THEN @recibida ELSE fecha_estatus END,
          fecha_creacion = COALESCE(@recibida, fecha_creacion)

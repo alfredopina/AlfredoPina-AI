@@ -55,7 +55,7 @@ module.exports = async function (context, req) {
              s.horas, s.precio_sugerido, s.descuento_pct, s.precio_final,
              s.fecha_creacion, s.fecha_envio, s.fecha_estatus, s.motivo_perdida, s.nota_cierre, s.fecha_vigencia, s.estatus, s.reemplaza_a_folio, c.tipo_cliente,
              s.fecha_tentativa, s.ciudad_sede, s.participantes, s.modalidad, s.blob_path,
-             so.objetivo AS sol_objetivo, so.dirigido_a AS sol_dirigido_a, so.proyectos_json AS sol_proyectos_json,
+             so.objetivo AS sol_objetivo, so.dirigido_a AS sol_dirigido_a, so.proyectos_json AS sol_proyectos_json, so.temas_custom_json AS sol_temas_custom_json,
              DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias_estatus,
              DATEDIFF(HOUR, s.fecha_estatus, GETUTCDATE()) AS horas_estatus,
              CASE WHEN s.fecha_vigencia < CAST(GETUTCDATE() AS DATE)

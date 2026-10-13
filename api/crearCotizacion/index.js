@@ -16,6 +16,7 @@ const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-p
 const { esPrecioManual, armarSnapshot, getPropuestasTable, guardarPropuesta, marcarReemplazada, blobPathDePropuesta, codigoDePropuesta } = require("../src/propuestas");
 const { codigoCortoUnico } = require("../src/codigo-corto");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
+const { normalizarTemasCustom } = require("../src/temas-custom");
 const { normalizarGrupos, descuentoSugerido, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -58,6 +59,7 @@ module.exports = async function (context, req) {
   const dirigidoA = (body.dirigido_a || "").trim() || null;
   const objetivo = (body.objetivo || "").trim() || null;
   const proyectosElegidos = Array.isArray(body.proyectos) ? body.proyectos : [];
+  const temasCustom = temarioTipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [];
   // editar un Borrador = se guarda en el mismo folio y el mismo link (versión nueva solo desde Enviada en adelante)
   const actualizaId = body.actualiza_id ? Number(body.actualiza_id) : null;
 
@@ -69,7 +71,7 @@ module.exports = async function (context, req) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El tipo de programa debe ser estándar o personalizado." } };
     return;
   }
-  if (!temas.length) {
+  if (!temas.length && !temasCustom.length) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el desglose de temas." } };
     return;
   }
@@ -181,6 +183,7 @@ module.exports = async function (context, req) {
       herramienta,
       programa: temarioTipo === "estandar" && temarioNombre ? temarioNombre : "Programa personalizado",
       temas,
+      temasCustom,
       horas,
       modalidad,
       participantes,

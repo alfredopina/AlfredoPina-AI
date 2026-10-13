@@ -124,6 +124,9 @@
   .celda:nth-child(odd)::after{right:-47px;} .celda:nth-child(even)::after{left:-47px;}
   .celda.on{border-color:var(--acc); background:linear-gradient(135deg, var(--acc-soft), var(--panel) 60%);} .celda.on::after{background:var(--acc); border-color:var(--acc); box-shadow:0 0 0 5px var(--acc-soft);}
   .celda:hover{transform:translateY(-2px);}
+  /* tema a tu medida: borde punteado y etiqueta propia; el resto del bloque es igual a uno del catálogo */
+  .celda.custom{border-style:dashed; border-color:var(--acc);} .celda.custom .coord{background:transparent; border:1px solid var(--acc);}
+  .medida{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; color:var(--acc); border:1px solid var(--acc); border-radius:20px; padding:2px 9px;} .medida svg{width:11px; height:11px;}
   .celda .top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
   .coord{font-family:var(--mono); font-size:11px; font-weight:700; color:var(--acc); background:var(--acc-soft); border-radius:5px; padding:3px 8px;}
   .nivel{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim);}
@@ -285,10 +288,12 @@
     #propuesta{padding-top:6mm;} .rv{opacity:1 !important; transform:none !important;}
     .hero{grid-template-columns:1.3fr 1fr; gap:26px;} .hero-top h1{font-size:42px;} .quien{box-shadow:none;}
     .formula-sticky{display:none !important;} /* la barra =BLOQUE(A1) solo sirve en pantalla (sigue al scroll); impresa mostraba solo el primer tema */
-    .ruta{display:grid; grid-template-columns:1fr 1fr; gap:7px 12px; margin-top:10px; padding:0;} .ruta-fill, .ruta::before{display:none;}
-    .ruta .celda, .ruta .celda:nth-child(odd), .ruta .celda:nth-child(even){width:auto; margin:0 !important; padding:7px 12px 8px; display:block; break-inside:avoid; border-radius:10px; border:1px solid var(--line); border-left:4px solid var(--acc); background:#fff;} .celda::after{display:none;}
-    .celda .top{margin-bottom:5px;} .celda h3{font-size:13.5px; margin-bottom:3px;} .celda p{font-size:10.5px; line-height:1.4;} .coord{font-size:10px; padding:2px 7px; background:var(--acc); color:#fff;}
-    .meta-card{break-inside:avoid; padding:9px 14px; margin-top:10px; border-radius:12px;} .meta-card h3, .meta-card .meta-t{font-size:15px;}
+    .ruta{display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-top:8px; padding:0;} .ruta-fill, .ruta::before{display:none;}
+    .ruta .celda, .ruta .celda:nth-child(odd), .ruta .celda:nth-child(even){width:auto; margin:0 !important; padding:6px 12px 7px; display:block; break-inside:avoid; border-radius:10px; border:1px solid var(--line); border-left:4px solid var(--acc); background:#fff;} .celda::after{display:none;}
+    .ruta .celda.custom, .ruta .celda.custom:nth-child(odd), .ruta .celda.custom:nth-child(even){border-style:dashed; border-left-style:solid; background:var(--acc-soft);} .celda.custom .coord{background:#fff; color:var(--acc-ink); border:1px solid var(--acc-ink);} .medida{font-size:9px; padding:1px 7px;}
+    #tSub{display:none;} /* la tarjeta de meta ya repite "N bloques · H horas"; sin esta línea cabe un temario de 16 bloques en la hoja */
+    .celda .top{margin-bottom:3px;} .celda h3{font-size:13.5px; margin-bottom:2px;} .celda p{font-size:10.5px; line-height:1.3;} .coord{font-size:10px; padding:2px 7px; background:var(--acc); color:#fff;}
+    .meta-card{break-inside:avoid; padding:6px 14px; margin-top:8px; border-radius:12px;} .meta-card h3, .meta-card .meta-t{font-size:15px;}
     .meta-card .eyebrow{border:0 !important; padding:0 !important; margin-bottom:4px;} .meta-card #proys h3, .meta-card #proys h4, .meta-card #proys .t{font-size:14px !important; margin:0 0 2px;} .meta-card #proys p{font-size:10.5px; margin:0;} .meta-card .proy-vacio{padding:2px 0; gap:2px;} .meta-card .proy-vacio b{font-size:14px;} .meta-card .proy-vacio span{font-size:10.5px;} .meta-card .total-linea{margin-top:4px; font-size:10px;} .meta-card .total-linea b{font-size:15px;}
     .chip.vig{white-space:nowrap;}
     .res-list{gap:12px; margin-top:20px;}
@@ -658,7 +663,12 @@
 
   // ── temario: ruta con celdas A1, A2… (sin horas por tema: se trabaja por bloques) ──
   const barras = n => `<svg viewBox="0 0 15 12"><rect class="${n>=1?'f':'v'}" x="0" y="7" width="4" height="5" rx="1"/><rect class="${n>=2?'f':'v'}" x="5.500" y="3.500" width="4" height="8.500" rx="1"/><rect class="${n>=3?'f':'v'}" x="11" y="0" width="4" height="12" rx="1"/></svg>`;
-  const nB = D.temas.length;
+  // bloques del catálogo (A1, A2…) y, después, los temas a tu medida (M1, M2…)
+  const nCat = D.temas.length, nCus = (D.temasCustom || []).length;
+  const bloques = D.temas.concat((D.temasCustom || []).map(t => ({ n:t.n, d:t.o, custom:true })));
+  const coordDe = i => i < nCat ? 'A' + (i + 1) : 'M' + (i - nCat + 1);
+  const estrella = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.6 5.600 6.100.7-4.500 4.200 1.200 6.100L12 16.600 6.600 19.600l1.200-6.100L3.300 9.300l6.100-.7L12 3Z" stroke-linejoin="round"/></svg>';
+  const nB = bloques.length;
   $('tSub').textContent = `En ${nB} ${nB === 1 ? 'bloque' : 'bloques'} de trabajo y ${D.horas} horas de capacitación en total, lograrás los siguientes objetivos.`;
   // Misma regla que la página de Cursos: si el texto trae saltos de línea, cada línea es una viñeta; si es un párrafo,
   // la primera oración queda a la vista y el resto va en "Ver detalle".
@@ -676,9 +686,9 @@
     return (d.lead ? `<p>${esc(d.lead)}</p>` : '') + (d.resto.length
       ? `<div class="tema-resto" hidden>${d.resto.map(x => `<p>${esc(x)}</p>`).join('')}</div><button type="button" class="tema-mas" aria-expanded="false">Ver detalle ${chevron}</button>` : '');
   }
-  $('ruta').insertAdjacentHTML('beforeend', D.temas.map((t, i) => `
-    <article class="celda rv" data-i="${i}" tabindex="0">
-      <div class="top"><span class="coord">A${i+1}</span><span class="nivel">${t.nivel ? barras(t.nivel) + NIVEL[t.nivel] : ''}</span></div>
+  $('ruta').insertAdjacentHTML('beforeend', bloques.map((t, i) => `
+    <article class="celda rv${t.custom ? ' custom' : ''}" data-i="${i}" tabindex="0">
+      <div class="top"><span class="coord">${coordDe(i)}</span>${t.custom ? `<span class="medida">${estrella}A tu medida</span>` : `<span class="nivel">${t.nivel ? barras(t.nivel) + NIVEL[t.nivel] : ''}</span>`}</div>
       <h3>${esc(t.n)}</h3>${descHtml(t.d)}
     </article>`).join(''));
   $('ruta').addEventListener('click', e => {
@@ -699,8 +709,8 @@
     (function tick(){ n += 2; fRes.textContent = txt.slice(0, n); if(n < txt.length) tipeo = setTimeout(tick, 18); })();
   }
   function formulaDe(i, animar){
-    const t = D.temas[i];
-    fBar.innerHTML = `<span class="tk-eq">=</span><span class="tk-fn">BLOQUE</span><span class="tk-p">(</span><span class="tk-str">A${i+1}</span><span class="tk-p">)</span>`;
+    const t = bloques[i];
+    fBar.innerHTML = `<span class="tk-eq">=</span><span class="tk-fn">BLOQUE</span><span class="tk-p">(</span><span class="tk-str">${coordDe(i)}</span><span class="tk-p">)</span>`;
     if(animar){ escribeRes('→ ' + t.n); fWrap.classList.remove('pulso'); void fWrap.offsetWidth; fWrap.classList.add('pulso'); }
     else fRes.textContent = '→ ' + t.n;
   }
@@ -738,7 +748,7 @@
     $('dlgImg').addEventListener('click', () => $('dlgImg').close());
   }
   $('tTotal').textContent = D.horas + ' h';
-  $('tTotalTxt').textContent = `en ${D.temas.length} bloques más el proyecto final · ` + `=SUMA(A1:A${D.temas.length})`;
+  $('tTotalTxt').textContent = `en ${nB} bloques más el proyecto final · ` + `=SUMA(${[nCat ? 'A1:A' + nCat : '', nCus ? 'M1:M' + nCus : ''].filter(Boolean).join(', ')})`;
 
   // ── inversión ──
   // varios grupos: la cifra grande es el precio POR GRUPO (se compara contra un grupo, no contra la suma); el total va en el desglose

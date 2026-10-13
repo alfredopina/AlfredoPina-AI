@@ -134,6 +134,8 @@ function armarSnapshot(d) {
     objetivo: d.objetivo || null,
     dirigido: d.dirigidoA || null,
     temas,
+    // temas a medida (solo personalizada): se muestran con la etiqueta "A tu medida" después de los del catálogo
+    temasCustom: (d.temasCustom || []).map((t) => ({ n: String(t.nombre || t.n || "").trim(), o: String(t.objetivo || t.o || "").trim() })).filter((t) => t.n),
     proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null, o: p.objetivo || "" })),
     adicionales: adicionalesPara(d.herramienta),
     manual: Boolean(d.precioManual),

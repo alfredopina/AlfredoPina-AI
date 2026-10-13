@@ -62,4 +62,13 @@ async function limpiarIntentos(table, partitionKey, context) {
   }
 }
 
-module.exports = { checarBloqueo, registrarIntentoFallido, limpiarIntentos };
+// Freno para Functions PÚBLICAS que ESCRIBEN (contadores de vistas / clics): cuenta CADA llamada (no solo las fallidas) bajo
+// `partitionKey` y, al pasar del umbral (10 en 15 min), deja de dejarlas escribir 5 min. → false = no escribir. Falla abierto.
+// Quien llama debe responder igual que si todo hubiera salido bien (sin revelar el freno). Auditoría A01-009.
+async function permitirEscritura(table, partitionKey, context) {
+  if (await checarBloqueo(table, partitionKey, context)) return false;
+  await registrarIntentoFallido(table, partitionKey, context);
+  return true;
+}
+
+module.exports = { checarBloqueo, registrarIntentoFallido, limpiarIntentos, permitirEscritura };

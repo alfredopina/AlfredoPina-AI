@@ -3,7 +3,7 @@
 // (encuesta-cola.js). Nació en Solicitudes (solicitud-publica-cola.js, que se deja como está para no arriesgarla).
 //
 // POR QUÉ: la base SQL serverless se duerme y cada envío público que la tocaba la despertaba y la dejaba despierta
-// 20-30 min (cuota gratis de 100 000 vCore-s al mes). La persona solo escribe aquí (Table Storage nunca se duerme, ~1 s)
+// 20-60 min (cuota gratis de 100 000 vCore-s al mes). La persona solo escribe aquí (Table Storage nunca se duerme, ~1 s)
 // y el envío pasa a SQL ("importación") cuando Alfredo abre el panel o pulsa "Importar ahora".
 //
 // Una fila por envío: PartitionKey "pend", RowKey = envioId (UUID del navegador → idempotente: un reintento no crea otra

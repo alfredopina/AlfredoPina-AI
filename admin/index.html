@@ -3015,7 +3015,7 @@
             <div class="dip-paso-head">
               <span class="dip-paso-title">Link dedicado</span>
             </div>
-            <span class="radm-hint" style="display:block; margin-bottom:14px;">Genera un link que ya trae al cliente resuelto — evita que lo escriban mal o que se mezclen registros cuando varios clientes están respondiendo al mismo tiempo.</span>
+            <span class="radm-hint" style="display:block; margin-bottom:14px;">Es la ÚNICA forma de contestar el diagnóstico (ya no hay link genérico). Genera un link que ya trae al cliente resuelto — evita que lo escriban mal o que se mezclen registros cuando varios clientes están respondiendo al mismo tiempo.</span>
             <div class="radm-form-row">
               <div class="radm-field" style="max-width:160px;">
                 <label>HERRAMIENTA</label>
@@ -3035,50 +3035,13 @@
               <div class="enc-link-row">
                 <input type="text" id="diagClienteLinkInput" readonly>
                 <button type="button" class="radm-btn radm-btn-ghost" id="diagClienteCopiar" style="min-width:auto">Copiar</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="diagClienteVer" style="min-width:auto">Abrir</button>
+                <button type="button" class="radm-btn radm-btn-ghost" id="diagClienteQrDescargar" style="min-width:auto">Descargar QR</button>
               </div>
+              <div class="enc-qr-card" style="margin-top:14px; width:fit-content;"><div id="diagClienteQr"></div></div>
             </div>
           </div>
 
-          <div class="diag-qr-row">
-            <div class="dip-paso" style="--c:#22c55e">
-              <div class="dip-paso-head">
-                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg></span>Excel</span>
-              </div>
-              <div class="diag-qr-card-body">
-                <div class="diag-qr-card-left">
-                  <div class="radm-field">
-                    <label>LINK</label>
-                    <input type="text" id="diagLinkExcel" readonly>
-                  </div>
-                  <div class="diag-qr-actions">
-                    <button type="button" class="radm-btn radm-btn-ghost" data-copiar="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-ver="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver diagnóstico</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-descargar="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
-                  </div>
-                </div>
-                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="diagQrExcel"></div></div></div>
-              </div>
-            </div>
-            <div class="dip-paso" style="--c:#f2c94c">
-              <div class="dip-paso-head">
-                <span class="diag-qr-tool-title"><span class="diag-qr-tool-icon" style="color:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Power BI</span>
-              </div>
-              <div class="diag-qr-card-body">
-                <div class="diag-qr-card-left">
-                  <div class="radm-field">
-                    <label>LINK</label>
-                    <input type="text" id="diagLinkPowerbi" readonly>
-                  </div>
-                  <div class="diag-qr-actions">
-                    <button type="button" class="radm-btn radm-btn-ghost" data-copiar="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-ver="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver diagnóstico</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-descargar="powerbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
-                  </div>
-                </div>
-                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="diagQrPowerbi"></div></div></div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="dip-tabpanel" id="diagTab-resultados">
@@ -4211,31 +4174,6 @@
             </div>
           </div>
 
-          <div class="dip-paso">
-            <button type="button" class="enc-plegable-btn" data-plegable="generico" aria-expanded="false">
-              <span class="dip-paso-title">Link genérico</span>
-              <span class="enc-plegable-res">Respaldo, sin grupo · siempre abierto</span>
-              <span class="enc-plegable-acc"><span class="enc-plegable-txt">Mostrar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            </button>
-            <div class="enc-plegable-cuerpo" data-plegable-cuerpo="generico" hidden>
-              <span class="radm-hint" style="display:block; margin-bottom:14px;">Respaldo, sin grupo: la persona teclea empresa, curso e instructor, y esas respuestas no entran al reporte por grupo. Siempre abierto.</span>
-              <div class="diag-qr-card-body">
-                <div class="diag-qr-card-left">
-                  <div class="radm-field">
-                    <label>LINK</label>
-                    <input type="text" id="encLinkInput" readonly>
-                  </div>
-                  <div class="diag-qr-actions">
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="copiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Copiar</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3"/></svg>Ver encuesta</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Descargar QR</button>
-                    <button type="button" class="radm-btn radm-btn-ghost" data-qr="generico" data-accion="tarjeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg><span>Descargar tarjeta</span></button>
-                  </div>
-                </div>
-                <div class="diag-qr-card-right"><div class="enc-qr-card"><div id="encQr"></div></div></div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="dip-tabpanel" id="encTab-resultados">
@@ -7541,8 +7479,6 @@
     function entrarQr(){
       if(!encQrIniciado){
         encQrIniciado = true;
-        document.getElementById('encLinkInput').value = urlGenerico();
-        encQrGenerico = crearQr('encQr', urlGenerico());
         aplicarPlegables();
       }
       cargarGrupos();   // única lectura de SQL de esta pestaña — también "despierta" la base para cuando el grupo empiece a enviar
@@ -10854,27 +10790,8 @@
     cargarPreguntas('excel');
 
     // ══ QR / LINK ══
-    const diagQrInstances = {};
 
     function cargarQr(){
-      Object.keys(TOOL_META).forEach(tool => {
-        const link = new URL('diagnostico?h=' + tool, location.origin + '/').href;
-        document.getElementById('diagLink' + tool.charAt(0).toUpperCase() + tool.slice(1)).value = link;
-        const t = TOOL_META[tool];
-        const instance = new QRCodeStyling({
-          width: 200, height: 200, type: 'svg', data: link, margin: 0,
-          qrOptions: { errorCorrectionLevel: 'M' },
-          backgroundOptions: { color: '#ffffff' },
-          dotsOptions: { type: 'extra-rounded', color: t.color },
-          cornersSquareOptions: { type: 'extra-rounded', color: t.color },
-          cornersDotOptions: { type: 'dot', color: t.color },
-        });
-        const cont = document.getElementById('diagQr' + tool.charAt(0).toUpperCase() + tool.slice(1));
-        cont.innerHTML = '';
-        instance.append(cont);
-        diagQrInstances[tool] = instance;
-      });
-
       reanudarContador();
       // mismo candado de polling que Encuestas — el intervalo se queda armado,
       // pero cada tick se autofiltra en cargarContador() para no despertar la
@@ -11048,29 +10965,6 @@
       URL.revokeObjectURL(url);
     }
 
-    document.getElementById('diagTab-qr').addEventListener('click', async e => {
-      const copiar = e.target.closest('[data-copiar]');
-      const ver = e.target.closest('[data-ver]');
-      const descargar = e.target.closest('[data-descargar]');
-      if(copiar){
-        const tool = copiar.dataset.copiar;
-        try {
-          await navigator.clipboard.writeText(document.getElementById('diagLink' + tool.charAt(0).toUpperCase() + tool.slice(1)).value);
-          toast('Link copiado.', true);
-        } catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }
-      } else if(ver){
-        const tool = ver.dataset.ver;
-        window.open(document.getElementById('diagLink' + tool.charAt(0).toUpperCase() + tool.slice(1)).value, '_blank');
-      } else if(descargar){
-        const tool = descargar.dataset.descargar;
-        const instance = diagQrInstances[tool];
-        if(!instance) return;
-        try {
-          const blob = await instance.getRawData('png');
-          descargarBlob(blob, 'qr-diagnostico-' + tool + '.png');
-        } catch(err){ toast('No se pudo descargar el QR: ' + err.message, false); }
-      }
-    });
 
     // ── Link dedicado por Cliente — resuelve al cliente de una vez (sin que
     // lo escriba, sin typos) para que no se mezclen registros cuando varias
@@ -11092,10 +10986,31 @@
       const link = new URL(`diagnostico?h=${tool}&clienteId=${cliente.id}&clienteNombre=${encodeURIComponent(cliente.nombre)}`, location.origin + '/').href;
       document.getElementById('diagClienteLinkInput').value = link;
       wrap.hidden = false;
+      const t = TOOL_META[tool];
+      diagClienteQrInst = new QRCodeStyling({
+        width: 200, height: 200, type: 'svg', data: link, margin: 0,
+        qrOptions: { errorCorrectionLevel: 'M' },
+        backgroundOptions: { color: '#ffffff' },
+        dotsOptions: { type: 'extra-rounded', color: t.color },
+        cornersSquareOptions: { type: 'extra-rounded', color: t.color },
+        cornersDotOptions: { type: 'dot', color: t.color },
+      });
+      const cont = document.getElementById('diagClienteQr');
+      cont.innerHTML = '';
+      diagClienteQrInst.append(cont);
     }
+    let diagClienteQrInst = null;
     document.getElementById('diagClienteHerramienta').addEventListener('change', actualizarLinkCliente);
     document.getElementById('diagClienteNombre').addEventListener('input', () => { document.getElementById('diagClienteLinkWrap').hidden = true; });
     document.getElementById('diagClienteLista').addEventListener('click', actualizarLinkCliente);
+    document.getElementById('diagClienteVer').addEventListener('click', () => { const l = document.getElementById('diagClienteLinkInput').value; if(l) window.open(l, '_blank'); });
+    document.getElementById('diagClienteQrDescargar').addEventListener('click', async () => {
+      if(!diagClienteQrInst) return;
+      try {
+        const nombre = (diagClienteAuto.getSeleccionado() || {}).nombre || 'cliente';
+        descargarBlob(await diagClienteQrInst.getRawData('png'), 'qr-diagnostico-' + document.getElementById('diagClienteHerramienta').value + '-' + nombre.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 30) + '.png');
+      } catch(err){ toast('No se pudo descargar el QR: ' + err.message, false); }
+    });
     document.getElementById('diagClienteCopiar').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(document.getElementById('diagClienteLinkInput').value); toast('Link copiado.', true); }
       catch(err){ toast('No se pudo copiar — cópialo manualmente.', false); }

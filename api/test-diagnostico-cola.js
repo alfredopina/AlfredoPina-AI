@@ -142,23 +142,23 @@ const enviarDiag = (body, ip = "9.9.9.9") => llamar(enviar, { body, headers: { "
   check("sin respuestas: 400", (await enviarDiag(cuerpo({ respuestas: [] }))).status === 400);
   check("correo mal escrito: 400", (await enviarDiag(cuerpo({ correo: "no-es-correo" }))).status === 400);
   check("sin empresa: 400", (await enviarDiag(cuerpo({ empresa: {} }))).status === 400);
-  check("empresa tecleada (link genérico): se acepta con nombre y código", (await enviarDiag(cuerpo({ envioId: "env-0009-iiii", nombre: "Pedro", empresa: { nombre: "Femsa SA", codigo: "FEMSA" } }))).status === 200);
+  check("empresa tecleada (el viejo link genérico): 400 'pídele tu link a tu instructor' y no se encola", await (async () => { const r2 = await enviarDiag(cuerpo({ envioId: "env-0009-iiii", nombre: "Pedro", empresa: { nombre: "Femsa SA", codigo: "FEMSA" } })); return r2.status === 400 && /link o el QR/.test(r2.body.error) && enCola() === 5; })());
   check("tras todo eso, SQL sigue sin tocarse", sqlLog.tocado === 0);
 
   // ── resumen para la tarjeta ──
   console.log("tarjeta de pendientes");
   const resumen = await cola.resumenPendientes(cola.getColaTable());
-  check("cuenta pendientes por herramienta", resumen.total === 6 && resumen.excel === 6 && resumen.errores === 0 && resumen.lista.length === 0);
+  check("cuenta pendientes por herramienta", resumen.total === 5 && resumen.excel === 5 && resumen.errores === 0 && resumen.lista.length === 0);
 
   // ── importación ──
   console.log("importación a SQL");
   const insertados = [];
   const insertarOk = async (id, d, recibido) => { insertados.push({ id, nombre: d.nombre, recibido }); };
   let res = await cola.importarPendientes(cola.getColaTable(), insertarOk, ctx());
-  check("importa todo y vacía la cola", res.importadas === 6 && res.restantes === 0 && enCola() === 0 && insertados.length === 6);
+  check("importa todo y vacía la cola", res.importadas === 5 && res.restantes === 0 && enCola() === 0 && insertados.length === 5);
   check("conserva la fecha en que contestó la persona", insertados.every((x) => x.recibido instanceof Date && !isNaN(x.recibido)));
-  check("importar NO cambia el contador (ya contó al encolar)", contadorTotal() === 6);
-  check("las huellas siguen (la persona no puede repetir aunque ya esté en SQL)", huellas() >= 5);
+  check("importar NO cambia el contador (ya contó al encolar)", contadorTotal() === 5);
+  check("las huellas siguen (la persona no puede repetir aunque ya esté en SQL)", huellas() >= 4);
 
   // errores: se quedan visibles, se reintentan al final y no frenan a las demás
   await enviarDiag(cuerpo({ envioId: "env-1001-aaaa", nombre: "Falla Uno", empresa: { clienteId: 404 } }));

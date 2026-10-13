@@ -119,30 +119,28 @@ const enviarEnc = (body) => llamar(enviar, { body });
   r = await enviarEnc(cuerpo({ envioId: "env-jjjj-0010", correo: "mal" }));
   check("correo mal escrito: 400", r.status === 400);
 
-  // link genérico
+  // SIN link por grupo ya no se acepta (2026-10-13): la encuesta solo se contesta con el link o el QR de un grupo
   const gen = { respuestas: [{ preguntaId: "p1", valor: 3 }, { preguntaId: "p2", valor: 3 }], curso: "Excel", instructor: "Quien sea", empresa: { clienteId: 7, nombre: "Beta" } };
   r = await enviarEnc({ ...gen, envioId: "env-kkkk-0011" });
-  check("link genérico con empresa elegida: se encola sin tocar SQL (la empresa se valida al importar)", r.status === 200 && enCola() === 5 && sqlLog.tocado === 0);
-  r = await enviarEnc({ ...gen, envioId: "env-llll-0012", empresa: {} });
-  check("link genérico sin empresa elegida: 400 con el mensaje de siempre", r.status === 400 && /Selecciona tu empresa/.test(r.body.error));
-  r = await enviarEnc({ ...gen, envioId: "env-mmmm-0013", curso: "" });
-  check("link genérico sin curso: 400", r.status === 400);
+  check("sin token (el viejo link genérico): 400 'pídeselo a tu instructor' y no se encola", r.status === 400 && /link o el QR/.test(r.body.error) && enCola() === 4);
+  r = await enviarEnc(cuerpo({ envioId: "env-llll-0012", token: "" }));
+  check("token vacío: 400", r.status === 400 && enCola() === 4);
   r = await enviarEnc(cuerpo({ envioId: undefined }));
-  check("sin envioId (navegador viejo): el servidor genera uno y encola", r.status === 200 && enCola() === 6);
+  check("sin envioId (navegador viejo): el servidor genera uno y encola", r.status === 200 && enCola() === 5);
   check("tras todo eso, SQL sigue sin tocarse", sqlLog.tocado === 0);
 
   // ── tarjeta ──
   console.log("tarjeta de pendientes");
   let rs = await cola.resumenPendientes(cola.getColaTable());
-  check("cuenta los pendientes (ninguno con error todavía)", rs.total === 6 && rs.errores === 0 && rs.lista.length === 0);
+  check("cuenta los pendientes (ninguno con error todavía)", rs.total === 5 && rs.errores === 0 && rs.lista.length === 0);
 
   // ── importación ──
   console.log("importación a SQL");
   const insertados = [];
   const insertarOk = async (id, d, recibido) => { insertados.push({ id, d, recibido }); };
   let res = await cola.importarPendientes(cola.getColaTable(), insertarOk, ctx());
-  check("importa todo y vacía la cola", res.importadas === 6 && res.restantes === 0 && enCola() === 0);
-  check("importar NO vuelve a sumar los contadores", contador() === 6);
+  check("importa todo y vacía la cola", res.importadas === 5 && res.restantes === 0 && enCola() === 0);
+  check("importar NO vuelve a sumar los contadores", contador() === 5);
 
   // insertarEnSql con el SQL simulado
   sqlLog.consultas.length = 0; sqlLog.commits = 0; sqlLog.rollbacks = 0;
@@ -157,10 +155,10 @@ const enviarEnc = (body) => llamar(enviar, { body });
   const datosGen = { ...datos, token: null, linkSnap: null, empresa: { clienteId: 7, nombre: "Beta" }, curso: "Excel", instructor: "X" };
   ins = await cola.insertarEnSql(fakePool, fakeSql, resolverClienteExistente, "env-sql-0002", datosGen, recibido);
   const cab2 = sqlLog.consultas.find((c) => c.texto.includes("INSERT INTO EncuestaRespuesta ("));
-  check("link genérico: valida la empresa al importar y guarda sin grupo", cab2.params.clienteId === 7 && cab2.params.grupoId === null && cab2.params.herramientas === null);
+  check("fila vieja del link genérico que ya estaba en la cola: se valida la empresa al importar y guarda sin grupo", cab2.params.clienteId === 7 && cab2.params.grupoId === null && cab2.params.herramientas === null);
   let cayo = null;
   try { await cola.insertarEnSql(fakePool, fakeSql, resolverClienteExistente, "env-sql-0003", { ...datosGen, empresa: { clienteId: 404 } }, recibido); } catch (e) { cayo = e; }
-  check("link genérico con empresa que ya no existe: error seguro (la fila queda atorada y visible)", cayo && cayo.safe === true && /ya no existe/.test(cayo.message));
+  check("fila vieja del link genérico con empresa que ya no existe: error seguro (queda atorada y visible)", cayo && cayo.safe === true && /ya no existe/.test(cayo.message));
 
   modo.dupEnvio = true; sqlLog.rollbacks = 0;
   ins = await cola.insertarEnSql(fakePool, fakeSql, resolverClienteExistente, "env-sql-0001", datos, recibido);
@@ -173,7 +171,8 @@ const enviarEnc = (body) => llamar(enviar, { body });
   modo.falla = null;
 
   // errores visibles, las atoradas al final y tope
-  await enviarEnc(cuerpo({ envioId: "env-1001-aaaa", token: undefined, ...gen, empresa: { clienteId: 404, nombre: "Fantasma" } }));
+  // una fila vieja del link genérico (de antes de quitarlo) que sigue en la cola con una empresa que ya no existe
+  await cola.encolar(cola.getColaTable(), "env-1001-aaaa", { token: null, linkSnap: null, empresa: { clienteId: 404, nombre: "Fantasma" }, curso: "Excel", instructor: "X", nombre: "Viejo", correo: null, autorizaTestimonio: false, fecha: fechaMexico(new Date()), detalle: [] });
   await enviarEnc(cuerpo({ envioId: "env-1002-bbbb" }));
   const insertarMixto = async (id, d) => { if (d.empresa && d.empresa.clienteId === 404) { const e = new Error("El cliente seleccionado ya no existe."); e.safe = true; throw e; } insertados.push({ id }); };
   res = await cola.importarPendientes(cola.getColaTable(), insertarMixto, ctx());

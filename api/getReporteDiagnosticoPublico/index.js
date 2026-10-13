@@ -27,6 +27,6 @@ module.exports = async function (context, req) {
     context.res = { status: 200, headers: JSON_HEADERS, body: reporte };
   } catch (err) {
     context.log.error("Error leyendo el reporte de diagnóstico:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo cargar el reporte: " + err.message } };
+    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo cargar el reporte en este momento." } };
   }
 };

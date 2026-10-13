@@ -91,25 +91,6 @@
         <p class="enc-hint enc-lock-nota">Ya identificados por tu link — no hace falta que los escribas.</p>
       </div>
 
-      <!-- link genérico: la persona los teclea -->
-      <div id="encGenericoCampos" hidden>
-        <div class="enc-field enc-autocomplete-wrap">
-          <label>EMPRESA <span class="enc-req">*</span></label>
-          <input type="text" id="encEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
-          <div class="enc-autocomplete-list" id="encEmpresaLista" hidden></div>
-        </div>
-        <div class="enc-field">
-          <label>CURSO <span class="enc-req">*</span></label>
-          <input type="text" id="encCurso" placeholder="Ej. Excel Core Tools">
-        </div>
-        <div class="enc-field">
-          <label>INSTRUCTOR <span class="enc-req">*</span></label>
-          <select id="encInstructor">
-            <option value="">Selecciona...</option>
-          </select>
-        </div>
-      </div>
-
       <div class="enc-row">
         <div class="enc-field">
           <label>NOMBRE <span class="enc-opt">(opcional)</span></label>
@@ -204,17 +185,18 @@
   // estos son solo el respaldo mientras carga
   let LABELS = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
 
-  // "?t=TOKEN" = link por grupo (empresa/curso/instructor resueltos por el
-  // servidor); sin token = link genérico, la persona los teclea.
+  // "?t=TOKEN" = link por grupo (empresa/curso/instructor resueltos por el servidor). La encuesta SOLO se contesta con el link o
+  // el QR de un grupo (2026-10-13): ya no existe el link genérico donde la persona tecleaba su empresa — eso obligaba a una búsqueda
+  // pública de clientes (buscarClientes) que dejaba sacar la cartera y despertaba la base.
   const TOKEN = (new URLSearchParams(location.search).get('t') || '').trim();
-  const CLAVE_ENVIADA = 'enc_enviada_' + (TOKEN || 'generica');
+  const CLAVE_ENVIADA = 'enc_enviada_' + TOKEN;
 
   // La invitación a LinkedIn y la casilla de testimonio son de la marca
   // personal de Alfredo: solo aplican cuando ÉL es el instructor (link por
   // grupo → el instructor bloqueado; link genérico → el que se elige). Misma
   // regla que esInstructorMarca() en api/src/encuesta-logic.js.
   function esInstructorAlfredo(){
-    const nombre = TOKEN ? document.getElementById('encLockInstructor').textContent : document.getElementById('encInstructor').value;
+    const nombre = document.getElementById('encLockInstructor').textContent;
     return String(nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('alfredo pina');
   }
   // la casilla solo se ofrece con Alfredo, y solo se activa si hay comentario
@@ -250,50 +232,6 @@
     return body;
   }
   const esErrorDefinitivo = e => e && e.status >= 400 && e.status < 500;
-
-  // ── autocompletado de Empresa — mismo patrón que crearAutocomplete del
-  // admin (Diplomas), duplicado aquí a propósito: esta página no carga nada
-  // del admin, vive completamente sola. Solo acepta una empresa que ya existe
-  // (la Encuesta abierta ya no crea empresas nuevas). ──
-  function crearAutocomplete({ inputId, listId }){
-    const input = document.getElementById(inputId);
-    const lista = document.getElementById(listId);
-    let seleccionado = null;
-    let timer = null;
-
-    input.addEventListener('input', () => {
-      seleccionado = null;
-      const q = input.value.trim();
-      clearTimeout(timer);
-      if(!q){ lista.hidden = true; return; }
-      timer = setTimeout(async () => {
-        try {
-          const clientes = await apiGet('/api/buscarClientes?q=' + encodeURIComponent(q));
-          if(!clientes.length){ lista.hidden = true; return; }
-          lista.innerHTML = clientes.map(c =>
-            `<div class="enc-autocomplete-item" data-id="${c.id}" data-nombre="${escapeHtml(c.nombre)}"><b>${escapeHtml(c.nombre)}</b></div>`
-          ).join('');
-          lista.hidden = false;
-        } catch(e){ /* silencioso, no bloquea seguir capturando */ }
-      }, 250);
-    });
-
-    lista.addEventListener('click', e => {
-      const item = e.target.closest('.enc-autocomplete-item');
-      if(!item) return;
-      seleccionado = { id:Number(item.dataset.id), nombre:item.dataset.nombre };
-      input.value = item.dataset.nombre;
-      lista.hidden = true;
-    });
-
-    document.addEventListener('click', e => {
-      if(!input.contains(e.target) && !lista.contains(e.target)) lista.hidden = true;
-    });
-
-    return { getSeleccionado: () => seleccionado };
-  }
-
-  const empresaAuto = crearAutocomplete({ inputId:'encEmpresaNombre', listId:'encEmpresaLista' });
 
   const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function actualizarAvance(){
@@ -397,7 +335,7 @@
       try {
         return await Promise.all([
           apiGet('/api/getPreguntasEncuesta'),
-          TOKEN ? apiGet('/api/getLinkEncuestaPublico?t=' + encodeURIComponent(TOKEN)) : apiGet('/api/getInstructores'),
+          apiGet('/api/getLinkEncuestaPublico?t=' + encodeURIComponent(TOKEN)),
         ]);
       } catch(e){
         if(esErrorDefinitivo(e) || intento >= REINTENTO_PAUSAS_MS.length) throw e;
@@ -414,28 +352,24 @@
   }
 
   async function cargarEncuesta(){
+    if(!TOKEN){
+      document.getElementById('encLoading').hidden = true;
+      const err = document.getElementById('encError');
+      err.textContent = 'Esta encuesta se contesta con el link o el QR de tu grupo — pídeselo a tu instructor.';
+      err.hidden = false;
+      return;
+    }
     try {
       const [datos, extra] = await pedirDatosEncuesta();
       const preguntas = datos.preguntas || [];
       if(datos.escala && datos.escala.length === 5) LABELS = datos.escala;
 
-      if(TOKEN){
-        // link por grupo: empresa/curso/instructor bloqueados, tal como los
-        // resolvió el servidor al generar el link
-        if(!extra.abierta){ mostrarCerrada(); return; }
-        document.getElementById('encLockEmpresa').textContent = extra.clienteNombre;
-        document.getElementById('encLockCurso').textContent = extra.curso;
-        document.getElementById('encLockInstructor').textContent = extra.instructor;
-        document.getElementById('encLockBloque').hidden = false;
-      } else {
-        const selInstructor = document.getElementById('encInstructor');
-        (extra.instructores || []).forEach(nombre => {
-          const opt = document.createElement('option');
-          opt.value = nombre; opt.textContent = nombre;
-          selInstructor.appendChild(opt);
-        });
-        document.getElementById('encGenericoCampos').hidden = false;
-      }
+      // link por grupo: empresa/curso/instructor bloqueados, tal como los resolvió el servidor al generar el link
+      if(!extra.abierta){ mostrarCerrada(); return; }
+      document.getElementById('encLockEmpresa').textContent = extra.clienteNombre;
+      document.getElementById('encLockCurso').textContent = extra.curso;
+      document.getElementById('encLockInstructor').textContent = extra.instructor;
+      document.getElementById('encLockBloque').hidden = false;
 
       if(!preguntas.length){
         document.getElementById('encLoading').hidden = true;
@@ -512,7 +446,6 @@
   cargarEncuesta();
 
   document.addEventListener('input', e => { if(e.target && e.target.id === 'encComentarios') sincronizarConsent(); });
-  document.getElementById('encInstructor').addEventListener('change', sincronizarConsent);
 
   document.getElementById('encAvisoCerrar').addEventListener('click', () => document.getElementById('encAviso').classList.remove('show'));
 
@@ -531,21 +464,6 @@
   document.getElementById('encForm').addEventListener('submit', async e => {
     e.preventDefault();
     document.getElementById('encSubmitError').classList.remove('show');
-
-    let empresa, curso, instructor;
-    if(!TOKEN){
-      curso = document.getElementById('encCurso').value.trim();
-      instructor = document.getElementById('encInstructor').value;
-      if(!curso || !instructor){
-        alert('Completa curso e instructor antes de enviar.');
-        return;
-      }
-      const seleccionado = empresaAuto.getSeleccionado();
-      const empresaNombre = document.getElementById('encEmpresaNombre').value.trim();
-      if(seleccionado){ empresa = { clienteId:seleccionado.id }; }
-      else if(empresaNombre){ alert('Elige tu empresa de la lista que aparece al escribir. Si no aparece, pídele el link o el QR a tu instructor.'); return; }
-      else { alert('Escribe el nombre de tu empresa.'); return; }
-    }
 
     const correo = document.getElementById('encCorreo').value.trim();
     if(correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ alert('El correo no se ve válido — revísalo o déjalo en blanco.'); return; }
@@ -585,8 +503,7 @@
     if(!envioId) envioId = nuevoEnvioId();
     const payload = { nombre: document.getElementById('encNombre').value.trim(), correo, respuestas, envioId };
     if(autorizaTestimonio) payload.autorizaTestimonio = true;
-    if(TOKEN) payload.token = TOKEN;
-    else Object.assign(payload, { empresa, curso, instructor });
+    payload.token = TOKEN;
 
     // Reintento con las mismas pausas crecientes que la carga (ver
     // pedirDatosEncuesta arriba): ante un fallo de red/servidor el envío no debe

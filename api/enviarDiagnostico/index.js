@@ -12,7 +12,8 @@
 //   · una persona no contesta dos veces: misma empresa + herramienta + nombre (sin acentos/mayúsculas) → 409. El mismo
 //     dispositivo o la misma IP SÍ pueden enviar varios (otra persona en la misma computadora): no se limita por IP.
 //   · `envioId` (UUID del navegador) hace idempotente el reintento: el mismo envío dos veces no se duplica.
-//   · la empresa (clienteId del link, o nombre tecleado) se valida al IMPORTAR, que es cuando existe la base.
+//   · SOLO con link/QR dedicado por cliente (2026-10-13): la empresa llega como clienteId y se valida al IMPORTAR, que es cuando
+//     existe la base. Ya no se acepta una empresa tecleada (juntaba variantes de nombre y creaba Prospectos basura).
 const crypto = require("crypto");
 const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagnostico-tables");
 const { getDiagnosticoContadorTable, ajustarContadorDiagnostico } = require("../src/diagnostico-contador");
@@ -45,15 +46,11 @@ module.exports = async function (context, req) {
   if (respuestas.length > MAX_RESPUESTAS) return responde(context, 400, { error: "Demasiadas respuestas." });
   if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return responde(context, 400, { error: "El correo no se ve válido." });
 
-  let empresa;
   const clienteId = Number(empresaIn.clienteId);
-  if (Number.isInteger(clienteId) && clienteId > 0) {
-    empresa = { clienteId };
-  } else if (recorta(empresaIn.nombre, 120)) {
-    empresa = { nombre: recorta(empresaIn.nombre, 120), codigo: recorta(empresaIn.codigo, 30) };
-  } else {
-    return responde(context, 400, { error: "Falta la empresa." });
+  if (!Number.isInteger(clienteId) || clienteId <= 0) {
+    return responde(context, 400, { error: "Este diagnóstico se contesta con el link o el QR que te dio tu instructor para tu empresa — pídeselo." });
   }
+  const empresa = { clienteId };
 
   // preguntas reales de esta herramienta, para calificar (Table Storage: no depende de la base)
   let preguntasPorId;

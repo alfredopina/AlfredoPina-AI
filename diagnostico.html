@@ -82,10 +82,6 @@
         <label>NOMBRE <span class="diag-req">*</span></label>
         <input type="text" id="diagNombre" placeholder="Tu nombre">
       </div>
-      <div class="diag-field" id="diagEmpresaCampo">
-        <label>EMPRESA <span class="diag-req">*</span></label>
-        <input type="text" id="diagEmpresaNombre" placeholder="Escribe el nombre de tu empresa..." autocomplete="off">
-      </div>
       <div class="diag-field" id="diagEmpresaBloqueada" hidden>
         <label>EMPRESA</label>
         <div class="diag-empresa-lock">
@@ -185,14 +181,13 @@
   // La empresa viene del link dedicado (bloqueada) o se teclea tal cual. Ya NO hay autocompletado: consultaba la base
   // SQL (buscarClientes) y la despertaba solo por escribir; ahora todo el camino de la persona vive en Table Storage.
   if(empresaBloqueada){
-    document.getElementById('diagEmpresaCampo').hidden = true;
     document.getElementById('diagEmpresaBloqueada').hidden = false;
     document.getElementById('diagEmpresaLockTexto').textContent = empresaBloqueada.nombre;
   }
+  // El diagnóstico SOLO se contesta con el link o el QR dedicado de un cliente (2026-10-13): ya no existe el link genérico donde la
+  // persona tecleaba su empresa (juntaba variantes de nombre y generaba Prospectos basura).
+  const sinLinkDeCliente = !empresaBloqueada || !Number.isInteger(empresaBloqueada.clienteId) || empresaBloqueada.clienteId <= 0;
 
-  function codigoDesdeNombre(nombre){
-    return nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'EMPRESA';
-  }
 
   function shuffle(arr){
     for(let i = arr.length - 1; i > 0; i--){
@@ -328,6 +323,13 @@
       err.hidden = false;
       return;
     }
+    if(sinLinkDeCliente){
+      document.getElementById('diagLoading').hidden = true;
+      const err = document.getElementById('diagError');
+      err.textContent = 'Este diagnóstico se contesta con el link o el QR que te dio tu instructor para tu empresa — pídeselo.';
+      err.hidden = false;
+      return;
+    }
 
     const badge = document.getElementById('diagToolBadge');
     const t = TOOL_META[herramienta];
@@ -377,14 +379,7 @@
     const nombre = document.getElementById('diagNombre').value.trim();
     if(!nombre){ alert('Escribe tu nombre.'); return; }
 
-    let empresa;
-    if(empresaBloqueada){
-      empresa = { clienteId: empresaBloqueada.clienteId };
-    } else {
-      const empresaNombre = document.getElementById('diagEmpresaNombre').value.trim();
-      if(empresaNombre){ empresa = { nombre:empresaNombre, codigo:codigoDesdeNombre(empresaNombre) }; }
-      else { alert('Escribe el nombre de tu empresa.'); return; }
-    }
+    const empresa = { clienteId: empresaBloqueada.clienteId };
 
     const correo = document.getElementById('diagCorreo').value.trim();
     if(correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ alert('El correo no se ve válido — revísalo o déjalo en blanco.'); return; }

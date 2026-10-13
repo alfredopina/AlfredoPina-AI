@@ -5,7 +5,7 @@
 //
 // POR QUÉ: un cliente puede mandar el diagnóstico a 30-60 personas con una semana para contestarlo, a cualquier
 // hora. Escribiendo directo a SQL cada envío (y cada apertura de la página) despertaba la base y la dejaba
-// despierta 20-30 min: en el peor caso, casi toda la cuota gratis del mes (100 000 vCore-s) por un solo cliente.
+// despierta 20-60 min: en el peor caso, casi toda la cuota gratis del mes (100 000 vCore-s) por un solo cliente.
 //
 // Piezas (copiadas de Solicitudes, ajustadas a Diagnóstico):
 //   · llave idempotente = envioId (UUID que genera el navegador): un reintento no crea otra fila (409 = ya estaba).

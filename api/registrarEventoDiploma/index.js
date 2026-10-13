@@ -4,7 +4,8 @@
 // Identifica el diploma por código (?c) o por folio (?f, cuando se llegó
 // tecleándolo). Solo cuenta si el diploma existe, y no cuenta al admin ni a
 // robots. No guarda nada personal — es solo un número.
-const { getDiplomasVerifTable, leerPorCodigo, leerPorFolio, registrarEvento } = require("../src/diplomas-verif");
+const { getDiplomasVerifTable, getVerifLimiteTable, ensureTable, leerPorCodigo, leerPorFolio, registrarEvento } = require("../src/diplomas-verif");
+const { permitirEscritura } = require("../src/rate-limit");
 const { esAdmin, esBot } = require("../src/verif-cliente");
 const { CODIGO_CORTO_RE } = require("../src/codigo-corto");
 const { JSON_HEADERS } = require("../src/http");
@@ -28,7 +29,14 @@ module.exports = async function (context, req) {
   try {
     const table = getDiplomasVerifTable();
     const r = CODIGO_CORTO_RE.test(codigo) ? await leerPorCodigo(table, codigo) : await leerPorFolio(table, folio);
-    if (r) await registrarEvento(table, r.datos.codigo, evento);
+    if (r) {
+      // freno por diploma (auditoría A01-009): un script no puede inflar el contador de clics en "Agregar a LinkedIn". Va DESPUÉS de
+      // comprobar que el diploma existe, para que códigos inventados no llenen la tabla del freno. Si se pasa del umbral, no escribe y
+      // responde igual (sin revelar el freno).
+      const limiteTable = getVerifLimiteTable();
+      try { await ensureTable(limiteTable); } catch (_) { /* si falla, el freno falla abierto */ }
+      if (await permitirEscritura(limiteTable, "evt_" + r.datos.codigo, context)) await registrarEvento(table, r.datos.codigo, evento);
+    }
   } catch (err) {
     context.log.error("Error registrando el evento del diploma:", err.message);
   }

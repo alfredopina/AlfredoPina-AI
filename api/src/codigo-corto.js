@@ -13,10 +13,19 @@ const LONGITUD = 8;
 
 const CODIGO_CORTO_RE = /^[a-z0-9]{8}$/;
 
+// 256 no es múltiplo de 36: usar `byte % 36` favorecería los primeros 4 símbolos (8/256 contra 7/256). Se DESCARTAN los bytes >= 252
+// (el mayor múltiplo de 36 que cabe) y se piden más: así los 36 símbolos salen con la misma probabilidad (auditoría A01-008).
+const LIMITE_BYTE = 256 - (256 % ALFABETO.length);
+
 function generarCodigoCorto() {
-  const bytes = crypto.randomBytes(LONGITUD);
   let codigo = "";
-  for (let i = 0; i < LONGITUD; i++) codigo += ALFABETO[bytes[i] % ALFABETO.length];
+  while (codigo.length < LONGITUD) {
+    const bytes = crypto.randomBytes(LONGITUD * 2);
+    for (let i = 0; i < bytes.length && codigo.length < LONGITUD; i++) {
+      if (bytes[i] >= LIMITE_BYTE) continue;
+      codigo += ALFABETO[bytes[i] % ALFABETO.length];
+    }
+  }
   return codigo;
 }
 

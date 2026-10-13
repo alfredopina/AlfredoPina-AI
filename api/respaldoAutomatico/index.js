@@ -11,13 +11,11 @@
 // x-backup-secret contra la Application Setting BACKUP_CRON_SECRET — nunca
 // hardcodeado, nunca en el repo.
 const { generarRespaldo } = require("../src/backup-tables");
+const { autorizado } = require("../src/cron-secreto");
 const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
-  const secretoEsperado = process.env.BACKUP_CRON_SECRET;
-  const secretoRecibido = req.headers && req.headers["x-backup-secret"];
-
-  if (!secretoEsperado || secretoRecibido !== secretoEsperado) {
+  if (!autorizado(req)) { // comparación en tiempo constante (src/cron-secreto.js)
     context.res = { status: 401, headers: JSON_HEADERS, body: { error: "No autorizado." } };
     return;
   }

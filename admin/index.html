@@ -178,9 +178,9 @@
   .admin-icon-btn.despertar-ok{ color:#14b8a6; border-color:#14b8a6; }
   .admin-icon-btn.despertar-error{ color:#f87171; border-color:#f87171; }
   /* Estado real de la base (sin despertarla): luna zZ = dormida · rayo animado = despertando · taza = despierta */
-  .admin-icon-btn.db-despertando{ color:var(--blue-bright); border-color:var(--blue-bright); }
+  .admin-icon-btn.db-despertando{ color:var(--blue-bright); border-color:var(--blue-bright); background-color:rgba(61,127,255,.14); }
   .admin-icon-btn.db-despertando svg{ animation:admin-latido 1.1s ease-in-out infinite; }
-  .admin-icon-btn.db-despierta{ color:#14b8a6; border-color:#14b8a6; }
+  .admin-icon-btn.db-despierta{ color:#14b8a6; border-color:#14b8a6; background-color:rgba(20,184,166,.16); }
   @keyframes admin-latido{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.45; transform:scale(.86); } }
   @media (prefers-reduced-motion:reduce){ .admin-icon-btn.db-despertando svg{ animation:none; } }
 
@@ -366,6 +366,25 @@
   .radm-view{ display:none; }
   .radm-view.active{ display:block; }
 
+  /* Tarjeta "respuestas por importar" del panel Diagnósticos: ámbar = atención (esperan pasar a la base), rojo = hay envíos
+     con error. Siempre ícono + texto ("con error"), nunca solo color. */
+  .diag-pend{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; padding:12px 14px; border:1px solid var(--warn); border-radius:8px; background-color:var(--panel); }
+  .diag-pend[hidden]{ display:none; }
+  .diag-pend.con-error{ border-color:var(--bad); }
+  .diag-pend-top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .diag-pend-ico{ width:22px; height:22px; flex:none; color:var(--warn); }
+  .diag-pend.con-error .diag-pend-ico{ color:var(--bad); }
+  .diag-pend-texto{ flex:1; min-width:220px; display:flex; flex-direction:column; gap:2px; }
+  .diag-pend-texto b{ font-family:var(--display); font-size:13.5px; color:var(--text); }
+  .diag-pend-texto span{ font-size:12px; color:var(--text-dim); }
+  .diag-pend-lista{ display:flex; flex-direction:column; gap:8px; }
+  .diag-pend-lista[hidden]{ display:none; }
+  .diag-pend-fila{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; color:var(--text-dim); }
+  .diag-pend-fila svg{ width:16px; height:16px; flex:none; color:var(--bad); }
+  .diag-pend-fila .quien{ color:var(--text); font-weight:600; }
+  .diag-pend-fila .motivo{ flex:1; min-width:180px; color:var(--bad); }
+  .diag-pend .radm-btn{ --c:var(--warn); padding:7px 14px; min-width:auto; }
+  .diag-pend .radm-btn.radm-btn-danger{ --c:var(--bad); }
   .radm-toast{
     font-family:var(--mono); font-size:12.5px; padding:10px 14px; border-radius:6px;
     margin-bottom:18px; border:1px solid var(--line);
@@ -2939,6 +2958,15 @@
       <div class="admin-panel" id="panel-diagnosticos" style="--c:var(--blue-bright)">
         <div id="diagToast" class="radm-toast" hidden></div>
 
+        <div class="diag-pend" id="diagPendCard" hidden>
+          <div class="diag-pend-top">
+            <svg class="diag-pend-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 13l2.5-7.5A2 2 0 0 1 7.4 4h9.2a2 2 0 0 1 1.9 1.5L21 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z" stroke-linejoin="round"/><path d="M3 13h5l1.5 2.5h5L16 13h5" stroke-linejoin="round"/></svg>
+            <div class="diag-pend-texto"><b id="diagPendTitulo"></b><span id="diagPendDetalle"></span></div>
+            <button type="button" class="radm-btn" id="diagPendImportar">Importar ahora</button>
+          </div>
+          <div class="diag-pend-lista" id="diagPendLista" hidden></div>
+        </div>
+
         <div class="dash-etabs" id="diagTabs">
           <button type="button" class="dash-etab active" data-diagtab="qr">QR / Link</button>
           <button type="button" class="dash-etab" data-diagtab="excel">Excel</button>
@@ -5101,7 +5129,7 @@
       desconocido: S(RAYO),
       despertando: S(RAYO),
       dormida: S('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" transform="translate(-1.5 4.5) scale(.78)" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 2.5h4.5l-4.5 5h4.5M19 10.5h3l-3 3.5h3" stroke-linecap="round" stroke-linejoin="round"/>', 1.5),
-      despierta: S('<path d="M4 9.5h12V14a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9.5Z" stroke-linejoin="round"/><path d="M16 10.5h1.2a2.4 2.4 0 0 1 0 4.8H16" stroke-linecap="round"/><path d="M7.5 3v3M11 3v3" stroke-linecap="round"/><path d="M3 21.5h14" stroke-linecap="round"/>'),
+      despierta: S('<path d="M3.5 10h12v4a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-4Z" fill="currentColor" fill-opacity=".35" stroke-linejoin="round"/><path d="M15.5 11.5H17a3 3 0 0 1 0 6h-1.5" stroke-linecap="round"/><path d="M7 3.5V7M12 3.5V7" stroke-linecap="round"/>', 2),
       ok: S('<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>', 2),
       error: S('<path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/>', 2),
     };
@@ -10774,6 +10802,7 @@
       document.getElementById('diagContadorTotal').textContent = data ? data.total : '—';
       document.getElementById('diagContadorExcel').textContent = data ? data.excel : '—';
       document.getElementById('diagContadorPowerbi').textContent = data ? data.powerbi : '—';
+      pintarPendientes(data ? data.pendientes : null);
     }
     document.getElementById('diagContadorRefresh').addEventListener('click', reanudarContador);
 
@@ -10790,6 +10819,110 @@
         btn.disabled = false;
       }
     });
+
+    // ══ RESPUESTAS POR IMPORTAR ══
+    // enviarDiagnostico ya NO escribe en SQL: deja cada envío en una cola (Table Storage, nunca se duerme) para que 30-60
+    // personas contestando a cualquier hora no mantengan despierta la base (ver api/src/diagnostico-cola.js). Aquí se
+    // importan a SQL: solo al abrir este panel (si hay pendientes) y con el botón "Importar ahora". La tarjeta avisa
+    // cuántas esperan y deja ver/descartar las que se atoraron (p. ej. su empresa ya no existe).
+    const diagPendCard = document.getElementById('diagPendCard');
+    const HERR_PEND = { excel: 'Excel', powerbi: 'Power BI' };
+    const ICO_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    let importacionEnCurso = null;
+
+    function pintarPendientes(p){
+      if(importacionEnCurso) return; // mientras importa, la tarjeta muestra su propio estado
+      if(!p || !p.total){ diagPendCard.hidden = true; return; }
+      diagPendCard.hidden = false;
+      diagPendCard.classList.toggle('con-error', p.errores > 0);
+      document.getElementById('diagPendTitulo').textContent = p.total + (p.total === 1 ? ' respuesta espera' : ' respuestas esperan') + ' pasar a la base de datos' + (p.errores ? ' · ' + p.errores + ' con error' : '');
+      document.getElementById('diagPendDetalle').textContent = p.errores
+        ? 'Las que tienen error se muestran abajo: revisa el motivo y descártalas o corrige la causa y vuelve a importar.'
+        : 'Se importan solas al abrir este panel. "Importar ahora" despierta la base si está dormida.';
+      const lista = document.getElementById('diagPendLista');
+      lista.hidden = !(p.lista && p.lista.length);
+      lista.innerHTML = (p.lista || []).map(x => `
+        <div class="diag-pend-fila">
+          ${ICO_ALERTA}
+          <span><span class="quien">${escapeHtml(x.nombre)}</span> · ${escapeHtml(x.empresa || '—')} · ${escapeHtml(HERR_PEND[x.herramienta] || x.herramienta)} · ${x.recibidoEn ? new Date(x.recibidoEn).toLocaleDateString('es-MX') : ''}</span>
+          <span class="motivo">Error: ${escapeHtml(x.error)}</span>
+          <button type="button" class="radm-btn radm-btn-danger diag-pend-descartar" data-id="${escapeHtml(x.id)}" data-nombre="${escapeHtml(x.nombre)}">Descartar</button>
+        </div>`).join('');
+    }
+
+    // POST con reintento y pausas crecientes — la base puede estar dormida (mismo patrón duplicado en cada IIFE del admin)
+    async function importarPost(url){
+      for(let intento = 0; ; intento++){
+        try { return await apiPostJson(url, {}); }
+        catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', true);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    // Importa todo lo pendiente (varias rondas: cada llamada del servidor procesa un tramo). Si ya hay una en curso, espera ESA.
+    function importarPendientes(){
+      if(importacionEnCurso) return importacionEnCurso;
+      importacionEnCurso = (async () => {
+        const btn = document.getElementById('diagPendImportar');
+        diagPendCard.hidden = false;
+        btn.disabled = true; btn.textContent = 'Importando…';
+        document.getElementById('diagPendDetalle').textContent = 'Pasando las respuestas a la base — si estaba dormida puede tardar cerca de un minuto.';
+        let importadas = 0;
+        try {
+          for(let ronda = 0; ronda < 12; ronda++){
+            const r = await importarPost('/api/importarDiagnosticosPendientes');
+            importadas += r.importadas;
+            if(!r.importadas || !r.restantes) break; // sin avance, o ya no queda nada: lo atorado no se reintenta en bucle
+          }
+          if(importadas) toast('Se importaron ' + importadas + (importadas === 1 ? ' respuesta.' : ' respuestas.'), true);
+        } catch(e){
+          toast('No se pudieron importar las respuestas: ' + e.message, false);
+        } finally {
+          btn.disabled = false; btn.textContent = 'Importar ahora';
+          importacionEnCurso = null;
+        }
+        try { pintarContador(await apiGetConReintento('/api/getContadorDiagnosticoAdmin')); } catch(e){ /* la tarjeta queda como estaba */ }
+        return importadas;
+      })();
+      return importacionEnCurso;
+    }
+    document.getElementById('diagPendImportar').addEventListener('click', async () => {
+      await importarPendientes();
+      if(document.getElementById('diagTab-resultados').classList.contains('active')) buscarResultados();
+    });
+
+    // Mira la cola (Table Storage, no toca SQL) y, si hay envíos por importar, los importa. Nunca lanza.
+    async function revisarPendientes(){
+      try {
+        const data = await apiGetConReintento('/api/getContadorDiagnosticoAdmin');
+        pintarContador(data);
+        if(data.pendientes && data.pendientes.total > data.pendientes.errores) await importarPendientes();
+      } catch(e){ /* sin conexión: no estorba */ }
+    }
+    // al abrir el panel desde el menú lateral (el contador/QR se arma aparte, ver arriba)
+    document.getElementById('adminNav').addEventListener('click', e => {
+      const b = e.target.closest('.admin-nav-item');
+      if(b && b.dataset.panel === 'diagnosticos') revisarPendientes();
+    });
+
+    document.getElementById('diagPendLista').addEventListener('click', async e => {
+      const b = e.target.closest('.diag-pend-descartar');
+      if(!b) return;
+      if(!(await confirmarAccion({ mensaje: '¿Descartar el envío de "' + b.dataset.nombre + '"? Es un borrado real y no se puede deshacer. Esa persona podrá volver a contestar el diagnóstico.', variante: 'destructivo', textoConfirmar: 'Descartar' }))) return;
+      b.disabled = true;
+      try {
+        await apiPostJson('/api/descartarDiagnosticoPendiente', { id: b.dataset.id });
+        toast('Envío descartado.', true);
+        pintarContador(await apiGetConReintento('/api/getContadorDiagnosticoAdmin'));
+      } catch(err){
+        b.disabled = false;
+        toast('No se pudo descartar: ' + err.message, false);
+      }
+    });
+
 
     function descargarBlob(blob, filename){
       const url = URL.createObjectURL(blob);
@@ -11037,6 +11170,7 @@
       body.innerHTML = `<tr><td colspan="11" class="radm-empty-row">Buscando...</td></tr>`;
 
       try {
+        await revisarPendientes(); // lo que aún espera en la cola entra antes de listar
         diagResultadosRaw = await apiGetConReintento('/api/listRespuestasDiagnosticoAdmin?' + params.toString());
         renderResultadosTabla();
       } catch(e){

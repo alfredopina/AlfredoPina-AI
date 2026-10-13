@@ -8,6 +8,7 @@
 // — más simple para el MVP; si Alfredo quiere "mismo link, datos frescos" más
 // adelante, se agrega ahí.
 const { getPool, sql } = require("../src/backoffice-db");
+const { importarConSql } = require("../src/diagnostico-cola");
 const { calcularReporte } = require("../src/diagnostico-reporte-calc");
 const { getDiagnosticoReportesTable, leerReporte, guardarReporte } = require("../src/diagnostico-reporte-tables");
 const { codigoCortoUnico } = require("../src/codigo-corto");
@@ -30,6 +31,7 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
+    await importarConSql(pool, context); // lo que aún espera en la cola entra al reporte (nunca lanza)
     const snapshot = await calcularReporte(pool, sql, {
       herramienta,
       clienteId: clienteIdNum,

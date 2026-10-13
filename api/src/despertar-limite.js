@@ -1,6 +1,6 @@
 // api/src/despertar-limite.js
 // Candado para las Functions PÚBLICAS que despiertan la base SQL
-// (despertarDiagnostico, despertarEncuesta). Cada "SELECT 1" que llega a una
+// (despertarEncuesta; despertarDiagnostico se eliminó el 2026-10-13 al pasar el Diagnóstico a una cola). Cada "SELECT 1" que llega a una
 // base serverless en pausa la reactiva y se cobra en vCore-segundos; sin
 // límite, un robot o una ráfaga de aperturas repetidas la mantiene activa.
 //

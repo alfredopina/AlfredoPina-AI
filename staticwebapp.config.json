@@ -473,6 +473,14 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/importarDiagnosticosPendientes",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/api/descartarDiagnosticoPendiente",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/api/listPreguntasDiagnosticoAdmin",
       "allowedRoles": ["admin"]
     },

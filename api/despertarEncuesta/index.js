@@ -6,7 +6,7 @@
 // termine de contestar varios minutos después. El banco de preguntas ya no
 // depende de SQL (ver encuesta-tables.js), así que esto solo protege el paso
 // final del envío, no la carga inicial. Mismo "SELECT 1" barato que
-// despertarBackoffice/despertarDiagnostico, a propósito sin reusar ninguna
+// despertarBackoffice, a propósito sin reusar ninguna
 // Function de negocio.
 const { getPool } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");

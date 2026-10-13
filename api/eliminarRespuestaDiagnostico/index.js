@@ -7,6 +7,7 @@
 // banco real. El front pide confirmación explícita antes de llamar esto,
 // mismo patrón que eliminarGrupo.
 const { getPool, sql } = require("../src/backoffice-db");
+const { getHuellasTable, huellaDe, liberarHuella } = require("../src/diagnostico-cola");
 const { getDiagnosticoContadorTable, ajustarContadorDiagnostico } = require("../src/diagnostico-contador");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -21,11 +22,13 @@ module.exports = async function (context, req) {
   const transaction = new sql.Transaction(pool);
   try {
     await transaction.begin();
-    // herramienta de la respuesta, para restarla del contador en vivo después
+    // herramienta de la respuesta (para restarla del contador en vivo) y quién era (para liberar su huella de "una persona no
+    // contesta dos veces" — ver diagnostico-cola.js)
     const previa = await new sql.Request(transaction)
       .input("id", sql.Int, id)
-      .query("SELECT herramienta FROM DiagnosticoRespuesta WHERE id = @id");
+      .query("SELECT r.herramienta, r.nombre, r.cliente_id, c.codigo FROM DiagnosticoRespuesta r JOIN Cliente c ON c.id = r.cliente_id WHERE r.id = @id");
     const herramienta = previa.recordset[0] ? previa.recordset[0].herramienta : null;
+    const persona = previa.recordset[0] || null;
     await new sql.Request(transaction)
       .input("id", sql.Int, id)
       .query("DELETE FROM DiagnosticoRespuestaDetalle WHERE respuesta_id = @id");
@@ -37,6 +40,16 @@ module.exports = async function (context, req) {
     if (!result.rowsAffected[0]) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa respuesta ya no existe." } };
       return;
+    }
+    // huella de la persona (Table Storage) — best-effort: sin ella, caduca sola a los 30 días
+    if (persona) {
+      try {
+        const huellas = getHuellasTable();
+        await liberarHuella(huellas, huellaDe({ clienteId: persona.cliente_id }, herramienta, persona.nombre));
+        await liberarHuella(huellas, huellaDe({ codigo: persona.codigo }, herramienta, persona.nombre));
+      } catch (errHuella) {
+        context.log.error("No se pudo liberar la huella del diagnóstico:", errHuella.message);
+      }
     }
     // contador en vivo (Table Storage) — best-effort, la respuesta ya se borró
     try {

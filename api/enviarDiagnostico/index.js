@@ -1,152 +1,110 @@
 // enviarDiagnostico/index.js
-// Function pública: recibe un envío completo de diagnostico.html (nombre +
-// empresa + herramienta + respuestas) y lo inserta en una transacción.
-// Resuelve/da de alta el Cliente igual que enviarRespuesta (Encuestas) —
-// duplicado a propósito, mismo criterio de encapsular por módulo que ya usa
-// el proyecto.
+// Function pública: recibe un envío completo de diagnostico.html (nombre + empresa + herramienta + respuestas), lo
+// califica y lo deja en la COLA (Table Storage) — NUNCA toca SQL: así 30-60 personas contestando a cualquier hora no
+// despiertan ni mantienen despierta la base (ver api/src/diagnostico-cola.js). El envío pasa a SQL cuando Alfredo abre
+// el panel Diagnósticos o pulsa "Importar ahora" (importarDiagnosticosPendientes).
 //
-// fue_correcta se calcula AQUÍ, comparando contra opcion_correcta del banco
-// de preguntas en este momento — es una foto: si la pregunta se edita
-// después, esta respuesta ya guardada no se recalcula (mismo espíritu que el
-// resto del historial del proyecto). nivel también se guarda en el detalle
-// (no solo en la pregunta) para poder tallar por banda aunque la pregunta se
-// borre después.
+// fue_correcta y nivel se calculan AQUÍ, comparando contra el banco de preguntas de este momento (Table Storage) —
+// es una foto: si la pregunta se edita después, la respuesta ya guardada no se recalcula. Nunca se confía en lo que
+// mande el cliente para esto.
 //
-// Sin protección anti-duplicados/anti-spam — igual que Encuestas: se
-// comparte en vivo por QR durante la sesión, no es un link difundido.
-//
-// El banco de preguntas (opcion_correcta/nivel) se lee de Table Storage, no
-// de SQL (2026-09-13) — mismo motivo que getPreguntasDiagnostico: no depender
-// del auto-pause de la base para lo que sí puede evitarse. pregunta_id es
-// ahora un id de Table Storage (string), por eso la columna correspondiente
-// en DiagnosticoRespuestaDetalle pasó de INT a NVARCHAR (sql/015).
-const { getPool, sql } = require("../src/backoffice-db");
-const { resolverCliente } = require("../src/cliente-resolver");
+// Reglas (2026-10-13):
+//   · una persona no contesta dos veces: misma empresa + herramienta + nombre (sin acentos/mayúsculas) → 409. El mismo
+//     dispositivo o la misma IP SÍ pueden enviar varios (otra persona en la misma computadora): no se limita por IP.
+//   · `envioId` (UUID del navegador) hace idempotente el reintento: el mismo envío dos veces no se duplica.
+//   · la empresa (clienteId del link, o nombre tecleado) se valida al IMPORTAR, que es cuando existe la base.
+const crypto = require("crypto");
 const { getDiagnosticoPreguntasTable, listarPreguntas } = require("../src/diagnostico-tables");
 const { getDiagnosticoContadorTable, ajustarContadorDiagnostico } = require("../src/diagnostico-contador");
+const { getColaTable, getHuellasTable, huellaDe, registrarHuella, liberarHuella, encolar } = require("../src/diagnostico-cola");
 const { JSON_HEADERS } = require("../src/http");
 
 const HERRAMIENTAS = ["excel", "powerbi"];
-// 'N' = "No lo sé" (Fase 2 la agrega al público) — nunca es igual a
-// opcion_correcta (siempre A-D), así que cuenta como incorrecta sin
-// necesitar ningún caso especial en el cálculo de fue_correcta.
+// 'N' = "No lo sé" — nunca es igual a opcion_correcta (siempre A-D), así que cuenta como incorrecta sin caso especial.
 const OPCIONES = ["A", "B", "C", "D", "N"];
+const ENVIO_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
+const MAX_RESPUESTAS = 60;
 
-function errorSeguro(mensaje) {
-  const err = new Error(mensaje);
-  err.safe = true;
-  return err;
-}
-
+const recorta = (s, n) => String(s == null ? "" : s).trim().slice(0, n);
+const responde = (context, status, body) => { context.res = { status, headers: JSON_HEADERS, body }; };
 
 module.exports = async function (context, req) {
   const body = req.body || {};
-  const nombre = (body.nombre || "").trim();
-  const herramienta = (body.herramienta || "").trim().toLowerCase();
-  const empresa = body.empresa || {};
+  const nombre = recorta(body.nombre, 120);
+  const herramienta = recorta(body.herramienta, 20).toLowerCase();
+  const empresaIn = body.empresa || {};
   const respuestas = Array.isArray(body.respuestas) ? body.respuestas : [];
-  // Los 3 son opcionales — el front todavía no los manda hasta Fase 2, así
-  // que llegan null con el front actual sin romper nada.
-  const area = (body.area || "").trim() || null;
-  const correo = (body.correo || "").trim() || null;
-  const tiempoRespuestaSeg = Number.isFinite(Number(body.tiempoRespuestaSeg)) ? Math.round(Number(body.tiempoRespuestaSeg)) : null;
+  const area = recorta(body.area, 120) || null;
+  const correo = recorta(body.correo, 160) || null;
+  const tiempoRespuestaSeg = Number.isFinite(Number(body.tiempoRespuestaSeg)) ? Math.max(0, Math.round(Number(body.tiempoRespuestaSeg))) : null;
+  const envioId = ENVIO_ID_RE.test(String(body.envioId || "")) ? String(body.envioId) : crypto.randomUUID();
 
-  if (!nombre) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta tu nombre." } };
-    return;
-  }
-  if (!HERRAMIENTAS.includes(herramienta)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Herramienta inválida." } };
-    return;
-  }
-  if (!respuestas.length) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "No hay respuestas que guardar." } };
-    return;
-  }
+  if (!nombre) return responde(context, 400, { error: "Falta tu nombre." });
+  if (!HERRAMIENTAS.includes(herramienta)) return responde(context, 400, { error: "Herramienta inválida." });
+  if (!respuestas.length) return responde(context, 400, { error: "No hay respuestas que guardar." });
+  if (respuestas.length > MAX_RESPUESTAS) return responde(context, 400, { error: "Demasiadas respuestas." });
+  if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return responde(context, 400, { error: "El correo no se ve válido." });
 
-  let pool;
-  try {
-    pool = await getPool();
-  } catch (err) {
-    context.log.error("Error conectando a la base:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo procesar tu envío en este momento." } };
-    return;
+  let empresa;
+  const clienteId = Number(empresaIn.clienteId);
+  if (Number.isInteger(clienteId) && clienteId > 0) {
+    empresa = { clienteId };
+  } else if (recorta(empresaIn.nombre, 120)) {
+    empresa = { nombre: recorta(empresaIn.nombre, 120), codigo: recorta(empresaIn.codigo, 30) };
+  } else {
+    return responde(context, 400, { error: "Falta la empresa." });
   }
 
-  // preguntas reales de esta herramienta, para calcular fue_correcta y nivel
-  // en este momento — nunca se confía en lo que mande el cliente para esto.
+  // preguntas reales de esta herramienta, para calificar (Table Storage: no depende de la base)
   let preguntasPorId;
   try {
-    const table = getDiagnosticoPreguntasTable();
-    const entidades = await listarPreguntas(table, herramienta);
+    const entidades = await listarPreguntas(getDiagnosticoPreguntasTable(), herramienta);
     preguntasPorId = new Map(entidades.map((e) => [e.rowKey, { nivel: e.nivel, opcion_correcta: e.opcion_correcta }]));
   } catch (err) {
     context.log.error("Error leyendo el banco de preguntas:", err.message);
-    context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo procesar tu envío en este momento." } };
-    return;
+    return responde(context, 500, { error: "No se pudo procesar tu envío en este momento." });
   }
 
-  const transaction = new sql.Transaction(pool);
+  const detalles = [];
+  for (const r of respuestas) {
+    const preguntaId = recorta(r && r.preguntaId, 64);
+    const opcion = recorta(r && r.opcionSeleccionada, 1).toUpperCase();
+    if (!preguntaId || !OPCIONES.includes(opcion)) continue;
+    const pregunta = preguntasPorId.get(preguntaId);
+    if (!pregunta) continue; // pregunta borrada entre que se cargó el form y se envió — se omite, no truena el envío
+    detalles.push({ preguntaId, nivel: pregunta.nivel, opcion, fue: opcion === pregunta.opcion_correcta });
+  }
+  if (!detalles.length) return responde(context, 400, { error: "Las preguntas cambiaron mientras contestabas — abre el diagnóstico de nuevo." });
+
   try {
-    await transaction.begin();
-
-    const cliente = await resolverCliente(() => new sql.Request(transaction), empresa, "Prospecto", { crearError: errorSeguro, origen: "Diagnóstico" });
-
-    const insertRespuesta = await new sql.Request(transaction)
-      .input("nombre", sql.NVarChar, nombre)
-      .input("clienteId", sql.Int, cliente.id)
-      .input("herramienta", sql.VarChar, herramienta)
-      .input("area", sql.NVarChar, area)
-      .input("correo", sql.NVarChar, correo)
-      .input("tiempoRespuestaSeg", sql.Int, tiempoRespuestaSeg)
-      .query(
-        `INSERT INTO DiagnosticoRespuesta (nombre, cliente_id, herramienta, area, correo, tiempo_respuesta_seg)
-         OUTPUT INSERTED.id
-         VALUES (@nombre, @clienteId, @herramienta, @area, @correo, @tiempoRespuestaSeg)`
-      );
-    const respuestaId = insertRespuesta.recordset[0].id;
-
-    for (const r of respuestas) {
-      const preguntaId = (r.preguntaId || "").toString().trim();
-      const opcionSeleccionada = (r.opcionSeleccionada || "").trim().toUpperCase();
-      if (!preguntaId || !OPCIONES.includes(opcionSeleccionada)) continue;
-      const pregunta = preguntasPorId.get(preguntaId);
-      if (!pregunta) continue; // pregunta borrada entre que se cargó el form y se envió — se omite, no truena el envío
-
-      const fueCorrecta = opcionSeleccionada === pregunta.opcion_correcta;
-      await new sql.Request(transaction)
-        .input("respuestaId", sql.Int, respuestaId)
-        .input("preguntaId", sql.NVarChar, preguntaId)
-        .input("nivel", sql.TinyInt, pregunta.nivel)
-        .input("opcionSeleccionada", sql.Char, opcionSeleccionada)
-        .input("fueCorrecta", sql.Bit, fueCorrecta ? 1 : 0)
-        .query(
-          `INSERT INTO DiagnosticoRespuestaDetalle (respuesta_id, pregunta_id, nivel, opcion_seleccionada, fue_correcta)
-           VALUES (@respuestaId, @preguntaId, @nivel, @opcionSeleccionada, @fueCorrecta)`
-        );
+    const huellas = getHuellasTable();
+    const huella = huellaDe(empresa, herramienta, nombre);
+    const estado = await registrarHuella(huellas, huella, envioId);
+    if (estado === "repetida") {
+      return responde(context, 409, { error: "Ya recibimos un diagnóstico con ese nombre para esta empresa. Si eres otra persona con el mismo nombre, agrega tu segundo apellido o inicial." });
     }
 
-    await transaction.commit();
-
-    // contador en vivo del admin (Table Storage, ver diagnostico-contador.js) —
-    // best-effort: el diagnóstico ya quedó guardado; si esto falla, el contador
-    // queda 1 abajo y el botón "Recalcular desde SQL" lo corrige.
+    const datos = { nombre, herramienta, empresa, area, correo, tiempoRespuestaSeg, detalles };
+    let r;
     try {
-      await ajustarContadorDiagnostico(getDiagnosticoContadorTable(), herramienta, 1);
-    } catch (errContador) {
-      context.log.error("No se pudo sumar al contador de diagnósticos:", errContador.message);
+      r = await encolar(getColaTable(), envioId, datos, huella);
+    } catch (err) {
+      if (estado === "nueva") { try { await liberarHuella(huellas, huella); } catch (_) { /* caduca sola */ } }
+      throw err;
     }
 
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
+    if (r.nueva) {
+      // contador en vivo del admin (Table Storage) — cuenta al ENCOLAR; best-effort: el envío ya quedó guardado, y el
+      // botón "Recalcular desde SQL" lo corrige si se desfasa.
+      try {
+        await ajustarContadorDiagnostico(getDiagnosticoContadorTable(), herramienta, 1);
+      } catch (errContador) {
+        context.log.error("No se pudo sumar al contador de diagnósticos:", errContador.message);
+      }
+    }
+    return responde(context, 200, r.nueva ? { ok: true } : { ok: true, duplicada: true });
   } catch (err) {
-    try {
-      await transaction.rollback();
-    } catch (rollbackErr) {
-      context.log.error("Error haciendo rollback:", rollbackErr.message);
-    }
-    context.log.error("Error guardando el diagnóstico:", err.message);
-    context.res = err.safe
-      ? { status: 400, headers: JSON_HEADERS, body: { error: err.message } }
-      : { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo guardar tu diagnóstico en este momento." } };
+    context.log.error("Error guardando el diagnóstico en la cola:", err.message);
+    return responde(context, 500, { error: "No se pudo guardar tu diagnóstico en este momento." });
   }
 };

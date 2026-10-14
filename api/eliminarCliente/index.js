@@ -10,7 +10,7 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 
-const { contarBloqueos } = require("../src/cliente-dependencias");
+const { contarBloqueos, detallarBloqueos } = require("../src/cliente-dependencias");
 
 module.exports = async function (context, req) {
   const id = Number((req.body || {}).id);
@@ -29,7 +29,10 @@ module.exports = async function (context, req) {
 
     const bloqueos = await contarBloqueos(() => pool.request(), id);
     if (bloqueos.length) {
-      const lista = bloqueos.map((b) => `${b.n} ${b.clave}`).join(", ");
+      const detalle = await detallarBloqueos(() => pool.request(), id, bloqueos);
+      const lista = bloqueos.map((b) => `${b.n} ${b.clave}${detalle[b.clave] && detalle[b.clave].length ? " [" + detalle[b.clave].join("; ") + "]" : ""}`).join(", ");
+      // una cotización "Reemplazada" (versión anterior) no se ve en el tablero salvo con "Versiones anteriores" encendido
+      const pistaVersiones = (detalle.Cotizaciones || []).some((t) => /\((Reemplazada|Expirada)\)/.test(t)) ? " (Para ver una versión anterior, enciende «Versiones anteriores» en Cotizaciones.)" : "";
       const sinBoton = bloqueos.some((b) => ["Diplomas"].includes(b.clave));
       context.res = {
         status: 409,
@@ -37,7 +40,7 @@ module.exports = async function (context, req) {
         body: {
           error:
             `No se puede eliminar "${existe.recordset[0].nombre}": tiene ${lista}. Elimina o resuelve eso primero.` +
-            (sinBoton ? " (Diplomas todavía no tiene botón de eliminar.)" : ""),
+            (sinBoton ? " (Diplomas todavía no tiene botón de eliminar.)" : "") + pistaVersiones,
           bloqueos: Object.fromEntries(bloqueos.map((b) => [b.clave, b.n])),
         },
       };

@@ -24,4 +24,28 @@ async function contarBloqueos(nuevaRequest, clienteId) {
   return bloqueos;
 }
 
-module.exports = { DEPENDENCIAS, contarBloqueos };
+// Para el aviso de "no se puede eliminar": QUÉ cuelga (hasta 5 por tipo) en vez de solo cuántos. Solo las 3 dependencias donde
+// el número no basta para ubicarla (una cotización "Reemplazada" está oculta en el tablero; una solicitud o un grupo se buscan por su nombre).
+const DETALLES = {
+  Cotizaciones: { sql: "SELECT TOP 5 folio, estatus FROM Cotizacion WHERE cliente_id = @id ORDER BY fecha_creacion DESC", texto: (r) => `${r.folio} (${r.estatus})` },
+  Solicitudes: { sql: "SELECT TOP 5 id, estatus FROM Solicitud WHERE cliente_id = @id ORDER BY fecha_creacion DESC", texto: (r) => `solicitud #${r.id} (${r.estatus})` },
+  Grupos: { sql: "SELECT TOP 5 id, grupo_codigo, nombre_curso FROM Grupo WHERE cliente_id = @id OR cliente_final_id = @id ORDER BY id DESC", texto: (r) => r.grupo_codigo || r.nombre_curso || `grupo #${r.id}` },
+};
+
+// Regresa { Cotizaciones: ["AP26-…-01 (Reemplazada)"], … } solo de lo que bloquea. Nunca lanza: es un detalle de cortesía.
+async function detallarBloqueos(nuevaRequest, clienteId, bloqueos) {
+  const out = {};
+  for (const b of bloqueos) {
+    const d = DETALLES[b.clave];
+    if (!d) continue;
+    try {
+      const r = await nuevaRequest().input("id", sql.Int, clienteId).query(d.sql);
+      out[b.clave] = r.recordset.map(d.texto);
+    } catch (e) {
+      /* sin detalle: el aviso sigue diciendo cuántos */
+    }
+  }
+  return out;
+}
+
+module.exports = { DEPENDENCIAS, contarBloqueos, detallarBloqueos };

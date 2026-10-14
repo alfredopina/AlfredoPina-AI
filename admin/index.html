@@ -3674,11 +3674,6 @@
                   <label>ATT. (CONTACTO DEL INTERMEDIARIO)</label>
                   <select id="cotIntermContacto"><option value="">Sin contacto</option></select>
                 </div>
-                <div class="radm-field">
-                  <label>WHATSAPP DE CONTACTO</label>
-                  <input type="tel" id="cotIntermTel" maxlength="30" placeholder="10 dígitos. Ej. 81 1234 5678">
-                  <span class="radm-hint">A este número lleva «Tengo dudas» en la propuesta. Vacío = a ti.</span>
-                </div>
               </div>
               <div class="radm-hint" id="cotIntermHint"></div>
             </div>
@@ -4811,6 +4806,10 @@
           <div class="mk-sec">
             <div class="mk-sec-title">Firma de correo</div>
             <div class="mk-sig">
+              <div class="mk-sig-tabs" id="mkSigPersona">
+                <button type="button" class="mk-btn active" data-persona="alfredo" aria-pressed="true">Alfredo</button>
+                <button type="button" class="mk-btn" data-persona="viridiana" aria-pressed="false">Viridiana</button>
+              </div>
               <div class="mk-sig-tabs" id="mkSigTabs">
                 <button type="button" class="mk-btn active" data-sig="completa" aria-pressed="true">Completa</button>
                 <button type="button" class="mk-btn" data-sig="corta" aria-pressed="false">Corta (respuestas)</button>
@@ -14026,12 +14025,15 @@
     const nombreClienteCot = c => c.cliente_final || c.cliente;
     const viaCot = c => c.cliente_final ? c.cliente : '';
 
+    let cotIntermContactos = []; // contactos del intermediario elegido (para el WhatsApp de «Tengo dudas»)
     async function cargarContactosInterm(id, contactoId){
+      cotIntermContactos = [];
       const sel = document.getElementById('cotIntermContacto');
       if(!id){ sel.innerHTML = '<option value="">Sin contacto</option>'; return; }
       sel.innerHTML = '<option value="">Cargando…</option>';
       try {
         const cs = await apiGetConReintento('/api/listContactosAdmin?clienteId=' + id);
+        cotIntermContactos = cs;
         sel.innerHTML = '<option value="">Sin contacto</option>' + cs.map(c => '<option value="' + c.id + '">' + escapeHtml(c.nombre) + (c.es_principal ? ' (principal)' : '') + '</option>').join('');
         const principal = cs.find(c => c.es_principal);
         sel.value = contactoId ? String(contactoId) : (principal ? String(principal.id) : '');
@@ -14043,7 +14045,16 @@
       const im = id && (cotIntermLista || []).find(c => c.id === id);
       if(!sol || !im){ hint.textContent = ''; return; }
       hint.textContent = 'Se cotiza a nombre de ' + im.nombre + ' (su código va en el folio). Cliente final: ' + sol.cliente + '.' +
-        (im.mostrar_logo ? ' Su logo saldrá en la portada si ya lo subiste en Clientes.' : ' Su logo NO saldrá: tiene desactivado "Mostrar en Reportes/cotizaciones".');
+        (im.mostrar_logo ? ' Su logo saldrá en la portada si ya lo subiste en Clientes.' : ' Su logo NO saldrá: tiene desactivado "Mostrar en Reportes/cotizaciones".') + textoWaInterm();
+    }
+    // a dónde lleva «Tengo dudas»: al WhatsApp del contacto elegido (ficha del cliente), o a ti si no tiene
+    function textoWaInterm(){
+      const cid = Number(document.getElementById('cotIntermContacto').value) || null;
+      const cont = cotIntermContactos.find(x => x.id === cid);
+      if(!cont) return ' Sin contacto: «Tengo dudas» irá a tu WhatsApp.';
+      return cont.tiene_whatsapp && cont.telefono
+        ? ' «Tengo dudas» llevará al WhatsApp de ' + cont.nombre + ' (' + cont.telefono + ').'
+        : ' ' + cont.nombre + ' no tiene WhatsApp marcado en su ficha (Clientes → Contactos): «Tengo dudas» irá a tu WhatsApp.';
     }
     async function mostrarCamposInterm(idSel, contactoId){
       document.getElementById('cotIntermCampos').hidden = false;
@@ -14065,7 +14076,6 @@
       document.getElementById('cotIntermCampos').hidden = true;
       document.getElementById('cotIntermHint').textContent = '';
       const im = opts && opts.intermediario;
-      document.getElementById('cotIntermTel').value = (im && im.telefono) || '';
       if(im){ t.checked = true; await mostrarCamposInterm(im.id, im.contactoId); }
       if(opts && opts.actualizaId){
         // editar un Borrador en el lugar conserva el folio, que lleva el código del intermediario: para cambiarlo, versión nueva
@@ -14081,12 +14091,14 @@
       const c = (cotIntermLista || []).find(x => x.id === id) || {};
       const cs = document.getElementById('cotIntermContacto');
       const contactoId = Number(cs.value) || null;
-      return { id, nombre: c.nombre || '', mostrar_logo: !!c.mostrar_logo, telefono: document.getElementById('cotIntermTel').value.trim(), contactoId, contactoNombre: contactoId ? (cs.options[cs.selectedIndex] || {}).textContent.replace(' (principal)', '') : '' };
+      const cont = cotIntermContactos.find(x => x.id === contactoId);
+      return { id, nombre: c.nombre || '', mostrar_logo: !!c.mostrar_logo, waContacto: cont && cont.tiene_whatsapp ? (cont.telefono || '') : '', contactoId, contactoNombre: contactoId ? (cs.options[cs.selectedIndex] || {}).textContent.replace(' (principal)', '') : '' };
     }
     document.getElementById('cotIntermToggle').addEventListener('change', e => {
       if(e.target.checked) mostrarCamposInterm(null, null);
       else { document.getElementById('cotIntermCampos').hidden = true; document.getElementById('cotIntermHint').textContent = ''; }
     });
+    document.getElementById('cotIntermContacto').addEventListener('change', actualizarHintInterm);
     document.getElementById('cotIntermSel').addEventListener('change', async e => {
       await cargarContactosInterm(Number(e.target.value) || null, null);
       actualizarHintInterm();
@@ -15105,7 +15117,7 @@
       if(im && im.error){ toast('Elige el intermediario.', false); return; }
       const payload = {
         cliente_nombre: im ? im.nombre : sol.cliente, contacto_nombre: im ? (im.contactoNombre || '') : (sol.contacto || ''),
-        ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo, telefono_contacto: im.telefono } : {}),
+        ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo, contacto_wa: im.waContacto } : {}),
         herramienta: sol.herramienta, temario_nombre: nombreProgramaCot(sol), temas: temasDeCot(sol),
         horas_totales: horasDe(sol), precio_final: precioFinal, tarifa_hora: tarifasCache[sol.herramienta] || null,
         temario_tipo: sol.temario_tipo,
@@ -15140,7 +15152,7 @@
       const payload = {
         empresa: { clienteId: sol.cliente_id },
         contacto_id: im ? im.contactoId : (sol.contacto_id || null),
-        ...(im ? { intermediario_id: im.id, telefono_contacto: im.telefono } : {}),
+        ...(im ? { intermediario_id: im.id } : {}),
         solicitud_id: sol.id || null,
         reemplaza_a_folio: cotReemplazaFolioActual,
         actualiza_id: cotActualizaIdActual,
@@ -15203,7 +15215,7 @@
         reemplazaAFolio: enElLugar ? null : c.folio,
         actualizaId: enElLugar ? c.id : null,
         folioActual: c.folio,
-        intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id, telefono: c.telefono_contacto || '' } : null,
+        intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id } : null,
         precioFinalInicial: c.precio_final,
         descuentoInicial: c.descuento_pct,
         numGrupos: c.num_grupos || 1,
@@ -19680,8 +19692,11 @@
     // ── firma de correo ──
     const SIG_BASE = '../assets/firma/';
     const sigCache = {};
-    let sigActual = 'completa';
+    let sigPersona = 'alfredo';
+    let sigTipo = 'completa';
     const sigPrev = document.getElementById('mkSigPrev');
+    // los archivos de Alfredo se llaman completa/corta/animada; los de las demás personas llevan su clave de prefijo
+    const sigArchivo = () => (sigPersona === 'alfredo' ? '' : sigPersona + '-') + sigTipo;
     async function sigCargar(k){
       if (!sigCache[k]) {
         const r = await fetch(SIG_BASE + k + '.html');
@@ -19690,28 +19705,34 @@
       }
       return sigCache[k];
     }
-    async function sigMostrar(k){
+    async function sigMostrar(){
       try {
+        const k = sigArchivo();
         const html = await sigCargar(k);
-        sigActual = k;
         sigPrev.innerHTML = html.split('https://www.alfredopina.ai/').join('../');
-        document.querySelectorAll('#mkSigTabs .mk-btn').forEach(b => {
-          const on = b.dataset.sig === k;
+        const marcar = (selector, attr, valor) => document.querySelectorAll(selector).forEach(b => {
+          const on = b.dataset[attr] === valor;
           b.classList.toggle('active', on);
           b.setAttribute('aria-pressed', String(on));
         });
+        marcar('#mkSigPersona .mk-btn', 'persona', sigPersona);
+        marcar('#mkSigTabs .mk-btn', 'sig', sigTipo);
         const dl = document.getElementById('mkSigDl');
         dl.href = SIG_BASE + k + '.html';
         dl.setAttribute('download', 'firma-' + k + '.html');
       } catch (err) { toast('No se pudo cargar la firma: ' + err.message, false); }
     }
+    document.getElementById('mkSigPersona').addEventListener('click', e => {
+      const b = e.target.closest('.mk-btn');
+      if (b) { sigPersona = b.dataset.persona; sigMostrar(); }
+    });
     document.getElementById('mkSigTabs').addEventListener('click', e => {
       const b = e.target.closest('.mk-btn');
-      if (b) sigMostrar(b.dataset.sig);
+      if (b) { sigTipo = b.dataset.sig; sigMostrar(); }
     });
     document.getElementById('mkSigCopy').addEventListener('click', async () => {
       try {
-        const html = await sigCargar(sigActual);
+        const html = await sigCargar(sigArchivo());
         if (!window.ClipboardItem) throw new Error('este navegador no permite copiar HTML; usa Descargar');
         await navigator.clipboard.write([new ClipboardItem({
           'text/html': new Blob([html], { type: 'text/html' }),
@@ -19720,7 +19741,7 @@
         toast('Firma copiada. Pégala en la configuración de firma de Gmail u Outlook.', true);
       } catch (err) { toast('No se pudo copiar la firma: ' + err.message, false); }
     });
-    sigMostrar('completa');
+    sigMostrar();
 
     // ── pestañas ──
     document.getElementById('marcaTabs').addEventListener('click', e => {

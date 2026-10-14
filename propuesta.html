@@ -493,7 +493,7 @@
 <dialog id="dlgAceptar">
   <form method="dialog" id="fAceptar">
     <h3>Aceptar propuesta</h3>
-    <p>Al aceptar la propuesta Alfredo se comunicará contigo para agendar las sesiones.</p>
+    <p id="aTexto">Al aceptar la propuesta Alfredo se comunicará contigo para agendar las sesiones.</p>
     <p id="aAdic"></p>
     <input type="text" id="aNombre" placeholder="Tu nombre" required maxlength="120">
     <input type="text" id="aContacto" placeholder="Correo o teléfono (opcional)" maxlength="120">
@@ -813,10 +813,13 @@
   // aceptar propuesta: avisa por correo a Alfredo y queda registrada (solo la primera); en vista previa no envía nada.
   // Una propuesta vencida no se acepta: el botón pasa a pedir una actualización por WhatsApp.
   const btnA = $('btnAceptar'), nota = $('aceptNota');
-  const NOTA_ACEPTAR = 'Al aceptar la propuesta Alfredo se comunicará contigo para agendar las sesiones.';
+  // vía intermediario: Alfredo se comunica con el contacto del intermediario (no "contigo", que puede ser el cliente final)
+  const quien = D.intermediario ? (D.contacto ? 'con ' + D.contacto + ' (' + D.cliente + ')' : 'con ' + D.cliente) : 'contigo';
+  const NOTA_ACEPTAR = `Al aceptar la propuesta Alfredo se comunicará ${quien} para agendar las sesiones.`;
+  $('aTexto').textContent = NOTA_ACEPTAR;
   function marcaAceptada(en){
     btnA.classList.add('hecho'); btnA.lastChild.textContent = 'Propuesta aceptada';
-    nota.textContent = (en ? 'Aceptada el ' + fecha(new Date(en)) + '. ' : '') + 'Alfredo se comunicará contigo para agendar las sesiones.';
+    nota.textContent = (en ? 'Aceptada el ' + fecha(new Date(en)) + '. ' : '') + `Alfredo se comunicará ${quien} para agendar las sesiones.`;
     pintaAdic();
   }
   if(ctx.aceptada) marcaAceptada(ctx.aceptadaInfo && ctx.aceptadaInfo.en);
@@ -842,7 +845,7 @@
         if(!r.ok){ const b = await r.json().catch(() => ({})); throw new Error(b.error || 'No se pudo enviar'); }
       }
       $('dlgAceptar').close();
-      aviso(admin ? (admin.preview ? 'Vista previa: no se envió nada.' : 'Probaste el botón como admin: no se guardó ni se avisó.') : '¡Listo! Alfredo recibirá tu respuesta y se comunicará contigo.');
+      aviso(admin ? (admin.preview ? 'Vista previa: no se envió nada.' : 'Probaste el botón como admin: no se guardó ni se avisó.') : `¡Listo! Alfredo recibirá tu respuesta y se comunicará ${quien}.`);
       if(!admin){ ctx.aceptada = true; marcaAceptada(new Date().toISOString()); }
     } catch(err){ aviso(err.message); }
     btn.disabled = false;

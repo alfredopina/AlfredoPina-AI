@@ -3,6 +3,7 @@ const Module = require("module");
 const consultas = [];
 const propGuardadas = [];
 let intermRow = null;
+let contactoRow = null;
 let logoExiste = true;
 const fila = { id: 7, folio: "AP26-ACME-EXCEL-01", estatus: "Borrador", cliente_id: 1, blob_path: "propuesta/abcd1234" };
 const fakePool = {
@@ -11,6 +12,7 @@ const fakePool = {
       async query(sqlText) {
         consultas.push({ sqlText, inputs: this._in });
         if (/FROM Cotizacion WHERE id/.test(sqlText)) return { recordset: [fila] };
+        if (/FROM Contacto WHERE id/.test(sqlText)) return { recordset: contactoRow ? [contactoRow] : [] };
         if (/FROM Cliente WHERE id/.test(sqlText)) return { recordset: intermRow ? [intermRow] : [] };
         if (/INSERT INTO Cotizacion/.test(sqlText)) return { recordset: [{ id: 99 }] };
         if (/TarifaHerramienta/.test(sqlText)) return { recordset: [{ precio_hora: 500 }] };
@@ -123,22 +125,28 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   r = await llamar({ ...base, precio_final: undefined, temario_nombre: undefined });
   check("personalizada sin nombre: sigue como Programa personalizado", r.status === 200 && propGuardadas[0].snapshot.programa === "Programa personalizado");
 
-  // ── WhatsApp de contacto vía intermediario ──
+  // ── WhatsApp del contacto del intermediario (sale de su ficha; sin campo manual) ──
   intermRow = { id: 5, nombre: "Intermedia SA", codigo: "INT", tipo_cliente: "Intermediario", mostrar_logo: 0 }; process.env.CLI = "2";
+  contactoRow = { nombre: "Paty Ortega", telefono: "+52 (81) 1234-5678", tiene_whatsapp: 1 };
   consultas.length = 0; propGuardadas.length = 0;
-  r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5, telefono_contacto: "+52 (81) 1234-5678" });
-  const tq = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
-  check("vía intermediario: la propuesta lleva el WhatsApp normalizado y se guarda lo escrito", r.status === 200 && propGuardadas[0].snapshot.contactoWa === "528112345678" && tq.inputs.telefonoContacto === "+52 (81) 1234-5678");
+  r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5, contacto_id: 9 });
+  check("vía intermediario: 'Tengo dudas' lleva al WhatsApp del contacto elegido (normalizado)", r.status === 200 && propGuardadas[0].snapshot.contactoWa === "528112345678" && propGuardadas[0].snapshot.contacto === "Paty Ortega");
+  contactoRow = { nombre: "Paty Ortega", telefono: "81 1234 5678", tiene_whatsapp: 0 };
   consultas.length = 0; propGuardadas.length = 0;
-  r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5, telefono_contacto: "123" });
-  check("WhatsApp inválido: 400 y no se guarda nada", r.status === 400 && propGuardadas.length === 0);
+  r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5, contacto_id: 9 });
+  check("contacto sin WhatsApp marcado: el botón sigue yendo a Alfredo", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
+  contactoRow = { nombre: "Paty Ortega", telefono: "123", tiene_whatsapp: 1 };
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5, contacto_id: 9 });
+  check("teléfono inválido en la ficha: no rompe, va a Alfredo", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
   consultas.length = 0; propGuardadas.length = 0;
   r = await llamar({ ...base, precio_final: undefined, intermediario_id: 5 });
-  check("vía intermediario sin WhatsApp: el botón sigue yendo a Alfredo (sin contactoWa)", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
-  intermRow = null; process.env.CLI = "2"; consultas.length = 0; propGuardadas.length = 0;
-  r = await llamar({ ...base, precio_final: undefined, telefono_contacto: "81 1234 5678" });
-  check("sin intermediario el teléfono se ignora", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
+  check("vía intermediario sin contacto: va a Alfredo", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
+  intermRow = null; process.env.CLI = "2"; contactoRow = { nombre: "Ana", telefono: "81 1234 5678", tiene_whatsapp: 1 };
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, contacto_id: 3 });
+  check("sin intermediario: el teléfono del contacto no cambia el botón", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
 
-    console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
+  console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

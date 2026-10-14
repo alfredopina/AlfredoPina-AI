@@ -5,8 +5,7 @@
 // Lo público escribe en Table Storage (colas: crearSolicitudPublica, enviarDiagnostico, enviarRespuesta) y el admin las pasa a SQL.
 //
 // Excepción explícita y documentada (lista de abajo): tareas PROGRAMADAS con secreto, que no las dispara ningún visitante.
-// OJO: al invertir las reglas de rutas (auditoría A01-001, comodín /api/* admin al final) "pública" pasa a ser la ruta listada SIN rol admin:
-// adaptar el cálculo de `publicas` aquí abajo en ese cambio.
+// (Desde la inversión de reglas de rutas, auditoría A01-001, "pública" = la lista de api/rutas-publicas.js.)
 // Análisis estático de código (sin ejecutar nada): sigue los require() locales y busca llamadas a getPool().
 const fs = require("fs");
 const path = require("path");
@@ -19,10 +18,11 @@ const EXCEPCIONES = {
   enviarResumenSemanal: "resumen semanal por correo: 1 despertar los lunes 7:00 (≈ 1 800 vCore-s por semana); lo dispara un cron, no un visitante",
 };
 
-const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, "staticwebapp.config.json"), "utf8"));
-const listadasAdmin = new Set(cfg.routes.filter((r) => r.route.startsWith("/api/") && (r.allowedRoles || []).includes("admin")).map((r) => r.route.replace("/api/", "")));
+// Pública = la que aparece en api/rutas-publicas.js (todo lo demás de /api es solo admin por el comodín /api/*; ver test-rutas-cerradas.js).
+const rutasPublicas = new Set(require("./rutas-publicas").map((p) => p.ruta));
 const funciones = fs.readdirSync(API).filter((d) => fs.existsSync(path.join(API, d, "function.json")));
-const publicas = funciones.filter((f) => !listadasAdmin.has(f)).sort();
+const rutaDe = (carpeta) => JSON.parse(fs.readFileSync(path.join(API, carpeta, "function.json"), "utf8")).bindings.find((b) => b.type === "httpTrigger").route;
+const publicas = funciones.filter((f) => rutasPublicas.has(rutaDe(f))).sort();
 
 function sinComentarios(src) { return src.split(/\r?\n/).filter((l) => !l.trim().startsWith("//")).join("\n"); }
 

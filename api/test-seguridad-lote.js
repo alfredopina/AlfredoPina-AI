@@ -77,13 +77,13 @@ const respaldo = require("./respaldoAutomatico");
   const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "staticwebapp.config.json"), "utf8"));
   const h = cfg.globalHeaders || {};
   check("cabeceras: nosniff, Referrer-Policy, X-Frame-Options y HSTS", h["X-Content-Type-Options"] === "nosniff" && h["Referrer-Policy"] === "strict-origin-when-cross-origin" && h["X-Frame-Options"] === "SAMEORIGIN" && /max-age=\d+/.test(h["Strict-Transport-Security"] || ""));
-  const ruta = (r) => cfg.routes.find((x) => x.route === r);
-  check("/api/buscarClientes ya es solo admin", ruta("/api/buscarClientes") && ruta("/api/buscarClientes").allowedRoles.includes("admin"));
+  const comodin = cfg.routes.find((x) => x.route === "/api/*");
+  check("/api/* es solo admin y buscarClientes NO está en la lista de públicas (queda cerrada por defecto)", comodin && comodin.allowedRoles.includes("admin") && !require("./rutas-publicas").some((p) => p.ruta === "buscarClientes"));
   // ninguna página pública vuelve a llamar a buscarClientes (la cartera no se puede sacar sin sesión)
   const raiz = path.join(__dirname, "..");
   const publicas = fs.readdirSync(raiz).filter((f) => f.endsWith(".html"));
   check("ninguna página pública llama a /api/buscarClientes", publicas.every((f) => !/\/api\/buscarClientes(?!Admin)/.test(fs.readFileSync(path.join(raiz, f), "utf8"))));
-  check("el archivo de configuración sigue dentro del tope de 20 KB de Azure", fs.statSync(path.join(raiz, "staticwebapp.config.json")).size < 19000);
+  check("el archivo de configuración queda muy por debajo del tope de 20 KB de Azure", fs.statSync(path.join(raiz, "staticwebapp.config.json")).size < 19000);
 
   if (fallos) { console.log("\n" + fallos + " prueba(s) fallaron"); process.exit(1); }
   console.log("\ntest-seguridad-lote: ok");

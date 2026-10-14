@@ -71,607 +71,93 @@
       "rewrite": "/verificar.html"
     },
     {
+      "route": "/api/crearSolicitudPublica"
+    },
+    {
+      "route": "/api/enviarDiagnostico"
+    },
+    {
+      "route": "/api/enviarRespuesta"
+    },
+    {
+      "route": "/api/confirmarVistaPropuesta"
+    },
+    {
+      "route": "/api/responderPropuesta"
+    },
+    {
+      "route": "/api/registrarEventoDiploma"
+    },
+    {
+      "route": "/api/getCatalogoCursos"
+    },
+    {
+      "route": "/api/getCatalogoRecursos"
+    },
+    {
+      "route": "/api/getRecursos"
+    },
+    {
+      "route": "/api/availability"
+    },
+    {
+      "route": "/api/getPropuestaPublica"
+    },
+    {
+      "route": "/api/verificarDiploma"
+    },
+    {
+      "route": "/api/getDiplomasGrupoPublico"
+    },
+    {
+      "route": "/api/getLinkEncuestaPublico"
+    },
+    {
+      "route": "/api/getPreguntasEncuesta"
+    },
+    {
+      "route": "/api/getPreguntasDiagnostico"
+    },
+    {
+      "route": "/api/getReporteDiagnosticoPublico"
+    },
+    {
+      "route": "/api/getReporteEncuestaPublico"
+    },
+    {
+      "route": "/api/getReporteCalificacionesPublico"
+    },
+    {
+      "route": "/api/getFirmaPublica"
+    },
+    {
+      "route": "/api/getFotoInstructor"
+    },
+    {
+      "route": "/api/getFotoGrupoReporte"
+    },
+    {
+      "route": "/api/getLogoIntermediario"
+    },
+    {
+      "route": "/api/respaldoAutomatico"
+    },
+    {
+      "route": "/api/notificarSolicitudesAtoradas"
+    },
+    {
+      "route": "/api/enviarResumenSemanal"
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/admin",
       "allowedRoles": ["admin"]
     },
     {
       "route": "/admin/*",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listCursosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getRecursosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/subirPresentacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listPresentacionesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getPresentacionAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearCurso",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarCurso",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/uploadRecurso",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarRecurso",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarRecurso",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/updateOrden",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getCatalogoCursosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listTemasAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearTema",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarTema",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listTemariosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearTemario",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarTemario",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listProyectosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearProyecto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarProyecto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/subirImagenProyecto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarImagenProyecto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/updateOrdenCursos",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getResumenCompletitudAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarDiplomas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/cargarCalificaciones",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listCalificacionesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getCalificacionesGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarCalificacionesGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarReporteCalificaciones",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listReportesCalificacionesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarReporteCalificaciones",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listDiplomas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getDiplomasGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarDiplomasGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/anularDiploma",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getVerifResumenDiplomas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getPerfilesInstructores",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/guardarPerfilInstructor",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarFotoInstructor",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getPlantillaAsset",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/subirPlantillaAsset",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/agregarInstructor",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarInstructor",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarFirma",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listPreguntasAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearPregunta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarPregunta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/reordenarPreguntas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listRespuestasEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getContadorRespuestas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/respaldarAhora",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listRespaldos",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getRespaldo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listSolicitudesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getResumenSolicitudesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearSolicitud",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarSolicitud",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarEstatusSolicitud",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarSolicitud",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/extenderVigenciaCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/reiniciarVistasPropuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/verificarCodigoCliente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listClientesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getResumenClientesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/buscarClientesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarCliente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearCliente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarCliente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/subirLogoIntermediario",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarLogoIntermediario",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/guardarFotoGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarFotoGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getFotoGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarNotasCliente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listContactosAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearContacto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarContacto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarContacto",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listTarifasAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarTarifa",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarUmbralNotificacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getConfiguracionNotificaciones",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getConfiguracionCorreo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarConfiguracionCorreo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/probarNotificacionCorreo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getEstadoSistema",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getMetricasDesde",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/reiniciarMetricas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getNotificacionesActivas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/previsualizarCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listCotizacionesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getResumenCotizacionesAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarEstatusCotizacion",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getCotizacionPdf",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getPropuestasStatsAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/despertarBackoffice",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getEstadoBase",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/buscarClientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/importarDiagnosticosPendientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/descartarDiagnosticoPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/importarEncuestasPendientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/descartarEncuestaPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listPreguntasDiagnosticoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearPreguntaDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarPreguntaDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarPreguntaDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/reordenarPreguntasDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listRespuestasDiagnosticoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarRespuestaDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getContadorDiagnosticoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/registrarAccesoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listActividadAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/actualizarNotasGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listGruposAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listNombresCursoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/avanzarFaseGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getResumenGruposAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getHistorialFaseGrupo",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listPendientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/archivarPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/updateOrdenPendientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/crearPendientesCategoria",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/editarPendientesCategoria",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarPendientesCategoria",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/vaciarArchivadosPendientes",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/updateOrdenPendientesCategorias",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/moverPendiente",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/getModeloEstadisticas",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarReporteDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listReportesDiagnosticoAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarReporteDiagnostico",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/guardarEscalaEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarLinkEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listLinksEncuestaAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/cambiarEstadoLinkEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/generarReporteEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/listReportesEncuestaAdmin",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarReporteEncuesta",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/api/eliminarRespuestaEncuesta",
       "allowedRoles": ["admin"]
     }
   ],

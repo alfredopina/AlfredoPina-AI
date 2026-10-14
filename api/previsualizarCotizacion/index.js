@@ -44,7 +44,7 @@ module.exports = async function (context, req) {
       intermediario,
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,
-      programa: estandar ? body.temario_nombre.trim() : "Programa personalizado",
+      programa: (body.temario_nombre || "").trim() || "Programa personalizado",
       temas,
       temasCustom: body.temario_tipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [],
       horas,

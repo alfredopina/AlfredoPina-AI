@@ -181,7 +181,7 @@ module.exports = async function (context, req) {
       intermediario: interm ? { nombre: interm.nombre, logoUrl: logoOk ? "/api/getLogoIntermediario?cliente=" + interm.id : null } : null,
       contacto: contactoNombre,
       herramienta,
-      programa: temarioTipo === "estandar" && temarioNombre ? temarioNombre : "Programa personalizado",
+      programa: temarioNombre || "Programa personalizado",
       temas,
       temasCustom,
       horas,

@@ -96,7 +96,7 @@ const prospecto = {
   const p2 = f.hubo("INSERT INTO Solicitud")[0].params;
   assert.strictEqual(p2.creoProspecto, 0);
   assert.strictEqual(p2.contactoId, null);
-  assert.strictEqual(p2.temarioNombre, null, "personalizado no lleva nombre de programa");
+  assert.strictEqual(p2.temarioNombre, "ignorado", "personalizado guarda el nombre que se le da al programa");
   assert.deepStrictEqual([p2.objetivo, p2.dirigidoA], ["Automatizar reportes", "Finanzas"]);
   assert.strictEqual(p2.horas, 12.3, "horas a un decimal (columna DECIMAL(6,1))");
   assert.strictEqual(p2.proyectosJson, null, "sin proyectos elegidos no se guarda nada");

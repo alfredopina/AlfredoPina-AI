@@ -115,6 +115,14 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   r = await llamar({ ...base, precio_final: undefined, temario_tipo: "estandar", temario_nombre: "Excel Básico", temas_custom: [{ nombre: "No aplica", objetivo: "x" }] });
   check("el estándar ignora los temas a tu medida", r.status === 200 && propGuardadas[0].snapshot.temasCustom.length === 0);
 
+  // ── nombre del programa personalizado ──
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temario_nombre: "Excel para finanzas" });
+  check("personalizada con nombre: el título de la propuesta es ese nombre", r.status === 200 && propGuardadas[0].snapshot.programa === "Excel para finanzas");
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined, temario_nombre: undefined });
+  check("personalizada sin nombre: sigue como Programa personalizado", r.status === 200 && propGuardadas[0].snapshot.programa === "Programa personalizado");
+
     console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

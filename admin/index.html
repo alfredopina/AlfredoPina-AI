@@ -3679,6 +3679,13 @@
             </div>
 
             <div class="cot-precio-form">
+              <div class="radm-form-row" id="cotNombreProgramaRow" hidden style="margin:0 0 12px;">
+                <div class="radm-field">
+                  <label>NOMBRE DEL PROGRAMA</label>
+                  <input type="text" id="cotNombrePrograma" maxlength="200" placeholder="El título de la propuesta. Ej. Excel para finanzas y control de gestión">
+                  <span class="radm-hint">Programa personalizado: este nombre es el título que ve el cliente.</span>
+                </div>
+              </div>
               <div class="cot-precio-calc" id="cotPrecioCalc">Calculando precio sugerido…</div>
               <div class="radm-form-row" style="margin:0;">
                 <div class="radm-field">
@@ -12914,7 +12921,7 @@
       return s.temario_tipo === 'estandar' ? (s.temario_nombre || 'Sin nombre') : 'Personalizado';
     }
     function temarioResumenCorto(s){
-      if(s.temario_tipo === 'estandar') return escapeHtml(s.temario_nombre || '—');
+      if(s.temario_tipo === 'estandar' || s.temario_nombre) return escapeHtml(s.temario_nombre || '—');
       const temas = temasDe(s);
       if(!temas.length) return '—';
       const nombres = temas.map(t => t.nombre);
@@ -13299,6 +13306,9 @@
             </div>
             <div id="solTemarioBody"></div>
             <div id="solPersonalizadoWrap" hidden>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>NOMBRE DEL PROGRAMA</label><input type="text" id="solNombrePrograma" maxlength="200" placeholder="El título que verá el cliente en la propuesta. Ej. Excel para finanzas y control de gestión"></div>
+              </div>
               <div class="sol-custom">
                 <div class="sol-custom-h">TEMAS A TU MEDIDA<span class="radm-hint">Opcional · temas que te pidieron y no están en el catálogo. Salen en la propuesta como "A tu medida".</span></div>
                 <div id="solCustomLista"></div>
@@ -13584,6 +13594,7 @@
           payload.objetivo = $('solObjetivo').value.trim();
           payload.dirigido_a = $('solDirigido').value.trim();
           payload.temas_custom = customOk;
+          payload.temario_nombre = $('solNombrePrograma').value.trim() || null;
         }
         if($('solParticipantes').value === 'otro' && !/^\d+$/.test(payload.participantes)){ toast('Escribe cuántas personas participarán (un número).', false); return; }
 
@@ -13671,6 +13682,7 @@
         horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
         actualizarHorasHint();
         $('solObjetivo').value = sol.objetivo || '';
+        $('solNombrePrograma').value = sol.temario_tipo === 'personalizado' ? (sol.temario_nombre || '') : '';
         $('solDirigido').value = sol.dirigido_a || '';
 
         // participantes: el número exacto (si lo hay) viaja en los comentarios como "Participantes: N"
@@ -15017,6 +15029,9 @@
       renderDetalleResumen(sol);
       document.getElementById('cotFechaVigencia').value = defaultFechaVigencia();
       document.getElementById('cotNumGrupos').value = opts.numGrupos || 1;
+      // programa personalizado: el nombre se puede escribir o corregir aquí (viene de la solicitud o de la cotización que se edita)
+      document.getElementById('cotNombreProgramaRow').hidden = sol.temario_tipo !== 'personalizado';
+      document.getElementById('cotNombrePrograma').value = sol.temario_tipo === 'personalizado' ? (sol.temario_nombre || '') : '';
       document.getElementById('cotParticipantesNum').value = opts.participantesNum || '';
       const descuentoInput = document.getElementById('cotDescuentoPct');
       const precioInput = document.getElementById('cotPrecioFinal');
@@ -15048,6 +15063,11 @@
     // usa precargarTemarioEdit para el mismo problema con los temas.
     // Los proyectos elegidos de una personalizada viajan como foto {id, nombre, resumen}; los de un estándar los trae el servidor
     // temas a tu medida de una personalizada: viajan tal cual a la propuesta ({nombre, objetivo})
+    // estándar: el nombre de su programa; personalizado: el que se escribe en el formulario (vacío = "Programa personalizado")
+    function nombreProgramaCot(sol){
+      if(sol.temario_tipo !== 'personalizado') return sol.temario_nombre;
+      return document.getElementById('cotNombrePrograma').value.trim() || null;
+    }
     function temasCustomDeSol(sol){
       if(sol.temario_tipo !== 'personalizado' || !sol.temas_custom_json) return [];
       try { const a = typeof sol.temas_custom_json === 'string' ? JSON.parse(sol.temas_custom_json) : sol.temas_custom_json; return Array.isArray(a) ? a : []; }
@@ -15080,7 +15100,7 @@
       const payload = {
         cliente_nombre: im ? im.nombre : sol.cliente, contacto_nombre: im ? (im.contactoNombre || '') : (sol.contacto || ''),
         ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo } : {}),
-        herramienta: sol.herramienta, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
+        herramienta: sol.herramienta, temario_nombre: nombreProgramaCot(sol), temas: temasDeCot(sol),
         horas_totales: horasDe(sol), precio_final: precioFinal, tarifa_hora: tarifasCache[sol.herramienta] || null,
         temario_tipo: sol.temario_tipo,
         modalidad: sol.modalidad, participantes: sol.participantes,
@@ -15119,7 +15139,7 @@
         reemplaza_a_folio: cotReemplazaFolioActual,
         actualiza_id: cotActualizaIdActual,
         herramienta: sol.herramienta,
-        temario_tipo: sol.temario_tipo, temario_nombre: sol.temario_nombre, temas: temasDeCot(sol),
+        temario_tipo: sol.temario_tipo, temario_nombre: nombreProgramaCot(sol), temas: temasDeCot(sol),
         horas_totales: horasDe(sol),
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
         precio_final: precioFinal,

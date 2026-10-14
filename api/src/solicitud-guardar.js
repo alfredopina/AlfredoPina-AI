@@ -111,7 +111,8 @@ function normalizar(body) {
   }
 
   return {
-    herramienta, temarioTipo, temarioNombre: personalizado ? null : temarioNombre, temas, horas, modalidad,
+    herramienta, temarioTipo, // el estándar lleva el nombre de su programa; la personalizada, el nombre que Alfredo le da (opcional)
+    temarioNombre: personalizado ? String(body.temario_nombre || "").trim().slice(0, 200) || null : temarioNombre, temas, horas, modalidad,
     participantes: part.columna, notas, objetivo: texto(body.objetivo), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
     temasCustomJson: temasCustom.length ? JSON.stringify(temasCustom) : null,
     recibida, esCliente, clienteId, nombre, codigo, contactoId, contactoDatos,

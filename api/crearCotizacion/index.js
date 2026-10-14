@@ -17,6 +17,7 @@ const { esPrecioManual, armarSnapshot, getPropuestasTable, guardarPropuesta, mar
 const { codigoCortoUnico } = require("../src/codigo-corto");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { normalizarTemasCustom } = require("../src/temas-custom");
+const { parseTelefonoWa } = require("../src/telefono-wa");
 const { normalizarGrupos, descuentoSugerido, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
@@ -40,6 +41,12 @@ module.exports = async function (context, req) {
   // vía intermediario: `empresa` sigue siendo el cliente de la solicitud (queda como cliente FINAL) y `intermediario_id` pasa a ser
   // a quien se cotiza (cliente_id, folio y contacto salen de él)
   const intermediarioId = body.intermediario_id ? Number(body.intermediario_id) : null;
+  // WhatsApp de contacto: solo aplica vía intermediario (el botón "Tengo dudas" de la propuesta llevará a ese número)
+  const tel = intermediarioId ? parseTelefonoWa(body.telefono_contacto) : { vacio: true };
+  if (tel.valido === false) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El WhatsApp de contacto no es válido: escribe 10 dígitos (o el número con lada de país)." } };
+    return;
+  }
   const solicitudId = body.solicitud_id ? Number(body.solicitud_id) : null;
   const reemplazaAFolio = (body.reemplaza_a_folio || "").trim() || null;
   const herramienta = (body.herramienta || "").trim().toLowerCase();
@@ -182,6 +189,7 @@ module.exports = async function (context, req) {
       contacto: contactoNombre,
       herramienta,
       programa: temarioNombre || "Programa personalizado",
+      contactoWa: tel.valido ? tel.wa : null,
       temas,
       temasCustom,
       horas,
@@ -230,13 +238,14 @@ module.exports = async function (context, req) {
         .input("participantes", sql.NVarChar, participantes)
         .input("modalidad", sql.NVarChar, modalidad)
         .input("numGrupos", sql.Int, numGrupos)
+        .input("telefonoContacto", sql.NVarChar, tel.valido ? tel.texto : null)
         .input("participantesNum", sql.Int, participantesNum)
         .query(
           `UPDATE Cotizacion SET contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
              temario_nombre = @temarioNombre, temas_json = @temasJson, horas = @horas, precio_sugerido = @precioSugerido,
              descuento_pct = @descuentoPct, precio_final = @precioFinal, fecha_vigencia = @fechaVigencia, blob_path = @blobPath,
              fecha_tentativa = @fechaTentativa, ciudad_sede = @ciudadSede, participantes = @participantes, modalidad = @modalidad,
-             num_grupos = @numGrupos, participantes_num = @participantesNum
+             num_grupos = @numGrupos, participantes_num = @participantesNum, telefono_contacto = @telefonoContacto
            WHERE id = @id AND estatus = 'Borrador'`
         );
       context.res = {
@@ -269,17 +278,18 @@ module.exports = async function (context, req) {
       .input("participantes", sql.NVarChar, participantes)
       .input("modalidad", sql.NVarChar, modalidad)
         .input("numGrupos", sql.Int, numGrupos)
+        .input("telefonoContacto", sql.NVarChar, tel.valido ? tel.texto : null)
         .input("participantesNum", sql.Int, participantesNum)
       .query(
         `INSERT INTO Cotizacion
           (folio, solicitud_id, cliente_id, cliente_final_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json,
            horas, precio_sugerido, descuento_pct, precio_final, fecha_vigencia, reemplaza_a_folio, blob_path,
-           fecha_tentativa, ciudad_sede, participantes, modalidad, num_grupos, participantes_num)
+           fecha_tentativa, ciudad_sede, participantes, modalidad, num_grupos, participantes_num, telefono_contacto)
          OUTPUT INSERTED.id
          VALUES
           (@folio, @solicitudId, @clienteId, @clienteFinalId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson,
            @horas, @precioSugerido, @descuentoPct, @precioFinal, @fechaVigencia, @reemplazaAFolio, @blobPath,
-           @fechaTentativa, @ciudadSede, @participantes, @modalidad, @numGrupos, @participantesNum)`
+           @fechaTentativa, @ciudadSede, @participantes, @modalidad, @numGrupos, @participantesNum, @telefonoContacto)`
       );
 
     if (reemplazaAFolio) {

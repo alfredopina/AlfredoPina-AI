@@ -3674,6 +3674,11 @@
                   <label>ATT. (CONTACTO DEL INTERMEDIARIO)</label>
                   <select id="cotIntermContacto"><option value="">Sin contacto</option></select>
                 </div>
+                <div class="radm-field">
+                  <label>WHATSAPP DE CONTACTO</label>
+                  <input type="tel" id="cotIntermTel" maxlength="30" placeholder="10 dígitos. Ej. 81 1234 5678">
+                  <span class="radm-hint">A este número lleva «Tengo dudas» en la propuesta. Vacío = a ti.</span>
+                </div>
               </div>
               <div class="radm-hint" id="cotIntermHint"></div>
             </div>
@@ -14060,6 +14065,7 @@
       document.getElementById('cotIntermCampos').hidden = true;
       document.getElementById('cotIntermHint').textContent = '';
       const im = opts && opts.intermediario;
+      document.getElementById('cotIntermTel').value = (im && im.telefono) || '';
       if(im){ t.checked = true; await mostrarCamposInterm(im.id, im.contactoId); }
       if(opts && opts.actualizaId){
         // editar un Borrador en el lugar conserva el folio, que lleva el código del intermediario: para cambiarlo, versión nueva
@@ -14075,7 +14081,7 @@
       const c = (cotIntermLista || []).find(x => x.id === id) || {};
       const cs = document.getElementById('cotIntermContacto');
       const contactoId = Number(cs.value) || null;
-      return { id, nombre: c.nombre || '', mostrar_logo: !!c.mostrar_logo, contactoId, contactoNombre: contactoId ? (cs.options[cs.selectedIndex] || {}).textContent.replace(' (principal)', '') : '' };
+      return { id, nombre: c.nombre || '', mostrar_logo: !!c.mostrar_logo, telefono: document.getElementById('cotIntermTel').value.trim(), contactoId, contactoNombre: contactoId ? (cs.options[cs.selectedIndex] || {}).textContent.replace(' (principal)', '') : '' };
     }
     document.getElementById('cotIntermToggle').addEventListener('change', e => {
       if(e.target.checked) mostrarCamposInterm(null, null);
@@ -15099,7 +15105,7 @@
       if(im && im.error){ toast('Elige el intermediario.', false); return; }
       const payload = {
         cliente_nombre: im ? im.nombre : sol.cliente, contacto_nombre: im ? (im.contactoNombre || '') : (sol.contacto || ''),
-        ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo } : {}),
+        ...(im ? { intermediario_id: im.id, cliente_final_nombre: sol.cliente, intermediario_mostrar_logo: im.mostrar_logo, telefono_contacto: im.telefono } : {}),
         herramienta: sol.herramienta, temario_nombre: nombreProgramaCot(sol), temas: temasDeCot(sol),
         horas_totales: horasDe(sol), precio_final: precioFinal, tarifa_hora: tarifasCache[sol.herramienta] || null,
         temario_tipo: sol.temario_tipo,
@@ -15134,7 +15140,7 @@
       const payload = {
         empresa: { clienteId: sol.cliente_id },
         contacto_id: im ? im.contactoId : (sol.contacto_id || null),
-        ...(im ? { intermediario_id: im.id } : {}),
+        ...(im ? { intermediario_id: im.id, telefono_contacto: im.telefono } : {}),
         solicitud_id: sol.id || null,
         reemplaza_a_folio: cotReemplazaFolioActual,
         actualiza_id: cotActualizaIdActual,
@@ -15197,7 +15203,7 @@
         reemplazaAFolio: enElLugar ? null : c.folio,
         actualizaId: enElLugar ? c.id : null,
         folioActual: c.folio,
-        intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id } : null,
+        intermediario: viaInterm ? { id: c.cliente_id, contactoId: c.contacto_id, telefono: c.telefono_contacto || '' } : null,
         precioFinalInicial: c.precio_final,
         descuentoInicial: c.descuento_pct,
         numGrupos: c.num_grupos || 1,

@@ -805,7 +805,9 @@
   pintaAdic(); pintaIncluye();
 
   $('tgrid').innerHTML = D.terminos.concat(`Vigencia de ${diasVig} días naturales a partir de la fecha de emisión.`).map(t => `<div class="t"><i></i><span>${esc(t)}</span></div>`).join('');
-  $('btnDudas').href = `https://wa.me/${D.wa}?text=` + encodeURIComponent(`Hola Alfredo, tengo dudas sobre la propuesta ${D.folio} (${D.programa}).`);
+  // vía intermediario con WhatsApp propio: "Tengo dudas" lleva a ese contacto (y el saludo ya no es para Alfredo)
+  const waDest = D.contactoWa || D.wa, saludo = D.contactoWa ? 'Hola' : 'Hola Alfredo';
+  $('btnDudas').href = `https://wa.me/${waDest}?text=` + encodeURIComponent(`${saludo}, tengo dudas sobre la propuesta ${D.folio} (${D.programa}).`);
   $('fTel').textContent = D.tel; $('fMail').textContent = D.mail;
 
   // aceptar propuesta: avisa por correo a Alfredo y queda registrada (solo la primera); en vista previa no envía nada.
@@ -821,7 +823,7 @@
   else if(vencida){
     btnA.lastChild.textContent = 'Solicitar actualización';
     nota.textContent = 'Esta propuesta ya venció. Escríbele a Alfredo y te la actualiza.';
-    btnA.addEventListener('click', () => window.open(`https://wa.me/${D.wa}?text=` + encodeURIComponent(`Hola Alfredo, mi propuesta ${D.folio} (${D.programa}) ya venció. ¿Me la puedes actualizar?`), '_blank', 'noopener'));
+    btnA.addEventListener('click', () => window.open(`https://wa.me/${waDest}?text=` + encodeURIComponent(`${saludo}, mi propuesta ${D.folio} (${D.programa}) ya venció. ¿Me la pueden actualizar?`), '_blank', 'noopener'));
   } else {
     nota.textContent = NOTA_ACEPTAR;
     btnA.addEventListener('click', () => {

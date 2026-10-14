@@ -7,6 +7,7 @@ const { proyectosParaPropuesta, proyectosPorIds } = require("../src/cotizacion-p
 const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { normalizarTemasCustom } = require("../src/temas-custom");
+const { parseTelefonoWa } = require("../src/telefono-wa");
 const { normalizarGrupos, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -45,6 +46,7 @@ module.exports = async function (context, req) {
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,
       programa: (body.temario_nombre || "").trim() || "Programa personalizado",
+      contactoWa: intermediario ? (parseTelefonoWa(body.telefono_contacto).wa || null) : null,
       temas,
       temasCustom: body.temario_tipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [],
       horas,

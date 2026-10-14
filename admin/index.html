@@ -15184,7 +15184,9 @@
         // vía intermediario: el "cliente" del formulario es el cliente FINAL; el intermediario viaja en opts.intermediario
         cliente_id: viaInterm ? c.cliente_final_id : c.cliente_id, cliente: viaInterm ? c.cliente_final : c.cliente, cliente_codigo: c.cliente_codigo,
         contacto_id: c.contacto_id, contacto: c.contacto,
-        herramienta: c.herramienta, temario_tipo: c.temario_tipo, temario_nombre: c.temario_nombre,
+        herramienta: c.herramienta, temario_tipo: c.temario_tipo,
+        // personalizada: si la cotización no tiene nombre pero la solicitud ya se lo puso, se precarga el de la solicitud
+        temario_nombre: c.temario_nombre || (c.temario_tipo === 'personalizado' ? c.sol_temario_nombre : null) || null,
         temas_json: c.temas_json, horas_totales: c.horas,
         fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
         participantes: c.participantes, modalidad: c.modalidad,

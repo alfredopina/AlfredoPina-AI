@@ -6,7 +6,9 @@
 // Reglas de una firma de correo (por eso se ve "anticuada" por dentro): tablas y estilos en línea,
 // fuentes del sistema (las web fonts no cargan), imágenes con URL absoluta y ancho fijo, y todos los
 // datos importantes también como TEXTO, porque muchos clientes bloquean las imágenes.
-// Para cambiar un dato (p. ej. el correo cuando exista @alfredopina.ai): edita DATOS y vuelve a correrlo.
+// Para cambiar un dato (p. ej. el correo cuando exista @alfredopina.ai): edita PERSONAS y vuelve a correrlo.
+// Cada persona genera su propio juego (completa, corta, animada); el de Alfredo conserva los nombres de
+// siempre y los demás llevan su clave de prefijo (viridiana-completa.html, ...).
 
 const fs = require("fs");
 const path = require("path");
@@ -14,17 +16,30 @@ const path = require("path");
 const OUT = path.join(__dirname, "..", "assets", "firma");
 const SITE = "https://www.alfredopina.ai";
 
-const DATOS = {
-  nombre: "Alfredo Piña",
-  cargo: "Instructor &amp; Consultor",
-  herramientas: "Excel · Power BI · Power Platform · IA",
-  telefono: "(+52) 811 725 5937",
-  telefonoHref: "tel:+528117255937",
-  whatsappHref: "https://wa.me/528117255937",
-  correo: "alfredo.pina@lifezen.com.mx",
-  web: "www.alfredopina.ai",
-  linkedin: "https://www.linkedin.com/in/alfredopinacortez",
-  linkedinTexto: "Alfredo Piña en LinkedIn",
+// herramientas y linkedin son opcionales: sin ellos la firma omite esa línea.
+const PERSONAS = {
+  alfredo: {
+    prefijo: "",
+    nombre: "Alfredo Piña",
+    cargo: "Instructor &amp; Consultor",
+    herramientas: "Excel · Power BI · Power Platform · IA",
+    telefono: "(+52) 811 725 5937",
+    telefonoHref: "tel:+528117255937",
+    whatsappHref: "https://wa.me/528117255937",
+    correo: "alfredo.pina@lifezen.com.mx",
+    web: "www.alfredopina.ai",
+    linkedin: "https://www.linkedin.com/in/alfredopinacortez",
+    linkedinTexto: "Alfredo Piña en LinkedIn",
+  },
+  viridiana: {
+    prefijo: "viridiana-",
+    nombre: "Viridiana Garza",
+    cargo: "Administración",
+    telefono: "(+52) 811 705 2836",
+    telefonoHref: "tel:+528117052836",
+    whatsappHref: "https://wa.me/528117052836",
+    web: "www.alfredopina.ai",
+  },
 };
 
 const C = { tinta: "#0d1424", gris: "#586277", azul: "#1f5fe0", linea: "#c9d3e6" };
@@ -40,29 +55,34 @@ const icono = (archivo, alt) => `<img src="${SITE}/assets/img/brand/${archivo}" 
 // fila de contacto: ícono como viñeta + texto (el ícono lleva su propio enlace y alt por si se bloquea)
 const fila = (ico, alt, href, texto) => `<tr><td width="26" valign="middle" style="padding:3px 8px 3px 0;"><a href="${href}" style="text-decoration:none;">${icono(ico, alt)}</a></td><td valign="middle" style="padding:3px 0;">${a(href, texto)}</td></tr>`;
 
-function completa(gif) {
+function completa(p, gif) {
+  const filas = [
+    fila("firma-whatsapp.png", "WhatsApp", p.whatsappHref, p.telefono),
+    p.linkedin && fila("firma-linkedin.png", "LinkedIn", p.linkedin, p.linkedinTexto),
+    fila("firma-web.png", "Sitio web", SITE + "/", p.web),
+  ].filter(Boolean).join("\n      ");
+  // con línea de herramientas el aire va debajo de ella; sin ella, debajo del nombre
+  const estiloNombre = p.herramientas ? "" : ` style="padding-bottom:8px;"`;
+  const lineaHerramientas = p.herramientas ? `\n    <div style="color:${C.gris};padding-bottom:8px;">${p.herramientas}</div>` : "";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.55;color:${C.tinta};">
   ${logo(gif)}
   <tr><td style="border-left:3px solid ${C.azul};padding:2px 0 2px 12px;">
-    <div><strong style="font-size:16px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${DATOS.cargo}</strong></div>
-    <div style="color:${C.gris};padding-bottom:8px;">${DATOS.herramientas}</div>
+    <div${estiloNombre}><strong style="font-size:16px;">${p.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${p.cargo}</strong></div>${lineaHerramientas}
     <table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.4;">
-      ${fila("firma-whatsapp.png", "WhatsApp", DATOS.whatsappHref, DATOS.telefono)}
-      ${fila("firma-linkedin.png", "LinkedIn", DATOS.linkedin, DATOS.linkedinTexto)}
-      ${fila("firma-web.png", "Sitio web", SITE + "/", DATOS.web)}
+      ${filas}
     </table>
   </td></tr>
 </table>
 `;
 }
 
-function corta() {
+function corta(p) {
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.55;color:${C.tinta};">
   <tr><td style="border-left:3px solid ${C.azul};padding:2px 0 2px 12px;">
-    <div style="padding-bottom:6px;"><strong style="font-size:15px;">${DATOS.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${DATOS.cargo}</strong></div>
+    <div style="padding-bottom:6px;"><strong style="font-size:15px;">${p.nombre}</strong> <span style="color:${C.gris};">·</span> <strong style="color:${C.tinta};">${p.cargo}</strong></div>
     <table cellpadding="0" cellspacing="0" border="0" style="font-family:${FUENTE};font-size:13px;line-height:1.4;">
-      ${fila("firma-whatsapp.png", "WhatsApp", DATOS.whatsappHref, DATOS.telefono)}
-      ${fila("firma-web.png", "Sitio web", SITE + "/", DATOS.web)}
+      ${fila("firma-whatsapp.png", "WhatsApp", p.whatsappHref, p.telefono)}
+      ${fila("firma-web.png", "Sitio web", SITE + "/", p.web)}
     </table>
   </td></tr>
 </table>
@@ -86,7 +106,9 @@ try {
 }
 
 fs.mkdirSync(OUT, { recursive: true });
-fs.writeFileSync(path.join(OUT, "completa.html"), completa(false));
-fs.writeFileSync(path.join(OUT, "animada.html"), completa(true));
-fs.writeFileSync(path.join(OUT, "corta.html"), corta());
-console.log("firmas generadas en assets/firma/: completa, animada y corta");
+for (const p of Object.values(PERSONAS)) {
+  fs.writeFileSync(path.join(OUT, p.prefijo + "completa.html"), completa(p, false));
+  fs.writeFileSync(path.join(OUT, p.prefijo + "animada.html"), completa(p, true));
+  fs.writeFileSync(path.join(OUT, p.prefijo + "corta.html"), corta(p));
+}
+console.log("firmas generadas en assets/firma/ para: " + Object.keys(PERSONAS).join(", "));

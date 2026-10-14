@@ -1,7 +1,8 @@
 // assets/js/viaje.js
 // Motor de "viaje" (scrollytelling con GSAP ScrollTrigger) embebido en
 // cursos.html, arriba del catálogo de cada herramienta. Hoy solo Excel tiene
-// contenido (VIAJE_SCENES.excel) — para replicarlo en otra herramienta:
+// contenido en este archivo (VIAJE_SCENES.excel); Power BI vive en viaje-bi.js y se
+// registra en window.ViajeEscenas. Para replicarlo en otra herramienta:
 // escribir su propio renderHtml()/iniciar() con el mismo patrón y agregarlo a
 // VIAJE_SCENES; el motor compartido (ViajeEngine: pin, hoja con barra de fórmulas/pestañas, fallback
 // simple-mode) no cambia.
@@ -576,13 +577,15 @@
     },
   };
 
-  const VIAJE_SCENES = { excel: ExcelScenes };
+  // el motor y el registro se exponen para que otras herramientas (viaje-bi.js) se enchufen sin tocar este archivo
+  window.ViajeEngine = ViajeEngine;
+  const VIAJE_SCENES = window.ViajeEscenas = { excel: ExcelScenes };
 
   window.ViajeHerramienta = {
     tieneConfig(cat) { return !!VIAJE_SCENES[cat]; },
     html(cat) { return VIAJE_SCENES[cat] ? VIAJE_SCENES[cat].renderHtml() : ""; },
     iniciar(cat) { if (VIAJE_SCENES[cat]) VIAJE_SCENES[cat].iniciar(); },
     // al cambiar de herramienta el panel se reemplaza: hay que soltar los pins viejos
-    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); document.body.classList.remove("viaje-on", "viaje-hoja"); if (window._viajeResize) { window.removeEventListener("resize", window._viajeResize); window._viajeResize = null; } },
+    destruir() { if (window.ScrollTrigger) ScrollTrigger.getAll().forEach((t) => t.kill()); document.body.classList.remove("viaje-on", "viaje-hoja", "bi-on", "bi-hoja"); if (window._viajeResize) { window.removeEventListener("resize", window._viajeResize); window._viajeResize = null; } },
   };
 })();

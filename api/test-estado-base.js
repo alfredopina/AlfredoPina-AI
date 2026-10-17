@@ -1,7 +1,7 @@
 // test-estado-base.js — estado de la base (dormida/despertando/despierta) vía Azure Resource Manager, sin red:
 // fetch simulado. Verifica el mapeo de estados, que nunca lance, el caché del token y que jamás se toque SQL.
 const assert = require("assert");
-const { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, _reiniciarCache } = require("./src/estado-base");
+const { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, _reiniciarCache } = require("./src/estado-base");
 
 let fallos = 0;
 function check(nombre, cond) { if (cond) console.log("  ok  " + nombre); else { fallos++; console.log("  FALLA  " + nombre); } }
@@ -12,11 +12,12 @@ const ENV = { ESTADO_BD_TENANT_ID: "t-id", ESTADO_BD_CLIENT_ID: "c-id", ESTADO_B
 function respuesta(status, cuerpo) { return { ok: status >= 200 && status < 300, status, json: async () => cuerpo }; }
 
 // fetch simulado: registra llamadas y responde según la URL
-function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica = 35143 } = {}) {
+function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica = 35143, facturado = [60000, 55000] } = {}) {
   const llamadas = [];
   const f = async (url, opts) => {
     llamadas.push({ url, opts });
     if (url.includes("login.microsoftonline.com")) return tokenOk ? respuesta(200, { access_token: "tok", expires_in: 3599 }) : respuesta(401, {});
+    if (url.includes("metricnames=app_cpu_billed")) return respuesta(200, { value: [{ name: { value: "app_cpu_billed" }, timeseries: [{ data: facturado.map((total, i) => ({ timeStamp: "2026-10-0" + (i + 1) + "T00:00:00Z", total })).concat([{ timeStamp: "2026-10-09T00:00:00Z" }]) }] }] });
     if (url.includes("microsoft.insights/metrics")) return respuesta(200, { value: [{ timeseries: [{ data: [{ minimum: metrica + 5 }, { minimum: metrica }, {}] }] }] });
     if (url.includes("/databases/")) return bdStatus === 200 ? respuesta(200, { properties: { status, minCapacity: 0.5, autoPauseDelay: 60 }, sku: { capacity: 2 } }) : respuesta(bdStatus, {});
     throw new Error("url inesperada " + url);
@@ -58,7 +59,7 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   check("2º sondeo: solo 1 llamada nueva (token y cuota en caché)", f.llamadas.length === antes + 1);
   // pasada la vida de la cuota, se vuelve a pedir
   r = await consultarEstadoBase({ env: ENV, fetchFn: f, ahora: 1000000 + 11 * 60000 });
-  check("a los 11 min la cuota se vuelve a pedir", f.llamadas.filter((c) => c.url.includes("insights")).length === 2);
+  check("a los 11 min la cuota se vuelve a pedir", f.llamadas.filter((c) => c.url.includes("free_amount_remaining")).length === 2);
 
   // estados
   _reiniciarCache();
@@ -116,6 +117,26 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   _reiniciarCache();
   r = await consultarEstadoBase({ env: ENV, fetchFn: conSerie([{ timeStamp: "2026-10-16T05:00:00Z" }]), ahora: AHORA });
   check("sin ninguna lectura en 31 días: cuota null y el motivo lo dice", r.cuotaSegundos === null && /31 días/.test(r.cuotaDiag));
+
+  // costo estimado por pasarse de la cuota: segundos facturados del mes (app_cpu_billed, Total, desde el día 1 UTC)
+  _reiniciarCache();
+  f = crearFetch({ status: "Online", facturado: [60000, 55000] });
+  r = await consultarEstadoBase({ env: ENV, fetchFn: f, ahora: Date.parse("2026-10-16T18:00:00Z") });
+  check("suma los segundos facturados del mes (puntos sin dato cuentan 0)", r.facturadoSegundos === 115000);
+  const urlFact = f.llamadas.find((c) => c.url.includes("app_cpu_billed")).url;
+  check("pide la métrica con agregación Total desde el día 1 del mes (UTC)", /aggregation=Total/.test(urlFact) && decodeURIComponent(urlFact).includes("timespan=2026-10-01T00:00:00.000Z/"));
+  let c = resumenCosto(115000);
+  check("115 000 s facturados → 15 000 s de excedente × $0.000174 = $2.61", c.hayExcedente && c.excedenteSegundos === 15000 && c.costoUsd === 2.61 && c.excedenteHoras === 8.3, JSON.stringify(c));
+  check("dentro de la cuota (o justo 100 000) → $0 y sin excedente", resumenCosto(35000).costoUsd === 0 && resumenCosto(35000).hayExcedente === false && resumenCosto(100000).hayExcedente === false);
+  check("sin dato / basura → null (no inventa un costo)", resumenCosto(null) === null && resumenCosto(-5) === null && resumenCosto("x") === null);
+  _reiniciarCache();
+  f = crearFetch({ status: "Online" });
+  const sinFact = async (u, o) => (u.includes("app_cpu_billed") ? respuesta(400, { error: { code: "BadRequest" } }) : f(u, o));
+  r = await consultarEstadoBase({ env: ENV, fetchFn: sinFact, ahora: 1 });
+  check("si Azure no devuelve la métrica facturada: facturadoSegundos null y el resto sigue bien", r.facturadoSegundos === null && r.estado === "despierta" && r.cuotaSegundos === 35143);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("app_cpu_billed") ? respuesta(200, { value: [{ timeseries: [{ data: [] }] }] }) : crearFetch({ status: "Paused" })(u, o)), ahora: 1 });
+  check("mes sin actividad (métrica reconocida, sin puntos) → 0, no null", r.facturadoSegundos === 0);
 
   // resumen de la cuota gratis (Estado del sistema)
   let q = resumenCuota(35298);

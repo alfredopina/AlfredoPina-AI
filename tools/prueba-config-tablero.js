@@ -119,6 +119,22 @@ const txt = (s) => (q(s) ? q(s).textContent.replace(/\s+/g, ' ').trim() : null);
   check('un clic en el problema abre esa sección (Respaldos)', q('#cfgTablero').hidden && !q('#cfgDetalle .cfg-card[data-cfg="resp"]').hidden && !q('#cfgRespaldosBody').hidden);
   q('#configBack').click(); await pausa(200);
 
+  console.log('Costo estimado por pasarse de la cuota');
+  estado = Object.assign({}, estado, {
+    cola: { pendientes: 0, masAntiguaHoras: null },
+    respaldo: { en: new Date(hoy - 3 * 86400000).toISOString(), origen: 'auto' },
+    base: { estado: 'despierta', cuota: { nivel: 'critica', porcentaje: 0, restante: 0, total: 100000, horasAlMinimo: 0, costoHoraDespiertaUsd: 0.31 }, costo: { facturado: 115000, excedenteSegundos: 15000, excedenteHoras: 8.3, costoUsd: 2.61, hayExcedente: true } },
+  });
+  q('#btnConfig').click(); await pausa(300);
+  check('tablero: la línea de Estado dice el costo estimado', /costo estimado \$2\.61/.test(txt('[data-linea="estado"]')), txt('[data-linea="estado"]'));
+  check('la franja lo cuenta como cosa por revisar, con el monto en texto', /costo estimado \$2\.61 USD por pasarte de la cuota/.test(txt('#cfgSalud')), txt('#cfgSalud'));
+  q('.cfgt-tile[data-cfg="estado"]').click(); await pausa(500);
+  check('Estado del sistema: fila "Costo estimado" con el monto, el tiempo y la aclaración de que es estimación', /Costo estimado por pasarse de la cuota/.test(txt('#cfgEstadoLista')) && /Unos \$2\.61 USD/.test(txt('#cfgEstadoLista')) && /Azure Cost Management/.test(txt('#cfgEstadoLista')), txt('#cfgEstadoLista').slice(0, 400));
+  q('#configBack').click(); await pausa(200);
+  estado = Object.assign({}, estado, { base: Object.assign({}, estado.base, { costo: { facturado: 35000, excedenteSegundos: 0, excedenteHoras: 0, costoUsd: 0, hayExcedente: false } }) });
+  q('#btnConfig').click(); await pausa(300);
+  check('dentro de la cuota: no aparece costo en la línea ni en la franja', !/costo estimado/.test(txt('[data-linea="estado"]')) && !/costo estimado/.test(txt('#cfgSalud')));
+
   console.log('Si el servidor no responde');
   estado = null;
   q('#btnConfig').click(); await pausa(300);

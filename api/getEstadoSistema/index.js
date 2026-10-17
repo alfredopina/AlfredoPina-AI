@@ -11,7 +11,7 @@ const { getColaTable } = require("../src/solicitud-publica-cola");
 const { getRespaldosContainer } = require("../src/backup-tables");
 const ajustes = require("../src/notificaciones-ajustes");
 const { configuracion } = require("../src/notificaciones-correo");
-const { consultarEstadoBase, resumenCuota } = require("../src/estado-base");
+const { consultarEstadoBase, resumenCuota, resumenCosto } = require("../src/estado-base");
 const { JSON_HEADERS } = require("../src/http");
 
 async function leerCola() {
@@ -50,7 +50,7 @@ module.exports = async function (context) {
     seccion(leerCola), seccion(ultimoRespaldo), seccion(() => ajustes.leerUltimoResumen()), seccion(() => ajustes.getAjustes()), seccion(() => consultarEstadoBase()),
   ]);
   const base = baseRaw && !baseRaw.error
-    ? { estado: baseRaw.estado, motivo: baseRaw.motivo || null, config: baseRaw.config || null, cuota: resumenCuota(baseRaw.cuotaSegundos), cuotaEn: baseRaw.cuotaEn || null, cuotaRenovada: Boolean(baseRaw.cuotaRenovada), cuotaDiag: baseRaw.cuotaDiag || null }
+    ? { estado: baseRaw.estado, motivo: baseRaw.motivo || null, config: baseRaw.config || null, cuota: resumenCuota(baseRaw.cuotaSegundos), costo: resumenCosto(baseRaw.facturadoSegundos), cuotaEn: baseRaw.cuotaEn || null, cuotaRenovada: Boolean(baseRaw.cuotaRenovada), cuotaDiag: baseRaw.cuotaDiag || null }
     : { estado: "desconocido", motivo: "error", cuota: null, cuotaDiag: null };
   const cfg = configuracion();
   const avisos = a && !a.error ? ajustes.TIPOS.filter((t) => a[t] !== false).length : null;

@@ -31,7 +31,7 @@ function leerConfiguracion(env) {
   return c.tenant && c.cliente && c.secreto && /^\/subscriptions\/[^/]+\/resourceGroups\/[^/]+\/providers\/Microsoft\.Sql\/servers\/[^/]+\/databases\/[^/]+$/i.test(c.recurso) ? c : null;
 }
 
-const cache = { token: null, venceEn: 0, metrica: null, metricaEn: 0, diag: null };
+const cache = { token: null, venceEn: 0, metrica: null, metricaEn: 0, diag: null, facturado: null, facturadoEn: 0 };
 
 async function obtenerToken(cfg, fetchFn, ahora) {
   if (cache.token && ahora < cache.venceEn - 60000) return cache.token;
@@ -76,6 +76,27 @@ async function leerCuota(cfg, token, fetchFn, ahora) {
   return cache.metrica;
 }
 
+// Segundos de núcleo virtual FACTURADOS en lo que va del mes (métrica app_cpu_billed, agregación Total). A diferencia de la cuota
+// restante, esta sigue sumando cuando la cuota gratis ya se acabó: con ella se estima cuánto se ha pasado (ver resumenCosto). El mes
+// de facturación de Azure es UTC, así que se suma desde el día 1 a las 00:00 UTC. Mejor esfuerzo: si Azure no la devuelve (error, o la app
+// de Entra no la puede leer) → null y la pantalla dice "sin datos"; un mes sin puntos con la métrica reconocida vale 0.
+async function leerFacturado(cfg, token, fetchFn, ahora) {
+  if (cache.facturadoEn && ahora - cache.facturadoEn < VIDA_METRICA_MS) return cache.facturado;
+  cache.facturadoEn = ahora;
+  try {
+    const d = new Date(ahora);
+    const inicioMes = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+    const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=app_cpu_billed&aggregation=Total&interval=PT1H&timespan=${encodeURIComponent(new Date(inicioMes).toISOString() + "/" + new Date(ahora).toISOString())}`;
+    const r = await fetchFn(url, { headers: { Authorization: "Bearer " + token } });
+    if (!r.ok) { cache.facturado = null; return null; }
+    const j = await r.json();
+    if (!(j.value || [])[0]) { cache.facturado = null; return null; }
+    const serie = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
+    cache.facturado = Math.round(serie.reduce((t, p) => t + (typeof p.total === "number" ? p.total : 0), 0));
+  } catch (e) { cache.facturado = null; }
+  return cache.facturado;
+}
+
 // → { estado: dormida|despertando|despierta|desconocido, crudo, cuotaSegundos, cuotaDiag?, motivo? } — nunca lanza
 async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora = Date.now() } = {}) {
   const cfg = leerConfiguracion(env);
@@ -92,6 +113,7 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const j = await r.json();
     const crudo = (j.properties && j.properties.status) || null;
     const lectura = await leerCuota(cfg, token, fetchFn, ahora);
+    const facturadoSegundos = await leerFacturado(cfg, token, fetchFn, ahora);
     let cuotaSegundos = lectura ? lectura.valor : null;
     // el día 1 (UTC) la cuota se renueva: si la última lectura es de un mes anterior, desde entonces la base no ha trabajado → vale la cuota completa
     const delMesActual = (iso) => iso && new Date(iso).getUTCFullYear() === new Date(ahora).getUTCFullYear() && new Date(iso).getUTCMonth() === new Date(ahora).getUTCMonth();
@@ -101,7 +123,7 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const p = j.properties || {};
     const num = (v) => (typeof v === "number" && isFinite(v) ? v : null);
     const config = { nucleosMin: num(p.minCapacity), nucleosMax: num(j.sku && j.sku.capacity), pausaMin: num(p.autoPauseDelay) };
-    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, cuotaEn: lectura ? lectura.en : null, cuotaRenovada, config };
+    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, cuotaEn: lectura ? lectura.en : null, cuotaRenovada, facturadoSegundos, config };
     if (cuotaSegundos === null && cache.diag) resp.cuotaDiag = cache.diag;
     return resp;
   } catch (err) {
@@ -124,6 +146,15 @@ function resumenCuota(restanteSeg) {
   };
 }
 
-function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; cache.diag = null; }
+// Estimación de lo que se lleva pagado en el mes por pasarse de la cuota gratis: (facturado − 100 000 s) × precio por vCore-segundo.
+// Es una APROXIMACIÓN del cómputo de la base (sin almacenamiento ni otros servicios, y Azure publica con unos minutos de retraso):
+// la cifra real es la de Azure Cost Management. Sin dato de Azure → null (la pantalla dice "sin datos", no inventa un número).
+function resumenCosto(facturadoSeg) {
+  if (typeof facturadoSeg !== "number" || !isFinite(facturadoSeg) || facturadoSeg < 0) return null;
+  const excedente = Math.max(0, facturadoSeg - CUOTA_MENSUAL_S);
+  return { facturado: Math.round(facturadoSeg), excedenteSegundos: Math.round(excedente), excedenteHoras: Math.round((excedente / (VCORES_MINIMOS * 3600)) * 10) / 10, costoUsd: Math.round(excedente * PRECIO_VCORE_S * 100) / 100, hayExcedente: excedente > 0 };
+}
 
-module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, _reiniciarCache };
+function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; cache.diag = null; cache.facturado = null; cache.facturadoEn = 0; }
+
+module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, _reiniciarCache };

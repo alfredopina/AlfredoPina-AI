@@ -97,3 +97,13 @@ Esqueleto único en Solicitudes, Cotizaciones, Clientes y Grupos (Tracking): **t
 - **+ Nuevo:** lleva al panel y pulsa su botón de crear que ya existía (`solCrearBtn`, `cotCrearBtn`, `cliNuevoBtn`, el `data-grutab="crear"` de Grupos): un solo camino para cada alta.
 - **Pruebas:** `api/test-busqueda-global.js` (servidor) y `tools/prueba-barra-admin.js` (jsdom con servidor falso, ~35 comprobaciones de navegación, resaltado, contadores, tema, menú, + Nuevo, búsqueda con teclado y estado de la base; jsdom NO es dependencia del proyecto, ver el encabezado del archivo).
 - **Opcional, no hecho:** etiqueta "próximo curso" y "recientes" (ver ROADMAP, lista de espera).
+
+## Configuración: tablero de entrada (2026-10-17)
+
+**Por qué:** la entrada eran 7 renglones cerrados con la misma etiqueta chica; no decía nada hasta que abrías cada uno. Alfredo la sintió "apagada" y sin nada interesante al aterrizar. **Decisión (opción A):** tablero con franja de salud y una tarjeta por sección con su estado en vivo.
+
+- **Franja de salud:** "Todo en orden" (verde-azulado, con la base y el último respaldo en el texto) o "N cosas por revisar" (ámbar), donde cada problema es un botón que abre su sección. Si el servidor no responde, NUNCA dice "en orden": dice que no se pudo revisar. Solo cuentan las tres secciones con una condición: Estado del sistema, Respaldos y Notificaciones (mismas reglas que el detalle: cuota baja/crítica, cola con más de 4 h, respaldo de más de 8 días, correo sin configurar o con el interruptor general apagado).
+- **Tarjetas:** ícono, nombre, descripción corta, línea de estado y chip con ícono + texto ("En orden" / "Revisar"; Alertas con su número en rojo, igual que el ícono de la barra superior). Informativas: Métricas (¿hay rango "desde/hasta"?), Actividad (administradores y último acceso), Tarifas (sin dato en vivo: vive en SQL).
+- **No despierta la base:** el tablero pide `getEstadoSistema`, `getMetricasDesde` y `listActividadAdmin` (Table Storage + Azure Resource Manager). Alertas toma el número del ícono de la barra (esa consulta ya se hizo); Tarifas no se consulta.
+- **Navegación:** un clic en la tarjeta abre ESA sección (las mismas tarjetas de siempre dentro de `#cfgDetalle`, con su lógica y carga perezosa intactas; solo se ve la elegida). El botón de volver pasa a decir "Configuración" y regresa al tablero; desde el tablero sale a la pantalla anterior. Pulsar el engrane en cualquier momento regresa al tablero. Los ganchos son `window.cfgMostrarTablero` y `window.cfgVolverDetalle`.
+- **Pruebas:** `tools/prueba-config-tablero.js` (jsdom con servidor falso, 28 comprobaciones; `VOLCAR_HTML=carpeta` guarda el DOM para tomarle captura con Chrome headless).

@@ -1618,6 +1618,45 @@
   .cfg-toggle-ico svg{ width:100%; height:100%; }
   .cfg-toggle-ico.expanded{ transform:rotate(180deg); }
 
+  /* ═══ Configuración: tablero de entrada (2026-10-17). Franja de salud + una tarjeta por sección con su estado en vivo.
+     Cada estado lleva ícono + texto (nunca solo color): verde-azulado = en orden, ámbar = revisar, rojo = urgente (alertas). ═══ */
+  #panel-config{ --cfgt-ok:#14b8a6; --cfgt-aviso:#dfb35a; }
+  :root[data-theme="light"] #panel-config{ --cfgt-ok:#0d9488; --cfgt-aviso:#a16207; }
+  .cfgt-salud{ display:flex; align-items:center; gap:16px; border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin-bottom:18px; background-color:var(--panel); }
+  .cfgt-salud-ico{ width:40px; height:40px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; border:1px solid var(--line); color:var(--text-dim); }
+  .cfgt-salud-ico svg{ width:20px; height:20px; }
+  .cfgt-salud-texto{ min-width:0; }
+  .cfgt-salud-tit{ font-family:var(--display); font-size:20px; font-weight:700; letter-spacing:-.01em; }
+  .cfgt-salud-sub{ margin-top:4px; font-size:13px; color:var(--text-dim); display:flex; flex-wrap:wrap; gap:6px 8px; }
+  .cfgt-salud-ok{ border-color:var(--cfgt-ok); background-color:rgba(20,184,166,.07); }
+  .cfgt-salud-ok .cfgt-salud-ico{ color:var(--cfgt-ok); border-color:var(--cfgt-ok); background-color:rgba(20,184,166,.14); }
+  .cfgt-salud-revisar{ border-color:var(--cfgt-aviso); background-color:rgba(223,179,90,.08); }
+  .cfgt-salud-revisar .cfgt-salud-ico{ color:var(--cfgt-aviso); border-color:var(--cfgt-aviso); background-color:rgba(223,179,90,.14); }
+  .cfgt-prob{ font:inherit; font-size:12.5px; color:var(--text); background:none; border:1px solid var(--cfgt-aviso); border-radius:999px; padding:3px 11px; cursor:pointer; }
+  .cfgt-prob:hover, .cfgt-prob:focus-visible{ background-color:rgba(223,179,90,.16); outline:none; }
+
+  .cfgt-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+  .cfgt-tile{ display:flex; align-items:center; gap:14px; width:100%; padding:18px; text-align:left; font:inherit; color:var(--text); cursor:pointer;
+    border:1px solid var(--line); border-radius:12px; background-color:var(--panel); transition:border-color .15s, transform .15s, background-color .15s; }
+  .cfgt-tile:hover, .cfgt-tile:focus-visible{ border-color:var(--blue-bright); background-color:var(--panel-2); transform:translateY(-1px); outline:none; }
+  .cfgt-ico{ width:44px; height:44px; border-radius:11px; flex:none; display:flex; align-items:center; justify-content:center; color:var(--blue-bright); background-color:var(--blue-soft); }
+  .cfgt-ico svg{ width:22px; height:22px; }
+  .cfgt-cuerpo{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .cfgt-tit{ font-family:var(--display); font-size:15.5px; font-weight:700; }
+  .cfgt-desc{ font-size:12px; color:var(--text-faint); }
+  .cfgt-linea{ margin-top:6px; font-size:13.5px; color:var(--text); font-weight:500; }
+  .cfgt-flecha{ width:16px; height:16px; flex:none; color:var(--text-faint); }
+  .cfgt-flecha svg{ width:100%; height:100%; }
+  .cfgt-tile:hover .cfgt-flecha{ color:var(--blue-bright); }
+  .cfgt-chip{ display:inline-flex; align-items:center; gap:5px; flex:none; font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; }
+  .cfgt-chip[hidden]{ display:none; }
+  .cfgt-chip svg{ width:12px; height:12px; }
+  .cfgt-chip-ok{ color:var(--cfgt-ok); border-color:var(--cfgt-ok); }
+  .cfgt-chip-revisar{ color:var(--text); border-color:var(--cfgt-aviso); background-color:rgba(223,179,90,.12); }
+  .cfgt-chip-revisar svg{ color:var(--cfgt-aviso); }
+  .cfgt-chip-urgente{ color:#dc2626; border-color:#dc2626; font-weight:700; }
+  @media (max-width:700px){ .cfgt-grid{ grid-template-columns:1fr; } .cfgt-salud{ padding:14px 16px; } }
+
   /* ---- Configuración: cada sección es una tarjeta con borde, y el
      encabezado COMPLETO es el disparador del acordeón (no un botón "Desplegar"
      aparte) — clic en cualquier parte del renglón abre/cierra. ---- */
@@ -2858,23 +2897,74 @@
       <div class="admin-panel" id="panel-config" style="--c:var(--blue-bright)">
         <button class="radm-back" id="configBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Volver
+          <span id="configBackTxt">Volver</span>
         </button>
-        <div class="cfg-card">
+        <div id="cfgTablero">
+          <div class="cfgt-salud" id="cfgSalud" role="status">
+            <span class="cfgt-salud-ico" aria-hidden="true"></span>
+            <div class="cfgt-salud-texto"><div class="cfgt-salud-tit">Revisando el sistema…</div><div class="cfgt-salud-sub"></div></div>
+          </div>
+          <div class="cfgt-grid">
+            <button type="button" class="cfgt-tile" data-cfg="estado">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 12h4l2.5-6 4 12 2.5-6H21" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Estado del sistema</span><span class="cfgt-desc">Base, cuota gratis y cola</span><span class="cfgt-linea" data-linea="estado">…</span></span>
+              <span class="cfgt-chip" data-chip="estado" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="resp">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Respaldos</span><span class="cfgt-desc">Copias de Table Storage</span><span class="cfgt-linea" data-linea="resp">…</span></span>
+              <span class="cfgt-chip" data-chip="resp" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="correo">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Notificaciones</span><span class="cfgt-desc">Avisos por correo</span><span class="cfgt-linea" data-linea="correo">…</span></span>
+              <span class="cfgt-chip" data-chip="correo" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="notif">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7Z" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Alertas</span><span class="cfgt-desc">Umbrales por tiempo</span><span class="cfgt-linea" data-linea="notif">…</span></span>
+              <span class="cfgt-chip" data-chip="notif" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="met">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Métricas de los Tracking</span><span class="cfgt-desc">Desde cuándo cuentan</span><span class="cfgt-linea" data-linea="met">…</span></span>
+              <span class="cfgt-chip" data-chip="met" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="tarifas">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.6 12.6 12 4H4v8l8.6 8.6a2 2 0 0 0 2.8 0l5.2-5.2a2 2 0 0 0 0-2.8Z" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="1.3"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Tarifas por hora</span><span class="cfgt-desc">Precio base por herramienta</span><span class="cfgt-linea" data-linea="tarifas">…</span></span>
+              <span class="cfgt-chip" data-chip="tarifas" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="cfgt-tile" data-cfg="act">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4A6 6 0 0 1 21 20" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Actividad</span><span class="cfgt-desc">Quién entra al panel</span><span class="cfgt-linea" data-linea="act">…</span></span>
+              <span class="cfgt-chip" data-chip="act" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+          </div>
+        </div>
+        <div id="cfgDetalle" hidden>
+        <div class="cfg-card" data-cfg="correo">
           <button type="button" class="cfg-card-head" id="cfgCorreoHead">
             <span class="cfg-card-title">NOTIFICACIONES</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </button>
           <div class="cfg-card-body" id="cfgCorreoBody" hidden>
             <div class="cfg-note">
-              Avisos por <b>correo</b> para enterarte de lo que pasa cuando no estás en el admin. Llegan desde notificaciones@alfredopina.ai. No son lo mismo que las <b>Alertas</b> de abajo: esas se miden por tiempo y aparecen en el ícono de alertas del admin; estos te llegan al correo cuando ocurre algo.
+              Avisos por <b>correo</b> para enterarte de lo que pasa cuando no estás en el admin. Llegan desde notificaciones@alfredopina.ai. No son lo mismo que las <b>Alertas</b>: esas se miden por tiempo y aparecen en el ícono de alertas del admin; estos te llegan al correo cuando ocurre algo.
             </div>
             <div class="cfg-correo-lista" id="cfgCorreoLista" style="margin-top:14px;">
               <div class="radm-empty-row">Cargando…</div>
             </div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="notif">
           <button type="button" class="cfg-card-head" id="cfgNotifHead">
             <span class="cfg-card-title">ALERTAS</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2887,11 +2977,11 @@
               <div class="radm-empty-row">Cargando umbrales…</div>
             </div>
             <div class="cfg-note" style="margin-top:14px;">
-              El resumen semanal (un correo con estas señales de un jalón, los lunes) se enciende o apaga en la tarjeta Notificaciones, arriba.
+              El resumen semanal (un correo con estas señales de un jalón, los lunes) se enciende o apaga en Notificaciones.
             </div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="met">
           <button type="button" class="cfg-card-head" id="cfgMetHead">
             <span class="cfg-card-title">MÉTRICAS DE LOS TRACKING</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2905,7 +2995,7 @@
             </div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="tarifas">
           <button type="button" class="cfg-card-head" id="cfgTarifasHead">
             <span class="cfg-card-title">TARIFAS POR HORA</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2917,7 +3007,7 @@
             </div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="resp">
           <button type="button" class="cfg-card-head" id="cfgRespaldosHead">
             <span class="cfg-card-title">RESPALDOS</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2933,7 +3023,7 @@
             </div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="estado">
           <button type="button" class="cfg-card-head" id="cfgEstadoHead">
             <span class="cfg-card-title">ESTADO DEL SISTEMA</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2944,7 +3034,7 @@
             <div class="cfg-estado-lista" id="cfgEstadoLista"></div>
           </div>
         </div>
-        <div class="cfg-card">
+        <div class="cfg-card" data-cfg="act">
           <button type="button" class="cfg-card-head" id="cfgActividadHead">
             <span class="cfg-card-title">ACTIVIDAD</span>
             <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2955,6 +3045,7 @@
               <div class="radm-empty-row">Cargando actividad…</div>
             </div>
           </div>
+        </div>
         </div>
         <div id="bakToast" class="radm-toast" hidden></div>
       </div>
@@ -5186,6 +5277,7 @@
     const venia = panelActual; panelActual = key;
     Object.keys(BOTONES_BARRA).forEach(k => { const b = document.getElementById(BOTONES_BARRA[k]); if(b) b.classList.toggle('activo', k === key); });
     if(typeof window.cerrarPopsBarra === 'function') window.cerrarPopsBarra();
+    if(key === 'config' && typeof window.cfgMostrarTablero === 'function') window.cfgMostrarTablero();
     if(venia === 'pendientes' && key !== 'pendientes' && typeof window.refrescarContadorPendientes === 'function') window.refrescarContadorPendientes();
     document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === key));
     document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
@@ -5210,7 +5302,7 @@
 
   document.getElementById('btnPendientes').addEventListener('click', () => activarPanel('pendientes'));
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
-  document.getElementById('configBack').addEventListener('click', () => activarPanel(ultimoPanel));
+  document.getElementById('configBack').addEventListener('click', () => { if(typeof window.cfgVolverDetalle === 'function' && window.cfgVolverDetalle()) return; activarPanel(ultimoPanel); });
 
 
   // Estado de la base — botón "Despertar" del bloque Sistema de la barra superior. Es indicador Y acción: muestra el estado REAL de
@@ -16417,6 +16509,170 @@
       if(expandir && !cargado){ cargado = true; cargar(); }
     });
     document.getElementById('cfgEstadoActualizar').addEventListener('click', cargar);
+  })();
+
+  // ═══ Configuración → TABLERO de entrada (2026-10-17) ═══
+  // La entrada de Configuración ya no es una lista de renglones cerrados: es un tablero con una franja de salud ("Todo en orden" /
+  // "N cosas por revisar", con enlace a cada una) y una tarjeta por sección con su estado en vivo. Un clic en la tarjeta abre ESA sección
+  // (las mismas tarjetas de siempre, con su lógica intacta); "Configuración" (el botón de volver) regresa al tablero. Todo sale de
+  // Table Storage / Azure Resource Manager (getEstadoSistema, getMetricasDesde, listActividadAdmin): abrir el tablero NO despierta la base.
+  // Cada línea de estado dice su condición en texto además del ícono (nunca solo color). Tarifas no lleva dato en vivo: vive en SQL.
+  (function(){
+    const $ = (id) => document.getElementById(id);
+    const tablero = $('cfgTablero'), detalle = $('cfgDetalle');
+    if(!tablero || !detalle) return;
+    const SECCIONES = {
+      estado: { head: 'cfgEstadoHead', body: 'cfgEstadoBody', titulo: 'Estado del sistema' },
+      resp: { head: 'cfgRespaldosHead', body: 'cfgRespaldosBody', titulo: 'Respaldos' },
+      correo: { head: 'cfgCorreoHead', body: 'cfgCorreoBody', titulo: 'Notificaciones' },
+      notif: { head: 'cfgNotifHead', body: 'cfgNotifBody', titulo: 'Alertas' },
+      met: { head: 'cfgMetHead', body: 'cfgMetBody', titulo: 'Métricas de los Tracking' },
+      tarifas: { head: 'cfgTarifasHead', body: 'cfgTarifasBody', titulo: 'Tarifas por hora' },
+      act: { head: 'cfgActividadHead', body: 'cfgActividadBody', titulo: 'Actividad' },
+    };
+    const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICO_AVISO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>';
+    const ICO_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7Z" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"/></svg>';
+
+    const miles = (n) => Number(n).toLocaleString('es-MX');
+    const dias = (iso) => Math.floor((Date.now() - Date.parse(iso)) / 86400000);
+    const hace = (iso) => {
+      const h = Math.floor((Date.now() - Date.parse(iso)) / 3600000);
+      if(h < 1) return 'hace menos de 1 h';
+      return h < 48 ? 'hace ' + h + ' h' : 'hace ' + Math.floor(h / 24) + ' días';
+    };
+    async function pedir(url){
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch(e){ return null; }
+    }
+
+    // Cada sección → { ok: true | false | null (informativa), linea, chip? }. Las reglas de "Revisar" son las mismas de Estado del sistema.
+    function evaluar(e, m, a){
+      const r = {};
+      if(!e){
+        const sin = { ok: false, linea: 'No se pudo revisar', motivo: 'no se pudo revisar' };
+        r.estado = sin; r.resp = sin; r.correo = sin;
+      } else {
+        const b = e.base || {}, q = b.cuota, c = e.cola || {};
+        const NOMBRE = { dormida: 'Base dormida', despertando: 'Base despertando', despierta: 'Base despierta' };
+        const baseTxt = NOMBRE[b.estado] || 'Base sin respuesta';
+        const motivos = [];
+        if(!NOMBRE[b.estado]) motivos.push(b.motivo === 'sin-configurar' ? 'falta configurar la consulta a Azure' : 'no se pudo consultar la base');
+        else if(!q) motivos.push('Azure no devolvió la cuota');
+        else if(q.nivel !== 'ok') motivos.push(q.nivel === 'critica' ? 'cuota casi agotada' : 'cuota baja');
+        if(c.error) motivos.push('no se pudo leer la cola de solicitudes');
+        else if(c.pendientes && c.masAntiguaHoras >= 4) motivos.push('solicitudes atoradas en la cola');
+        let linea = baseTxt + (q ? ' · cuota ' + q.porcentaje + ' %' : '');
+        if(c.pendientes) linea += ' · ' + c.pendientes + (c.pendientes === 1 ? ' solicitud en espera' : ' solicitudes en espera');
+        r.estado = { ok: motivos.length === 0, linea, motivo: motivos.join(', ') };
+
+        const rp = e.respaldo || {};
+        if(rp.error) r.resp = { ok: false, linea: 'No se pudo leer', motivo: 'no se pudo leer' };
+        else if(!rp.en) r.resp = { ok: false, linea: 'Todavía no hay ninguno', motivo: 'no hay respaldos' };
+        else {
+          const d = dias(rp.en);
+          const cuando = d < 1 ? 'hoy' : 'hace ' + d + (d === 1 ? ' día' : ' días');
+          const origen = rp.origen === 'auto' ? 'automático' : rp.origen === 'manual' ? 'manual' : '';
+          r.resp = { ok: d <= 8, linea: 'Último ' + cuando + (origen ? ' · ' + origen : ''), motivo: 'el último respaldo es de ' + cuando };
+        }
+
+        const co = e.correo || {};
+        if(!co.configurado) r.correo = { ok: false, linea: 'Falta configurar el correo', motivo: 'falta configurar el correo' };
+        else if(co.general === false) r.correo = { ok: false, linea: 'Interruptor general apagado', motivo: 'el interruptor general está apagado' };
+        else r.correo = { ok: true, linea: co.avisosActivos + ' de ' + co.avisosTotal + ' avisos encendidos' };
+      }
+
+      // Alertas: el número ya lo calcula el ícono de la barra superior (no se vuelve a pedir; esa consulta sí toca SQL)
+      const n = $('tbAlertasN');
+      const nAl = n && !n.hidden ? parseInt(n.textContent, 10) || 0 : 0;
+      r.notif = { ok: null, linea: nAl ? nAl + (nAl === 1 ? ' alerta activa ahora' : ' alertas activas ahora') : 'Todo al día', alertas: nAl };
+
+      if(m){
+        const conRango = ['solicitudes', 'cotizaciones', 'grupos'].filter((k) => m[k] && (m[k].desde || m[k].hasta)).length;
+        r.met = { ok: null, linea: conRango ? 'Rango personalizado en ' + conRango + (conRango === 1 ? ' de 3 Trackings' : ' de 3 Trackings') : 'Contando todo el historial' };
+      } else r.met = { ok: null, linea: 'No se pudo leer' };
+
+      r.tarifas = { ok: null, linea: 'Precio base de cada herramienta' };
+
+      if(Array.isArray(a)){
+        const ult = a.map((x) => x.ultimaVez).filter(Boolean).sort().pop();
+        r.act = { ok: null, linea: a.length + (a.length === 1 ? ' administrador' : ' administradores') + (ult ? ' · último acceso ' + hace(ult) : '') };
+      } else r.act = { ok: null, linea: 'No se pudo leer' };
+      return r;
+    }
+
+    function pintar(r){
+      Object.keys(SECCIONES).forEach((k) => {
+        const x = r[k] || {};
+        const linea = tablero.querySelector('[data-linea="' + k + '"]'), chip = tablero.querySelector('[data-chip="' + k + '"]');
+        if(linea) linea.textContent = x.linea || '';
+        if(!chip) return;
+        chip.className = 'cfgt-chip';
+        if(k === 'notif'){
+          chip.hidden = !x.alertas;
+          if(x.alertas){ chip.classList.add('cfgt-chip-urgente'); chip.innerHTML = ICO_ALERTA + '<span>' + x.alertas + '</span>'; }
+        } else if(x.ok === true){ chip.hidden = false; chip.classList.add('cfgt-chip-ok'); chip.innerHTML = ICO_OK + '<span>En orden</span>'; }
+        else if(x.ok === false){ chip.hidden = false; chip.classList.add('cfgt-chip-revisar'); chip.innerHTML = ICO_AVISO + '<span>Revisar</span>'; }
+        else chip.hidden = true;
+      });
+      // franja de salud: solo cuentan las secciones que tienen condición (Estado, Respaldos, Notificaciones)
+      const salud = $('cfgSalud'), probs = ['estado', 'resp', 'correo'].filter((k) => r[k] && r[k].ok === false);
+      salud.classList.remove('cfgt-salud-ok', 'cfgt-salud-revisar');
+      if(!probs.length){
+        salud.classList.add('cfgt-salud-ok');
+        salud.querySelector('.cfgt-salud-ico').innerHTML = ICO_OK;
+        salud.querySelector('.cfgt-salud-tit').textContent = 'Todo en orden';
+        salud.querySelector('.cfgt-salud-sub').textContent = [r.estado.linea, 'respaldo ' + r.resp.linea.replace(/^Último /, '').toLowerCase()].join(' · ');
+      } else {
+        salud.classList.add('cfgt-salud-revisar');
+        salud.querySelector('.cfgt-salud-ico').innerHTML = ICO_AVISO;
+        salud.querySelector('.cfgt-salud-tit').textContent = probs.length === 1 ? '1 cosa por revisar' : probs.length + ' cosas por revisar';
+        const sub = salud.querySelector('.cfgt-salud-sub');
+        sub.textContent = '';
+        probs.forEach((k) => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'cfgt-prob'; b.dataset.cfg = k;
+          b.textContent = SECCIONES[k].titulo + ': ' + r[k].motivo;
+          sub.appendChild(b);
+        });
+      }
+    }
+
+    let turno = 0, primera = true;
+    async function cargar(){
+      const mio = ++turno;
+      if(primera){
+        $('cfgSalud').querySelector('.cfgt-salud-tit').textContent = 'Revisando el sistema…';
+        $('cfgSalud').querySelector('.cfgt-salud-sub').textContent = '';
+      }
+      const [e, m, a] = await Promise.all([pedir('/api/getEstadoSistema'), pedir('/api/getMetricasDesde'), pedir('/api/listActividadAdmin')]);
+      if(mio !== turno) return;
+      primera = false;
+      pintar(evaluar(e, m, a));
+    }
+
+    function mostrarTablero(){
+      detalle.hidden = true; tablero.hidden = false;
+      $('configBackTxt').textContent = 'Volver';
+      cargar();
+    }
+    function abrir(clave){
+      const s = SECCIONES[clave];
+      if(!s) return;
+      tablero.hidden = true; detalle.hidden = false;
+      detalle.querySelectorAll('.cfg-card').forEach((c) => { c.hidden = c.dataset.cfg !== clave; });
+      if($(s.body).hidden) $(s.head).click(); // abrir ya carga sus datos, como siempre
+      $('configBackTxt').textContent = 'Configuración';
+    }
+    tablero.addEventListener('click', (ev) => {
+      const t = ev.target.closest('[data-cfg]');
+      if(t) abrir(t.dataset.cfg);
+    });
+    window.cfgMostrarTablero = mostrarTablero;
+    // "Volver" desde una sección regresa al tablero; desde el tablero sale de Configuración (lo resuelve quien llama)
+    window.cfgVolverDetalle = () => { if(detalle.hidden) return false; mostrarTablero(); return true; };
   })();
 
   // Stepper de fase de Grupo — componente compartido entre el panel Grupos

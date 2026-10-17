@@ -50,12 +50,15 @@ async function obtenerToken(cfg, fetchFn, ahora) {
 // Segundos de núcleo virtual gratis que quedan en el mes (métrica free_amount_remaining). Mejor esfuerzo: si falla, null
 // y cache.diag guarda el porqué (sale en la respuesta como cuotaDiag para poder diagnosticarlo sin herramientas).
 // Sin "aggregation": Azure usa la agregación propia de la métrica; se toma el primer valor numérico que venga.
+// La métrica SOLO se publica mientras la base está despierta: con la base dormida las últimas 24 h vienen vacías. Por eso se mira
+// 31 días hacia atrás y se toma la ÚLTIMA lectura que exista (dormida no consume: esa lectura sigue siendo la cuota vigente), con su
+// fecha para poder decir "lectura de hace N h". Devuelve { valor, en } o null.
 async function leerCuota(cfg, token, fetchFn, ahora) {
   if (cache.metricaEn && ahora - cache.metricaEn < VIDA_METRICA_MS) return cache.metrica;
   cache.metricaEn = ahora; // también tras un fallo: no insistir en cada sondeo
   cache.diag = null;
   try {
-    const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=free_amount_remaining&interval=PT1H&timespan=${encodeURIComponent(new Date(ahora - 24 * 3600000).toISOString() + "/" + new Date(ahora).toISOString())}`;
+    const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=free_amount_remaining&interval=PT1H&timespan=${encodeURIComponent(new Date(ahora - 31 * 24 * 3600000).toISOString() + "/" + new Date(ahora).toISOString())}`;
     const r = await fetchFn(url, { headers: { Authorization: "Bearer " + token } });
     if (!r.ok) {
       let cuerpo = "";
@@ -67,8 +70,8 @@ async function leerCuota(cfg, token, fetchFn, ahora) {
     const serie = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
     const valor = (d) => [d.average, d.minimum, d.maximum, d.total].find((v) => typeof v === "number");
     const ult = serie.filter((d) => valor(d) !== undefined).pop();
-    cache.metrica = ult ? Math.round(valor(ult)) : null;
-    if (!ult) cache.diag = "sin datos: " + ((j.value || []).length) + " métrica(s), " + serie.length + " punto(s)" + (j.value && j.value[0] ? ", nombre " + JSON.stringify((j.value[0].name || {}).value) : "");
+    cache.metrica = ult ? { valor: Math.round(valor(ult)), en: ult.timeStamp || null } : null;
+    if (!ult) cache.diag = "sin datos en 31 días: " + ((j.value || []).length) + " métrica(s), " + serie.length + " punto(s)" + (j.value && j.value[0] ? ", nombre " + JSON.stringify((j.value[0].name || {}).value) : "");
   } catch (e) { cache.metrica = null; cache.diag = "error " + e.message; }
   return cache.metrica;
 }
@@ -88,12 +91,17 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     if (!r.ok) return { estado: "desconocido", crudo: null, cuotaSegundos: null, motivo: "azure-" + r.status };
     const j = await r.json();
     const crudo = (j.properties && j.properties.status) || null;
-    const cuotaSegundos = await leerCuota(cfg, token, fetchFn, ahora);
+    const lectura = await leerCuota(cfg, token, fetchFn, ahora);
+    let cuotaSegundos = lectura ? lectura.valor : null;
+    // el día 1 (UTC) la cuota se renueva: si la última lectura es de un mes anterior, desde entonces la base no ha trabajado → vale la cuota completa
+    const delMesActual = (iso) => iso && new Date(iso).getUTCFullYear() === new Date(ahora).getUTCFullYear() && new Date(iso).getUTCMonth() === new Date(ahora).getUTCMonth();
+    const cuotaRenovada = Boolean(lectura && lectura.en && !delMesActual(lectura.en));
+    if (cuotaRenovada) cuotaSegundos = CUOTA_MENSUAL_S;
     // configuración real de la base (lo que el portal muestra en "Proceso y almacenamiento"): núcleos mínimo/máximo y pausa automática
     const p = j.properties || {};
     const num = (v) => (typeof v === "number" && isFinite(v) ? v : null);
     const config = { nucleosMin: num(p.minCapacity), nucleosMax: num(j.sku && j.sku.capacity), pausaMin: num(p.autoPauseDelay) };
-    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, config };
+    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, cuotaEn: lectura ? lectura.en : null, cuotaRenovada, config };
     if (cuotaSegundos === null && cache.diag) resp.cuotaDiag = cache.diag;
     return resp;
   } catch (err) {

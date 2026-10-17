@@ -31,7 +31,7 @@ function leerConfiguracion(env) {
   return c.tenant && c.cliente && c.secreto && /^\/subscriptions\/[^/]+\/resourceGroups\/[^/]+\/providers\/Microsoft\.Sql\/servers\/[^/]+\/databases\/[^/]+$/i.test(c.recurso) ? c : null;
 }
 
-const cache = { token: null, venceEn: 0, metrica: null, metricaEn: 0, diag: null, facturado: null, facturadoEn: 0 };
+const cache = { token: null, venceEn: 0, metrica: null, serieLibre: [], metricaEn: 0, diag: null, facturado: null, facturadoEn: 0 };
 
 async function obtenerToken(cfg, fetchFn, ahora) {
   if (cache.token && ahora < cache.venceEn - 60000) return cache.token;
@@ -57,6 +57,7 @@ async function leerCuota(cfg, token, fetchFn, ahora) {
   if (cache.metricaEn && ahora - cache.metricaEn < VIDA_METRICA_MS) return cache.metrica;
   cache.metricaEn = ahora; // también tras un fallo: no insistir en cada sondeo
   cache.diag = null;
+  cache.serieLibre = [];
   try {
     const url = `${ARM}${cfg.recurso}/providers/microsoft.insights/metrics?api-version=${API_METRICAS}&metricnames=free_amount_remaining&interval=PT1H&timespan=${encodeURIComponent(new Date(ahora - 31 * 24 * 3600000).toISOString() + "/" + new Date(ahora).toISOString())}`;
     const r = await fetchFn(url, { headers: { Authorization: "Bearer " + token } });
@@ -69,17 +70,20 @@ async function leerCuota(cfg, token, fetchFn, ahora) {
     const j = await r.json();
     const serie = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
     const valor = (d) => [d.average, d.minimum, d.maximum, d.total].find((v) => typeof v === "number");
-    const ult = serie.filter((d) => valor(d) !== undefined).pop();
+    const conDato = serie.filter((d) => valor(d) !== undefined);
+    cache.serieLibre = conDato.map((d) => ({ t: d.timeStamp, v: Math.round(valor(d)) })); // para saber cuándo se agotó la cuota (ver calcularExcedente)
+    const ult = conDato[conDato.length - 1];
     cache.metrica = ult ? { valor: Math.round(valor(ult)), en: ult.timeStamp || null } : null;
     if (!ult) cache.diag = "sin datos en 31 días: " + ((j.value || []).length) + " métrica(s), " + serie.length + " punto(s)" + (j.value && j.value[0] ? ", nombre " + JSON.stringify((j.value[0].name || {}).value) : "");
   } catch (e) { cache.metrica = null; cache.diag = "error " + e.message; }
   return cache.metrica;
 }
 
-// Segundos de núcleo virtual FACTURADOS en lo que va del mes (métrica app_cpu_billed, agregación Total). A diferencia de la cuota
-// restante, esta sigue sumando cuando la cuota gratis ya se acabó: con ella se estima cuánto se ha pasado (ver resumenCosto). El mes
-// de facturación de Azure es UTC, así que se suma desde el día 1 a las 00:00 UTC. Mejor esfuerzo: si Azure no la devuelve (error, o la app
-// de Entra no la puede leer) → null y la pantalla dice "sin datos"; un mes sin puntos con la métrica reconocida vale 0.
+// Segundos de núcleo virtual FACTURADOS por hora en lo que va del mes (métrica app_cpu_billed, agregación Total). A diferencia de la
+// cuota restante, esta sigue sumando cuando la cuota gratis ya se acabó. El mes de facturación de Azure es UTC: se pide desde el día 1 a
+// las 00:00 UTC. OJO: NO se usa su suma contra los 100 000 s (en producción dio ~103 000 con la cuota restante en 21 %: no cuadran, y
+// la cuota restante es la que manda). Solo se usan las horas POSTERIORES a que la cuota llegó a 0 (ver calcularExcedente).
+// Mejor esfuerzo: si Azure no la devuelve (error, o la app de Entra no la puede leer) → null.
 async function leerFacturado(cfg, token, fetchFn, ahora) {
   if (cache.facturadoEn && ahora - cache.facturadoEn < VIDA_METRICA_MS) return cache.facturado;
   cache.facturadoEn = ahora;
@@ -92,9 +96,25 @@ async function leerFacturado(cfg, token, fetchFn, ahora) {
     const j = await r.json();
     if (!(j.value || [])[0]) { cache.facturado = null; return null; }
     const serie = ((((j.value || [])[0] || {}).timeseries || [])[0] || {}).data || [];
-    cache.facturado = Math.round(serie.reduce((t, p) => t + (typeof p.total === "number" ? p.total : 0), 0));
+    cache.facturado = serie.filter((p) => typeof p.total === "number").map((p) => ({ t: p.timeStamp, total: p.total }));
   } catch (e) { cache.facturado = null; }
   return cache.facturado;
+}
+
+// Segundos facturados POR ENCIMA de la cuota gratis en el mes en curso (UTC). La cuota restante es la autoridad: si su última lectura del
+// mes es mayor que 0 todavía hay cuota gratis y no se cobra nada (excedente 0, aunque la suma facturada parezca alta). Si llegó a 0, se
+// suman las horas facturadas desde la última lectura con cuota positiva (la hora del cruce cuenta completa: sobreestima a lo más ~1 800 s).
+// null = no se puede saber (sin lectura de la cuota, o sin la métrica facturada cuando hace falta).
+function calcularExcedente(serieLibre, facturado, ahora) {
+  const d = new Date(ahora);
+  const inicioMes = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+  const delMes = (serieLibre || []).filter((p) => p.t && Date.parse(p.t) >= inicioMes);
+  if (!delMes.length) return serieLibre ? 0 : null; // sin lecturas este mes: la base no ha trabajado desde la renovación
+  if (delMes[delMes.length - 1].v > 0) return 0;
+  if (!Array.isArray(facturado)) return null;
+  const positivas = delMes.filter((p) => p.v > 0);
+  const desde = positivas.length ? Date.parse(positivas[positivas.length - 1].t) : inicioMes - 1;
+  return Math.round(facturado.filter((p) => p.t && Date.parse(p.t) > desde).reduce((t, p) => t + p.total, 0));
 }
 
 // → { estado: dormida|despertando|despierta|desconocido, crudo, cuotaSegundos, cuotaDiag?, motivo? } — nunca lanza
@@ -113,7 +133,7 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const j = await r.json();
     const crudo = (j.properties && j.properties.status) || null;
     const lectura = await leerCuota(cfg, token, fetchFn, ahora);
-    const facturadoSegundos = await leerFacturado(cfg, token, fetchFn, ahora);
+    const facturado = await leerFacturado(cfg, token, fetchFn, ahora);
     let cuotaSegundos = lectura ? lectura.valor : null;
     // el día 1 (UTC) la cuota se renueva: si la última lectura es de un mes anterior, desde entonces la base no ha trabajado → vale la cuota completa
     const delMesActual = (iso) => iso && new Date(iso).getUTCFullYear() === new Date(ahora).getUTCFullYear() && new Date(iso).getUTCMonth() === new Date(ahora).getUTCMonth();
@@ -123,7 +143,8 @@ async function consultarEstadoBase({ env = process.env, fetchFn = fetch, ahora =
     const p = j.properties || {};
     const num = (v) => (typeof v === "number" && isFinite(v) ? v : null);
     const config = { nucleosMin: num(p.minCapacity), nucleosMax: num(j.sku && j.sku.capacity), pausaMin: num(p.autoPauseDelay) };
-    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, cuotaEn: lectura ? lectura.en : null, cuotaRenovada, facturadoSegundos, config };
+    const resp = { estado: mapearEstado(crudo), crudo, cuotaSegundos, cuotaEn: lectura ? lectura.en : null, cuotaRenovada, config };
+    resp.excedenteSegundos = lectura ? calcularExcedente(cache.serieLibre, facturado, ahora) : null;
     if (cuotaSegundos === null && cache.diag) resp.cuotaDiag = cache.diag;
     return resp;
   } catch (err) {
@@ -146,15 +167,14 @@ function resumenCuota(restanteSeg) {
   };
 }
 
-// Estimación de lo que se lleva pagado en el mes por pasarse de la cuota gratis: (facturado − 100 000 s) × precio por vCore-segundo.
+// Estimación de lo que se lleva pagado en el mes por pasarse de la cuota gratis: excedente (s) × precio por vCore-segundo.
 // Es una APROXIMACIÓN del cómputo de la base (sin almacenamiento ni otros servicios, y Azure publica con unos minutos de retraso):
 // la cifra real es la de Azure Cost Management. Sin dato de Azure → null (la pantalla dice "sin datos", no inventa un número).
-function resumenCosto(facturadoSeg) {
-  if (typeof facturadoSeg !== "number" || !isFinite(facturadoSeg) || facturadoSeg < 0) return null;
-  const excedente = Math.max(0, facturadoSeg - CUOTA_MENSUAL_S);
-  return { facturado: Math.round(facturadoSeg), excedenteSegundos: Math.round(excedente), excedenteHoras: Math.round((excedente / (VCORES_MINIMOS * 3600)) * 10) / 10, costoUsd: Math.round(excedente * PRECIO_VCORE_S * 100) / 100, hayExcedente: excedente > 0 };
+function resumenCosto(excedenteSeg) {
+  if (typeof excedenteSeg !== "number" || !isFinite(excedenteSeg) || excedenteSeg < 0) return null;
+  return { excedenteSegundos: Math.round(excedenteSeg), excedenteHoras: Math.round((excedenteSeg / (VCORES_MINIMOS * 3600)) * 10) / 10, costoUsd: Math.round(excedenteSeg * PRECIO_VCORE_S * 100) / 100, hayExcedente: excedenteSeg > 0 };
 }
 
-function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.metricaEn = 0; cache.diag = null; cache.facturado = null; cache.facturadoEn = 0; }
+function _reiniciarCache() { cache.token = null; cache.venceEn = 0; cache.metrica = null; cache.serieLibre = []; cache.metricaEn = 0; cache.diag = null; cache.facturado = null; cache.facturadoEn = 0; }
 
-module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, _reiniciarCache };
+module.exports = { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, calcularExcedente, _reiniciarCache };

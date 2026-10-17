@@ -1,7 +1,7 @@
 // test-estado-base.js — estado de la base (dormida/despertando/despierta) vía Azure Resource Manager, sin red:
 // fetch simulado. Verifica el mapeo de estados, que nunca lance, el caché del token y que jamás se toque SQL.
 const assert = require("assert");
-const { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, _reiniciarCache } = require("./src/estado-base");
+const { consultarEstadoBase, mapearEstado, leerConfiguracion, resumenCuota, resumenCosto, calcularExcedente, _reiniciarCache } = require("./src/estado-base");
 
 let fallos = 0;
 function check(nombre, cond) { if (cond) console.log("  ok  " + nombre); else { fallos++; console.log("  FALLA  " + nombre); } }
@@ -118,25 +118,44 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   r = await consultarEstadoBase({ env: ENV, fetchFn: conSerie([{ timeStamp: "2026-10-16T05:00:00Z" }]), ahora: AHORA });
   check("sin ninguna lectura en 31 días: cuota null y el motivo lo dice", r.cuotaSegundos === null && /31 días/.test(r.cuotaDiag));
 
-  // costo estimado por pasarse de la cuota: segundos facturados del mes (app_cpu_billed, Total, desde el día 1 UTC)
+  // costo estimado por pasarse de la cuota. La cuota restante manda: con cuota positiva no se cobra nada (aunque la suma facturada parezca
+  // alta: en producción dio ~103 000 s con 21 % restante), y solo se suman las horas facturadas DESPUÉS de que la cuota llegó a 0.
+  const H = (h) => "2026-10-16T" + String(h).padStart(2, "0") + ":00:00Z";
+  const NOW = Date.parse("2026-10-16T18:00:00Z");
+  const fetchCon = (libre, facturado) => async (u, o) => {
+    if (u.includes("metricnames=app_cpu_billed")) return facturado === "error" ? respuesta(400, { error: { code: "BadRequest" } }) : respuesta(200, { value: [{ timeseries: [{ data: facturado }] }] });
+    if (u.includes("free_amount_remaining")) return respuesta(200, { value: [{ timeseries: [{ data: libre }] }] });
+    return crearFetch({ status: "Online" })(u, o);
+  };
+  const FACT = [{ timeStamp: H(10), total: 60000 }, { timeStamp: H(11), total: 45000 }, { timeStamp: H(12), total: 1800 }, { timeStamp: H(13), total: 1800 }, { timeStamp: H(14), total: 1000 }];
   _reiniciarCache();
-  f = crearFetch({ status: "Online", facturado: [60000, 55000] });
-  r = await consultarEstadoBase({ env: ENV, fetchFn: f, ahora: Date.parse("2026-10-16T18:00:00Z") });
-  check("suma los segundos facturados del mes (puntos sin dato cuentan 0)", r.facturadoSegundos === 115000);
-  const urlFact = f.llamadas.find((c) => c.url.includes("app_cpu_billed")).url;
-  check("pide la métrica con agregación Total desde el día 1 del mes (UTC)", /aggregation=Total/.test(urlFact) && decodeURIComponent(urlFact).includes("timespan=2026-10-01T00:00:00.000Z/"));
-  let c = resumenCosto(115000);
-  check("115 000 s facturados → 15 000 s de excedente × $0.000174 = $2.61", c.hayExcedente && c.excedenteSegundos === 15000 && c.costoUsd === 2.61 && c.excedenteHoras === 8.3, JSON.stringify(c));
-  check("dentro de la cuota (o justo 100 000) → $0 y sin excedente", resumenCosto(35000).costoUsd === 0 && resumenCosto(35000).hayExcedente === false && resumenCosto(100000).hayExcedente === false);
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: H(10), minimum: 40000 }, { timeStamp: H(14), minimum: 20763 }], FACT), ahora: NOW });
+  check("cuota restante > 0 → excedente 0, aunque lo facturado (108 600 s) supere 100 000", r.cuotaSegundos === 20763 && r.excedenteSegundos === 0);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: H(10), minimum: 40000 }, { timeStamp: H(11), minimum: 3000 }, { timeStamp: H(12), minimum: 0 }, { timeStamp: H(13), minimum: 0 }], FACT), ahora: NOW });
+  check("cuota agotada a las 11 h → suma lo facturado DESPUÉS de esa hora (1 800 + 1 800 + 1 000 = 4 600 s)", r.cuotaSegundos === 0 && r.excedenteSegundos === 4600, String(r.excedenteSegundos));
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: H(10), minimum: 0 }, { timeStamp: H(11), minimum: 0 }], FACT), ahora: NOW });
+  check("agotada desde la primera lectura del mes → cuenta todo lo facturado del mes", r.excedenteSegundos === 109600, String(r.excedenteSegundos));
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: H(10), minimum: 3000 }, { timeStamp: H(11), minimum: 0 }], "error"), ahora: NOW });
+  check("agotada pero Azure no da la métrica facturada → null (no inventa), el resto sigue bien", r.excedenteSegundos === null && r.estado === "despierta" && r.cuotaSegundos === 0);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: H(10), minimum: 40000 }], "error"), ahora: NOW });
+  check("con cuota positiva no hace falta la métrica facturada: sigue en 0 aunque falle", r.excedenteSegundos === 0);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: fetchCon([{ timeStamp: "2026-09-28T05:00:00Z", minimum: 0 }], FACT), ahora: NOW });
+  check("la última lectura es del mes pasado (cuota renovada) → excedente 0", r.excedenteSegundos === 0 && r.cuotaRenovada === true);
+  check("calcularExcedente no toca lecturas de meses anteriores", calcularExcedente([{ t: "2026-09-30T23:00:00Z", v: 0 }, { t: H(10), v: 500 }], FACT, NOW) === 0);
+  let c = resumenCosto(15000);
+  check("15 000 s de excedente × $0.000174 = $2.61 (unas 8.3 h al mínimo)", c.hayExcedente && c.excedenteSegundos === 15000 && c.costoUsd === 2.61 && c.excedenteHoras === 8.3, JSON.stringify(c));
+  check("excedente 0 → $0 y sin excedente", resumenCosto(0).costoUsd === 0 && resumenCosto(0).hayExcedente === false);
   check("sin dato / basura → null (no inventa un costo)", resumenCosto(null) === null && resumenCosto(-5) === null && resumenCosto("x") === null);
+  const f2 = crearFetch({ status: "Online" });
   _reiniciarCache();
-  f = crearFetch({ status: "Online" });
-  const sinFact = async (u, o) => (u.includes("app_cpu_billed") ? respuesta(400, { error: { code: "BadRequest" } }) : f(u, o));
-  r = await consultarEstadoBase({ env: ENV, fetchFn: sinFact, ahora: 1 });
-  check("si Azure no devuelve la métrica facturada: facturadoSegundos null y el resto sigue bien", r.facturadoSegundos === null && r.estado === "despierta" && r.cuotaSegundos === 35143);
-  _reiniciarCache();
-  r = await consultarEstadoBase({ env: ENV, fetchFn: async (u, o) => (u.includes("app_cpu_billed") ? respuesta(200, { value: [{ timeseries: [{ data: [] }] }] }) : crearFetch({ status: "Paused" })(u, o)), ahora: 1 });
-  check("mes sin actividad (métrica reconocida, sin puntos) → 0, no null", r.facturadoSegundos === 0);
+  await consultarEstadoBase({ env: ENV, fetchFn: f2, ahora: NOW });
+  const urlFact = f2.llamadas.find((c2) => c2.url.includes("app_cpu_billed")).url;
+  check("pide la métrica facturada con agregación Total desde el día 1 del mes (UTC)", /aggregation=Total/.test(urlFact) && decodeURIComponent(urlFact).includes("timespan=2026-10-01T00:00:00.000Z/"));
 
   // resumen de la cuota gratis (Estado del sistema)
   let q = resumenCuota(35298);

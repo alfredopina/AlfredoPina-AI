@@ -16482,7 +16482,7 @@
         const k = b.costo;
         const real = ' Es una estimación solo del cómputo de la base; la cifra real está en Azure Cost Management (Análisis de costos).';
         if(!k) filas.push(fila(true, 'Costo estimado por pasarse de la cuota', 'Sin datos: Azure no devolvió los segundos facturados del mes. Revisa el costo real en Azure Cost Management.'));
-        else if(!k.hayExcedente) filas.push(fila(true, 'Costo estimado por pasarse de la cuota', '$0.00 USD: lo facturado este mes (' + miles(k.facturado) + ' s) sigue dentro de la cuota gratis.' + real));
+        else if(!k.hayExcedente) filas.push(fila(true, 'Costo estimado por pasarse de la cuota', '$0.00 USD: la cuota gratis del mes todavía no se agota, así que por la base no se cobra nada.' + real));
         else filas.push(fila(false, 'Costo estimado por pasarse de la cuota', 'Unos $' + k.costoUsd.toFixed(2) + ' USD este mes: la base lleva ' + miles(k.excedenteSegundos) + ' s por encima de la cuota (unas ' + k.excedenteHoras + ' h despierta al mínimo).' + real));
       }
 

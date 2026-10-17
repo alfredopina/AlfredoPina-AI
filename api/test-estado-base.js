@@ -104,6 +104,19 @@ function crearFetch({ status = "Paused", tokenOk = true, bdStatus = 200, metrica
   r = await consultarEstadoBase({ env: ENV, fetchFn: crearFetch({ status: "Online" }), ahora: 1 });
   check("devuelve núcleos mín/máx y minutos de pausa automática", r.config && r.config.nucleosMin === 0.5 && r.config.nucleosMax === 2 && r.config.pausaMin === 60);
 
+  // base DORMIDA: las últimas horas vienen vacías, pero hay una lectura vieja → se usa la última que exista, con su fecha
+  const AHORA = Date.parse("2026-10-16T18:00:00Z");
+  const conSerie = (data) => async (u, o) => (u.includes("insights") ? respuesta(200, { value: [{ name: { value: "free_amount_remaining" }, timeseries: [{ data }] }] }) : crearFetch({ status: "Paused" })(u, o));
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: conSerie([{ timeStamp: "2026-10-12T05:00:00Z", minimum: 35298 }, { timeStamp: "2026-10-12T06:00:00Z" }, { timeStamp: "2026-10-16T17:00:00Z" }]), ahora: AHORA });
+  check("base dormida: usa la ÚLTIMA lectura que exista (no se queda en 'sin datos')", r.estado === "dormida" && r.cuotaSegundos === 35298 && r.cuotaEn === "2026-10-12T05:00:00Z" && r.cuotaRenovada === false && r.cuotaDiag === undefined);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: conSerie([{ timeStamp: "2026-09-28T05:00:00Z", minimum: 1200 }]), ahora: Date.parse("2026-10-02T09:00:00Z") });
+  check("si la última lectura es de un mes anterior, la cuota ya se renovó (100 000)", r.cuotaSegundos === 100000 && r.cuotaRenovada === true);
+  _reiniciarCache();
+  r = await consultarEstadoBase({ env: ENV, fetchFn: conSerie([{ timeStamp: "2026-10-16T05:00:00Z" }]), ahora: AHORA });
+  check("sin ninguna lectura en 31 días: cuota null y el motivo lo dice", r.cuotaSegundos === null && /31 días/.test(r.cuotaDiag));
+
   // resumen de la cuota gratis (Estado del sistema)
   let q = resumenCuota(35298);
   check("cuota 35 298 s → ok, 35 %, unas 19 h al mínimo, $0.31 por hora despierta", q.nivel === "ok" && q.porcentaje === 35 && q.horasAlMinimo === 19 && q.costoHoraDespiertaUsd === 0.31);

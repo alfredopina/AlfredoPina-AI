@@ -19,3 +19,6 @@ Thumbs.db
 # Env files
 .env
 .env.*
+
+# Reporte semanal automatico (tarea programada): el repo es publico, el reporte completo vive en el Doc
+ESTADO-SITIO.md

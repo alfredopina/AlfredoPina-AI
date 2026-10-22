@@ -1,0 +1,133 @@
+/* assets/css/viaje-auto.css — Viaje de Power Automate (cursos.html). Acompaña a assets/js/viaje-auto.js.
+   Reutiliza de viaje-bi.css la cáscara y el layout (bi-shell/bi-top/bi-rail/bi-steps, bi-pin, bi-canvas, bi-flujo, .xf) y de
+   viaje.css el hero, .formula-msg*, .reveal, .cursor-ico y .click-ripple. Cian = --c (cursos.html lo fija por herramienta).
+   La ventana es el diseñador (clara, barra azul, lienzo punteado) y el flujo crece dentro de ella; cada conector lleva su
+   color (Forms, SharePoint, Outlook, Teams, To Do, Aprobaciones, Control). */
+.au-root{ --bi:var(--c,#06b6d4); }
+.au-root .cl{ display:block; width:max-content; max-width:100%; clip-path:inset(0 100% 0 0); }
+.au-root .ik{ display:inline-flex; width:14px; height:14px; flex:none; }
+.au-root .ik svg{ width:100%; height:100%; }
+
+/* ---------- cáscara: el diseñador de Power Automate ---------- */
+.au-root .bi-file b{ font-family:var(--body); font-size:13px; font-weight:600; padding:0; background-color:transparent; color:var(--text); }
+.au-ico{ width:18px; height:18px; color:var(--bi); display:flex; }
+.au-ico svg{ width:100%; height:100%; }
+.au-tag{ font-family:var(--mono); font-size:10.5px; color:var(--bi); background-color:rgba(6,182,212,.14); padding:2px 8px; border-radius:4px; }
+.au-test{ display:inline-flex; align-items:center; gap:6px; align-self:center; flex:none; margin:0 4px; padding:6px 14px; border-radius:4px; border:1px solid var(--line); color:var(--text-dim); font-size:12.5px; transition:background-color .3s, color .3s, border-color .3s; }
+.au-test .ik{ width:12px; height:12px; }
+.au-test.on{ background-color:rgba(6,182,212,.18); border-color:var(--bi); color:#67e8f9; }
+.au-root .bi-rv.active{ background-color:rgba(6,182,212,.14); }
+
+/* ---------- ventana del diseñador ---------- */
+.au-win{ --panel:#ffffff; --panel-2:#f4f5f8; --line:#dde1e8; --text:#1c2431; --text-dim:#4a5568; --text-faint:#6b7684;
+  position:absolute; left:40px; top:36px; width:1020px; height:544px; background-color:#fff; color:#1c2431; border:1px solid #cfd5df; border-radius:10px; box-shadow:0 22px 60px rgba(0,0,0,.5); overflow:hidden; display:flex; flex-direction:column; }
+.au-bar{ flex:none; height:40px; display:flex; align-items:center; gap:10px; padding:0 12px; background-color:#0f6cbd; color:#fff; font-size:12px; }
+.au-bi{ width:22px; height:22px; border-radius:5px; background-color:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; }
+.au-bi .ik{ width:14px; height:14px; }
+.au-bar b{ font-size:13px; font-weight:600; color:#fff; }
+.au-fn{ margin-left:10px; opacity:.92; }
+.au-guard{ margin-left:10px; display:inline-grid; }
+.au-guard .s{ grid-area:1/1; opacity:0; font-size:11px; background-color:rgba(255,255,255,.22); padding:2px 10px; border-radius:10px; white-space:nowrap; }
+.au-btn{ padding:4px 14px; border-radius:5px; border:1px solid rgba(255,255,255,.55); color:#fff; display:inline-flex; align-items:center; gap:6px; }
+.au-bar .au-guard + .au-btn{ margin-left:auto; }
+.au-prueba{ background-color:#fff; color:#0f6cbd; font-weight:600; border-color:#fff; }
+.au-prueba .ik{ width:11px; height:11px; }
+.au-body{ flex:1; display:flex; min-height:0; }
+.au-cv{ position:relative; flex:1; min-width:0; overflow:hidden; background-color:#f3f2f1; background-image:radial-gradient(#d3d6dc 1px, transparent 1px); background-size:20px 20px; }
+.au-cur{ color:#0d1424; z-index:30; filter:drop-shadow(0 0 1px #fff) drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.au-root .click-ripple{ border-color:#0f6cbd; z-index:29; }
+.au-root .xf{ place-items:center; }
+
+/* ---------- 1 · selector de tipo de flujo ---------- */
+.au-pick{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px; }
+.au-ph{ font-family:var(--display); font-size:21px; font-weight:600; color:#1c2431; }
+.au-pcs{ display:flex; gap:16px; }
+.au-pc{ width:200px; padding:20px 16px; background-color:#fff; border:1px solid #d4d8e0; border-radius:12px; display:flex; flex-direction:column; gap:8px; align-items:flex-start; box-shadow:0 6px 18px rgba(15,31,61,.08); }
+.au-pi{ width:42px; height:42px; border-radius:10px; background-color:#e8f1fb; color:#0f6cbd; display:flex; align-items:center; justify-content:center; }
+.au-pi .ik{ width:22px; height:22px; }
+.au-pc b{ font-size:14px; }
+.au-pc > span:last-child{ font-size:12px; color:#5b6472; line-height:1.5; }
+.au-ps{ display:flex; align-items:center; gap:10px; background-color:#fff; border:1px solid #0f6cbd; border-radius:8px; padding:10px 16px; font-size:13px; box-shadow:0 0 0 3px rgba(15,108,189,.12); }
+.au-ps .ik{ color:#008272; width:18px; height:18px; }
+
+/* ---------- el flujo (tarjetas con su conector, campos con contenido dinámico y sello de ejecución) ---------- */
+.au-flow{ position:absolute; left:200px; top:24px; width:440px; display:flex; flex-direction:column; align-items:stretch; }
+.au-n{ position:relative; display:flex; align-items:center; gap:12px; min-height:60px; padding:8px 14px; background-color:#fff; color:#1c2431; border-radius:8px; border-left:5px solid var(--nc); box-shadow:0 2px 10px rgba(15,31,61,.16); }
+.au-i{ width:34px; height:34px; border-radius:8px; background-color:var(--nc); color:#fff; display:flex; align-items:center; justify-content:center; flex:none; }
+.au-i .ik{ width:19px; height:19px; }
+.au-t{ min-width:0; }
+.au-t b{ display:block; font-size:13px; font-weight:600; }
+.au-t span{ display:block; font-size:11px; color:#5b6472; line-height:1.6; }
+.dc{ font-style:normal; background-color:#ece9fb; color:#5b3fd0; border-radius:10px; padding:0 7px; margin:0 2px; font-size:10.5px; white-space:nowrap; }
+.au-run{ position:absolute; right:8px; top:7px; display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; color:#0b6b5e; background-color:#dff5f1; border-radius:10px; padding:1px 8px; }
+.au-run .ik{ width:11px; height:11px; }
+.au-run em{ font-style:normal; }
+.au-run.au-skip{ color:#5b6472; background-color:#eceff4; }
+.au-ln{ position:relative; display:block; width:2px; height:24px; margin:0 auto; background-color:#8a94a6; }
+.au-ln::after{ content:""; position:absolute; left:-4px; bottom:-1px; border:5px solid transparent; border-top-color:#8a94a6; border-bottom:0; }
+.au-scope{ position:relative; border:2px dashed #b8c0cc; border-radius:12px; padding:30px 12px 12px; display:flex; flex-direction:column; background-color:rgba(255,255,255,.45); }
+.au-catch{ border-color:#e3a5a8; margin-top:0; }
+.au-sh{ position:absolute; top:8px; left:14px; font-size:11px; font-weight:600; color:#5b6472; }
+.au-sh em{ font-style:normal; margin-left:8px; font-family:var(--mono); background-color:#e8f1fb; color:#0f6cbd; padding:1px 8px; border-radius:8px; }
+.au-sh small{ font-weight:500; margin-left:8px; color:#b4232a; font-size:10.5px; }
+.au-br{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px; }
+.au-b{ position:relative; display:flex; flex-direction:column; }
+.au-lb{ position:absolute; top:-18px; left:50%; transform:translateX(-50%); z-index:2; font-size:10.5px; font-weight:700; background-color:#fff; border:1px solid #c8cfdb; border-radius:10px; padding:0 12px; color:#334155; }
+.au-b .au-n{ padding:8px 10px; gap:8px; min-height:66px; }
+.au-b .au-i{ width:28px; height:28px; }
+.au-b .au-i .ik{ width:16px; height:16px; }
+.au-b .au-t b{ font-size:12px; }
+.au-b .au-t span{ font-size:10px; }
+.au-b .au-run{ top:auto; bottom:5px; right:6px; }
+.au-cases{ display:flex; gap:8px; justify-content:center; margin-top:8px; }
+.au-case{ font-size:11px; padding:3px 12px; border:1px solid #c8cfdb; border-radius:12px; background-color:#fff; color:#334155; }
+.au-loop{ position:relative; border:2px dashed #b8c0cc; border-radius:10px; padding:28px 10px 10px; background-color:rgba(255,255,255,.55); }
+.au-ficha{ position:absolute; left:-190px; top:0; z-index:20; width:176px; height:34px; display:flex; align-items:center; gap:8px; padding:0 12px; border-radius:17px; border:2px solid #0f6cbd; background-color:#fff; box-shadow:0 8px 22px rgba(15,31,61,.3); pointer-events:none; white-space:nowrap; font-size:11.5px; color:#1c2431; }
+.au-ficha .ik{ width:15px; height:15px; color:#008272; }
+.au-ficha b{ font-size:12px; }
+.au-ficha span:last-child{ color:#64748b; }
+
+/* ---------- panel derecho: contenido dinámico (el dato de Forms) y resultados de la ejecución ---------- */
+.au-side{ position:relative; flex:none; width:300px; border-left:1px solid #dde1e8; background-color:#fff; padding:16px; overflow:hidden; }
+.sd-h{ font-family:var(--display); font-weight:600; font-size:14px; }
+.sd-s{ font-size:11px; color:#6b7684; margin:2px 0 10px; }
+.dy-r{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid #eef0f4; font-size:12px; }
+.dy-r b{ font-weight:600; color:#0f1f3d; }
+.au-res{ position:absolute; inset:0; padding:16px; opacity:0; background-color:#fff; }
+.rs-c{ display:flex; gap:10px; align-items:center; padding:8px 10px; border:1px solid #e3e7ef; border-left:4px solid var(--nc); border-radius:8px; margin-top:8px; }
+.rs-i{ width:28px; height:28px; border-radius:7px; background-color:var(--nc); color:#fff; display:flex; align-items:center; justify-content:center; flex:none; }
+.rs-i .ik{ width:15px; height:15px; }
+.rs-c b{ display:block; font-size:12px; }
+.rs-c div span{ font-size:10.5px; color:#6b7684; }
+.au-ap{ margin-top:8px; border:1px solid #cfe0f5; border-radius:8px; padding:9px 10px; background-color:#f4f9ff; }
+.au-aph{ display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#0f6cbd; margin-bottom:5px; }
+.au-aph .ik{ width:15px; height:15px; }
+.au-ap p{ font-size:12px; line-height:1.5; margin-bottom:7px; }
+.au-ap p span{ font-size:10.5px; color:#6b7684; }
+.au-apb{ display:flex; gap:8px; }
+.ap-si{ padding:4px 14px; border-radius:5px; background-color:#0f6cbd; color:#fff; font-weight:600; border:1px solid #0f6cbd; font-size:11.5px; }
+.ap-no{ padding:4px 14px; border-radius:5px; border:1px solid #d5d8e6; color:#4a5568; font-size:11.5px; }
+.au-apr{ display:flex; align-items:center; gap:5px; margin-top:7px; color:#0b6b5e; font-weight:600; font-size:11.5px; }
+.au-apr .ik{ width:12px; height:12px; }
+
+/* ---------- estado final (reduced-motion / GSAP caído) ---------- */
+.au-final .no-final, .au-final .click-ripple{ display:none; }
+.au-final .au-guard .s{ opacity:0; } .au-final .au-guard .s:last-child{ opacity:1; }
+.au-final .au-res{ opacity:1; }
+.au-final .au-case:first-child{ background-color:#dbe8fb; border-color:#0f6cbd; }
+
+/* ---------- flujo vertical (teléfono táctil y estático): el lienzo se apila ---------- */
+.bi-flujo .au-win{ position:relative; left:auto; top:auto; width:100%; height:auto; }
+.bi-flujo .au-body{ flex-direction:column; }
+.bi-flujo .au-cv{ overflow:visible; height:auto; padding:16px 12px; }
+.bi-flujo .au-bar .au-fn, .bi-flujo .au-bar .au-btn:not(.au-prueba){ display:none; }
+.bi-flujo .au-cur, .bi-flujo .au-ficha{ display:none; }
+.bi-flujo .au-pick{ position:relative; inset:auto; padding:0 0 20px; }
+.bi-flujo .au-pcs{ flex-direction:column; width:100%; }
+.bi-flujo .au-pc{ width:auto; }
+.bi-flujo .au-flow{ position:relative; left:auto; top:auto; width:100%; transform:none !important; }
+.bi-flujo .au-br{ grid-template-columns:1fr; gap:26px; }
+.bi-flujo .au-side{ width:auto; border-left:0; border-top:1px solid #dde1e8; overflow:visible; }
+.bi-flujo .au-res{ position:relative; inset:auto; padding:12px 0 0; }
+.bi-flujo .au-dyn{ margin-bottom:10px; }
+.bi-flujo .au-win .viaje-msg{ margin:6px 0 14px; }

@@ -23,6 +23,7 @@
   // ---- constantes de la animación (unidades de la línea de tiempo maestra) ----
   const O = "249,115,22";                  // naranja Ofimática (--c) en rgb, para tweens de color
   const HL = "rgba(" + O + ",.16)", HL0 = "rgba(" + O + ",0)";
+  const WSEL = "#dbe8fb";                  // selección azul claro de Word (estilo y botón activos)
   const RH = 58;                           // alto de fila de correo (px; igual en CSS)
   const S = { o: 0, w: 108, p: 216, t: 324 };          // inicio de cada escena
   const TR = { ow: 92, wp: 200, pt: 308 };             // inicio de cada transición
@@ -75,19 +76,23 @@
     return '<div class="viaje-msg"><div class="formula-msg"><span class="formula-msg-fx">fx</span><span class="formula-msg-text">' + MSGS[n - 1] + '<span class="formula-msg-cursor"></span></span></div></div>';
   }
 
+  // barra de título de cada app (con el color de su app): menú de apps, ícono, nombre, centro y derecha
+  const barra = (ico, nombre, medio, der) => '<div class="of-wbar"><span class="of-wi">' + I.waffle + '</span><span class="of-ai">' + I[ico] + "</span><b>" + nombre + "</b>" + (medio || "") + (der || "") + "</div>";
+  const tabsBarra = (a) => '<div class="of-tabs">' + a.map((t, i) => "<span" + (i === 0 ? ' class="on"' : "") + ">" + t + "</span>").join("") + "</div>";
+
   // =====================  ESCENA 1 · OUTLOOK  =====================
   const CORREOS = [
-    { k: "key", n: "Dirección", s: "Informe del trimestre para el jueves", p: "Hola, ¿me preparas el informe del trimestre?", h: "9:02", ini: "DI", cat: ["urg", "▲ Urgente"], flag: 1 },
+    { k: "key", n: "Dirección", s: "Informe del trimestre para el jueves", p: "Hola, ¿me preparas el informe del trimestre?", h: "9:02", ini: "DI", cat: ["urg", "▲ Urgente"], flag: 1, sel: 1 },
     { k: "n1", n: "Boletín TI", s: "Novedades de la semana", p: "Actualizaciones y avisos de sistemas", h: "8:40", ini: "TI", news: 1 },
     { k: "rh", n: "Recursos Humanos", s: "Calendario de vacaciones", p: "Revisa las fechas disponibles", h: "8:15", ini: "RH", cat: ["int", "◆ Interno"] },
     { k: "n2", n: "Boletín Proveedores", s: "Ofertas del mes", p: "Promociones y listas de precios", h: "7:58", ini: "BP", news: 1 },
-    { k: "ac", n: "Cliente Acme", s: "Re: seguimiento de propuesta", p: "Gracias por la información enviada", h: "Ayer", ini: "AC", cat: ["cli", "● Cliente"] },
+    { k: "ac", n: "Cliente Acme", s: "Re: seguimiento de propuesta", p: "Gracias por la información enviada", h: "Ayer", ini: "AC", cat: ["cli", "● Cliente"], leido: 1 },
     { k: "n3", n: "Boletín Finanzas", s: "Cierre de mes", p: "Resumen de movimientos", h: "Ayer", ini: "BF", news: 1 },
   ];
   const ORDEN = CORREOS.map((c) => c.k);
 
   function correoHtml(c) {
-    return '<div class="o-row reveal' + (c.news ? " o-news of-quitar" : "") + '" data-k="' + c.k + '">' +
+    return '<div class="o-row reveal' + (c.news ? " o-news of-quitar" : "") + (c.sel ? " sel" : "") + (c.leido ? "" : " un") + '" data-k="' + c.k + '">' +
       '<i class="av">' + c.ini + "</i>" +
       '<div class="tx"><b>' + c.n + (c.k === "key" ? '<em class="o-new">Nuevo</em>' : "") + '</b><span class="s">' + c.s + '</span><span class="p">' + c.p + "</span></div>" +
       '<div class="mt"><span class="h">' + c.h + "</span>" +
@@ -96,17 +101,18 @@
   }
 
   function sceneO() {
-    const carp = (ico, txt, extra, id) => '<div class="f' + (id === "oFInbox" ? " on" : "") + (extra ? " reveal" : "") + '"' + (id ? ' id="' + id + '"' : "") + '><span class="ik">' + I[ico] + "</span>" + txt + "</div>";
+    const rb = (ico, t) => '<span class="o-rb">' + (ico ? '<span class="ik">' + I[ico] + "</span>" : "") + t + "</span>";
     return '<div class="bi-escena" id="ofO">' + msgBloque(1) +
       '<div class="o-win of-win reveal" id="oWin">' +
-      '<div class="of-wbar"><b>Outlook</b><span class="of-search">Buscar correo</span><div class="of-tabs"><span class="on">Inicio</span><span>Ver</span></div></div>' +
+      barra("outlook", "Outlook", '<span class="of-search">Buscar</span>', '<span class="of-me">AP</span>') +
+      '<div class="o-ribbon"><span class="o-nuevo"><span class="ik">' + I.outlook + "</span>Nuevo correo</span>" + rb("", "Eliminar") + rb("", "Archivar") + '<span class="o-sep"></span>' + rb("enviar", "Responder") + rb("", "Reenviar") + '<span class="o-sep"></span>' + rb("", "Categorizar") + rb("bandera", "Marcar") + "</div>" +
       '<div class="o-body">' +
       '<aside class="o-folders">' +
       '<div class="f on" id="oFInbox"><span class="ik">' + I.bandeja + "</span>Bandeja de entrada" + xf("12", "4", "n") + "</div>" +
       '<div class="f"><span class="ik">' + I.enviar + "</span>Enviados</div>" +
       '<div class="f reveal" id="oFBol"><span class="ik">' + I.carpeta + "</span>Boletines" + xf("0", "3", "n") + "</div>" +
       '<div class="f" id="oFSeg"><span class="ik">' + I.bandera + "</span>Seguimiento" + xf("0", "1", "n") + "</div></aside>" +
-      '<section class="o-listwrap"><div class="o-rule reveal" id="oRule"><b>Regla</b> Boletines → carpeta Boletines</div><div class="o-list" id="oList">' + CORREOS.map(correoHtml).join("") + "</div></section>" +
+      '<section class="o-listwrap"><div class="o-lh"><b>Bandeja de entrada</b><span>Todos ▾</span></div><div class="o-rule reveal" id="oRule"><b>Regla</b> Boletines → carpeta Boletines</div><div class="o-list" id="oList">' + CORREOS.map(correoHtml).join("") + "</div></section>" +
       '<article class="o-read reveal" id="oRead">' +
       '<div class="o-rh"><i class="av">DI</i><div><b>Dirección</b><span>Para: Tú · 9:02</span></div><span class="o-flag reveal">' + I.bandera + "</span></div>" +
       "<h3>Informe del trimestre para el jueves</h3>" +
@@ -128,63 +134,74 @@
     const sec = (id, h, p, extra) => '<h2 class="w-h cl" id="' + id + 'h">' + h + '</h2><p class="w-p cl" id="' + id + 'p">' + p + (extra || "") + "</p>";
     const toc = ["Resumen", "Resultados", "Próximos pasos"].map((t, i) => '<div class="tl reveal"><span>' + t + "</span><i></i><em>" + (i + 1) + "</em></div>").join("");
     const nav = ["Resumen", "Resultados", "Próximos pasos"].map((t, i) => '<div class="ni reveal' + (i === 0 ? " on" : "") + '">' + t + "</div>").join("");
+    const kpi = (n, l) => "<div><b>" + n + "</b><span>" + l + "</span></div>";
     return '<div class="bi-escena" id="ofW">' + msgBloque(2) +
       '<div class="w-win of-win reveal" id="wWin">' +
-      '<div class="of-wbar"><b>Word</b><div class="of-tabs"><span class="on">Inicio</span><span>Insertar</span><span>Revisar</span></div><span class="of-compartir">Compartir</span></div>' +
-      '<div class="w-ribbon"><span class="w-st">Normal</span><span class="w-st" id="wStyleT1">Título 1</span><span class="w-st">Título 2</span><span class="w-sep"></span><span class="w-btn" id="wBtnToc">Índice</span><span class="w-btn">Comentario</span></div>' +
+      barra("word", "Word", '<span class="of-arch2">Informe T3.docx · Guardado en OneDrive</span>', tabsBarra(["Inicio", "Insertar", "Revisar"]) + '<span class="of-compartir">Compartir</span>') +
+      '<div class="w-ribbon"><span class="w-st"><i>AaBb</i>Normal</span><span class="w-st" id="wStyleT1"><i>AaBb</i>Título 1</span><span class="w-st"><i>AaBb</i>Título 2</span><span class="w-sep"></span><span class="w-btn" id="wBtnToc">Índice</span><span class="w-btn">Comentario</span></div>' +
       '<div class="w-body"><aside class="w-nav reveal" id="wNav"><div class="w-nav-h">Navegación</div>' + nav + "</aside>" +
       '<div class="w-stage"><div class="w-page reveal" id="wPage">' +
-      '<h1 class="w-t cl" id="wTt">Informe del trimestre T3</h1>' +
+      '<div class="w-hd"><span class="w-logo">GD</span><b>Grupo Demo</b><em>Dirección de Operaciones · Confidencial</em></div>' +
+      '<div class="w-title"><span class="w-eb">Tercer trimestre</span><h1 class="w-t cl" id="wTt">Informe del trimestre</h1><p class="w-sub cl" id="wSub">Preparado para Dirección · Octubre</p></div>' +
       '<div class="w-toc reveal" id="wToc"><b>Contenido</b>' + toc + "</div>" +
-      sec("wR", "Resumen", TEXTOS.p1) + sec("wS", "Resultados", TEXTOS.p2, ' <ins class="w-ins reveal" id="wIns">(meta: 36%)</ins>') + sec("wN", "Próximos pasos", TEXTOS.p3) +
-      '</div></div><aside class="w-rev"><div class="w-nav-h">Revisión</div>' +
+      sec("wR", "Resumen", TEXTOS.p1) +
+      '<div class="w-kpi reveal" id="wKpi">' + kpi("$2.40M", "Ventas") + kpi("▲ 18%", "vs. año anterior") + kpi("34%", "Margen") + "</div>" +
+      sec("wS", "Resultados", TEXTOS.p2, ' <ins class="w-ins reveal" id="wIns">(meta: 36%)</ins>') + sec("wN", "Próximos pasos", TEXTOS.p3) +
+      '</div></div>' +
+      '<aside class="w-rev"><div class="w-nav-h">Revisión</div>' +
       '<div class="w-c reveal" id="wC1"><i class="av">DI</i><div><b>Dirección</b><span>¿Podemos incluir la meta de margen?</span></div></div>' +
-      '<div class="w-c w-c2 reveal" id="wC2"><i class="av me">TÚ</i><div><b>Tú</b><span>Listo, agregada en Resultados.</span><em>' + I.check + "Resuelto</em></div></div></aside></div></div></div>";
+      '<div class="w-c w-c2 reveal" id="wC2"><i class="av me">AP</i><div><b>Alfredo</b><span>Listo, agregada en Resultados.</span><em>' + I.check + "Resuelto</em></div></div></aside></div></div></div>";
   }
 
   // =====================  ESCENA 3 · POWERPOINT  =====================
-  // contenido de la diapositiva clara; con rev=true sus piezas entran una a una (en PowerPoint), en Teams ya está completa
+  // contenido de la diapositiva ejecutiva (medidas en cqw: escala sola en escritorio, móvil y Teams); con rev=true sus
+  // piezas entran una a una (en PowerPoint), en Teams ya está completa
   function slideLimpia(rev) {
     const r = rev ? " reveal" : "";
-    return '<div class="p-kpis"><div class="p-kpi' + r + '"><b>$2.40M</b><span>Ventas</span></div><div class="p-kpi' + r + '"><b>▲ 18%</b><span>vs. año anterior</span></div><div class="p-kpi' + r + '"><b>34%</b><span>Margen · meta 36%</span></div></div>' +
-      '<div class="p-foot' + r + '">Prioridad: cerrar el margen contra la meta</div>';
+    const k = (n, l, e, c) => '<div class="p-kpi' + r + '"><b>' + n + "</b><span>" + l + '</span><em class="' + c + '">' + e + "</em></div>";
+    const barras = [38, 52, 46, 64, 58, 78].map((h, i) => '<i class="' + (i === 5 ? "hi" : "") + '" style="height:' + h + '%"></i>').join("");
+    return '<div class="s-head' + r + '"><b>Resumen T3</b><span>Dirección · Tercer trimestre</span></div>' +
+      '<div class="s-body"><div class="p-kpis">' + k("$2.40M", "Ventas", "▲ +12% vs. meta", "ok") + k("+18%", "vs. año anterior", "▲ sobre la meta (10%)", "ok") + k("34%", "Margen", "▼ 2 pts bajo la meta", "bad") + "</div>" +
+      '<div class="s-low"><div class="s-chart' + r + '">' + barras + '</div><div class="s-ccl' + r + '"><h5>Conclusiones</h5><p>Las ventas superan al año anterior.</p><p>El margen necesita atención.</p></div></div></div>';
   }
   function sceneP() {
-    const th = (n, t, cls, mini) => '<div class="p-th reveal ' + (cls || "") + '"><em>' + n + '</em><div class="mini">' + (mini || '<b>' + t + "</b><i></i><i></i>") + "</div></div>";
-    const idea = (n, cuerpo) => '<div class="p-idea' + (n === 2 ? "" : "") + '" id="pIdea' + n + '">' + cuerpo + "</div>";
+    const th = (n, t, cls, mini) => '<div class="p-th reveal ' + (cls || "") + '"><em>' + n + '</em><div class="mini">' + (mini || "<b>" + t + "</b><i></i><i></i>") + "</div></div>";
+    const idea = (n, cuerpo) => '<div class="p-idea" id="pIdea' + n + '">' + cuerpo + "</div>";
     return '<div class="bi-escena" id="ofP">' + msgBloque(3) +
       '<div class="p-win of-win reveal" id="pWin">' +
-      '<div class="of-wbar"><b>PowerPoint</b><div class="of-tabs"><span class="on">Inicio</span><span>Diseño</span><span>Transiciones</span></div><span class="of-compartir" id="pBtnPres">Presentar</span></div>' +
+      barra("ppt", "PowerPoint", '<span class="of-arch2">Informe T3.pptx · Guardado en OneDrive</span>', tabsBarra(["Inicio", "Diseño", "Transiciones"]) + '<span class="of-compartir" id="pBtnPres">Presentar</span>') +
       '<div class="p-body"><aside class="p-thumbs" id="pThumbs">' +
       th(1, "Informe del trimestre T3") + th(2, "Resumen", "p-th2", '<span class="xf"><span class="a mini-a"><b>Resumen</b><i></i><i></i><i></i></span><span class="b mini-b"><b>Resumen</b><u></u><u></u><u></u></span></span>') + th(3, "Resultados") + th(4, "Próximos pasos") +
       "</aside>" +
       '<div class="p-main"><div class="p-slide reveal" id="pSlide">' +
       '<div class="p-dense"><h4>Resumen</h4><p>Las ventas cerraron en $2.40M, 18% arriba del año anterior, con un margen de 34%. Licencias Pro lideró con 38% de las ventas. El Norte concentró 44% de los ingresos. Cerrar el margen contra la meta (36%) y ampliar la cobertura en el Sur.</p></div>' +
-      '<div class="p-clean"><h4>Resumen T3</h4>' + slideLimpia(true) + "</div>" +
+      '<div class="p-clean">' + slideLimpia(true) + "</div>" +
       '<span class="p-badge reveal" id="pBadge">Presentando</span></div>' +
       '<div class="p-notes reveal" id="pNotes"><span>Notas</span><p class="cl" id="pNotesT">Empezar por el resultado: ventas de $2.40M y 18% de crecimiento.</p></div></div>' +
       '<aside class="p-des reveal" id="pDes"><div class="w-nav-h">Diseñador</div>' +
-      idea(1, '<i></i><i></i><i></i>') + idea(2, '<b></b><b></b><b></b>') + idea(3, '<u></u><u></u>') + "</aside></div>" +
+      idea(1, "<i></i><i></i><i></i>") + idea(2, "<b></b><b></b><b></b>") + idea(3, "<u></u><u></u>") + "</aside></div>" +
       I.cursor.replace('class="', 'id="curP" class="') + '<div class="click-ripple" id="ripP"></div></div></div>';
   }
 
   // =====================  ESCENA 4 · TEAMS  =====================
+  const FOTO = "/assets/img/alfredo-headshot.png";   // la misma foto pública de la landing
   function sceneT() {
-    const per = (ini, nom, cls) => '<div class="t-tile reveal ' + (cls || "") + '"><i class="av">' + ini + "</i><span>" + nom + '</span><em class="ik">' + I.mic + "</em></div>";
+    const per = (ini, nom) => '<div class="t-tile reveal"><i class="av">' + ini + "</i><span>" + nom + '</span><em class="ik">' + I.mic + "</em></div>";
     const ctl = (ico, txt, cls) => '<span class="t-b' + (cls ? " " + cls : "") + '"><span class="ik">' + I[ico] + "</span>" + txt + "</span>";
     return '<div class="bi-escena" id="ofT">' + msgBloque(4) +
       '<div class="t-win of-win reveal" id="tWin">' +
-      '<div class="of-wbar"><b>Teams</b><span class="t-title">Revisión T3 · Dirección</span><span class="t-time"><i></i>00:12</span></div>' +
+      barra("teams", "Teams", '<span class="t-title">Revisión T3 · Dirección</span>', '<span class="t-time"><i></i>00:12</span>') +
       '<div class="t-body"><div class="t-left">' +
-      '<div class="t-share reveal" id="tShare"><div class="p-clean t-clean"><h4>Resumen T3</h4>' + slideLimpia(false) + "</div>" +
+      '<div class="t-share reveal" id="tShare"><div class="p-clean t-clean">' + slideLimpia(false) + "</div>" +
       '<span class="p-badge t-badge">Presentando: tú</span>' +
-      '<span class="t-co reveal" id="tCoA" style="--cc:#a78bfa;left:20%;top:70%">' + I.puntero + "<em>Ana</em></span>" +
-      '<span class="t-co reveal" id="tCoL" style="--cc:#14b8a6;left:78%;top:30%">' + I.puntero + "<em>Luis</em></span></div>" +
+      '<span class="t-co reveal" id="tCoA" style="--cc:#7c3aed;left:20%;top:70%">' + I.puntero + "<em>Ana</em></span>" +
+      '<span class="t-co reveal" id="tCoL" style="--cc:#0b7a6b;left:78%;top:30%">' + I.puntero + "<em>Luis</em></span></div>" +
       '<div class="t-ctl reveal" id="tCtl">' + ctl("mic", "Micrófono") + ctl("cam", "Cámara") + ctl("compartir", "Compartir", "on") + ctl("chat", "Chat") + ctl("colgar", "Salir", "end") + "</div></div>" +
-      '<aside class="t-side"><div class="t-tiles">' + per("DI", "Dirección") + per("AN", "Ana") + per("LU", "Luis") + per("TÚ", "Tú", "me") + "</div>" +
+      '<aside class="t-side"><div class="t-cam reveal"><img src="' + FOTO + '" alt="" decoding="async"><span class="t-name"><span class="ik">' + I.mic + "</span>Alfredo Piña · Presentando</span></div>" +
+      '<div class="t-tiles">' + per("DI", "Dirección") + per("AN", "Ana") + per("LU", "Luis") + "</div>" +
       '<div class="t-chat"><div class="w-nav-h">Chat de la reunión</div>' +
       '<div class="t-m reveal" id="tM1"><b>Ana</b><span>Se entiende perfecto el resumen.</span></div>' +
-      '<div class="t-m me reveal" id="tM2"><b>Tú</b><span>Aquí está la versión final.</span><div class="t-file"><span class="ik">' + I.ppt + '</span><div><b>Informe T3.pptx</b><span>Todos pueden editar · OneDrive</span></div><span class="ik">' + I.enlace + "</span></div></div>" +
+      '<div class="t-m me reveal" id="tM2"><b>Alfredo</b><span>Aquí está la versión final.</span><div class="t-file"><span class="ik">' + I.ppt + '</span><div><b>Informe T3.pptx</b><span>Todos pueden editar · OneDrive</span></div><span class="ik">' + I.enlace + "</span></div></div>" +
       '<div class="t-m reveal" id="tM3"><b>Luis</b><span>Recibido, la reviso hoy.</span></div></div></aside></div>' +
       '<div class="t-toast reveal" id="tToast"><span class="ik">' + I.outlook + '</span><div><b>Outlook</b><span>Seguimiento enviado a 5 personas, con la liga</span></div></div></div></div>';
   }
@@ -255,15 +272,16 @@
     if (!R.desk) { tl.fromTo($("#wWin"), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 6 }, at(0)); tl.to($("#wPage"), { opacity: 1, duration: 4 }, at(0)); }
     tipea(tl, R.msg(2), at(4), 10);
     // el texto del informe se escribe suelto, sin estilos
-    tipea(tl, $("#wTt"), at(6), 4);
+    tipea(tl, $("#wTt"), at(6), 4); tipea(tl, $("#wSub"), at(9), 3);
     [["wR", 10], ["wS", 22], ["wN", 34]].forEach((s) => { tipea(tl, $("#" + s[0] + "h"), at(s[1]), 3); tipea(tl, $("#" + s[0] + "p"), at(s[1] + 3), 9); });
     // estilos: los encabezados dejan de ser texto común
     const heads = qa("#wPage .w-h");
-    tl.to($("#wStyleT1"), { backgroundColor: HL, duration: 3 }, at(50));
-    tl.to(heads, { fontSize: 19, color: "#c2410c", duration: 5, stagger: 2 }, at(52));
-    tl.set(heads, { fontWeight: 700 }, at(54));
-    // índice automático
-    tl.to($("#wBtnToc"), { backgroundColor: HL, duration: 3 }, at(62));
+    tl.to($("#wStyleT1"), { backgroundColor: WSEL, borderColor: "#185abd", duration: 3 }, at(48));
+    tl.to(heads, { fontSize: 15, color: "#0f1f3d", borderLeftWidth: 3, paddingLeft: 9, duration: 5, stagger: 2 }, at(50));
+    tl.set(heads, { fontWeight: 700 }, at(52));
+    // el documento se arma: franja de cifras, índice automático
+    tl.to($("#wKpi"), { opacity: 1, duration: 5 }, at(58));
+    tl.to($("#wBtnToc"), { backgroundColor: WSEL, borderColor: "#185abd", duration: 3 }, at(62));
     tl.to($("#wToc"), { opacity: 1, duration: 4 }, at(64));
     tl.to(qa("#wToc .tl"), { opacity: 1, duration: 3, stagger: 1.5 }, at(66));
     // panel de navegación
@@ -288,7 +306,7 @@
     tl.fromTo(cur, { opacity: 0, x: () => cen($("#pSlide"), wrap)[0], y: () => cen($("#pSlide"), wrap)[1] }, { opacity: 1, duration: 3, immediateRender: false }, at(18));
     tl.to(cur, { x: px(idea), y: py(idea), duration: 8 }, at(20));
     clic(idea, at(28));
-    tl.to(idea, { borderColor: "#f97316", backgroundColor: HL, duration: 3 }, at(29));
+    tl.to(idea, { borderColor: "#c43e1c", backgroundColor: "#fbe4dc", duration: 3 }, at(29));
     tl.to($("#pSlide .p-dense"), { opacity: 0, duration: 6 }, at(31));
     tl.to($("#pSlide .p-clean"), { opacity: 1, duration: 6 }, at(31));
     tl.to(qa("#pThumbs .p-th2 .a"), { opacity: 0, duration: 4 }, at(33));
@@ -310,7 +328,7 @@
     const { $, qa } = R, at = (x) => b + x;
     if (!R.desk) { tl.fromTo($("#tWin"), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 6 }, at(0)); tl.to($("#tShare"), { opacity: 1, duration: 4 }, at(0)); }
     tipea(tl, R.msg(4), at(4), 10);
-    tl.to(qa("#ofT .t-tile"), { opacity: 1, duration: 3, stagger: 1.8 }, at(6));
+    tl.to(qa("#ofT .t-cam, #ofT .t-tile"), { opacity: 1, duration: 3, stagger: 1.8 }, at(6));
     tl.to($("#tCtl"), { opacity: 1, duration: 4 }, at(10));
     // dos personas editan la diapositiva a la vez (cursor con su nombre)
     tl.to(["#tCoA", "#tCoL"].map((s) => $(s)), { opacity: 1, duration: 3, stagger: 3 }, at(16));
@@ -452,7 +470,7 @@
     root.querySelectorAll(".formula-msg-text, .cl").forEach((el) => { el.style.clipPath = "inset(0 0% 0 0)"; });
     root.querySelectorAll(".o-folders .xf .a, .p-th2 .a").forEach((el) => { el.style.opacity = 0; });
     root.querySelectorAll(".o-folders .xf .b, .p-th2 .b").forEach((el) => { el.style.opacity = 1; });
-    root.querySelectorAll(".w-h").forEach((el) => { el.style.fontSize = "19px"; el.style.color = "#c2410c"; el.style.fontWeight = 700; });
+    root.querySelectorAll(".w-h").forEach((el) => { el.style.fontSize = "15px"; el.style.color = "#0f1f3d"; el.style.fontWeight = 700; el.style.borderLeftWidth = "3px"; el.style.paddingLeft = "9px"; });
   }
 
   window.ViajeEscenas.ofimatica = Ofimatica;

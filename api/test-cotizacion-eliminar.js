@@ -40,6 +40,11 @@ async function rechaza(p, status, re) {
   await rechaza(eliminarCotizacionDe(f.nuevaRequest, 7), 409, /GRP-01/);
   assert.strictEqual(f.hubo("DELETE").length, 0, "no borra nada");
 
+  // ya tiene cuentas en Cobranza: el dinero no se borra
+  f = fabrica((t) => (t.includes("CuentaPorCobrar") ? [{ n: 2 }] : base()(t)));
+  await rechaza(eliminarCotizacionDe(f.nuevaRequest, 7), 409, /Cobranza/);
+  assert.strictEqual(f.hubo("DELETE").length, 0, "no borra nada");
+
   // única cotización de su solicitud: la solicitud vuelve a Nueva
   f = fabrica(base());
   let r = await eliminarCotizacionDe(f.nuevaRequest, 7);
@@ -51,7 +56,7 @@ async function rechaza(p, status, re) {
   assert.ok(f.hubo("UPDATE Solicitud SET estatus = 'Nueva'")[0].texto.includes("AND estatus = 'Cotizada'"), "solo reabre si estaba Cotizada");
 
   // la solicitud tiene otra cotización: no se toca
-  f = fabrica((t) => (t.startsWith("SELECT COUNT(*)") ? [{ n: 1 }] : base()(t)));
+  f = fabrica((t) => (t.startsWith("SELECT COUNT(*)") && !t.includes("CuentaPorCobrar") ? [{ n: 1 }] : base()(t)));
   r = await eliminarCotizacionDe(f.nuevaRequest, 7);
   assert.strictEqual(r.solicitudReabierta, false);
   assert.strictEqual(f.hubo("UPDATE Solicitud").length, 0);

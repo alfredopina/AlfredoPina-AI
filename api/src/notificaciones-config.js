@@ -41,6 +41,8 @@ const DEFAULTS = {
   cotizacionesSeguimientoDias: 6, gruposSeguimientoDias: 10, clientesSeguimientoDias: 30,
   // Solicitudes sin atender: en HORAS (la promesa del sitio es cotizar en 24 hr)
   solicitudesHoras: 72, solicitudesSeguimientoHoras: 24,
+  // Cobranza: "por vencer" = faltan ≤ N días para el vencimiento (lo vencido es rojo sin umbral). Sin par urgente/seguimiento.
+  cobranzaPorVencerDias: 7,
 };
 const EN_HORAS = new Set(["solicitudesHoras", "solicitudesSeguimientoHoras"]);
 const CAMPOS_VALIDOS = Object.keys(DEFAULTS);
@@ -92,17 +94,17 @@ async function actualizarUmbral(campo, valor) {
   // seguimiento estrictamente por debajo del urgente después de este cambio
   // — se valida contra el valor actual del otro campo, ya guardado o default.
   const campoPar = PARES[campo];
-  const umbralesActuales = await getUmbrales();
-  const valorPar = umbralesActuales[campoPar];
+  const umbralesActuales = campoPar ? await getUmbrales() : null;
+  const valorPar = campoPar ? umbralesActuales[campoPar] : null;
   const esUrgente = ES_URGENTE.has(campo);
   const unidad = EN_HORAS.has(campo) ? "horas" : "días";
-  if (esUrgente && entero <= valorPar) {
+  if (campoPar && esUrgente && entero <= valorPar) {
     throw Object.assign(
       new Error(`El umbral urgente debe ser mayor al de seguimiento (${valorPar} ${unidad}).`),
       { safe: true }
     );
   }
-  if (!esUrgente && entero >= valorPar) {
+  if (campoPar && !esUrgente && entero >= valorPar) {
     throw Object.assign(
       new Error(`El umbral de seguimiento debe ser menor al urgente (${valorPar} ${unidad}).`),
       { safe: true }

@@ -113,7 +113,7 @@ const txt = (s) => (q(s) ? q(s).textContent.replace(/\s+/g, ' ').trim() : null);
   check('cada problema es un botón que dice qué pasa', probs.length === 2 && /Estado del sistema: cuota baja, solicitudes atoradas en la cola/.test(probs[0]) && /Respaldos: el último respaldo es de hace 12 días/.test(probs[1]), JSON.stringify(probs));
   check('las tarjetas con problema llevan el chip "Revisar" con texto', /Revisar/.test(txt('[data-chip="estado"]')) && /Revisar/.test(txt('[data-chip="resp"]')) && /En orden/.test(txt('[data-chip="correo"]')));
   check('la línea de Estado incluye las solicitudes en espera', txt('[data-linea="estado"]') === 'Base despierta · cuota 15 % · 2 solicitudes en espera', txt('[data-linea="estado"]'));
-  check('Métricas con rango: "Rango personalizado en 2 de 3 Trackings"', txt('[data-linea="met"]') === 'Rango personalizado en 2 de 3 Trackings', txt('[data-linea="met"]'));
+  check('Métricas con rango: "Rango personalizado en 2 de 4 Trackings"', txt('[data-linea="met"]') === 'Rango personalizado en 2 de 4 Trackings', txt('[data-linea="met"]'));
   volcar('config-revisar');
   q('.cfgt-prob[data-cfg="resp"]').click(); await pausa(300);
   check('un clic en el problema abre esa sección (Respaldos)', q('#cfgTablero').hidden && !q('#cfgDetalle .cfg-card[data-cfg="resp"]').hidden && !q('#cfgRespaldosBody').hidden);

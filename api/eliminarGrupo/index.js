@@ -23,6 +23,8 @@ module.exports = async function (context, req) {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      // las cuentas por cobrar del grupo se quedan (es dinero), solo dejan de apuntarlo
+      await new sql.Request(transaction).input("id", sql.Int, id).query("UPDATE CuentaPorCobrar SET grupo_id = NULL WHERE grupo_id = @id");
       await new sql.Request(transaction).input("id", sql.Int, id).query("DELETE FROM GrupoFaseHistorial WHERE grupo_id = @id");
       const result = await new sql.Request(transaction).input("id", sql.Int, id).query("DELETE FROM Grupo WHERE id = @id");
       if (!result.rowsAffected[0]) {

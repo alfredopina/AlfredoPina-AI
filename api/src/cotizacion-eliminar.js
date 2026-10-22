@@ -19,6 +19,11 @@ async function eliminarCotizacionDe(nuevaRequest, id) {
     throw falla(409, `No se puede eliminar ${cot.folio}: ya nació el grupo ${lista} de esta cotización. Elimina o desliga el grupo primero.`);
   }
 
+  const cuentas = await nuevaRequest().input("id", sql.Int, id).query("SELECT COUNT(*) AS n FROM CuentaPorCobrar WHERE cotizacion_id = @id");
+  if (cuentas.recordset[0].n) {
+    throw falla(409, `No se puede eliminar ${cot.folio}: ya tiene ${cuentas.recordset[0].n} cuenta(s) en Cobranza. Cancélalas ahí primero (nada de dinero se borra).`);
+  }
+
   await nuevaRequest().input("folio", sql.NVarChar, cot.folio).query("UPDATE Cotizacion SET reemplaza_a_folio = NULL WHERE reemplaza_a_folio = @folio");
   await nuevaRequest().input("id", sql.Int, id).query("DELETE FROM Cotizacion WHERE id = @id");
 

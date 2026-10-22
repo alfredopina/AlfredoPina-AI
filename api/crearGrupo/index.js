@@ -25,6 +25,7 @@ const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { sembrarHistorialInicial } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
+const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -187,6 +188,12 @@ module.exports = async function (context, req) {
                fecha_envio = COALESCE(fecha_envio, SYSUTCDATETIME()), fecha_cierre = COALESCE(fecha_cierre, CAST(SYSUTCDATETIME() AS DATE))
              WHERE id = @id AND estatus IN ('Borrador', 'Enviada', 'En negociación')`
           );
+        // Ganada → nace su cuenta por cobrar (idempotente) y se liga a este Grupo
+        const cuenta = await crearCuentaDeCotizacion(() => new sql.Request(transaction), datos.cotizacionId);
+        if (cuenta.id) {
+          await new sql.Request(transaction).input("g", sql.Int, grupoId).input("c", sql.Int, datos.cotizacionId)
+            .query("UPDATE CuentaPorCobrar SET grupo_id = @g WHERE cotizacion_id = @c AND grupo_id IS NULL");
+        }
       }
       await transaction.commit();
       context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal } };

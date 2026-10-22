@@ -8,6 +8,7 @@
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { esMotivoValido } = require("../src/cotizacion-motivos");
+const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
 
 const ESTATUS_VALIDOS = ["Borrador", "Enviada", "En negociación", "Ganada", "Perdida", "Expirada", "Reemplazada"];
 
@@ -29,10 +30,13 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // El UPDATE y el nacimiento de la cuenta por cobrar (si pasa a Ganada) van en una transacción: o quedan ambos o ninguno.
+  let transaction;
   try {
     const pool = await getPool();
-    const result = await pool
-      .request()
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    const result = await new sql.Request(transaction)
       .input("id", sql.Int, id)
       .input("estatus", sql.NVarChar, estatus)
       .input("motivo", sql.NVarChar, motivo)
@@ -48,11 +52,16 @@ module.exports = async function (context, req) {
          WHERE id = @id`
       );
     if (!result.rowsAffected[0]) {
+      await transaction.rollback();
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Esa cotización ya no existe." } };
       return;
     }
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true } };
+    // Ganada → nace su cuenta por cobrar (idempotente: marcarla Ganada otra vez, o regresarla y volver, no duplica)
+    const cuenta = estatus === "Ganada" ? await crearCuentaDeCotizacion(() => new sql.Request(transaction), id) : null;
+    await transaction.commit();
+    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cuentaCobranza: cuenta } };
   } catch (err) {
+    try { if (transaction) await transaction.rollback(); } catch (_) { /* ya cerrada */ }
     context.log.error("Error actualizando el estatus:", err.message);
     context.res = { status: 500, headers: JSON_HEADERS, body: { error: "No se pudo actualizar el estatus." } };
   }

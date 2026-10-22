@@ -7,6 +7,7 @@ const DEPENDENCIAS = [
   { clave: "Solicitudes", sql: "SELECT COUNT(*) AS n FROM Solicitud WHERE cliente_id = @id" },
   { clave: "Cotizaciones", sql: "SELECT COUNT(*) AS n FROM Cotizacion WHERE cliente_id = @id" },
   { clave: "Grupos", sql: "SELECT COUNT(*) AS n FROM Grupo WHERE cliente_id = @id OR cliente_final_id = @id" },
+  { clave: "Cobranza", sql: "SELECT COUNT(*) AS n FROM CuentaPorCobrar WHERE cliente_id = @id" },
   { clave: "Diplomas", sql: "SELECT COUNT(*) AS n FROM Diploma WHERE cliente_id = @id" },
   { clave: "Alumnos", sql: "SELECT COUNT(*) AS n FROM Alumno WHERE cliente_id = @id" },
   { clave: "Diagnósticos", sql: "SELECT COUNT(*) AS n FROM DiagnosticoRespuesta WHERE cliente_id = @id" },

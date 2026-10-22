@@ -8,7 +8,7 @@
 // Lo que es estado VIVO (semáforos, pipeline, grupos activos, todo Clientes) nunca se filtra: no es histórico.
 // Table Storage (tabla ConfiguracionNotificaciones, renglón config/metricas): no depende de SQL.
 //   solicitudes → fecha_creacion de la solicitud · cotizaciones → fecha de cierre (Ganada/Perdida) ·
-//   grupos → fecha_cierre del grupo. Clientes no tiene tarjetas acumuladas (todas son del estado actual).
+//   grupos → fecha_cierre del grupo · cobranza → fecha de pago (Cobrado y Días promedio; Por cobrar/Vencido son estado vivo). Clientes no tiene tarjetas acumuladas (todas son del estado actual).
 // Fechas: `desde` es un instante (inclusive); `hasta` es el instante en que YA no cuenta (exclusivo) — al elegir una fecha
 // "hasta" en el calendario se incluye ese día completo. Los días se interpretan en hora de Monterrey (UTC-6 todo el año).
 const { TableClient } = require("@azure/data-tables");
@@ -16,7 +16,7 @@ const { TableClient } = require("@azure/data-tables");
 const TABLA = "ConfiguracionNotificaciones";
 const PK = "config";
 const RK = "metricas";
-const TRACKINGS = ["solicitudes", "cotizaciones", "grupos"];
+const TRACKINGS = ["solicitudes", "cotizaciones", "grupos", "cobranza"];
 const DIA_MS = 24 * 3600 * 1000;
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
 

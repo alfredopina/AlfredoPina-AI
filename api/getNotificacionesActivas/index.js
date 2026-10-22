@@ -17,6 +17,7 @@ const { getUmbrales } = require("../src/notificaciones-config");
 const { calcularDiasInactivo } = require("../src/cliente-actividad");
 const { JSON_HEADERS } = require("../src/http");
 const { drenarConSql } = require("../src/solicitud-publica-cola");
+const { listarCuentas } = require("../src/cobranza-db");
 const { getPropuestasTable, listarEstadisticas, codigoDePropuesta } = require("../src/propuestas");
 
 // Solicitudes "Nueva" que llevan más de N HORAS sin atenderse (sin cotizar ni
@@ -206,13 +207,30 @@ async function clientesInactivos(pool, umbral) {
   return items;
 }
 
+// Cobranza: cuentas con saldo vencidas (rojo) o por vencer (ámbar, umbral editable). Vencidas primero, la más atrasada arriba.
+async function cobranzaPorTiempo(umbralPorVencer) {
+  const filas = await listarCuentas({ umbralPorVencer });
+  const ref = (f) => f.folio_factura ? `factura ${f.folio_factura}` : f.concepto;
+  return filas
+    .filter((f) => f.semaforo.clave === "vencida" || f.semaforo.clave === "por_vencer")
+    .map((f) => ({
+      tipo: "cobranza",
+      id: f.id,
+      cliente: f.cliente,
+      detalle: f.semaforo.clave === "vencida" ? `Cobro vencido, ${ref(f)}` : `Cobro por vencer, ${ref(f)}`,
+      dias: f.semaforo.dias,
+      pastilla: f.semaforo.clave === "vencida" ? `vencido ${f.semaforo.dias} d` : `vence en ${f.semaforo.dias} d`,
+      urgente: f.semaforo.clave === "vencida",
+    }));
+}
+
 module.exports = async function (context, req) {
   try {
     const umbrales = await getUmbrales();
     const pool = await getPool();
     // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza)
     await drenarConSql(pool, context);
-    const [solicitudes, frias, vencidas, aceptadas, grupos, clientes] = await Promise.all([
+    const [solicitudes, frias, vencidas, aceptadas, grupos, clientes, cobranza] = await Promise.all([
       solicitudesSinAtender(pool, umbrales.solicitudesHoras),
       cotizacionesFrias(pool, umbrales.cotizacionesDias),
       cotizacionesVencidas(pool),
@@ -226,11 +244,11 @@ module.exports = async function (context, req) {
     const vencidasSolas = vencidas.filter((x) => !vistas.has(x.id));
     vencidasSolas.forEach((x) => vistas.add(x.id));
     const cotizaciones = [...aceptadas, ...vencidasSolas, ...frias.filter((x) => !vistas.has(x.id))];
-    const items = [...solicitudes, ...cotizaciones, ...grupos, ...clientes];
+    const items = [...solicitudes, ...cotizaciones, ...grupos, ...clientes, ...cobranza];
     context.res = {
       status: 200,
       headers: JSON_HEADERS,
-      body: { total: items.length, umbrales, grupos: { solicitudes, cotizaciones, grupos, clientes } },
+      body: { total: items.length, umbrales, grupos: { solicitudes, cotizaciones, grupos, clientes, cobranza } },
     };
   } catch (err) {
     context.log.error("Error armando notificaciones activas:", err.message);

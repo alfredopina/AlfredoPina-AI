@@ -260,3 +260,7 @@
 .w-st, .w-btn{ white-space:nowrap; }
 .bi-flujo .w-ribbon{ overflow:hidden; padding:0 10px; gap:6px; }
 .bi-flujo .w-sep{ display:none; }
+
+/* la copia que viaja en la transición PowerPoint → Teams muestra la diapositiva ya clara, no la llena de texto */
+.viaje-ghost .p-dense{ display:none; }
+.viaje-ghost .p-slide .p-clean{ opacity:1; }

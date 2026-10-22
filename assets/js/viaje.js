@@ -74,6 +74,8 @@
         const copia = desde.cloneNode(true);
         copia.removeAttribute("id"); copia.classList.remove("reveal"); copia.style.cssText = "position:absolute;left:0;top:0;margin:0;opacity:1;width:" + desde.offsetWidth + "px;height:" + desde.offsetHeight + "px";
         copia.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+        // la copia se hace al construir (todo está oculto por .reveal): se muestra el contenido ya completo
+        copia.querySelectorAll(".reveal").forEach((n) => { n.style.opacity = 1; });
         fantasma.appendChild(copia);
       }
       canvas.appendChild(fantasma);

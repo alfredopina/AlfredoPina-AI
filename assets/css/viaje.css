@@ -300,3 +300,6 @@ body.viaje-on .auto-stage{ width:min(1300px, calc(100vw - 130px)); }
   .viaje-flujo .selector-label{ display:none; }
   .viaje-flujo .viaje-hero-title{ line-height:1.35; word-spacing:.06em; }
 }
+
+/* marco que viaja entre un objeto y otro en las transiciones de los viajes (lo crea ViajeEngine.morph) */
+.viaje-ghost{ position:absolute; z-index:5; overflow:hidden; pointer-events:none; opacity:0; border-radius:12px; border:1px solid; border-color:color-mix(in srgb, var(--c,#22c55e) 65%, transparent); background-color:var(--panel); box-shadow:0 12px 40px rgba(0,0,0,.45); }

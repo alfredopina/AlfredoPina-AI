@@ -52,6 +52,40 @@
       });
       root.querySelectorAll(".formula-msg-text").forEach((el) => { el.style.clipPath = "inset(0 0% 0 0)"; });
     },
+
+    // ---- utilidades de lienzo compartidas por los viajes con transiciones entre escenas (Power BI, Ofimática) ----
+    // posición/tamaño de un elemento en coordenadas del lienzo (offsetLeft/Top: ignoran transforms; wrap debe estar posicionado)
+    rel(el, wrap) {
+      let x = 0, y = 0, n = el;
+      while (n && n !== wrap) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      return { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight };
+    },
+    cen(el, wrap) { const r = ViajeEngine.rel(el, wrap); return [r.x + r.w / 2, r.y + r.h / 2]; },
+    // mensaje que "se escribe" (clip-path de izquierda a derecha)
+    tipea(tl, el, t, d) { return tl.to(el, { clipPath: "inset(0 0% 0 0)", duration: d, ease: "none" }, t); },
+    // un objeto se vuelve otro: el contenido de "desde" se apaga, un marco fantasma (.viaje-ghost) viaja de su caja a la de
+    // "hacia" (anima left/top/width/height reales: el texto nunca se deforma) y el contenido de "hacia" se enciende al llegar.
+    // clonar=true: el marco lleva una copia del contenido de "desde" (recortada al encogerse) para que no viaje vacío.
+    morph(tl, desde, hacia, canvas, t, d, clonar) {
+      const rel = ViajeEngine.rel;
+      const fantasma = document.createElement("div");
+      fantasma.className = "viaje-ghost";
+      if (clonar) {
+        const copia = desde.cloneNode(true);
+        copia.removeAttribute("id"); copia.classList.remove("reveal"); copia.style.cssText = "position:absolute;left:0;top:0;margin:0;opacity:1;width:" + desde.offsetWidth + "px;height:" + desde.offsetHeight + "px";
+        copia.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+        fantasma.appendChild(copia);
+      }
+      canvas.appendChild(fantasma);
+      const caja = (el) => () => { const r = rel(el, canvas); return { left: r.x, top: r.y, width: r.w, height: r.h }; };
+      const a = caja(desde), c = caja(hacia);
+      tl.fromTo(fantasma, { left: () => a().left, top: () => a().top, width: () => a().width, height: () => a().height, opacity: 0 },
+        { opacity: 1, duration: 1.5, ease: "none" }, t);
+      tl.to(desde, { opacity: 0, duration: 4, ease: "none" }, t);
+      tl.to(fantasma, { left: () => c().left, top: () => c().top, width: () => c().width, height: () => c().height, duration: d - 5, ease: "power2.inOut" }, t + 2);
+      tl.fromTo(hacia, { opacity: 0 }, { opacity: 1, duration: 4, ease: "none" }, t + d - 5);
+      tl.to(fantasma, { opacity: 0, duration: 2, ease: "none" }, t + d - 2);
+    },
   };
 
   // ============================================================

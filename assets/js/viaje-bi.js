@@ -239,20 +239,14 @@
       '<div class="bi-steps" id="biRail">' + tabs + '<span class="bi-status mono" id="biEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
-  // ---- utilidades de layout (en coordenadas del lienzo, ignoran transforms) ----
-  function rel(el, wrap) {
-    let x = 0, y = 0, n = el;
-    while (n && n !== wrap) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
-    return { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight };
-  }
-  const cen = (el, wrap) => { const r = rel(el, wrap); return [r.x + r.w / 2, r.y + r.h / 2]; };
+  // utilidades compartidas (rel/cen/tipea/morph) viven en el motor, viaje.js
+  const { rel, cen, tipea, morph } = E;
 
   function ctx(root, desk) {
     const $ = (s) => root.querySelector(s);
     const qa = (s) => Array.prototype.slice.call(root.querySelectorAll(s));
     return { $: $, qa: qa, desk: desk, msg: (i) => $("#biMsg" + i) };
   }
-  const tipea = (tl, el, t, d) => tl.to(el, { clipPath: "inset(0 0% 0 0)", duration: d, ease: "none" }, t);
 
   // =====================  ESCENA 1 · TRANSFORMAR  =====================
   function escQ(tl, b, R) {
@@ -440,30 +434,6 @@
     R_PARTES.matriz(tl, at(26), R);
     R_PARTES.narrativa(tl, at(44), R);
     R_PARTES.interaccion(tl, at(84), R);
-  }
-
-  // un objeto se vuelve otro: el contenido de "desde" se apaga, un marco fantasma viaja de su caja a la de "hacia"
-  // (anima left/top/width/height reales: el texto nunca se deforma) y el contenido de "hacia" se enciende al llegar.
-  // Coordenadas del lienzo (offsetLeft/Top, sin transforms).
-  // clonar=true: el marco lleva una copia del contenido de "desde" (recortada al encogerse) para que no viaje vacío.
-  function morph(tl, desde, hacia, canvas, t, d, clonar) {
-    const fantasma = document.createElement("div");
-    fantasma.className = "bi-ghost";
-    if (clonar) {
-      const copia = desde.cloneNode(true);
-      copia.removeAttribute("id"); copia.classList.remove("reveal"); copia.style.cssText = "position:absolute;left:0;top:0;margin:0;opacity:1;width:" + desde.offsetWidth + "px;height:" + desde.offsetHeight + "px";
-      copia.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
-      fantasma.appendChild(copia);
-    }
-    canvas.appendChild(fantasma);
-    const caja = (el) => () => { const r = rel(el, canvas); return { left: r.x, top: r.y, width: r.w, height: r.h }; };
-    const a = caja(desde), c = caja(hacia);
-    tl.fromTo(fantasma, { left: () => a().left, top: () => a().top, width: () => a().width, height: () => a().height, opacity: 0 },
-      { opacity: 1, duration: 1.5, ease: "none" }, t);
-    tl.to(desde, { opacity: 0, duration: 4, ease: "none" }, t);
-    tl.to(fantasma, { left: () => c().left, top: () => c().top, width: () => c().width, height: () => c().height, duration: d - 5, ease: "power2.inOut" }, t + 2);
-    tl.fromTo(hacia, { opacity: 0 }, { opacity: 1, duration: 4, ease: "none" }, t + d - 5);
-    tl.to(fantasma, { opacity: 0, duration: 2, ease: "none" }, t + d - 2);
   }
 
   // =====================  CONTENIDO  =====================

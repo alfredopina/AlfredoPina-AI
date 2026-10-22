@@ -204,9 +204,6 @@ body.bi-hoja .bi-shell > *{ pointer-events:auto; }
 .r-fstat{ margin-top:auto; font-size:11px; line-height:1.5; color:var(--text-dim); padding:9px 10px; border-radius:6px; background-color:rgba(242,201,76,.1); border:1px solid rgba(242,201,76,.35); }
 .r-fstat b{ color:var(--bi); }
 
-/* marco que viaja entre un objeto y otro durante las transiciones (lo crea morph() en viaje-bi.js) */
-.bi-ghost{ position:absolute; z-index:5; overflow:hidden; pointer-events:none; opacity:0; border-radius:12px; border:1px solid rgba(242,201,76,.65); background-color:var(--panel); box-shadow:0 12px 40px rgba(0,0,0,.45); }
-
 /* cursores dentro de su escena */
 .bi-cur{ color:#fff; z-index:30; }
 .bi-root .click-ripple{ border-color:var(--bi); z-index:29; }

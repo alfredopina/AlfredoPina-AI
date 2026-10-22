@@ -19,18 +19,25 @@ function desglosarDesdeSubtotal(subtotal, tasa = IVA_TASA) {
   return { subtotal: s, iva, total: centavos(s + iva) };
 }
 
-// Captura manual: subtotal (IVA calculado), subtotal + iva, o solo total (histórico: el subtotal sale al revés)
-function desglosarMonto({ subtotal, iva, total }) {
+// Persona física con actividad empresarial: el cliente puede RETENER ISR y/o IVA, y entonces lo que pagan es MENOS que subtotal + IVA.
+// total = lo que realmente se cobra = subtotal + IVA − retención de ISR − retención de IVA (es el "Total" del CFDI).
+// Captura manual: subtotal (IVA calculado al 16 % si no se da) con sus retenciones opcionales, o solo el total ya neto
+// (histórico: el subtotal sale al revés sin retenciones, porque no se pueden adivinar).
+function desglosarMonto({ subtotal, iva, total, retencion_isr, retencion_iva }) {
   const vacio = (v) => v == null || v === "";
-  const t = vacio(total) ? null : Number(total);
-  const s = vacio(subtotal) ? null : Number(subtotal);
-  const i = vacio(iva) ? null : Number(iva);
-  for (const v of [t, s, i]) if (v != null && (!Number.isFinite(v) || v < 0)) throw falla("Los montos deben ser números de cero en adelante.");
-  if (s != null && i != null) return { subtotal: centavos(s), iva: centavos(i), total: centavos(s + i) };
-  if (s != null) return desglosarDesdeSubtotal(s);
+  const num = (v) => (vacio(v) ? null : Number(v));
+  const t = num(total), s = num(subtotal), i = num(iva), ri = num(retencion_isr), rv = num(retencion_iva);
+  for (const v of [t, s, i, ri, rv]) if (v != null && (!Number.isFinite(v) || v < 0)) throw falla("Los montos deben ser números de cero en adelante.");
+  if (s != null) {
+    const base = i != null ? { subtotal: centavos(s), iva: centavos(i) } : desglosarDesdeSubtotal(s);
+    const isr = centavos(ri || 0), rviva = centavos(rv || 0);
+    const neto = centavos(base.subtotal + base.iva - isr - rviva);
+    if (neto < 0) throw falla("Las retenciones no pueden ser mayores que el subtotal más el IVA.");
+    return { subtotal: base.subtotal, iva: base.iva, retencion_isr: isr, retencion_iva: rviva, total: neto };
+  }
   if (t != null) {
     const sub = centavos(t / (1 + IVA_TASA));
-    return { subtotal: sub, iva: centavos(t - sub), total: centavos(t) };
+    return { subtotal: sub, iva: centavos(t - sub), retencion_isr: 0, retencion_iva: 0, total: centavos(t) };
   }
   throw falla("Falta el monto (subtotal o total).");
 }

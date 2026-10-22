@@ -117,6 +117,7 @@ Propuesta (por decidir): (1) agregar al respaldo semanal las tablas de contenido
 - Apex `alfredopina.ai` sin `www` (decidido dejarlo así); `npm audit` (decidido no tocarlo: 2 CVEs moderados no explotables aquí).
 - Dominios adicionales (data-master.mx, quieroaprenderexcel.com, pixeco.com.mx): revisar SPF/DKIM/DMARC.
 - Entidad Alumno para el resto del sistema (hoy nombre como texto en Diagnóstico/Diplomas/Encuestas); alertas de enviadas sin abrir, bitácora de estatus y buscador por folio en Cotizaciones.
+- **Trackings con ventana emergente en vez de página (decisión de Alfredo 2026-10-22, no urgente):** Cobranza abre el detalle y el alta en ventanas emergentes y a Alfredo le gusta más (se ve mejor y es más simple). Llevar ese patrón a Solicitudes, Cotizaciones, Clientes y Grupos, donde hoy "crear" es una pestaña del panel. Antes, sesión de diseño en texto (qué se conserva de cada formulario).
 - Link real de YouTube en el pie (no hay canal todavía).
 - **Aviso cuando el sitio se cae:** el 2026-09-25 estuvo caído horas por una factura vencida y nada avisó. Un monitoreo de disponibilidad gratuito (una alerta de Azure o un servicio externo) que mande correo si `www.alfredopina.ai` deja de responder.
 - **Probar cambios riesgosos antes de producción:** hoy cada push a `main` se despliega directo. Para cambios delicados (como la inversión de reglas de rutas) usar una rama con pull request, que Static Web Apps Free despliega en un entorno de vista previa.

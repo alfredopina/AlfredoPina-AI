@@ -6123,7 +6123,8 @@
         '<div class="cbz-montos">' +
         '<div class="cbz-monto"><small>SUBTOTAL</small><b>' + dinero(c.subtotal) + '</b></div>' +
         '<div class="cbz-monto"><small>IVA</small><b>' + dinero(c.iva) + '</b></div>' +
-        '<div class="cbz-monto"><small>TOTAL</small><b>' + dinero(c.total) + '</b></div>' +
+        ((c.retencion_isr || c.retencion_iva) ? '<div class="cbz-monto"><small>RETENCIONES</small><b>−' + dinero((c.retencion_isr || 0) + (c.retencion_iva || 0)) + '</b></div>' : '') +
+        '<div class="cbz-monto"><small>TOTAL A COBRAR</small><b>' + dinero(c.total) + '</b></div>' +
         '<div class="cbz-monto"><small>PAGADO</small><b>' + dinero(c.pagado) + '</b></div>' +
         '<div class="cbz-monto"><small>SALDO</small><b>' + dinero(cancelada ? 0 : c.saldo) + '</b></div>' +
         '</div>' +
@@ -6140,7 +6141,9 @@
         '<div class="radm-field"><label>VENCIMIENTO</label><input type="text" readonly value="' + (c.vencimiento ? fmtFecha(c.vencimiento) : 'Sin plazo (falta el inicio)') + '"></div>' +
         '</div><p class="radm-hint" style="margin:-4px 0 12px;">El vencimiento es el inicio del plazo más los días de plazo. En gobierno el plazo empieza con el contra-recibo, no con la fecha de la factura.</p>' +
         (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
-          : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) + campoNum('cbzDIva', 'IVA', c.iva) + '</div>') +
+          : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) + campoNum('cbzDIva', 'IVA', c.iva) +
+            campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>' +
+            '<p class="radm-hint" style="margin:-4px 0 12px;">Total a cobrar = subtotal + IVA − retenciones. Si el cliente te retiene, captura aquí lo que retiene (es el total de la factura).</p>') +
         '<div class="radm-field" style="margin-bottom:12px;"><label for="cbzDNotas">NOTAS</label><textarea id="cbzDNotas" rows="2" maxlength="4000">' + esc(c.notas || '') + '</textarea></div>' +
         '<div class="cbz-acciones">' +
         '<button type="button" class="radm-btn" data-det="guardar">Guardar cambios</button>' +
@@ -6246,7 +6249,7 @@
           id: c.id, concepto: valor('cbzDConcepto'), folio_factura: valor('cbzDFolio'), uuid_factura: valor('cbzDUuid'), fecha_emision: valor('cbzDEmision'),
           orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), plazo_dias: valor('cbzDPlazo'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
         };
-        if($('cbzDSubtotal')){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = valor('cbzDIva'); }
+        if($('cbzDSubtotal')){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = valor('cbzDIva'); datos.retencion_isr = valor('cbzDRetIsr'); datos.retencion_iva = valor('cbzDRetIva'); }
         await guardarYRefrescar('/api/editarCuentaCobrar', datos, 'Cuenta guardada.', 'cbzDError');
       } else if(que === 'facturada'){
         await guardarYRefrescar('/api/cambiarEstatusCuentaCobrar', { id: c.id, estatus: 'Facturada' }, 'Cuenta marcada como facturada.', 'cbzDError');
@@ -6279,8 +6282,10 @@
         '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos a empresas</option><option value="abiertos">Cursos abiertos</option></select></div>' +
         '</div>' +
         '<div class="cbz-grid">' + campoTxt('cbzNConcepto', 'CONCEPTO', '', ' maxlength="300" placeholder="Qué se cobra"') +
-        '<div class="radm-field"><label for="cbzNModo">EL MONTO ES</label><select id="cbzNModo"><option value="subtotal">Subtotal, sin IVA (se suma 16 %)</option><option value="total">Total, ya con IVA</option></select></div>' +
+        '<div class="radm-field"><label for="cbzNModo">EL MONTO ES</label><select id="cbzNModo"><option value="subtotal">Subtotal, sin IVA (se suma 16 %)</option><option value="total">Total a cobrar (ya con IVA y retenciones)</option></select></div>' +
         campoNum('cbzNMonto', 'MONTO', '') + '</div>' +
+        '<div class="cbz-grid">' + campoNum('cbzNRetIsr', 'RETENCIÓN DE ISR (OPCIONAL)', '') + campoNum('cbzNRetIva', 'RETENCIÓN DE IVA (OPCIONAL)', '') + '</div>' +
+        '<p class="radm-hint" style="margin:-4px 0 12px;">Las retenciones aplican cuando el monto es subtotal: el total a cobrar es subtotal + IVA − retenciones. Si capturas el total, ya debe venir neto.</p>' +
         '<div class="cbz-grid">' + campoTxt('cbzNFolio', 'FOLIO DE LA FACTURA (SI YA EXISTE)', '', ' maxlength="40"') + campoTxt('cbzNUuid', 'UUID DE LA FACTURA', '', ' maxlength="40"') +
         campoFecha('cbzNEmision', 'FECHA DE EMISIÓN', '') + campoTxt('cbzNOC', 'ORDEN DE COMPRA', '', ' maxlength="60"') +
         campoFecha('cbzNInicio', 'INICIO DEL PLAZO', '') + campoNum('cbzNPlazo', 'PLAZO (DÍAS)', 30, ' step="1" max="365"') + '</div>' +
@@ -6295,6 +6300,7 @@
           inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'),
         };
         datos[valor('cbzNModo')] = monto;
+        if(valor('cbzNModo') === 'subtotal'){ datos.retencion_isr = valor('cbzNRetIsr'); datos.retencion_iva = valor('cbzNRetIva'); }
         errorEn('cbzNError', '');
         try {
           await apiPostJson('/api/crearCuentaCobrar', datos);

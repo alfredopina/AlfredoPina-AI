@@ -20,9 +20,19 @@ check("captura solo con total: el subtotal sale al revés y suma exacto", () => 
   const m = C.desglosarMonto({ total: 10176 });
   assert.strictEqual(m.total, 10176);
   assert.strictEqual(C.centavos(m.subtotal + m.iva), 10176);
+  assert.strictEqual(m.retencion_isr, 0);
+});
+check("retenciones (persona física): total = subtotal + IVA − ISR − IVA retenido", () => {
+  // Gobierno: solo retiene 10 % de ISR → 9,600 + 1,536 − 960 = 10,176
+  assert.deepStrictEqual(C.desglosarMonto({ subtotal: 9600, retencion_isr: 960 }), { subtotal: 9600, iva: 1536, retencion_isr: 960, retencion_iva: 0, total: 10176 });
+  // ISR 10 % + 2/3 del IVA
+  const m = C.desglosarMonto({ subtotal: 10000, retencion_isr: 1000, retencion_iva: 1066.67 });
+  assert.strictEqual(m.total, 9533.33);
+  assert.throws(() => C.desglosarMonto({ subtotal: 100, retencion_isr: 500 }), /retenciones/);
+  assert.strictEqual(C.desglosarMonto({ subtotal: 1000 }).retencion_isr, 0, "sin retenciones por defecto");
 });
 check("subtotal + iva explícitos se respetan; sin monto o negativo se rechaza", () => {
-  assert.deepStrictEqual(C.desglosarMonto({ subtotal: 1000, iva: 0 }), { subtotal: 1000, iva: 0, total: 1000 });
+  assert.deepStrictEqual(C.desglosarMonto({ subtotal: 1000, iva: 0 }), { subtotal: 1000, iva: 0, retencion_isr: 0, retencion_iva: 0, total: 1000 });
   assert.throws(() => C.desglosarMonto({}), /monto/);
   assert.throws(() => C.desglosarMonto({ total: -5 }), /cero/);
 });
@@ -168,6 +178,21 @@ function fabrica(handler) {
     assert.strictEqual(upd.params.t, 580);
     assert.strictEqual(C.centavos(upd.params.s + upd.params.i), 580);
     assert.strictEqual(f.hubo("INSERT INTO CuentaPorCobrar")[0].params.total, 580);
+  });
+  await checkAsync("dividir una cuenta con retenciones reparte todo en proporción y cuadra al centavo", async () => {
+    const f = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 1, cliente_id: 3, estrategia: "empresas", concepto: "Curso", subtotal: 9600, iva: 1536, retencion_isr: 960, retencion_iva: 0, total: 10176, plazo_dias: 30, estatus: "Por facturar" }] : t.includes("INSERT INTO CuentaPorCobrar") ? [{ id: 2 }] : []));
+    await DB.dividirCuenta(f.nuevaRequest, 1, [{ total: 3392 }, { total: 6784 }]);
+    const a = f.hubo("UPDATE CuentaPorCobrar SET subtotal")[0].params, b = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
+    for (const p of [{ s: a.s, i: a.i, r: a.ri, t: a.t }, { s: b.subtotal, i: b.iva, r: b.retencion_isr, t: b.total }]) assert.strictEqual(C.centavos(p.s + p.i - p.r), p.t);
+    assert.strictEqual(a.ri, 320);
+    assert.strictEqual(b.retencion_isr, 640);
+  });
+  await checkAsync("editar solo las retenciones parte del subtotal que ya tiene la cuenta", async () => {
+    const f = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 1, estatus: "Por facturar", subtotal: 9600, iva: 1536, retencion_isr: 0, retencion_iva: 0, total: 11136 }] : []));
+    await DB.editarCuenta(f.nuevaRequest, { id: 1, retencion_isr: "960" });
+    const upd = f.hubo("UPDATE CuentaPorCobrar SET")[0];
+    assert.strictEqual(upd.params.total, 10176);
+    assert.strictEqual(upd.params.retencion_isr, 960);
   });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {
     const f = fabrica((t) => (t.includes("FROM Cliente") ? [{ id: 3 }] : t.includes("INSERT") ? [{ id: 1 }] : []));

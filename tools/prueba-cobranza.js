@@ -9,7 +9,7 @@ const HTML = fs.readFileSync(path.join(__dirname, '..', 'admin', 'index.html'), 
 const sem = (clave, dias) => ({ clave, dias });
 const pago = (id, monto, fecha, anulado) => ({ id, monto, fecha, metodo: 'Transferencia', folio_complemento: '17', uuid_complemento: 'aaaa-bbbb', anulado: !!anulado });
 const cuenta = (o) => ({ id: 1, cliente_id: 3, cliente: 'Acme SA', cliente_codigo: 'ACME', cotizacion_id: 7, cotizacion_folio: 'AP26-ACME-EXCEL-01', origen: 'Automática', estrategia: 'empresas',
-  concepto: 'Curso de Excel', subtotal: 10000, iva: 1600, total: 11600, folio_factura: null, uuid_factura: null, fecha_emision: null, orden_compra: null, inicio_plazo: null,
+  concepto: 'Curso de Excel', subtotal: 10000, iva: 1600, retencion_isr: 0, retencion_iva: 0, total: 11600, folio_factura: null, uuid_factura: null, fecha_emision: null, orden_compra: null, inicio_plazo: null,
   plazo_dias: 30, vencimiento: null, estatus: 'Por facturar', notas: null, pagos: [], pagado: 0, saldo: 11600, semaforo: sem('sin_plazo', null), ...o });
 let cuentas = [
   cuenta({ id: 1, cliente: 'Zeta SA', estatus: 'Facturada', folio_factura: '201', fecha_emision: '2026-09-01', inicio_plazo: '2026-09-01', vencimiento: '2026-10-01', semaforo: sem('vencida', 21) }),
@@ -136,6 +136,11 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzVistas [data-vista="facturar"]'));
   await clic(q('#cbzListaBody tr[data-id="4"]'));
   check('cuenta sin pagos: monto editable y botón de dividir', !!q('#cbzDSubtotal') && !!q('[data-det="dividir"]'));
+  check('el detalle trae las retenciones de ISR e IVA', !!q('#cbzDRetIsr') && !!q('#cbzDRetIva'));
+  poner('cbzDRetIsr', '960'); llamadas.length = 0;
+  await clic(q('[data-det="guardar"]'));
+  const guard = llamadas.find((l) => l.u.includes('editarCuentaCobrar'));
+  check('guardar manda subtotal, IVA y retenciones', guard && guard.cuerpo.retencion_isr === '960' && guard.cuerpo.subtotal === '10000' && guard.cuerpo.retencion_iva === '0', JSON.stringify(guard && guard.cuerpo));
   await clic(q('[data-det="dividir"]'));
   check('la división propone 2 partes que suman el total', qa('.cbz-parte-total').length === 2 && qa('.cbz-parte-total').reduce((a, i) => a + Number(i.value), 0) === 11600);
   llamadas.length = 0;
@@ -157,6 +162,12 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const alta = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
   check('crea la cuenta con el cliente, la estrategia y el monto como total', alta && alta.cuerpo.cliente_id === 4 && alta.cuerpo.estrategia === 'abiertos' && alta.cuerpo.total === '1160' && !('subtotal' in alta.cuerpo), JSON.stringify(alta && alta.cuerpo));
   check('el formulario se cierra al guardar', q('#cbzNueva').hidden);
+
+  await clic(q('#cbzCrearBtn')); await pausa(100); llamadas.length = 0;
+  poner('cbzNCliente', '3'); poner('cbzNConcepto', 'Curso Gobierno'); poner('cbzNModo', 'subtotal'); poner('cbzNMonto', '9600'); poner('cbzNRetIsr', '960');
+  await clic(q('#cbzNGuardar'));
+  const alta2 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
+  check('alta con subtotal manda las retenciones (y no manda total)', alta2 && alta2.cuerpo.subtotal === '9600' && alta2.cuerpo.retencion_isr === '960' && !('total' in alta2.cuerpo), JSON.stringify(alta2 && alta2.cuerpo));
 
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);

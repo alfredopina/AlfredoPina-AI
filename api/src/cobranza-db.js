@@ -55,7 +55,7 @@ function leerCampos(b, parcial) {
   return out;
 }
 
-const TIPOS = { fecha_emision: sql.Date, inicio_plazo: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const TIPOS = { fecha_emision: sql.Date, inicio_plazo: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
 const dia = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
 const fechaSql = (v) => (v ? new Date(v + "T00:00:00Z") : null);
 
@@ -103,9 +103,13 @@ async function editarCuenta(nuevaRequest, b) {
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, id);
   const campos = leerCampos(b, true);
   let montos = {};
-  if (["subtotal", "iva", "total"].some((k) => k in b && b[k] !== "" && b[k] != null)) {
+  if (["subtotal", "iva", "total", "retencion_isr", "retencion_iva"].some((k) => k in b && b[k] !== "" && b[k] != null)) {
     if (C.totalPagado(pagos) > 0) throw C.falla("Ya hay pagos registrados: el monto ya no se edita (anula los pagos o crea otra cuenta).", 409);
-    montos = C.desglosarMonto(b);
+    // si solo cambian las retenciones (o el IVA) se parte del subtotal que ya tiene la cuenta
+    const hayTotalSolo = (b.subtotal === "" || b.subtotal == null) && b.total !== "" && b.total != null;
+    const entrada = hayTotalSolo ? b : { ...b, subtotal: b.subtotal !== "" && b.subtotal != null ? b.subtotal : cuenta.subtotal, iva: b.iva !== "" && b.iva != null ? b.iva : cuenta.iva,
+      retencion_isr: "retencion_isr" in b ? b.retencion_isr : cuenta.retencion_isr, retencion_iva: "retencion_iva" in b ? b.retencion_iva : cuenta.retencion_iva };
+    montos = C.desglosarMonto(entrada);
     if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   }
   const datos = { ...campos, ...montos };
@@ -166,14 +170,21 @@ async function dividirCuenta(nuevaRequest, id, partes) {
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, Number(id));
   const lista = C.validarDivision({ total: cuenta.total, estatus: cuenta.estatus, pagos }, partes);
   const proporcion = (t) => (Number(cuenta.total) ? t / Number(cuenta.total) : 0);
-  const desglose = (t) => { const sub = C.centavos(Number(cuenta.subtotal) * proporcion(t)); return { subtotal: sub, iva: C.centavos(t - sub), total: t }; };
+  // cada concepto se reparte en proporción al total; el IVA absorbe el redondeo para que subtotal + IVA − retenciones = total exacto
+  const desglose = (t) => {
+    const sub = C.centavos(Number(cuenta.subtotal) * proporcion(t));
+    const isr = C.centavos(Number(cuenta.retencion_isr || 0) * proporcion(t));
+    const riva = C.centavos(Number(cuenta.retencion_iva || 0) * proporcion(t));
+    return { subtotal: sub, iva: C.centavos(t - sub + isr + riva), retencion_isr: isr, retencion_iva: riva, total: t };
+  };
   const nuevas = [];
   for (let i = 0; i < lista.length; i++) {
     const m = desglose(lista[i].total);
     const concepto = lista[i].concepto || `${cuenta.concepto} (parte ${i + 1} de ${lista.length})`.slice(0, 300);
     if (i === 0) {
       await nuevaRequest().input("id", sql.Int, cuenta.id).input("s", sql.Decimal(12, 2), m.subtotal).input("i", sql.Decimal(12, 2), m.iva).input("t", sql.Decimal(12, 2), m.total).input("c", sql.NVarChar, concepto)
-        .query("UPDATE CuentaPorCobrar SET subtotal = @s, iva = @i, total = @t, concepto = @c WHERE id = @id");
+        .input("ri", sql.Decimal(12, 2), m.retencion_isr).input("rv", sql.Decimal(12, 2), m.retencion_iva)
+        .query("UPDATE CuentaPorCobrar SET subtotal = @s, iva = @i, retencion_isr = @ri, retencion_iva = @rv, total = @t, concepto = @c WHERE id = @id");
     } else {
       nuevas.push(await insertarCuenta(nuevaRequest, {
         cliente_id: cuenta.cliente_id, cotizacion_id: cuenta.cotizacion_id, grupo_id: cuenta.grupo_id, origen: "Manual", estrategia: cuenta.estrategia,
@@ -211,7 +222,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   if (clienteId) { where = "WHERE x.cliente_id = @cliente"; req.input("cliente", sql.Int, clienteId); }
   const cuentas = await req.query(`
     SELECT x.id, x.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
-           x.concepto, x.subtotal, x.iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
+           x.concepto, x.subtotal, x.iva, x.retencion_isr, x.retencion_iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
            x.inicio_plazo, x.plazo_dias, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion
     FROM CuentaPorCobrar x
     JOIN Cliente c ON c.id = x.cliente_id
@@ -230,7 +241,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
     const venc = dia(x.vencimiento);
     const total = Number(x.total);
     const saldo = C.saldoDe(total, misPagos);
-    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), subtotal: Number(x.subtotal), iva: Number(x.iva), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
+    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), subtotal: Number(x.subtotal), iva: Number(x.iva), retencion_isr: Number(x.retencion_isr || 0), retencion_iva: Number(x.retencion_iva || 0), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
     fila.semaforo = C.semaforoDe({ estatus: x.estatus, saldo, vencimiento: venc }, hoy, umbralPorVencer);
     return fila;
   });

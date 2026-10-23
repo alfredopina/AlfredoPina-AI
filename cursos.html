@@ -28,12 +28,14 @@
 <link rel="stylesheet" href="/assets/css/viaje.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<link rel="stylesheet" href="/assets/css/viaje-xl.css">
 <link rel="stylesheet" href="/assets/css/viaje-bi.css">
 <link rel="stylesheet" href="/assets/css/viaje-ofi.css">
 <link rel="stylesheet" href="/assets/css/viaje-ia.css">
 <link rel="stylesheet" href="/assets/css/viaje-pa.css">
 <link rel="stylesheet" href="/assets/css/viaje-auto.css">
 <script src="/assets/js/viaje.js" defer></script>
+<script src="/assets/js/viaje-xl.js" defer></script>
 <script src="/assets/js/viaje-bi.js" defer></script>
 <script src="/assets/js/viaje-ofi.js" defer></script>
 <script src="/assets/js/viaje-ia.js" defer></script>
@@ -269,7 +271,7 @@
     }
 
     // El viaje (scroll-scrub) solo existe para las herramientas registradas en
-    // window.ViajeEscenas (Excel en viaje.js, Power BI en viaje-bi.js, Ofimática en viaje-ofi.js, IA en viaje-ia.js, Power Apps en viaje-pa.js, Power Automate en viaje-auto.js). Para
+    // window.ViajeEscenas (Excel en viaje-xl.js, Power BI en viaje-bi.js, Ofimática en viaje-ofi.js, IA en viaje-ia.js, Power Apps en viaje-pa.js, Power Automate en viaje-auto.js). Para
     // replicarlo a otra herramienta: registrar su bloque ahí, nada se toca aquí.
     // Ojo: sin programas estándar publicados en el admin no hay viaje ("en construcción").
     const tieneViaje = window.ViajeHerramienta && window.ViajeHerramienta.tieneConfig(currentCat);

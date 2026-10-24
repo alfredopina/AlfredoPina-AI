@@ -220,11 +220,49 @@
       I.cursor.replace('class="', 'id="curR" class="') + '<div class="click-ripple" id="ripR"></div></div></div>';
   }
 
+  // ---- héroe: un dashboard vivo que asoma por abajo (se corta con un degradado: invita a bajar) ----
+  const HB_KPI = [["Ventas", 2.4, 1.05, (v) => "$" + v.toFixed(2) + "M", "▲ +12% vs. meta"], ["Crecimiento", 18, 24, (v) => "▲ " + Math.round(v) + "%", "▲ sobre la meta"], ["Margen", 34, 38, (v) => Math.round(v) + "%", "▼ bajo la meta"], ["Cumplimiento", 94, 91, (v) => Math.round(v) + "%", "● cerca de la meta"]];
+  const HB_BAR = [["Ene", 46, 22], ["Feb", 58, 30], ["Mar", 52, 28], ["Abr", 70, 38], ["May", 64, 34], ["Jun", 82, 46]];
+  const HB_DON = [[38, 44, "#f2c94c"], [24, 22, "#6b9fff"], [20, 18, "#14b8a6"], [18, 16, "#a78bfa"]];
   function heroHtml() {
-    return '<section class="viaje-hero" id="biHero"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
-      '<h1 class="viaje-hero-title">Aprende Power BI como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">Visual</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Desktop y Service</span><span class="scope-chip">Español e Inglés</span><span class="scope-chip">Modelado y DAX</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#biQ" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const kpi = HB_KPI.map((k, i) => '<div class="hb-k"><span>' + k[0] + '</span><b id="hbK' + i + '">' + k[3](k[1]) + "</b><em>" + k[4] + "</em></div>").join("");
+    const bar = HB_BAR.map((x, i) => '<div class="hb-bc"><div class="hb-bp"><i data-i="' + i + '"></i></div><span>' + x[0] + "</span></div>").join("");
+    const don = HB_DON.map((d, i) => '<circle class="hb-seg" cx="21" cy="21" r="15.9155" fill="none" stroke="' + d[2] + '" stroke-width="5" data-i="' + i + '" stroke-dasharray="' + d[0] + ' ' + (100 - d[0]) + '"/>').join("");
+    return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-text"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
+      '<h1 class="viaje-hero-title">Que tus datos <span class="accent">hablen<span class="selector-box"><span class="selector-label">Visual</span></span></span>.</h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Dashboards</span><span class="scope-chip">Modelado y DAX</span><span class="scope-chip">Desktop y Service</span></div>' +
+      '<div class="viaje-hero-actions"><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></div>" +
+      '<div class="hb-dash" aria-hidden="true"><div class="hb-win"><div class="hb-bar"><i></i><i></i><i></i><span class="hb-fn">Ventas.pbix</span><span class="hb-fl">Región<b class="hb-ch" id="hbCh0">Todas</b><b class="hb-ch" id="hbCh1">Norte</b></span></div>' +
+      '<div class="hb-body"><div class="hb-ks">' + kpi + '</div><div class="hb-row"><div class="hb-p hb-pb"><h5>Ventas por mes</h5><div class="hb-bars">' + bar + '</div></div>' +
+      '<div class="hb-p"><h5>Tendencia</h5><svg viewBox="0 0 120 60" preserveAspectRatio="none"><path id="hbLn" d="M0,48 L20,40 L40,44 L60,26 L80,18 L100,10 L120,6" fill="none" stroke="#f2c94c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg></div>' +
+      '<div class="hb-p"><h5>Por producto</h5><svg class="hb-dn" viewBox="0 0 42 42">' + don + "</svg></div></div></div></div></div>" +
+      '<a href="#biQ" class="hb-cue" data-viaje-next><span>Baja y mira cómo se construye</span><i class="hb-cl"></i></a></section>';
+  }
+
+  // el dashboard del héroe lo mueve UN solo estado: g (0→1: se dibuja) y t (0 = todas las regiones, 1 = Norte)
+  function heroDash(root, animar) {
+    const q = (s) => root.querySelectorAll(s);
+    const st = { g: animar ? 0 : 1, t: 0 };
+    const lerp = (a, b, t) => a + (b - a) * t;
+    function pinta() {
+      const g = st.g, t = st.t;
+      HB_KPI.forEach((k, i) => { const el = root.querySelector("#hbK" + i); if (el) el.textContent = k[3](lerp(k[1], k[2], t) * g); });
+      q(".hb-bp i").forEach((el, i) => { el.style.height = lerp(HB_BAR[i][1], HB_BAR[i][2], t) * g + "%"; });
+      let acum = 0;
+      q(".hb-seg").forEach((c, i) => { const p = lerp(HB_DON[i][0], HB_DON[i][1], t) * g; c.setAttribute("stroke-dasharray", p + " " + (100 - p)); c.setAttribute("stroke-dashoffset", -acum); acum += p; });
+      const ln = root.querySelector("#hbLn"); if (ln) ln.setAttribute("stroke-dashoffset", 100 * (1 - g));
+      const c0 = root.querySelector("#hbCh0"), c1 = root.querySelector("#hbCh1");
+      if (c0 && c1) { c0.classList.toggle("on", t < 0.5); c1.classList.toggle("on", t >= 0.5); }
+    }
+    pinta();
+    if (!animar) return;
+    gsap.to(st, { g: 1, duration: 2.2, ease: "power2.out", delay: 0.5, onUpdate: pinta });
+    // después de dibujarse, filtra Norte y vuelve, para siempre (se pausa cuando el héroe sale de pantalla)
+    const lazo = gsap.timeline({ repeat: -1, delay: 4, defaults: { ease: "power2.inOut", onUpdate: pinta } });
+    lazo.to(st, { t: 1, duration: 1 }).to(st, { t: 0, duration: 1 }, "+=2.6").to({}, { duration: 2.2 });
+    ScrollTrigger.create({ trigger: root.querySelector("#biHero"), start: "top bottom", end: "bottom top", onToggle: (x) => lazo.paused(!x.isActive) });
+    // al bajar, el dashboard sube un poco más rápido que la página y se atenúa: se siente que entra al recorrido
+    gsap.to(root.querySelector(".hb-dash"), { y: -70, opacity: 0.35, ease: "none", scrollTrigger: { trigger: root.querySelector("#biHero"), start: "top top+=" + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--viaje-nav-h")) || 130), end: "bottom top", scrub: true } });
   }
 
   function shellHtml() {
@@ -465,10 +503,11 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, false); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, false); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      heroDash(root, true);
       const R = ctx(root, true), $ = R.$, qa = R.qa;
       const pin = $("#biPin"), canvas = $("#biCanvas");
 

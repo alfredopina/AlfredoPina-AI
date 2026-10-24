@@ -269,3 +269,51 @@ body.bi-hoja .bi-shell > *{ pointer-events:auto; }
 .bi-flujo .m-node{ min-width:0; }
 .bi-flujo .d-fields{ order:2; }
 .bi-flujo .bi-canvas{ max-width:980px; margin:0 auto; }
+
+/* ---------- héroe de Power BI: titular corto + un dashboard vivo que asoma por abajo (prefijo hb-) ----------
+   El héroe mide justo la pantalla; el dashboard se corta con un degradado y una pista de scroll lo invita a bajar. */
+.hb-hero{ height:calc(100vh - var(--viaje-nav-h)); min-height:540px; justify-content:flex-start; gap:0; padding:clamp(20px,5vh,56px) 16px 0; overflow:hidden; }
+.hb-text{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(14px,2.6vh,26px); text-align:center; position:relative; z-index:2; }
+.hb-hero .viaje-hero-title{ line-height:1.2; }
+.hb-hero .viaje-hero-actions{ margin-top:2px; }
+.hb-hero .viaje-btn{ min-width:240px; height:46px; }
+.hb-hero::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:46%; background:linear-gradient(to bottom, rgba(10,13,18,0), var(--bg) 88%); pointer-events:none; z-index:3; }
+.hb-dash{ container-type:inline-size; width:min(1080px,94vw); margin-top:clamp(18px,4vh,40px); perspective:1400px; flex:none; }
+.hb-win{ transform:rotateX(9deg); transform-origin:50% 0; background-color:var(--panel); border:1px solid rgba(242,201,76,.28); border-radius:14px; box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 90px rgba(242,201,76,.1); overflow:hidden; }
+.hb-bar{ display:flex; align-items:center; gap:7px; height:3.6cqw; min-height:26px; padding:0 2cqw; background-color:var(--panel-2); border-bottom:1px solid var(--line); font-size:max(10px,1.25cqw); color:var(--text); }
+.hb-bar > i{ width:.9cqw; height:.9cqw; min-width:7px; min-height:7px; border-radius:50%; background-color:rgba(255,255,255,.18); }
+.hb-fn{ margin-left:1cqw; font-family:var(--mono); color:#f2c94c; }
+.hb-fl{ margin-left:auto; display:flex; align-items:center; gap:6px; color:var(--text-dim,#9aa3b2); }
+.hb-ch{ font-weight:600; padding:2px 9px; border-radius:10px; border:1px solid rgba(255,255,255,.18); color:#a9b2c0; }
+.hb-ch.on{ background-color:rgba(242,201,76,.18); border-color:#f2c94c; color:#f2c94c; }
+.hb-body{ text-align:left; padding:1.8cqw; display:flex; flex-direction:column; gap:1.5cqw; }
+.hb-ks{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.5cqw; }
+.hb-k{ background-color:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:1.2cqw 1.5cqw; display:flex; flex-direction:column; gap:.2cqw; }
+.hb-k span{ font-size:max(9px,1.2cqw); color:#8a96a8; }
+.hb-k b{ font-family:var(--display); font-size:max(14px,2.9cqw); font-weight:600; line-height:1.1; color:#fff; }
+.hb-k em{ font-style:normal; font-size:max(8px,1.05cqw); color:#5fe6cf; font-weight:600; }
+.hb-k:nth-child(3) em{ color:#ff8787; }
+.hb-k:nth-child(4) em{ color:#dfb35a; }
+.hb-row{ display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:1.5cqw; height:34cqw; }
+.hb-p{ background-color:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:1cqw 1.4cqw; display:flex; flex-direction:column; min-width:0; }
+.hb-p h5{ font-size:max(9px,1.15cqw); font-weight:600; color:#8a96a8; margin-bottom:.6cqw; }
+.hb-bars{ flex:1; display:flex; gap:1cqw; min-height:0; }
+.hb-bc{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; }
+.hb-bp{ flex:1; width:100%; display:flex; align-items:flex-end; justify-content:center; }
+.hb-bp i{ display:block; width:62%; height:0; border-radius:3px 3px 0 0; background-color:#f2c94c; }
+.hb-bc span{ font-size:max(8px,1cqw); color:#8a96a8; }
+.hb-p svg{ flex:1; min-height:0; width:100%; }
+.hb-dn{ transform:rotate(-90deg); max-height:100%; }
+.hb-cue{ position:absolute; left:50%; bottom:clamp(14px,3.5vh,32px); transform:translateX(-50%); z-index:4; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; }
+.hb-cue:hover{ color:var(--c,#f2c94c); }
+.hb-cl{ display:block; width:2px; height:34px; border-radius:2px; background-image:linear-gradient(to bottom, rgba(242,201,76,0), #f2c94c); animation:hbCue 1.8s ease-in-out infinite; }
+@keyframes hbCue{ 0%{ transform:translateY(-8px); opacity:0; } 40%{ opacity:1; } 100%{ transform:translateY(8px); opacity:0; } }
+@media (prefers-reduced-motion: reduce){ .hb-cl{ animation:none; } }
+
+/* teléfono / estático: sin corte; el dashboard se ve completo debajo del texto */
+.bi-flujo .hb-hero{ height:auto; min-height:0; padding-bottom:28px; }
+.bi-flujo .hb-hero::after{ display:none; }
+.bi-flujo .hb-win{ transform:none; }
+.bi-flujo .hb-cue{ position:static; transform:none; margin-top:22px; }
+.bi-flujo .hb-row{ height:30cqw; }
+.bi-flujo .hb-hero .viaje-hero-title{ font-size:clamp(26px,7.6vw,40px); word-spacing:0; }

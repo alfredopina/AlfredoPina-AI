@@ -203,9 +203,14 @@ function fabrica(handler) {
     const f2 = fabrica((t) => (t.includes("INSERT INTO CuentaPorCobrar") ? [{ id: 78 }] : []));
     await DB.crearCuentaDeGrupo(f2.nuevaRequest, { grupoId: 6, clienteId: 3, concepto: "Excel", monto: "" });
     assert.strictEqual(f2.hubo("INSERT INTO CuentaPorCobrar")[0].params.total, 0, "sin monto: $0 por definir");
-    const f3 = fabrica((t) => (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar") ? [{ id: 9 }] : []));
+    const f3 = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE grupo_id = @g") ? [{ id: 9, grupo_id: 5 }] : []));
     assert.deepStrictEqual(await DB.crearCuentaDeGrupo(f3.nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "x" }), { creada: false, id: 9 });
     assert.strictEqual(f3.hubo("INSERT").length, 0);
+    // un grupo que ya existía con cotización ganada: la cuenta de la cotización se LIGA al grupo, no se crea otra
+    const f4 = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE grupo_id = @g") ? [{ id: 11, grupo_id: null }] : []));
+    assert.deepStrictEqual(await DB.crearCuentaDeGrupo(f4.nuevaRequest, { grupoId: 8, clienteId: 3, concepto: "x", cotizacionId: 4 }), { creada: false, id: 11 });
+    assert.strictEqual(f4.hubo("INSERT").length, 0);
+    assert.strictEqual(f4.hubo("UPDATE CuentaPorCobrar SET grupo_id")[0].params.g, 8);
     await rechaza(DB.crearCuentaDeGrupo(fabrica(() => []).nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "x", monto: "-5" }), 400, /cero en adelante/);
   });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {

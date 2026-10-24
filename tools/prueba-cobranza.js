@@ -171,7 +171,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const alta2 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
   check('alta con subtotal manda las retenciones (y no manda total)', alta2 && alta2.cuerpo.subtotal === '9600' && alta2.cuerpo.retencion_isr === '960' && !('total' in alta2.cuerpo), JSON.stringify(alta2 && alta2.cuerpo));
 
-  check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)'));
+  check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)') && HTML.includes('id="gruToggleCobro"'));
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);
   const secCbz = q('.alr-sec[data-sec="cobranza"]');

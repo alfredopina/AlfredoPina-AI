@@ -106,9 +106,14 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
 
 // Hook de crearGrupo SIN cotización (el cliente contrata directo): nace una cuenta "Por facturar" ligada al grupo, con el monto que Alfredo
 // haya escrito (sin IVA) o en $0 "por definir" si lo dejó vacío — Viri lo captura al facturar. Una por grupo (índice único, sql/042).
-async function crearCuentaDeGrupo(nuevaRequest, { grupoId, clienteId, concepto, monto }) {
-  const ya = await nuevaRequest().input("g", sql.Int, grupoId).query("SELECT TOP 1 id FROM CuentaPorCobrar WHERE grupo_id = @g AND origen = 'Automática' AND cotizacion_id IS NULL");
-  if (ya.recordset.length) return { creada: false, id: ya.recordset[0].id };
+async function crearCuentaDeGrupo(nuevaRequest, { grupoId, clienteId, concepto, monto, cotizacionId = null }) {
+  // ¿ya tiene cuenta? (la del grupo, o la de su cotización de origen, que se liga al grupo si aún no lo estaba)
+  const ya = await nuevaRequest().input("g", sql.Int, grupoId).input("c", sql.Int, cotizacionId)
+    .query("SELECT TOP 1 id, grupo_id FROM CuentaPorCobrar WHERE grupo_id = @g OR (@c IS NOT NULL AND cotizacion_id = @c) ORDER BY id");
+  if (ya.recordset.length) {
+    if (ya.recordset[0].grupo_id == null) await nuevaRequest().input("id", sql.Int, ya.recordset[0].id).input("g", sql.Int, grupoId).query("UPDATE CuentaPorCobrar SET grupo_id = @g WHERE id = @id");
+    return { creada: false, id: ya.recordset[0].id };
+  }
   const m = Number(monto);
   if (monto != null && monto !== "" && (!Number.isFinite(m) || m < 0)) throw C.falla("El monto a facturar debe ser un número de cero en adelante.");
   const montos = m > 0 ? C.desglosarDesdeSubtotal(m) : { subtotal: 0, iva: 0, total: 0 };

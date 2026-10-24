@@ -18047,6 +18047,10 @@
               <label class="radm-switch"><input type="checkbox" id="gruToggleHistorico"><span class="radm-switch-track"></span></label>
               <span class="radm-switch-label">¿Curso histórico?</span>
             </div>
+            ${editando ? `<div class="radm-switch-row" title="Para un grupo que ya existe y todavía no tiene su cuenta en Cobranza">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleCobro"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Generar su cuenta de cobro?</span>
+            </div>` : ''}
           </div>
           <div class="radm-form-row">
             <div class="radm-field dip-autocomplete-wrap">
@@ -18158,7 +18162,7 @@
               <select id="gruCotizacion" disabled><option value="">Selecciona el Cliente primero…</option></select>
             </div>
             <div class="radm-field" id="gruFechaCierreField" hidden><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
-            <div class="radm-field" id="gruMontoField">
+            <div class="radm-field" id="gruMontoField" ${editando ? 'hidden' : ''}>
               <label>MONTO A FACTURAR (SIN IVA, OPCIONAL)</label>
               <input type="number" id="gruMonto" step="0.01" min="0" placeholder="Si lo dejas vacío, Viri lo captura">
             </div>
@@ -18427,7 +18431,10 @@
         if(editando && g.instructor) sel.value = g.instructor;
       }).catch(() => { /* select se queda solo con "Sin asignar" */ });
 
-      if(editando) document.getElementById('gruMontoField').hidden = true; // el monto a facturar solo se captura al crear
+      if(editando){
+        // en un grupo que ya existe, el monto solo aparece si pides generar su cuenta de cobro
+        document.getElementById('gruToggleCobro').addEventListener('change', e => { document.getElementById('gruMontoField').hidden = !e.target.checked; });
+      }
       if(!editando) gruOrigenModificar = 'consultar'; // Crear Grupo siempre vuelve a Histórico
       document.getElementById('gruCancelar').addEventListener('click', () => volverDeModificar());
 
@@ -18472,6 +18479,7 @@
           estatus_cierre: document.getElementById('gruEstatusCierre').value,
           cotizacion_id: document.getElementById('gruCotizacion').value || null,
           monto_cobro: document.getElementById('gruCotizacion').value ? null : (document.getElementById('gruMonto').value || null),
+          crear_cuenta_cobro: editando ? !!document.getElementById('gruToggleCobro').checked : undefined,
           fecha_cierre: document.getElementById('gruFechaCierre').value || null,
           notas: document.getElementById('gruNotas').value.trim(),
         };
@@ -18480,8 +18488,9 @@
         btn.disabled = true; btn.textContent = 'Guardando...';
         try {
           if(editando){
-            await apiPostJson('/api/editarGrupo', Object.assign({ id: g.id }, payload));
-            toast('Grupo actualizado.', true);
+            const re = await apiPostJson('/api/editarGrupo', Object.assign({ id: g.id }, payload));
+            const cc = re && re.cuentaCobranza;
+            toast(cc ? (cc.creada ? 'Grupo actualizado. Su cuenta quedó en Cobranza como Por facturar.' : 'Grupo actualizado. Ese grupo ya tenía su cuenta en Cobranza.') : 'Grupo actualizado.', true);
           } else {
             const rg = await apiPostJson('/api/crearGrupo', payload);
             toast(rg && rg.cuentaCobranza && rg.cuentaCobranza.creada ? 'Grupo guardado. Su cuenta quedó en Cobranza como Por facturar.' : 'Grupo guardado.', true);

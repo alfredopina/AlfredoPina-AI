@@ -19,6 +19,7 @@ const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { derivarFase, registrarCambioFase } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
+const { crearCuentaDeGrupo } = require("../src/cobranza-db");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -180,8 +181,15 @@ module.exports = async function (context, req) {
            WHERE id = @id`
         );
       await registrarCambioFase(transaction, id, faseNueva, faseAnterior);
+      // Grupo que ya existía y todavía no tenía su cuenta de cobro: se genera a pedido (no duplica si ya tenía)
+      let cuentaCobranza = null;
+      if (body.crear_cuenta_cobro) {
+        cuentaCobranza = await crearCuentaDeGrupo(() => new sql.Request(transaction), {
+          grupoId: id, clienteId: cliente.id, concepto: datos.nombreCurso || datos.grupoCodigo || "Grupo", monto: body.monto_cobro, cotizacionId: datos.cotizacionId,
+        });
+      }
       await transaction.commit();
-      context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cliente, clienteFinal } };
+      context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cliente, clienteFinal, cuentaCobranza } };
     } catch (err) {
       try {
         await transaction.rollback();

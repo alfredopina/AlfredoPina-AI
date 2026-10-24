@@ -194,6 +194,20 @@ function fabrica(handler) {
     assert.strictEqual(upd.params.total, 10176);
     assert.strictEqual(upd.params.retencion_isr, 960);
   });
+  await checkAsync("grupo directo (sin cotización): nace una cuenta Por facturar con el monto, o en $0 si queda vacío; no duplica", async () => {
+    const f = fabrica((t) => (t.includes("INSERT INTO CuentaPorCobrar") ? [{ id: 77 }] : []));
+    const r = await DB.crearCuentaDeGrupo(f.nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "Power BI", monto: "10000" });
+    assert.deepStrictEqual(r, { creada: true, id: 77 });
+    const ins = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
+    assert.strictEqual(ins.grupo_id, 5); assert.strictEqual(ins.total, 11600); assert.strictEqual(ins.estatus, "Por facturar"); assert.strictEqual(ins.origen, "Automática");
+    const f2 = fabrica((t) => (t.includes("INSERT INTO CuentaPorCobrar") ? [{ id: 78 }] : []));
+    await DB.crearCuentaDeGrupo(f2.nuevaRequest, { grupoId: 6, clienteId: 3, concepto: "Excel", monto: "" });
+    assert.strictEqual(f2.hubo("INSERT INTO CuentaPorCobrar")[0].params.total, 0, "sin monto: $0 por definir");
+    const f3 = fabrica((t) => (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar") ? [{ id: 9 }] : []));
+    assert.deepStrictEqual(await DB.crearCuentaDeGrupo(f3.nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "x" }), { creada: false, id: 9 });
+    assert.strictEqual(f3.hubo("INSERT").length, 0);
+    await rechaza(DB.crearCuentaDeGrupo(fabrica(() => []).nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "x", monto: "-5" }), 400, /cero en adelante/);
+  });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {
     const f = fabrica((t) => (t.includes("FROM Cliente") ? [{ id: 3 }] : t.includes("INSERT") ? [{ id: 1 }] : []));
     await rechaza(DB.crearCuentaManual(f.nuevaRequest, { concepto: "x", total: 100 }), 400, /cliente/);

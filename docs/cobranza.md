@@ -34,6 +34,12 @@ Construido el 2026-10-22. Alcance de la fase 1: **ver cuánto cobra Alfredo y qu
 - Cuentas con saldo **vencidas** (rojo) o **por vencer** (ámbar) entran al ícono de Alertas y a su página (sección "Cobranza"); cada alerta abre la cuenta. Lo vencido siempre alerta; el único umbral es `cobranzaPorVencerDias` (Configuración → Alertas → "Cobros por vencer"). No es un par urgente/seguimiento como los demás, por eso `actualizarUmbral` acepta campos sin par.
 - Configuración → Métricas tiene la fila "Cobranza" (`cobranza` en `api/src/metricas-desde.js`).
 
+## Cómo nacen las cuentas (decisión de Alfredo 2026-10-24)
+
+La cobranza nace de la **operación**, para que Viri se entere de qué hay que facturar: (1) una **cotización ganada**; (2) un **grupo creado directo**, sin cotización (Gobierno, CAINTRA contratan directo). Ambas nacen en "Por facturar". Un grupo directo lleva un campo opcional "Monto a facturar (sin IVA)" en Crear Grupo; si queda vacío la cuenta nace en $0 ("Por definir") y Viri lo captura. Una cuenta por grupo (índice único, sql/042). El alta manual (casos raros) puede ligarse a un grupo existente. Alertas nuevas: "Por facturar" sin facturar desde N días (umbral `cobranzaPorFacturarDias`, default 3). La tabla lleva **Creada** (fecha y hora) como primera columna, como los demás Trackings.
+
+**Incidente (2026-10-24):** en el primer push `getNotificacionesActivas` desestructuraba la señal `cobranza` sin que `Promise.all` se la diera → TypeError → 500 y la campana de Alertas fallaba. Lo atrapa ahora `api/test-alertas-cobranza.js`, que corre la Function real con la base simulada.
+
 ## Functions (todas cerradas por defecto; ninguna pública)
 
 `listCobranzaAdmin`, `getResumenCobranzaAdmin`, `crearCuentaCobrar`, `editarCuentaCobrar`, `cambiarEstatusCuentaCobrar`, `dividirCuentaCobrar`, `registrarPagoCobranza`, `anularPagoCobranza`. La lógica pura (IVA, saldo, estatus, semáforo, resumen) vive en `api/src/cobranza.js` y las escrituras en `api/src/cobranza-db.js`. Pruebas: `api/test-cobranza.js` (en `npm test`) y `tools/prueba-cobranza.js` (jsdom, datos ficticios).

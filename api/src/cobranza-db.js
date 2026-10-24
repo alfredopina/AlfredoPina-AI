@@ -76,8 +76,15 @@ async function crearCuentaManual(nuevaRequest, b) {
   const montos = C.desglosarMonto(b);
   if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   const campos = leerCampos(b, false);
+  let grupoId = null;
+  if (b.grupo_id) {
+    grupoId = Number(b.grupo_id);
+    const g = await nuevaRequest().input("g", sql.Int, grupoId).query("SELECT cliente_id, cliente_final_id FROM Grupo WHERE id = @g");
+    if (!g.recordset.length) throw C.falla("Ese grupo ya no existe.", 404);
+    if (g.recordset[0].cliente_id !== clienteId && g.recordset[0].cliente_final_id !== clienteId) throw C.falla("Ese grupo no es de ese cliente.");
+  }
   const facturada = !!(campos.folio_factura || campos.uuid_factura);
-  const id = await insertarCuenta(nuevaRequest, { cliente_id: clienteId, origen: "Manual", ...campos, ...montos, estatus: facturada ? "Facturada" : "Por facturar" });
+  const id = await insertarCuenta(nuevaRequest, { cliente_id: clienteId, ...(grupoId ? { grupo_id: grupoId } : {}), origen: "Manual", ...campos, ...montos, estatus: facturada ? "Facturada" : "Por facturar" });
   return { id };
 }
 
@@ -94,6 +101,21 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
   const montos = C.desglosarDesdeSubtotal(cot.precio_final);
   const concepto = `Cotización ${cot.folio} — ${cot.herramienta}`.slice(0, 300);
   const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: "empresas", concepto, ...montos, estatus: "Por facturar" });
+  return { creada: true, id };
+}
+
+// Hook de crearGrupo SIN cotización (el cliente contrata directo): nace una cuenta "Por facturar" ligada al grupo, con el monto que Alfredo
+// haya escrito (sin IVA) o en $0 "por definir" si lo dejó vacío — Viri lo captura al facturar. Una por grupo (índice único, sql/042).
+async function crearCuentaDeGrupo(nuevaRequest, { grupoId, clienteId, concepto, monto }) {
+  const ya = await nuevaRequest().input("g", sql.Int, grupoId).query("SELECT TOP 1 id FROM CuentaPorCobrar WHERE grupo_id = @g AND origen = 'Automática' AND cotizacion_id IS NULL");
+  if (ya.recordset.length) return { creada: false, id: ya.recordset[0].id };
+  const m = Number(monto);
+  if (monto != null && monto !== "" && (!Number.isFinite(m) || m < 0)) throw C.falla("El monto a facturar debe ser un número de cero en adelante.");
+  const montos = m > 0 ? C.desglosarDesdeSubtotal(m) : { subtotal: 0, iva: 0, total: 0 };
+  const id = await insertarCuenta(nuevaRequest, {
+    cliente_id: clienteId, grupo_id: grupoId, origen: "Automática", estrategia: "empresas",
+    concepto: String(concepto || "Grupo").slice(0, 300), ...montos, estatus: "Por facturar",
+  });
   return { creada: true, id };
 }
 
@@ -249,4 +271,4 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   return filas;
 }
 
-module.exports = { crearCuentaManual, crearCuentaDeCotizacion, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };
+module.exports = { crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };

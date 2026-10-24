@@ -208,10 +208,19 @@ async function clientesInactivos(pool, umbral) {
 }
 
 // Cobranza: cuentas con saldo vencidas (rojo) o por vencer (ámbar, umbral editable). Vencidas primero, la más atrasada arriba.
-async function cobranzaPorTiempo(umbralPorVencer) {
+async function cobranzaPorTiempo(umbralPorVencer, umbralPorFacturar) {
   const filas = await listarCuentas({ umbralPorVencer });
+  const ahora = Date.now();
+  const sinFacturar = filas
+    .filter((f) => f.estatus === "Por facturar" && f.fecha_creacion)
+    .map((f) => ({ f, dias: Math.floor((ahora - new Date(f.fecha_creacion).getTime()) / 86400000) }))
+    .filter((x) => x.dias >= umbralPorFacturar)
+    .sort((a, b) => b.dias - a.dias)
+    .map(({ f, dias }) => ({
+      tipo: "cobranza", id: f.id, cliente: f.cliente, detalle: `Por facturar: ${f.concepto}`, dias, pastilla: `sin facturar ${dias} d`, urgente: false,
+    }));
   const ref = (f) => f.folio_factura ? `factura ${f.folio_factura}` : f.concepto;
-  return filas
+  const porTiempo = filas
     .filter((f) => f.semaforo.clave === "vencida" || f.semaforo.clave === "por_vencer")
     .map((f) => ({
       tipo: "cobranza",
@@ -222,6 +231,7 @@ async function cobranzaPorTiempo(umbralPorVencer) {
       pastilla: f.semaforo.clave === "vencida" ? `vencido ${f.semaforo.dias} d` : `vence en ${f.semaforo.dias} d`,
       urgente: f.semaforo.clave === "vencida",
     }));
+  return [...porTiempo, ...sinFacturar];
 }
 
 module.exports = async function (context, req) {
@@ -237,6 +247,7 @@ module.exports = async function (context, req) {
       cotizacionesAceptadasPorConfirmar(pool),
       gruposAtorados(pool, umbrales.gruposDias),
       clientesInactivos(pool, umbrales.clientesDias),
+      cobranzaPorTiempo(umbrales.cobranzaPorVencerDias, umbrales.cobranzaPorFacturarDias),
     ]);
     // primero lo que ya dijo que sí, luego lo vencido, al final lo frío
     // una misma cotización sale una sola vez, con su motivo más fuerte

@@ -10,7 +10,7 @@ const sem = (clave, dias) => ({ clave, dias });
 const pago = (id, monto, fecha, anulado) => ({ id, monto, fecha, metodo: 'Transferencia', folio_complemento: '17', uuid_complemento: 'aaaa-bbbb', anulado: !!anulado });
 const cuenta = (o) => ({ id: 1, cliente_id: 3, cliente: 'Acme SA', cliente_codigo: 'ACME', cotizacion_id: 7, cotizacion_folio: 'AP26-ACME-EXCEL-01', origen: 'Automática', estrategia: 'empresas',
   concepto: 'Curso de Excel', subtotal: 10000, iva: 1600, retencion_isr: 0, retencion_iva: 0, total: 11600, folio_factura: null, uuid_factura: null, fecha_emision: null, orden_compra: null, inicio_plazo: null,
-  plazo_dias: 30, vencimiento: null, estatus: 'Por facturar', notas: null, pagos: [], pagado: 0, saldo: 11600, semaforo: sem('sin_plazo', null), ...o });
+  plazo_dias: 30, fecha_creacion: '2026-09-16T05:33:00.000Z', vencimiento: null, estatus: 'Por facturar', notas: null, pagos: [], pagado: 0, saldo: 11600, semaforo: sem('sin_plazo', null), ...o });
 let cuentas = [
   cuenta({ id: 1, cliente: 'Zeta SA', estatus: 'Facturada', folio_factura: '201', fecha_emision: '2026-09-01', inicio_plazo: '2026-09-01', vencimiento: '2026-10-01', semaforo: sem('vencida', 21) }),
   cuenta({ id: 2, cliente: 'Beta SA', estatus: 'Facturada', folio_factura: '202', fecha_emision: '2026-10-10', inicio_plazo: '2026-10-10', vencimiento: '2026-10-25', semaforo: sem('por_vencer', 3) }),
@@ -107,6 +107,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzLimpiar'));
   check('limpiar filtros regresa al orden del servidor', qa('#cbzListaBody tr[data-id]').length === 6 && qa('#cbzListaBody tr[data-id]')[0].dataset.id === '1');
 
+  check('la primera columna es Creada, con fecha y hora', /Creada/.test(txt('.cbz-tabla thead th:first-child')) && txt('#cbzListaBody tr td:first-child').includes('15/09/2026') && /11:33/.test(txt('#cbzListaBody tr td:first-child')), txt('#cbzListaBody tr td:first-child'));
   console.log('Detalle y pagos');
   await clic(q('#cbzVistas [data-vista="cobrar"]'));
   await clic(q('#cbzListaBody tr[data-id="3"]'));
@@ -160,6 +161,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   poner('cbzNCliente', '4'); poner('cbzNConcepto', 'Curso abierto Excel'); poner('cbzNEstrategia', 'abiertos'); poner('cbzNMonto', '1160'); poner('cbzNModo', 'total');
   await clic(q('#cbzNGuardar'));
   const alta = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
+  check('el alta ofrece ligar la cuenta a un grupo del cliente', !!q('#cbzNGrupo'));
   check('crea la cuenta con el cliente, la estrategia y el monto como total', alta && alta.cuerpo.cliente_id === 4 && alta.cuerpo.estrategia === 'abiertos' && alta.cuerpo.total === '1160' && !('subtotal' in alta.cuerpo), JSON.stringify(alta && alta.cuerpo));
   check('el formulario se cierra al guardar', q('#cbzNueva').hidden);
 
@@ -169,6 +171,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const alta2 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
   check('alta con subtotal manda las retenciones (y no manda total)', alta2 && alta2.cuerpo.subtotal === '9600' && alta2.cuerpo.retencion_isr === '960' && !('total' in alta2.cuerpo), JSON.stringify(alta2 && alta2.cuerpo));
 
+  check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)'));
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);
   const secCbz = q('.alr-sec[data-sec="cobranza"]');

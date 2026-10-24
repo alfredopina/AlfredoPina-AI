@@ -25,7 +25,7 @@ const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 const { sembrarHistorialInicial } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
-const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
+const { crearCuentaDeCotizacion, crearCuentaDeGrupo } = require("../src/cobranza-db");
 const { descartarAlternativasAbiertas } = require("../src/cotizacion-alternativas");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
@@ -198,8 +198,15 @@ module.exports = async function (context, req) {
             .query("UPDATE CuentaPorCobrar SET grupo_id = @g WHERE cotizacion_id = @c AND grupo_id IS NULL");
         }
       }
+      // Grupo directo (sin cotización): nace su cuenta "Por facturar" para que Viri sepa que hay que facturarlo. monto_cobro es opcional (sin IVA).
+      let cuentaCobranza = null;
+      if (!datos.cotizacionId) {
+        cuentaCobranza = await crearCuentaDeGrupo(() => new sql.Request(transaction), {
+          grupoId, clienteId: cliente.id, concepto: datos.nombreCurso || datos.grupoCodigo || "Grupo", monto: body.monto_cobro,
+        });
+      }
       await transaction.commit();
-      context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal } };
+      context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal, cuentaCobranza } };
     } catch (err) {
       try {
         await transaction.rollback();

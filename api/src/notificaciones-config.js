@@ -43,6 +43,8 @@ const DEFAULTS = {
   solicitudesHoras: 72, solicitudesSeguimientoHoras: 24,
   // Cobranza: "por vencer" = faltan ≤ N días para el vencimiento (lo vencido es rojo sin umbral). Sin par urgente/seguimiento.
   cobranzaPorVencerDias: 7,
+  // Cobranza: una cuenta "Por facturar" lleva N días sin facturarse → alerta para que Viri la facture (sin par urgente/seguimiento)
+  cobranzaPorFacturarDias: 3,
 };
 const EN_HORAS = new Set(["solicitudesHoras", "solicitudesSeguimientoHoras"]);
 const CAMPOS_VALIDOS = Object.keys(DEFAULTS);

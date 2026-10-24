@@ -1748,6 +1748,7 @@
   .cbz-sem.sin_plazo, .cbz-sem.cerrada{ color:var(--text-faint); }
   .cbz-tabla .cbz-num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .cbz-tabla tbody tr{ cursor:pointer; }
+  .cbz-creada{ white-space:nowrap; }
   .cbz-sub{ display:block; font-size:11px; color:var(--text-faint); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cbz-kpi-n{ font-size:11px; color:var(--text-faint); font-weight:400; }
   .cbz-estatus{ display:inline-block; font-size:11px; font-family:var(--mono); border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; }
@@ -4107,6 +4108,7 @@
           <table class="dip-table cbz-tabla">
             <thead>
               <tr>
+                <th data-sort="creada" title="Cuándo nació la cuenta">Creada<span class="th-sort-ico"></span></th>
                 <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
                 <th data-sort="estrategia">Estrategia<span class="th-sort-ico"></span></th>
                 <th data-sort="folio">Factura<span class="th-sort-ico"></span></th>
@@ -4119,7 +4121,7 @@
               </tr>
             </thead>
             <tbody id="cbzListaBody">
-              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -5803,7 +5805,7 @@
       cotizacionesDias: 10, gruposDias: 21, clientesDias: 90,
       cotizacionesSeguimientoDias: 6, gruposSeguimientoDias: 10, clientesSeguimientoDias: 30,
       solicitudesHoras: 72, solicitudesSeguimientoHoras: 24, // las de Solicitudes van en HORAS
-      cobranzaPorVencerDias: 7,
+      cobranzaPorVencerDias: 7, cobranzaPorFacturarDias: 3,
     }; // defaults hasta que cargue de verdad
     let datos = null; // { total, umbrales, grupos:{cotizaciones,grupos,clientes} }
 
@@ -5976,6 +5978,13 @@
       const [a, m, d] = String(ymd).slice(0, 10).split('-');
       return d + '/' + m + '/' + a;
     }
+    // "Creada" como en los demás Trackings: fecha y, debajo, la hora (hora de Monterrey)
+    function fmtCreada(iso){
+      if(!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Monterrey' }) +
+        '<span class="cbz-sub">' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', timeZone:'America/Monterrey' }) + '</span>';
+    }
     function hoyYmd(){ return new Date().toLocaleDateString('en-CA', { timeZone:'America/Monterrey' }); }
     function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
@@ -6065,7 +6074,7 @@
       return cuentas.filter((c) => (!est || c.estrategia === est) && (!q || norm([c.cliente, c.cliente_codigo, c.concepto, c.folio_factura, c.uuid_factura, c.cotizacion_folio].join(' ')).includes(q)));
     }
     const CLAVES_ORDEN = {
-      cliente: (c) => norm(c.cliente), estrategia: (c) => c.estrategia, folio: (c) => Number(c.folio_factura) || norm(c.folio_factura),
+      creada: (c) => c.fecha_creacion || '', cliente: (c) => norm(c.cliente), estrategia: (c) => c.estrategia, folio: (c) => Number(c.folio_factura) || norm(c.folio_factura),
       total: (c) => c.total, saldo: (c) => c.saldo, vence: (c) => c.vencimiento || '9999', estatus: (c) => c.estatus,
     };
     function pintarLista(){
@@ -6084,16 +6093,17 @@
       $('cbzResultado').textContent = filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas');
       const body = $('cbzListaBody');
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
         return;
       }
       body.innerHTML = filas.map((c) =>
         '<tr data-id="' + c.id + '">' +
+        '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
         '<td>' + esc(c.cliente) + '<span class="cbz-sub" title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
         '<td>' + esc(ESTRATEGIA[c.estrategia] || c.estrategia) + '</td>' +
         '<td>' + (c.folio_factura ? esc(c.folio_factura) : '<span style="color:var(--text-faint)">—</span>') + '</td>' +
-        '<td class="cbz-num">' + dinero(c.total) + '</td>' +
-        '<td class="cbz-num">' + (c.estatus === 'Cancelada' ? '—' : dinero(c.saldo)) + '</td>' +
+        '<td class="cbz-num">' + (c.total === 0 && c.estatus === 'Por facturar' ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + '</td>' +
+        '<td class="cbz-num">' + (c.estatus === 'Cancelada' || (c.total === 0 && c.estatus === 'Por facturar') ? '—' : dinero(c.saldo)) + '</td>' +
         '<td>' + fmtFecha(c.vencimiento) + '</td>' +
         '<td><span class="cbz-estatus">' + esc(c.estatus) + '</span></td>' +
         '<td>' + semaforoHtml(c) + '</td>' +
@@ -6308,6 +6318,7 @@
         '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('') + '</select></div>' +
         '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos a empresas</option><option value="abiertos">Cursos abiertos</option></select></div>' +
         '</div>' +
+        '<div class="cbz-grid"><div class="radm-field"><label for="cbzNGrupo">GRUPO (OPCIONAL)</label><select id="cbzNGrupo" disabled><option value="">Elige primero el cliente</option></select></div></div>' +
         '<div class="cbz-grid">' + campoTxt('cbzNConcepto', 'CONCEPTO', '', ' maxlength="300" placeholder="Qué se cobra"') +
         '<div class="radm-field"><label for="cbzNModo">EL MONTO ES</label><select id="cbzNModo"><option value="subtotal">Subtotal, sin IVA (se suma 16 %)</option><option value="total">Total a cobrar (ya con IVA y retenciones)</option></select></div>' +
         campoNum('cbzNMonto', 'MONTO', '') + '</div>' +
@@ -6318,13 +6329,26 @@
         campoFecha('cbzNInicio', 'INICIO DEL PLAZO', '') + campoNum('cbzNPlazo', 'PLAZO (DÍAS)', 30, ' step="1" max="365"') + '</div>' +
         '<p class="cbz-error" id="cbzNError" hidden></p>' +
         '<div class="cbz-acciones"><button type="button" class="radm-btn" id="cbzNGuardar">Crear cuenta</button><button type="button" class="radm-btn radm-btn-ghost" id="cbzNCancelar">Cancelar</button></div>';
+      // al elegir cliente se ofrecen sus grupos, para ligar la cuenta a uno que ya existe
+      $('cbzNCliente').addEventListener('change', async () => {
+        const g = $('cbzNGrupo'), id = valor('cbzNCliente');
+        if(!id){ g.innerHTML = '<option value="">Elige primero el cliente</option>'; g.disabled = true; return; }
+        g.innerHTML = '<option value="">Sin grupo</option>'; g.disabled = false;
+        try {
+          const lista = await apiGetConReintento('/api/listGruposAdmin?clienteId=' + encodeURIComponent(id));
+          (Array.isArray(lista) ? lista : []).forEach((x) => {
+            const o = document.createElement('option'); o.value = x.id;
+            o.textContent = [x.grupo_codigo, x.nombre_curso].filter(Boolean).join(' · ') || ('Grupo #' + x.id); g.appendChild(o);
+          });
+        } catch(e){ /* sin grupos: la cuenta se puede crear igual */ }
+      });
       $('cbzNCancelar').addEventListener('click', cerrarNueva);
       $('cbzNGuardar').addEventListener('click', async () => {
         const monto = valor('cbzNMonto');
         const datos = {
           cliente_id: Number(valor('cbzNCliente')), estrategia: valor('cbzNEstrategia'), concepto: valor('cbzNConcepto'),
           folio_factura: valor('cbzNFolio'), uuid_factura: valor('cbzNUuid'), fecha_emision: valor('cbzNEmision'), orden_compra: valor('cbzNOC'),
-          inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'),
+          inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'), grupo_id: valor('cbzNGrupo') || null,
         };
         datos[valor('cbzNModo')] = monto;
         if(valor('cbzNModo') === 'subtotal'){ datos.retencion_isr = valor('cbzNRetIsr'); datos.retencion_iva = valor('cbzNRetIva'); }
@@ -16772,6 +16796,12 @@
         seguimiento:'cobranzaPorVencerDias', urgente:null, etiquetaSeguimiento:'Por vencer (ámbar)',
         nota:'Días que faltan para el vencimiento de una cuenta por cobrar. Por vencer (ámbar) la colorea en Cobranza y la manda a Alertas; lo vencido (rojo) siempre es alerta, sin umbral.',
       },
+      {
+        nombre:'Cobros sin facturar',
+        icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h8l4 4v14H7z" stroke-linejoin="round"/><path d="M15 3v4h4M10 12h6M10 16h6" stroke-linecap="round"/></svg>',
+        seguimiento:'cobranzaPorFacturarDias', urgente:null, etiquetaSeguimiento:'Sin facturar desde (días)',
+        nota:'Días que una cuenta lleva en "Por facturar" sin que se emita su factura. Al cumplirse entra a Alertas para que Viri la facture.',
+      },
     ];
     const NIVEL_LABEL = { seguimiento:'Seguimiento (ámbar)', urgente:'Urgente (rojo)' };
 
@@ -18128,6 +18158,10 @@
               <select id="gruCotizacion" disabled><option value="">Selecciona el Cliente primero…</option></select>
             </div>
             <div class="radm-field" id="gruFechaCierreField" hidden><label>FECHA DE CIERRE</label><input type="date" id="gruFechaCierre"></div>
+            <div class="radm-field" id="gruMontoField">
+              <label>MONTO A FACTURAR (SIN IVA, OPCIONAL)</label>
+              <input type="number" id="gruMonto" step="0.01" min="0" placeholder="Si lo dejas vacío, Viri lo captura">
+            </div>
           </div>
           <div class="radm-form-row">
             <div class="radm-field"><label>NOTAS</label><textarea id="gruNotas" placeholder="Cualquier detalle relevante del grupo..."></textarea></div>
@@ -18393,6 +18427,7 @@
         if(editando && g.instructor) sel.value = g.instructor;
       }).catch(() => { /* select se queda solo con "Sin asignar" */ });
 
+      if(editando) document.getElementById('gruMontoField').hidden = true; // el monto a facturar solo se captura al crear
       if(!editando) gruOrigenModificar = 'consultar'; // Crear Grupo siempre vuelve a Histórico
       document.getElementById('gruCancelar').addEventListener('click', () => volverDeModificar());
 
@@ -18436,6 +18471,7 @@
           estatus_curso: document.getElementById('gruEstatusCurso').value,
           estatus_cierre: document.getElementById('gruEstatusCierre').value,
           cotizacion_id: document.getElementById('gruCotizacion').value || null,
+          monto_cobro: document.getElementById('gruCotizacion').value ? null : (document.getElementById('gruMonto').value || null),
           fecha_cierre: document.getElementById('gruFechaCierre').value || null,
           notas: document.getElementById('gruNotas').value.trim(),
         };
@@ -18447,8 +18483,8 @@
             await apiPostJson('/api/editarGrupo', Object.assign({ id: g.id }, payload));
             toast('Grupo actualizado.', true);
           } else {
-            await apiPostJson('/api/crearGrupo', payload);
-            toast('Grupo guardado.', true);
+            const rg = await apiPostJson('/api/crearGrupo', payload);
+            toast(rg && rg.cuentaCobranza && rg.cuentaCobranza.creada ? 'Grupo guardado. Su cuenta quedó en Cobranza como Por facturar.' : 'Grupo guardado.', true);
           }
           volverDeModificar();
           // cotización de varios grupos: ofrece crear el siguiente (los grupos que falten se pueden crear después a mano)

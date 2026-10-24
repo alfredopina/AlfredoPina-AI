@@ -15,6 +15,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { getUmbrales } = require("../src/notificaciones-config");
 const { getMetricasRango } = require("../src/metricas-desde");
+const { representantes } = require("../src/cotizacion-alternativas");
 
 module.exports = async function (context, req) {
   try {
@@ -32,19 +33,7 @@ module.exports = async function (context, req) {
       .input("umbralSeguimiento", sql.Int, umbrales.cotizacionesSeguimientoDias)
       .query(`
       SELECT
-        (SELECT COUNT(*) FROM Cotizacion WHERE estatus IN ('Enviada', 'En negociación')) AS pipeline_conteo,
-        (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion WHERE estatus IN ('Enviada', 'En negociación')) AS pipeline_monto,
-
-        -- Desglose por antigüedad (mismo umbral que ya pinta el semáforo de
-        -- Tracking Comercial, ver semaforoDe() en admin/index.html) — Tracking
-        -- View (Fase 2) lo necesita para su tarjeta-resumen.
-        (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) < @umbralSeguimiento) AS antiguedad_verde,
-        (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) >= @umbralSeguimiento AND DATEDIFF(day, fecha_creacion, GETUTCDATE()) < @umbral) AS antiguedad_amarillo,
-        (SELECT COUNT(*) FROM Cotizacion
-          WHERE estatus IN ('Enviada', 'En negociación') AND DATEDIFF(day, fecha_estatus, GETUTCDATE()) >= @umbral) AS antiguedad_rojo,
-
+        -- (el pipeline y su desglose por antigüedad se calculan abajo, en JS: un grupo de alternativas cuenta UNA vez)
         (SELECT COUNT(*) FROM Cotizacion
           WHERE estatus = 'Ganada' AND (@desde IS NULL OR COALESCE(fecha_cierre, fecha_estatus) >= @desde) AND (@hasta IS NULL OR COALESCE(fecha_cierre, fecha_estatus) < @hasta)) AS ganado_conteo,
         (SELECT ISNULL(SUM(precio_final), 0) FROM Cotizacion
@@ -62,6 +51,17 @@ module.exports = async function (context, req) {
           WHERE estatus IN ('Ganada', 'Perdida') AND fecha_cierre IS NOT NULL AND (@desde IS NULL OR fecha_cierre >= @desde) AND (@hasta IS NULL OR fecha_cierre < @hasta)) AS tiempo_cierre_dias
     `);
     const r = result.recordset[0];
+    // pipeline = Enviada + En negociación; las alternativas de una misma oportunidad cuentan una vez (monto más alto del grupo)
+    const abiertas = await pool.request().input("umbral", sql.Int, umbrales.cotizacionesDias).input("umbralSeguimiento", sql.Int, umbrales.cotizacionesSeguimientoDias).query(`
+      SELECT id, estatus, precio_final, alternativa_grupo,
+             DATEDIFF(day, fecha_estatus, GETUTCDATE()) AS dias_estatus, DATEDIFF(day, fecha_creacion, GETUTCDATE()) AS dias_creacion
+      FROM Cotizacion WHERE estatus IN ('Enviada', 'En negociación')`);
+    const rep = representantes(abiertas.recordset);
+    r.pipeline_conteo = rep.length;
+    r.pipeline_monto = rep.reduce((a, c) => a + Number(c.precio_final || 0), 0);
+    r.antiguedad_verde = rep.filter((c) => c.dias_estatus < umbrales.cotizacionesSeguimientoDias).length;
+    r.antiguedad_amarillo = rep.filter((c) => c.dias_estatus >= umbrales.cotizacionesSeguimientoDias && c.dias_creacion < umbrales.cotizacionesDias).length;
+    r.antiguedad_rojo = rep.filter((c) => c.dias_estatus >= umbrales.cotizacionesDias).length;
     // resumen por contenedor (mismos 5 del tablero): cantidad y monto, acumulados
     const porEstatus = await pool.request().input("desde", sql.DateTime2, paramDesde).input("hasta", sql.DateTime2, paramHasta).query(`
       SELECT estatus, COUNT(*) AS n, ISNULL(SUM(precio_final), 0) AS monto
@@ -71,6 +71,11 @@ module.exports = async function (context, req) {
     const contenedores = {};
     for (const k of ['Borrador', 'Enviada', 'En negociación', 'Ganada', 'Perdida']) contenedores[k] = { n: 0, monto: 0 };
     for (const row of porEstatus.recordset) contenedores[row.estatus] = { n: row.n, monto: Number(row.monto) };
+    // Enviada / En negociación: cada grupo de alternativas se cuenta una vez, en el contenedor de su cotización de monto más alto
+    for (const k of ['Enviada', 'En negociación']) {
+      const delContenedor = rep.filter((c) => c.estatus === k);
+      contenedores[k] = { n: delContenedor.length, monto: delContenedor.reduce((a, c) => a + Number(c.precio_final || 0), 0) };
+    }
     const tasaConversion = r.cerradas_90d ? Math.round((r.ganadas_90d / r.cerradas_90d) * 100) : 0;
     context.res = {
       status: 200,

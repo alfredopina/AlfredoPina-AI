@@ -26,6 +26,7 @@ const { JSON_HEADERS } = require("../src/http");
 const { sembrarHistorialInicial } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
 const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
+const { descartarAlternativasAbiertas } = require("../src/cotizacion-alternativas");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -188,6 +189,8 @@ module.exports = async function (context, req) {
                fecha_envio = COALESCE(fecha_envio, SYSUTCDATETIME()), fecha_cierre = COALESCE(fecha_cierre, CAST(SYSUTCDATETIME() AS DATE))
              WHERE id = @id AND estatus IN ('Borrador', 'Enviada', 'En negociación')`
           );
+        // si la cotización tenía alternativas, las demás abiertas quedan Descartadas (se ganó esta)
+        await descartarAlternativasAbiertas(() => new sql.Request(transaction), datos.cotizacionId);
         // Ganada → nace su cuenta por cobrar (idempotente) y se liga a este Grupo
         const cuenta = await crearCuentaDeCotizacion(() => new sql.Request(transaction), datos.cotizacionId);
         if (cuenta.id) {

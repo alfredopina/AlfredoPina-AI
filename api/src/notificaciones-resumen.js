@@ -90,7 +90,7 @@ async function recolectar({ pool, sql, tablas, umbrales, previo, ahora = new Dat
   );
 
   const cotRows = await q(
-    `SELECT s.folio, c.nombre AS cliente, s.precio_final, s.fecha_vigencia, s.blob_path,
+    `SELECT s.id, s.alternativa_grupo, s.folio, c.nombre AS cliente, s.precio_final, s.fecha_vigencia, s.blob_path,
             DATEDIFF(day, s.fecha_estatus, GETUTCDATE()) AS dias,
             DATEDIFF(day, CAST(GETUTCDATE() AS DATE), s.fecha_vigencia) AS dias_vigencia
      FROM Cotizacion s JOIN Cliente c ON c.id = s.cliente_id
@@ -100,8 +100,9 @@ async function recolectar({ pool, sql, tablas, umbrales, previo, ahora = new Dat
   const { codigoDePropuesta } = require("./propuestas");
   let monto = 0, rojas = 0, porVencer = 0, vencidas = 0, sinAbrir = 0;
   const aceptadas = [];
+  const representantes_ = new Set(require("./cotizacion-alternativas").representantes(cotRows).map((x) => x.id));
   for (const r of cotRows) {
-    monto += Number(r.precio_final || 0);
+    if (representantes_.has(r.id)) monto += Number(r.precio_final || 0); // una alternativa de menor monto no suma al pipeline
     if (r.dias >= umbrales.cotizacionesDias) rojas++;
     if (r.dias_vigencia !== null && r.dias_vigencia < 0) vencidas++;
     else if (r.dias_vigencia !== null && r.dias_vigencia <= 7) porVencer++;

@@ -9,8 +9,9 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { esMotivoValido } = require("../src/cotizacion-motivos");
 const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
+const { contarHermanasAbiertas, descartarAlternativasAbiertas } = require("../src/cotizacion-alternativas");
 
-const ESTATUS_VALIDOS = ["Borrador", "Enviada", "En negociación", "Ganada", "Perdida", "Expirada", "Reemplazada"];
+const ESTATUS_VALIDOS = ["Borrador", "Enviada", "En negociación", "Ganada", "Perdida", "Expirada", "Reemplazada", "Descartada"];
 
 module.exports = async function (context, req) {
   const body = req.body || {};
@@ -36,6 +37,18 @@ module.exports = async function (context, req) {
     const pool = await getPool();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
+    // alternativas (una misma oportunidad con varias cotizaciones): Descartada solo existe dentro de un grupo, y una cotización
+    // con alternativas abiertas se DESCARTA en vez de marcarse Perdida (la oportunidad solo se pierde con la última)
+    const actual = await new sql.Request(transaction).input("id", sql.Int, id).query("SELECT alternativa_grupo FROM Cotizacion WHERE id = @id");
+    const enGrupo = actual.recordset.length && actual.recordset[0].alternativa_grupo != null;
+    const rechaza = async (msg) => {
+      await transaction.rollback();
+      context.res = { status: 400, headers: JSON_HEADERS, body: { error: msg } };
+    };
+    if (estatus === "Descartada" && !enGrupo) return rechaza("Solo se descarta una cotización que tiene alternativas; si no, márcala Perdida.");
+    if (estatus === "Perdida" && enGrupo && (await contarHermanasAbiertas(() => new sql.Request(transaction), id)) > 0) {
+      return rechaza("Esta cotización tiene una alternativa abierta: descártala (no es una pérdida) o cierra primero la otra.");
+    }
     const result = await new sql.Request(transaction)
       .input("id", sql.Int, id)
       .input("estatus", sql.NVarChar, estatus)
@@ -58,8 +71,10 @@ module.exports = async function (context, req) {
     }
     // Ganada → nace su cuenta por cobrar (idempotente: marcarla Ganada otra vez, o regresarla y volver, no duplica)
     const cuenta = estatus === "Ganada" ? await crearCuentaDeCotizacion(() => new sql.Request(transaction), id) : null;
+    // ganó una alternativa: las demás abiertas de su grupo quedan Descartadas
+    const descartadas = estatus === "Ganada" && enGrupo ? await descartarAlternativasAbiertas(() => new sql.Request(transaction), id) : 0;
     await transaction.commit();
-    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cuentaCobranza: cuenta } };
+    context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cuentaCobranza: cuenta, descartadas } };
   } catch (err) {
     try { if (transaction) await transaction.rollback(); } catch (_) { /* ya cerrada */ }
     context.log.error("Error actualizando el estatus:", err.message);

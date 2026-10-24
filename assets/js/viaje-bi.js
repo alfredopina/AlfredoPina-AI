@@ -258,7 +258,7 @@
     if (modo === "flujo") return null;
     qa("#rPBars s").forEach((x) => { x.dataset.o = x.style.opacity || 1; });
     const chipN = $('#rReg [data-r="Norte"]'), filaN = $('#rPMat .r-mrow[data-r="Norte"]'), otros = qa("#rReg .r-chip:not([data-r])");
-    let norte = false, usuario = false;
+    let norte = false, usuario = false, ultimo = 0;
     function aplicar(on) {
       if (on === norte) return;
       norte = on;
@@ -280,13 +280,19 @@
     }
     [chipN, filaN].forEach((el) => {
       el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap");
-      const alt = () => { usuario = true; chipN.classList.remove("hb-pulse"); aplicar(!norte); };
+      const alt = () => { usuario = true; ultimo = Date.now(); chipN.classList.remove("hb-pulse"); aplicar(!norte); };
       el.addEventListener("click", alt);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alt(); } });
     });
     chipN.classList.add("hb-pulse");
-    setTimeout(() => { if (!usuario && root.isConnected) aplicar(true); }, 7000);
-    setTimeout(() => { if (!usuario && root.isConnected) aplicar(false); }, 10500);
+    // si el visitante se queda mirando, el tablero no se queda estático: alterna Norte/Todas cada 4.5 s mientras el héroe está
+    // a la vista; si el visitante lo tocó, espera 10 s de calma antes de volver a moverse
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#biHero").getBoundingClientRect();
+      if (!api.introHecha || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000) return;
+      aplicar(!norte);
+    }, 4500);
 
     // auto-scroll: la barrita del botón se llena en 5 s y la página baja sola; cualquier gesto la cancela. Una vez por visita.
     function arrancaAuto() {
@@ -314,6 +320,7 @@
       '<div class="bi-fx"><span class="bi-fx-ico">fx</span><div class="bi-fx-stack">' + msgs + "</div></div>" +
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="biRail">' + tabs + '<span class="bi-status mono" id="biEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -584,9 +591,15 @@
       }
       setActive(0);
 
+      // pista para el despistado: tras 2.5 s sin mover el scroll aparece una flecha sutil ("Sigue bajando"); se va al moverlo
+      // y no aparece en la última escena (ahí lo siguiente son los programas)
+      const mas = $("#biMore"); let finRecorrido = false, calma = null;
+      const oculta = () => { mas.classList.remove("on"); clearTimeout(calma); calma = setTimeout(() => { if (!finRecorrido && document.body.classList.contains("bi-hoja")) mas.classList.add("on"); }, 2500); };
+      window.addEventListener("scroll", oculta, { passive: true }); oculta();
+
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); finRecorrido = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#biHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 

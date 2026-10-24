@@ -220,78 +220,89 @@
       I.cursor.replace('class="', 'id="curR" class="') + '<div class="click-ripple" id="ripR"></div></div></div>';
   }
 
-  // ---- héroe: el dashboard ES el héroe (a pantalla completa) y la frase va en el hueco central, como una nube de palabras.
-  // Las tarjetas de abajo se cortan con el borde: se ve que sigue. Las regiones responden al clic del visitante. ----
-  const HB_REG = {
-    Todas: { k: [2.4, 18, 34, 94], b: [46, 58, 52, 70, 64, 82], d: [38, 24, 20, 18] },
-    Norte: { k: [1.05, 24, 38, 91], b: [22, 30, 28, 38, 34, 46], d: [44, 22, 18, 16] },
-    Centro: { k: [0.62, 15, 33, 88], b: [14, 17, 15, 20, 18, 24], d: [36, 26, 22, 16] },
-    Sur: { k: [0.43, 9, 27, 79], b: [9, 12, 10, 14, 13, 17], d: [30, 28, 24, 18] },
-    Noreste: { k: [0.3, 14, 35, 92], b: [6, 9, 8, 11, 10, 13], d: [34, 24, 22, 20] },
-  };
-  const HB_KPI = [["Ventas", (v) => "$" + v.toFixed(2) + "M", "▲ +12% vs. meta", "ok"], ["Crecimiento", (v) => "▲ " + Math.round(v) + "%", "▲ sobre la meta", "ok"], ["Margen", (v) => Math.round(v) + "%", "▼ bajo la meta", "bad"], ["Cumplimiento", (v) => Math.round(v) + "%", "● cerca de la meta", "mid"]];
-  const HB_MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"], HB_COL = ["#f2c94c", "#6b9fff", "#14b8a6", "#a78bfa"], HB_PRO = ["Licencias", "Consultoría", "Soporte", "Diagnóstico"];
+  // ---- héroe: mitad texto, mitad el MISMO dashboard de la escena final (copia con ids "h…", interactiva) ----
+  // Un solo botón grande ("Conoce el programa") con una barrita de 5 s: si el visitante no hace nada, la página baja sola
+  // (una vez por visita; cualquier gesto la cancela). "Ver programas" queda discreto: no invita a saltarse la historia.
   function heroHtml() {
-    const kpi = HB_KPI.map((k, i) => '<div class="hb-t hb-k hb-k' + i + '"><span>' + k[0] + '</span><b id="hbK' + i + '">' + k[1](HB_REG.Todas.k[i]) + '</b><em class="' + k[3] + '">' + k[2] + "</em></div>").join("");
-    const bar = HB_MES.map((m, i) => '<div class="hb-bc"><div class="hb-bp"><i data-i="' + i + '"></i></div><span>' + m + "</span></div>").join("");
-    const don = HB_COL.map((c, i) => '<circle class="hb-seg" cx="21" cy="21" r="15.9155" fill="none" stroke="' + c + '" stroke-width="5" data-i="' + i + '" stroke-dasharray="0 100"/>').join("");
-    const ley = HB_PRO.map((p, i) => '<li><i style="background-color:' + HB_COL[i] + '"></i>' + p + "</li>").join("");
-    const reg = Object.keys(HB_REG).map((r) => '<button type="button" class="hb-rg" data-r="' + r + '" aria-pressed="' + (r === "Todas") + '">' + r + "</button>").join("");
-    const mat = [["Norte", 100, "$1.05M"], ["Centro", 59, "$0.62M"], ["Sur", 41, "$0.43M"], ["Noreste", 29, "$0.30M"]].map((m) => '<div class="hb-mr"><span>' + m[0] + '</span><u><i style="width:' + m[1] + '%"></i></u><b>' + m[2] + "</b></div>").join("");
-    return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-board">' +
-      '<div class="hb-fb"><span class="hb-fn">Ventas.pbix</span><span class="hb-fl">Región' + reg + "</span></div>" + kpi +
-      '<div class="hb-t hb-pb"><h5>Ventas por mes</h5><div class="hb-bars">' + bar + "</div></div>" +
-      '<div class="hb-t hb-pl"><h5>Tendencia</h5><svg viewBox="0 0 120 60" preserveAspectRatio="none"><path id="hbLn" d="M0,48 L20,40 L40,44 L60,26 L80,18 L100,10 L120,6" fill="none" stroke="#f2c94c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg></div>' +
-      '<div class="hb-t hb-pd"><h5>Ventas por producto</h5><div class="hb-dw"><svg class="hb-dn" viewBox="0 0 42 42">' + don + "</svg><ul>" + ley + "</ul></div></div>" +
-      '<div class="hb-t hb-pm"><h5>Ventas por región</h5>' + mat + "</div>" +
-      '<div class="hb-t hb-pn"><h5>Resumen automático</h5><p>Las ventas crecieron <b>18%</b> frente al año anterior.</p><p>El <b>Norte</b> concentra 44% de los ingresos.</p><p>Capacitación en el Sur está <b>bajo la meta</b>.</p></div></div>' +
-      '<div class="hb-text"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
+    const full = sceneR();
+    const ini = full.indexOf('<div class="r-dash"');
+    const dash = full.slice(ini, full.length - 6).replace(/id="(r[A-Z]\w*|curR|ripR)"/g, 'id="h$1"');
+    return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
       '<h1 class="viaje-hero-title">Dashboards <span class="accent">interactivos<span class="selector-box"><span class="selector-label">Visual</span></span></span></h1>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Análisis de datos</span><span class="scope-chip">Modelado y DAX</span><span class="scope-chip">Desktop y Service</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></div>" +
-      '<a href="#biQ" class="hb-cue" data-viaje-next><span>Baja y mira cómo se construye</span><i class="hb-cl"></i></a></section>';
+      '<div class="hb-actions"><a href="#biQ" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame"><div class="hb-cv" id="hbCv">' + dash + "</div></div></div></section>";
   }
 
-  // UN estado mueve todo: g (0→1: se dibuja), t (0→1: transición entre la región anterior y la nueva)
-  function heroDash(root, animar) {
-    const q = (s) => root.querySelectorAll(s);
-    const st = { g: animar ? 0 : 1, t: 1, de: HB_REG.Todas, a: HB_REG.Todas, reg: "Todas" };
-    const lerp = (x, y, t) => x + (y - x) * t;
-    const mezcla = (k) => st.a[k].map((v, i) => lerp(st.de[k][i], v, st.t) * st.g);
-    function pinta() {
-      const k = mezcla("k"), b = mezcla("b"), d = mezcla("d");
-      HB_KPI.forEach((x, i) => { const el = root.querySelector("#hbK" + i); if (el) el.textContent = x[1](k[i]); });
-      q(".hb-bp i").forEach((el, i) => { el.style.height = b[i] + "%"; });
-      let acum = 0;
-      q(".hb-seg").forEach((c, i) => { c.setAttribute("stroke-dasharray", d[i] + " " + (100 - d[i])); c.setAttribute("stroke-dashoffset", -acum); acum += d[i]; });
-      const ln = root.querySelector("#hbLn"); if (ln) ln.setAttribute("stroke-dashoffset", 100 * (1 - st.g));
+  // modo: "desk" (animado + auto-scroll), "flujo" (teléfono: se dibuja y ya) o "simple" (todo en su estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#hbCv");
+    if (!cont) return null;
+    const mp = (x) => x.replace(/#(r[A-Z])/g, "#h$1");
+    const $ = (x) => cont.querySelector(mp(x)), qa = (x) => Array.prototype.slice.call(cont.querySelectorAll(mp(x)));
+    const H = { desk: false, $: $, qa: qa, msg: () => null };
+    // el lienzo del dashboard (1100×620) se escala al ancho de su columna
+    const stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 1100).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+    if (modo === "simple") return null;
+
+    // al entrar, el dashboard se dibuja con las mismas piezas de la escena final
+    const api = { introHecha: false, irA: null };
+    const tl = gsap.timeline({ delay: 0.5, defaults: { ease: "power1.out" }, onComplete: () => { api.introHecha = true; if (api.irA) arrancaAuto(); } });
+    R_PARTES.kpis(tl, 0, H); R_PARTES.filtros(tl, 1, H); R_PARTES.barras(tl, 2, H); R_PARTES.dona(tl, 6, H); R_PARTES.matriz(tl, 10, H); R_PARTES.narrativa(tl, 16, H);
+    tl.timeScale(12);
+
+    // el visitante filtra Norte de verdad (chip o fila de la matriz); sin tocarlo, hace la demo una vez
+    if (modo === "flujo") return null;
+    qa("#rPBars s").forEach((x) => { x.dataset.o = x.style.opacity || 1; });
+    const chipN = $('#rReg [data-r="Norte"]'), filaN = $('#rPMat .r-mrow[data-r="Norte"]'), otros = qa("#rReg .r-chip:not([data-r])");
+    let norte = false, usuario = false;
+    function aplicar(on) {
+      if (on === norte) return;
+      norte = on;
+      const o = { duration: 0.8, ease: "power2.inOut", overwrite: "auto" };
+      gsap.to(chipN, Object.assign({}, on ? ACTIVO : NEUTRO, o));
+      gsap.to(otros, Object.assign({ opacity: on ? 0.45 : 1 }, o));
+      gsap.to($("#rFstat"), Object.assign({ opacity: on ? 1 : 0 }, o));
+      gsap.to(qa("#rDash .xf .a"), Object.assign({ opacity: on ? 0 : 1 }, o));
+      gsap.to(qa("#rDash .xf .b"), Object.assign({ opacity: on ? 1 : 0 }, o));
+      gsap.to(qa("#rPBars .fill"), Object.assign({ height: (i, el) => (on ? el.dataset.hn : el.dataset.ha) + "%" }, o));
+      gsap.to(qa("#rPBars .r-meta"), Object.assign({ bottom: on ? "36%" : "72%" }, o));
+      qa("#rPBars s").forEach((x) => gsap.to(x, Object.assign({ opacity: on ? +x.dataset.n : +x.dataset.o }, o)));
+      PRODS.forEach((p, i) => {
+        const v = on ? p[2] : p[1], acum = PRODS.slice(0, i).reduce((t, x) => t + (on ? x[2] : x[1]), 0);
+        gsap.to(qa("#rPDona .seg")[i], Object.assign({ attr: { "stroke-dasharray": v + " " + (100 - v), "stroke-dashoffset": -acum } }, o));
+      });
+      gsap.to(qa('#rPMat .r-mrow:not([data-r="Norte"]):not(.tot)'), Object.assign({ opacity: on ? 0.35 : 1 }, o));
+      gsap.to(filaN, Object.assign({ backgroundColor: "rgba(" + Y + "," + (on ? ".12" : "0") + ")" }, o));
     }
-    function elige(r) {
-      if (r === st.reg) return;
-      st.de = { k: mezcla("k"), b: mezcla("b"), d: mezcla("d") }; st.a = HB_REG[r]; st.reg = r; st.t = 0;
-      q(".hb-rg").forEach((el) => { const on = el.dataset.r === r; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); });
-      if (animar) gsap.to(st, { t: 1, duration: 0.8, ease: "power2.inOut", overwrite: "auto", onUpdate: pinta }); else { st.t = 1; pinta(); }
+    [chipN, filaN].forEach((el) => {
+      el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap");
+      const alt = () => { usuario = true; chipN.classList.remove("hb-pulse"); aplicar(!norte); };
+      el.addEventListener("click", alt);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alt(); } });
+    });
+    chipN.classList.add("hb-pulse");
+    setTimeout(() => { if (!usuario && root.isConnected) aplicar(true); }, 7000);
+    setTimeout(() => { if (!usuario && root.isConnected) aplicar(false); }, 10500);
+
+    // auto-scroll: la barrita del botón se llena en 5 s y la página baja sola; cualquier gesto la cancela. Una vez por visita.
+    function arrancaAuto() {
+      const bar = root.querySelector(".hb-bar");
+      if (!bar || window._hbAuto || window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.scrollY > 40) return;
+      const eventos = ["wheel", "touchstart", "keydown", "pointerdown"];
+      let activo = true;
+      const limpia = () => { activo = false; eventos.forEach((e) => window.removeEventListener(e, cancela)); window.removeEventListener("scroll", alScroll); };
+      const cancela = () => { if (!activo) return; limpia(); tw.kill(); gsap.to(bar, { opacity: 0, duration: 0.3 }); };
+      const alScroll = () => { if (window.scrollY > 40) cancela(); };
+      const tw = gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 5, ease: "none", onComplete: () => { if (!activo || !root.isConnected) return; limpia(); window._hbAuto = true; gsap.to(bar, { opacity: 0, duration: 0.3 }); api.irA(); } });
+      eventos.forEach((e) => window.addEventListener(e, cancela, { passive: true }));
+      window.addEventListener("scroll", alScroll, { passive: true });
     }
-    root.querySelector('.hb-rg[data-r="Todas"]').classList.add("on");
-    pinta();
-    // el visitante manda: sus clics filtran de verdad y detienen el recorrido automático
-    let usuario = false;
-    q(".hb-rg").forEach((el) => el.addEventListener("click", () => { usuario = true; elige(el.dataset.r); }));
-    if (!animar) return;
-    gsap.to(st, { g: 1, duration: 2.2, ease: "power2.out", delay: 0.5, onUpdate: pinta });
-    const ciclo = ["Norte", "Todas", "Centro", "Todas"];
-    let paso = 0, reloj = null;
-    const sigue = () => { if (!usuario) { elige(ciclo[paso++ % ciclo.length]); } };
-    const hero = root.querySelector("#biHero");
-    ScrollTrigger.create({ trigger: hero, start: "top bottom", end: "bottom top", onToggle: (x) => { clearInterval(reloj); if (x.isActive) reloj = setInterval(sigue, 3200); } });
-    // al bajar, cada tarjeta se mueve a su ritmo y las de los lados se abren: se siente que entras al dashboard
-    const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--viaje-nav-h")) || 130;
-    const sc = { trigger: hero, start: "top top+=" + nav, end: "bottom top", scrub: true };
-    gsap.to(q(".hb-fb, .hb-k"), { y: -26, ease: "none", scrollTrigger: sc });
-    gsap.to(q(".hb-pb"), { y: -60, x: -50, ease: "none", scrollTrigger: sc });
-    gsap.to(q(".hb-pl, .hb-pd"), { y: -60, x: 50, ease: "none", scrollTrigger: sc });
-    gsap.to(q(".hb-pm, .hb-pn"), { y: -130, ease: "none", scrollTrigger: sc });
-    gsap.to(root.querySelector(".hb-text"), { y: -50, opacity: 0.2, ease: "none", scrollTrigger: sc });
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) arrancaAuto(); };
+    return api;
   }
 
   function shellHtml() {
@@ -532,11 +543,11 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); heroDash(root, false); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, false); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
-      heroDash(root, true);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
       const pin = $("#biPin"), canvas = $("#biCanvas");
 
@@ -583,6 +594,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");
@@ -634,10 +646,10 @@
     root.querySelectorAll(".r-db").forEach((el) => { el.style.width = el.dataset.w + "%"; });
     root.querySelectorAll(".r-meta").forEach((el) => { el.style.opacity = 1; });
     root.querySelectorAll(".spark polyline").forEach((el) => { el.setAttribute("stroke-dashoffset", 0); });
-    root.querySelectorAll(".seg").forEach((el, i, all) => {
+    root.querySelectorAll(".r-donut svg").forEach((svg) => svg.querySelectorAll(".seg").forEach((el, i, all) => {
       const p = +el.dataset.pa; let acum = 0; for (let j = 0; j < i; j++) acum += +all[j].dataset.pa;
       el.setAttribute("stroke-dasharray", p + " " + (100 - p)); el.setAttribute("stroke-dashoffset", -acum);
-    });
+    }));
     root.querySelectorAll(".m-line").forEach((el) => { el.style.transform = "none"; });
   }
 

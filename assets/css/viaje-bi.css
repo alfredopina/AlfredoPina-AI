@@ -270,50 +270,65 @@ body.bi-hoja .bi-shell > *{ pointer-events:auto; }
 .bi-flujo .d-fields{ order:2; }
 .bi-flujo .bi-canvas{ max-width:980px; margin:0 auto; }
 
-/* ---------- héroe de Power BI: titular corto + un dashboard vivo que asoma por abajo (prefijo hb-) ----------
-   El héroe mide justo la pantalla; el dashboard se corta con un degradado y una pista de scroll lo invita a bajar. */
-.hb-hero{ height:calc(100vh - var(--viaje-nav-h)); min-height:540px; justify-content:flex-start; gap:0; padding:clamp(20px,5vh,56px) 16px 0; overflow:hidden; }
-.hb-text{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(14px,2.6vh,26px); text-align:center; position:relative; z-index:2; }
-.hb-hero .viaje-hero-title{ line-height:1.2; }
-.hb-hero .viaje-hero-actions{ margin-top:2px; }
-.hb-hero .viaje-btn{ min-width:240px; height:46px; }
-.hb-hero::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:46%; background:linear-gradient(to bottom, rgba(10,13,18,0), var(--bg) 88%); pointer-events:none; z-index:3; }
-.hb-dash{ container-type:inline-size; width:min(1080px,94vw); margin-top:clamp(18px,4vh,40px); perspective:1400px; flex:none; }
-.hb-win{ transform:rotateX(9deg); transform-origin:50% 0; background-color:var(--panel); border:1px solid rgba(242,201,76,.28); border-radius:14px; box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 90px rgba(242,201,76,.1); overflow:hidden; }
-.hb-bar{ display:flex; align-items:center; gap:7px; height:3.6cqw; min-height:26px; padding:0 2cqw; background-color:var(--panel-2); border-bottom:1px solid var(--line); font-size:max(10px,1.25cqw); color:var(--text); }
-.hb-bar > i{ width:.9cqw; height:.9cqw; min-width:7px; min-height:7px; border-radius:50%; background-color:rgba(255,255,255,.18); }
-.hb-fn{ margin-left:1cqw; font-family:var(--mono); color:#f2c94c; }
-.hb-fl{ margin-left:auto; display:flex; align-items:center; gap:6px; color:var(--text-dim,#9aa3b2); }
-.hb-ch{ font-weight:600; padding:2px 9px; border-radius:10px; border:1px solid rgba(255,255,255,.18); color:#a9b2c0; }
-.hb-ch.on{ background-color:rgba(242,201,76,.18); border-color:#f2c94c; color:#f2c94c; }
-.hb-body{ text-align:left; padding:1.8cqw; display:flex; flex-direction:column; gap:1.5cqw; }
-.hb-ks{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.5cqw; }
-.hb-k{ background-color:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:1.2cqw 1.5cqw; display:flex; flex-direction:column; gap:.2cqw; }
-.hb-k span{ font-size:max(9px,1.2cqw); color:#8a96a8; }
-.hb-k b{ font-family:var(--display); font-size:max(14px,2.9cqw); font-weight:600; line-height:1.1; color:#fff; }
-.hb-k em{ font-style:normal; font-size:max(8px,1.05cqw); color:#5fe6cf; font-weight:600; }
-.hb-k:nth-child(3) em{ color:#ff8787; }
-.hb-k:nth-child(4) em{ color:#dfb35a; }
-.hb-row{ display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:1.5cqw; height:34cqw; }
-.hb-p{ background-color:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:1cqw 1.4cqw; display:flex; flex-direction:column; min-width:0; }
-.hb-p h5{ font-size:max(9px,1.15cqw); font-weight:600; color:#8a96a8; margin-bottom:.6cqw; }
-.hb-bars{ flex:1; display:flex; gap:1cqw; min-height:0; }
+/* ---------- héroe de Power BI: el dashboard ES el héroe; la frase va en el hueco central (prefijo hb-) ----------
+   Un tablero a pantalla completa, plano, cuyas tarjetas de abajo se cortan con el borde (se ve que sigue). Las regiones
+   son botones reales. Móvil/estático: el texto va primero y el tablero fluye debajo, completo. */
+.hb-hero{ container-type:inline-size; position:relative; height:calc(100vh - var(--viaje-nav-h)); min-height:560px; padding:0; overflow:hidden; display:block; }
+.hb-board{ position:absolute; left:0; right:0; top:0; height:120%; padding:12px clamp(10px,1.6cqw,26px) 0; display:grid; gap:clamp(8px,1.1cqw,16px); grid-template-columns:1fr 1.5fr 1.5fr 1fr; grid-template-rows:34px 15fr 27fr 27fr 31fr; }
+.hb-fb{ grid-column:1/-1; display:flex; align-items:center; gap:10px; padding:0 4px; font-size:max(10px,.95cqw); }
+.hb-fn{ font-family:var(--mono); color:#f2c94c; }
+.hb-fl{ margin-left:auto; display:flex; align-items:center; gap:6px; color:#8a96a8; position:relative; z-index:3; }
+.hb-rg{ font:inherit; font-weight:600; padding:3px 11px; border-radius:11px; border:1px solid rgba(255,255,255,.2); background-color:rgba(255,255,255,0); color:#a9b2c0; cursor:pointer; transition:background-color .2s, color .2s, border-color .2s; }
+.hb-rg:hover{ border-color:#f2c94c; color:#fff; }
+.hb-rg.on{ background-color:rgba(242,201,76,.2); border-color:#f2c94c; color:#f2c94c; }
+.hb-t{ background-color:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:clamp(8px,1.1cqw,16px) clamp(10px,1.4cqw,20px); display:flex; flex-direction:column; min-width:0; min-height:0; text-align:left; }
+.hb-t h5{ font-size:max(10px,1cqw); font-weight:600; color:#8a96a8; margin-bottom:.5cqw; }
+.hb-k{ gap:.15cqw; justify-content:center; }
+.hb-k span{ font-size:max(10px,1cqw); color:#8a96a8; }
+.hb-k b{ font-family:var(--display); font-size:max(18px,2.6cqw); font-weight:600; line-height:1.1; color:#fff; }
+.hb-k em{ font-style:normal; font-size:max(9px,.9cqw); font-weight:600; }
+.hb-k em.ok{ color:#5fe6cf; } .hb-k em.bad{ color:#ff8787; } .hb-k em.mid{ color:#dfb35a; }
+.hb-k0{ grid-column:1; grid-row:2; } .hb-k1{ grid-column:2; grid-row:2; } .hb-k2{ grid-column:3; grid-row:2; } .hb-k3{ grid-column:4; grid-row:2; }
+.hb-pb{ grid-column:1; grid-row:3/5; } .hb-pl{ grid-column:4; grid-row:3; } .hb-pd{ grid-column:4; grid-row:4; }
+.hb-pm{ grid-column:1/3; grid-row:5; } .hb-pn{ grid-column:3/5; grid-row:5; }
+.hb-bars{ flex:1; display:flex; gap:.8cqw; min-height:0; }
 .hb-bc{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; }
 .hb-bp{ flex:1; width:100%; display:flex; align-items:flex-end; justify-content:center; }
-.hb-bp i{ display:block; width:62%; height:0; border-radius:3px 3px 0 0; background-color:#f2c94c; }
-.hb-bc span{ font-size:max(8px,1cqw); color:#8a96a8; }
-.hb-p svg{ flex:1; min-height:0; width:100%; }
-.hb-dn{ transform:rotate(-90deg); max-height:100%; }
-.hb-cue{ position:absolute; left:50%; bottom:clamp(14px,3.5vh,32px); transform:translateX(-50%); z-index:4; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; }
+.hb-bp i{ display:block; width:64%; height:0; border-radius:3px 3px 0 0; background-color:#f2c94c; }
+.hb-bc span{ font-size:max(9px,.85cqw); color:#8a96a8; }
+.hb-pl svg{ flex:1; min-height:0; width:100%; }
+.hb-dw{ flex:1; display:flex; align-items:center; gap:1cqw; min-height:0; }
+.hb-dn{ height:100%; max-height:9cqw; aspect-ratio:1; flex:none; transform:rotate(-90deg); }
+.hb-dw ul{ list-style:none; display:flex; flex-direction:column; gap:3px; margin:0; padding:0; font-size:max(9px,.85cqw); color:#cbd5e1; }
+.hb-dw li{ display:flex; align-items:center; gap:5px; white-space:nowrap; }
+.hb-dw li i{ width:8px; height:8px; border-radius:2px; flex:none; }
+.hb-mr{ display:grid; grid-template-columns:5cqw 1fr 5cqw; align-items:center; gap:.8cqw; font-size:max(10px,.95cqw); color:#cbd5e1; padding:.35cqw 0; }
+.hb-mr u{ display:block; height:.9cqw; min-height:7px; background-color:rgba(255,255,255,.06); border-radius:3px; text-decoration:none; }
+.hb-mr u i{ display:block; height:100%; background-color:rgba(242,201,76,.7); border-radius:3px; }
+.hb-mr b{ text-align:right; color:#fff; }
+.hb-pn p{ font-size:max(10px,.95cqw); line-height:1.5; color:#cbd5e1; margin:0 0 .4cqw; }
+.hb-pn p b{ color:#f2c94c; }
+.hb-text{ position:absolute; left:50%; top:51%; transform:translate(-50%,-50%); z-index:5; width:min(56cqw,820px); display:flex; flex-direction:column; align-items:center; gap:clamp(12px,2.4vh,24px); text-align:center; }
+.hb-text::before{ content:""; position:absolute; inset:-40px -8% -40px; z-index:-1; background:radial-gradient(ellipse at center, var(--bg) 38%, rgba(10,13,18,.82) 56%, rgba(10,13,18,0) 76%); pointer-events:none; }
+.hb-hero .viaje-hero-title{ font-size:clamp(34px,5.2cqw,68px); line-height:1.12; word-spacing:0; margin:0; }
+.hb-hero .viaje-btn{ min-width:240px; height:46px; }
+.hb-hero::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:30%; background:linear-gradient(to bottom, rgba(10,13,18,0), var(--bg) 92%); pointer-events:none; z-index:4; }
+.hb-cue{ position:absolute; left:50%; bottom:clamp(14px,3.5vh,32px); transform:translateX(-50%); z-index:6; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; }
 .hb-cue:hover{ color:var(--c,#f2c94c); }
 .hb-cl{ display:block; width:2px; height:34px; border-radius:2px; background-image:linear-gradient(to bottom, rgba(242,201,76,0), #f2c94c); animation:hbCue 1.8s ease-in-out infinite; }
 @keyframes hbCue{ 0%{ transform:translateY(-8px); opacity:0; } 40%{ opacity:1; } 100%{ transform:translateY(8px); opacity:0; } }
 @media (prefers-reduced-motion: reduce){ .hb-cl{ animation:none; } }
 
-/* teléfono / estático: sin corte; el dashboard se ve completo debajo del texto */
-.bi-flujo .hb-hero{ height:auto; min-height:0; padding-bottom:28px; }
-.bi-flujo .hb-hero::after{ display:none; }
-.bi-flujo .hb-win{ transform:none; }
-.bi-flujo .hb-cue{ position:static; transform:none; margin-top:22px; }
-.bi-flujo .hb-row{ height:30cqw; }
-.bi-flujo .hb-hero .viaje-hero-title{ font-size:clamp(26px,7.6vw,40px); word-spacing:0; }
+/* teléfono / estático: el texto primero y el tablero fluye debajo, completo */
+.bi-flujo .hb-hero{ height:auto; min-height:0; display:flex; flex-direction:column; padding:44px 14px 28px; overflow:visible; }
+.bi-flujo .hb-hero::after, .bi-flujo .hb-text::before, .bi-flujo .hb-pm, .bi-flujo .hb-pn{ display:none; }
+.bi-flujo .hb-text{ position:static; transform:none; width:auto; order:-1; margin-bottom:22px; }
+.bi-flujo .hb-board{ position:static; height:auto; padding:0; grid-template-columns:1fr 1fr; grid-template-rows:none; }
+.bi-flujo .hb-fb{ grid-column:1/-1; flex-wrap:wrap; }
+.bi-flujo .hb-k0, .bi-flujo .hb-k1, .bi-flujo .hb-k2, .bi-flujo .hb-k3, .bi-flujo .hb-pb, .bi-flujo .hb-pl, .bi-flujo .hb-pd{ grid-column:auto; grid-row:auto; }
+.bi-flujo .hb-pb{ grid-column:1/-1; height:48cqw; } .bi-flujo .hb-pl{ height:34cqw; } .bi-flujo .hb-pd{ height:34cqw; }
+.bi-flujo .hb-k b{ font-size:22px; } .bi-flujo .hb-k span, .bi-flujo .hb-k em, .bi-flujo .hb-t h5{ font-size:11px; }
+.bi-flujo .hb-rg{ padding:3px 9px; font-size:11px; }
+.bi-flujo .hb-dn{ max-height:20cqw; } .bi-flujo .hb-dw ul{ font-size:10px; }
+.bi-flujo .hb-cue{ position:static; transform:none; margin-top:22px; align-self:center; }
+.bi-flujo .hb-hero .viaje-hero-title{ font-size:clamp(28px,8.4vw,40px); }

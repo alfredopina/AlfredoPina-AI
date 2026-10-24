@@ -220,49 +220,78 @@
       I.cursor.replace('class="', 'id="curR" class="') + '<div class="click-ripple" id="ripR"></div></div></div>';
   }
 
-  // ---- héroe: un dashboard vivo que asoma por abajo (se corta con un degradado: invita a bajar) ----
-  const HB_KPI = [["Ventas", 2.4, 1.05, (v) => "$" + v.toFixed(2) + "M", "▲ +12% vs. meta"], ["Crecimiento", 18, 24, (v) => "▲ " + Math.round(v) + "%", "▲ sobre la meta"], ["Margen", 34, 38, (v) => Math.round(v) + "%", "▼ bajo la meta"], ["Cumplimiento", 94, 91, (v) => Math.round(v) + "%", "● cerca de la meta"]];
-  const HB_BAR = [["Ene", 46, 22], ["Feb", 58, 30], ["Mar", 52, 28], ["Abr", 70, 38], ["May", 64, 34], ["Jun", 82, 46]];
-  const HB_DON = [[38, 44, "#f2c94c"], [24, 22, "#6b9fff"], [20, 18, "#14b8a6"], [18, 16, "#a78bfa"]];
+  // ---- héroe: el dashboard ES el héroe (a pantalla completa) y la frase va en el hueco central, como una nube de palabras.
+  // Las tarjetas de abajo se cortan con el borde: se ve que sigue. Las regiones responden al clic del visitante. ----
+  const HB_REG = {
+    Todas: { k: [2.4, 18, 34, 94], b: [46, 58, 52, 70, 64, 82], d: [38, 24, 20, 18] },
+    Norte: { k: [1.05, 24, 38, 91], b: [22, 30, 28, 38, 34, 46], d: [44, 22, 18, 16] },
+    Centro: { k: [0.62, 15, 33, 88], b: [14, 17, 15, 20, 18, 24], d: [36, 26, 22, 16] },
+    Sur: { k: [0.43, 9, 27, 79], b: [9, 12, 10, 14, 13, 17], d: [30, 28, 24, 18] },
+    Noreste: { k: [0.3, 14, 35, 92], b: [6, 9, 8, 11, 10, 13], d: [34, 24, 22, 20] },
+  };
+  const HB_KPI = [["Ventas", (v) => "$" + v.toFixed(2) + "M", "▲ +12% vs. meta", "ok"], ["Crecimiento", (v) => "▲ " + Math.round(v) + "%", "▲ sobre la meta", "ok"], ["Margen", (v) => Math.round(v) + "%", "▼ bajo la meta", "bad"], ["Cumplimiento", (v) => Math.round(v) + "%", "● cerca de la meta", "mid"]];
+  const HB_MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"], HB_COL = ["#f2c94c", "#6b9fff", "#14b8a6", "#a78bfa"], HB_PRO = ["Licencias", "Consultoría", "Soporte", "Diagnóstico"];
   function heroHtml() {
-    const kpi = HB_KPI.map((k, i) => '<div class="hb-k"><span>' + k[0] + '</span><b id="hbK' + i + '">' + k[3](k[1]) + "</b><em>" + k[4] + "</em></div>").join("");
-    const bar = HB_BAR.map((x, i) => '<div class="hb-bc"><div class="hb-bp"><i data-i="' + i + '"></i></div><span>' + x[0] + "</span></div>").join("");
-    const don = HB_DON.map((d, i) => '<circle class="hb-seg" cx="21" cy="21" r="15.9155" fill="none" stroke="' + d[2] + '" stroke-width="5" data-i="' + i + '" stroke-dasharray="' + d[0] + ' ' + (100 - d[0]) + '"/>').join("");
-    return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-text"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
-      '<h1 class="viaje-hero-title">Que tus datos <span class="accent">hablen<span class="selector-box"><span class="selector-label">Visual</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Dashboards</span><span class="scope-chip">Modelado y DAX</span><span class="scope-chip">Desktop y Service</span></div>' +
+    const kpi = HB_KPI.map((k, i) => '<div class="hb-t hb-k hb-k' + i + '"><span>' + k[0] + '</span><b id="hbK' + i + '">' + k[1](HB_REG.Todas.k[i]) + '</b><em class="' + k[3] + '">' + k[2] + "</em></div>").join("");
+    const bar = HB_MES.map((m, i) => '<div class="hb-bc"><div class="hb-bp"><i data-i="' + i + '"></i></div><span>' + m + "</span></div>").join("");
+    const don = HB_COL.map((c, i) => '<circle class="hb-seg" cx="21" cy="21" r="15.9155" fill="none" stroke="' + c + '" stroke-width="5" data-i="' + i + '" stroke-dasharray="0 100"/>').join("");
+    const ley = HB_PRO.map((p, i) => '<li><i style="background-color:' + HB_COL[i] + '"></i>' + p + "</li>").join("");
+    const reg = Object.keys(HB_REG).map((r) => '<button type="button" class="hb-rg" data-r="' + r + '" aria-pressed="' + (r === "Todas") + '">' + r + "</button>").join("");
+    const mat = [["Norte", 100, "$1.05M"], ["Centro", 59, "$0.62M"], ["Sur", 41, "$0.43M"], ["Noreste", 29, "$0.30M"]].map((m) => '<div class="hb-mr"><span>' + m[0] + '</span><u><i style="width:' + m[1] + '%"></i></u><b>' + m[2] + "</b></div>").join("");
+    return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-board">' +
+      '<div class="hb-fb"><span class="hb-fn">Ventas.pbix</span><span class="hb-fl">Región' + reg + "</span></div>" + kpi +
+      '<div class="hb-t hb-pb"><h5>Ventas por mes</h5><div class="hb-bars">' + bar + "</div></div>" +
+      '<div class="hb-t hb-pl"><h5>Tendencia</h5><svg viewBox="0 0 120 60" preserveAspectRatio="none"><path id="hbLn" d="M0,48 L20,40 L40,44 L60,26 L80,18 L100,10 L120,6" fill="none" stroke="#f2c94c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg></div>' +
+      '<div class="hb-t hb-pd"><h5>Ventas por producto</h5><div class="hb-dw"><svg class="hb-dn" viewBox="0 0 42 42">' + don + "</svg><ul>" + ley + "</ul></div></div>" +
+      '<div class="hb-t hb-pm"><h5>Ventas por región</h5>' + mat + "</div>" +
+      '<div class="hb-t hb-pn"><h5>Resumen automático</h5><p>Las ventas crecieron <b>18%</b> frente al año anterior.</p><p>El <b>Norte</b> concentra 44% de los ingresos.</p><p>Capacitación en el Sur está <b>bajo la meta</b>.</p></div></div>' +
+      '<div class="hb-text"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
+      '<h1 class="viaje-hero-title">Dashboards <span class="accent">interactivos<span class="selector-box"><span class="selector-label">Visual</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Análisis de datos</span><span class="scope-chip">Modelado y DAX</span><span class="scope-chip">Desktop y Service</span></div>' +
       '<div class="viaje-hero-actions"><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></div>" +
-      '<div class="hb-dash" aria-hidden="true"><div class="hb-win"><div class="hb-bar"><i></i><i></i><i></i><span class="hb-fn">Ventas.pbix</span><span class="hb-fl">Región<b class="hb-ch" id="hbCh0">Todas</b><b class="hb-ch" id="hbCh1">Norte</b></span></div>' +
-      '<div class="hb-body"><div class="hb-ks">' + kpi + '</div><div class="hb-row"><div class="hb-p hb-pb"><h5>Ventas por mes</h5><div class="hb-bars">' + bar + '</div></div>' +
-      '<div class="hb-p"><h5>Tendencia</h5><svg viewBox="0 0 120 60" preserveAspectRatio="none"><path id="hbLn" d="M0,48 L20,40 L40,44 L60,26 L80,18 L100,10 L120,6" fill="none" stroke="#f2c94c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg></div>' +
-      '<div class="hb-p"><h5>Por producto</h5><svg class="hb-dn" viewBox="0 0 42 42">' + don + "</svg></div></div></div></div></div>" +
       '<a href="#biQ" class="hb-cue" data-viaje-next><span>Baja y mira cómo se construye</span><i class="hb-cl"></i></a></section>';
   }
 
-  // el dashboard del héroe lo mueve UN solo estado: g (0→1: se dibuja) y t (0 = todas las regiones, 1 = Norte)
+  // UN estado mueve todo: g (0→1: se dibuja), t (0→1: transición entre la región anterior y la nueva)
   function heroDash(root, animar) {
     const q = (s) => root.querySelectorAll(s);
-    const st = { g: animar ? 0 : 1, t: 0 };
-    const lerp = (a, b, t) => a + (b - a) * t;
+    const st = { g: animar ? 0 : 1, t: 1, de: HB_REG.Todas, a: HB_REG.Todas, reg: "Todas" };
+    const lerp = (x, y, t) => x + (y - x) * t;
+    const mezcla = (k) => st.a[k].map((v, i) => lerp(st.de[k][i], v, st.t) * st.g);
     function pinta() {
-      const g = st.g, t = st.t;
-      HB_KPI.forEach((k, i) => { const el = root.querySelector("#hbK" + i); if (el) el.textContent = k[3](lerp(k[1], k[2], t) * g); });
-      q(".hb-bp i").forEach((el, i) => { el.style.height = lerp(HB_BAR[i][1], HB_BAR[i][2], t) * g + "%"; });
+      const k = mezcla("k"), b = mezcla("b"), d = mezcla("d");
+      HB_KPI.forEach((x, i) => { const el = root.querySelector("#hbK" + i); if (el) el.textContent = x[1](k[i]); });
+      q(".hb-bp i").forEach((el, i) => { el.style.height = b[i] + "%"; });
       let acum = 0;
-      q(".hb-seg").forEach((c, i) => { const p = lerp(HB_DON[i][0], HB_DON[i][1], t) * g; c.setAttribute("stroke-dasharray", p + " " + (100 - p)); c.setAttribute("stroke-dashoffset", -acum); acum += p; });
-      const ln = root.querySelector("#hbLn"); if (ln) ln.setAttribute("stroke-dashoffset", 100 * (1 - g));
-      const c0 = root.querySelector("#hbCh0"), c1 = root.querySelector("#hbCh1");
-      if (c0 && c1) { c0.classList.toggle("on", t < 0.5); c1.classList.toggle("on", t >= 0.5); }
+      q(".hb-seg").forEach((c, i) => { c.setAttribute("stroke-dasharray", d[i] + " " + (100 - d[i])); c.setAttribute("stroke-dashoffset", -acum); acum += d[i]; });
+      const ln = root.querySelector("#hbLn"); if (ln) ln.setAttribute("stroke-dashoffset", 100 * (1 - st.g));
     }
+    function elige(r) {
+      if (r === st.reg) return;
+      st.de = { k: mezcla("k"), b: mezcla("b"), d: mezcla("d") }; st.a = HB_REG[r]; st.reg = r; st.t = 0;
+      q(".hb-rg").forEach((el) => { const on = el.dataset.r === r; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); });
+      if (animar) gsap.to(st, { t: 1, duration: 0.8, ease: "power2.inOut", overwrite: "auto", onUpdate: pinta }); else { st.t = 1; pinta(); }
+    }
+    root.querySelector('.hb-rg[data-r="Todas"]').classList.add("on");
     pinta();
+    // el visitante manda: sus clics filtran de verdad y detienen el recorrido automático
+    let usuario = false;
+    q(".hb-rg").forEach((el) => el.addEventListener("click", () => { usuario = true; elige(el.dataset.r); }));
     if (!animar) return;
     gsap.to(st, { g: 1, duration: 2.2, ease: "power2.out", delay: 0.5, onUpdate: pinta });
-    // después de dibujarse, filtra Norte y vuelve, para siempre (se pausa cuando el héroe sale de pantalla)
-    const lazo = gsap.timeline({ repeat: -1, delay: 4, defaults: { ease: "power2.inOut", onUpdate: pinta } });
-    lazo.to(st, { t: 1, duration: 1 }).to(st, { t: 0, duration: 1 }, "+=2.6").to({}, { duration: 2.2 });
-    ScrollTrigger.create({ trigger: root.querySelector("#biHero"), start: "top bottom", end: "bottom top", onToggle: (x) => lazo.paused(!x.isActive) });
-    // al bajar, el dashboard sube un poco más rápido que la página y se atenúa: se siente que entra al recorrido
-    gsap.to(root.querySelector(".hb-dash"), { y: -70, opacity: 0.35, ease: "none", scrollTrigger: { trigger: root.querySelector("#biHero"), start: "top top+=" + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--viaje-nav-h")) || 130), end: "bottom top", scrub: true } });
+    const ciclo = ["Norte", "Todas", "Centro", "Todas"];
+    let paso = 0, reloj = null;
+    const sigue = () => { if (!usuario) { elige(ciclo[paso++ % ciclo.length]); } };
+    const hero = root.querySelector("#biHero");
+    ScrollTrigger.create({ trigger: hero, start: "top bottom", end: "bottom top", onToggle: (x) => { clearInterval(reloj); if (x.isActive) reloj = setInterval(sigue, 3200); } });
+    // al bajar, cada tarjeta se mueve a su ritmo y las de los lados se abren: se siente que entras al dashboard
+    const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--viaje-nav-h")) || 130;
+    const sc = { trigger: hero, start: "top top+=" + nav, end: "bottom top", scrub: true };
+    gsap.to(q(".hb-fb, .hb-k"), { y: -26, ease: "none", scrollTrigger: sc });
+    gsap.to(q(".hb-pb"), { y: -60, x: -50, ease: "none", scrollTrigger: sc });
+    gsap.to(q(".hb-pl, .hb-pd"), { y: -60, x: 50, ease: "none", scrollTrigger: sc });
+    gsap.to(q(".hb-pm, .hb-pn"), { y: -130, ease: "none", scrollTrigger: sc });
+    gsap.to(root.querySelector(".hb-text"), { y: -50, opacity: 0.2, ease: "none", scrollTrigger: sc });
   }
 
   function shellHtml() {

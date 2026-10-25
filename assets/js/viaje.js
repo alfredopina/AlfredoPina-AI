@@ -60,6 +60,29 @@
       return { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight };
     },
     cen(el, wrap) { const r = ViajeEngine.rel(el, wrap); return [r.x + r.w / 2, r.y + r.h / 2]; },
+    // ---- ganchos de scroll compartidos por los héroes (Excel; Power BI tiene su copia, se unifica al replicar a los demás) ----
+    // flecha "Sigue bajando": aparece sola tras 2.5 s sin mover el scroll durante el recorrido, se va al moverlo y no sale
+    // en la última escena (el viaje pone est.fin = true). Devuelve el estado { fin }.
+    flechaMas(mas) {
+      const est = { fin: false }; let calma = null;
+      const oculta = () => { mas.classList.remove("on"); clearTimeout(calma); calma = setTimeout(() => { if (!est.fin && mas.isConnected && document.body.classList.contains("bi-hoja")) mas.classList.add("on"); }, 2500); };
+      window.addEventListener("scroll", oculta, { passive: true }); oculta();
+      return est;
+    },
+    // auto-scroll del héroe: la barrita .hb-bar del botón se llena en 5 s y llama a irA(); una vez por visita, lo cancela
+    // cualquier gesto (rueda, toque, tecla, clic) o ya haber hecho scroll; no corre con reducir-movimiento.
+    autoBajar(root, irA) {
+      const bar = root.querySelector(".hb-bar");
+      if (!bar || window._hbAuto || window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.scrollY > 40) return;
+      const eventos = ["wheel", "touchstart", "keydown", "pointerdown"];
+      let activo = true, tw = null;
+      const limpia = () => { activo = false; eventos.forEach((e) => window.removeEventListener(e, cancela)); window.removeEventListener("scroll", alScroll); };
+      const cancela = () => { if (!activo) return; limpia(); if (tw) tw.kill(); gsap.to(bar, { opacity: 0, duration: 0.3 }); };
+      const alScroll = () => { if (window.scrollY > 40) cancela(); };
+      tw = gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 5, ease: "none", onComplete: () => { if (!activo || !root.isConnected) return; limpia(); window._hbAuto = true; gsap.to(bar, { opacity: 0, duration: 0.3 }); irA(); } });
+      eventos.forEach((e) => window.addEventListener(e, cancela, { passive: true }));
+      window.addEventListener("scroll", alScroll, { passive: true });
+    },
     // mensaje que "se escribe" (clip-path de izquierda a derecha)
     tipea(tl, el, t, d) { return tl.to(el, { clipPath: "inset(0 0% 0 0)", duration: d, ease: "none" }, t); },
     // un objeto se vuelve otro: el contenido de "desde" se apaga, un marco fantasma (.viaje-ghost) viaja de su caja a la de

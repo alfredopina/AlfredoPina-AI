@@ -205,11 +205,96 @@
     return msgBloque(4) + '<aside class="xcp reveal" id="xCp"><div class="xk-h"><span class="ik">' + I.chispa + '</span>Copilot<em>Excel</em></div><div class="xk-sets">' + sets + "</div></aside>";
   }
 
+  // ---- héroe: mitad texto, mitad el MISMO dashboard oscuro de la hoja 3 (con sus macros), interactivo ----
+  // Copia con ids "h…" (los de la escena no se tocan). Un solo botón grande con barrita de 5 s (auto-scroll, ver
+  // ViajeEngine.autoBajar); "Ver programas" discreto. Los botones de macro del tablero funcionan de verdad.
+  const XH_KPI = [["xkV", 2.4, 1.05, (v) => fmtV(v)], ["xkU", 1284, 566, (v) => fmtU(v)], ["xkM", 34, 38, (v) => fmtM(v)], ["xkT", 18.7, 18.5, (v) => fmtT(v)]];
+  const XH_VARS = ["--d-bg", "--d-card", "--d-tx", "--d-mut", "--d-line", "--d-head"];
+  const XH_OSC = [[15, 19, 26], [22, 28, 38], [226, 232, 240], [138, 150, 168], [38, 47, 62], [9, 52, 33]];
+  const XH_CLA = [[255, 255, 255], [246, 248, 251], [28, 36, 49], [100, 116, 139], [221, 227, 236], [15, 31, 61]];
   function heroHtml() {
-    return '<section class="viaje-hero" id="xHero"><span class="viaje-hero-eyebrow">Curso de Excel</span>' +
-      '<h1 class="viaje-hero-title">Aprende Excel como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">A1</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Versión 365</span><span class="scope-chip">Español e Inglés</span><span class="scope-chip">WPS / Google Sheets</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#xWin" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const full = sceneV();
+    const ini = full.indexOf('<div class="xd" id="xDash">'), fin = full.indexOf('<div class="xmail');
+    const dash = full.slice(ini, fin).replace(/id="([A-Za-z]\w*)"/g, 'id="h$1"');
+    return '<section class="viaje-hero hb-hero xh-hero" id="xHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Excel</span>' +
+      '<h1 class="viaje-hero-title">Excel que <span class="accent">trabaja<span class="selector-box"><span class="selector-label">A1</span></span></span> por ti</h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Versión 365</span><span class="scope-chip">Macros con Copilot</span><span class="scope-chip">WPS / Google Sheets</span></div>' +
+      '<div class="hb-actions"><a href="#xWin" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame xh-frame"><div class="hb-cv xh-cv" id="xhCv">' + dash + '<div class="xh-toast" id="hxToast" role="status"></div></div></div></div></section>';
+  }
+
+  // modo: "desk" (animado, interactivo y auto-scroll), "flujo" (teléfono) o "simple" (estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#xhCv");
+    if (!cont) return null;
+    const g = (id) => cont.querySelector("#h" + id), qa = (s) => Array.prototype.slice.call(cont.querySelectorAll(s));
+    const dash = g("xDash"), stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 940).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+
+    // UN estado mueve todo: g (se dibuja), t (Norte), p (producto Consultoría), th (0 oscuro → 1 claro)
+    const st = { g: modo === "desk" ? 0 : 1, t: 0, p: 0, th: 0 };
+    const lerp = (x, y, k) => x + (y - x) * k;
+    function pinta() {
+      XH_KPI.forEach((k) => { const v = lerp(k[1], k[2], st.t) * st.g; g(k[0]).textContent = v <= 0.001 ? "—" : k[3](v); });
+      qa(".xb-p i").forEach((el, i) => { el.style.height = lerp(+el.dataset.h, +el.dataset.hn, st.t) * st.g + "%"; el.style.opacity = i ? lerp(1, 0.25, st.t) : 1; });
+      qa(".seg").forEach((c) => { const p = +c.dataset.p * st.g; c.setAttribute("stroke-dasharray", p + " " + (100 - p)); });
+      const ln = qa(".ln")[0]; if (ln) ln.setAttribute("stroke-dashoffset", 100 * (1 - st.g));
+      const ar = qa(".ar")[0]; if (ar) ar.setAttribute("opacity", 0.18 * st.g);
+      qa(".pc-xf .a, .pc-n .a, .pc-s .a").forEach((el) => { el.style.opacity = 1 - st.p; });
+      qa(".pc-xf .b, .pc-n .b, .pc-s .b").forEach((el) => { el.style.opacity = st.p; });
+      g("xkr2").style.backgroundColor = "rgba(107,159,255," + (0.18 * st.p).toFixed(3) + ")";
+      g("sr0").classList.toggle("on", st.t < 0.5); g("sr1").classList.toggle("on", st.t >= 0.5); g("sp2").classList.toggle("on", st.p >= 0.5);
+      XH_VARS.forEach((v, i) => dash.style.setProperty(v, "rgb(" + XH_OSC[i].map((x, j) => Math.round(lerp(x, XH_CLA[i][j], st.th))).join(",") + ")"));
+    }
+    pinta();
+    const visibles = qa(".reveal:not(.xd-ev)");
+    if (modo !== "desk") { visibles.forEach((el) => { el.style.opacity = 1; }); return null; }
+
+    const api = { introHecha: false, irA: null };
+    gsap.to(visibles, { opacity: 1, duration: 0.5, stagger: 0.04, delay: 0.3 });
+    gsap.to(st, { g: 1, duration: 2.2, delay: 0.5, ease: "power2.out", onUpdate: pinta, onComplete: () => { api.introHecha = true; if (api.irA) E.autoBajar(root, api.irA); } });
+
+    // interacción real: segmentaciones y botones de macro del tablero
+    let reg = false, prod = false, tema = false, evalua = false, usuario = false, ultimo = 0;
+    const o = { duration: 0.8, ease: "power2.inOut", overwrite: "auto", onUpdate: pinta };
+    const setReg = (on) => { reg = on; gsap.to(st, Object.assign({ t: on ? 1 : 0 }, o)); };
+    const setProd = (on) => { prod = on; gsap.to(st, Object.assign({ p: on ? 1 : 0 }, o)); };
+    const setTema = (on) => { tema = on; gsap.to(st, Object.assign({ th: on ? 1 : 0 }, o, { duration: 0.9 })); };
+    const setEval = (on) => { evalua = on; gsap.to(qa(".xd-ev"), { opacity: on ? 1 : 0, duration: 0.4, stagger: 0.1, overwrite: "auto" }); };
+    const toast = (txt) => { const t = g("xToast") || cont.querySelector("#hxToast"); t.textContent = txt; gsap.fromTo(t, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, overwrite: true }); gsap.to(t, { opacity: 0, delay: 2.2, duration: 0.4 }); };
+    const golpe = (el) => { el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 450); };
+    const actualiza = () => {
+      const d = new Date(), h = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+      g("xStamp").textContent = "Actualizado " + h; gsap.fromTo(qa(".xd-k"), { scale: 1.04 }, { scale: 1, duration: 0.5, stagger: 0.06 });
+    };
+    const acciones = {
+      sr0: () => setReg(false), sr1: () => setReg(!reg), sp2: () => setProd(!prod), sLimpiar: () => { setReg(false); setProd(false); },
+      mb0: actualiza, mb1: () => setTema(!tema), mb2: () => setEval(!evalua),
+      mb3: () => toast("Correo con el dashboard listo para enviar"), mb4: () => toast("Dashboard_T3.pdf descargado"),
+    };
+    Object.keys(acciones).forEach((id) => {
+      const el = g(id);
+      el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap");
+      const ir = () => { usuario = true; ultimo = Date.now(); g("mb1").classList.remove("hb-pulse"); golpe(el); acciones[id](); };
+      el.addEventListener("click", ir);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ir(); } });
+    });
+    g("mb1").classList.add("hb-pulse");
+
+    // si el visitante se queda mirando, el tablero se mueve solo (segmentar, cambiar de producto, tema, evaluar…)
+    // mientras el héroe está a la vista; tras un toque suyo espera 10 s de calma
+    const guion = [() => setReg(true), () => setProd(true), () => { setReg(false); setProd(false); }, () => setTema(true), () => setTema(false), () => setEval(true), () => setEval(false), () => actualiza()];
+    let paso = 0;
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#xHero").getBoundingClientRect();
+      if (!api.introHecha || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000) return;
+      guion[paso++ % guion.length]();
+    }, 3600);
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
+    return api;
   }
 
   function shellHtml() {
@@ -221,6 +306,7 @@
       '<div class="bi-fx"><span class="bi-fx-ico">fx</span><div class="bi-fx-stack">' + msgs + "</div></div>" +
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="xRail">' + tabs + '<span class="bi-status mono" id="xEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -327,7 +413,7 @@
     barra(tl, R, 3, at(4), 12);
     tl.to($("#xdSl"), { opacity: 1, duration: 4 }, at(8));
     // KPI con crecimiento (▲ ▼ + texto) y su minigráfica
-    tl.to(qa(".xd-k"), { opacity: 1, duration: 3, stagger: 1.5 }, at(12));
+    tl.to(qa("#xDash .xd-k"), { opacity: 1, duration: 3, stagger: 1.5 }, at(12));
     kpis(tl, R, at(14), { V: [0, 2.4], U: [0, 1284], M: [0, 34], T: [0, 18.7] }, 9);
     // gráficos: barras (llegan de la tabla dinámica), línea y dona
     tl.to(qa("#xChB .xb-p i"), { height: (i, el) => el.dataset.h + "%", duration: 8, stagger: 2 }, at(20));
@@ -398,7 +484,7 @@
     macro(1, t0 + 16);
     tl.to(dash, { "--d-bg": "rgb(255,255,255)", "--d-card": "rgb(246,248,251)", "--d-tx": "rgb(28,36,49)", "--d-mut": "rgb(100,116,139)", "--d-line": "rgb(221,227,236)", "--d-head": "rgb(15,31,61)", duration: 6 }, t0 + 33);
     macro(2, t0 + 32);
-    tl.to(qa(".xd-ev"), { opacity: 1, duration: 3, stagger: 1.5 }, t0 + 49);
+    tl.to(qa("#xDash .xd-ev"), { opacity: 1, duration: 3, stagger: 1.5 }, t0 + 49);
     macro(3, t0 + 48);
     tl.fromTo($("#xMail"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 4 }, t0 + 65);
     tl.to($("#xMail"), { x: 160, y: -40, opacity: 0, duration: 7, ease: "power2.in" }, t0 + 71);
@@ -449,11 +535,13 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
+      const mas = E.flechaMas($("#biMore"));
       const pin = $("#xPin"), canvas = $("#xCanvas"), caps = qa(".xl-l");
 
       // ---- línea de tiempo maestra: el libro recorre cuatro hojas y tres transiciones ----
@@ -493,7 +581,7 @@
 
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); mas.fin = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#xHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 
@@ -501,6 +589,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");

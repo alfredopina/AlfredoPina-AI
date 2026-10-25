@@ -253,3 +253,24 @@
 .bi-flujo .xcp .xk-ins{ opacity:1 !important; }
 .bi-flujo .xmail, .bi-flujo .xpdf, .bi-flujo .xl-cur{ display:none; }
 .bi-flujo .xl-win .viaje-msg{ margin:4px 0 14px; }
+
+/* ---------- héroe de Excel: mitad texto, mitad el dashboard oscuro con macros (estructura hb-* de viaje-bi.css) ---------- */
+.hb-frame.xh-frame{ aspect-ratio:940/428; background-color:#0f131a; border-color:rgba(34,197,94,.3); box-shadow:0 24px 70px rgba(0,0,0,.55), 0 0 80px rgba(34,197,94,.1); }
+.hb-cv.xh-cv{ width:940px; height:428px; }
+.xh-cv .xd{ position:relative; left:0; top:0; border-radius:0; border:0; }
+.xh-cv .xd-mb{ height:40px; }
+.xh-cv .xd-b{ transition:background-color .2s, color .2s; }
+.xh-cv .xd-b.hit{ background-color:#107c41; color:#fff; }
+.xh-cv .sl-i{ transition:background-color .25s, border-color .25s, color .25s; }
+.xh-cv .sl-x, .xh-cv .sl-i, .xh-cv .xd-b{ cursor:pointer; }
+.xh-cv .xd-b.hb-pulse{ animation:hbPulse 1.6s ease-out infinite; }
+.xh-cv #hxChL svg{ flex:1; width:100%; min-height:0; }
+.xh-cv #hxChL .ar{ fill:#22c55e; }
+.xh-toast{ position:absolute; right:14px; bottom:12px; z-index:6; padding:7px 14px; border-radius:8px; background-color:#1a212d; border:1px solid #22c55e; color:#e2e8f0; font-size:12px; font-weight:600; opacity:0; pointer-events:none; box-shadow:0 8px 22px rgba(0,0,0,.5); }
+.xh-hero .hb-go{ background-color:var(--c,#22c55e); border-color:var(--c,#22c55e); }
+/* teléfono / estático: el texto primero; debajo, el tablero sin barra lateral, tabla ni columna derecha */
+.bi-flujo .hb-frame.xh-frame{ aspect-ratio:auto; overflow:visible; background:none; border:0; box-shadow:none; }
+.bi-flujo .hb-cv.xh-cv{ width:auto; height:auto; }
+.bi-flujo .xh-cv .xd{ border:1px solid var(--d-line); border-radius:10px; }
+.bi-flujo .xh-cv .xd-sl, .bi-flujo .xh-cv .xd-rt, .bi-flujo .xh-cv .xd-kt, .bi-flujo .xh-cv #hxChL, .bi-flujo .xh-toast{ display:none; }
+.bi-flujo .xh-hero .viaje-hero-title{ font-size:clamp(26px,7.2vw,38px); }

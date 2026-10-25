@@ -110,7 +110,7 @@ function nav(cfg) {
       ${ddCursos(cur("cursos"))}
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>
-    <a href="/#contacto" class="nav-cta">${CAFE} Hablemos</a>
+    <a href="/#contacto" class="nav-cta">${CAFE} =CONTACTAR()</a>
     <button type="button" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">${MENU}</button>
   </div>
 </nav>`;
@@ -139,12 +139,12 @@ function footer(cfg) {
   }
   return `<footer id="contacto">
   <div class="wrap">
-    <div class="eyebrow">HABLEMOS</div>
+    <div class="eyebrow">CONTACTAR</div>
     <h2 class="contact-title">Yo invito el café ${CAFE_BIG}</h2>
 
     <div class="formula-bar-big" id="formulaBar">
       <span class="formula-fx-big">fx</span>
-      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="tel:+528117255937" class="formula-arg">teléfono</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
     </div>
 
     ${meta}

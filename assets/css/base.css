@@ -122,9 +122,9 @@ footer{border-top:1px solid var(--line); padding:160px 0 60px; margin-top:20px;}
     display:flex; align-items:center;
   }
 
-.formula-reveal{overflow:hidden; white-space:nowrap; width:0; transition:width 2.1s steps(52,end); flex:none;}
+.formula-reveal{overflow:hidden; white-space:nowrap; width:0; transition:width 1.6s steps(39,end); flex:none;}
 
-.formula-bar-big.in-view .formula-reveal{width:52ch;}
+.formula-bar-big.in-view .formula-reveal{width:39ch;}
 
 .formula-inner{
     display:inline-flex; align-items:center; font-family:var(--mono); font-size:15px; color:var(--text);

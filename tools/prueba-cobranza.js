@@ -18,6 +18,7 @@ let cuentas = [
   cuenta({ id: 4, cliente: 'Gamma SA', estatus: 'Por facturar', semaforo: sem('sin_plazo', null) }),
   cuenta({ id: 5, cliente: 'Delta SA', estatus: 'Pagada', folio_factura: '190', fecha_emision: '2026-08-01', saldo: 0, pagado: 11600, pagos: [pago(2, 11600, '2026-08-20')], semaforo: sem('cerrada', null) }),
   cuenta({ id: 6, cliente: 'Epsilon SA', estatus: 'Cancelada', semaforo: sem('cerrada', null) }),
+  cuenta({ id: 7, cliente: 'Taller Ejemplo SA', cliente_id: null, razon_social: 'Taller Ejemplo SA', tipo_factura: 'Otro', estatus: 'Facturada', folio_factura: '300', fecha_emision: '2026-09-02', inicio_plazo: '2026-09-02', vencimiento: '2026-10-02', semaforo: sem('vencida', 20) }),
 ];
 const resumen = { por_cobrar: 30000.5, por_cobrar_n: 3, vencido: 11600, vencido_n: 1, por_vencer: 11600, por_vencer_n: 1, por_facturar: 11600, por_facturar_n: 1, cobrado: 15600, cobrado_n: 2, dias_promedio: 19, contando_desde: null, contando_hasta: null };
 const alertas = { total: 2, umbrales: { cobranzaPorVencerDias: 7 }, grupos: { solicitudes: [], cotizaciones: [], grupos: [], clientes: [], cobranza: [
@@ -31,7 +32,7 @@ function fetchFalso(url, opts) {
   if (u.includes('/api/listCobranzaAdmin')) return respuesta(cuentas);
   if (u.includes('/api/getResumenCobranzaAdmin')) return respuesta(resumen);
   if (u.includes('/api/getNotificacionesActivas')) return respuesta(alertas);
-  if (u.includes('/api/buscarClientesAdmin')) return respuesta([{ id: 3, nombre: 'Acme SA', codigo: 'ACME' }, { id: 4, nombre: 'Beta SA', codigo: 'BETA' }]);
+  if (u.includes('/api/buscarClientesAdmin')) return respuesta([{ id: 3, nombre: 'Acme SA', codigo: 'ACME', tipo_cliente: 'Directo' }, { id: 4, nombre: 'Beta SA', codigo: 'BETA', tipo_cliente: 'Intermediario' }, { id: 9, nombre: 'Taller Ejemplo SA', codigo: 'TAL', tipo_cliente: 'Tercero' }]);
   if (u.includes('/api/registrarPagoCobranza') && cuerpo.monto > 7600) return respuesta({ error: 'El pago excede el saldo (queda por cobrar 7600.00).' }, 409);
   if (/\/api\/(registrarPagoCobranza|anularPagoCobranza|editarCuentaCobrar|cambiarEstatusCuentaCobrar|dividirCuentaCobrar|crearCuentaCobrar)/.test(u)) return respuesta({ ok: true });
   if (u.includes('/.auth/me')) return respuesta({ clientPrincipal: { userDetails: 'alfredo.pina@lifezen.com.mx', userRoles: ['admin'] } });
@@ -69,6 +70,7 @@ const q = (s) => d.querySelector(s);
 const qa = (s) => [...d.querySelectorAll(s)];
 const txt = (s) => (q(s) ? q(s).textContent.replace(/\s+/g, ' ').trim() : null);
 const clic = async (el) => { el.click(); await pausa(80); };
+const valorDe = (id) => d.getElementById(id).value;
 const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dispatchEvent(new w.Event('input', { bubbles: true })); };
 
 (async () => {
@@ -90,7 +92,8 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   console.log('Tabla: vista Por cobrar, orden y semáforo');
   let filas = qa('#cbzListaBody tr[data-id]');
   check('Por cobrar muestra Facturada y Parcial (3), en el orden del servidor (la vencida primero)', filas.length === 3 && filas[0].dataset.id === '1', filas.map((f) => f.dataset.id).join(','));
-  check('contadores de las vistas', txt('#cbzN-cobrar') === '3' && txt('#cbzN-vencidas') === '1' && txt('#cbzN-facturar') === '1' && txt('#cbzN-pagadas') === '1' && txt('#cbzN-canceladas') === '1' && txt('#cbzN-todo') === '6');
+  check('contadores de las vistas', txt('#cbzN-cobrar') === '3' && txt('#cbzN-vencidas') === '1' && txt('#cbzN-facturar') === '1' && txt('#cbzN-pagadas') === '1' && txt('#cbzN-canceladas') === '1' && txt('#cbzN-terceros') === '1' && txt('#cbzN-todo') === '7', ['cobrar','vencidas','facturar','pagadas','canceladas','terceros','todo'].map((k) => txt('#cbzN-' + k)).join(','));
+  check('la factura de terceros (Otro) NO está en Por cobrar ni en Vencidas, solo en Terceros y Todo', !qa('#cbzListaBody tr[data-id]').some((f) => f.dataset.id === '7'));
   check('"Todo" es la última vista', qa('#cbzVistas .radm-tab').pop().dataset.vista === 'todo');
   const s0 = filas[0].querySelector('.cbz-sem'), s1 = filas[1].querySelector('.cbz-sem');
   check('semáforo SIEMPRE con ícono + texto: vencida', s0.classList.contains('vencida') && !!s0.querySelector('svg') && /Vencida 21 d/.test(s0.textContent), s0.textContent);
@@ -99,13 +102,16 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const sinPlazo = q('#cbzListaBody .cbz-sem');
   check('sin inicio de plazo: estado neutro con texto "Sin plazo"', sinPlazo.classList.contains('sin_plazo') && /Sin plazo/.test(sinPlazo.textContent) && !!sinPlazo.querySelector('svg'));
   await clic(q('#cbzVistas [data-vista="todo"]'));
-  check('Todo lista las 6', qa('#cbzListaBody tr[data-id]').length === 6);
+  check('Todo lista las 7', qa('#cbzListaBody tr[data-id]').length === 7);
+  await clic(q('#cbzVistas [data-vista="terceros"]'));
+  check('Terceros lista solo la de terceros, con su tipo', qa('#cbzListaBody tr[data-id]').length === 1 && /Otro/.test(txt('#cbzListaBody tr[data-id="7"]')));
+  await clic(q('#cbzVistas [data-vista="todo"]'));
   await clic(q('.cbz-tabla th[data-sort="cliente"]'));
   check('ordenar por Cliente (clic en el encabezado)', qa('#cbzListaBody tr[data-id]')[0].dataset.id === '3', qa('#cbzListaBody tr[data-id]').map((f) => f.dataset.id).join(','));
   poner('cbzFBuscar', 'beta');
   check('el buscador filtra por cliente', qa('#cbzListaBody tr[data-id]').length === 1);
   await clic(q('#cbzLimpiar'));
-  check('limpiar filtros regresa al orden del servidor', qa('#cbzListaBody tr[data-id]').length === 6 && qa('#cbzListaBody tr[data-id]')[0].dataset.id === '1');
+  check('limpiar filtros regresa al orden del servidor', qa('#cbzListaBody tr[data-id]').length === 7 && qa('#cbzListaBody tr[data-id]')[0].dataset.id === '1');
 
   check('la primera columna es Creada, con fecha y hora', /Creada/.test(txt('.cbz-tabla thead th:first-child')) && txt('#cbzListaBody tr td:first-child').includes('15/09/2026') && /11:33/.test(txt('#cbzListaBody tr td:first-child')), txt('#cbzListaBody tr td:first-child'));
   console.log('Detalle y pagos');
@@ -138,10 +144,15 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzListaBody tr[data-id="4"]'));
   check('cuenta sin pagos: monto editable y botón de dividir', !!q('#cbzDSubtotal') && !!q('[data-det="dividir"]'));
   check('el detalle trae las retenciones de ISR e IVA', !!q('#cbzDRetIsr') && !!q('#cbzDRetIva'));
+  d.getElementById('cbzDTipo').value = 'Gobierno'; d.getElementById('cbzDTipo').dispatchEvent(new w.Event('change', { bubbles: true }));
+  poner('cbzDSubtotal', '9600'); d.getElementById('cbzDSubtotal').dispatchEvent(new w.Event('change', { bubbles: true }));
+  check('al elegir el tipo Gobierno y capturar el subtotal, las retenciones se calculan solas (ISR 960, IVA 0)', valorDe('cbzDRetIsr') === '960' && valorDe('cbzDRetIva') === '0' && valorDe('cbzDIva') === '1536', [valorDe('cbzDRetIsr'), valorDe('cbzDRetIva'), valorDe('cbzDIva')].join(','));
+  d.getElementById('cbzDTipo').value = 'Empresa'; d.getElementById('cbzDTipo').dispatchEvent(new w.Event('change', { bubbles: true }));
+  check('con Empresa: ISR 960 e IVA retenido 1,024 (2/3 del IVA)', valorDe('cbzDRetIsr') === '960' && valorDe('cbzDRetIva') === '1024', [valorDe('cbzDRetIsr'), valorDe('cbzDRetIva')].join(','));
   poner('cbzDRetIsr', '960'); llamadas.length = 0;
   await clic(q('[data-det="guardar"]'));
   const guard = llamadas.find((l) => l.u.includes('editarCuentaCobrar'));
-  check('guardar manda subtotal, IVA y retenciones', guard && guard.cuerpo.retencion_isr === '960' && guard.cuerpo.subtotal === '10000' && guard.cuerpo.retencion_iva === '0', JSON.stringify(guard && guard.cuerpo));
+  check('guardar manda tipo, nombre fiscal, RFC, subtotal y retenciones', guard && guard.cuerpo.retencion_isr === '960' && guard.cuerpo.subtotal === '9600' && guard.cuerpo.tipo_factura === 'Empresa' && 'razon_social' in guard.cuerpo && 'rfc_receptor' in guard.cuerpo, JSON.stringify(guard && guard.cuerpo));
   await clic(q('[data-det="dividir"]'));
   check('la división propone 2 partes que suman el total', qa('.cbz-parte-total').length === 2 && qa('.cbz-parte-total').reduce((a, i) => a + Number(i.value), 0) === 11600);
   llamadas.length = 0;
@@ -156,7 +167,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   console.log('Alta manual');
   await clic(q('#cbzCrearBtn'));
   await pausa(100);
-  check('abre el formulario con los clientes', !q('#cbzNueva').hidden && qa('#cbzNCliente option').length === 3);
+  check('abre el formulario con los clientes', !q('#cbzNueva').hidden && qa('#cbzNCliente option').length === 4 && !qa('#cbzNCliente option').some((o) => /Sin cliente/.test(o.textContent)) && llamadas.some((l) => l.u.includes('facturables=1')));
   llamadas.length = 0;
   poner('cbzNCliente', '4'); poner('cbzNConcepto', 'Curso abierto Excel'); poner('cbzNEstrategia', 'abiertos'); poner('cbzNMonto', '1160'); poner('cbzNModo', 'total');
   await clic(q('#cbzNGuardar'));
@@ -172,6 +183,14 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('alta con subtotal manda las retenciones (y no manda total)', alta2 && alta2.cuerpo.subtotal === '9600' && alta2.cuerpo.retencion_isr === '960' && !('total' in alta2.cuerpo), JSON.stringify(alta2 && alta2.cuerpo));
 
   check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)') && HTML.includes('id="gruToggleCobro"'));
+  await clic(q('#cbzCrearBtn')); await pausa(100); llamadas.length = 0;
+  poner('cbzNCliente', '9'); d.getElementById('cbzNCliente').dispatchEvent(new w.Event('change', { bubbles: true })); await pausa(50);
+  check('al elegir un cliente Tercero el tipo de factura se pone solo en Otro y se bloquea', valorDe('cbzNTipo') === 'Otro' && d.getElementById('cbzNTipo').disabled);
+  poner('cbzNRazon', 'Taller Ejemplo SA'); poner('cbzNRfc', 'XAXX010101000'); poner('cbzNConcepto', 'Mtto'); poner('cbzNModo', 'subtotal'); poner('cbzNMonto', '10000');
+  await clic(q('#cbzNGuardar'));
+  const alta3 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
+  check('alta de un Tercero: cliente Tercero, tipo Otro, nombre fiscal y RFC', alta3 && alta3.cuerpo.cliente_id === 9 && alta3.cuerpo.tipo_factura === 'Otro' && alta3.cuerpo.razon_social === 'Taller Ejemplo SA' && alta3.cuerpo.rfc_receptor === 'XAXX010101000' && alta3.cuerpo.retencion_isr === '', JSON.stringify(alta3 && alta3.cuerpo));
+
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);
   const secCbz = q('.alr-sec[data-sec="cobranza"]');

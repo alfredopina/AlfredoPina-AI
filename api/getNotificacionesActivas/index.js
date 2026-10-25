@@ -176,7 +176,7 @@ async function clientesInactivos(pool, umbral) {
            (SELECT MAX(fecha_cierre) FROM Grupo
               WHERE (cliente_id = c.id OR cliente_final_id = c.id) AND estatus_cierre = 'Cerrado') AS ultimo_grupo_cerrado_fecha
     FROM Cliente c
-    WHERE c.tipo_cliente <> 'Prospecto'
+    WHERE c.tipo_cliente NOT IN ('Prospecto', 'Tercero')
   `);
   const ahora = new Date();
   const items = [];
@@ -209,7 +209,8 @@ async function clientesInactivos(pool, umbral) {
 
 // Cobranza: cuentas con saldo vencidas (rojo) o por vencer (ámbar, umbral editable). Vencidas primero, la más atrasada arriba.
 async function cobranzaPorTiempo(umbralPorVencer, umbralPorFacturar) {
-  const filas = await listarCuentas({ umbralPorVencer });
+  // las facturas de terceros (tipo Otro) no cuentan en las alertas
+  const filas = (await listarCuentas({ umbralPorVencer })).filter((f) => f.tipo_factura !== "Otro");
   const ahora = Date.now();
   const sinFacturar = filas
     .filter((f) => f.estatus === "Por facturar" && f.fecha_creacion)

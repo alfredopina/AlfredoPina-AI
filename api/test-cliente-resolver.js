@@ -93,7 +93,7 @@ async function rechaza(promesa) {
   check("Encuesta sin clienteId pide elegir empresa", e && e.safe === true && /Selecciona tu empresa/.test(e.message));
   e = await rechaza(resolverClienteExistente(pool, { clienteId: 4 }));
   check("Encuesta con Prospecto/inexistente lanza error", e && /ya no existe/.test(e.message));
-  check("Encuesta filtra Prospectos en la consulta", pool.llamadas[0].texto.includes("<> 'Prospecto'") && !pool.llamadas.some((c) => c.texto.startsWith("INSERT")));
+  check("Encuesta filtra Prospectos y Terceros en la consulta", pool.llamadas[0].texto.includes("NOT IN ('Prospecto', 'Tercero')") && !pool.llamadas.some((c) => c.texto.startsWith("INSERT")));
   pool = fakePool(() => [{ id: 4, nombre: "Ok", codigo: "OK" }]);
   r = await resolverClienteExistente(pool, { clienteId: 4 });
   check("Encuesta con cliente válido lo regresa", r.id === 4);

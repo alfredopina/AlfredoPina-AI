@@ -4,6 +4,17 @@ const IVA_TASA = 0.16;
 const ESTRATEGIAS = ["empresas", "abiertos"];
 const ESTATUS = ["Por facturar", "Facturada", "Parcial", "Pagada", "Cancelada"];
 const ESTATUS_MANUALES = ["Por facturar", "Facturada", "Cancelada"]; // Parcial/Pagada solo salen de los pagos
+// Tipo de factura (Viri maneja 3 y Alfredo agrega uno): decide qué retiene el cliente. "Otro" = facturas por cuenta de terceros: misma
+// retención que Empresa, se guardan para el contador y NO cuentan en las métricas internas ni en las alertas.
+const TIPOS_FACTURA = ["Empresa", "Gobierno", "Anterior", "Otro"];
+const retencionesDe = (subtotal, tipo) => {
+  const s = Number(subtotal) || 0;
+  const iva = centavos(s * IVA_TASA);
+  const isr = tipo === "Anterior" || !tipo ? 0 : centavos(s * 0.1);
+  const riva = tipo === "Empresa" || tipo === "Otro" ? centavos(s * IVA_TASA * 2 / 3) : 0;
+  return { iva, retencion_isr: isr, retencion_iva: riva };
+};
+const cuentaEnMetricas = (c) => c.tipo_factura !== "Otro";
 const METODOS = ["Transferencia", "Cheque", "Efectivo", "Tarjeta", "Otro"];
 const PLAZO_DEFAULT = 30;
 const POR_VENCER_DEFAULT = 7;
@@ -23,14 +34,16 @@ function desglosarDesdeSubtotal(subtotal, tasa = IVA_TASA) {
 // total = lo que realmente se cobra = subtotal + IVA − retención de ISR − retención de IVA (es el "Total" del CFDI).
 // Captura manual: subtotal (IVA calculado al 16 % si no se da) con sus retenciones opcionales, o solo el total ya neto
 // (histórico: el subtotal sale al revés sin retenciones, porque no se pueden adivinar).
-function desglosarMonto({ subtotal, iva, total, retencion_isr, retencion_iva }) {
+function desglosarMonto({ subtotal, iva, total, retencion_isr, retencion_iva, tipo_factura }) {
   const vacio = (v) => v == null || v === "";
   const num = (v) => (vacio(v) ? null : Number(v));
   const t = num(total), s = num(subtotal), i = num(iva), ri = num(retencion_isr), rv = num(retencion_iva);
   for (const v of [t, s, i, ri, rv]) if (v != null && (!Number.isFinite(v) || v < 0)) throw falla("Los montos deben ser números de cero en adelante.");
   if (s != null) {
     const base = i != null ? { subtotal: centavos(s), iva: centavos(i) } : desglosarDesdeSubtotal(s);
-    const isr = centavos(ri || 0), rviva = centavos(rv || 0);
+    // con tipo de factura y sin retenciones capturadas, las retenciones salen del tipo; si se capturan, mandan las capturadas
+    const porTipo = tipo_factura && ri == null && rv == null ? retencionesDe(s, tipo_factura) : null;
+    const isr = centavos(porTipo ? porTipo.retencion_isr : (ri || 0)), rviva = centavos(porTipo ? porTipo.retencion_iva : (rv || 0));
     const neto = centavos(base.subtotal + base.iva - isr - rviva);
     if (neto < 0) throw falla("Las retenciones no pueden ser mayores que el subtotal más el IVA.");
     return { subtotal: base.subtotal, iva: base.iva, retencion_isr: isr, retencion_iva: rviva, total: neto };
@@ -124,7 +137,7 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
   const r = { por_cobrar: 0, por_cobrar_n: 0, vencido: 0, vencido_n: 0, por_vencer: 0, por_vencer_n: 0, por_facturar: 0, por_facturar_n: 0, cobrado: 0, cobrado_n: 0, dias_promedio: null };
   const dias = [];
   for (const f of filas) {
-    if (f.estatus === "Cancelada") continue;
+    if (f.estatus === "Cancelada" || !cuentaEnMetricas(f)) continue; // las de terceros (Otro) no cuentan en las métricas internas
     if (f.estatus === "Por facturar") { r.por_facturar += f.total; r.por_facturar_n++; continue; }
     if (f.saldo > 0) {
       r.por_cobrar += f.saldo; r.por_cobrar_n++;
@@ -146,7 +159,7 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
 
 module.exports = {
   resumir,
-  IVA_TASA, ESTRATEGIAS, ESTATUS, ESTATUS_MANUALES, METODOS, PLAZO_DEFAULT, POR_VENCER_DEFAULT,
+  IVA_TASA, TIPOS_FACTURA, retencionesDe, cuentaEnMetricas, ESTRATEGIAS, ESTATUS, ESTATUS_MANUALES, METODOS, PLAZO_DEFAULT, POR_VENCER_DEFAULT,
   falla, centavos, desglosarDesdeSubtotal, desglosarMonto, aFecha, diasEntre, vencimientoDe,
   totalPagado, saldoDe, estatusDerivado, validarPago, validarDivision, semaforoDe, compararUrgencia,
 };

@@ -86,7 +86,8 @@ module.exports = async function (context, req) {
       // Un Prospecto no es cliente todavía: sin Completado, Días Inactivo ni
       // semáforo (su seguimiento vive en Solicitudes/Cotizaciones) — el front
       // los pinta como "—".
-      const esProspecto = c.tipo_cliente === "Prospecto";
+      // un Prospecto o un Tercero no se miden como cliente (sin Completado, Días Inactivo ni semáforo)
+      const esProspecto = c.tipo_cliente === "Prospecto" || c.tipo_cliente === "Tercero";
       const completado = esProspecto
         ? null
         : calcularCompletado({

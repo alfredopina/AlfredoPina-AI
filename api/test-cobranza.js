@@ -22,6 +22,21 @@ check("captura solo con total: el subtotal sale al revés y suma exacto", () => 
   assert.strictEqual(C.centavos(m.subtotal + m.iva), 10176);
   assert.strictEqual(m.retencion_isr, 0);
 });
+check("tipo de factura: Empresa, Gobierno, Anterior y Otro calculan sus retenciones", () => {
+  assert.deepStrictEqual(C.retencionesDe(10000, "Empresa"), { iva: 1600, retencion_isr: 1000, retencion_iva: 1066.67 });
+  assert.deepStrictEqual(C.retencionesDe(9600, "Gobierno"), { iva: 1536, retencion_isr: 960, retencion_iva: 0 });
+  assert.deepStrictEqual(C.retencionesDe(40000, "Anterior"), { iva: 6400, retencion_isr: 0, retencion_iva: 0 });
+  assert.deepStrictEqual(C.retencionesDe(10000, "Otro"), C.retencionesDe(10000, "Empresa"));
+  // con tipo y sin retenciones capturadas salen del tipo; si se capturan, mandan las capturadas
+  assert.strictEqual(C.desglosarMonto({ subtotal: 9600, tipo_factura: "Gobierno" }).total, 10176);
+  assert.strictEqual(C.desglosarMonto({ subtotal: 9600, tipo_factura: "Gobierno", retencion_isr: 0, retencion_iva: 0 }).total, 11136);
+  assert.deepStrictEqual(C.TIPOS_FACTURA, ["Empresa", "Gobierno", "Anterior", "Otro"]);
+});
+check("las facturas de terceros (Otro) no cuentan en las tarjetas", () => {
+  const fila = (o) => ({ estatus: "Facturada", total: 1000, saldo: 1000, pagos: [], semaforo: { clave: "vencida", dias: 5 }, fecha_emision: "2026-09-01", ...o });
+  const r = C.resumir([fila({}), fila({ tipo_factura: "Otro" }), fila({ tipo_factura: "Otro", estatus: "Pagada", saldo: 0, pagos: [{ monto: 1000, fecha: "2026-10-01", anulado: false }], semaforo: { clave: "cerrada", dias: null } })]);
+  assert.strictEqual(r.por_cobrar, 1000); assert.strictEqual(r.vencido_n, 1); assert.strictEqual(r.cobrado, 0);
+});
 check("retenciones (persona física): total = subtotal + IVA − ISR − IVA retenido", () => {
   // Gobierno: solo retiene 10 % de ISR → 9,600 + 1,536 − 960 = 10,176
   assert.deepStrictEqual(C.desglosarMonto({ subtotal: 9600, retencion_isr: 960 }), { subtotal: 9600, iva: 1536, retencion_isr: 960, retencion_iva: 0, total: 10176 });
@@ -212,6 +227,23 @@ function fabrica(handler) {
     assert.strictEqual(f4.hubo("INSERT").length, 0);
     assert.strictEqual(f4.hubo("UPDATE CuentaPorCobrar SET grupo_id")[0].params.g, 8);
     await rechaza(DB.crearCuentaDeGrupo(fabrica(() => []).nuevaRequest, { grupoId: 5, clienteId: 3, concepto: "x", monto: "-5" }), 400, /cero en adelante/);
+  });
+  await checkAsync("cliente Tercero <-> factura tipo Otro: se pone solo, y no se pueden mezclar", async () => {
+    const mk = (tipoCliente) => fabrica((t) => (t.includes("SELECT tipo_cliente FROM Cliente") ? [{ tipo_cliente: tipoCliente }] : t.includes("INSERT INTO CuentaPorCobrar") ? [{ id: 90 }] : t.includes("FROM Cliente") ? [{ id: 5 }] : []));
+    const f = mk("Tercero");
+    const r = await DB.crearCuentaManual(f.nuevaRequest, { cliente_id: 5, razon_social: "Taller Ejemplo SA", rfc_receptor: "XAXX010101000", concepto: "Mtto", subtotal: 10000 });
+    assert.strictEqual(r.id, 90);
+    const p = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
+    assert.strictEqual(p.tipo_factura, "Otro", "un cliente Tercero siempre queda como tipo Otro"); assert.strictEqual(p.razon_social, "Taller Ejemplo SA");
+    assert.strictEqual(p.retencion_isr, 1000); assert.strictEqual(p.total, 9533.33);
+    await rechaza(DB.crearCuentaManual(mk("Tercero").nuevaRequest, { cliente_id: 5, tipo_factura: "Empresa", concepto: "x", subtotal: 100 }), 400, /Tercero/);
+    await rechaza(DB.crearCuentaManual(mk("Directo").nuevaRequest, { cliente_id: 3, tipo_factura: "Otro", concepto: "x", subtotal: 100 }), 400, /solo para clientes Tercero/);
+    await rechaza(DB.crearCuentaManual(mk("Directo").nuevaRequest, { tipo_factura: "Otro", concepto: "x", subtotal: 100 }), 400, /Elige el cliente/);
+    await rechaza(DB.crearCuentaManual(mk("Directo").nuevaRequest, { tipo_factura: "Raro", cliente_id: 3, concepto: "x", total: 100 }), 400, /Tipo de factura/);
+    // las cuentas que nacen de un grupo o cotización de un cliente Tercero también quedan como Otro
+    const g = mk("Tercero");
+    await DB.crearCuentaDeGrupo(g.nuevaRequest, { grupoId: 9, clienteId: 5, concepto: "Curso", monto: "" });
+    assert.strictEqual(g.hubo("INSERT INTO CuentaPorCobrar")[0].params.tipo_factura, "Otro");
   });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {
     const f = fabrica((t) => (t.includes("FROM Cliente") ? [{ id: 3 }] : t.includes("INSERT") ? [{ id: 1 }] : []));

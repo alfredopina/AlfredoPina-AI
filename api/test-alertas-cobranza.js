@@ -11,6 +11,7 @@ const cuentas = [
   { id: 2, cliente: "Beta SA", concepto: "Curso B", folio_factura: null, estatus: "Facturada", semaforo: { clave: "por_vencer", dias: 3 }, fecha_creacion: iso(20) },
   { id: 3, cliente: "Gamma SA", concepto: "Grupo C", estatus: "Por facturar", semaforo: { clave: "sin_plazo", dias: null }, fecha_creacion: iso(5) },
   { id: 4, cliente: "Delta SA", concepto: "Grupo D", estatus: "Por facturar", semaforo: { clave: "sin_plazo", dias: null }, fecha_creacion: iso(1) },
+  { id: 6, cliente: "Tercero SA", concepto: "Mtto", folio_factura: "300", estatus: "Facturada", tipo_factura: "Otro", semaforo: { clave: "vencida", dias: 30 }, fecha_creacion: iso(60) },
   { id: 5, cliente: "Eps SA", concepto: "Curso E", estatus: "Pagada", semaforo: { clave: "cerrada", dias: null }, fecha_creacion: iso(90) },
 ];
 const origLoad = Module._load;
@@ -39,6 +40,7 @@ Module._load = function (req, ...a) {
   assert.strictEqual(por(3)[0].pastilla, "sin facturar 5 d", "Por facturar con 5 días (umbral 3) alerta");
   assert.strictEqual(por(4).length, 0, "Por facturar con 1 día no alerta todavía");
   assert.strictEqual(por(5).length, 0, "una cuenta pagada no alerta");
+  assert.strictEqual(por(6).length, 0, "una factura de terceros (Otro) no alerta");
   assert.strictEqual(cb.length, 3);
   assert.strictEqual(context.res.body.total, 3, "el total de la campana incluye Cobranza");
   console.log("test-alertas-cobranza: ok");

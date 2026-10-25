@@ -8,11 +8,14 @@ const { JSON_HEADERS } = require("../src/http");
 
 module.exports = async function (context, req) {
   const q = (req.query.q || "").trim();
+  // Los Terceros (facturas por cuenta de terceros) solo se ofrecen en Cobranza: ?facturables=1 trae únicamente los que pueden recibir factura
+  // (Directo, Intermediario y Tercero); sin ese parámetro los Terceros nunca salen (Solicitud, Cotización y Grupo no deben verlos).
+  const filtroTipos = req.query.facturables ? "tipo_cliente IN ('Directo', 'Intermediario', 'Tercero')" : "tipo_cliente <> 'Tercero'";
   // ?todos=1 (sin q): la flecha del combobox del formulario de Solicitudes despliega los primeros 300 por nombre
   if (!q && req.query.todos) {
     try {
       const pool = await getPool();
-      const todos = await pool.request().query("SELECT TOP 300 id, nombre, codigo, tipo_cliente FROM Cliente ORDER BY nombre");
+      const todos = await pool.request().query(`SELECT TOP 300 id, nombre, codigo, tipo_cliente FROM Cliente WHERE ${filtroTipos} ORDER BY nombre`);
       context.res = { status: 200, headers: JSON_HEADERS, body: todos.recordset };
     } catch (err) {
       context.log.error("Error listando clientes (admin):", err.message);
@@ -30,7 +33,7 @@ module.exports = async function (context, req) {
     const result = await pool
       .request()
       .input("q", sql.NVarChar, `%${q}%`)
-      .query("SELECT TOP 20 id, nombre, codigo, tipo_cliente FROM Cliente WHERE nombre LIKE @q OR codigo LIKE @q ORDER BY nombre");
+      .query(`SELECT TOP 20 id, nombre, codigo, tipo_cliente FROM Cliente WHERE (nombre LIKE @q OR codigo LIKE @q) AND ${filtroTipos} ORDER BY nombre`);
     context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
   } catch (err) {
     context.log.error("Error buscando clientes (admin):", err.message);

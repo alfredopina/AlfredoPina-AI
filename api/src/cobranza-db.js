@@ -3,7 +3,7 @@
 const { getPool, sql } = require("./backoffice-db");
 const C = require("./cobranza");
 
-const CAMPOS_TEXTO = { concepto: 300, folio_factura: 40, uuid_factura: 40, rfc_receptor: 15, orden_compra: 60 };
+const CAMPOS_TEXTO = { concepto: 300, folio_factura: 40, uuid_factura: 40, rfc_receptor: 15, orden_compra: 60, razon_social: 200 };
 
 const limpio = (v, max) => { const t = String(v == null ? "" : v).trim(); return t ? t.slice(0, max) : null; };
 
@@ -51,15 +51,25 @@ function leerCampos(b, parcial) {
     if (!C.ESTRATEGIAS.includes(e)) throw C.falla("Estrategia no válida.");
     out.estrategia = e;
   }
+  if (!parcial || "tipo_factura" in b) {
+    const t = limpio(b.tipo_factura, 10);
+    if (t && !C.TIPOS_FACTURA.includes(t)) throw C.falla("Tipo de factura no válido (Empresa, Gobierno, Anterior u Otro).");
+    out.tipo_factura = t;
+  }
   if (!parcial || "notas" in b) out.notas = limpio(b.notas, 4000);
   return out;
 }
 
-const TIPOS = { fecha_emision: sql.Date, inicio_plazo: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
 const dia = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
 const fechaSql = (v) => (v ? new Date(v + "T00:00:00Z") : null);
 
 async function insertarCuenta(nuevaRequest, datos) {
+  // cualquier cuenta de un cliente Tercero (también las que nacen de un grupo o una cotización) queda como tipo Otro y no cuenta en las métricas
+  if (datos.cliente_id && datos.tipo_factura === undefined) {
+    const t = await nuevaRequest().input("id", sql.Int, datos.cliente_id).query("SELECT tipo_cliente FROM Cliente WHERE id = @id");
+    if (t.recordset.length && t.recordset[0].tipo_cliente === "Tercero") datos = { ...datos, tipo_factura: "Otro" };
+  }
   const cols = Object.keys(datos);
   const req = nuevaRequest();
   for (const c of cols) req.input(c, TIPOS[c] || sql.NVarChar, c === "fecha_emision" || c === "inicio_plazo" ? fechaSql(datos[c]) : datos[c]);
@@ -67,15 +77,25 @@ async function insertarCuenta(nuevaRequest, datos) {
   return r.recordset[0].id;
 }
 
+// Un cliente Tercero (facturas por cuenta de terceros) solo recibe facturas tipo Otro, y el tipo Otro solo va con clientes Tercero: así hay una sola
+// regla y nadie tiene que acordarse. Si el cliente es Tercero y no se eligió tipo, se pone Otro solo. Regresa el tipo que debe quedar.
+async function tipoCongruente(nuevaRequest, clienteId, tipo) {
+  const r = await nuevaRequest().input("id", sql.Int, clienteId).query("SELECT tipo_cliente FROM Cliente WHERE id = @id");
+  if (!r.recordset.length) throw C.falla("Ese cliente ya no existe.", 404);
+  const esTercero = r.recordset[0].tipo_cliente === "Tercero";
+  if (esTercero && tipo && tipo !== "Otro") throw C.falla("Ese cliente es un Tercero: sus facturas son tipo Otro.");
+  if (!esTercero && tipo === "Otro") throw C.falla("El tipo Otro es solo para clientes Tercero (se dan de alta en Clientes).");
+  return esTercero ? "Otro" : tipo;
+}
+
 // Alta manual (cobros sin cotización, cursos abiertos)
 async function crearCuentaManual(nuevaRequest, b) {
-  const clienteId = Number(b.cliente_id);
-  if (!clienteId) throw C.falla("Elige el cliente.");
-  const c = await nuevaRequest().input("id", sql.Int, clienteId).query("SELECT id FROM Cliente WHERE id = @id");
-  if (!c.recordset.length) throw C.falla("Ese cliente ya no existe.", 404);
-  const montos = C.desglosarMonto(b);
-  if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   const campos = leerCampos(b, false);
+  const clienteId = Number(b.cliente_id);
+  if (!clienteId) throw C.falla("Elige el cliente. Si no está en la lista, hay que darlo de alta primero en Clientes.");
+  campos.tipo_factura = await tipoCongruente(nuevaRequest, clienteId, campos.tipo_factura);
+  const montos = C.desglosarMonto({ ...b, tipo_factura: campos.tipo_factura });
+  if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   let grupoId = null;
   if (b.grupo_id) {
     grupoId = Number(b.grupo_id);
@@ -129,6 +149,7 @@ async function editarCuenta(nuevaRequest, b) {
   const id = Number(b.id);
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, id);
   const campos = leerCampos(b, true);
+  if ("tipo_factura" in campos) campos.tipo_factura = await tipoCongruente(nuevaRequest, cuenta.cliente_id, campos.tipo_factura);
   let montos = {};
   if (["subtotal", "iva", "total", "retencion_isr", "retencion_iva"].some((k) => k in b && b[k] !== "" && b[k] != null)) {
     if (C.totalPagado(pagos) > 0) throw C.falla("Ya hay pagos registrados: el monto ya no se edita (anula los pagos o crea otra cuenta).", 409);
@@ -136,7 +157,7 @@ async function editarCuenta(nuevaRequest, b) {
     const hayTotalSolo = (b.subtotal === "" || b.subtotal == null) && b.total !== "" && b.total != null;
     const entrada = hayTotalSolo ? b : { ...b, subtotal: b.subtotal !== "" && b.subtotal != null ? b.subtotal : cuenta.subtotal, iva: b.iva !== "" && b.iva != null ? b.iva : cuenta.iva,
       retencion_isr: "retencion_isr" in b ? b.retencion_isr : cuenta.retencion_isr, retencion_iva: "retencion_iva" in b ? b.retencion_iva : cuenta.retencion_iva };
-    montos = C.desglosarMonto(entrada);
+    montos = C.desglosarMonto({ ...entrada, tipo_factura: ("tipo_factura" in campos ? campos.tipo_factura : cuenta.tipo_factura) || undefined });
     if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   }
   const datos = { ...campos, ...montos };
@@ -248,11 +269,11 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   let where = "";
   if (clienteId) { where = "WHERE x.cliente_id = @cliente"; req.input("cliente", sql.Int, clienteId); }
   const cuentas = await req.query(`
-    SELECT x.id, x.cliente_id, c.nombre AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
+    SELECT x.id, x.cliente_id, COALESCE(c.nombre, x.razon_social) AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
            x.concepto, x.subtotal, x.iva, x.retencion_isr, x.retencion_iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
-           x.inicio_plazo, x.plazo_dias, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion
+           x.inicio_plazo, x.plazo_dias, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
     FROM CuentaPorCobrar x
-    JOIN Cliente c ON c.id = x.cliente_id
+    LEFT JOIN Cliente c ON c.id = x.cliente_id
     LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
     ${where}`);
   const pagos = await pool.request().query(

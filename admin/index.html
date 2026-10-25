@@ -4058,6 +4058,7 @@
                 <button type="button" class="radm-tab" data-vista="facturar">Por facturar<span class="radm-tab-count" id="cbzN-facturar">0</span></button>
                 <button type="button" class="radm-tab" data-vista="pagadas">Pagadas<span class="radm-tab-count" id="cbzN-pagadas">0</span></button>
                 <button type="button" class="radm-tab" data-vista="canceladas">Canceladas<span class="radm-tab-count" id="cbzN-canceladas">0</span></button>
+                <button type="button" class="radm-tab" data-vista="terceros" title="Facturas por cuenta de terceros: se guardan para el contador, no cuentan en las métricas ni en las alertas">Terceros<span class="radm-tab-count" id="cbzN-terceros">0</span></button>
                 <button type="button" class="radm-tab" data-vista="todo">Todo<span class="radm-tab-count" id="cbzN-todo">0</span></button>
               </div>
             </div>
@@ -4097,6 +4098,7 @@
                 <th data-sort="creada" title="Cuándo nació la cuenta">Creada<span class="th-sort-ico"></span></th>
                 <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
                 <th data-sort="estrategia">Estrategia<span class="th-sort-ico"></span></th>
+                <th data-sort="tipo">Tipo<span class="th-sort-ico"></span></th>
                 <th data-sort="folio">Factura<span class="th-sort-ico"></span></th>
                 <th data-sort="total" class="cbz-num">Total<span class="th-sort-ico"></span></th>
                 <th data-sort="saldo" class="cbz-num">Saldo<span class="th-sort-ico"></span></th>
@@ -4107,7 +4109,7 @@
               </tr>
             </thead>
             <tbody id="cbzListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -5991,12 +5993,21 @@
     let abiertaId = null;
     let cargando = false;
 
+    const esTercero = (c) => c.tipo_factura === 'Otro';
+    const TIPOS_FACTURA = ['Empresa', 'Gobierno', 'Anterior', 'Otro'];
+    // mismas reglas que api/src/cobranza.js#retencionesDe: Empresa y Otro retienen ISR 10 % + 2/3 del IVA; Gobierno solo ISR; Anterior nada
+    function retencionesDe(subtotal, tipo){
+      const r2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100, s = Number(subtotal) || 0;
+      return { iva: r2(s * 0.16), isr: tipo === 'Anterior' || !tipo ? 0 : r2(s * 0.1), riva: tipo === 'Empresa' || tipo === 'Otro' ? r2(s * 0.16 * 2 / 3) : 0 };
+    }
     const VISTAS = {
-      cobrar: (c) => c.estatus === 'Facturada' || c.estatus === 'Parcial',
-      vencidas: (c) => c.semaforo.clave === 'vencida',
-      facturar: (c) => c.estatus === 'Por facturar',
-      pagadas: (c) => c.estatus === 'Pagada',
-      canceladas: (c) => c.estatus === 'Cancelada',
+      // las facturas de terceros (tipo Otro) viven solo en su pestaña y en Todo: no cuentan en las métricas internas
+      cobrar: (c) => !esTercero(c) && (c.estatus === 'Facturada' || c.estatus === 'Parcial'),
+      vencidas: (c) => !esTercero(c) && c.semaforo.clave === 'vencida',
+      facturar: (c) => !esTercero(c) && c.estatus === 'Por facturar',
+      pagadas: (c) => !esTercero(c) && c.estatus === 'Pagada',
+      canceladas: (c) => !esTercero(c) && c.estatus === 'Cancelada',
+      terceros: (c) => esTercero(c),
       todo: () => true,
     };
 
@@ -6039,7 +6050,7 @@
       return cuentas.filter((c) => (!est || c.estrategia === est) && (!q || norm([c.cliente, c.cliente_codigo, c.concepto, c.folio_factura, c.uuid_factura, c.cotizacion_folio].join(' ')).includes(q)));
     }
     const CLAVES_ORDEN = {
-      creada: (c) => c.fecha_creacion || '', cliente: (c) => norm(c.cliente), estrategia: (c) => c.estrategia, folio: (c) => Number(c.folio_factura) || norm(c.folio_factura),
+      creada: (c) => c.fecha_creacion || '', tipo: (c) => c.tipo_factura || '', cliente: (c) => norm(c.cliente), estrategia: (c) => c.estrategia, folio: (c) => Number(c.folio_factura) || norm(c.folio_factura),
       total: (c) => c.total, saldo: (c) => c.saldo, vence: (c) => c.vencimiento || '9999', estatus: (c) => c.estatus,
     };
     function pintarLista(){
@@ -6058,7 +6069,7 @@
       $('cbzResultado').textContent = filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas');
       const body = $('cbzListaBody');
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
         return;
       }
       body.innerHTML = filas.map((c) =>
@@ -6066,6 +6077,7 @@
         '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
         '<td>' + esc(c.cliente) + '<span class="cbz-sub" title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
         '<td>' + esc(ESTRATEGIA[c.estrategia] || c.estrategia) + '</td>' +
+        '<td>' + (c.tipo_factura ? '<span class="cbz-estatus">' + esc(c.tipo_factura) + '</span>' : '<span style="color:var(--text-faint)">—</span>') + '</td>' +
         '<td>' + (c.folio_factura ? esc(c.folio_factura) : '<span style="color:var(--text-faint)">—</span>') + '</td>' +
         '<td class="cbz-num">' + (c.total === 0 && c.estatus === 'Por facturar' ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + '</td>' +
         '<td class="cbz-num">' + (c.estatus === 'Cancelada' || (c.total === 0 && c.estatus === 'Por facturar') ? '—' : dinero(c.saldo)) + '</td>' +
@@ -6132,6 +6144,9 @@
         '</div>' +
         '<div class="cbz-seccion">FACTURA Y PLAZO</div>' +
         '<div class="cbz-grid">' +
+        '<div class="radm-field"><label for="cbzDTipo">TIPO DE FACTURA</label><select id="cbzDTipo"' + (esTercero(c) ? ' disabled title="Es de un cliente Tercero: siempre tipo Otro"' : '') + '><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro' || esTercero(c)).map((t) => '<option' + (c.tipo_factura === t ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
+        campoTxt('cbzDRazon', 'NOMBRE FISCAL (RAZÓN SOCIAL)', c.razon_social, ' maxlength="200"') +
+        campoTxt('cbzDRfc', 'RFC', c.rfc_receptor, ' maxlength="15"') +
         campoTxt('cbzDConcepto', 'CONCEPTO', c.concepto, ' maxlength="300"') +
         campoTxt('cbzDFolio', 'FOLIO DE LA FACTURA', c.folio_factura, ' maxlength="40"') +
         campoTxt('cbzDUuid', 'UUID DE LA FACTURA', c.uuid_factura, ' maxlength="40"') +
@@ -6145,7 +6160,8 @@
         (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
           : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) + campoNum('cbzDIva', 'IVA', c.iva) +
             campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>' +
-            '<p class="radm-hint" style="margin:-4px 0 12px;">Total a cobrar = subtotal + IVA − retenciones. Si el cliente te retiene, captura aquí lo que retiene (es el total de la factura).</p>') +
+            '<p class="radm-hint" style="margin:-4px 0 12px;">Total a cobrar = subtotal + IVA − retenciones. Al elegir el tipo de factura (Empresa, Gobierno, Anterior u Otro) las retenciones se calculan solas; puedes ajustarlas.</p>') +
+        (esTercero(c) ? '<p class="cbz-aviso">Factura por cuenta de terceros: se guarda completa para el contador y no cuenta en las métricas ni en las alertas.</p>' : '') +
         '<div class="radm-field" style="margin-bottom:12px;"><label for="cbzDNotas">NOTAS</label><textarea id="cbzDNotas" rows="2" maxlength="4000">' + esc(c.notas || '') + '</textarea></div>' +
         '<div class="cbz-acciones">' +
         '<button type="button" class="radm-btn" data-det="guardar">Guardar cambios</button>' +
@@ -6216,6 +6232,12 @@
       agregar(mitad, ''); agregar(Math.round((c.total - mitad) * 100) / 100, '');
     }
 
+    $('cbzDetalle').addEventListener('change', (e) => {
+      if(e.target.id !== 'cbzDTipo' && e.target.id !== 'cbzDSubtotal') return;
+      if(!$('cbzDSubtotal')) return; // con pagos el monto no se edita
+      const tipo = valor('cbzDTipo'), r = retencionesDe(valor('cbzDSubtotal'), tipo);
+      $('cbzDIva').value = r.iva; $('cbzDRetIsr').value = r.isr; $('cbzDRetIva').value = r.riva;
+    });
     $('cbzDetalle').addEventListener('click', async (e) => {
       if(e.target === $('cbzDetalle')){ cerrarDetalle(); return; }
       const c = cuentas.find((x) => x.id === abiertaId);
@@ -6248,7 +6270,7 @@
       const que = acc.dataset.det;
       if(que === 'guardar'){
         const datos = {
-          id: c.id, concepto: valor('cbzDConcepto'), folio_factura: valor('cbzDFolio'), uuid_factura: valor('cbzDUuid'), fecha_emision: valor('cbzDEmision'),
+          id: c.id, tipo_factura: esTercero(c) ? 'Otro' : valor('cbzDTipo'), razon_social: valor('cbzDRazon'), rfc_receptor: valor('cbzDRfc'), concepto: valor('cbzDConcepto'), folio_factura: valor('cbzDFolio'), uuid_factura: valor('cbzDUuid'), fecha_emision: valor('cbzDEmision'),
           orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), plazo_dias: valor('cbzDPlazo'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
         };
         if($('cbzDSubtotal')){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = valor('cbzDIva'); datos.retencion_isr = valor('cbzDRetIsr'); datos.retencion_iva = valor('cbzDRetIva'); }
@@ -6276,13 +6298,15 @@
       $('cbzNueva').hidden = false;
       document.body.classList.add('admin-dialog-abierto');
       let clientes = [];
-      try { clientes = await apiGetConReintento('/api/buscarClientesAdmin?todos=1'); }
+      try { clientes = await apiGetConReintento('/api/buscarClientesAdmin?todos=1&facturables=1'); }
       catch(e){ $('cbzNuevaCuerpo').innerHTML = '<p class="cbz-error">No se pudieron cargar los clientes: ' + esc(e.message) + '</p>'; return; }
       $('cbzNuevaCuerpo').innerHTML =
         '<div class="cbz-grid">' +
-        '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('') + '</select></div>' +
+        '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '" data-tipo="' + esc(c.tipo_cliente) + '">' + esc(c.nombre) + (c.tipo_cliente === 'Tercero' ? ' (tercero)' : '') + '</option>').join('') + '</select><p class="radm-hint" style="margin:4px 0 0;">¿No está? Se da de alta primero en Clientes.</p></div>' +
         '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos a empresas</option><option value="abiertos">Cursos abiertos</option></select></div>' +
         '</div>' +
+        '<div class="cbz-grid"><div class="radm-field"><label for="cbzNTipo">TIPO DE FACTURA</label><select id="cbzNTipo"><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro').map((t) => '<option>' + t + '</option>').join('') + '<option value="Otro" hidden>Otro</option></select></div>' +
+        campoTxt('cbzNRazon', 'NOMBRE FISCAL', '', ' maxlength="200"') + campoTxt('cbzNRfc', 'RFC', '', ' maxlength="15"') + '</div>' +
         '<div class="cbz-grid"><div class="radm-field"><label for="cbzNGrupo">GRUPO (OPCIONAL)</label><select id="cbzNGrupo" disabled><option value="">Elige primero el cliente</option></select></div></div>' +
         '<div class="cbz-grid">' + campoTxt('cbzNConcepto', 'CONCEPTO', '', ' maxlength="300" placeholder="Qué se cobra"') +
         '<div class="radm-field"><label for="cbzNModo">EL MONTO ES</label><select id="cbzNModo"><option value="subtotal">Subtotal, sin IVA (se suma 16 %)</option><option value="total">Total a cobrar (ya con IVA y retenciones)</option></select></div>' +
@@ -6297,6 +6321,10 @@
       // al elegir cliente se ofrecen sus grupos, para ligar la cuenta a uno que ya existe
       $('cbzNCliente').addEventListener('change', async () => {
         const g = $('cbzNGrupo'), id = valor('cbzNCliente');
+        // un cliente Tercero solo recibe facturas tipo Otro (el sitio lo pone solo); un cliente normal no puede ser tipo Otro
+        const opt = $('cbzNCliente').selectedOptions[0], tercero = !!opt && opt.dataset.tipo === 'Tercero';
+        $('cbzNTipo').value = tercero ? 'Otro' : ($('cbzNTipo').value === 'Otro' ? '' : $('cbzNTipo').value);
+        $('cbzNTipo').disabled = tercero;
         if(!id){ g.innerHTML = '<option value="">Elige primero el cliente</option>'; g.disabled = true; return; }
         g.innerHTML = '<option value="">Sin grupo</option>'; g.disabled = false;
         try {
@@ -6314,6 +6342,7 @@
           cliente_id: Number(valor('cbzNCliente')), estrategia: valor('cbzNEstrategia'), concepto: valor('cbzNConcepto'),
           folio_factura: valor('cbzNFolio'), uuid_factura: valor('cbzNUuid'), fecha_emision: valor('cbzNEmision'), orden_compra: valor('cbzNOC'),
           inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'), grupo_id: valor('cbzNGrupo') || null,
+          tipo_factura: valor('cbzNTipo'), razon_social: valor('cbzNRazon'), rfc_receptor: valor('cbzNRfc'),
         };
         datos[valor('cbzNModo')] = monto;
         if(valor('cbzNModo') === 'subtotal'){ datos.retencion_isr = valor('cbzNRetIsr'); datos.retencion_iva = valor('cbzNRetIva'); }
@@ -12495,7 +12524,7 @@
       // largo que ya vive en "Modificar Cliente".
       notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
-    const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto', 'Prospecto'];
+    const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto', 'Prospecto', 'Tercero'];
     // completado/dias_inactivo no los ordena el backend (no son columnas
     // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
     // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
@@ -12571,6 +12600,7 @@
     function completadoHtml(completado, tipoCliente){
       // Un Prospecto todavía no es cliente: no se le mide Completado.
       if(tipoCliente === 'Prospecto') return '<span class="radm-mono" style="color:var(--text-faint);" title="Un Prospecto no se mide como cliente todavía">—</span>';
+      if(tipoCliente === 'Tercero') return '<span class="radm-mono" style="color:var(--text-faint);" title="Un Tercero (facturas por cuenta de terceros) no se mide como cliente">—</span>';
       // color en el span exterior (no solo en el texto) para que el ícono
       // (stroke="currentColor") y la palabra siempre compartan el mismo tono.
       const color = completado ? 'var(--good)' : '#dc2626';
@@ -12660,7 +12690,7 @@
         if(cliSort === 'num_contactos') return c.num_contactos;
         if(cliSort === 'semaforo') return SEMAFORO_ORDEN[c.semaforo] ?? 99;
         // los Prospectos no entran al semáforo (dias_inactivo null): al final, no como "el más urgente"
-        if(c.tipo_cliente === 'Prospecto') return -1;
+        if(c.tipo_cliente === 'Prospecto' || c.tipo_cliente === 'Tercero') return -1;
         return c.dias_inactivo == null ? Infinity : c.dias_inactivo;
       }
       return lista.slice().sort((a, b) => {

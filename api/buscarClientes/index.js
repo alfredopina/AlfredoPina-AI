@@ -22,7 +22,7 @@ module.exports = async function (context, req) {
     const result = await pool
       .request()
       .input("q", sql.NVarChar, `%${q}%`)
-      .query("SELECT TOP 20 id, nombre, codigo FROM Cliente WHERE tipo_cliente <> 'Prospecto' AND (nombre LIKE @q OR codigo LIKE @q) ORDER BY nombre");
+      .query("SELECT TOP 20 id, nombre, codigo FROM Cliente WHERE tipo_cliente NOT IN ('Prospecto', 'Tercero') AND (nombre LIKE @q OR codigo LIKE @q) ORDER BY nombre");
     context.res = { status: 200, headers: JSON_HEADERS, body: result.recordset };
   } catch (err) {
     context.log.error("Error buscando clientes:", err.message);

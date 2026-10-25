@@ -61,7 +61,7 @@ async function resolverClienteExistente(exec, empresa, crearError = (m) => new E
 
   const r = await nuevaRequestDe(exec)()
     .input("id", sql.Int, clienteId)
-    .query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id AND tipo_cliente <> 'Prospecto'");
+    .query("SELECT id, nombre, codigo FROM Cliente WHERE id = @id AND tipo_cliente NOT IN ('Prospecto', 'Tercero')");
   if (!r.recordset.length) throw crearError("El cliente seleccionado ya no existe.");
   return r.recordset[0];
 }

@@ -1969,14 +1969,13 @@
 
   /* ═══ BARRA SUPERIOR (rediseño 2026-10-16) ═══
      Tres bloques por función: Trabajo (Inicio · Alertas · Pendientes: te llevan a un panel) · Sistema (estado de la base + Configuración) ·
-     Preferencias y sesión (tema + avatar con menú). A la izquierda: búsqueda global (Ctrl+K) y "+ Nuevo". Todos los botones comparten
+     Preferencias y sesión (tema + avatar con menú). A la izquierda: búsqueda global (Ctrl+K). Todos los botones comparten
      alto, radio y trazo; el de la pantalla actual se resalta (.activo); los contadores van con número (nunca solo color). */
   .admin-topbar{ gap:14px 18px; flex-wrap:wrap; }
   .tb-zona-izq{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
   .tb-ancla{ position:relative; }
-  /* la búsqueda cede espacio (hasta 150 px) para que "+ Nuevo" y los bloques de la derecha nunca se encimen */
-  .tb-zona-izq > .tb-ancla:first-child{ flex:1 1 220px; min-width:150px; max-width:300px; }
-  .tb-zona-izq > .tb-ancla:last-child{ flex:none; }
+  /* la búsqueda cede espacio (hasta 150 px) para que los bloques de la derecha nunca se encimen */
+  .tb-zona-izq > .tb-ancla{ flex:1 1 220px; min-width:150px; max-width:300px; }
   .admin-topbar-title{ white-space:nowrap; }
   .tb-grupo{ display:flex; align-items:center; gap:6px; }
   .tb-sep{ width:1px; height:26px; background:var(--line); flex:none; margin:0 4px; }
@@ -2029,7 +2028,7 @@
   .tb-buscar input::placeholder{ color:var(--text-faint); }
   .tb-kbd{ font-family:var(--mono); font-size:10.5px; border:1px solid var(--line); border-radius:4px; padding:1px 5px; color:var(--text-faint); flex:none; }
 
-  /* popovers: resultados, "+ Nuevo" y menú del avatar */
+  /* popovers: resultados y menú del avatar */
   .tb-pop{ position:absolute; z-index:70; top:calc(100% + 6px); left:0; background-color:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 20px 50px rgba(0,0,0,.35); }
   .tb-pop[hidden]{ display:none; }
   .tb-resultados{ width:min(480px, 92vw); max-height:70vh; overflow-y:auto; }
@@ -2049,7 +2048,7 @@
   .tb-res-msg{ padding:14px; font-size:12.5px; color:var(--text-dim); }
 
   /* pantallas angostas: los nombres se esconden (quedan íconos con tooltip) y la búsqueda se encoge */
-  @media (max-width:1280px){ .tb-btn:not(.tb-estado) .tb-txt{ display:none; } .tb-btn:not(.tb-estado):not(#tbNuevo){ padding:0; width:34px; } .tb-btn .tb-count{ position:absolute; top:-6px; right:-6px; } .tb-chev{ display:none; } }
+  @media (max-width:1280px){ .tb-btn:not(.tb-estado) .tb-txt{ display:none; } .tb-btn:not(.tb-estado){ padding:0; width:34px; } .tb-btn .tb-count{ position:absolute; top:-6px; right:-6px; } .tb-chev{ display:none; } }
   @media (max-width:1500px){ .tb-kbd{ display:none; } }
   @media (max-width:1000px){ .admin-topbar-title{ display:none; } }
 
@@ -2750,18 +2749,7 @@
           </label>
           <div class="tb-pop tb-resultados" id="tbResultados" role="listbox" hidden></div>
         </div>
-        <div class="tb-ancla">
-          <button type="button" class="tb-btn" id="tbNuevo" aria-haspopup="true" aria-expanded="false" title="Crear algo nuevo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-            <span class="tb-txt">Nuevo</span>
-            <svg class="tb-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <div class="tb-pop tb-menu" id="tbNuevoMenu" role="menu" hidden>
-            <button type="button" role="menuitem" data-nuevo="solicitud">Solicitud</button>
-            <button type="button" role="menuitem" data-nuevo="cotizacion">Cotización</button>
-            <button type="button" role="menuitem" data-nuevo="cliente">Cliente</button>
-            <button type="button" role="menuitem" data-nuevo="grupo">Grupo</button>
-          </div>
+      </div>
         </div>
       </div>
 
@@ -5620,7 +5608,7 @@
     consultar().then(programar);
   })();
 
-  // ═══ BARRA SUPERIOR: Inicio, contador de Pendientes, "+ Nuevo", menú del avatar y búsqueda global (Ctrl+K) ═══
+  // ═══ BARRA SUPERIOR: Inicio, contador de Pendientes, menú del avatar y búsqueda global (Ctrl+K) ═══
   // Todo en un bloque defensivo: si algo de aquí fallara, el resto del admin sigue funcionando (cada pieza va en su try).
   (function(){
     const $ = (id) => document.getElementById(id);
@@ -5648,7 +5636,6 @@
     // ── Popovers: uno abierto a la vez; se cierran con clic fuera o Escape ──
     const pops = [
       { caja: $('tbResultados'), boton: null },
-      { caja: $('tbNuevoMenu'), boton: $('tbNuevo') },
       { caja: $('tbAvatarMenu'), boton: $('tbAvatar') },
     ];
     function cerrarPops(excepto){
@@ -5672,26 +5659,6 @@
 
     // ── Menú del avatar (sesión) ──
     try { $('tbAvatar').addEventListener('click', () => alternar($('tbAvatarMenu'), $('tbAvatar'))); } catch(e){ /* sin menú de sesión */ }
-
-    // ── "+ Nuevo": lleva al panel y pulsa el botón de crear que ya existe ahí (un solo camino para cada alta) ──
-    try {
-      $('tbNuevo').addEventListener('click', () => alternar($('tbNuevoMenu'), $('tbNuevo')));
-      const NUEVO = {
-        solicitud: { panel: 'solicitudes', boton: () => $('solCrearBtn') },
-        cotizacion: { panel: 'tracking-comercial', boton: () => $('cotCrearBtn') },
-        cliente: { panel: 'clientes', boton: () => $('cliNuevoBtn') },
-        grupo: { panel: 'tracking-operacion', boton: () => document.querySelector('#panel-tracking-operacion [data-grutab="crear"]') },
-      };
-      $('tbNuevoMenu').addEventListener('click', e => {
-        const b = e.target.closest('[data-nuevo]');
-        if(!b) return;
-        const n = NUEVO[b.dataset.nuevo];
-        cerrarPops(null);
-        if(!n) return;
-        activarPanel(n.panel);
-        setTimeout(() => { const btn = n.boton(); if(btn) btn.click(); }, 250);
-      });
-    } catch(e){ /* sin menú Nuevo */ }
 
     // ── Búsqueda global ──
     try {

@@ -1,5 +1,5 @@
 // tools/prueba-barra-admin.js — prueba funcional de la BARRA SUPERIOR del admin (Inicio, Alertas, Pendientes, estado de la base, tema,
-// avatar, "+ Nuevo" y búsqueda global) cargando admin/index.html en jsdom con un servidor falso. No toca nada real.
+// avatar y búsqueda global) cargando admin/index.html en jsdom con un servidor falso. No toca nada real.
 // jsdom NO es dependencia del proyecto: instálalo en una carpeta temporal y apunta a ella:
 //   mkdir %TEMP%jsdom-barra && cd %TEMP%jsdom-barra && npm init -y && npm i jsdom@24
 //   set JSDOM_DIR=%TEMP%jsdom-barra && node tools/prueba-barra-admin.js
@@ -97,14 +97,6 @@ const txt = (s) => (q(s) ? q(s).textContent.replace(/\s+/g, ' ').trim() : null);
   check('el correo de la sesión se llena en el menú', /lifezen/.test(txt('#userEmail')), txt('#userEmail'));
   d.body.click();
   check('un clic fuera lo cierra', q('#tbAvatarMenu').hidden);
-
-  console.log('+ Nuevo');
-  q('#tbNuevo').click();
-  check('abre el menú con las 4 altas', !q('#tbNuevoMenu').hidden && d.querySelectorAll('#tbNuevoMenu [data-nuevo]').length === 4);
-  let clics = 0; const solBtn = d.getElementById('solCrearBtn'); solBtn.addEventListener('click', () => clics++);
-  q('[data-nuevo="solicitud"]').click(); await pausa(400);
-  check('Solicitud: lleva al panel y pulsa su botón "Crear Solicitud"', q('#panel-solicitudes').classList.contains('active') && clics === 1 && q('#tbNuevoMenu').hidden);
-  q('#btnInicio').click();
 
   console.log('Búsqueda global');
   const input = q('#tbBuscar');

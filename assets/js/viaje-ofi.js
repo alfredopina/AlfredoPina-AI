@@ -23,7 +23,7 @@
   // ---- constantes de la animación (unidades de la línea de tiempo maestra) ----
   const O = "249,115,22";                  // naranja Ofimática (--c) en rgb, para tweens de color
   const HL = "rgba(" + O + ",.16)", HL0 = "rgba(" + O + ",0)";
-  const WSEL = "#dbe8fb";                  // selección azul claro de Word (estilo y botón activos)
+  const WSEL = "rgba(15,108,189,.28)";                  // selección azul claro de Word (estilo y botón activos)
   const RH = 58;                           // alto de fila de correo (px; igual en CSS)
   const S = { o: 0, w: 108, p: 216, t: 324 };          // inicio de cada escena
   const TR = { ow: 92, wp: 200, pt: 308 };             // inicio de cada transición
@@ -206,11 +206,62 @@
       '<div class="t-toast reveal" id="tToast"><span class="ik">' + I.outlook + '</span><div><b>Outlook</b><span>Seguimiento enviado a 5 personas, con la liga</span></div></div></div></div>';
   }
 
+  // ---- héroe: mitad texto, mitad un selector de las 4 apps (cada pestaña = la ventana real de su escena, ya terminada) ----
+  // Las cuatro ventanas son copias de las de las escenas (ids "h…", sin cursor ni ondas) puestas en su estado final con la clase
+  // of-final del propio contenedor. El visitante cambia de app con un clic; si se queda quieto rotan solas cada 4.5 s.
+  // Botón único con auto-scroll de 5 s (ViajeEngine.autoBajar); "Ver programas" discreto.
+  const HERO_APPS = [["outlook", "Outlook", "#0f6cbd"], ["word", "Word", "#185abd"], ["ppt", "PowerPoint", "#c43e1c"], ["teams", "Teams", "#5b5fc7"]];
+  function ventanaDe(html, clase) {
+    const i = html.indexOf('<div class="' + clase);
+    return html.slice(i, html.length - 6)
+      .replace(/<svg class="cursor-ico[\s\S]*?<\/svg>/g, "")
+      .replace(/<div class="click-ripple"[^>]*><\/div>/g, "")
+      .replace(/id="([A-Za-z]\w*)"/g, 'id="h$1"');
+  }
   function heroHtml() {
-    return '<section class="viaje-hero" id="ofHero"><span class="viaje-hero-eyebrow">Curso de Ofimática Básica</span>' +
-      '<h1 class="viaje-hero-title">Aprende ofimática como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">Título 1</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Word · PowerPoint</span><span class="scope-chip">Outlook · Teams</span><span class="scope-chip">Microsoft 365</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#ofO" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const wins = [ventanaDe(sceneO(), "o-win"), ventanaDe(sceneW(), "w-win"), ventanaDe(sceneP(), "p-win"), ventanaDe(sceneT(), "t-win")];
+    const tabs = HERO_APPS.map((p, i) => '<button type="button" class="oh-tab' + (i === 0 ? " on" : "") + '" data-i="' + i + '" style="--app:' + p[2] + '"><span class="ik">' + I[p[0]] + "</span>" + p[1] + "</button>").join("");
+    const cuerpo = wins.map((w, i) => '<div class="oh-win' + (i === 0 ? " on" : "") + '" data-i="' + i + '">' + w + "</div>").join("");
+    return '<section class="viaje-hero hb-hero oh-hero" id="ofHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Ofimática Básica</span>' +
+      '<h1 class="viaje-hero-title">Microsoft <span class="accent">365<span class="selector-box"><span class="selector-label">Título 1</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Outlook</span><span class="scope-chip">Word</span><span class="scope-chip">PowerPoint</span><span class="scope-chip">Teams</span></div>' +
+      '<div class="hb-actions"><a href="#ofO" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame oh-frame"><div class="hb-cv oh-cv of-final" id="ohCv"><div class="oh-tabs" role="tablist">' + tabs + '</div><div class="oh-wins">' + cuerpo + "</div></div></div></div></section>";
+  }
+
+  // modo: "desk" (rotación sola + auto-scroll), "flujo" (teléfono: una ventana a la vez) o "simple" (estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#ohCv");
+    if (!cont) return null;
+    const qa = (s) => Array.prototype.slice.call(cont.querySelectorAll(s));
+    // cada ventana en su estado final (lo mismo que hace estadoFinal para las escenas)
+    qa(".reveal").forEach((el) => { el.style.opacity = 1; el.style.transform = "none"; });
+    qa(".cl").forEach((el) => { el.style.clipPath = "inset(0 0% 0 0)"; });
+    qa(".o-folders .xf .a, .p-th2 .a").forEach((el) => { el.style.opacity = 0; });
+    qa(".o-folders .xf .b, .p-th2 .b").forEach((el) => { el.style.opacity = 1; });
+    qa(".w-h").forEach((el) => { el.style.fontSize = "15px"; el.style.color = "#0f1f3d"; el.style.fontWeight = 700; el.style.borderLeftWidth = "3px"; el.style.paddingLeft = "9px"; });
+    const stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 1020).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+
+    const tabs = qa(".oh-tab"), wins = qa(".oh-win");
+    let actual = 0, usuario = false, ultimo = 0;
+    const ir = (i) => { actual = i; tabs.forEach((t, k) => t.classList.toggle("on", k === i)); wins.forEach((w, k) => w.classList.toggle("on", k === i)); };
+    tabs.forEach((t, i) => t.addEventListener("click", () => { usuario = true; ultimo = Date.now(); ir(i); }));
+    if (modo !== "desk") return null;
+
+    const api = { introHecha: false, irA: null };
+    gsap.fromTo(cont, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, delay: 0.3, onComplete: () => { api.introHecha = true; if (api.irA) E.autoBajar(root, api.irA); } });
+    // si el visitante se queda mirando, las apps rotan solas (mientras el héroe está a la vista; 10 s de calma tras un clic suyo)
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#ofHero").getBoundingClientRect();
+      if (!api.introHecha || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000) return;
+      ir((actual + 1) % wins.length);
+    }, 4500);
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
+    return api;
   }
 
   function shellHtml() {
@@ -222,6 +273,7 @@
       '<div class="bi-fx"><span class="bi-fx-ico">fx</span><div class="bi-fx-stack">' + msgs + "</div></div>" +
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="ofRail">' + tabs + '<span class="bi-status mono" id="ofEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -261,7 +313,7 @@
     tl.to(qa("#oFInbox .a, #oFBol .a"), { opacity: 0, duration: 4 }, at(64));
     tl.to(qa("#oFInbox .b, #oFBol .b"), { opacity: 1, duration: 4 }, at(64));
     // marcar para seguimiento y pasarlo al calendario
-    tl.to(qa(".o-flag"), { opacity: 1, duration: 3 }, at(72));
+    tl.to(qa("#oWin .o-flag"), { opacity: 1, duration: 3 }, at(72));
     tl.to(qa("#oFSeg .a"), { opacity: 0, duration: 3 }, at(72));
     tl.to(qa("#oFSeg .b"), { opacity: 1, duration: 3 }, at(72));
     tl.fromTo($("#oCal"), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 5 }, at(78));
@@ -306,7 +358,7 @@
     tl.fromTo(cur, { opacity: 0, x: () => cen($("#pSlide"), wrap)[0], y: () => cen($("#pSlide"), wrap)[1] }, { opacity: 1, duration: 3, immediateRender: false }, at(18));
     tl.to(cur, { x: px(idea), y: py(idea), duration: 8 }, at(20));
     clic(idea, at(28));
-    tl.to(idea, { borderColor: "#c43e1c", backgroundColor: "#fbe4dc", duration: 3 }, at(29));
+    tl.to(idea, { borderColor: "#c43e1c", backgroundColor: "rgba(196,62,28,.24)", duration: 3 }, at(29));
     tl.to($("#pSlide .p-dense"), { opacity: 0, duration: 6 }, at(31));
     tl.to($("#pSlide .p-clean"), { opacity: 1, duration: 6 }, at(31));
     tl.to(qa("#pThumbs .p-th2 .a"), { opacity: 0, duration: 4 }, at(33));
@@ -371,11 +423,13 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
+      const mas = E.flechaMas($("#biMore"));
       const pin = $("#ofPin"), canvas = $("#ofCanvas");
 
       // ---- línea de tiempo maestra: cuatro actos y tres transiciones ----
@@ -418,7 +472,7 @@
 
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); mas.fin = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#ofHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 
@@ -426,6 +480,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");   // la cáscara y el layout comparten las reglas bi-* de viaje-bi.css

@@ -190,11 +190,98 @@
       I.cursor.replace('class="', 'id="curK" class="') + '<div class="click-ripple" id="ripK"></div></div></div>';
   }
 
+  // ---- héroe: mitad texto, mitad un asistente de IA donde el visitante PRUEBA un prompt ----
+  // La ventana (copia propia "ih-", ids "h…") es el asistente de la escena 1: el visitante elige un prompt de la derecha (o se
+  // elige solo, rotando) y ve cómo se escribe, se envía y llega una respuesta con su sello "Revisado por ti". Las respuestas
+  // son de muestra (no hay IA real aquí). Botón único con auto-scroll de 5 s (ViajeEngine.autoBajar).
+  const IH = [
+    { lab: "Resume un informe", tag: "Resumir", user: "Como analista de ventas, resume el T3 para Dirección en 3 puntos con cifras.",
+      res: '<h5>Resumen del T3</h5><ul><li>Ventas de $2.40M, 18% arriba del año anterior.</li><li>El Norte concentra 44% de los ingresos.</li><li>Margen de 34%, 2 pts bajo la meta.</li></ul>' },
+    { lab: "Redacta un correo", tag: "Redactar", user: "Redacta un correo amable para mover la reunión del martes al jueves a las 10:00.",
+      res: '<h5>Borrador de correo</h5><p>Hola Mariana: ¿podríamos mover nuestra reunión del martes al jueves a las 10:00? Gracias por tu flexibilidad. Quedo atento.</p>' },
+    { lab: "Ordena datos en una tabla", tag: "Organizar", user: "Ordena en una tabla: Acme 182k, Delta 97k y Nova 95k, con su % del total.",
+      res: '<h5>Clientes del T3</h5><div class="ih-tb"><span>Cliente</span><span>Monto</span><span>% del total</span><span>Acme</span><span>$182k</span><span>49%</span><span>Delta</span><span>$97k</span><span>26%</span><span>Nova</span><span>$95k</span><span>25%</span></div>' },
+  ];
   function heroHtml() {
-    return '<section class="viaje-hero" id="iaHero"><span class="viaje-hero-eyebrow">Curso de IA Aplicada</span>' +
-      '<h1 class="viaje-hero-title">Aprende IA como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">Prompt</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Copilot · Claude</span><span class="scope-chip">Con privacidad de datos</span><span class="scope-chip">Español</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#iaC" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const lado = IH.map((p, i) => '<div class="ih-pr" id="hPr' + i + '" data-i="' + i + '" role="button" tabindex="0"><span class="ik">' + I.chispa + "</span><div><b>" + p.lab + "</b><span>" + p.tag + "</span></div></div>").join("");
+    return '<section class="viaje-hero hb-hero ih-hero" id="iaHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de IA Aplicada</span>' +
+      '<h1 class="viaje-hero-title">Productividad con <span class="accent">IA<span class="selector-box"><span class="selector-label">Prompt</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Copilot · Claude</span><span class="scope-chip">Con privacidad de datos</span><span class="scope-chip">Para tu trabajo</span></div>' +
+      '<div class="hb-actions"><a href="#iaC" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame ih-frame"><div class="hb-cv ih-cv" id="ihCv"><div class="ih-win ia-win">' +
+      '<div class="c-bar"><span class="ik">' + I.chispa + '</span><b>Asistente de IA</b><span class="ia-sello"><span class="ik">' + I.candado + '</span>Datos protegidos</span><span class="c-new ih-nuevo" id="hNuevo" role="button" tabindex="0">Nuevo chat</span></div>' +
+      '<div class="ih-body"><div class="ih-thread" id="hTh"><div class="ih-wel" id="hWel"><span class="ik">' + I.chispa + "</span><b>¿Qué quieres lograr hoy?</b><em>Elige un prompt o espera a que el asistente te muestre uno</em></div></div>" +
+      '<aside class="ih-side"><div class="g-h">Prueba un prompt</div>' + lado + "</aside></div>" +
+      '<div class="ih-inp"><div class="ih-box"><span class="ia-tag">Asistente</span><span class="ih-pt" id="hPt"></span><span class="ih-ph" id="hPh">Escribe un prompt…</span><span class="ia-send"><span class="ik">' + I.enviar + "</span></span></div></div>" +
+      "</div></div></div></div></section>";
+  }
+
+  // modo: "desk" (animado, interactivo y auto-scroll), "flujo" (teléfono) o "simple" (estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#ihCv");
+    if (!cont) return null;
+    const g = (id) => cont.querySelector("#h" + id), qa = (s) => Array.prototype.slice.call(cont.querySelectorAll(s));
+    const stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 940).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+
+    const th = g("Th"), wel = g("Wel"), pt = g("Pt"), ph = g("Ph");
+    // construye la conversación del prompt i (sin animar) y devuelve sus piezas
+    function monta(i) {
+      th.querySelectorAll(".ih-m").forEach((n) => n.remove());
+      const u = document.createElement("div"); u.className = "c-u ih-m"; u.innerHTML = "<span>" + IH[i].user + "</span>";
+      const r = document.createElement("div"); r.className = "c-a ih-m";
+      r.innerHTML = '<span class="c-av"><span class="ik">' + I.chispa + '</span></span><div><div class="ih-pen"><i></i><i></i><i></i></div><div class="c-res ih-res">' + IH[i].res + '<span class="ia-stamp ih-st"><span class="ik">' + I.check + "</span>Revisado por ti</span></div></div>";
+      th.appendChild(u); th.appendChild(r);
+      return { u: u, r: r, pen: r.querySelector(".ih-pen"), res: r.querySelector(".ih-res"), st: r.querySelector(".ih-st"), items: r.querySelectorAll(".ih-res li, .ih-res p, .ih-tb"), };
+    }
+    if (modo !== "desk") {   // teléfono / estático: la primera conversación ya hecha
+      wel.style.display = "none"; const m = monta(0); m.pen.style.display = "none"; return null;
+    }
+
+    const api = { introHecha: false, irA: null };
+    let tl = null, actual = -1, usuario = false, ultimo = 0, finRun = 0, corriendo = false;
+    // un prompt: se escribe en la caja, se envía, aparece la respuesta y se sella
+    function corre(i) {
+      if (tl) tl.kill();
+      actual = i; corriendo = true;
+      qa(".ih-pr").forEach((el, k) => el.classList.toggle("on", k === i));
+      gsap.set([wel], { display: "none" });
+      const m = monta(i);
+      gsap.set([m.u, m.r], { opacity: 0 });
+      gsap.set(m.res, { display: "none" }); gsap.set(m.items, { opacity: 0 }); gsap.set(m.st, { opacity: 0 });
+      pt.textContent = IH[i].user; gsap.set(pt, { clipPath: "inset(0 100% 0 0)", opacity: 1 }); gsap.set(ph, { opacity: 0 });
+      tl = gsap.timeline({ onComplete: () => { corriendo = false; finRun = Date.now(); } });
+      tl.to(pt, { clipPath: "inset(0 0% 0 0)", duration: 1.6, ease: "none" }, 0.1);
+      tl.to(m.u, { opacity: 1, y: 0, duration: 0.35 }, 1.9).fromTo(m.u, { y: 10 }, { y: 0, duration: 0.35 }, 1.9);
+      tl.to(pt, { opacity: 0, duration: 0.2 }, 1.9).to(ph, { opacity: 1, duration: 0.2 }, 2.1);
+      tl.to(m.r, { opacity: 1, duration: 0.3 }, 2.4);
+      tl.to(m.pen, { opacity: 0, height: 0, duration: 0.25 }, 3.3);
+      tl.set(m.res, { display: "block" }, 3.3);
+      tl.to(m.items, { opacity: 1, duration: 0.35, stagger: 0.4 }, 3.35);
+      tl.to(m.st, { opacity: 1, duration: 0.4 }, 3.35 + 0.4 * Math.max(1, m.items.length) + 0.2);
+    }
+    const nuevo = () => { if (tl) tl.kill(); corriendo = false; actual = -1; th.querySelectorAll(".ih-m").forEach((n) => n.remove()); gsap.set(wel, { display: "flex" }); pt.textContent = ""; gsap.set(ph, { opacity: 1 }); qa(".ih-pr").forEach((el) => el.classList.remove("on")); };
+
+    // intro y primera ejecución sola
+    gsap.to(qa(".ih-pr"), { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, delay: 0.5, onComplete: () => { api.introHecha = true; corre(0); if (api.irA) E.autoBajar(root, api.irA); } });
+    gsap.set(qa(".ih-pr"), { opacity: 0, y: 8 });
+
+    // interacción: elegir un prompt o empezar un chat nuevo
+    const act = (el, fn) => { el.classList.add("hb-tap"); el.addEventListener("click", fn); el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } }); };
+    qa(".ih-pr").forEach((el, i) => act(el, () => { usuario = true; ultimo = Date.now(); corre(i); }));
+    act(g("Nuevo"), () => { usuario = true; ultimo = Date.now(); nuevo(); });
+
+    // si el visitante se queda mirando, el asistente muestra el siguiente prompt solo (8 s tras terminar; 10 s tras un toque)
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#iaHero").getBoundingClientRect();
+      if (!api.introHecha || corriendo || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000 || Date.now() - finRun < 8000) return;
+      corre((actual + 1) % IH.length);
+    }, 3000);
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
+    return api;
   }
 
   function shellHtml() {
@@ -208,6 +295,7 @@
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
       '<div class="ia-comp"><div class="ia-box"><span class="ia-tag" id="iaTag">' + TAGS[1] + '</span><div class="ia-prompt">' + pr + '</div><span class="ia-send" id="iaSend">' + I.enviar + "</span></div></div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="iaRail">' + tabs + '<span class="bi-status mono" id="iaEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -367,11 +455,13 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
+      const mas = E.flechaMas($("#biMore"));
       const pin = $("#iaPin"), canvas = $("#iaCanvas");
 
       // ---- línea de tiempo maestra: cuatro actos y tres transiciones ----
@@ -416,7 +506,7 @@
 
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); setSello(u); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); setSello(u); mas.fin = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#iaHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 
@@ -424,6 +514,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");

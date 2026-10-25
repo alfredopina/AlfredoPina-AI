@@ -243,6 +243,27 @@ async function dividirCuenta(nuevaRequest, id, partes) {
   return { id: cuenta.id, nuevas };
 }
 
+// Notas de seguimiento de la cuenta (texto libre, hasta 4000 caracteres; vacío = sin nota)
+async function actualizarNotas(nuevaRequest, id, notas) {
+  const cuentaId = Number(id);
+  await cargarCuenta(nuevaRequest, cuentaId);
+  const n = limpio(notas, 4000);
+  await nuevaRequest().input("id", sql.Int, cuentaId).input("n", sql.NVarChar, n).query("UPDATE CuentaPorCobrar SET notas = @n WHERE id = @id");
+  return { notas: n };
+}
+
+// Borrado REAL, solo para errores de captura: sin pagos (ni anulados) y sin folio/UUID de factura. Una factura timbrada se cancela en el SAT, no se borra,
+// y el dinero cobrado nunca se borra: en esos casos se avisa y se manda a Cancelar.
+async function eliminarCuenta(nuevaRequest, id) {
+  const cuentaId = Number(id);
+  const { cuenta } = await cargarCuenta(nuevaRequest, cuentaId);
+  const p = await nuevaRequest().input("id", sql.Int, cuentaId).query("SELECT COUNT(*) AS n FROM PagoCobranza WHERE cuenta_id = @id");
+  if (p.recordset[0].n > 0) throw C.falla("Esa cuenta ya tiene pagos registrados: no se borra, se cancela (anula los pagos primero).", 409);
+  if (cuenta.folio_factura || cuenta.uuid_factura) throw C.falla("Esa cuenta ya tiene folio o UUID de factura: no se borra, se cancela.", 409);
+  await nuevaRequest().input("id", sql.Int, cuentaId).query("DELETE FROM CuentaPorCobrar WHERE id = @id");
+  return { eliminada: cuentaId };
+}
+
 // Ejecuta `fn` en una transacción; los errores `safe` (reglas de negocio) responden tal cual, el resto se registra y sale genérico.
 async function enTransaccion(context, mensajeError, fn) {
   let transaction;
@@ -297,4 +318,4 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   return filas;
 }
 
-module.exports = { crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };
+module.exports = { actualizarNotas, eliminarCuenta, crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };

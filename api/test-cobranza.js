@@ -245,6 +245,24 @@ function fabrica(handler) {
     await DB.crearCuentaDeGrupo(g.nuevaRequest, { grupoId: 9, clienteId: 5, concepto: "Curso", monto: "" });
     assert.strictEqual(g.hubo("INSERT INTO CuentaPorCobrar")[0].params.tipo_factura, "Otro");
   });
+  await checkAsync("eliminar: solo errores de captura (sin pagos y sin folio/UUID); lo demás se cancela", async () => {
+    const mk = (cuenta, nPagos) => fabrica((q) => (q.includes("FROM CuentaPorCobrar WHERE id") ? [cuenta] : q.includes("COUNT(*) AS n FROM PagoCobranza") ? [{ n: nPagos }] : []));
+    const ok = mk({ id: 4, estatus: "Por facturar", total: 0, folio_factura: null, uuid_factura: null }, 0);
+    assert.deepStrictEqual(await DB.eliminarCuenta(ok.nuevaRequest, 4), { eliminada: 4 });
+    assert.strictEqual(ok.hubo("DELETE FROM CuentaPorCobrar").length, 1);
+    const conPagos = mk({ id: 4, estatus: "Parcial", total: 100, folio_factura: "F1" }, 1);
+    await rechaza(DB.eliminarCuenta(conPagos.nuevaRequest, 4), 409, /pagos/);
+    assert.strictEqual(conPagos.hubo("DELETE").length, 0);
+    const conFolio = mk({ id: 4, estatus: "Facturada", total: 100, folio_factura: "F1" }, 0);
+    await rechaza(DB.eliminarCuenta(conFolio.nuevaRequest, 4), 409, /folio o UUID/);
+    await rechaza(DB.eliminarCuenta(fabrica(() => []).nuevaRequest, 9), 404);
+  });
+  await checkAsync("notas: se guardan recortadas y vacío las borra", async () => {
+    const f = fabrica((q) => (q.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 4, estatus: "Facturada", total: 100 }] : []));
+    assert.deepStrictEqual(await DB.actualizarNotas(f.nuevaRequest, 4, "  llamar el lunes  "), { notas: "llamar el lunes" });
+    assert.strictEqual(f.hubo("UPDATE CuentaPorCobrar SET notas")[0].params.n, "llamar el lunes");
+    assert.deepStrictEqual(await DB.actualizarNotas(f.nuevaRequest, 4, "   "), { notas: null });
+  });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {
     const f = fabrica((t) => (t.includes("FROM Cliente") ? [{ id: 3 }] : t.includes("INSERT") ? [{ id: 1 }] : []));
     await rechaza(DB.crearCuentaManual(f.nuevaRequest, { concepto: "x", total: 100 }), 400, /cliente/);

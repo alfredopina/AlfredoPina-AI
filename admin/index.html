@@ -1749,6 +1749,18 @@
   .cbz-tabla .cbz-num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .cbz-tabla tbody tr{ cursor:pointer; }
   .cbz-creada{ white-space:nowrap; }
+  .cbz-sem.pagada{ color:var(--good); background-color:color-mix(in srgb, var(--good) 14%, var(--panel-2)); }
+  .cbz-sem.en_plazo{ color:var(--text-dim); }
+  .cbz-sem{ align-items:center; }
+  .cbz-sem-txt{ display:flex; flex-direction:column; line-height:1.25; }
+  .cbz-sem-txt small{ font-size:9.5px; opacity:.8; }
+  .cbz-tipo{ display:block; margin-top:3px; font-family:var(--mono); font-size:10px; color:var(--text-faint); }
+  .cbz-cli b{ display:block; font-family:var(--display); font-weight:600; font-size:13px; }
+  .cbz-cli .cbz-sub{ max-width:230px; }
+  .cbz-conc{ max-width:260px; }
+  .cbz-conc span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+  .cbz-tabla tfoot td{ border-top:1px solid var(--line); padding-top:12px; font-size:12.5px; }
+  .cbz-pie-txt{ color:var(--text-faint); font-family:var(--mono); font-size:11px!important; }
   .cbz-sub{ display:block; font-size:11px; color:var(--text-faint); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cbz-kpi-n{ font-size:11px; color:var(--text-faint); font-weight:400; }
   .cbz-estatus{ display:inline-block; font-size:11px; font-family:var(--mono); border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; }
@@ -4053,20 +4065,29 @@
           <div class="trk-vistas">
             <div class="trk-vistas-row">
               <div class="radm-tabs" id="cbzVistas" style="margin-bottom:0;">
-                <button type="button" class="radm-tab active" data-vista="cobrar">Por cobrar<span class="radm-tab-count" id="cbzN-cobrar">0</span></button>
+                <button type="button" class="radm-tab active" data-vista="facturar">Por facturar<span class="radm-tab-count" id="cbzN-facturar">0</span></button>
                 <button type="button" class="radm-tab" data-vista="vencidas">Vencidas<span class="radm-tab-count" id="cbzN-vencidas">0</span></button>
-                <button type="button" class="radm-tab" data-vista="facturar">Por facturar<span class="radm-tab-count" id="cbzN-facturar">0</span></button>
+                <button type="button" class="radm-tab" data-vista="cobrar">Por cobrar<span class="radm-tab-count" id="cbzN-cobrar">0</span></button>
                 <button type="button" class="radm-tab" data-vista="pagadas">Pagadas<span class="radm-tab-count" id="cbzN-pagadas">0</span></button>
                 <button type="button" class="radm-tab" data-vista="canceladas">Canceladas<span class="radm-tab-count" id="cbzN-canceladas">0</span></button>
                 <button type="button" class="radm-tab" data-vista="terceros" title="Facturas por cuenta de terceros: se guardan para el contador, no cuentan en las métricas ni en las alertas">Terceros<span class="radm-tab-count" id="cbzN-terceros">0</span></button>
                 <button type="button" class="radm-tab" data-vista="todo">Todo<span class="radm-tab-count" id="cbzN-todo">0</span></button>
               </div>
+              <div class="trk-vistas-info">
+                <div class="cli-info-wrap">
+                  <button type="button" class="cli-info-btn" id="cbzInfoSemBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                    Info Semáforo
+                  </button>
+                  <div class="cli-info-popover" id="cbzInfoSemPopover" hidden></div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="dip-filters" style="margin-bottom:0;">
             <div class="radm-field">
-              <label for="cbzFBuscar">CLIENTE O FACTURA</label>
-              <input type="text" id="cbzFBuscar" placeholder="Cliente, concepto, folio o UUID...">
+              <label for="cbzFCliente">CLIENTE</label>
+              <input type="text" id="cbzFCliente" placeholder="Nombre comercial, fiscal, código o RFC...">
             </div>
             <div class="radm-field">
               <label for="cbzFEstrategia">ESTRATEGIA</label>
@@ -4075,6 +4096,10 @@
                 <option value="empresas">Cursos a empresas</option>
                 <option value="abiertos">Cursos abiertos</option>
               </select>
+            </div>
+            <div class="radm-field">
+              <label for="cbzFFolio">FOLIO DE FACTURA</label>
+              <input type="text" id="cbzFFolio" placeholder="Folio o UUID...">
             </div>
             <div class="dip-filter-actions">
               <button type="button" class="cot-icon-btn" id="cbzActualizar" title="Actualizar la lista y los indicadores">
@@ -4086,6 +4111,9 @@
             </div>
             <span class="trk-result" id="cbzResultado"></span>
             <div class="trk-acc-der">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cbzExportarBtn" style="white-space:nowrap;" title="Reporte para el contador: próximamente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportar reporte
+              </button>
               <button type="button" class="radm-btn-add" id="cbzCrearBtn" style="white-space:nowrap;">+ Nueva cuenta</button>
             </div>
           </div>
@@ -4098,20 +4126,29 @@
                 <th data-sort="creada" title="Cuándo nació la cuenta">Creada<span class="th-sort-ico"></span></th>
                 <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
                 <th data-sort="estrategia">Estrategia<span class="th-sort-ico"></span></th>
-                <th data-sort="tipo">Tipo<span class="th-sort-ico"></span></th>
                 <th data-sort="folio">Factura<span class="th-sort-ico"></span></th>
+                <th data-sort="concepto">Concepto<span class="th-sort-ico"></span></th>
                 <th data-sort="total" class="cbz-num">Total<span class="th-sort-ico"></span></th>
-                <th data-sort="saldo" class="cbz-num">Saldo<span class="th-sort-ico"></span></th>
-                <th data-sort="vence">Vence<span class="th-sort-ico"></span></th>
+                <th data-sort="vence" id="cbzThVence"><span class="cbz-th-txt">Vencimiento</span><span class="th-sort-ico"></span></th>
                 <th data-sort="estatus">Estatus<span class="th-sort-ico"></span></th>
-                <th>Atención</th>
+                <th>Semáforo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="cbzListaBody">
-              <tr><td colspan="11" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
+            <tfoot id="cbzPie"></tfoot>
           </table>
+        </div>
+
+        <div class="gro-notas-popover" id="cbzNotasPopover" hidden>
+          <div class="gro-notas-popover-title">Seguimiento</div>
+          <textarea id="cbzNotasTextarea" placeholder="Escribe una nota..." maxlength="4000"></textarea>
+          <div class="gro-notas-popover-actions">
+            <button type="button" class="radm-btn radm-btn-ghost" id="cbzNotasCancelar" style="min-width:auto; padding:6px 12px;">Cancelar</button>
+            <button type="button" class="radm-btn" id="cbzNotasGuardar" style="min-width:auto; padding:6px 12px;">Guardar</button>
+          </div>
         </div>
 
         <div class="admin-dialog-overlay" id="cbzDetalle" hidden>
@@ -5988,7 +6025,7 @@
 
     let cuentas = [];
     let resumen = null;
-    let vista = 'cobrar';
+    let vista = 'facturar';
     let orden = null; // { k, dir } — null = el orden del servidor: lo más urgente primero
     let abiertaId = null;
     let cargando = false;
@@ -6000,25 +6037,44 @@
       const r2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100, s = Number(subtotal) || 0;
       return { iva: r2(s * 0.16), isr: tipo === 'Anterior' || !tipo ? 0 : r2(s * 0.1), riva: tipo === 'Empresa' || tipo === 'Otro' ? r2(s * 0.16 * 2 / 3) : 0 };
     }
+    // Las vistas siguen el orden del trabajo de Viri: primero lo que falta facturar, luego lo vencido, lo que está por cobrar, lo pagado…
+    // Las facturas de terceros (tipo Otro) viven solo en su pestaña y en Todo: no cuentan en las métricas internas.
     const VISTAS = {
-      // las facturas de terceros (tipo Otro) viven solo en su pestaña y en Todo: no cuentan en las métricas internas
-      cobrar: (c) => !esTercero(c) && (c.estatus === 'Facturada' || c.estatus === 'Parcial'),
-      vencidas: (c) => !esTercero(c) && c.semaforo.clave === 'vencida',
       facturar: (c) => !esTercero(c) && c.estatus === 'Por facturar',
+      vencidas: (c) => !esTercero(c) && c.semaforo.clave === 'vencida',
+      cobrar: (c) => !esTercero(c) && (c.estatus === 'Facturada' || c.estatus === 'Parcial'),
       pagadas: (c) => !esTercero(c) && c.estatus === 'Pagada',
       canceladas: (c) => !esTercero(c) && c.estatus === 'Cancelada',
       terceros: (c) => esTercero(c),
       todo: () => true,
     };
 
-    function semaforoHtml(c){
+    // Semáforo (siempre ícono + texto): rojo = ya pasó el vencimiento y no está pagada · verde = pagada · ámbar = no pagada y faltan 7 días o menos
+    // (umbral editable en Configuración → Alertas) · neutro = en plazo, sin plazo, por facturar o cancelada. Debajo, cuántos días lleva emitida.
+    function diasDesde(ymd){
+      if(!ymd) return null;
+      const [a, m, d] = String(ymd).slice(0, 10).split('-').map(Number);
+      const hoy = new Date(); const t0 = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+      return Math.round((t0 - Date.UTC(a, m - 1, d)) / 86400000);
+    }
+    function semNuevo(c){
       const s = c.semaforo || { clave: 'cerrada' };
-      const texto = s.clave === 'vencida' ? 'Vencida ' + s.dias + ' d'
-        : s.clave === 'por_vencer' ? (s.dias === 0 ? 'Vence hoy' : 'Vence en ' + s.dias + ' d')
-        : s.clave === 'al_corriente' ? 'Al corriente'
-        : s.clave === 'sin_plazo' ? 'Sin plazo'
-        : c.estatus === 'Pagada' ? 'Pagada' : c.estatus === 'Cancelada' ? 'Cancelada' : '—';
-      return '<span class="cbz-sem ' + s.clave + '">' + (ICO[s.clave] || '') + esc(texto) + '</span>';
+      let clave, texto;
+      if(c.estatus === 'Cancelada'){ clave = 'cerrada'; texto = 'Cancelada'; }
+      else if(c.estatus === 'Pagada'){ clave = 'pagada'; texto = 'Pagada'; }
+      else if(c.estatus === 'Por facturar'){ clave = 'sin_plazo'; texto = 'Por facturar'; }
+      else if(s.clave === 'vencida'){ clave = 'vencida'; texto = 'Vencida ' + s.dias + ' d'; }
+      else if(s.clave === 'por_vencer'){ clave = 'por_vencer'; texto = s.dias === 0 ? 'Vence hoy' : 'Vence en ' + s.dias + ' d'; }
+      else if(s.clave === 'al_corriente'){ clave = 'en_plazo'; texto = 'En plazo'; }
+      else { clave = 'sin_plazo'; texto = 'Sin plazo'; }
+      const e = diasDesde(c.fecha_emision), cr = diasDesde(String(c.fecha_creacion || '').slice(0, 10));
+      const sub = c.estatus === 'Por facturar' ? (cr == null ? '' : 'Creada hace ' + cr + ' d') : (e == null ? 'Sin fecha de emisión' : 'Emitida hace ' + e + ' d');
+      return { clave, texto, sub };
+    }
+    const ICO_SEM = Object.assign({ pagada: ICO.al_corriente, en_plazo: ICO.por_vencer });
+    function semaforoHtml(c){
+      const m = semNuevo(c);
+      return '<span class="cbz-sem ' + m.clave + '">' + (ICO_SEM[m.clave] || ICO[m.clave] || '') + '<span class="cbz-sem-txt">' + esc(m.texto) + (m.sub ? '<small>' + esc(m.sub) + '</small>' : '') + '</span></span>';
     }
 
     // ── tarjetas ──
@@ -6044,14 +6100,39 @@
     }
 
     // ── lista ──
+    const ICO_ACC = {
+      pago: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>',
+      notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h14v12l-5 5H5z" stroke-linejoin="round"/><path d="M14 21v-5h5M8 9h8M8 13h4" stroke-linecap="round"/></svg>',
+      editar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      eliminar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    // "Cliente": nombre fiscal arriba y, debajo, el comercial (el del sitio) + RFC. Mientras no haya nombre fiscal capturado, arriba va el comercial.
+    function clienteHtml(c){
+      const fiscal = c.razon_social && norm(c.razon_social) !== norm(c.cliente) ? c.razon_social : null;
+      const abajo = [fiscal ? c.cliente : null, c.rfc_receptor].filter(Boolean).join(' · ');
+      return '<b>' + esc(fiscal || c.cliente) + '</b>' + (abajo ? '<span class="cbz-sub" title="' + esc(abajo) + '">' + esc(abajo) + '</span>' : '');
+    }
+    function ultimoPago(c){
+      const f = (c.pagos || []).filter((p) => !p.anulado && p.fecha).map((p) => p.fecha).sort();
+      return f.length ? f[f.length - 1] : null;
+    }
+    function venceHtml(c){
+      if(vista === 'pagadas'){
+        const f = ultimoPago(c), n = f && c.fecha_emision ? Math.round((Date.UTC(...f.split('-').map((x, i) => i === 1 ? x - 1 : +x)) - Date.UTC(...c.fecha_emision.split('-').map((x, i) => i === 1 ? x - 1 : +x))) / 86400000) : null;
+        return f ? fmtFecha(f) + (n != null && n >= 0 ? '<span class="cbz-sub">cobrada en ' + n + ' d</span>' : '') : '<span style="color:var(--text-faint)">Sin fecha</span>';
+      }
+      return c.vencimiento ? fmtFecha(c.vencimiento) : '<span style="color:var(--text-faint)">—</span>';
+    }
     function filtradas(){
-      const q = norm($('cbzFBuscar').value);
-      const est = $('cbzFEstrategia').value;
-      return cuentas.filter((c) => (!est || c.estrategia === est) && (!q || norm([c.cliente, c.cliente_codigo, c.concepto, c.folio_factura, c.uuid_factura, c.cotizacion_folio].join(' ')).includes(q)));
+      const q = norm($('cbzFCliente').value), f = norm($('cbzFFolio').value), est = $('cbzFEstrategia').value;
+      return cuentas.filter((c) => (!est || c.estrategia === est)
+        && (!q || norm([c.cliente, c.razon_social, c.cliente_codigo, c.rfc_receptor].join(' ')).includes(q))
+        && (!f || norm([c.folio_factura, c.uuid_factura].join(' ')).includes(f)));
     }
     const CLAVES_ORDEN = {
-      creada: (c) => c.fecha_creacion || '', tipo: (c) => c.tipo_factura || '', cliente: (c) => norm(c.cliente), estrategia: (c) => c.estrategia, folio: (c) => Number(c.folio_factura) || norm(c.folio_factura),
-      total: (c) => c.total, saldo: (c) => c.saldo, vence: (c) => c.vencimiento || '9999', estatus: (c) => c.estatus,
+      creada: (c) => c.fecha_creacion || '', cliente: (c) => norm(c.razon_social || c.cliente), estrategia: (c) => c.estrategia,
+      folio: (c) => Number(c.folio_factura) || norm(c.folio_factura), concepto: (c) => norm(c.concepto), total: (c) => c.total,
+      vence: (c) => (vista === 'pagadas' ? ultimoPago(c) : c.vencimiento) || '9999', estatus: (c) => c.estatus,
     };
     function pintarLista(){
       const base = filtradas();
@@ -6060,32 +6141,48 @@
       if(orden){
         const f = CLAVES_ORDEN[orden.k];
         filas = filas.slice().sort((a, b) => { const x = f(a), y = f(b); return (x > y ? 1 : x < y ? -1 : 0) * orden.dir; });
+      } else if(vista === 'facturar'){
+        filas = filas.slice().sort((a, b) => String(a.fecha_creacion).localeCompare(String(b.fecha_creacion))); // la que lleva más tiempo sin facturar, primero
+      } else if(vista === 'pagadas'){
+        filas = filas.slice().sort((a, b) => String(ultimoPago(b) || '').localeCompare(String(ultimoPago(a) || ''))); // las cobradas más recientes, primero
       }
       document.querySelectorAll('.cbz-tabla th[data-sort]').forEach((th) => {
         const activo = orden && th.dataset.sort === orden.k;
         const ico = th.querySelector('.th-sort-ico');
         if(ico) ico.textContent = activo ? (orden.dir === 1 ? ' ▲' : ' ▼') : '';
       });
+      $('cbzThVence').querySelector('.cbz-th-txt').textContent = vista === 'pagadas' ? 'Fecha de pago' : 'Vencimiento';
       $('cbzResultado').textContent = filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas');
       const body = $('cbzListaBody');
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="11" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        $('cbzPie').innerHTML = '';
         return;
       }
-      body.innerHTML = filas.map((c) =>
-        '<tr data-id="' + c.id + '">' +
-        '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
-        '<td>' + esc(c.cliente) + '<span class="cbz-sub" title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
-        '<td>' + esc(ESTRATEGIA[c.estrategia] || c.estrategia) + '</td>' +
-        '<td>' + (c.tipo_factura ? '<span class="cbz-estatus">' + esc(c.tipo_factura) + '</span>' : '<span style="color:var(--text-faint)">—</span>') + '</td>' +
-        '<td>' + (c.folio_factura ? esc(c.folio_factura) : '<span style="color:var(--text-faint)">—</span>') + '</td>' +
-        '<td class="cbz-num">' + (c.total === 0 && c.estatus === 'Por facturar' ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + '</td>' +
-        '<td class="cbz-num">' + (c.estatus === 'Cancelada' || (c.total === 0 && c.estatus === 'Por facturar') ? '—' : dinero(c.saldo)) + '</td>' +
-        '<td>' + fmtFecha(c.vencimiento) + '</td>' +
-        '<td><span class="cbz-estatus">' + esc(c.estatus) + '</span></td>' +
-        '<td>' + semaforoHtml(c) + '</td>' +
-        '<td><button type="button" class="radm-btn radm-btn-ghost" style="min-width:auto; padding:6px 12px;" data-abrir="' + c.id + '">Abrir</button></td>' +
-        '</tr>').join('');
+      body.innerHTML = filas.map((c) => {
+        const porDefinir = c.total === 0 && c.estatus === 'Por facturar';
+        const parcial = c.estatus === 'Parcial';
+        return '<tr data-id="' + c.id + '">' +
+          '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
+          '<td class="cbz-cli">' + clienteHtml(c) + '</td>' +
+          '<td>' + esc(ESTRATEGIA[c.estrategia] || c.estrategia) + '</td>' +
+          '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + (c.tipo_factura ? '<span class="cbz-tipo">' + esc(c.tipo_factura) + '</span>' : '') + '</td>' +
+          '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
+          '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
+          '<td>' + venceHtml(c) + '</td>' +
+          '<td><span class="cbz-estatus">' + esc(c.estatus) + '</span></td>' +
+          '<td>' + semaforoHtml(c) + '</td>' +
+          '<td><div class="cot-row-actions sol-acciones">' +
+            ((c.estatus === 'Facturada' || c.estatus === 'Parcial') ? '<button type="button" class="cot-icon-btn cbz-acc-pago" data-id="' + c.id + '" title="Registrar un pago" aria-label="Registrar pago">' + ICO_ACC.pago + '</button>' : '') +
+            '<button type="button" class="cot-icon-btn cbz-acc-notas' + (c.notas ? ' tiene-nota' : '') + '" data-id="' + c.id + '" title="' + (c.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento') + '" aria-label="Notas">' + ICO_ACC.notas + '</button>' +
+            '<button type="button" class="cot-icon-btn cbz-acc-editar" data-id="' + c.id + '" title="Editar la cuenta, su factura y sus pagos" aria-label="Editar">' + ICO_ACC.editar + '</button>' +
+            '<button type="button" class="cot-icon-btn cbz-acc-eliminar sol-acc-peligro" data-id="' + c.id + '" title="Eliminar (solo para errores de captura)" aria-label="Eliminar">' + ICO_ACC.eliminar + '</button>' +
+          '</div></td></tr>';
+      }).join('');
+      const sumT = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.total, 0);
+      const sumS = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.saldo, 0);
+      $('cbzPie').innerHTML = '<tr><td colspan="5" class="cbz-pie-txt">' + filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas') + ' en esta vista' + (filas.some((c) => c.estatus === 'Cancelada') ? ' · las canceladas no suman' : '') + '</td>' +
+        '<td class="cbz-num"><b>' + dinero(sumT) + '</b><span class="cbz-sub">Total</span></td><td colspan="4"><b>' + dinero(sumS) + '</b><span class="cbz-sub" style="display:inline;margin-left:8px;">Saldo por cobrar</span></td></tr>';
     }
 
     async function cargar(){
@@ -6370,13 +6467,16 @@
       const b = e.target.closest('.radm-tab');
       if(!b) return;
       vista = b.dataset.vista;
+      orden = null;
       document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x === b));
       pintarLista();
     });
-    $('cbzFBuscar').addEventListener('input', pintarLista);
+    $('cbzFCliente').addEventListener('input', pintarLista);
+    $('cbzFFolio').addEventListener('input', pintarLista);
     $('cbzFEstrategia').addEventListener('change', pintarLista);
-    $('cbzLimpiar').addEventListener('click', () => { $('cbzFBuscar').value = ''; $('cbzFEstrategia').value = ''; orden = null; pintarLista(); });
+    $('cbzLimpiar').addEventListener('click', () => { $('cbzFCliente').value = ''; $('cbzFFolio').value = ''; $('cbzFEstrategia').value = ''; orden = null; pintarLista(); });
     $('cbzActualizar').addEventListener('click', cargar);
+    $('cbzExportarBtn').addEventListener('click', () => toast('El reporte para el contador está pendiente: se construye después.', true));
     document.querySelector('.cbz-tabla thead').addEventListener('click', (e) => {
       const th = e.target.closest('th[data-sort]');
       if(!th) return;
@@ -6384,9 +6484,87 @@
       orden = orden && orden.k === k ? (orden.dir === 1 ? { k, dir: -1 } : null) : { k, dir: 1 };
       pintarLista();
     });
-    $('cbzListaBody').addEventListener('click', (e) => {
+
+    // ── Info Semáforo (mismo popover que los demás Trackings) ──
+    function renderInfoSemaforo(pop){
+      const u = (window.UMBRALES_NOTIF && window.UMBRALES_NOTIF.cobranzaPorVencerDias) || 7;
+      const fila = (clave, texto, ico, dice) => '<div class="cli-info-semaforo-row"><span class="cbz-sem ' + clave + '">' + ico + '<span class="cbz-sem-txt">' + texto + '</span></span><span>' + dice + '</span></div>';
+      pop.innerHTML = '<div class="cli-info-pop-title">Semáforo de Cobranza</div>' +
+        '<ol class="cli-info-steps">' +
+        '<li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Mira el vencimiento, no solo la fecha de factura</strong><span class="cli-info-step-sub">Vencimiento = inicio del plazo (en Gobierno, el contra-recibo) + días de plazo. Debajo de cada estado se ve cuántos días lleva emitida.</span></div></li>' +
+        '<li class="cli-info-step cli-info-step--danger"><span class="cli-info-step-num">!</span><div class="cli-info-step-body"><strong>Rojo y ámbar llegan a Alertas</strong><span class="cli-info-step-sub">También una cuenta "Por facturar" que lleva varios días sin factura. Las facturas de terceros no cuentan.</span></div></li>' +
+        '</ol><div class="cli-info-pop-foot"><div class="cli-info-pop-foot-title">Semáforo — los días se editan en Configuración → Alertas</div><div class="cli-info-semaforo-legend">' +
+        fila('pagada', 'Pagada', ICO.al_corriente, 'ya se cobró completa') +
+        fila('en_plazo', 'En plazo', ICO.por_vencer, 'no está pagada y faltan más de ' + u + ' días') +
+        fila('por_vencer', 'Por vencer', ICO.por_vencer, 'no está pagada y faltan ' + u + ' días o menos') +
+        fila('vencida', 'Vencida', ICO.vencida, 'ya pasó el vencimiento y no está pagada') +
+        fila('sin_plazo', 'Sin plazo', ICO.sin_plazo, 'falta el inicio del plazo (contra-recibo) o aún no se factura') +
+        '</div></div>';
+    }
+    (function(){
+      const btn = $('cbzInfoSemBtn'), pop = $('cbzInfoSemPopover');
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abrir = pop.hidden;
+        if(abrir) renderInfoSemaforo(pop);
+        pop.hidden = !abrir; btn.classList.toggle('active', abrir);
+      });
+      document.addEventListener('click', (e) => { if(!pop.hidden && !e.target.closest('.cli-info-wrap')){ pop.hidden = true; btn.classList.remove('active'); } });
+    })();
+
+    // ── Notas de seguimiento (popover junto al botón, como en Clientes y Grupos) ──
+    let notasCuenta = null;
+    function cerrarNotas(){ $('cbzNotasPopover').hidden = true; notasCuenta = null; }
+    function abrirNotas(c, btn){
+      notasCuenta = c;
+      $('cbzNotasTextarea').value = c.notas || '';
+      const r = btn.getBoundingClientRect(), pop = $('cbzNotasPopover');
+      pop.style.top = (r.bottom + 6) + 'px'; pop.style.left = Math.max(8, Math.min(r.left - 200, window.innerWidth - 300)) + 'px';
+      pop.hidden = false; $('cbzNotasTextarea').focus();
+    }
+    $('cbzNotasCancelar').addEventListener('click', cerrarNotas);
+    $('cbzNotasGuardar').addEventListener('click', async () => {
+      if(!notasCuenta) return;
+      const c = notasCuenta, texto = $('cbzNotasTextarea').value.trim();
+      try {
+        await apiPostJson('/api/actualizarNotasCuentaCobrar', { id: c.id, notas: texto });
+        c.notas = texto || null;
+        const b = document.querySelector('.cbz-acc-notas[data-id="' + c.id + '"]');
+        if(b){ b.classList.toggle('tiene-nota', !!texto); b.title = texto ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento'; }
+        toast(texto ? 'Nota guardada.' : 'Nota borrada.', true);
+        cerrarNotas();
+      } catch(e){ toast(e.message, false); }
+    });
+    document.addEventListener('click', (e) => {
+      if(!$('cbzNotasPopover').hidden && !e.target.closest('#cbzNotasPopover') && !e.target.closest('.cbz-acc-notas')) cerrarNotas();
+    });
+
+    // ── acciones de cada fila ──
+    $('cbzListaBody').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-id]');
       const fila = e.target.closest('tr[data-id]');
-      if(fila) abrirDetalle(Number(fila.dataset.id));
+      if(!fila) return;
+      const id = Number((btn || fila).dataset.id), c = cuentas.find((x) => x.id === id);
+      if(!c) return;
+      if(btn && btn.classList.contains('cbz-acc-notas')){ abrirNotas(c, btn); return; }
+      if(btn && btn.classList.contains('cbz-acc-pago')){
+        abrirDetalle(id);
+        setTimeout(() => { const m = $('cbzPMonto'); if(m){ m.scrollIntoView({ block: 'center' }); m.focus(); } }, 60);
+        return;
+      }
+      if(btn && btn.classList.contains('cbz-acc-eliminar')){
+        const ok = await confirmarAccion({ variante: 'destructivo', titulo: 'Eliminar cuenta',
+          mensaje: 'Se borra de verdad la cuenta de ' + c.cliente + ' (' + c.concepto + '). Úsalo solo para errores de captura: una cuenta con pagos o con folio de factura no se borra, se cancela.', textoConfirmar: 'Sí, eliminar' });
+        if(!ok) return;
+        try {
+          await apiPostJson('/api/eliminarCuentaCobrar', { id });
+          toast('Cuenta eliminada.', true);
+          await cargar();
+        } catch(err){ toast(err.message, false); }
+        return;
+      }
+      if(btn && !btn.classList.contains('cbz-acc-editar')) return;
+      abrirDetalle(id);
     });
     // una alerta de Cobranza abre la cuenta directo
     window.cbzAbrirCuenta = (id) => { vista = 'todo'; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === 'todo')); cargar().then(() => abrirDetalle(Number(id))); };

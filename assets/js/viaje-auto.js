@@ -123,11 +123,99 @@
       rc("rCa", "calendario", "#0f6cbd", "7 eventos en el calendario", "Outlook · 3 al 11 nov") + "</div></aside>";
   }
 
+  // ---- héroe: mitad texto, mitad un flujo que corre de verdad (el visitante lo prueba y aprueba) ----
+  // La ventana del diseñador (copia propia "ah-", ids "h…") muestra el flujo de la solicitud de vacaciones; "Probar" lo ejecuta:
+  // cada paso se enciende y sella (✓ tiempo), llegan los resultados y la aprobación se puede aprobar con un clic. Si nadie lo
+  // toca, se vuelve a ejecutar solo. Botón único con auto-scroll de 5 s (ViajeEngine.autoBajar).
   function heroHtml() {
-    return '<section class="viaje-hero" id="auHero"><span class="viaje-hero-eyebrow">Curso de Power Automate</span>' +
-      '<h1 class="viaje-hero-title">Aprende Power Automate como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">Trigger</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Nube · Programados · Instantáneos</span><span class="scope-chip">Conectores</span><span class="scope-chip">Aprobaciones</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#auPick" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const rch = (id, ico, color, tit, sub) => '<div class="rs-c reveal" id="' + id + '" style="--nc:' + color + '"><span class="rs-i"><span class="ik">' + I[ico] + "</span></span><div><b>" + tit + "</b><span>" + sub + "</span></div></div>";
+    const flujo = nodo("hT", "#008272", "forms", "Cuando se envía una respuesta nueva", "Microsoft Forms · Solicitud de vacaciones", "au-trig") + ln("hl1") +
+      nodo("h2", "#038387", "lista", "Crear elemento", "SharePoint · Título " + chip("Nombre") + " · Días " + chip("Días")) + ln("hl2") +
+      nodo("h3", "#0f6cbd", "correo", "Enviar un correo (V2)", "Outlook · Para " + chip("Correo")) + ln("hl3") +
+      nodo("h4", "#5b5fc7", "chat", "Publicar un mensaje en un canal", "Teams · RH · Nueva solicitud") + ln("hl4") +
+      nodo("h5", "#0078d4", "aprobar", "Iniciar y esperar una aprobación", "Para Dirección · " + chip("Tipo")) + ln("hl5") +
+      nodo("h6", "#0f6cbd", "calendario", "Crear evento", "Outlook · " + chip("Nombre") + " de vacaciones");
+    const lado = '<div class="sd-h">Resultados de la ejecución</div><div class="ah-resp reveal" id="hResp"><span class="ik">' + I.forms + '</span><b>Respuesta #17</b><span>Mariana · 7 días</span></div>' +
+      rch("hRsp", "lista", "#038387", "Elemento #0017 creado", "SharePoint · Solicitudes") + rch("hRou", "correo", "#0f6cbd", "Correo enviado", "Outlook · mariana@grupodemo.com") + rch("hRtm", "chat", "#5b5fc7", "Mensaje publicado", "Teams · RH") +
+      '<div class="au-ap reveal" id="hRap"><div class="au-aph"><span class="ik">' + I.aprobar + '</span>Aprobación · Vacaciones</div><p>Mariana López · 7 días</p><div class="au-apb"><span class="ap-si" id="hApSi">Aprobar</span><span class="ap-no">Rechazar</span></div><div class="au-apr reveal" id="hApR"><span class="ik">' + I.check + "</span>Aprobada por Dirección</div></div>" +
+      rch("hRca", "calendario", "#0f6cbd", "7 eventos en el calendario", "Outlook · 3 al 11 nov");
+    return '<section class="viaje-hero hb-hero ah-hero" id="auHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power Automate</span>' +
+      '<h1 class="viaje-hero-title">Automatiza <span class="accent">Procesos<span class="selector-box"><span class="selector-label">Trigger</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Flujos en la nube</span><span class="scope-chip">Conectores</span><span class="scope-chip">Aprobaciones</span></div>' +
+      '<div class="hb-actions"><a href="#auPick" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame ah-frame"><div class="hb-cv ah-cv" id="ahCv"><div class="ah-win">' +
+      '<div class="au-bar"><span class="au-bi"><span class="ik">' + I.flujo + '</span></span><b>Power Automate</b><span class="au-fn">Solicitud de vacaciones</span><span class="au-btn au-prueba ah-pr" id="hPrueba" role="button" tabindex="0"><span class="ik">' + I.play + "</span>Probar</span></div>" +
+      '<div class="ah-body"><div class="au-cv"><div class="ah-flow">' + flujo + '</div></div><aside class="au-side ah-side">' + lado + "</aside></div></div></div></div></div></section>";
+  }
+
+  // modo: "desk" (animado, interactivo y auto-scroll), "flujo" (teléfono) o "simple" (estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#ahCv");
+    if (!cont) return null;
+    const g = (id) => cont.querySelector("#h" + id), qa = (s) => Array.prototype.slice.call(cont.querySelectorAll(s));
+    const stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 940).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+    if (modo !== "desk") { qa(".reveal").forEach((el) => { el.style.opacity = 1; }); return null; }
+
+    const nodos = ["T", "2", "3", "4", "5", "6"].map((n) => g(n.length === 1 && n === "T" ? "T" : n)), lineas = qa(".au-ln");
+    const res = { 2: g("Rsp"), 3: g("Rou"), 4: g("Rtm"), 5: g("Rap"), 6: g("Rca") };
+    const sellos = nodos.map((n) => n.querySelector(".au-run"));
+    const api = { introHecha: false, irA: null };
+    const reveal = qa(".reveal").filter((el) => sellos.indexOf(el) < 0 && [g("Rsp"), g("Rou"), g("Rtm"), g("Rap"), g("Rca"), g("Resp"), g("ApR")].indexOf(el) < 0);
+
+    // la ejecución: un paso cada ~0.9 s; en la aprobación espera (o aprueba solo en la marca "apr")
+    const run = gsap.timeline({ paused: true, defaults: { ease: "power1.out" } });
+    const paso = (i, t) => {
+      run.to(nodos[i], { boxShadow: "0 0 0 2px #22d3ee, 0 0 18px rgba(34,211,238,.35)", duration: 0.25 }, t);
+      run.to(nodos[i], { boxShadow: "0 0 0 0 rgba(34,211,238,0), 0 0 0 rgba(34,211,238,0)", duration: 0.3 }, t + 0.55);
+      run.to(sellos[i], { opacity: 1, duration: 0.25 }, t + 0.3);
+      if (res[i + 1]) run.fromTo(res[i + 1], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, immediateRender: false }, t + 0.45);
+    };
+    run.set([sellos, Object.keys(res).map((k) => res[k]), g("ApR"), g("Resp")].reduce((x, y) => x.concat(y), []), { opacity: 0 }, 0);
+    run.to(g("Resp"), { opacity: 1, duration: 0.3 }, 0.1);
+    paso(0, 0.3);
+    paso(1, 1.2);
+    paso(2, 2.1);
+    paso(3, 3.0);
+    // aprobación: el nodo queda encendido esperando; se aprueba (solo o con el clic del visitante) en "apr"
+    run.to(nodos[4], { boxShadow: "0 0 0 2px #22d3ee, 0 0 18px rgba(34,211,238,.35)", duration: 0.25 }, 3.9);
+    run.fromTo(res[5], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, immediateRender: false }, 4.0);
+    run.addLabel("apr", 5.6);
+    run.to(g("ApSi"), { backgroundColor: "#0b7a6b", borderColor: "#0b7a6b", duration: 0.25 }, "apr");
+    run.to(g("ApR"), { opacity: 1, duration: 0.3 }, "apr+=0.2");
+    run.to(nodos[4], { boxShadow: "0 0 0 0 rgba(34,211,238,0), 0 0 0 rgba(34,211,238,0)", duration: 0.3 }, "apr+=0.3");
+    run.to(sellos[4], { opacity: 1, duration: 0.25 }, "apr+=0.3");
+    paso(5, 6.4);
+    run.to({}, { duration: 0.4 }, 7.6);
+
+    let finRun = 0;
+    run.eventCallback("onComplete", () => { finRun = Date.now(); });
+    // intro: aparece el flujo y la ejecución arranca sola
+    gsap.to(reveal, { opacity: 1, duration: 0.4, stagger: 0.07, delay: 0.4, onComplete: () => {
+      api.introHecha = true; run.play(0); if (api.irA) E.autoBajar(root, api.irA);
+    } });
+
+    // interacción: "Probar" vuelve a ejecutar; "Aprobar" adelanta la aprobación
+    let usuario = false, ultimo = 0;
+    const prueba = g("Prueba"), apSi = g("ApSi");
+    [prueba, apSi].forEach((el) => { el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap"); });
+    const probar = () => { usuario = true; ultimo = Date.now(); prueba.classList.remove("hb-pulse"); run.restart(); };
+    const aprobar = () => { usuario = true; ultimo = Date.now(); if (run.isActive() && run.time() < run.labels.apr) run.seek("apr"); else if (!run.isActive()) probar(); };
+    prueba.addEventListener("click", probar); apSi.addEventListener("click", aprobar);
+    [[prueba, probar], [apSi, aprobar]].forEach((p) => p[0].addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); p[1](); } }));
+    prueba.classList.add("hb-pulse");
+
+    // si el visitante se queda mirando, el flujo se ejecuta de nuevo solo (mientras el héroe está a la vista)
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#auHero").getBoundingClientRect();
+      if (!api.introHecha || run.isActive() || run.time() < run.duration() || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000 || Date.now() - finRun < 9000) return;
+      run.restart();
+    }, 5000);
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
+    return api;
   }
 
   function shellHtml() {
@@ -140,6 +228,7 @@
       '<span class="au-test" id="auTestSh"><span class="ik">' + I.play + "</span>Probar</span>" +
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="auRail">' + tabs + '<span class="bi-status mono" id="auEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -173,7 +262,7 @@
     tl.fromTo(cur, { opacity: 0, x: () => cen($("#auPick"), win)[0] + 200, y: () => cen($("#auPick"), win)[1] + 110 }, { opacity: 1, duration: 3, immediateRender: false }, at(18));
     tl.to(cur, Object.assign({ duration: 8 }, hacia(c1, win)), at(20));
     clic(tl, rip, win, c1, at(28));
-    tl.to(c1, { borderColor: "#0f6cbd", backgroundColor: "#e8f1fb", duration: 3 }, at(29));
+    tl.to(c1, { borderColor: "#0f6cbd", backgroundColor: "rgba(15,108,189,.22)", duration: 3 }, at(29));
     tl.to([$("#auCard2"), $("#auCard3")], { opacity: 0.35, duration: 4 }, at(30));
     tl.to(cur, { opacity: 0, duration: 3 }, at(32));
     // el disparador elegido se escribe y la tarjeta se vuelve el primer paso del flujo
@@ -216,7 +305,7 @@
     lineaDe(tl, "l7", at(26), R);
     tl.to($("#nSw"), { opacity: 1, duration: 4 }, at(30)); pan(tl, R, $("#nSw"), at(28), 8);
     tl.to($("#auCases"), { opacity: 1, duration: 4 }, at(35));
-    tl.to($("#auCase1"), { backgroundColor: "#dbe8fb", borderColor: "#0f6cbd", duration: 3 }, at(40));
+    tl.to($("#auCase1"), { backgroundColor: "rgba(15,108,189,.28)", borderColor: "#0f6cbd", duration: 3 }, at(40));
     lineaDe(tl, "l8", at(42), R);
     tl.to($("#auLoop"), { opacity: 1, duration: 4 }, at(46)); pan(tl, R, $("#auLoop"), at(44), 8);
     tl.to($("#nEv"), { opacity: 1, duration: 4 }, at(52));
@@ -312,11 +401,13 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
+      const mas = E.flechaMas($("#biMore"));
       const pin = $("#auPin"), canvas = $("#auCanvas");
 
       // ---- línea de tiempo maestra: el flujo crece en cuatro actos sobre un solo lienzo ----
@@ -346,7 +437,7 @@
 
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); mas.fin = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#auHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 
@@ -354,6 +445,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");

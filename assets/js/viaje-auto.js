@@ -123,29 +123,44 @@
       rc("rCa", "calendario", "#0f6cbd", "7 eventos en el calendario", "Outlook · 3 al 11 nov") + "</div></aside>";
   }
 
-  // ---- héroe: mitad texto, mitad un flujo que corre de verdad (el visitante lo prueba y aprueba) ----
-  // La ventana del diseñador (copia propia "ah-", ids "h…") muestra el flujo de la solicitud de vacaciones; "Probar" lo ejecuta:
-  // cada paso se enciende y sella (✓ tiempo), llegan los resultados y la aprobación se puede aprobar con un clic. Si nadie lo
-  // toca, se vuelve a ejecutar solo. Botón único con auto-scroll de 5 s (ViajeEngine.autoBajar).
+  // ---- héroe: mitad texto, mitad un canvas moderno donde el flujo corre de verdad ----
+  // Nodos-ícono unidos por curvas; la pastilla "#17" (la respuesta de Forms) viaja por ellas; cada paso se enciende, se
+  // sella con ✓ y suelta un aviso corto; en la aprobación el camino se BIFURCA (Aprobada → calendario · Rechazada → aviso) y
+  // el visitante decide con un clic (si no, decide solo, alternando). "Probar" lo ejecuta de nuevo. Botón único con
+  // auto-scroll de 5 s (ViajeEngine.autoBajar). Teléfono/estático: lista vertical con los mismos pasos.
+  const equis = svg('<path d="M6 6l12 12M18 6L6 18"/>', 2.6);
+  const AH = [
+    { x: 80, y: 240, c: "#008272", ico: "forms", t: "Forms", s: "Respuesta nueva", aviso: "Respuesta #17 recibida" },
+    { x: 225, y: 190, c: "#038387", ico: "lista", t: "SharePoint", s: "Crear elemento", aviso: "Elemento #0017 creado" },
+    { x: 370, y: 240, c: "#0f6cbd", ico: "correo", t: "Outlook", s: "Confirmar por correo", aviso: "Correo enviado" },
+    { x: 515, y: 190, c: "#5b5fc7", ico: "chat", t: "Teams", s: "Avisar a RH", aviso: "Mensaje en RH" },
+    { x: 650, y: 215, c: "#0078d4", ico: "aprobar", t: "Aprobación", s: "Dirección decide", aviso: "" },
+    { x: 830, y: 110, c: "#0f6cbd", ico: "calendario", t: "Calendario", s: "Crear 7 eventos", aviso: "7 eventos creados" },
+    { x: 830, y: 320, c: "#d13438", ico: "correo", t: "Outlook", s: "Avisar el rechazo", aviso: "Se avisó a Mariana" },
+  ];
+  const AH_SEG = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [4, 6]];   // las dos últimas son la bifurcación
+  const ahCurva = (p, q) => { const x1 = p.x + 37, x2 = q.x - 37, dx = (x2 - x1) * 0.5; return "M" + x1 + "," + p.y + " C" + (x1 + dx) + "," + p.y + " " + (x2 - dx) + "," + q.y + " " + x2 + "," + q.y; };
+
   function heroHtml() {
-    const rch = (id, ico, color, tit, sub) => '<div class="rs-c reveal" id="' + id + '" style="--nc:' + color + '"><span class="rs-i"><span class="ik">' + I[ico] + "</span></span><div><b>" + tit + "</b><span>" + sub + "</span></div></div>";
-    const flujo = nodo("hT", "#008272", "forms", "Cuando se envía una respuesta nueva", "Microsoft Forms · Solicitud de vacaciones", "au-trig") + ln("hl1") +
-      nodo("h2", "#038387", "lista", "Crear elemento", "SharePoint · Título " + chip("Nombre") + " · Días " + chip("Días")) + ln("hl2") +
-      nodo("h3", "#0f6cbd", "correo", "Enviar un correo (V2)", "Outlook · Para " + chip("Correo")) + ln("hl3") +
-      nodo("h4", "#5b5fc7", "chat", "Publicar un mensaje en un canal", "Teams · RH · Nueva solicitud") + ln("hl4") +
-      nodo("h5", "#0078d4", "aprobar", "Iniciar y esperar una aprobación", "Para Dirección · " + chip("Tipo")) + ln("hl5") +
-      nodo("h6", "#0f6cbd", "calendario", "Crear evento", "Outlook · " + chip("Nombre") + " de vacaciones");
-    const lado = '<div class="sd-h">Resultados de la ejecución</div><div class="ah-resp reveal" id="hResp"><span class="ik">' + I.forms + '</span><b>Respuesta #17</b><span>Mariana · 7 días</span></div>' +
-      rch("hRsp", "lista", "#038387", "Elemento #0017 creado", "SharePoint · Solicitudes") + rch("hRou", "correo", "#0f6cbd", "Correo enviado", "Outlook · mariana@grupodemo.com") + rch("hRtm", "chat", "#5b5fc7", "Mensaje publicado", "Teams · RH") +
-      '<div class="au-ap reveal" id="hRap"><div class="au-aph"><span class="ik">' + I.aprobar + '</span>Aprobación · Vacaciones</div><p>Mariana López · 7 días</p><div class="au-apb"><span class="ap-si" id="hApSi">Aprobar</span><span class="ap-no">Rechazar</span></div><div class="au-apr reveal" id="hApR"><span class="ik">' + I.check + "</span>Aprobada por Dirección</div></div>" +
-      rch("hRca", "calendario", "#0f6cbd", "7 eventos en el calendario", "Outlook · 3 al 11 nov");
+    const base = AH_SEG.map((s, i) => '<path class="ah2-pb reveal" d="' + ahCurva(AH[s[0]], AH[s[1]]) + '"/>').join("");
+    const luz = AH_SEG.map((s, i) => '<path class="ah2-pl" id="hPl' + i + '" d="' + ahCurva(AH[s[0]], AH[s[1]]) + '"/>').join("");
+    const nodos = AH.map((n, i) => '<div class="ah2-n reveal" id="hN' + i + '" style="left:' + (n.x - 36) + "px;top:" + (n.y - 36) + "px;--nc:" + n.c + '"><span class="ah2-tile"><span class="ik">' + I[n.ico] + '</span></span><i class="ah2-ring"></i><i class="ah2-ck"><span class="ik">' + I.check + '</span></i><span class="ah2-lb"><b>' + n.t + "</b><em>" + n.s + "</em></span></div>").join("");
+    const avisos = AH.map((n, i) => n.aviso ? '<div class="ah2-t" id="hT' + i + '" style="left:' + n.x + "px;top:" + (n.y - 86) + 'px"><span class="ik">' + I.check + "</span>" + n.aviso + "</div>" : "").join("");
+    const lista = AH.slice(0, 5).map((n) => '<li><span class="ah2-lt" style="--nc:' + n.c + '"><span class="ik">' + I[n.ico] + "</span></span><div><b>" + n.t + "</b><span>" + n.s + '</span></div><i class="ah2-lck"><span class="ik">' + I.check + "</span></i></li>").join("") +
+      '<li class="ah2-rama"><span class="ah2-lt" style="--nc:#0f6cbd"><span class="ik">' + I.calendario + "</span></span><div><b>Si se aprueba</b><span>Calendario · Crear 7 eventos</span></div></li>" +
+      '<li class="ah2-rama"><span class="ah2-lt" style="--nc:#d13438"><span class="ik">' + I.correo + "</span></span><div><b>Si se rechaza</b><span>Outlook · Avisar el rechazo</span></div></li>";
     return '<section class="viaje-hero hb-hero ah-hero" id="auHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power Automate</span>' +
       '<h1 class="viaje-hero-title">Automatiza <span class="accent">Procesos<span class="selector-box"><span class="selector-label">Trigger</span></span></span></h1>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Flujos en la nube</span><span class="scope-chip">Conectores</span><span class="scope-chip">Aprobaciones</span></div>' +
       '<div class="hb-actions"><a href="#auPick" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame ah-frame"><div class="hb-cv ah-cv" id="ahCv"><div class="ah-win">' +
       '<div class="au-bar"><span class="au-bi"><span class="ik">' + I.flujo + '</span></span><b>Power Automate</b><span class="au-fn">Solicitud de vacaciones</span><span class="au-btn au-prueba ah-pr" id="hPrueba" role="button" tabindex="0"><span class="ik">' + I.play + "</span>Probar</span></div>" +
-      '<div class="ah-body"><div class="au-cv"><div class="ah-flow">' + flujo + '</div></div><aside class="au-side ah-side">' + lado + "</aside></div></div></div></div></div></section>";
+      '<div class="ah2-cvs"><svg class="ah2-svg" viewBox="0 0 940 430">' + base + luz + "</svg>" + nodos + avisos +
+      '<span class="ah2-bc ok" id="hBo" style="left:764px;top:152px"><span class="ik">' + I.check + '</span>Aprobada</span><span class="ah2-bc ko" id="hBk" style="left:764px;top:278px"><span class="ik">' + equis + "</span>Rechazada</span>" +
+      '<div class="ah2-dec" id="hDec" style="left:650px;top:84px"><em>Dirección · Vacaciones</em><div><span class="ah2-b ok" id="hApSi" role="button" tabindex="0">Aprobar</span><span class="ah2-b ko" id="hApNo" role="button" tabindex="0">Rechazar</span></div></div>' +
+      '<div class="ah2-fin ok" id="hFo"><span class="ik">' + I.check + '</span>Flujo completado · 7 eventos en el calendario</div><div class="ah2-fin ko" id="hFk"><span class="ik">' + equis + '</span>Solicitud rechazada · se avisó a Mariana</div>' +
+      '<div class="ah2-pk" id="hPk"><span class="ik">' + I.forms + '</span>#17</div></div>' +
+      '<ol class="ah2-list">' + lista + "</ol></div></div></div></div></section>";
   }
 
   // modo: "desk" (animado, interactivo y auto-scroll), "flujo" (teléfono) o "simple" (estado final)
@@ -157,63 +172,94 @@
     function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 940).toFixed(4) + ")"; }
     if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
     root._hbEsc = escala; window.addEventListener("resize", escala); escala();
-    if (modo !== "desk") { qa(".reveal").forEach((el) => { el.style.opacity = 1; }); return null; }
+    if (modo !== "desk") return null;
 
-    const nodos = ["T", "2", "3", "4", "5", "6"].map((n) => g(n.length === 1 && n === "T" ? "T" : n)), lineas = qa(".au-ln");
-    const res = { 2: g("Rsp"), 3: g("Rou"), 4: g("Rtm"), 5: g("Rap"), 6: g("Rca") };
-    const sellos = nodos.map((n) => n.querySelector(".au-run"));
+    const N = AH.map((_, i) => g("N" + i)), PL = AH_SEG.map((_, i) => g("Pl" + i)), LEN = PL.map((p) => p.getTotalLength());
+    const pk = g("Pk"), dec = g("Dec"), prueba = g("Prueba"), apSi = g("ApSi"), apNo = g("ApNo");
     const api = { introHecha: false, irA: null };
-    const reveal = qa(".reveal").filter((el) => sellos.indexOf(el) < 0 && [g("Rsp"), g("Rou"), g("Rtm"), g("Rap"), g("Rca"), g("Resp"), g("ApR")].indexOf(el) < 0);
+    const prox = { v: 0 };
+    const pon = (i, v) => { const p = PL[i].getPointAtLength(v * LEN[i]); pk.style.left = p.x + "px"; pk.style.top = p.y + "px"; };
+    PL.forEach((p, i) => { p.style.strokeDasharray = LEN[i]; p.style.strokeDashoffset = LEN[i]; });
 
-    // la ejecución: un paso cada ~0.9 s; en la aprobación espera (o aprueba solo en la marca "apr")
-    const run = gsap.timeline({ paused: true, defaults: { ease: "power1.out" } });
-    const paso = (i, t) => {
-      run.to(nodos[i], { boxShadow: "0 0 0 2px #22d3ee, 0 0 18px rgba(34,211,238,.35)", duration: 0.25 }, t);
-      run.to(nodos[i], { boxShadow: "0 0 0 0 rgba(34,211,238,0), 0 0 0 rgba(34,211,238,0)", duration: 0.3 }, t + 0.55);
-      run.to(sellos[i], { opacity: 1, duration: 0.25 }, t + 0.3);
-      if (res[i + 1]) run.fromTo(res[i + 1], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, immediateRender: false }, t + 0.45);
+    // un paso: la pastilla recorre la curva, la curva se ilumina y, al llegar, el nodo se enciende, se sella y avisa
+    const viaja = (tl, i, t) => {
+      tl.fromTo(prox, { v: 0 }, { v: 1, duration: 0.7, ease: "power1.inOut", immediateRender: false, onUpdate: () => pon(i, prox.v) }, t);
+      tl.to(PL[i], { strokeDashoffset: 0, duration: 0.7, ease: "power1.inOut" }, t);
     };
-    run.set([sellos, Object.keys(res).map((k) => res[k]), g("ApR"), g("Resp")].reduce((x, y) => x.concat(y), []), { opacity: 0 }, 0);
-    run.to(g("Resp"), { opacity: 1, duration: 0.3 }, 0.1);
-    paso(0, 0.3);
-    paso(1, 1.2);
-    paso(2, 2.1);
-    paso(3, 3.0);
-    // aprobación: el nodo queda encendido esperando; se aprueba (solo o con el clic del visitante) en "apr"
-    run.to(nodos[4], { boxShadow: "0 0 0 2px #22d3ee, 0 0 18px rgba(34,211,238,.35)", duration: 0.25 }, 3.9);
-    run.fromTo(res[5], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, immediateRender: false }, 4.0);
-    run.addLabel("apr", 5.6);
-    run.to(g("ApSi"), { backgroundColor: "#0b7a6b", borderColor: "#0b7a6b", duration: 0.25 }, "apr");
-    run.to(g("ApR"), { opacity: 1, duration: 0.3 }, "apr+=0.2");
-    run.to(nodos[4], { boxShadow: "0 0 0 0 rgba(34,211,238,0), 0 0 0 rgba(34,211,238,0)", duration: 0.3 }, "apr+=0.3");
-    run.to(sellos[4], { opacity: 1, duration: 0.25 }, "apr+=0.3");
-    paso(5, 6.4);
-    run.to({}, { duration: 0.4 }, 7.6);
+    const enciende = (tl, n, t) => {
+      const nodo = N[n];
+      tl.fromTo(nodo.querySelector(".ah2-ring"), { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.2, immediateRender: false }, t);
+      tl.to(nodo.querySelector(".ah2-ring"), { opacity: 0, duration: 0.5 }, t + 0.45);
+      tl.fromTo(nodo.querySelector(".ah2-tile"), { scale: 1 }, { scale: 1.1, duration: 0.18, yoyo: true, repeat: 1, immediateRender: false }, t);
+      tl.to(nodo.querySelector(".ah2-ck"), { opacity: 1, scale: 1, duration: 0.25 }, t + 0.15);
+      const av = g("T" + n);
+      if (av) { tl.fromTo(av, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3, immediateRender: false }, t + 0.1); tl.to(av, { opacity: 0, y: -4, duration: 0.4 }, t + 2.0); }
+    };
 
-    let finRun = 0;
-    run.eventCallback("onComplete", () => { finRun = Date.now(); });
-    // intro: aparece el flujo y la ejecución arranca sola
-    gsap.to(reveal, { opacity: 1, duration: 0.4, stagger: 0.07, delay: 0.4, onComplete: () => {
-      api.introHecha = true; run.play(0); if (api.irA) E.autoBajar(root, api.irA);
+    // principal: Forms → SharePoint → Outlook → Teams → (aprobación)
+    const main = gsap.timeline({ paused: true, defaults: { ease: "power1.out" } });
+    main.set(qa(".ah2-ck"), { opacity: 0, scale: 0.4 }, 0);
+    main.set(qa(".ah2-t, .ah2-fin"), { opacity: 0 }, 0);
+    main.set(PL, { strokeDashoffset: (i) => LEN[i] }, 0);
+    main.set([dec, pk, g("Bo"), g("Bk")], { opacity: 0 }, 0);
+    main.set(dec, { pointerEvents: "none" }, 0);
+    main.set(qa(".ah2-ring"), { opacity: 0 }, 0);
+    main.call(() => pon(0, 0), null, 0);
+    main.to(pk, { opacity: 1, duration: 0.25 }, 0.15);
+    enciende(main, 0, 0.3);
+    for (let i = 0; i < 4; i++) { viaja(main, i, 1.0 + i * 1.15); enciende(main, i + 1, 1.0 + i * 1.15 + 0.7); }
+    const tDec = 1.0 + 3 * 1.15 + 0.9;
+    main.to([g("Bo"), g("Bk")], { opacity: 0.7, duration: 0.3 }, tDec);
+    main.fromTo(dec, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3, immediateRender: false }, tDec);
+    main.set(dec, { pointerEvents: "auto" }, tDec);
+    main.to({}, { duration: 0.1 }, tDec + 0.3);
+
+    // ramas (se reproducen cuando se decide)
+    const rama = (i, n, bc, fin) => {
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power1.out" }, onComplete: () => { finRun = Date.now(); } });
+      tl.to(dec, { opacity: 0, y: -6, duration: 0.25 }, 0).set(dec, { pointerEvents: "none" }, 0.25);
+      tl.to(g(bc), { opacity: 1, scale: 1.08, duration: 0.25 }, 0);
+      tl.to(g(bc === "Bo" ? "Bk" : "Bo"), { opacity: 0.2, duration: 0.3 }, 0);
+      viaja(tl, i, 0.2); enciende(tl, n, 0.9);
+      tl.to(g(fin), { opacity: 1, duration: 0.4 }, 1.7);
+      tl.to(pk, { opacity: 0, duration: 0.3 }, 1.5);
+      return tl;
+    };
+    let finRun = 0, decidido = false, esperando = null, rondas = 0;
+    const ok = rama(4, 5, "Bo", "Fo"), ko = rama(5, 6, "Bk", "Fk");
+    const reinicia = () => {
+      clearTimeout(esperando); decidido = false;
+      ok.pause(0); ko.pause(0); main.restart();
+      esperando = setTimeout(() => decide(rondas++ % 2 === 0 ? "ok" : "ko", true), (tDec + 3.2) * 1000);
+    };
+    const decide = (que, auto) => {
+      if (decidido || main.time() < tDec) return;
+      decidido = true; clearTimeout(esperando);
+      (que === "ok" ? ok : ko).restart();
+    };
+
+    // intro: aparece el canvas y la ejecución arranca sola
+    const reveal = qa(".reveal");
+    gsap.to(reveal, { opacity: 1, duration: 0.5, stagger: 0.06, delay: 0.4, onComplete: () => {
+      api.introHecha = true; reinicia(); if (api.irA) E.autoBajar(root, api.irA);
     } });
 
-    // interacción: "Probar" vuelve a ejecutar; "Aprobar" adelanta la aprobación
+    // interacción: Probar vuelve a ejecutar; Aprobar / Rechazar deciden la bifurcación
     let usuario = false, ultimo = 0;
-    const prueba = g("Prueba"), apSi = g("ApSi");
-    [prueba, apSi].forEach((el) => { el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap"); });
-    const probar = () => { usuario = true; ultimo = Date.now(); prueba.classList.remove("hb-pulse"); run.restart(); };
-    const aprobar = () => { usuario = true; ultimo = Date.now(); if (run.isActive() && run.time() < run.labels.apr) run.seek("apr"); else if (!run.isActive()) probar(); };
-    prueba.addEventListener("click", probar); apSi.addEventListener("click", aprobar);
-    [[prueba, probar], [apSi, aprobar]].forEach((p) => p[0].addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); p[1](); } }));
+    const tocar = () => { usuario = true; ultimo = Date.now(); };
+    const act = (el, fn) => { el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap"); el.addEventListener("click", fn); el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } }); };
+    act(prueba, () => { tocar(); prueba.classList.remove("hb-pulse"); reinicia(); });
+    act(apSi, () => { tocar(); decide("ok"); });
+    act(apNo, () => { tocar(); decide("ko"); });
     prueba.classList.add("hb-pulse");
 
-    // si el visitante se queda mirando, el flujo se ejecuta de nuevo solo (mientras el héroe está a la vista)
+    // si el visitante se queda mirando, el flujo se ejecuta de nuevo solo (9 s tras terminar; 10 s tras un toque suyo)
     const vivo = setInterval(() => {
       if (!root.isConnected) { clearInterval(vivo); return; }
       const r = root.querySelector("#auHero").getBoundingClientRect();
-      if (!api.introHecha || run.isActive() || run.time() < run.duration() || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000 || Date.now() - finRun < 9000) return;
-      run.restart();
-    }, 5000);
+      if (!api.introHecha || !decidido || ok.isActive() || ko.isActive() || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000 || Date.now() - finRun < 9000) return;
+      reinicia();
+    }, 4000);
     api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
     return api;
   }

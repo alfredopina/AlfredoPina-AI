@@ -217,8 +217,8 @@
     const ini = full.indexOf('<div class="xd" id="xDash">'), fin = full.indexOf('<div class="xmail');
     const dash = full.slice(ini, fin).replace(/id="([A-Za-z]\w*)"/g, 'id="h$1"');
     return '<section class="viaje-hero hb-hero xh-hero" id="xHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Excel</span>' +
-      '<h1 class="viaje-hero-title">Excel que <span class="accent">trabaja<span class="selector-box"><span class="selector-label">A1</span></span></span> por ti</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Versión 365</span><span class="scope-chip">Macros con Copilot</span><span class="scope-chip">WPS / Google Sheets</span></div>' +
+      '<h1 class="viaje-hero-title">Reportes <span class="accent">automáticos<span class="selector-box"><span class="selector-label">A1</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Tablas dinámicas</span><span class="scope-chip">Dashboards</span><span class="scope-chip">Macros con Copilot</span></div>' +
       '<div class="hb-actions"><a href="#xWin" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame xh-frame"><div class="hb-cv xh-cv" id="xhCv">' + dash + '<div class="xh-toast" id="hxToast" role="status"></div></div></div></div></section>';
   }

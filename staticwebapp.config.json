@@ -7,8 +7,18 @@
   },
   "routes": [
     {
-      "route": "/cursos",
+      "route": "/in-company",
       "rewrite": "/cursos.html"
+    },
+    {
+      "route": "/cursos",
+      "redirect": "/in-company",
+      "statusCode": 301
+    },
+    {
+      "route": "/cursos.html",
+      "redirect": "/in-company",
+      "statusCode": 301
     },
     {
       "route": "/agenda",

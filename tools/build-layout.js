@@ -75,9 +75,9 @@ function iconoHerramienta(id) {
 }
 function ddCursos(aria) {
   const items = HERRAMIENTAS_NAV.map(([id, nombre, color]) =>
-    '<a href="/cursos#' + id + '" data-cat="' + id + '" style="--c:' + color + '">' + iconoHerramienta(id) + nombre + '</a>'
+    '<a href="/in-company#' + id + '" data-cat="' + id + '" style="--c:' + color + '">' + iconoHerramienta(id) + nombre + '</a>'
   ).join("\n        ");
-  return '<div class="nav-dd">\n      <a href="/cursos" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
+  return '<div class="nav-dd">\n      <a href="/in-company" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos In Company ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
 }
 
 // Menú desplegable de Conóceme: las 5 secciones de la portada (antes una segunda barra bajo el encabezado).

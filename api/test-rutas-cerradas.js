@@ -60,7 +60,7 @@ check("una pública sí es pública ('/api/crearSolicitudPublica')", clasificar(
 check("una de admin de siempre está cerrada ('/api/listClientesAdmin')", clasificar("/api/listClientesAdmin") === "admin");
 check("buscarClientes (la que sacaba la cartera) está cerrada", clasificar("/api/buscarClientes") === "admin");
 check("getInstructores ya no es pública (ninguna página pública la usa)", clasificar("/api/getInstructores") === "admin");
-check("las páginas públicas siguen sin rol (reescrituras)", ["/cursos", "/encuesta", "/diagnostico", "/propuesta/abc", "/verificar/abc", "/reporte/abc"].every((p) => clasificar(p) === "publica"));
+check("las páginas públicas siguen sin rol (reescrituras)", ["/in-company", "/cursos", "/encuesta", "/diagnostico", "/propuesta/abc", "/verificar/abc", "/reporte/abc"].every((p) => clasificar(p) === "publica"));
 check("/admin está cerrado", clasificar("/admin") === "admin" && clasificar("/admin/index.html") === "admin");
 
 // tamaño: ya no se acerca al tope de 20 KB

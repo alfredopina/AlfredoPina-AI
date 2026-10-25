@@ -39,8 +39,8 @@
   const PROPS = ["", "OnStart", "OnSelect", "OnSuccess", "Items"];
   const ESTADOS = ["App Compras · sin abrir", "1 pantalla · rol del usuario", "Pantalla Solicitud · 6 controles", "Flujo · 5 pasos", "Pantalla Consulta · 5 solicitudes"];
   const RIEL = [null, "acceso", "registro", "automatiza", "consulta"];
-  const NEUTRO = { backgroundColor: "#ffffff", borderColor: "#d7dbe3", color: "#4a5568" };
-  const ACTIVO = { backgroundColor: "#f8e4fb", borderColor: "#c026d3", color: "#86198f" };
+  const NEUTRO = { backgroundColor: "rgba(192,38,211,0)", borderColor: "#2a3342", color: "#b4bfd0" };
+  const ACTIVO = { backgroundColor: "rgba(192,38,211,.22)", borderColor: "#c026d3", color: "#f0abfc" };
 
   // ---- íconos de línea (propios) ----
   const svg = (d, w) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.8) + '" stroke-linecap="round" stroke-linejoin="round">' + d + "</svg>";
@@ -117,7 +117,7 @@
   const EST = { ok: ["check", "Aprobada"], pen: ["reloj", "Pendiente"], no: ["equis", "Rechazada"] };
   function sceneGal() {
     const fila = (f) => '<div class="gl-row reveal" data-k="' + f.k + '"><span class="gl-ic"><span class="ik">' + I.carrito + '</span></span><div class="gl-t"><b>' + f.t + (f.nuevo ? '<em class="gl-nuevo">Nueva</em>' : "") + "</b><span>" + f.c + " · " + f.f + '</span></div><span class="gl-im">' + f.i + '</span><span class="gl-st ' + f.e + '"><span class="ik">' + I[EST[f.e][0]] + "</span>" + EST[f.e][1] + "</span></div>";
-    const chip = (t, n, i) => '<span class="gl-chip" data-i="' + i + '" style="background-color:' + (i === 0 ? ACTIVO.backgroundColor : "#fff") + ";border-color:" + (i === 0 ? ACTIVO.borderColor : "#d7dbe3") + ";color:" + (i === 0 ? ACTIVO.color : "#4a5568") + '">' + t + " <b>" + n + "</b></span>";
+    const chip = (t, n, i) => '<span class="gl-chip" data-i="' + i + '" style="background-color:' + (i === 0 ? ACTIVO.backgroundColor : NEUTRO.backgroundColor) + ";border-color:" + (i === 0 ? ACTIVO.borderColor : NEUTRO.borderColor) + ";color:" + (i === 0 ? ACTIVO.color : NEUTRO.color) + '">' + t + " <b>" + n + "</b></span>";
     return '<div class="pa-s gl" id="sGal">' +
       '<div class="gl-h"><b>Mis solicitudes</b><span class="fm-us"><i class="av">AP</i>Solicitante</span></div>' +
       '<div class="gl-tool"><div class="gl-search" id="glSearch"><span class="ik">' + I.lupa + '</span><span class="gl-ph">Buscar…</span><span class="cl gl-q" id="glQ">equipo</span></div>' +
@@ -143,11 +143,76 @@
       I.cursor.replace('class="', 'id="curF" class="') + '<div class="click-ripple" id="ripF"></div></div>';
   }
 
+  // ---- héroe: mitad texto, mitad la app (la pantalla de Consulta, en la tableta) interactiva ----
+  // Copia con ids "h…" (los de la escena no se tocan; la pantalla usa ph-scr y no pa-scr para que `$(".pa-scr")` de las
+  // escenas siga encontrando la suya). Buscar, filtrar por estatus y ordenar funcionan de verdad. Botón único con auto-scroll.
+  const PH_ORDEN_IMPORTE = ["lic", "lap", "cur", "mon", "sil"];
   function heroHtml() {
-    return '<section class="viaje-hero" id="paHero"><span class="viaje-hero-eyebrow">Curso de Power Apps</span>' +
-      '<h1 class="viaje-hero-title">Aprende Power Apps como un <span class="accent">Máster<span class="selector-box"><span class="selector-label">Button1</span></span></span>.</h1>' +
-      '<div class="viaje-hero-chips"><span class="scope-chip">Canvas</span><span class="scope-chip">Power Automate</span><span class="scope-chip">SharePoint</span></div>' +
-      '<div class="viaje-hero-actions"><a href="#sLogin" class="viaje-btn ghost" data-viaje-next>Baja para conocer el programa' + I.flecha + '</a><a href="#programas" class="viaje-btn solid">Ver programas' + I.flecha + "</a></div></section>";
+    const gal = sceneGal().replace(/id="([A-Za-z]\w*)"/g, 'id="h$1"');
+    return '<section class="viaje-hero hb-hero ph-hero" id="paHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power Apps</span>' +
+      '<h1 class="viaje-hero-title">Aplicaciones <span class="accent">low-code<span class="selector-box"><span class="selector-label">Button1</span></span></span></h1>' +
+      '<div class="viaje-hero-chips"><span class="scope-chip">Digitalizadas</span><span class="scope-chip">Automatizadas</span><span class="scope-chip">Interconectadas</span></div>' +
+      '<div class="hb-actions"><a href="#sLogin" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
+      '<div class="hb-stage"><div class="hb-frame ph-frame"><div class="hb-cv ph-cv" id="phCv"><div class="ph-bz"><div class="ph-scr">' + gal + "</div></div></div></div></div></section>";
+  }
+
+  // modo: "desk" (animado, interactivo y auto-scroll), "flujo" (teléfono) o "simple" (estado final)
+  function heroDash(root, modo) {
+    const cont = root.querySelector("#phCv");
+    if (!cont) return null;
+    const g = (id) => cont.querySelector("#h" + id), qa = (s) => Array.prototype.slice.call(cont.querySelectorAll(s));
+    const stage = root.querySelector(".hb-stage");
+    function escala() { cont.style.transform = root.classList.contains("bi-flujo") ? "" : "scale(" + (stage.clientWidth / 904).toFixed(4) + ")"; }
+    if (root._hbEsc) window.removeEventListener("resize", root._hbEsc);
+    root._hbEsc = escala; window.addEventListener("resize", escala); escala();
+
+    const filas = qa(".gl-row"), chips = qa(".gl-chip"), q = g("glQ"), ph = qa(".gl-ph")[0], orden = g("glSort");
+    q.style.clipPath = "inset(0 100% 0 0)";
+    if (modo !== "desk") { filas.forEach((el) => { el.style.opacity = 1; }); return null; }
+
+    const api = { introHecha: false, irA: null };
+    gsap.to(filas, { opacity: 1, duration: 0.5, stagger: 0.14, delay: 0.5, onComplete: () => { api.introHecha = true; if (api.irA) E.autoBajar(root, api.irA); } });
+
+    // estado de la app: chip de estatus (0 todas · 1 pendiente · 2 aprobada · 3 rechazada), búsqueda "equipo" y orden por importe
+    const ESTATUS = [null, "pen", "ok", "no"];
+    let chip = 0, busca = false, porImporte = false, usuario = false, ultimo = 0;
+    function acomoda() {
+      let vis = FILAS.filter((f) => (!ESTATUS[chip] || f.e === ESTATUS[chip]) && (!busca || f.c === "Equipo")).map((f) => f.k);
+      if (porImporte) vis = PH_ORDEN_IMPORTE.filter((k) => vis.indexOf(k) >= 0);
+      ORDEN.forEach((k, i) => {
+        const p = vis.indexOf(k), el = cont.querySelector('#hglList .gl-row[data-k="' + k + '"]');
+        gsap.to(el, { y: p >= 0 ? (p - i) * RH : 0, opacity: p >= 0 ? 1 : 0, duration: 0.6, ease: "power2.inOut", overwrite: "auto" });
+      });
+      chips.forEach((c, i) => gsap.to(c, Object.assign({ duration: 0.3, overwrite: "auto" }, i === chip ? ACTIVO : NEUTRO)));
+      gsap.to(q, { clipPath: busca ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)", duration: 0.6, ease: "none", overwrite: "auto" });
+      gsap.to(ph, { opacity: busca ? 0 : 1, duration: 0.3 });
+      gsap.to(qa("#hglSort .a"), { opacity: porImporte ? 0 : 1, duration: 0.3 });
+      gsap.to(qa("#hglSort .b"), { opacity: porImporte ? 1 : 0, duration: 0.3 });
+    }
+    const acciones = [];
+    chips.forEach((c, i) => acciones.push([c, () => { chip = i; acomoda(); }]));
+    acciones.push([g("glSearch"), () => { busca = !busca; acomoda(); }], [orden, () => { porImporte = !porImporte; acomoda(); }]);
+    acciones.forEach((p) => {
+      const el = p[0];
+      el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.classList.add("hb-tap");
+      const ir = () => { usuario = true; ultimo = Date.now(); chips[1].classList.remove("hb-pulse"); p[1](); };
+      el.addEventListener("click", ir);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ir(); } });
+    });
+    chips[1].classList.add("hb-pulse");
+
+    // si el visitante se queda mirando, la app se maneja sola (filtrar, ordenar, buscar) mientras el héroe está a la vista;
+    // tras un toque suyo espera 10 s de calma
+    const guion = [() => { chip = 1; acomoda(); }, () => { chip = 2; acomoda(); }, () => { chip = 0; porImporte = true; acomoda(); }, () => { porImporte = false; acomoda(); }, () => { busca = true; acomoda(); }, () => { busca = false; acomoda(); }];
+    let paso = 0;
+    const vivo = setInterval(() => {
+      if (!root.isConnected) { clearInterval(vivo); return; }
+      const r = root.querySelector("#paHero").getBoundingClientRect();
+      if (!api.introHecha || r.bottom < 80 || r.top > window.innerHeight || Date.now() - ultimo < 10000) return;
+      guion[paso++ % guion.length]();
+    }, 3600);
+    api.auto = (irA) => { api.irA = irA; if (api.introHecha) E.autoBajar(root, irA); };
+    return api;
   }
 
   function shellHtml() {
@@ -160,6 +225,7 @@
       '<div class="bi-fx"><span class="bi-fx-ico">fx</span><div class="bi-fx-stack">' + msgs + "</div></div>" +
       '<a href="#programas" class="bi-ver">Ver programas' + I.flecha + "</a></div>" +
       '<div class="bi-rail">' + rail + "</div>" +
+      '<div class="bi-more" id="biMore" aria-hidden="true"><span>Sigue bajando</span>' + I.flecha + "</div>" +
       '<div class="bi-steps" id="paRail">' + tabs + '<span class="bi-status mono" id="paEstado">' + ESTADOS[0] + "</span></div></div>";
   }
 
@@ -192,7 +258,7 @@
     tl.to(qa("#lgHello .lg-perm li"), { opacity: 1, duration: 4, stagger: 4 }, at(50));
     tl.to(cur, Object.assign({ duration: 7 }, hacia(go, scr)), at(64));
     clic(tl, rip, scr, go, at(72));
-    tl.to(go, { backgroundColor: "#86198f", duration: 3 }, at(73));
+    tl.to(go, { backgroundColor: "#a21caf", duration: 3 }, at(73));
     tl.to(cur, { opacity: 0, duration: 3 }, at(82));
   }
 
@@ -207,7 +273,7 @@
     tipea(tl, $("#fTit"), at(8), 9); ok("fTit", at(18)); resumen("rT", at(14)); prog(1, at(18));
     // categoría: lista desplegable, se elige una opción
     tl.to($("#fPop"), { opacity: 1, duration: 3 }, at(22));
-    tl.to($("#fPopSel"), { backgroundColor: "#f8e4fb", duration: 3 }, at(25));
+    tl.to($("#fPopSel"), { backgroundColor: "rgba(192,38,211,.22)", duration: 3 }, at(25));
     tl.to($("#fPop"), { opacity: 0, duration: 3 }, at(29));
     tipea(tl, $("#fCat"), at(28), 4); ok("fCat", at(32)); resumen("rC", at(30)); prog(2, at(32));
     // fecha
@@ -351,11 +417,13 @@
       });
 
       const { simple, telefono } = E.esSimpleMode();
-      if (simple) { estadoFinal(root); return; }
-      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
+      if (simple) { estadoFinal(root); heroDash(root, "simple"); return; }
+      if (telefono) { root.classList.add("viaje-flujo", "bi-flujo", "viaje-movil"); flujo(root); heroDash(root, "flujo"); ScrollTrigger.refresh(); window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true }); return; }
 
       gsap.registerPlugin(ScrollTrigger);
+      const hero = heroDash(root, "desk");
       const R = ctx(root, true), $ = R.$, qa = R.qa;
+      const mas = E.flechaMas($("#biMore"));
       const pin = $("#paPin"), canvas = $("#paCanvas"), frame = $("#paFrame"), flow = $("#paFlow"), ficha = $("#paFicha"), scr = $(".pa-scr");
       const nombres = qa(".pa-scrname b");
 
@@ -404,7 +472,7 @@
 
       const st = ScrollTrigger.create({
         trigger: pin, start: "top " + NAV + "px", end: "+=" + Math.round(TOTAL * 1.75) + "%", scrub: 1, pin: true, animation: m, invalidateOnRefresh: true,
-        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); },
+        onUpdate: (self) => { const u = self.progress * TOTAL; setActive(u < UMBRAL[0] ? 1 : u < UMBRAL[1] ? 2 : u < UMBRAL[2] ? 3 : 4); mas.fin = u > TOTAL - 36; },
       });
       ScrollTrigger.create({ trigger: $("#paHero"), start: "top center", end: "bottom center", onToggle: (s) => s.isActive && setActive(0) });
 
@@ -412,6 +480,7 @@
       function irA(u) { window.scrollTo({ top: st.start + (st.end - st.start) * (u / TOTAL), behavior: "smooth" }); }
       tabs.concat(vistas).forEach((t) => t.addEventListener("click", () => irA(IR_A[t.dataset.scene])));
       if (siguiente) siguiente.addEventListener("click", () => irA(8));
+      if (hero) hero.auto(() => irA(8));
 
       // la cáscara aparece a los 30 px de scroll y dura hasta el final del pin
       document.body.classList.add("bi-on");

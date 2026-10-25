@@ -9,6 +9,7 @@ const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
 const { esMotivoValido } = require("../src/cotizacion-motivos");
 const { crearCuentaDeCotizacion } = require("../src/cobranza-db");
+const { avisarCuentaNueva } = require("../src/cobranza-aviso");
 const { contarHermanasAbiertas, descartarAlternativasAbiertas } = require("../src/cotizacion-alternativas");
 
 const ESTATUS_VALIDOS = ["Borrador", "Enviada", "En negociación", "Ganada", "Perdida", "Expirada", "Reemplazada", "Descartada"];
@@ -74,6 +75,8 @@ module.exports = async function (context, req) {
     // ganó una alternativa: las demás abiertas de su grupo quedan Descartadas
     const descartadas = estatus === "Ganada" && enGrupo ? await descartarAlternativasAbiertas(() => new sql.Request(transaction), id) : 0;
     await transaction.commit();
+    // la cuenta nació de verdad (no es un Ganada repetido): se le avisa a quien factura; nunca lanza ni deshace nada
+    if (cuenta && cuenta.creada) await avisarCuentaNueva(cuenta.id);
     context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cuentaCobranza: cuenta, descartadas } };
   } catch (err) {
     try { if (transaction) await transaction.rollback(); } catch (_) { /* ya cerrada */ }

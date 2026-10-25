@@ -138,7 +138,7 @@ const llamar = async (fn, req = {}) => { const c = { log: { error() {}, warn() {
   r = await llamar(estado);
   check("estado: cola de 2 con la más antigua de 7 h", r.status === 200 && r.body.cola.pendientes === 2 && r.body.cola.masAntiguaHoras === 7);
   check("estado: último respaldo es el más reciente y su origen", r.body.respaldo.en === "2026-10-05T06:00:00.000Z" && r.body.respaldo.origen === "auto");
-  check("estado: último resumen y correo configurado con 4 de 5 avisos", r.body.resumen.en === "2026-10-12T13:00:00.000Z" && r.body.correo.configurado === true && r.body.correo.avisosActivos === 4 && r.body.correo.avisosTotal === 5 && r.body.correo.remitente === "notificaciones@alfredopina.ai");
+  check("estado: último resumen y correo configurado con 5 de 6 avisos", r.body.resumen.en === "2026-10-12T13:00:00.000Z" && r.body.correo.configurado === true && r.body.correo.avisosActivos === 5 && r.body.correo.avisosTotal === 6 && r.body.correo.remitente === "notificaciones@alfredopina.ai");
   check("estado: nunca consultó SQL (no despierta la base)", consultas.length === 0);
   respaldos = []; cola.clear(); delete process.env.ACS_EMAIL_CONNECTION;
   r = await llamar(estado);

@@ -27,8 +27,12 @@ const alertas = { total: 2, umbrales: { cobranzaPorVencerDias: 7 }, grupos: { so
 
 const llamadas = []; // { url, cuerpo }
 function respuesta(cuerpo, status = 200) { return Promise.resolve({ ok: status < 400, status, json: async () => cuerpo, text: async () => JSON.stringify(cuerpo) }); }
+const ajustesCorreo = { general: true, nuevaSolicitud: true, propuestaAbierta: true, propuestaAceptada: true, solicitudAtorada: true, resumenSemanal: true, nuevaCuentaCobranza: true,
+  destinoNuevaSolicitud: '', destinoPropuestaAbierta: '', destinoPropuestaAceptada: '', destinoSolicitudAtorada: '', destinoResumen: 'viri@ejemplo.test', destinoNuevaCuentaCobranza: '' };
 function fetchFalso(url, opts) {
   const u = String(url); const cuerpo = opts && opts.body ? JSON.parse(opts.body) : null; llamadas.push({ u, cuerpo });
+  if (u.includes('/api/getConfiguracionCorreo')) return respuesta(ajustesCorreo);
+  if (u.includes('/api/actualizarConfiguracionCorreo')) { Object.assign(ajustesCorreo, cuerpo); return respuesta(ajustesCorreo); }
   if (u.includes('/api/listCobranzaAdmin')) return respuesta(cuentas);
   if (u.includes('/api/getResumenCobranzaAdmin')) return respuesta(resumen);
   if (u.includes('/api/getNotificacionesActivas')) return respuesta(alertas);
@@ -250,6 +254,22 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   secCbz.querySelector('.alr-row').click(); await pausa(300);
   check('una alerta de Cobranza abre su cuenta', q('#panel-cobranza').classList.contains('active') && !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Zeta SA', txt('#cbzDetTitulo'));
   await clic(q('#cbzDetCerrar'));
+
+  console.log('Configuración → Notificaciones: destinatarios por aviso');
+  q('#btnConfig').click(); await pausa(100);
+  await clic(q('#cfgCorreoHead')); await pausa(200);
+  const cajas = qa('#cfgCorreoLista .cfg-correo-destino-input');
+  check('CADA aviso tiene su cuadro de destinatarios (6), no solo el resumen', cajas.length === 6 && cajas.map((c) => c.dataset.campo).sort().join(',') === 'destinoNuevaCuentaCobranza,destinoNuevaSolicitud,destinoPropuestaAbierta,destinoPropuestaAceptada,destinoResumen,destinoSolicitudAtorada', cajas.map((c) => c.dataset.campo).join(','));
+  check('aparece el aviso "Cuenta nueva por facturar" y el resumen conserva su destinatario guardado', /Cuenta nueva por facturar/.test(txt('#cfgCorreoLista')) && q('.cfg-correo-destino-input[data-campo="destinoResumen"]').value === 'viri@ejemplo.test');
+  const cajaViri = q('.cfg-correo-destino-input[data-campo="destinoNuevaCuentaCobranza"]'), btnViri = q('.cfg-correo-destino-btn[data-campo="destinoNuevaCuentaCobranza"]');
+  check('el botón Guardar de cada cuadro empieza apagado', btnViri.disabled === true);
+  cajaViri.value = 'viri@ejemplo.test, alfredo@ejemplo.test'; cajaViri.dispatchEvent(new w.Event('input', { bubbles: true }));
+  check('al escribir se prende Guardar de ESE cuadro y de ningún otro', btnViri.disabled === false && qa('.cfg-correo-destino-btn').filter((b) => !b.disabled).length === 1);
+  llamadas.length = 0;
+  await clic(btnViri); await pausa(100);
+  const guardado = llamadas.find((l) => l.u.includes('actualizarConfiguracionCorreo'));
+  check('guardar manda SOLO el campo de ese aviso con sus correos', guardado && Object.keys(guardado.cuerpo).join() === 'destinoNuevaCuentaCobranza' && guardado.cuerpo.destinoNuevaCuentaCobranza === 'viri@ejemplo.test, alfredo@ejemplo.test', JSON.stringify(guardado && guardado.cuerpo));
+  check('después de guardar el cuadro queda limpio (sin marca de cambio)', !cajaViri.classList.contains('cfg-notif-dirty') && btnViri.disabled === true);
 
   console.log(fallos ? '\n' + fallos + ' prueba(s) fallaron.' : '\nprueba-cobranza: ok');
   process.exit(fallos ? 1 : 0);

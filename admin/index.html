@@ -17069,11 +17069,12 @@
   // Cada interruptor guarda al instante (Table Storage, api/src/notificaciones-ajustes.js); si falla vuelve a su estado.
   (function(){
     const AVISOS = [
-      { clave:'nuevaSolicitud', nombre:'Solicitud nueva', desc:'Cuando alguien envía el formulario de solicitud del sitio.' },
-      { clave:'propuestaAbierta', nombre:'Propuesta abierta', desc:'Cuando un cliente abre su propuesta por primera vez. Se confirma tras unos segundos con la página abierta, para no avisarte por los filtros de seguridad de correo que abren los links solos.' },
-      { clave:'propuestaAceptada', nombre:'Propuesta aceptada', desc:'Cuando un cliente pulsa "Aceptar propuesta".' },
-      { clave:'solicitudAtorada', nombre:'Solicitud atorada (falla)', desc:'Cuando una solicitud del sitio lleva más de 4 horas esperando sin procesarse (pasa a la base al abrir el admin). Se revisa cada 3 horas, de 7 am a 7 pm. Es tu red de seguridad si el aviso inmediato no llegó.' },
-      { clave:'resumenSemanal', nombre:'Resumen semanal', desc:'Los lunes a las 7:00 (hora de Monterrey): cómo está todo (solicitudes, cotizaciones, grupos de la semana) y lo nuevo desde el resumen anterior (encuestas, diagnósticos, aperturas de reportes y diplomas).', destino:true },
+      { clave:'nuevaSolicitud', campo:'destinoNuevaSolicitud', nombre:'Solicitud nueva', desc:'Cuando alguien envía el formulario de solicitud del sitio.' },
+      { clave:'propuestaAbierta', campo:'destinoPropuestaAbierta', nombre:'Propuesta abierta', desc:'Cuando un cliente abre su propuesta por primera vez. Se confirma tras unos segundos con la página abierta, para no avisarte por los filtros de seguridad de correo que abren los links solos.' },
+      { clave:'propuestaAceptada', campo:'destinoPropuestaAceptada', nombre:'Propuesta aceptada', desc:'Cuando un cliente pulsa "Aceptar propuesta".' },
+      { clave:'solicitudAtorada', campo:'destinoSolicitudAtorada', nombre:'Solicitud atorada (falla)', desc:'Cuando una solicitud del sitio lleva más de 4 horas esperando sin procesarse (pasa a la base al abrir el admin). Se revisa cada 3 horas, de 7 am a 7 pm. Es tu red de seguridad si el aviso inmediato no llegó.' },
+      { clave:'nuevaCuentaCobranza', campo:'destinoNuevaCuentaCobranza', nombre:'Cuenta nueva por facturar', desc:'Cuando nace una cuenta por cobrar (una cotización ganada, un grupo nuevo o "generar su cuenta" en un grupo que ya existía). Le avisa a quien factura (Viridiana): cliente, concepto, monto y de dónde viene. Si no escribes destinatarios, te llega a ti.' },
+      { clave:'resumenSemanal', campo:'destinoResumen', nombre:'Resumen semanal', desc:'Los lunes a las 7:00 (hora de Monterrey): cómo está todo (solicitudes, cotizaciones, grupos de la semana) y lo nuevo desde el resumen anterior (encuestas, diagnósticos, aperturas de reportes y diplomas).' },
     ];
     let ajustes = null;
 
@@ -17130,14 +17131,15 @@
 
     function pintar(){
       const cont = document.getElementById('cfgCorreoLista');
-      const destinoHtml = `
+      // Cada aviso tiene su cuadro de destinatarios (hasta 5 correos, separados por coma). Vacío = tu correo de siempre.
+      const destinoHtml = (a) => `
         <div class="cfg-correo-destino">
-          <input type="text" id="cfgCorreoDestino" placeholder="Vacío = solo a tu correo de siempre" value="${escapeHtml(ajustes.destinoResumen || '')}" data-original="${escapeHtml(ajustes.destinoResumen || '')}" aria-label="Destinatarios del resumen semanal">
-          <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn" id="cfgCorreoDestinoBtn" style="min-width:auto;" disabled>Guardar</button>
+          <input type="text" class="cfg-correo-destino-input" data-campo="${a.campo}" placeholder="Vacío = solo a tu correo de siempre" value="${escapeHtml(ajustes[a.campo] || '')}" data-original="${escapeHtml(ajustes[a.campo] || '')}" aria-label="Destinatarios: ${escapeHtml(a.nombre)}">
+          <button type="button" class="radm-btn radm-btn-ghost cfg-notif-btn cfg-correo-destino-btn" data-campo="${a.campo}" style="min-width:auto;" disabled>Guardar</button>
         </div>
-        <div class="cfg-correo-desc" style="margin-top:6px;">Destinatarios del resumen, separados por coma (por ejemplo, tu correo y el de Viridiana).</div>`;
+        <div class="cfg-correo-desc" style="margin-top:6px;">A quién le llega este aviso, separados por coma (por ejemplo, tu correo y el de Viridiana).</div>`;
       cont.innerHTML = filaHtml('general', 'Enviar avisos por correo', 'Interruptor general: apagado, no sale ningún correo de los de abajo, sin importar cómo estén sus interruptores.', '', true)
-        + AVISOS.map(a => filaHtml(a.clave, a.nombre, a.desc, a.destino ? destinoHtml : '', false)).join('')
+        + AVISOS.map(a => filaHtml(a.clave, a.nombre, a.desc, destinoHtml(a), false)).join('')
         + `<div class="cfg-correo-pruebas">
             <div class="cfg-correo-nombre">Probar</div>
             <div class="cfg-correo-desc">Las pruebas llegan solo a tu correo de siempre (no a los destinatarios del resumen) y no dependen de los interruptores de arriba. El resumen de prueba no cuenta como el del lunes: no mueve desde cuándo se cuenta lo nuevo.</div>
@@ -17188,26 +17190,28 @@
         });
       });
 
-      const input = document.getElementById('cfgCorreoDestino'), btn = document.getElementById('cfgCorreoDestinoBtn');
-      input.addEventListener('input', () => {
-        const sucio = input.value.trim() !== (input.dataset.original || '');
-        input.classList.toggle('cfg-notif-dirty', sucio);
-        btn.disabled = !sucio;
-      });
-      btn.addEventListener('click', async () => {
-        btn.disabled = true; btn.textContent = 'Guardando...';
-        try {
-          ajustes = await apiPostJson('/api/actualizarConfiguracionCorreo', { destinoResumen: input.value.trim() });
-          input.value = ajustes.destinoResumen || '';
-          input.dataset.original = input.value;
-          input.classList.remove('cfg-notif-dirty');
-          toast('Destinatarios guardados.', true);
-        } catch(e){
-          toast(e.message, false);
-          btn.disabled = false;
-        } finally {
-          btn.textContent = 'Guardar';
-        }
+      cont.querySelectorAll('.cfg-correo-destino-input').forEach(input => {
+        const btn = cont.querySelector('.cfg-correo-destino-btn[data-campo="' + input.dataset.campo + '"]');
+        input.addEventListener('input', () => {
+          const sucio = input.value.trim() !== (input.dataset.original || '');
+          input.classList.toggle('cfg-notif-dirty', sucio);
+          btn.disabled = !sucio;
+        });
+        btn.addEventListener('click', async () => {
+          btn.disabled = true; btn.textContent = 'Guardando...';
+          try {
+            ajustes = await apiPostJson('/api/actualizarConfiguracionCorreo', { [input.dataset.campo]: input.value.trim() });
+            input.value = ajustes[input.dataset.campo] || '';
+            input.dataset.original = input.value;
+            input.classList.remove('cfg-notif-dirty');
+            toast('Destinatarios guardados.', true);
+          } catch(e){
+            toast(e.message, false);
+            btn.disabled = false;
+          } finally {
+            btn.textContent = 'Guardar';
+          }
+        });
       });
     }
 

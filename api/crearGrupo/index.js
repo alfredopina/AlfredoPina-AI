@@ -26,6 +26,7 @@ const { JSON_HEADERS } = require("../src/http");
 const { sembrarHistorialInicial } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
 const { crearCuentaDeCotizacion, crearCuentaDeGrupo } = require("../src/cobranza-db");
+const { avisarCuentaNueva } = require("../src/cobranza-aviso");
 const { descartarAlternativasAbiertas } = require("../src/cotizacion-alternativas");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
@@ -180,6 +181,7 @@ module.exports = async function (context, req) {
         fechaFin: datos.fechaFin,
         fechaCierre: datos.fechaCierre,
       });
+      let cuentaNuevaId = null; // la cuenta que nació en esta transacción (para avisar a quien factura después de confirmar)
       // un Grupo que nace de una cotización la cierra como Ganada (si seguía abierta; no pisa Perdida/Reemplazada)
       if (datos.cotizacionId) {
         await new sql.Request(transaction)
@@ -193,6 +195,7 @@ module.exports = async function (context, req) {
         await descartarAlternativasAbiertas(() => new sql.Request(transaction), datos.cotizacionId);
         // Ganada → nace su cuenta por cobrar (idempotente) y se liga a este Grupo
         const cuenta = await crearCuentaDeCotizacion(() => new sql.Request(transaction), datos.cotizacionId);
+        if (cuenta.creada) cuentaNuevaId = cuenta.id;
         if (cuenta.id) {
           await new sql.Request(transaction).input("g", sql.Int, grupoId).input("c", sql.Int, datos.cotizacionId)
             .query("UPDATE CuentaPorCobrar SET grupo_id = @g WHERE cotizacion_id = @c AND grupo_id IS NULL");
@@ -205,7 +208,9 @@ module.exports = async function (context, req) {
           grupoId, clienteId: cliente.id, concepto: datos.nombreCurso || datos.grupoCodigo || "Grupo", monto: body.monto_cobro,
         });
       }
+      if (cuentaCobranza && cuentaCobranza.creada) cuentaNuevaId = cuentaCobranza.id;
       await transaction.commit();
+      if (cuentaNuevaId) await avisarCuentaNueva(cuentaNuevaId);
       context.res = { status: 200, headers: JSON_HEADERS, body: { id: grupoId, cliente, clienteFinal, cuentaCobranza } };
     } catch (err) {
       try {

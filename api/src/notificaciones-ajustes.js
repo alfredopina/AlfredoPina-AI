@@ -11,7 +11,9 @@
 //   propuestaAbierta ... un cliente abrió su propuesta (primera vez, ya confirmada con la página abierta unos segundos)
 //   solicitudAtorada ... una solicitud lleva más de `horasAtorada` horas en la cola sin pasar a SQL
 //   resumenSemanal ..... el correo del lunes
-//   destinoResumen ..... correos (separados por coma) que reciben el resumen; vacío = los de NOTIFICACIONES_DESTINO
+//   nuevaCuentaCobranza  nació una cuenta por cobrar (cotización ganada o grupo): le avisa a quien factura (Viri)
+//   destino<Aviso> ..... correos (separados por coma) que reciben ESE aviso; vacío = los de NOTIFICACIONES_DESTINO. Cada aviso tiene el suyo
+//                        (destinoResumen es el del resumen semanal, el primero que existió)
 //   ultimoResumen ...... { en, contadores } para contar solo lo NUEVO desde el resumen anterior (no es una métrica
 //                        de Tracking: es el punto de comparación del correo)
 const { TableClient } = require("@azure/data-tables");
@@ -20,7 +22,16 @@ const TABLA = "ConfiguracionNotificaciones";
 const PK = "config";
 const RK = "correo";
 
-const TIPOS = ["nuevaSolicitud", "propuestaAceptada", "propuestaAbierta", "solicitudAtorada", "resumenSemanal"];
+const TIPOS = ["nuevaSolicitud", "propuestaAceptada", "propuestaAbierta", "solicitudAtorada", "resumenSemanal", "nuevaCuentaCobranza"];
+// campo donde se guardan los destinatarios de cada aviso
+const CAMPO_DESTINO = {
+  nuevaSolicitud: "destinoNuevaSolicitud",
+  propuestaAceptada: "destinoPropuestaAceptada",
+  propuestaAbierta: "destinoPropuestaAbierta",
+  solicitudAtorada: "destinoSolicitudAtorada",
+  resumenSemanal: "destinoResumen",
+  nuevaCuentaCobranza: "destinoNuevaCuentaCobranza",
+};
 const DEFAULTS = {
   general: true,
   nuevaSolicitud: true,
@@ -28,7 +39,13 @@ const DEFAULTS = {
   propuestaAbierta: true,
   solicitudAtorada: true,
   resumenSemanal: true,
+  nuevaCuentaCobranza: true,
+  destinoNuevaSolicitud: "",
+  destinoPropuestaAceptada: "",
+  destinoPropuestaAbierta: "",
+  destinoSolicitudAtorada: "",
   destinoResumen: "",
+  destinoNuevaCuentaCobranza: "",
   horasAtorada: 4,
 };
 const MAX_DESTINOS = 5;
@@ -56,7 +73,7 @@ async function getAjustes() {
     const e = await tabla.getEntity(PK, RK);
     const r = { ...DEFAULTS };
     for (const k of ["general", ...TIPOS]) if (typeof e[k] === "boolean") r[k] = e[k];
-    if (typeof e.destinoResumen === "string") r.destinoResumen = e.destinoResumen;
+    for (const campo of Object.values(CAMPO_DESTINO)) if (typeof e[campo] === "string") r[campo] = e[campo];
     if (typeof e.horasAtorada === "number" && e.horasAtorada >= 1) r.horasAtorada = e.horasAtorada;
     return r;
   } catch (err) {
@@ -67,6 +84,11 @@ async function getAjustes() {
 async function activo(tipo) {
   const a = await getAjustes();
   return a.general !== false && a[tipo] !== false;
+}
+
+// correos configurados para un aviso (lista; vacía = el aviso va a los de NOTIFICACIONES_DESTINO). Nunca lanza: un campo mal escrito se ignora.
+function destinosDe(a, tipo) {
+  try { return parseDestinos((a || {})[CAMPO_DESTINO[tipo]]); } catch (err) { return []; }
 }
 
 // "a@x.com, b@y.com" → ["a@x.com","b@y.com"]; lanza Error con mensaje en español si algo no es un correo
@@ -87,7 +109,9 @@ async function actualizarAjustes(cambios) {
     if (typeof cambios[k] !== "boolean") throw new Error('"' + k + '" debe ser verdadero o falso.');
     fila[k] = cambios[k];
   }
-  if (cambios.destinoResumen !== undefined) fila.destinoResumen = parseDestinos(cambios.destinoResumen).join(", ");
+  for (const campo of Object.values(CAMPO_DESTINO)) {
+    if (cambios[campo] !== undefined) fila[campo] = parseDestinos(cambios[campo]).join(", ");
+  }
   if (!Object.keys(fila).length) throw new Error("No hay nada que guardar.");
   await asegurarTabla(tabla);
   await tabla.upsertEntity({ partitionKey: PK, rowKey: RK, ...fila }, "Merge");
@@ -112,4 +136,4 @@ async function guardarUltimoResumen(valor) {
   await tabla.upsertEntity({ partitionKey: PK, rowKey: RK, ultimoResumen: JSON.stringify(valor) }, "Merge");
 }
 
-module.exports = { DEFAULTS, TIPOS, getAjustes, activo, parseDestinos, actualizarAjustes, leerUltimoResumen, guardarUltimoResumen };
+module.exports = { DEFAULTS, TIPOS, CAMPO_DESTINO, destinosDe, getAjustes, activo, parseDestinos, actualizarAjustes, leerUltimoResumen, guardarUltimoResumen };

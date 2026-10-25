@@ -20,6 +20,7 @@ const { JSON_HEADERS } = require("../src/http");
 const { derivarFase, registrarCambioFase } = require("../src/grupo-fase");
 const { ascenderProspecto } = require("../src/cliente-tipo");
 const { crearCuentaDeGrupo } = require("../src/cobranza-db");
+const { avisarCuentaNueva } = require("../src/cobranza-aviso");
 
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const NIVELES = [1, 2, 3];
@@ -189,6 +190,7 @@ module.exports = async function (context, req) {
         });
       }
       await transaction.commit();
+      if (cuentaCobranza && cuentaCobranza.creada) await avisarCuentaNueva(cuentaCobranza.id);
       context.res = { status: 200, headers: JSON_HEADERS, body: { ok: true, cliente, clienteFinal, cuentaCobranza } };
     } catch (err) {
       try {

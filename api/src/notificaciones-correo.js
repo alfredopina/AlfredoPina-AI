@@ -27,7 +27,12 @@ function configuracion(destinoExtra) {
 // `tipo` (opcional) = uno de notificaciones-ajustes.TIPOS: si el interruptor general o el de ese tipo está apagado en
 // Configuración → Notificaciones, no sale nada (motivo "desactivado"). `destino` (opcional) = lista de correos.
 async function enviarCorreo({ asunto, texto, html, tipo, destino }) {
-  if (tipo && !(await ajustes.activo(tipo))) return { enviado: false, motivo: "desactivado" };
+  if (tipo) {
+    const a = await ajustes.getAjustes();
+    if (a.general === false || a[tipo] === false) return { enviado: false, motivo: "desactivado" };
+    // los destinatarios de cada aviso se editan en Configuración → Notificaciones; vacío = los de NOTIFICACIONES_DESTINO
+    if (!destino || !destino.length) destino = ajustes.destinosDe(a, tipo);
+  }
   const cfg = configuracion(destino);
   if (!cfg) return { enviado: false, motivo: "sin configurar" };
   try {
@@ -100,4 +105,18 @@ function fechaLocal(iso) {
   return d.toLocaleString("es-MX", { timeZone: "America/Monterrey", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-module.exports = { enviarCorreo, notificarSolicitudNueva, configuracion, armarAviso, fechaLocal, esc };
+// Nació una cuenta por cobrar (cotización ganada o grupo): le avisa a quien factura. `d` = { cliente, concepto, total, origen, enlace? }
+async function notificarCuentaCobranza(d) {
+  const por = !(Number(d.total) > 0);
+  const monto = por ? "Por definir (se captura al facturar)" : Number(d.total).toLocaleString("es-MX", { style: "currency", currency: "MXN" }) + " (con IVA, antes de retenciones)";
+  const enlace = d.enlace || "https://www.alfredopina.ai/admin";
+  const aviso = armarAviso({
+    titulo: "Hay una cuenta nueva por facturar",
+    filas: [["Cliente", d.cliente], ["Concepto", d.concepto], ["Monto", monto], ["Viene de", d.origen]],
+    enlace, textoEnlace: "Abrir Cobranza (Por facturar)",
+  });
+  const asunto = ("Por facturar: " + (d.cliente || "cuenta nueva") + " — " + (d.concepto || "")).slice(0, 150);
+  return enviarCorreo({ asunto, ...aviso, tipo: "nuevaCuentaCobranza" });
+}
+
+module.exports = { enviarCorreo, notificarSolicitudNueva, notificarCuentaCobranza, configuracion, armarAviso, fechaLocal, esc };

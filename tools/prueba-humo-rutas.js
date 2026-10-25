@@ -55,6 +55,12 @@ async function enLotes(items, tam, fn) {
     resultado("página pública " + p + " abre (200)", r.status === 200, "status " + r.status + (r.location ? " → " + r.location : r.error ? " " + r.error : ""));
   });
 
+  // Redirecciones permanentes de la config (p. ej. /cursos → /in-company): deben responder 301 al destino, sin pasar por un 404
+  for (const rd of cfg.routes.filter((r) => r.redirect)) {
+    const r = await pedir(rd.route);
+    resultado("redirección " + rd.route + " → " + rd.redirect + " (" + (rd.statusCode || 302) + ")", r.status === (rd.statusCode || 302) && r.location.replace(/^https?:\/\/[^/]+/, "") === rd.redirect, "status " + r.status + " → " + r.location);
+  }
+
   console.log("2) /admin pide iniciar sesión");
   for (const p of ["/admin", "/admin/", "/admin/index.html"]) {
     const r = await pedir(p);

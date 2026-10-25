@@ -83,3 +83,12 @@ Alfredo quiere todo esto, se va armando **poco a poco en el chat de identidad, q
 
 **Pendiente:** cambiar el correo cuando se cree el alias `@alfredopina.ai`; probar el pegado real en Gmail (Alfredo).
 
+## Dos estrategias, dos páginas: "Cursos In Company" y "Cursos Abiertos" (2026-10-25)
+
+**Decisión (Alfredo):** la página que cotiza cursos para grupos pasa de **Cursos** a **Cursos In Company**, porque es exclusivamente para empresas; los cursos abiertos a profesionistas (calendario, inscripción, pasarela de pago) serán otra sección, **Cursos Abiertos**, para separar las dos estrategias y medirlas por separado. **Recursos** queda **aparte de ambas** porque sirve a las dos.
+
+- **Nombre:** "Cursos In Company" y no "Para empresas" (ambiguo) ni "Cursos Empresas" (suena a error de dedo). Es el par que usa el gremio con "Cursos Abiertos". Para Google y para quien no conoce el término, el texto de la página y su descripción dicen "capacitación para empresas".
+- **Dirección:** `/in-company` (reescritura a `cursos.html`; el archivo conserva su nombre a propósito, no se ve y evita choques con otros cambios). `/cursos` y `/cursos.html` redirigen con **301** a `/in-company` (los enlaces viejos, QR e índices no se rompen; el `#herramienta` lo conserva el navegador). Las redirecciones viven en la parte de páginas de `staticwebapp.config.json`, que `tools/generar-rutas.js` conserva tal cual.
+- **Dónde se cambió el nombre:** el menú (`tools/build-layout.js`, se estampa en todas las páginas con `node tools/build-layout.js`), la portada, Recursos, el mapa del sitio, el título, el canonical y las etiquetas de redes de la página.
+- **Pruebas:** `api/test-rutas-cerradas.js` incluye `/in-company`; `tools/prueba-humo-rutas.js` ahora también verifica cada redirección de la configuración (301 al destino correcto).
+- **Pendiente (siguiente semana):** diseño de **Cursos Abiertos**. No se enlaza en el menú hasta que funcione (un enlace a algo que no existe cuesta más confianza que no tenerlo). Vocabulario propuesto: **Edición** (cada fecha de un curso abierto) e **Inscrito** (cada persona).

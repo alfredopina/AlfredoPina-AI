@@ -31,7 +31,7 @@
     "POWERAPPS":       { "label": "Power Apps",                     "color": "#c026d3" },
     "POWERAUTOMATE":   { "label": "Power Automate",                 "color": "#06b6d4" },
     "IA":              { "label": "IA Aplicada",                    "color": "#a78bfa" },
-    "OFIMATICA":       { "label": "Ofimática",                      "color": "#f97316" },
+    "OFIMATICA":       { "label": "Microsoft 365",                      "color": "#f97316" },
     "REUNION":         { "label": "Reunión / Administrativo",       "color": "#3d7fff" },
     "PERSONAL":        { "label": "Personal",                       "color": "#4c5462" }
   },

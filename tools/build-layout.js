@@ -66,7 +66,7 @@ const HERRAMIENTAS_NAV = [
   ["powerapps", "Power Apps", "#c026d3"],
   ["powerautomate", "Power Automate", "#06b6d4"],
   ["ia", "IA Aplicada", "#a78bfa"],
-  ["ofimatica", "Ofimática", "#f97316"],
+  ["ofimatica", "Microsoft 365", "#f97316"],
 ];
 const CHEVRON = '<svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function iconoHerramienta(id) {

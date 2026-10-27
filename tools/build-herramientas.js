@@ -12,7 +12,7 @@ const HERRAMIENTAS = [
   ["powerapps", "Power Apps", "#c026d3"],
   ["powerautomate", "Power Automate", "#06b6d4"],
   ["ia", "IA Aplicada", "#a78bfa"],
-  ["ofimatica", "Ofimática Básica", "#f97316"],
+  ["ofimatica", "Microsoft 365", "#f97316"],
 ];
 function icono(id) {
   const svg = fs.readFileSync(path.join(ROOT, "assets/img/brand/iconos", id + ".svg"), "utf8").trim();

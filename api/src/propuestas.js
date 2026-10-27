@@ -26,7 +26,7 @@ const TERMINOS = [
 
 const TOOL_LABELS = {
   excel: "Excel", powerbi: "Power BI", powerapps: "Power Apps",
-  powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Ofimática Básica",
+  powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Microsoft 365",
 };
 
 // Adicionales sin costo que el cliente puede "agregar" en la propuesta (se congelan en el snapshot, como TERMINOS).

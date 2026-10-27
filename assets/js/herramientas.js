@@ -27,8 +27,8 @@ window.HERRAMIENTAS_UI = {
     "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\"><path d=\"M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z\" fill=\"currentColor\"/><rect x=\"18\" y=\"3\" width=\"3.5\" height=\"3.5\" stroke-width=\"1.5\"/></svg>"
   },
   "ofimatica": {
-    "nombre": "Ofimática Básica",
+    "nombre": "Microsoft 365",
     "color": "#f97316",
-    "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\"><path fill=\"currentColor\" stroke=\"none\" fill-rule=\"evenodd\" d=\"M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z\"/><rect x=\"13\" y=\"13\" width=\"7.5\" height=\"7.5\" stroke-width=\"1.5\"/><rect x=\"15.5\" y=\"15.5\" width=\"2.5\" height=\"2.5\" fill=\"currentColor\" stroke=\"none\"/></svg>"
+    "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\"><g fill=\"currentColor\" stroke=\"none\"><rect x=\"2\" y=\"2\" width=\"9.5\" height=\"9.5\"/><g fill-opacity=\".55\"><rect x=\"12.5\" y=\"2\" width=\"9.5\" height=\"9.5\"/><rect x=\"2\" y=\"12.5\" width=\"9.5\" height=\"9.5\"/></g></g><rect x=\"13.375\" y=\"13.375\" width=\"7.75\" height=\"7.75\"/><rect x=\"15.75\" y=\"15.75\" width=\"3\" height=\"3\" fill=\"currentColor\" stroke=\"none\"/></svg>"
   }
 };

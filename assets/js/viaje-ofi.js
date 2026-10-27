@@ -222,7 +222,7 @@
     const wins = [ventanaDe(sceneO(), "o-win"), ventanaDe(sceneW(), "w-win"), ventanaDe(sceneP(), "p-win"), ventanaDe(sceneT(), "t-win")];
     const tabs = HERO_APPS.map((p, i) => '<button type="button" class="oh-tab' + (i === 0 ? " on" : "") + '" data-i="' + i + '" style="--app:' + p[2] + '"><span class="ik">' + I[p[0]] + "</span>" + p[1] + "</button>").join("");
     const cuerpo = wins.map((w, i) => '<div class="oh-win' + (i === 0 ? " on" : "") + '" data-i="' + i + '">' + w + "</div>").join("");
-    return '<section class="viaje-hero hb-hero oh-hero" id="ofHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Ofimática Básica</span>' +
+    return '<section class="viaje-hero hb-hero oh-hero" id="ofHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Microsoft 365</span>' +
       '<h1 class="viaje-hero-title">Microsoft <span class="accent">365<span class="selector-box"><span class="selector-label">Título 1</span></span></span></h1>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Outlook</span><span class="scope-chip">Word</span><span class="scope-chip">PowerPoint</span><span class="scope-chip">Teams</span></div>' +
       '<div class="hb-actions"><a href="#ofO" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +

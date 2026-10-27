@@ -11,8 +11,8 @@
 // trazo de 1.75, remates cuadrados y esquinas rectas, diagonales solo a 45°, y un cuadrito
 // lleno (el cuadro de autorrelleno del logo) que en cada ícono significa algo distinto.
 //
-// Ofimática se dibuja con formas compuestas (fill-rule evenodd), NO con máscara: PowerPoint,
-// Word y los clientes de correo soportan mal las máscaras SVG.
+// Evita las máscaras SVG (PowerPoint, Word y los clientes de correo las soportan mal): todo se dibuja
+// con formas simples o compuestas (fill-rule evenodd).
 // Nunca se editan los SVG a mano: se cambia este archivo y se vuelve a correr.
 
 const fs = require("fs");
@@ -47,13 +47,10 @@ const HERRAMIENTAS = {
     d: '<path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/>',
   },
   ofimatica: {
-    nombre: "Ofimática Básica", puro: "#f97316", tinta: "#b8500a",
-    // mosaicos de la suite con el dibujo recortado (texto, diapositiva, correo) + el cuarto hueco con el cuadrito
-    d: '<path fill="currentColor" stroke="none" fill-rule="evenodd" d="' +
-      "M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z " +
-      "M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z " +
-      "M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z" +
-      '"/><rect x="13" y="13" width="7.5" height="7.5" stroke-width="1.5"/><rect x="15.5" y="15.5" width="2.5" height="2.5" fill="currentColor" stroke="none"/>',
+    // id interno "ofimatica" (base de datos, URLs, CSS); el nombre visible es Microsoft 365
+    nombre: "Microsoft 365", puro: "#f97316", tinta: "#b8500a",
+    // cuatro cuadros en 2x2 con separación (la suite): el primero lleno, dos más tenues y el cuarto hueco con el cuadrito
+    d: '<g fill="currentColor" stroke="none"><rect x="2" y="2" width="9.5" height="9.5"/><g fill-opacity=".55"><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/></g></g><rect x="13.375" y="13.375" width="7.75" height="7.75"/><rect x="15.75" y="15.75" width="3" height="3" fill="currentColor" stroke="none"/>',
   },
 };
 

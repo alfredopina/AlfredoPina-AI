@@ -34,7 +34,7 @@
     powerapps: { n: "Power Apps", acc: "#c026d3", deep: "#9b1aab", tinta: "#a21caf" },
     powerautomate: { n: "Power Automate", acc: "#06b6d4", deep: "#0891b2", tinta: "#0e7490" },
     ia: { n: "IA Aplicada", acc: "#a78bfa", deep: "#7c5cf0", tinta: "#6d3fd8" },
-    ofimatica: { n: "Ofimática Básica", acc: "#f97316", deep: "#ea580c", tinta: "#b8500a" },
+    ofimatica: { n: "Microsoft 365", acc: "#f97316", deep: "#ea580c", tinta: "#b8500a" },
   };
 
   // mismos paths que assets/img/brand/iconos/{tool}.svg, inline a propósito
@@ -47,7 +47,7 @@
     powerapps: '<rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/>',
     powerautomate: '<rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/>',
     ia: '<path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/>',
-    ofimatica: '<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M2.5 2.5h9.5v9.5h-9.5z M4.5 5h5.5v1.2h-5.5z M4.5 7.6h5.5v1.2h-5.5z M4.5 10.2h3.5v1.2h-3.5z M12 2.5h9.5v9.5h-9.5z M14 5h6v4.4h-6z M2.5 12h9.5v9.5h-9.5z M4.05 14h6.4v5.2h-6.4z M5.15 15.1h4.2v3h-4.2z M5.15 15.1l2.1 1.85 2.1-1.85v1l-2.1 1.85-2.1-1.85z"/><rect x="13" y="13" width="7.5" height="7.5" stroke-width="1.5"/><rect x="15.5" y="15.5" width="2.5" height="2.5" fill="currentColor" stroke="none"/>',
+    ofimatica: '<g fill="currentColor" stroke="none"><rect x="2" y="2" width="9.5" height="9.5"/><g fill-opacity=".55"><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/></g></g><rect x="13.375" y="13.375" width="7.75" height="7.75"/><rect x="15.75" y="15.75" width="3" height="3" fill="currentColor" stroke="none"/>',
   };
 
   const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];

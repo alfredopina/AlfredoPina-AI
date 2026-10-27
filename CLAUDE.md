@@ -47,7 +47,7 @@ Alfredo Piña — Ingeniero Industrial, instructor/consultor de Excel, Power BI,
 
 - **Logo:** barra de fórmula `fx =alfredopina.ai()`. **Firma** = submarca, solo en el pie ("Created by"). Tagline **"Tu productividad tiene fórmula."** + descriptor "Productividad con Datos · Automatización · IA". `by LifeZenTraining` solo en el logo del diploma, hasta ~sept-2027.
 - Fuentes: Space Grotesk (display), Inter (texto), JetBrains Mono (fórmula). Fondo `#0a0d12`, panel `#10141b`; papel `#fbfcff`, tinta `#0d1424`; azul de marca `#3d7fff`/`#6b9fff` (azul sobre papel `#1f5fe0`).
-- Semáforos: rojo `#dc2626` · ámbar `#dfb35a` · verde-azulado `#14b8a6`/`#0d9488`. Colores por herramienta: Excel `#22c55e` · Power BI `#f2c94c` · Power Apps `#c026d3` · Power Automate `#06b6d4` · IA Aplicada `#a78bfa` · Ofimática `#f97316` (sobre papel, la "tinta" de cada una; ver manual).
+- Semáforos: rojo `#dc2626` · ámbar `#dfb35a` · verde-azulado `#14b8a6`/`#0d9488`. Colores por herramienta: Excel `#22c55e` · Power BI `#f2c94c` · Power Apps `#c026d3` · Power Automate `#06b6d4` · IA Aplicada `#a78bfa` · Microsoft 365 `#f97316` (id interno `ofimatica`, no se renombra) (sobre papel, la "tinta" de cada una; ver manual).
 - Sin emojis: íconos SVG de línea. Sin subtítulos largos bajo títulos.
 
 ## Reglas técnicas (ya aprendidas; aplican siempre)

@@ -164,7 +164,7 @@
 
   function esc(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function herramientasArr(json){ try { return JSON.parse(json || '[]'); } catch(e){ return []; } }
-  const TOOL_NAMES = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Ofimática Básica' };
+  const TOOL_NAMES = { excel:'Excel', powerbi:'Power BI', powerapps:'Power Apps', powerautomate:'Power Automate', ia:'IA Aplicada', ofimatica:'Microsoft 365' };
 
   function fmtFechaHora(iso){
     if(!iso) return '';

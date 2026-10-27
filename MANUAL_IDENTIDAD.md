@@ -106,9 +106,9 @@ Dos capas con nombres distintos:
 | Power Apps | `#c026d3` | `#a21caf` | 6.2:1 |
 | Power Automate | `#06b6d4` | `#0e7490` | 5.2:1 |
 | IA Aplicada | `#a78bfa` | `#6d3fd8` | 6.1:1 |
-| Ofimática | `#f97316` | **`#b8500a`** | 4.9:1 |
+| Microsoft 365 (antes Ofimática; id interno `ofimatica`) | `#f97316` | **`#b8500a`** | 4.9:1 |
 
-> **Corrección v2:** la tinta de Ofimática era `#c2570c` (4.4:1, debajo del mínimo de 4.5:1 para texto chico). Se oscureció a `#b8500a`.
+> **Corrección v2:** la tinta de Microsoft 365 (entonces Ofimática) era `#c2570c` (4.4:1, debajo del mínimo de 4.5:1 para texto chico). Se oscureció a `#b8500a`.
 
 **Dos paletas separadas.** Los colores de estado del admin (rojo `#dc2626` urgente, ámbar `#dfb35a` seguimiento, verde-azulado `#14b8a6`/`#0d9488` bien) son solo del panel: significan una condición. No se usan en el logo, el sitio público ni los diplomas.
 
@@ -140,7 +140,7 @@ Archivos en `assets/img/brand/iconos/`, generados con `node tools/build-iconos.j
 | **Power Apps** | El tablero: una pantalla con bloques; el bloque lleno sale del marco (arrastrar y soltar) |
 | **Power Automate** | La bifurcación: un paso que se abre en dos caminos y termina en el cuadrito lleno |
 | **IA Aplicada** | La chispa de cuatro puntas con puntas rectas, rellena; el cuadrito queda hueco |
-| **Ofimática Básica** | Mosaicos de la suite con el dibujo recortado (texto, diapositiva, correo) y el cuarto hueco con el cuadrito |
+| **Microsoft 365** (id interno `ofimatica`) | Cuatro cuadros en 2×2 con separación (la suite): el primero lleno, dos más tenues y el cuarto hueco con el cuadrito |
 
 **Reglas de la familia:** cuadrícula de 24, trazo de 1.75, remates cuadrados y esquinas rectas; diagonales solo a 45°; nada de círculos; y **un cuadrito lleno** (el cuadro de autorrelleno del logo) que en cada ícono significa algo distinto. Cada ícono dibuja lo que la herramienta *hace por ti*, no un objeto suelto ni el logo de Microsoft. Ofimática se construye con formas compuestas (evenodd), **no con máscara**: PowerPoint, Word y el correo soportan mal las máscaras SVG.
 

@@ -39,7 +39,7 @@ const HERRAMIENTAS = {
   powerapps: { nombre: "Power Apps", puro: "#c026d3", tinta: "#a21caf" },
   powerautomate: { nombre: "Power Automate", puro: "#06b6d4", tinta: "#0e7490" },
   ia: { nombre: "IA Aplicada", puro: "#a78bfa", tinta: "#6d3fd8" },
-  ofimatica: { nombre: "Ofimática Básica", puro: "#f97316", tinta: "#b8500a" },
+  ofimatica: { nombre: "Microsoft 365", puro: "#f97316", tinta: "#b8500a" },
 };
 
 // ── texto → curvas ──

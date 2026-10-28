@@ -58,6 +58,11 @@ const txt = (s) => (q(s) ? q(s).textContent.replace(/\s+/g, ' ').trim() : null);
   await pausa(600);
   console.log('Carga');
   check('el script de la página corrió sin errores graves', errores.filter((e) => !/Not implemented|navigation|resource/i.test(e)).length === 0, errores.slice(0, 3).join(' | '));
+  // ESTRUCTURA: un <div> de más o de menos al editar la barra saca los paneles del diseño y el admin queda en blanco (pasó el 2026-10-24 al quitar "+ Nuevo")
+  const barra = q('.admin-topbar'), contenido = q('.admin-content');
+  check('la barra y el contenido son hermanos (misma caja padre)', barra && contenido && barra.parentElement === contenido.parentElement);
+  check('la barra lleva dentro la búsqueda Y el bloque derecho (sesión, tema, estado de la base)', barra.contains(q('.tb-zona-izq')) && barra.contains(q('.admin-user')) && barra.contains(q('#btnDespertar')) && barra.contains(q('#tbAvatar')));
+  check('todos los paneles están dentro del contenido', Array.from(d.querySelectorAll('.admin-panel')).every((p) => contenido.contains(p)));
   check('Tracking View ya NO está en el menú lateral', !q('.admin-nav-item[data-panel="tracking-view"]'));
   check('la pantalla de aterrizaje sigue siendo Tracking View (panel activo y título)', q('#panel-tracking-view').classList.contains('active') && txt('#topbarTitle') === 'Tracking View');
   check('Inicio nace resaltado', q('#btnInicio').classList.contains('activo'));

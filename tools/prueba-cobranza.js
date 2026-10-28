@@ -167,6 +167,11 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('cada tipo tiene su línea: vencida, pronto, por llegar, por facturar y tercero', clases('v') === 1 && clases('p') === 1 && clases('l') === 1 && clases('sf') === 1 && clases('ter') === 1, ['v', 'p', 'l', 'sf', 'ter'].map((k) => k + clases(k)).join(' '));
   check('cada línea trae su símbolo (no solo color) y un aviso con cliente y monto', qa('#cbzLienzo .cbz-stem').every((b) => !!b.querySelector('svg') && /\$/.test(b.getAttribute('aria-label'))), qa('#cbzLienzo .cbz-stem').length + ' líneas');
   check('el tercero va punteado y gris (clase ter) y lo dice en su aviso', /tercero/.test(q('#cbzLienzo .cbz-stem.ter').getAttribute('aria-label')));
+  check('sin subtítulo y sin paréntesis en la leyenda', !/lo que va a entrar/.test(txt('.cbz-linea-titulo')) && !/\(/.test(txt('.cbz-linea-leyenda')));
+  await clic(q('#cbzLineaInfoBtn'));
+  check('Info Línea explica colores, símbolos y tipos de línea', !q('#cbzLineaInfoPopover').hidden && qa('#cbzLineaInfoPopover .cbz-linea-info-fila').length >= 9 && /punteada/.test(txt('#cbzLineaInfoPopover')) && /Vencido/.test(txt('#cbzLineaInfoPopover')));
+  await clic(q('#cbzLineaInfoBtn'));
+  check('y se cierra con otro clic', q('#cbzLineaInfoPopover').hidden === true);
   check('la leyenda explica los 5 símbolos', qa('.cbz-linea-leyenda .cbz-leg').length === 5);
   await clic(q('#cbzVistas [data-vista="pagadas"]'));
   check('la línea NO depende de las vistas: sigue igual al cambiar de pestaña', qa('#cbzLienzo .cbz-stem').length === 5);
@@ -188,16 +193,16 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('Ocultar esconde la línea y lo recuerda', q('#cbzLineaCuerpo').hidden === true && /"oculta":true/.test(w.localStorage.getItem('admin-cbz-linea') || ''), w.localStorage.getItem('admin-cbz-linea'));
   await clic(q('#cbzLineaOcultar'));
   check('Mostrar la vuelve a pintar', q('#cbzLineaCuerpo').hidden === false && qa('#cbzLienzo .cbz-stem').length === 5);
-  // varias facturas el mismo día se juntan en UNA línea con su lista
+  // cada factura es su propia línea; las del mismo día quedan pegadas pero separadas
   const base = (id, cliente, extra) => Object.assign({}, cuentas[1], { id, cliente, concepto: 'Curso ' + id, estatus: 'Facturada', tipo_factura: 'Empresa', total: 5000, saldo: 5000, subtotal: 5000, vencimiento: hoyMas(20), semaforo: sem('al_corriente', 20), pagos: [] }, extra || {});
   datosLista = [base(31, 'Alfa SA'), base(32, 'Beta SA', { total: 7000, saldo: 7000 }), base(33, 'Gamma SA', { vencimiento: hoyMas(40) })];
   await clic(q('#cbzActualizar')); await pausa(150);
-  check('dos facturas del mismo día = una línea ("2 facturas") y la otra aparte', qa('#cbzLienzo .cbz-stem').length === 2 && /2 facturas/.test(txt('#cbzLienzo')), qa('#cbzLienzo .cbz-stem').length + ' | ' + txt('#cbzLienzo'));
-  const juntas = qa('#cbzLienzo .cbz-stem').find((b) => /2 facturas/.test(b.getAttribute('aria-label')));
-  await clic(juntas);
-  check('al tocar la línea agrupada sale la lista con cada factura y su monto', !q('#cbzLineaPop').hidden && qa('#cbzLineaPop button[data-id]').length === 2 && /12,000/.test(txt('#cbzLineaPop .t')), txt('#cbzLineaPop'));
-  await clic(q('#cbzLineaPop button[data-id="32"]')); await pausa(80);
-  check('y de la lista se abre la factura elegida', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA');
+  const izq = qa('#cbzLienzo .cbz-stem').map((b) => parseFloat(b.style.left));
+  check('tres facturas = tres líneas (aunque dos venzan el mismo día)', izq.length === 3, izq.length + '');
+  check('las del mismo día no se encimen: quedan separadas al menos 10 px', Math.abs(izq[1] - izq[0]) / 100 * 900 >= 10, izq.join(' | '));
+  check('el aviso de cada línea trae cliente y monto', /Beta SA/.test(qa('#cbzLienzo .cbz-stem').map((b) => b.getAttribute('aria-label')).join('|')) && /7,000/.test(qa('#cbzLienzo .cbz-stem').map((b) => b.getAttribute('aria-label')).join('|')));
+  await clic(qa('#cbzLienzo .cbz-stem').find((b) => /Beta SA/.test(b.getAttribute('aria-label')))); await pausa(80);
+  check('cada línea abre su propia factura', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA');
   await clic(q('#cbzDetCerrar'));
   datosLista = [];
   await clic(q('#cbzActualizar')); await pausa(150);

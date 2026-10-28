@@ -1756,11 +1756,32 @@
   .cbz-sem-txt small{ font-size:9.5px; opacity:.8; }
   .cbz-tipo{ display:block; margin-top:3px; font-family:var(--mono); font-size:10px; color:var(--text-faint); }
   .cbz-cli b{ display:block; font-family:var(--display); font-weight:600; font-size:13px; }
-  .cbz-cli .cbz-sub{ max-width:230px; }
-  .cbz-conc{ max-width:260px; }
-  .cbz-conc span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+  .cbz-cli .cbz-sub{ max-width:200px; }
+  /* La tabla debe caber en UNA pantalla (sin scroll horizontal, con las acciones siempre a la vista): todo es compacto y no se parte, y la columna
+     de Concepto es la ÚNICA elástica: toma el espacio que sobra y corta con "…" (el texto completo sale al pasar el mouse). */
+  .cbz-tabla th, .cbz-tabla td{ white-space:nowrap; padding-left:5px; padding-right:5px; }
+  .cbz-tabla td.cbz-cli{ white-space:normal; min-width:130px; max-width:190px; }
+  .cbz-tabla .cot-icon-btn{ width:28px; height:28px; }
+  .cbz-tabla .cot-row-actions{ gap:4px; }
+  .cbz-tabla .cbz-sem{ padding:3px 8px; gap:5px; }
+  .cbz-tabla td.cbz-conc{ width:100%; max-width:0; min-width:110px; }
+  .cbz-conc span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cbz-tabla .sol-acciones{ flex-wrap:nowrap; }
   .cbz-tabla tfoot td{ border-top:1px solid var(--line); padding-top:12px; font-size:12.5px; }
   .cbz-pie-txt{ color:var(--text-faint); font-family:var(--mono); font-size:11px!important; }
+  /* tarjetas de Cobranza: etiqueta arriba, monto abajo y el ícono a un lado, para que nada se corte en pantallas de 1366 px */
+  #cbzKpis .dkpi-card{ flex-direction:column; align-items:flex-start; gap:4px; padding:12px 14px; min-width:150px; }
+  #cbzKpis .dkpi-label{ order:1; margin-left:0; text-align:left; font-size:11.5px; }
+  #cbzKpis .dkpi-value{ order:2; font-size:22px; }
+  #cbzKpis .dkpi-icon{ position:absolute; right:12px; top:12px; }
+  /* acción principal con palabras (Facturar / Cobrar), semáforo de pestañas de trabajo y banner clicable */
+  .cbz-tabla .cbz-acc-texto{ width:auto; padding:0 9px; display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; color:var(--blue-bright); border-color:var(--blue-bright); background-color:var(--blue-soft); }
+  .cbz-tabla .cbz-acc-texto svg{ width:14px; height:14px; flex:none; }
+  #cbzVistas .radm-tab-count.cbz-urgente{ background-color:var(--bad); border-color:var(--bad); color:#fff; }
+  #cbzVistas .radm-tab-count.cbz-atencion{ background-color:#dfb35a; border-color:#dfb35a; color:#17120a; }
+  #cbzAlerta.cbz-clic{ cursor:pointer; }
+  #cbzAlerta.cbz-clic:hover{ filter:brightness(1.12); }
+  #cbzKpiPorCobrarSub{ order:3; font-size:10.5px; color:var(--text-faint); }
   .cbz-sub{ display:block; font-size:11px; color:var(--text-faint); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cbz-kpi-n{ font-size:11px; color:var(--text-faint); font-weight:400; }
   .cbz-estatus{ display:inline-block; font-size:11px; font-family:var(--mono); border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; }
@@ -4031,6 +4052,7 @@
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v.01M17.5 14.5v.01" stroke-linecap="round"/></svg></div>
               <div class="dkpi-value" id="cbzKpiPorCobrar">—</div>
               <div class="dkpi-label">Por cobrar <span class="cbz-kpi-n" id="cbzKpiPorCobrarN"></span></div>
+              <div class="dkpi-label" id="cbzKpiPorCobrarSub"></div>
             </div>
             <div class="dkpi-card" style="--c:var(--bad)" title="Parte del saldo por cobrar cuyo vencimiento ya pasó (inicio del plazo + plazo en días).">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -4056,7 +4078,7 @@
           <p class="radm-hint" id="cbzDesde" hidden style="margin:8px 2px 0;"></p>
         </div>
 
-        <div class="cot-alert" id="cbzAlerta" hidden>
+        <div class="cot-alert cbz-clic" id="cbzAlerta" hidden role="button" tabindex="0" title="Ver las cuentas vencidas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span id="cbzAlertaTexto"></span>
         </div>
@@ -4125,18 +4147,16 @@
               <tr>
                 <th data-sort="creada" title="Cuándo nació la cuenta">Creada<span class="th-sort-ico"></span></th>
                 <th data-sort="cliente">Cliente<span class="th-sort-ico"></span></th>
-                <th data-sort="estrategia">Estrategia<span class="th-sort-ico"></span></th>
-                <th data-sort="folio">Factura<span class="th-sort-ico"></span></th>
+                <th data-sort="folio" title="Folio, tipo de factura y estrategia">Factura<span class="th-sort-ico"></span></th>
                 <th data-sort="concepto">Concepto<span class="th-sort-ico"></span></th>
                 <th data-sort="total" class="cbz-num">Total<span class="th-sort-ico"></span></th>
                 <th data-sort="vence" id="cbzThVence"><span class="cbz-th-txt">Vencimiento</span><span class="th-sort-ico"></span></th>
-                <th data-sort="estatus">Estatus<span class="th-sort-ico"></span></th>
                 <th>Semáforo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="cbzListaBody">
-              <tr><td colspan="10" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
             <tfoot id="cbzPie"></tfoot>
           </table>
@@ -5972,6 +5992,7 @@
       sin_plazo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8" stroke-linecap="round"/></svg>',
       cerrada: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" stroke-linecap="round"/></svg>',
     };
+    const ESTRATEGIA_CORTA = { empresas: 'In company', abiertos: 'Abiertos' }; // en la tabla: más angosto (el nombre completo sale al pasar el mouse)
     const ESTRATEGIA = { empresas: 'Cursos In company', abiertos: 'Cursos Abiertos' };
     const METODOS = ['Transferencia', 'Cheque', 'Efectivo', 'Tarjeta', 'Otro'];
 
@@ -5986,8 +6007,8 @@
     function fmtCreada(iso){
       if(!iso) return '—';
       const d = new Date(iso);
-      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Monterrey' }) +
-        '<span class="cbz-sub">' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', timeZone:'America/Monterrey' }) + '</span>';
+      return '<span title="' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', timeZone:'America/Monterrey' }) + '">' +
+        d.toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Monterrey' }) + '</span>';
     }
     function hoyYmd(){ return new Date().toLocaleDateString('en-CA', { timeZone:'America/Monterrey' }); }
     function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
@@ -6068,7 +6089,7 @@
       else if(s.clave === 'al_corriente'){ clave = 'en_plazo'; texto = 'En plazo'; }
       else { clave = 'sin_plazo'; texto = 'Sin plazo'; }
       const e = diasDesde(c.fecha_emision), cr = diasDesde(String(c.fecha_creacion || '').slice(0, 10));
-      const sub = c.estatus === 'Por facturar' ? (cr == null ? '' : 'Creada hace ' + cr + ' d') : (e == null ? 'Sin fecha de emisión' : 'Emitida hace ' + e + ' d');
+      const sub = c.estatus === 'Por facturar' ? (cr == null ? '' : 'Creada ' + cr + ' d') : (e == null ? 'Sin emisión' : 'Emitida ' + e + ' d');
       return { clave, texto, sub };
     }
     const ICO_SEM = Object.assign({ pagada: ICO.al_corriente, en_plazo: ICO.por_vencer });
@@ -6083,6 +6104,7 @@
       const t = (id, v) => { const el = $(id); if(el) el.textContent = v; };
       if(!r){ ['cbzKpiPorCobrar', 'cbzKpiVencido', 'cbzKpiPorFacturar', 'cbzKpiCobrado', 'cbzKpiDias'].forEach((id) => t(id, '—')); return; }
       t('cbzKpiPorCobrar', dinero(r.por_cobrar)); t('cbzKpiPorCobrarN', '· ' + r.por_cobrar_n);
+      t('cbzKpiPorCobrarSub', r.vencido_n ? 'incluye ' + dinero(r.vencido) + ' vencido' : 'nada vencido');
       t('cbzKpiVencido', dinero(r.vencido)); t('cbzKpiVencidoN', '· ' + r.vencido_n);
       t('cbzKpiPorFacturar', dinero(r.por_facturar)); t('cbzKpiPorFacturarN', '· ' + r.por_facturar_n);
       t('cbzKpiCobrado', dinero(r.cobrado)); t('cbzKpiCobradoN', '· ' + r.cobrado_n + (r.cobrado_n === 1 ? ' pago' : ' pagos'));
@@ -6094,7 +6116,7 @@
       } else d.hidden = true;
       const al = $('cbzAlerta');
       if(r.vencido_n){
-        $('cbzAlertaTexto').textContent = r.vencido_n + (r.vencido_n === 1 ? ' cuenta vencida' : ' cuentas vencidas') + ' por ' + dinero(r.vencido) + '. Están arriba en la lista de Vencidas.';
+        $('cbzAlertaTexto').textContent = r.vencido_n + (r.vencido_n === 1 ? ' cuenta vencida' : ' cuentas vencidas') + ' por ' + dinero(r.vencido) + '. Clic para verlas.';
         al.hidden = false;
       } else al.hidden = true;
     }
@@ -6102,6 +6124,7 @@
     // ── lista ──
     const ICO_ACC = {
       pago: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>',
+      facturar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M7 3h8l4 4v14H7z" stroke-linejoin="round"/><path d="M15 3v4h4M10 12h6M10 16h6" stroke-linecap="round"/></svg>',
       notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h14v12l-5 5H5z" stroke-linejoin="round"/><path d="M14 21v-5h5M8 9h8M8 13h4" stroke-linecap="round"/></svg>',
       editar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       eliminar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -6137,6 +6160,8 @@
     function pintarLista(){
       const base = filtradas();
       for(const k of Object.keys(VISTAS)){ const el = $('cbzN-' + k); if(el) el.textContent = base.filter(VISTAS[k]).length; }
+      $('cbzN-vencidas').classList.toggle('cbz-urgente', Number($('cbzN-vencidas').textContent) > 0);
+      $('cbzN-facturar').classList.toggle('cbz-atencion', Number($('cbzN-facturar').textContent) > 0);
       let filas = base.filter(VISTAS[vista]);
       if(orden){
         const f = CLAVES_ORDEN[orden.k];
@@ -6155,7 +6180,7 @@
       $('cbzResultado').textContent = filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas');
       const body = $('cbzListaBody');
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="10" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="8" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
         $('cbzPie').innerHTML = '';
         return;
       }
@@ -6165,15 +6190,14 @@
         return '<tr data-id="' + c.id + '">' +
           '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
           '<td class="cbz-cli">' + clienteHtml(c) + '</td>' +
-          '<td>' + (c.estrategia ? esc(ESTRATEGIA[c.estrategia] || c.estrategia) : '<span style="color:var(--text-faint)" title="Las facturas de terceros no pertenecen a ninguna estrategia">—</span>') + '</td>' +
-          '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + (c.tipo_factura ? '<span class="cbz-tipo">' + esc(c.tipo_factura) + '</span>' : '') + '</td>' +
+          '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + '<span class="cbz-tipo" title="' + esc((c.tipo_factura || 'Sin clasificar') + (c.estrategia ? ' · ' + (ESTRATEGIA[c.estrategia] || c.estrategia) : ' · sin estrategia (tercero)')) + '">' + esc((c.tipo_factura || 'Sin tipo') + (c.estrategia === 'abiertos' ? ' · Abiertos' : '')) + '</span></td>' +
           '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
           '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
           '<td>' + venceHtml(c) + '</td>' +
-          '<td><span class="cbz-estatus">' + esc(c.estatus) + '</span></td>' +
           '<td>' + semaforoHtml(c) + '</td>' +
           '<td><div class="cot-row-actions sol-acciones">' +
-            ((c.estatus === 'Facturada' || c.estatus === 'Parcial') ? '<button type="button" class="cot-icon-btn cbz-acc-pago" data-id="' + c.id + '" title="Registrar un pago" aria-label="Registrar pago">' + ICO_ACC.pago + '</button>' : '') +
+            ((c.estatus === 'Facturada' || c.estatus === 'Parcial') ? '<button type="button" class="cot-icon-btn cbz-acc-texto cbz-acc-pago" data-id="' + c.id + '" title="Registrar un pago de esta factura" aria-label="Registrar pago">' + ICO_ACC.pago + 'Cobrar</button>' : '') +
+            (c.estatus === 'Por facturar' ? '<button type="button" class="cot-icon-btn cbz-acc-texto cbz-acc-facturar" data-id="' + c.id + '" title="Capturar el folio y los datos de la factura" aria-label="Capturar factura">' + ICO_ACC.facturar + 'Facturar</button>' : '') +
             '<button type="button" class="cot-icon-btn cbz-acc-notas' + (c.notas ? ' tiene-nota' : '') + '" data-id="' + c.id + '" title="' + (c.notas ? 'Seguimiento agregado — clic para ver o editar' : 'Agregar seguimiento') + '" aria-label="Notas">' + ICO_ACC.notas + '</button>' +
             '<button type="button" class="cot-icon-btn cbz-acc-editar" data-id="' + c.id + '" title="Editar la cuenta, su factura y sus pagos" aria-label="Editar">' + ICO_ACC.editar + '</button>' +
             '<button type="button" class="cot-icon-btn cbz-acc-eliminar sol-acc-peligro" data-id="' + c.id + '" title="Eliminar (solo para errores de captura)" aria-label="Eliminar">' + ICO_ACC.eliminar + '</button>' +
@@ -6181,8 +6205,8 @@
       }).join('');
       const sumT = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.total, 0);
       const sumS = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.saldo, 0);
-      $('cbzPie').innerHTML = '<tr><td colspan="5" class="cbz-pie-txt">' + filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas') + ' en esta vista' + (filas.some((c) => c.estatus === 'Cancelada') ? ' · las canceladas no suman' : '') + '</td>' +
-        '<td class="cbz-num"><b>' + dinero(sumT) + '</b><span class="cbz-sub">Total</span></td><td colspan="4"><b>' + dinero(sumS) + '</b><span class="cbz-sub" style="display:inline;margin-left:8px;">Saldo por cobrar</span></td></tr>';
+      $('cbzPie').innerHTML = '<tr><td colspan="4" class="cbz-pie-txt">' + filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas') + ' en esta vista' + (filas.some((c) => c.estatus === 'Cancelada') ? ' · las canceladas no suman' : '') + '</td>' +
+        '<td class="cbz-num"><b>' + dinero(sumT) + '</b><span class="cbz-sub">Total</span></td><td colspan="3"><b>' + dinero(sumS) + '</b><span class="cbz-sub" style="display:inline;margin-left:8px;">Saldo por cobrar</span></td></tr>';
     }
 
     async function cargar(){
@@ -6475,6 +6499,9 @@
       document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x === b));
       pintarLista();
     });
+    const verVencidas = () => { vista = 'vencidas'; orden = null; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === 'vencidas')); pintarLista(); };
+    $('cbzAlerta').addEventListener('click', verVencidas);
+    $('cbzAlerta').addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); verVencidas(); } });
     $('cbzFCliente').addEventListener('input', pintarLista);
     $('cbzFFolio').addEventListener('input', pintarLista);
     $('cbzFEstrategia').addEventListener('change', pintarLista);
@@ -6551,6 +6578,11 @@
       const id = Number((btn || fila).dataset.id), c = cuentas.find((x) => x.id === id);
       if(!c) return;
       if(btn && btn.classList.contains('cbz-acc-notas')){ abrirNotas(c, btn); return; }
+      if(btn && btn.classList.contains('cbz-acc-facturar')){
+        abrirDetalle(id);
+        setTimeout(() => { const m = $('cbzDFolio'); if(m){ m.scrollIntoView({ block: 'center' }); m.focus(); } }, 60);
+        return;
+      }
       if(btn && btn.classList.contains('cbz-acc-pago')){
         abrirDetalle(id);
         setTimeout(() => { const m = $('cbzPMonto'); if(m){ m.scrollIntoView({ block: 'center' }); m.focus(); } }, 60);

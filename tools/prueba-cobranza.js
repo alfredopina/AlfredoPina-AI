@@ -96,16 +96,16 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
 
   console.log('Tabla: vistas, columnas, semáforo y filtros');
   const encabezados = qa('.cbz-tabla thead th').map((th) => th.textContent.replace(/[▲▼]/g, '').trim());
-  check('columnas: Creada, Cliente, Estrategia, Factura, Concepto, Total, Vencimiento, Estatus, Semáforo, Acciones', encabezados.join('|') === 'Creada|Cliente|Estrategia|Factura|Concepto|Total|Vencimiento|Estatus|Semáforo|Acciones', encabezados.join('|'));
+  check('columnas (caben en una pantalla): Creada, Cliente, Factura, Concepto, Total, Vencimiento, Semáforo, Acciones', encabezados.join('|') === 'Creada|Cliente|Factura|Concepto|Total|Vencimiento|Semáforo|Acciones', encabezados.join('|'));
   check('vistas en el orden pedido y Todo al final', qa('#cbzVistas .radm-tab').map((b) => b.dataset.vista).join(',') === 'facturar,vencidas,cobrar,pagadas,canceladas,terceros,todo');
   check('arranca en Por facturar', q('#cbzVistas .radm-tab.active').dataset.vista === 'facturar' && qa('#cbzListaBody tr[data-id]').length === 1);
   const cuentasDe = ['facturar', 'vencidas', 'cobrar', 'pagadas', 'canceladas', 'terceros', 'todo'].map((k) => txt('#cbzN-' + k)).join(',');
   check('contadores de las vistas', cuentasDe === '1,1,3,1,1,1,7', cuentasDe);
   const sinPlazo = q('#cbzListaBody .cbz-sem');
-  check('Por facturar: neutro con ícono y texto, y cuántos días lleva creada', sinPlazo.classList.contains('sin_plazo') && !!sinPlazo.querySelector('svg') && /Por facturar/.test(sinPlazo.textContent) && /Creada hace \d+ d/.test(sinPlazo.textContent), sinPlazo.textContent);
+  check('Por facturar: neutro con ícono y texto, y cuántos días lleva creada', sinPlazo.classList.contains('sin_plazo') && !!sinPlazo.querySelector('svg') && /Por facturar/.test(sinPlazo.textContent) && /Creada \d+ d/.test(sinPlazo.textContent), sinPlazo.textContent);
   await clic(q('#cbzVistas [data-vista="vencidas"]'));
   const rojo = q('#cbzListaBody .cbz-sem');
-  check('Vencidas: ROJO con ícono + texto y días emitida', rojo.classList.contains('vencida') && !!rojo.querySelector('svg') && /Vencida 21 d/.test(rojo.textContent) && /Emitida hace \d+ d/.test(rojo.textContent), rojo.textContent);
+  check('Vencidas: ROJO con ícono + texto y días emitida', rojo.classList.contains('vencida') && !!rojo.querySelector('svg') && /Vencida 21 d/.test(rojo.textContent) && /Emitida \d+ d/.test(rojo.textContent), rojo.textContent);
   const cli = q('#cbzListaBody tr[data-id="1"] .cbz-cli');
   check('Cliente: nombre fiscal arriba y debajo el comercial + RFC', /Zeta Servicios SA de CV/.test(cli.querySelector('b').textContent) && /Zeta SA · ZSE010101AB1/.test(cli.querySelector('.cbz-sub').textContent), cli.textContent);
   await clic(q('#cbzVistas [data-vista="cobrar"]'));
@@ -121,7 +121,11 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('Pagadas: VERDE con ícono + texto', verde.classList.contains('pagada') && !!verde.querySelector('svg') && /Pagada/.test(verde.textContent));
   check('Pagadas: la columna cambia a Fecha de pago, con en cuántos días se cobró', /Fecha de pago/.test(txt('#cbzThVence')) && /20\/08\/2026/.test(txt('#cbzListaBody tr[data-id="5"]')) && /cobrada en 19 d/.test(txt('#cbzListaBody tr[data-id="5"]')), txt('#cbzListaBody tr[data-id="5"]'));
   await clic(q('#cbzVistas [data-vista="terceros"]'));
-  check('la factura de terceros no muestra estrategia (—)', /—/.test(txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)')) && !/Cursos/.test(txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)')), txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)'));
+  const celdaFactura = (id) => txt('#cbzListaBody tr[data-id="' + id + '"] td:nth-child(3)');
+  check('la factura de terceros muestra su tipo y NO una estrategia', /Otro/.test(celdaFactura(7)) && !/company|Abiertos/.test(celdaFactura(7)), celdaFactura(7));
+  await clic(q('#cbzVistas [data-vista="todo"]'));
+  check('una factura normal muestra folio y tipo en la misma celda (la estrategia solo se escribe si es Abiertos)', /Sin tipo/.test(celdaFactura(2)) && !/company/.test(celdaFactura(2)) && /202/.test(celdaFactura(2)), celdaFactura(2));
+  await clic(q('#cbzVistas [data-vista="terceros"]'));
   check('Terceros lista solo la de terceros, con su tipo', qa('#cbzListaBody tr[data-id]').length === 1 && /Otro/.test(txt('#cbzListaBody tr[data-id="7"]')));
   await clic(q('#cbzVistas [data-vista="todo"]'));
   check('Todo lista las 7', qa('#cbzListaBody tr[data-id]').length === 7);
@@ -135,7 +139,23 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('el filtro Estrategia se combina con los demás (ninguna abierta con ese folio)', qa('#cbzListaBody tr[data-id]').length === 0);
   await clic(q('#cbzLimpiar'));
   check('limpiar filtros regresa a la lista completa', qa('#cbzListaBody tr[data-id]').length === 7 && qa('#cbzListaBody tr[data-id]')[0].dataset.id === '1');
-  check('la primera columna es Creada, con fecha y hora', txt('#cbzListaBody tr td:first-child').includes('15/09/2026') && /11:33/.test(txt('#cbzListaBody tr td:first-child')), txt('#cbzListaBody tr td:first-child'));
+  check('la primera columna es Creada: solo la fecha a la vista y la hora al pasar el mouse', txt('#cbzListaBody tr td:first-child') === '15/09/2026' && /11:33/.test(q('#cbzListaBody tr td:first-child span').title), txt('#cbzListaBody tr td:first-child') + ' | ' + q('#cbzListaBody tr td:first-child span').title);
+
+  console.log('Vista simple para Viri');
+  check('Por cobrar dice cuánto de lo que incluye ya está vencido', /incluye \$11,600\.00 vencido/.test(txt('#cbzKpiPorCobrarSub')), txt('#cbzKpiPorCobrarSub'));
+  check('las pestañas de trabajo llevan su número resaltado: Vencidas en rojo, Por facturar en ámbar', q('#cbzN-vencidas').classList.contains('cbz-urgente') && q('#cbzN-facturar').classList.contains('cbz-atencion') && !q('#cbzN-pagadas').classList.contains('cbz-urgente'));
+  await clic(q('#cbzVistas [data-vista="cobrar"]'));
+  await clic(q('#cbzAlerta'));
+  check('el banner rojo es clicable y lleva a la pestaña Vencidas', q('#cbzVistas .radm-tab.active').dataset.vista === 'vencidas' && qa('#cbzListaBody tr[data-id]').length === 1);
+  const cobrarBtn = q('#cbzListaBody tr[data-id="1"] .cbz-acc-pago');
+  check('la acción principal de una factura dice "Cobrar" (con palabras)', !!cobrarBtn && /Cobrar/.test(cobrarBtn.textContent));
+  await clic(q('#cbzVistas [data-vista="facturar"]'));
+  const factBtn = q('#cbzListaBody tr[data-id="4"] .cbz-acc-facturar');
+  check('una cuenta Por facturar trae el botón "Facturar" y no "Cobrar"', !!factBtn && /Facturar/.test(factBtn.textContent) && !q('#cbzListaBody tr[data-id="4"] .cbz-acc-pago'));
+  await clic(factBtn); await pausa(120);
+  check('"Facturar" abre el detalle con el foco en el folio de la factura', !q('#cbzDetalle').hidden && d.activeElement && d.activeElement.id === 'cbzDFolio');
+  await clic(q('#cbzDetCerrar'));
+  await clic(q('#cbzVistas [data-vista="todo"]'));
 
   console.log('Info, acciones, notas, eliminar y exportar');
   await clic(q('#cbzInfoSemBtn'));

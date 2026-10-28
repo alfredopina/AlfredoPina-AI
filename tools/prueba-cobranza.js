@@ -6,6 +6,7 @@ const path = require('path');
 const { JSDOM, VirtualConsole } = require(process.env.JSDOM_DIR ? path.join(process.env.JSDOM_DIR, 'node_modules', 'jsdom') : 'jsdom');
 const HTML = fs.readFileSync(path.join(__dirname, '..', 'admin', 'index.html'), 'utf8');
 
+const hoyMas = (n) => { const d = new Date(); d.setUTCHours(12); d.setUTCDate(d.getUTCDate() + n); return d.toLocaleDateString('en-CA', { timeZone: 'America/Monterrey' }); };
 const sem = (clave, dias) => ({ clave, dias });
 const pago = (id, monto, fecha, anulado) => ({ id, monto, fecha, metodo: 'Transferencia', folio_complemento: '17', uuid_complemento: 'aaaa-bbbb', anulado: !!anulado });
 const cuenta = (o) => ({ id: 1, cliente_id: 3, cliente: 'Acme SA', cliente_codigo: 'ACME', cotizacion_id: 7, cotizacion_folio: 'AP26-ACME-EXCEL-01', origen: 'Automática', estrategia: 'empresas',
@@ -13,8 +14,8 @@ const cuenta = (o) => ({ id: 1, cliente_id: 3, cliente: 'Acme SA', cliente_codig
   plazo_dias: 30, fecha_creacion: '2026-09-16T05:33:00.000Z', vencimiento: null, estatus: 'Por facturar', notas: null, pagos: [], pagado: 0, saldo: 11600, semaforo: sem('sin_plazo', null), ...o });
 let cuentas = [
   cuenta({ id: 1, cliente: 'Zeta SA', razon_social: 'Zeta Servicios SA de CV', rfc_receptor: 'ZSE010101AB1', notas: null, estatus: 'Facturada', folio_factura: '201', fecha_emision: '2026-09-01', inicio_plazo: '2026-09-01', vencimiento: '2026-10-01', semaforo: sem('vencida', 21) }),
-  cuenta({ id: 2, cliente: 'Beta SA', estatus: 'Facturada', folio_factura: '202', fecha_emision: '2026-10-10', inicio_plazo: '2026-10-10', vencimiento: '2026-10-25', semaforo: sem('por_vencer', 3) }),
-  cuenta({ id: 3, cliente: 'Alfa SA', estatus: 'Parcial', folio_factura: '203', fecha_emision: '2026-10-12', inicio_plazo: '2026-10-12', vencimiento: '2026-11-30', pagado: 4000, saldo: 7600, pagos: [pago(1, 4000, '2026-10-15')], semaforo: sem('al_corriente', 39) }),
+  cuenta({ id: 2, cliente: 'Beta SA', estatus: 'Facturada', folio_factura: '202', fecha_emision: '2026-10-10', inicio_plazo: '2026-10-10', vencimiento: hoyMas(3), semaforo: sem('por_vencer', 3) }),
+  cuenta({ id: 3, cliente: 'Alfa SA', estatus: 'Parcial', folio_factura: '203', fecha_emision: '2026-10-12', inicio_plazo: '2026-10-12', vencimiento: hoyMas(35), pagado: 4000, saldo: 7600, pagos: [pago(1, 4000, '2026-10-15')], semaforo: sem('al_corriente', 39) }),
   cuenta({ id: 4, cliente: 'Gamma SA', estatus: 'Por facturar', semaforo: sem('sin_plazo', null) }),
   cuenta({ id: 5, cliente: 'Delta SA', estatus: 'Pagada', folio_factura: '190', fecha_emision: '2026-08-01', saldo: 0, pagado: 11600, pagos: [pago(2, 11600, '2026-08-20')], semaforo: sem('cerrada', null) }),
   cuenta({ id: 6, cliente: 'Epsilon SA', estatus: 'Cancelada', semaforo: sem('cerrada', null) }),
@@ -25,6 +26,7 @@ const alertas = { total: 2, umbrales: { cobranzaPorVencerDias: 7 }, grupos: { so
   { tipo: 'cobranza', id: 1, cliente: 'Zeta SA', detalle: 'Cobro vencido, factura 201', dias: 21, pastilla: 'vencido 21 d' },
   { tipo: 'cobranza', id: 2, cliente: 'Beta SA', detalle: 'Cobro por vencer, factura 202', dias: 3, pastilla: 'vence en 3 d' } ] } };
 
+let datosLista = cuentas;
 const llamadas = []; // { url, cuerpo }
 function respuesta(cuerpo, status = 200) { return Promise.resolve({ ok: status < 400, status, json: async () => cuerpo, text: async () => JSON.stringify(cuerpo) }); }
 const ajustesCorreo = { general: true, nuevaSolicitud: true, propuestaAbierta: true, propuestaAceptada: true, solicitudAtorada: true, resumenSemanal: true, nuevaCuentaCobranza: true,
@@ -33,7 +35,7 @@ function fetchFalso(url, opts) {
   const u = String(url); const cuerpo = opts && opts.body ? JSON.parse(opts.body) : null; llamadas.push({ u, cuerpo });
   if (u.includes('/api/getConfiguracionCorreo')) return respuesta(ajustesCorreo);
   if (u.includes('/api/actualizarConfiguracionCorreo')) { Object.assign(ajustesCorreo, cuerpo); return respuesta(ajustesCorreo); }
-  if (u.includes('/api/listCobranzaAdmin')) return respuesta(cuentas);
+  if (u.includes('/api/listCobranzaAdmin')) return respuesta(datosLista);
   if (u.includes('/api/getResumenCobranzaAdmin')) return respuesta(resumen);
   if (u.includes('/api/getNotificacionesActivas')) return respuesta(alertas);
   if (u.includes('/api/buscarClientesAdmin')) return respuesta([{ id: 3, nombre: 'Acme SA', codigo: 'ACME', tipo_cliente: 'Directo' }, { id: 4, nombre: 'Beta SA', codigo: 'BETA', tipo_cliente: 'Intermediario' }, { id: 9, nombre: 'Taller Ejemplo SA', codigo: 'TAL', tipo_cliente: 'Tercero' }]);
@@ -155,6 +157,53 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(factBtn); await pausa(120);
   check('"Facturar" abre el detalle con el foco en el folio de la factura', !q('#cbzDetalle').hidden && d.activeElement && d.activeElement.id === 'cbzDFolio');
   await clic(q('#cbzDetCerrar'));
+  await clic(q('#cbzVistas [data-vista="todo"]'));
+
+  console.log('Línea de cobros');
+  await clic(q('#cbzVistas [data-vista="todo"]'));
+  check('la línea de cobros está entre el banner y las vistas', q('#cbzAlerta').nextElementSibling === q('#cbzLinea') && q('#cbzLinea').nextElementSibling.classList.contains('sol-toolbar'));
+  check('zona Vencido (las 2 vencidas, una de tercero) y zona Sin fecha (1 por facturar)', /Vencido · 2/.test(txt('.cbz-zona.venc')) && /Sin fecha · 1/.test(txt('.cbz-zona.sin')), txt('.cbz-zona.venc') + ' | ' + txt('.cbz-zona.sin'));
+  const clases = (k) => qa('#cbzLienzo .cbz-stem.' + k).length;
+  check('cada tipo tiene su línea: vencida, pronto, por llegar, por facturar y tercero', clases('v') === 1 && clases('p') === 1 && clases('l') === 1 && clases('sf') === 1 && clases('ter') === 1, ['v', 'p', 'l', 'sf', 'ter'].map((k) => k + clases(k)).join(' '));
+  check('cada línea trae su símbolo (no solo color) y un aviso con cliente y monto', qa('#cbzLienzo .cbz-stem').every((b) => !!b.querySelector('svg') && /\$/.test(b.getAttribute('aria-label'))), qa('#cbzLienzo .cbz-stem').length + ' líneas');
+  check('el tercero va punteado y gris (clase ter) y lo dice en su aviso', /tercero/.test(q('#cbzLienzo .cbz-stem.ter').getAttribute('aria-label')));
+  check('la leyenda explica los 5 símbolos', qa('.cbz-linea-leyenda .cbz-leg').length === 5);
+  await clic(q('#cbzVistas [data-vista="pagadas"]'));
+  check('la línea NO depende de las vistas: sigue igual al cambiar de pestaña', qa('#cbzLienzo .cbz-stem').length === 5);
+  await clic(q('#cbzVistas [data-vista="todo"]'));
+  await clic(q('#cbzLienzo .cbz-stem.p')); await pausa(80);
+  check('clic en una línea abre la cuenta (Beta SA)', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA', txt('#cbzDetTitulo'));
+  await clic(q('#cbzDetCerrar'));
+  await clic(q('#cbzLineaNav [data-meses="1"]'));
+  check('con "1 mes" lo que vence más allá queda fuera de la ventana y se avisa en el pie', clases('l') === 0 && /Después de esta ventana: 1 cobro/.test(txt('#cbzLineaPie')), txt('#cbzLineaPie'));
+  await clic(q('#cbzLineaNav [data-meses="6"]'));
+  check('con "6 meses" vuelve a aparecer y el pie queda vacío', clases('l') === 1 && txt('#cbzLineaPie') === '');
+  await clic(q('#cbzLineaNav [data-meses="3"]'));
+  check('la flecha izquierda está apagada al inicio; la derecha mueve un mes y avisa lo que quedó atrás', q('#cbzLineaAtras').disabled === true);
+  await clic(q('#cbzLineaAdelante'));
+  check('después de avanzar un mes: se activa la izquierda y lo de esta semana queda "antes de esta ventana"', q('#cbzLineaAtras').disabled === false && /Antes de esta ventana: 1 cobro/.test(txt('#cbzLineaPie')) && !q('.cbz-hoy'), txt('#cbzLineaPie'));
+  await clic(q('#cbzLineaAtras'));
+  check('regresar deja la marca de HOY', !!q('.cbz-hoy') && /HOY/.test(txt('#cbzLienzo .hoy-et')));
+  await clic(q('#cbzLineaOcultar'));
+  check('Ocultar esconde la línea y lo recuerda', q('#cbzLineaCuerpo').hidden === true && /"oculta":true/.test(w.localStorage.getItem('admin-cbz-linea') || ''), w.localStorage.getItem('admin-cbz-linea'));
+  await clic(q('#cbzLineaOcultar'));
+  check('Mostrar la vuelve a pintar', q('#cbzLineaCuerpo').hidden === false && qa('#cbzLienzo .cbz-stem').length === 5);
+  // varias facturas el mismo día se juntan en UNA línea con su lista
+  const base = (id, cliente, extra) => Object.assign({}, cuentas[1], { id, cliente, concepto: 'Curso ' + id, estatus: 'Facturada', tipo_factura: 'Empresa', total: 5000, saldo: 5000, subtotal: 5000, vencimiento: hoyMas(20), semaforo: sem('al_corriente', 20), pagos: [] }, extra || {});
+  datosLista = [base(31, 'Alfa SA'), base(32, 'Beta SA', { total: 7000, saldo: 7000 }), base(33, 'Gamma SA', { vencimiento: hoyMas(40) })];
+  await clic(q('#cbzActualizar')); await pausa(150);
+  check('dos facturas del mismo día = una línea ("2 facturas") y la otra aparte', qa('#cbzLienzo .cbz-stem').length === 2 && /2 facturas/.test(txt('#cbzLienzo')), qa('#cbzLienzo .cbz-stem').length + ' | ' + txt('#cbzLienzo'));
+  const juntas = qa('#cbzLienzo .cbz-stem').find((b) => /2 facturas/.test(b.getAttribute('aria-label')));
+  await clic(juntas);
+  check('al tocar la línea agrupada sale la lista con cada factura y su monto', !q('#cbzLineaPop').hidden && qa('#cbzLineaPop button[data-id]').length === 2 && /12,000/.test(txt('#cbzLineaPop .t')), txt('#cbzLineaPop'));
+  await clic(q('#cbzLineaPop button[data-id="32"]')); await pausa(80);
+  check('y de la lista se abre la factura elegida', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA');
+  await clic(q('#cbzDetCerrar'));
+  datosLista = [];
+  await clic(q('#cbzActualizar')); await pausa(150);
+  check('sin nada pendiente, la línea lo dice con palabras', /Nada pendiente/.test(txt('#cbzLienzo')) && qa('#cbzLienzo .cbz-stem').length === 0);
+  datosLista = cuentas;
+  await clic(q('#cbzActualizar')); await pausa(150);
   await clic(q('#cbzVistas [data-vista="todo"]'));
 
   console.log('Info, acciones, notas, eliminar y exportar');

@@ -68,7 +68,7 @@ async function insertarCuenta(nuevaRequest, datos) {
   // cualquier cuenta de un cliente Tercero (también las que nacen de un grupo o una cotización) queda como tipo Otro y no cuenta en las métricas
   if (datos.cliente_id && datos.tipo_factura === undefined) {
     const t = await nuevaRequest().input("id", sql.Int, datos.cliente_id).query("SELECT tipo_cliente FROM Cliente WHERE id = @id");
-    if (t.recordset.length && t.recordset[0].tipo_cliente === "Tercero") datos = { ...datos, tipo_factura: "Otro" };
+    if (t.recordset.length && t.recordset[0].tipo_cliente === "Tercero") datos = { ...datos, tipo_factura: "Otro", estrategia: null };
   }
   const cols = Object.keys(datos);
   const req = nuevaRequest();
@@ -94,6 +94,7 @@ async function crearCuentaManual(nuevaRequest, b) {
   const clienteId = Number(b.cliente_id);
   if (!clienteId) throw C.falla("Elige el cliente. Si no está en la lista, hay que darlo de alta primero en Clientes.");
   campos.tipo_factura = await tipoCongruente(nuevaRequest, clienteId, campos.tipo_factura);
+  if (campos.tipo_factura === "Otro") campos.estrategia = null; // lo de terceros no es ingreso de Alfredo: no pertenece a ninguna estrategia (sql/045)
   const montos = C.desglosarMonto({ ...b, tipo_factura: campos.tipo_factura });
   if (!(montos.total > 0)) throw C.falla("El total debe ser mayor a cero.");
   let grupoId = null;
@@ -150,6 +151,10 @@ async function editarCuenta(nuevaRequest, b) {
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, id);
   const campos = leerCampos(b, true);
   if ("tipo_factura" in campos) campos.tipo_factura = await tipoCongruente(nuevaRequest, cuenta.cliente_id, campos.tipo_factura);
+  // tipo Otro ⇒ sin estrategia; si una cuenta deja de ser Otro y no traía estrategia, vuelve a In company
+  const tipoFinal = "tipo_factura" in campos ? campos.tipo_factura : cuenta.tipo_factura;
+  if (tipoFinal === "Otro") campos.estrategia = null;
+  else if (!("estrategia" in campos) && !cuenta.estrategia) campos.estrategia = "empresas";
   let montos = {};
   if (["subtotal", "iva", "total", "retencion_isr", "retencion_iva"].some((k) => k in b && b[k] !== "" && b[k] != null)) {
     if (C.totalPagado(pagos) > 0) throw C.falla("Ya hay pagos registrados: el monto ya no se edita (anula los pagos o crea otra cuenta).", 409);

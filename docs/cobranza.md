@@ -44,6 +44,16 @@ Columnas: Creada · Cliente (nombre fiscal arriba; debajo el comercial + RFC) ·
 
 **Semáforo** (siempre ícono + texto; debajo, "emitida hace N d"): rojo = ya pasó el vencimiento y no está pagada · verde = pagada · ámbar = no pagada y faltan ≤ 7 días (umbral editable) · neutro = "En plazo" (más de 7 días), "Sin plazo" (falta el contra-recibo) o "Por facturar". Verde significa solo "pagada"; por eso "en plazo" es neutro. **Acciones:** registrar pago (solo con saldo), notas (popover, `actualizarNotasCuentaCobrar`), editar y eliminar. **Eliminar** (`eliminarCuentaCobrar`) existe solo para errores de captura: se rechaza si la cuenta tiene pagos (aunque estén anulados) o folio/UUID de factura; ahí se cancela. Una factura timbrada se cancela en el SAT, no se borra.
 
+## Terceros sin estrategia (sql/045, 2026-10-28)
+
+**Por qué:** una factura por cuenta de terceros (tipo Otro) no es ingreso de Alfredo, así que no pertenece a ninguna estrategia (In company o Abiertos). Dejarla vacía (NULL) evita que "cobrado por estrategia" se ensucie con dinero ajeno. La regla va en los dos sentidos y la garantiza un CHECK (`CK_CxC_estrategia_tercero`): tipo Otro ⇒ sin estrategia; cualquier otro tipo ⇒ estrategia obligatoria. El sitio la pone solo (cliente Tercero ⇒ tipo Otro ⇒ estrategia vacía; si una cuenta deja de ser Otro vuelve a In company) y la pantalla muestra "—" o "Sin estrategia" y bloquea el campo.
+
+**Pago "PUE"** (Pago en Una sola Exhibición): en el Excel de Viri, un PUE donde iría el UUID del complemento significa que NO aplica complemento de pago. La importación lo guarda sin UUID y deja la nota en el pago.
+
+## Tolerancia de centavos y nombres de estrategia (2026-10-28)
+
+**Por qué:** en el histórico hay pagos de $45,759.98 contra una factura de $45,760.00 (redondeos de Facturama o del banco). Con la regla estricta la cuenta quedaba "Parcial" con $0.02 de saldo para siempre. Ahora una diferencia de **hasta 5 centavos** cuenta como saldo cero y como Pagada (`TOLERANCIA_CENTAVOS` en `api/src/cobranza.js`: `saldoDe`, `estatusDerivado` y `validarPago`, que acepta un pago que se pasa por centavos). 6 centavos o más ya es un saldo real. Las estrategias se muestran como **"Cursos In company"** y **"Cursos Abiertos"** (los valores internos `empresas` / `abiertos` no cambian).
+
 ## Cómo nacen las cuentas (decisión de Alfredo 2026-10-24)
 
 La cobranza nace de la **operación**, para que Viri se entere de qué hay que facturar: (1) una **cotización ganada**; (2) un **grupo creado directo**, sin cotización (Gobierno, CAINTRA contratan directo). Ambas nacen en "Por facturar". Un grupo directo lleva un campo opcional "Monto a facturar (sin IVA)" en Crear Grupo; si queda vacío la cuenta nace en $0 ("Por definir") y Viri lo captura. Una cuenta por grupo (índice único, sql/042). El alta manual (casos raros) puede ligarse a un grupo existente. Alertas nuevas: "Por facturar" sin facturar desde N días (umbral `cobranzaPorFacturarDias`, default 3). La tabla lleva **Creada** (fecha y hora) como primera columna, como los demás Trackings.

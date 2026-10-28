@@ -4093,8 +4093,8 @@
               <label for="cbzFEstrategia">ESTRATEGIA</label>
               <select id="cbzFEstrategia">
                 <option value="">Todas</option>
-                <option value="empresas">Cursos a empresas</option>
-                <option value="abiertos">Cursos abiertos</option>
+                <option value="empresas">Cursos In company</option>
+                <option value="abiertos">Cursos Abiertos</option>
               </select>
             </div>
             <div class="radm-field">
@@ -5972,7 +5972,7 @@
       sin_plazo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8" stroke-linecap="round"/></svg>',
       cerrada: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" stroke-linecap="round"/></svg>',
     };
-    const ESTRATEGIA = { empresas: 'Cursos a empresas', abiertos: 'Cursos abiertos' };
+    const ESTRATEGIA = { empresas: 'Cursos In company', abiertos: 'Cursos Abiertos' };
     const METODOS = ['Transferencia', 'Cheque', 'Efectivo', 'Tarjeta', 'Otro'];
 
     function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -6165,7 +6165,7 @@
         return '<tr data-id="' + c.id + '">' +
           '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
           '<td class="cbz-cli">' + clienteHtml(c) + '</td>' +
-          '<td>' + esc(ESTRATEGIA[c.estrategia] || c.estrategia) + '</td>' +
+          '<td>' + (c.estrategia ? esc(ESTRATEGIA[c.estrategia] || c.estrategia) : '<span style="color:var(--text-faint)" title="Las facturas de terceros no pertenecen a ninguna estrategia">—</span>') + '</td>' +
           '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + (c.tipo_factura ? '<span class="cbz-tipo">' + esc(c.tipo_factura) + '</span>' : '') + '</td>' +
           '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
           '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
@@ -6221,7 +6221,7 @@
       const cancelada = c.estatus === 'Cancelada';
       $('cbzDetTitulo').textContent = c.cliente;
       $('cbzDetSub').innerHTML = '<span class="cbz-estatus">' + esc(c.estatus) + '</span>' + semaforoHtml(c) +
-        '<span>' + esc(ESTRATEGIA[c.estrategia]) + '</span>' + (c.cotizacion_folio ? '<span>Cotización ' + esc(c.cotizacion_folio) + '</span>' : '<span>Alta manual</span>');
+        '<span>' + esc(c.estrategia ? ESTRATEGIA[c.estrategia] : 'Sin estrategia (tercero)') + '</span>' + (c.cotizacion_folio ? '<span>Cotización ' + esc(c.cotizacion_folio) + '</span>' : '<span>Alta manual</span>');
       const pagosHtml = c.pagos.length
         ? '<table class="cbz-pagos"><thead><tr><th>Fecha</th><th class="cbz-num">Monto</th><th>Método</th><th>Complemento</th><th></th></tr></thead><tbody>' +
           c.pagos.map((p) => '<tr class="' + (p.anulado ? 'anulado' : '') + '"><td>' + (p.fecha ? fmtFecha(p.fecha) : 'Sin fecha') + '</td><td class="cbz-num">' + dinero(p.monto) + '</td><td>' + esc(p.metodo || '—') +
@@ -6251,7 +6251,7 @@
         campoTxt('cbzDOC', 'ORDEN DE COMPRA', c.orden_compra, ' maxlength="60"') +
         campoFecha('cbzDInicio', 'INICIO DEL PLAZO', c.inicio_plazo) +
         campoNum('cbzDPlazo', 'PLAZO (DÍAS)', c.plazo_dias, ' step="1" max="365"') +
-        '<div class="radm-field"><label for="cbzDEstrategia">ESTRATEGIA</label><select id="cbzDEstrategia"><option value="empresas"' + (c.estrategia === 'empresas' ? ' selected' : '') + '>Cursos a empresas</option><option value="abiertos"' + (c.estrategia === 'abiertos' ? ' selected' : '') + '>Cursos abiertos</option></select></div>' +
+        '<div class="radm-field"><label for="cbzDEstrategia">ESTRATEGIA</label><select id="cbzDEstrategia"' + (esTercero(c) ? ' disabled title="Las facturas de terceros no pertenecen a ninguna estrategia"' : '') + '>' + (esTercero(c) ? '<option value="" selected>Sin estrategia</option>' : '') + '<option value="empresas"' + (c.estrategia === 'empresas' ? ' selected' : '') + '>Cursos In company</option><option value="abiertos"' + (c.estrategia === 'abiertos' ? ' selected' : '') + '>Cursos Abiertos</option></select></div>' +
         '<div class="radm-field"><label>VENCIMIENTO</label><input type="text" readonly value="' + (c.vencimiento ? fmtFecha(c.vencimiento) : 'Sin plazo (falta el inicio)') + '"></div>' +
         '</div><p class="radm-hint" style="margin:-4px 0 12px;">El vencimiento es el inicio del plazo más los días de plazo. En gobierno el plazo empieza con el contra-recibo, no con la fecha de la factura.</p>' +
         (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
@@ -6400,7 +6400,7 @@
       $('cbzNuevaCuerpo').innerHTML =
         '<div class="cbz-grid">' +
         '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '" data-tipo="' + esc(c.tipo_cliente) + '">' + esc(c.nombre) + (c.tipo_cliente === 'Tercero' ? ' (tercero)' : '') + '</option>').join('') + '</select><p class="radm-hint" style="margin:4px 0 0;">¿No está? Se da de alta primero en Clientes.</p></div>' +
-        '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos a empresas</option><option value="abiertos">Cursos abiertos</option></select></div>' +
+        '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos In company</option><option value="abiertos">Cursos Abiertos</option></select></div>' +
         '</div>' +
         '<div class="cbz-grid"><div class="radm-field"><label for="cbzNTipo">TIPO DE FACTURA</label><select id="cbzNTipo"><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro').map((t) => '<option>' + t + '</option>').join('') + '<option value="Otro" hidden>Otro</option></select></div>' +
         campoTxt('cbzNRazon', 'NOMBRE FISCAL', '', ' maxlength="200"') + campoTxt('cbzNRfc', 'RFC', '', ' maxlength="15"') + '</div>' +
@@ -6422,6 +6422,10 @@
         const opt = $('cbzNCliente').selectedOptions[0], tercero = !!opt && opt.dataset.tipo === 'Tercero';
         $('cbzNTipo').value = tercero ? 'Otro' : ($('cbzNTipo').value === 'Otro' ? '' : $('cbzNTipo').value);
         $('cbzNTipo').disabled = tercero;
+        // lo de terceros no es ingreso de Alfredo: no tiene estrategia
+        const est = $('cbzNEstrategia'); est.disabled = tercero;
+        if(tercero){ if(!est.querySelector('option[value=""]')) est.insertAdjacentHTML('afterbegin', '<option value="">Sin estrategia</option>'); est.value = ''; }
+        else { const v = est.querySelector('option[value=""]'); if(v) v.remove(); if(!est.value) est.value = 'empresas'; }
         if(!id){ g.innerHTML = '<option value="">Elige primero el cliente</option>'; g.disabled = true; return; }
         g.innerHTML = '<option value="">Sin grupo</option>'; g.disabled = false;
         try {

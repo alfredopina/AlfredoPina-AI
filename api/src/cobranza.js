@@ -71,13 +71,16 @@ function vencimientoDe(inicioPlazo, plazoDias) {
 }
 
 const totalPagado = (pagos) => centavos((pagos || []).filter((p) => !p.anulado).reduce((a, p) => a + Number(p.monto || 0), 0));
-const saldoDe = (total, pagos) => centavos(Number(total) - totalPagado(pagos));
+// Diferencias de hasta 5 centavos (redondeos de Facturama o del banco, p. ej. se pagó 45,759.98 de 45,760.00) cuentan como saldo cero: si no, la cuenta
+// se quedaba "Parcial" con $0.02 por cobrar para siempre.
+const TOLERANCIA_CENTAVOS = 0.05;
+const saldoDe = (total, pagos) => { const s = centavos(Number(total) - totalPagado(pagos)); return Math.abs(s) <= TOLERANCIA_CENTAVOS ? 0 : s; };
 
 // Cancelada manda; con pagos pasa a Parcial/Pagada; sin pagos vuelve a Facturada (si ya estaba facturada) o a Por facturar.
 function estatusDerivado({ estatusActual, total, pagos, tieneFactura }) {
   if (estatusActual === "Cancelada") return "Cancelada";
   const pagado = totalPagado(pagos);
-  if (pagado > 0) return pagado >= centavos(total) ? "Pagada" : "Parcial";
+  if (pagado > 0) return pagado + TOLERANCIA_CENTAVOS >= centavos(total) ? "Pagada" : "Parcial";
   return tieneFactura || estatusActual === "Facturada" || estatusActual === "Parcial" || estatusActual === "Pagada" ? "Facturada" : "Por facturar";
 }
 
@@ -87,7 +90,7 @@ function validarPago({ total, pagos, estatus }, { monto, fecha, metodo }) {
   if (estatus === "Cancelada") throw falla("Esa cuenta está cancelada: reábrela antes de registrar un pago.", 409);
   if (estatus === "Por facturar") throw falla("Primero marca la cuenta como Facturada (con su folio) antes de registrar un pago.", 409);
   const saldo = saldoDe(total, pagos);
-  if (centavos(m) > saldo) throw falla(`El pago excede el saldo (queda por cobrar ${saldo.toFixed(2)}).`, 409);
+  if (centavos(m) > saldo + TOLERANCIA_CENTAVOS) throw falla(`El pago excede el saldo (queda por cobrar ${saldo.toFixed(2)}).`, 409);
   if (fecha != null && fecha !== "" && !aFecha(fecha)) throw falla("La fecha del pago debe verse como 2026-10-22.");
   if (metodo && !METODOS.includes(metodo)) throw falla("Método de pago no válido.");
   return centavos(m);
@@ -161,5 +164,5 @@ module.exports = {
   resumir,
   IVA_TASA, TIPOS_FACTURA, retencionesDe, cuentaEnMetricas, ESTRATEGIAS, ESTATUS, ESTATUS_MANUALES, METODOS, PLAZO_DEFAULT, POR_VENCER_DEFAULT,
   falla, centavos, desglosarDesdeSubtotal, desglosarMonto, aFecha, diasEntre, vencimientoDe,
-  totalPagado, saldoDe, estatusDerivado, validarPago, validarDivision, semaforoDe, compararUrgencia,
+  TOLERANCIA_CENTAVOS, totalPagado, saldoDe, estatusDerivado, validarPago, validarDivision, semaforoDe, compararUrgencia,
 };

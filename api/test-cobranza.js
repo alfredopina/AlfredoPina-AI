@@ -87,11 +87,20 @@ check("Parcial / Pagada salen de los pagos; anular regresa a Facturada", () => {
   assert.strictEqual(e({ estatusActual: "Cancelada", pagos: [] }), "Cancelada");
   assert.strictEqual(C.estatusDerivado({ estatusActual: "Por facturar", total: 1000, pagos: [], tieneFactura: false }), "Por facturar");
 });
+check("diferencias de hasta 5 centavos cuentan como pagada (45,759.98 de 45,760.00)", () => {
+  const e = (total, p) => C.estatusDerivado({ estatusActual: "Facturada", total, pagos: pagos(...p), tieneFactura: true });
+  assert.strictEqual(e(45760, [45759.98]), "Pagada");
+  assert.strictEqual(C.saldoDe(45760, pagos(45759.98)), 0, "el saldo de 2 centavos se ve como cero");
+  assert.strictEqual(e(45760, [45759.94]), "Parcial", "6 centavos ya es un saldo real");
+  assert.strictEqual(C.saldoDe(45760, pagos(45759.94)), 0.06);
+  assert.strictEqual(C.validarPago({ total: 100, pagos: pagos(60), estatus: "Parcial" }, { monto: 40.03 }), 40.03, "un pago que se pasa por centavos se acepta");
+  assert.throws(() => C.validarPago({ total: 100, pagos: pagos(60), estatus: "Parcial" }, { monto: 40.06 }), /excede/);
+});
 check("el saldo se calcula y un pago no puede excederlo", () => {
   const cuenta = { total: 1000, pagos: pagos(400), estatus: "Parcial" };
   assert.strictEqual(C.saldoDe(1000, cuenta.pagos), 600);
   assert.strictEqual(C.validarPago(cuenta, { monto: 600 }), 600);
-  assert.throws(() => C.validarPago(cuenta, { monto: 600.01 }), /excede/);
+  assert.throws(() => C.validarPago(cuenta, { monto: 600.06 }), /excede/);
   assert.throws(() => C.validarPago(cuenta, { monto: 0 }), /mayor a cero/);
   assert.throws(() => C.validarPago({ ...cuenta, estatus: "Cancelada" }, { monto: 10 }), /cancelada/);
   assert.throws(() => C.validarPago({ ...cuenta, estatus: "Por facturar" }, { monto: 10 }), /Facturada/);
@@ -234,7 +243,8 @@ function fabrica(handler) {
     const r = await DB.crearCuentaManual(f.nuevaRequest, { cliente_id: 5, razon_social: "Taller Ejemplo SA", rfc_receptor: "XAXX010101000", concepto: "Mtto", subtotal: 10000 });
     assert.strictEqual(r.id, 90);
     const p = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
-    assert.strictEqual(p.tipo_factura, "Otro", "un cliente Tercero siempre queda como tipo Otro"); assert.strictEqual(p.razon_social, "Taller Ejemplo SA");
+    assert.strictEqual(p.tipo_factura, "Otro", "un cliente Tercero siempre queda como tipo Otro");
+    assert.strictEqual(p.estrategia, null, "lo de terceros no es ingreso de Alfredo: sin estrategia"); assert.strictEqual(p.razon_social, "Taller Ejemplo SA");
     assert.strictEqual(p.retencion_isr, 1000); assert.strictEqual(p.total, 9533.33);
     await rechaza(DB.crearCuentaManual(mk("Tercero").nuevaRequest, { cliente_id: 5, tipo_factura: "Empresa", concepto: "x", subtotal: 100 }), 400, /Tercero/);
     await rechaza(DB.crearCuentaManual(mk("Directo").nuevaRequest, { cliente_id: 3, tipo_factura: "Otro", concepto: "x", subtotal: 100 }), 400, /solo para clientes Tercero/);
@@ -244,6 +254,7 @@ function fabrica(handler) {
     const g = mk("Tercero");
     await DB.crearCuentaDeGrupo(g.nuevaRequest, { grupoId: 9, clienteId: 5, concepto: "Curso", monto: "" });
     assert.strictEqual(g.hubo("INSERT INTO CuentaPorCobrar")[0].params.tipo_factura, "Otro");
+    assert.strictEqual(g.hubo("INSERT INTO CuentaPorCobrar")[0].params.estrategia, null);
   });
   await checkAsync("eliminar: solo errores de captura (sin pagos y sin folio/UUID); lo demás se cancela", async () => {
     const mk = (cuenta, nPagos) => fabrica((q) => (q.includes("FROM CuentaPorCobrar WHERE id") ? [cuenta] : q.includes("COUNT(*) AS n FROM PagoCobranza") ? [{ n: nPagos }] : []));
@@ -262,6 +273,15 @@ function fabrica(handler) {
     assert.deepStrictEqual(await DB.actualizarNotas(f.nuevaRequest, 4, "  llamar el lunes  "), { notas: "llamar el lunes" });
     assert.strictEqual(f.hubo("UPDATE CuentaPorCobrar SET notas")[0].params.n, "llamar el lunes");
     assert.deepStrictEqual(await DB.actualizarNotas(f.nuevaRequest, 4, "   "), { notas: null });
+  });
+  await checkAsync("editar: una cuenta que pasa a Otro pierde la estrategia; una que deja de serlo vuelve a In company", async () => {
+    const mk = (cuenta, tipoCliente) => fabrica((q) => (q.includes("SELECT tipo_cliente FROM Cliente") ? [{ tipo_cliente: tipoCliente }] : q.includes("FROM CuentaPorCobrar WHERE id") ? [cuenta] : []));
+    const a = mk({ id: 1, cliente_id: 5, estatus: "Por facturar", subtotal: 100, iva: 16, total: 116, estrategia: "empresas", tipo_factura: null }, "Tercero");
+    await DB.editarCuenta(a.nuevaRequest, { id: 1, tipo_factura: "Otro" });
+    assert.strictEqual(a.hubo("UPDATE CuentaPorCobrar SET")[0].params.estrategia, null);
+    const b = mk({ id: 2, cliente_id: 3, estatus: "Por facturar", subtotal: 100, iva: 16, total: 116, estrategia: null, tipo_factura: "Otro" }, "Directo");
+    await DB.editarCuenta(b.nuevaRequest, { id: 2, tipo_factura: "Empresa" });
+    assert.strictEqual(b.hubo("UPDATE CuentaPorCobrar SET")[0].params.estrategia, "empresas");
   });
   await checkAsync("alta manual exige cliente, monto y plazo válido", async () => {
     const f = fabrica((t) => (t.includes("FROM Cliente") ? [{ id: 3 }] : t.includes("INSERT") ? [{ id: 1 }] : []));

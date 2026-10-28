@@ -18,7 +18,7 @@ let cuentas = [
   cuenta({ id: 4, cliente: 'Gamma SA', estatus: 'Por facturar', semaforo: sem('sin_plazo', null) }),
   cuenta({ id: 5, cliente: 'Delta SA', estatus: 'Pagada', folio_factura: '190', fecha_emision: '2026-08-01', saldo: 0, pagado: 11600, pagos: [pago(2, 11600, '2026-08-20')], semaforo: sem('cerrada', null) }),
   cuenta({ id: 6, cliente: 'Epsilon SA', estatus: 'Cancelada', semaforo: sem('cerrada', null) }),
-  cuenta({ id: 7, cliente: 'Taller Ejemplo SA', cliente_id: null, razon_social: 'Taller Ejemplo SA', tipo_factura: 'Otro', estatus: 'Facturada', folio_factura: '300', fecha_emision: '2026-09-02', inicio_plazo: '2026-09-02', vencimiento: '2026-10-02', semaforo: sem('vencida', 20) }),
+  cuenta({ id: 7, cliente: 'Taller Ejemplo SA', cliente_id: null, razon_social: 'Taller Ejemplo SA', tipo_factura: 'Otro', estrategia: null, estatus: 'Facturada', folio_factura: '300', fecha_emision: '2026-09-02', inicio_plazo: '2026-09-02', vencimiento: '2026-10-02', semaforo: sem('vencida', 20) }),
 ];
 const resumen = { por_cobrar: 30000.5, por_cobrar_n: 3, vencido: 11600, vencido_n: 1, por_vencer: 11600, por_vencer_n: 1, por_facturar: 11600, por_facturar_n: 1, cobrado: 15600, cobrado_n: 2, dias_promedio: 19, contando_desde: null, contando_hasta: null };
 const alertas = { total: 2, umbrales: { cobranzaPorVencerDias: 7 }, grupos: { solicitudes: [], cotizaciones: [], grupos: [], clientes: [], cobranza: [
@@ -121,6 +121,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('Pagadas: VERDE con ícono + texto', verde.classList.contains('pagada') && !!verde.querySelector('svg') && /Pagada/.test(verde.textContent));
   check('Pagadas: la columna cambia a Fecha de pago, con en cuántos días se cobró', /Fecha de pago/.test(txt('#cbzThVence')) && /20\/08\/2026/.test(txt('#cbzListaBody tr[data-id="5"]')) && /cobrada en 19 d/.test(txt('#cbzListaBody tr[data-id="5"]')), txt('#cbzListaBody tr[data-id="5"]'));
   await clic(q('#cbzVistas [data-vista="terceros"]'));
+  check('la factura de terceros no muestra estrategia (—)', /—/.test(txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)')) && !/Cursos/.test(txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)')), txt('#cbzListaBody tr[data-id="7"] td:nth-child(3)'));
   check('Terceros lista solo la de terceros, con su tipo', qa('#cbzListaBody tr[data-id]').length === 1 && /Otro/.test(txt('#cbzListaBody tr[data-id="7"]')));
   await clic(q('#cbzVistas [data-vista="todo"]'));
   check('Todo lista las 7', qa('#cbzListaBody tr[data-id]').length === 7);
@@ -239,6 +240,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)') && HTML.includes('id="gruToggleCobro"'));
   await clic(q('#cbzCrearBtn')); await pausa(100); llamadas.length = 0;
   poner('cbzNCliente', '9'); d.getElementById('cbzNCliente').dispatchEvent(new w.Event('change', { bubbles: true })); await pausa(50);
+  check('al elegir un cliente Tercero la estrategia queda en "Sin estrategia" y bloqueada', valorDe('cbzNEstrategia') === '' && d.getElementById('cbzNEstrategia').disabled);
   check('al elegir un cliente Tercero el tipo de factura se pone solo en Otro y se bloquea', valorDe('cbzNTipo') === 'Otro' && d.getElementById('cbzNTipo').disabled);
   poner('cbzNRazon', 'Taller Ejemplo SA'); poner('cbzNRfc', 'XAXX010101000'); poner('cbzNConcepto', 'Mtto'); poner('cbzNModo', 'subtotal'); poner('cbzNMonto', '10000');
   await clic(q('#cbzNGuardar'));

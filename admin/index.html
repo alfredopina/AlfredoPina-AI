@@ -1764,8 +1764,27 @@
   .cbz-tabla .cot-icon-btn{ width:28px; height:28px; }
   .cbz-tabla .cot-row-actions{ gap:4px; }
   .cbz-tabla .cbz-sem{ padding:3px 8px; gap:5px; }
-  .cbz-tabla td.cbz-conc{ width:100%; max-width:0; min-width:110px; }
-  .cbz-conc span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cbz-tabla td.cbz-conc{ width:100%; max-width:0; min-width:110px; white-space:normal; }
+  .cbz-conc span{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:1.3; word-break:break-word; }
+  .cbz-est{ display:inline-block; font-family:var(--mono); font-size:11px; border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; color:var(--text-dim); }
+  .cbz-est.e-por-facturar{ color:var(--blue-bright); border-color:var(--blue-bright); }
+  .cbz-est.e-pagada{ color:var(--good); border-color:var(--good); }
+  .cbz-est.e-cancelada{ color:var(--text-faint); border-style:dashed; }
+  .cbz-grid[hidden]{ display:none; }
+  /* panel Desglose: lo CALCULADO (no se edita) va aparte del formulario, con otro fondo y borde punteado */
+  .cbz-desglose{ background-color:rgba(61,127,255,.06); border:1px dashed rgba(107,159,255,.5); border-radius:12px; padding:12px 16px 10px; margin-bottom:18px; }
+  .cbz-desg-cab{ display:flex; justify-content:space-between; align-items:baseline; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
+  .cbz-desg-cab i{ font-style:normal; letter-spacing:.02em; text-transform:none; }
+  .cbz-desg-fila{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:6px 12px; }
+  .cbz-desg-pie{ margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); gap:6px 28px; }
+  .cbz-d small{ display:block; font-size:10px; letter-spacing:.06em; color:var(--text-faint); margin-bottom:2px; }
+  .cbz-d b{ font-family:var(--display); font-size:15px; font-variant-numeric:tabular-nums; font-weight:600; }
+  .cbz-d.sub b{ font-size:20px; color:var(--blue-bright); }
+  .cbz-d.tot b{ font-size:20px; }
+  .cbz-d.cero b{ color:var(--text-faint); font-weight:500; }
+  .cbz-d.saldo b{ font-size:17px; }
+  .cbz-d-op{ font-family:var(--mono); font-size:15px; color:var(--text-faint); padding-bottom:2px; }
+  .cbz-ajuste-wrap .radm-btn{ margin-top:18px; width:100%; }
   .cbz-tabla .sol-acciones{ flex-wrap:nowrap; }
   .cbz-tabla tfoot td{ border-top:1px solid var(--line); padding-top:12px; font-size:12.5px; }
   .cbz-pie-txt{ color:var(--text-faint); font-family:var(--mono); font-size:11px!important; }
@@ -4238,12 +4257,13 @@
                 <th data-sort="concepto">Concepto<span class="th-sort-ico"></span></th>
                 <th data-sort="total" class="cbz-num">Total<span class="th-sort-ico"></span></th>
                 <th data-sort="vence" id="cbzThVence"><span class="cbz-th-txt">Vencimiento</span><span class="th-sort-ico"></span></th>
-                <th>Semáforo</th>
+                <th data-sort="estatus" title="En qué punto del proceso va la cuenta">Estatus<span class="th-sort-ico"></span></th>
+                <th data-sort="sem" title="Cuántos días lleva o le faltan: lo más urgente primero">Semáforo<span class="th-sort-ico"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="cbzListaBody">
-              <tr><td colspan="8" class="radm-empty-row">Cargando...</td></tr>
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
             </tbody>
             <tfoot id="cbzPie"></tfoot>
           </table>
@@ -6167,18 +6187,20 @@
     }
     function semNuevo(c){
       const s = c.semaforo || { clave: 'cerrada' };
-      let clave, texto;
-      if(c.estatus === 'Cancelada'){ clave = 'cerrada'; texto = 'Cancelada'; }
-      else if(c.estatus === 'Pagada'){ clave = 'pagada'; texto = 'Pagada'; }
-      else if(c.estatus === 'Por facturar'){ clave = 'sin_plazo'; texto = 'Por facturar'; }
-      else if(s.clave === 'vencida'){ clave = 'vencida'; texto = 'Vencida ' + s.dias + ' d'; }
-      else if(s.clave === 'por_vencer'){ clave = 'por_vencer'; texto = s.dias === 0 ? 'Vence hoy' : 'Vence en ' + s.dias + ' d'; }
-      else if(s.clave === 'al_corriente'){ clave = 'en_plazo'; texto = 'En plazo'; }
-      else { clave = 'sin_plazo'; texto = 'Sin plazo'; }
       const e = diasDesde(c.fecha_emision), cr = diasDesde(String(c.fecha_creacion || '').slice(0, 10));
-      const sub = c.estatus === 'Por facturar' ? (cr == null ? '' : 'Creada ' + cr + ' d') : (e == null ? 'Sin emisión' : 'Emitida ' + e + ' d');
-      return { clave, texto, sub };
+      const emitida = e == null ? 'Sin emisión' : 'Emitida ' + e + ' d';
+      if(c.estatus === 'Cancelada') return { clave: 'cerrada', texto: '—', sub: '' };
+      if(c.estatus === 'Pagada'){
+        const f = ultimoPago(c), n = f && c.fecha_emision ? diasDesde(c.fecha_emision) - diasDesde(f) : null;
+        return { clave: 'pagada', texto: n != null && n >= 0 ? 'Cobrada en ' + n + ' d' : 'Cobrada', sub: f ? 'Pagó ' + fmtFecha(f) : '' };
+      }
+      if(c.estatus === 'Por facturar') return { clave: 'sin_plazo', texto: cr == null ? 'Por facturar' : (cr === 0 ? 'Creada hoy' : cr + ' d sin facturar'), sub: '' };
+      if(s.clave === 'vencida') return { clave: 'vencida', texto: 'Vencida hace ' + s.dias + ' d', sub: emitida };
+      if(s.clave === 'por_vencer') return { clave: 'por_vencer', texto: s.dias === 0 ? 'Vence hoy' : 'Vence en ' + s.dias + ' d', sub: emitida };
+      if(s.clave === 'al_corriente') return { clave: 'en_plazo', texto: s.dias == null ? 'En plazo' : 'Faltan ' + s.dias + ' d', sub: emitida };
+      return { clave: 'sin_plazo', texto: 'Sin plazo', sub: emitida };
     }
+    const estatusHtml = (c) => '<span class="cbz-est e-' + String(c.estatus).toLowerCase().replace(/\s+/g, '-') + '">' + esc(c.estatus) + '</span>';
     const ICO_SEM = Object.assign({ pagada: ICO.al_corriente, en_plazo: ICO.por_vencer });
     function semaforoHtml(c){
       const m = semNuevo(c);
@@ -6227,10 +6249,7 @@
       return f.length ? f[f.length - 1] : null;
     }
     function venceHtml(c){
-      if(vista === 'pagadas'){
-        const f = ultimoPago(c), n = f && c.fecha_emision ? Math.round((Date.UTC(...f.split('-').map((x, i) => i === 1 ? x - 1 : +x)) - Date.UTC(...c.fecha_emision.split('-').map((x, i) => i === 1 ? x - 1 : +x))) / 86400000) : null;
-        return f ? fmtFecha(f) + (n != null && n >= 0 ? '<span class="cbz-sub">cobrada en ' + n + ' d</span>' : '') : '<span style="color:var(--text-faint)">Sin fecha</span>';
-      }
+      if(vista === 'pagadas'){ const f = ultimoPago(c); return f ? fmtFecha(f) : '<span style="color:var(--text-faint)">Sin fecha</span>'; }
       return c.vencimiento ? fmtFecha(c.vencimiento) : '<span style="color:var(--text-faint)">—</span>';
     }
     function filtradas(){
@@ -6242,7 +6261,10 @@
     const CLAVES_ORDEN = {
       creada: (c) => c.fecha_creacion || '', cliente: (c) => norm(c.razon_social || c.cliente), estrategia: (c) => c.estrategia,
       folio: (c) => Number(c.folio_factura) || norm(c.folio_factura), concepto: (c) => norm(c.concepto), total: (c) => c.total,
-      vence: (c) => (vista === 'pagadas' ? ultimoPago(c) : c.vencimiento) || '9999', estatus: (c) => c.estatus,
+      vence: (c) => (vista === 'pagadas' ? ultimoPago(c) : c.vencimiento) || '9999',
+      estatus: (c) => ['Por facturar', 'Facturada', 'Parcial', 'Pagada', 'Cancelada'].indexOf(c.estatus),
+      // vencidas (la más atrasada primero) · por facturar (la que lleva más días primero) · lo que falta para vencer · sin plazo · pagadas · canceladas
+      sem: (c) => { const s = c.semaforo || {}; if(c.estatus === 'Cancelada') return 2e6; if(c.estatus === 'Pagada') return 1e6; if(c.estatus === 'Por facturar') return -(diasDesde(String(c.fecha_creacion || '').slice(0, 10)) || 0); if(s.clave === 'vencida') return -1000 - (s.dias || 0); return (s.clave === 'por_vencer' || s.clave === 'al_corriente') && s.dias != null ? s.dias : 5e5; },
     };
     function pintarLista(){
       const base = filtradas();
@@ -6267,7 +6289,7 @@
       $('cbzResultado').textContent = filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas');
       const body = $('cbzListaBody');
       if(!filas.length){
-        body.innerHTML = '<tr><td colspan="8" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="radm-empty-row">' + (cargando ? 'Cargando...' : 'No hay cuentas en esta vista.') + '</td></tr>';
         $('cbzPie').innerHTML = '';
         return;
       }
@@ -6281,6 +6303,7 @@
           '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
           '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
           '<td>' + venceHtml(c) + '</td>' +
+          '<td>' + estatusHtml(c) + '</td>' +
           '<td>' + semaforoHtml(c) + '</td>' +
           '<td><div class="cot-row-actions sol-acciones">' +
             ((c.estatus === 'Facturada' || c.estatus === 'Parcial') ? '<button type="button" class="cot-icon-btn cbz-acc-texto cbz-acc-pago" data-id="' + c.id + '" title="Registrar un pago de esta factura" aria-label="Registrar pago">' + ICO_ACC.pago + 'Cobrar</button>' : '') +
@@ -6293,7 +6316,7 @@
       const sumT = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.total, 0);
       const sumS = filas.filter((c) => c.estatus !== 'Cancelada').reduce((a, c) => a + c.saldo, 0);
       $('cbzPie').innerHTML = '<tr><td colspan="4" class="cbz-pie-txt">' + filas.length + (filas.length === 1 ? ' cuenta' : ' cuentas') + ' en esta vista' + (filas.some((c) => c.estatus === 'Cancelada') ? ' · las canceladas no suman' : '') + '</td>' +
-        '<td class="cbz-num"><b>' + dinero(sumT) + '</b><span class="cbz-sub">Total</span></td><td colspan="3"><b>' + dinero(sumS) + '</b><span class="cbz-sub" style="display:inline;margin-left:8px;">Saldo por cobrar</span></td></tr>';
+        '<td class="cbz-num"><b>' + dinero(sumT) + '</b><span class="cbz-sub">Total</span></td><td colspan="4"><b>' + dinero(sumS) + '</b><span class="cbz-sub" style="display:inline;margin-left:8px;">Saldo por cobrar</span></td></tr>';
     }
 
     // ── Línea de cobros ──
@@ -6492,6 +6515,23 @@
       return '<div class="radm-field"><label for="' + id + '">' + etiqueta + '</label><input type="date" id="' + id + '" value="' + esc(valor || '') + '"></div>';
     }
 
+    const r2c = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
+    // Lo calculado (subtotal + IVA − retenciones = total) va en un panel aparte y de otro color: no es editable. pagado === null = sin renglón de pagos (alta manual).
+    function desgloseHtml(d, pagado, saldoFijo){
+      const tot = r2c(d.subtotal + d.iva - d.isr - d.riva);
+      const saldo = saldoFijo != null ? saldoFijo : Math.max(0, r2c(tot - (pagado || 0)));
+      const it = (et, v, cls) => '<div class="cbz-d ' + (cls || '') + '"><small>' + et + '</small><b>' + dinero(v) + '</b></div>';
+      const op = (t) => '<span class="cbz-d-op" aria-hidden="true">' + t + '</span>';
+      return '<div class="cbz-desg-cab"><span>DESGLOSE</span><i>se calcula solo · no se edita aquí</i></div>' +
+        '<div class="cbz-desg-fila">' + it('SUBTOTAL', d.subtotal, 'sub') + op('+') + it('IVA', d.iva) + op('−') + it('RET. ISR', d.isr, d.isr ? '' : 'cero') + op('−') + it('RET. IVA', d.riva, d.riva ? '' : 'cero') + op('=') + it('TOTAL A COBRAR', tot, 'tot') + '</div>' +
+        (pagado == null ? '' : '<div class="cbz-desg-fila cbz-desg-pie">' + it('PAGADO', pagado) + it('SALDO', saldo, 'saldo') + '</div>');
+    }
+    let desg = null; // desglose en pantalla de la cuenta abierta: se recalcula al teclear el subtotal o cambiar el tipo
+    function pintarDesglose(){
+      const c = cuentas.find((x) => x.id === abiertaId), el = $('cbzDesglose');
+      if(!c || !el || !desg) return;
+      el.innerHTML = desgloseHtml(desg, c.pagado, c.pagado > 0 || c.estatus === 'Cancelada' ? (c.estatus === 'Cancelada' ? 0 : c.saldo) : null);
+    }
     function pintarDetalle(){
       const c = cuentas.find((x) => x.id === abiertaId);
       if(!c){ $('cbzDetalle').hidden = true; return; }
@@ -6508,15 +6548,9 @@
           '</tbody></table>'
         : '<p class="cbz-aviso">Todavía no hay pagos registrados.</p>';
       const puedePagar = c.estatus === 'Facturada' || c.estatus === 'Parcial';
+      desg = { subtotal: Number(c.subtotal) || 0, iva: Number(c.iva) || 0, isr: Number(c.retencion_isr) || 0, riva: Number(c.retencion_iva) || 0 };
       $('cbzDetCuerpo').innerHTML =
-        '<div class="cbz-montos">' +
-        '<div class="cbz-monto"><small>SUBTOTAL</small><b>' + dinero(c.subtotal) + '</b></div>' +
-        '<div class="cbz-monto"><small>IVA</small><b>' + dinero(c.iva) + '</b></div>' +
-        ((c.retencion_isr || c.retencion_iva) ? '<div class="cbz-monto"><small>RETENCIONES</small><b>−' + dinero((c.retencion_isr || 0) + (c.retencion_iva || 0)) + '</b></div>' : '') +
-        '<div class="cbz-monto"><small>TOTAL A COBRAR</small><b>' + dinero(c.total) + '</b></div>' +
-        '<div class="cbz-monto"><small>PAGADO</small><b>' + dinero(c.pagado) + '</b></div>' +
-        '<div class="cbz-monto"><small>SALDO</small><b>' + dinero(cancelada ? 0 : c.saldo) + '</b></div>' +
-        '</div>' +
+        '<div class="cbz-desglose" id="cbzDesglose"></div>' +
         '<div class="cbz-seccion">FACTURA Y PLAZO</div>' +
         '<div class="cbz-grid">' +
         '<div class="radm-field"><label for="cbzDTipo">TIPO DE FACTURA</label><select id="cbzDTipo"' + (esTercero(c) ? ' disabled title="Es de un cliente Tercero: siempre tipo Otro"' : '') + '><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro' || esTercero(c)).map((t) => '<option' + (c.tipo_factura === t ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
@@ -6533,9 +6567,10 @@
         '<div class="radm-field"><label>VENCIMIENTO</label><input type="text" readonly value="' + (c.vencimiento ? fmtFecha(c.vencimiento) : 'Sin plazo (falta el inicio)') + '"></div>' +
         '</div><p class="radm-hint" style="margin:-4px 0 12px;">El vencimiento es el inicio del plazo más los días de plazo. En gobierno el plazo empieza con el contra-recibo, no con la fecha de la factura.</p>' +
         (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
-          : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) + campoNum('cbzDIva', 'IVA', c.iva) +
-            campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>' +
-            '<p class="radm-hint" style="margin:-4px 0 12px;">Total a cobrar = subtotal + IVA − retenciones. Al elegir el tipo de factura (Empresa, Gobierno, Anterior u Otro) las retenciones se calculan solas; puedes ajustarlas.</p>') +
+          : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) +
+            '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" data-det="ajuste" title="Solo para centavos o casos raros: abre el IVA y las retenciones">Ajustar impuestos a mano</button></div></div>' +
+            '<div class="cbz-grid" id="cbzAjuste" hidden>' + campoNum('cbzDIva', 'IVA', c.iva) + campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>' +
+            '<p class="radm-hint" style="margin:-4px 0 12px;">Solo capturas el subtotal: el IVA y las retenciones salen del tipo de factura (Empresa, Gobierno, Anterior u Otro) y el desglose de arriba se actualiza al momento.</p>') +
         (esTercero(c) ? '<p class="cbz-aviso">Factura por cuenta de terceros: se guarda completa para el contador y no cuenta en las métricas ni en las alertas.</p>' : '') +
         '<div class="radm-field" style="margin-bottom:12px;"><label for="cbzDNotas">NOTAS</label><textarea id="cbzDNotas" rows="2" maxlength="4000">' + esc(c.notas || '') + '</textarea></div>' +
         '<div class="cbz-acciones">' +
@@ -6556,6 +6591,7 @@
             campoTxt('cbzPUuid', 'UUID DEL COMPLEMENTO', '', ' maxlength="40"') +
             '</div><div class="cbz-acciones"><button type="button" class="radm-btn" data-det="pago">Registrar pago</button></div><p class="cbz-error" id="cbzPError" hidden></p>'
           : (c.estatus === 'Por facturar' ? '<p class="cbz-aviso">Para registrar un pago, primero captura el folio de la factura (o márcala como facturada).</p>' : ''));
+      pintarDesglose();
     }
 
     function abrirDetalle(id){
@@ -6607,12 +6643,20 @@
       agregar(mitad, ''); agregar(Math.round((c.total - mitad) * 100) / 100, '');
     }
 
-    $('cbzDetalle').addEventListener('change', (e) => {
-      if(e.target.id !== 'cbzDTipo' && e.target.id !== 'cbzDSubtotal') return;
-      if(!$('cbzDSubtotal')) return; // con pagos el monto no se edita
-      const tipo = valor('cbzDTipo'), r = retencionesDe(valor('cbzDSubtotal'), tipo);
-      $('cbzDIva').value = r.iva; $('cbzDRetIsr').value = r.isr; $('cbzDRetIva').value = r.riva;
-    });
+    const alCambiarMonto = (e) => {
+      const id = e.target.id;
+      if(!$('cbzDSubtotal') || !desg) return; // con pagos el monto no se edita
+      if(id === 'cbzDTipo' || id === 'cbzDSubtotal'){
+        const sub = Number(valor('cbzDSubtotal')) || 0, r = retencionesDe(sub, valor('cbzDTipo'));
+        desg = { subtotal: sub, iva: r.iva, isr: r.isr, riva: r.riva };
+        if(!$('cbzAjuste').hidden){ $('cbzDIva').value = r.iva; $('cbzDRetIsr').value = r.isr; $('cbzDRetIva').value = r.riva; }
+      } else if(id === 'cbzDIva' || id === 'cbzDRetIsr' || id === 'cbzDRetIva'){
+        desg = { subtotal: desg.subtotal, iva: Number(valor('cbzDIva')) || 0, isr: Number(valor('cbzDRetIsr')) || 0, riva: Number(valor('cbzDRetIva')) || 0 };
+      } else return;
+      pintarDesglose();
+    };
+    $('cbzDetalle').addEventListener('input', alCambiarMonto);
+    $('cbzDetalle').addEventListener('change', alCambiarMonto);
     $('cbzDetalle').addEventListener('click', async (e) => {
       if(e.target === $('cbzDetalle')){ cerrarDetalle(); return; }
       const c = cuentas.find((x) => x.id === abiertaId);
@@ -6643,12 +6687,18 @@
       const acc = e.target.closest('[data-det]');
       if(!acc) return;
       const que = acc.dataset.det;
+      if(que === 'ajuste'){
+        const aj = $('cbzAjuste'); aj.hidden = !aj.hidden;
+        if(!aj.hidden){ $('cbzDIva').value = desg.iva; $('cbzDRetIsr').value = desg.isr; $('cbzDRetIva').value = desg.riva; }
+        acc.textContent = aj.hidden ? 'Ajustar impuestos a mano' : 'Ocultar ajuste manual';
+        return;
+      }
       if(que === 'guardar'){
         const datos = {
           id: c.id, tipo_factura: esTercero(c) ? 'Otro' : valor('cbzDTipo'), razon_social: valor('cbzDRazon'), rfc_receptor: valor('cbzDRfc'), concepto: valor('cbzDConcepto'), folio_factura: valor('cbzDFolio'), uuid_factura: valor('cbzDUuid'), fecha_emision: valor('cbzDEmision'),
           orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), plazo_dias: valor('cbzDPlazo'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
         };
-        if($('cbzDSubtotal')){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = valor('cbzDIva'); datos.retencion_isr = valor('cbzDRetIsr'); datos.retencion_iva = valor('cbzDRetIva'); }
+        if($('cbzDSubtotal') && desg){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = desg.iva; datos.retencion_isr = desg.isr; datos.retencion_iva = desg.riva; }
         await guardarYRefrescar('/api/editarCuentaCobrar', datos, 'Cuenta guardada.', 'cbzDError');
       } else if(que === 'facturada'){
         await guardarYRefrescar('/api/cambiarEstatusCuentaCobrar', { id: c.id, estatus: 'Facturada' }, 'Cuenta marcada como facturada.', 'cbzDError');
@@ -6684,15 +6734,37 @@
         campoTxt('cbzNRazon', 'NOMBRE FISCAL', '', ' maxlength="200"') + campoTxt('cbzNRfc', 'RFC', '', ' maxlength="15"') + '</div>' +
         '<div class="cbz-grid"><div class="radm-field"><label for="cbzNGrupo">GRUPO (OPCIONAL)</label><select id="cbzNGrupo" disabled><option value="">Elige primero el cliente</option></select></div></div>' +
         '<div class="cbz-grid">' + campoTxt('cbzNConcepto', 'CONCEPTO', '', ' maxlength="300" placeholder="Qué se cobra"') +
-        '<div class="radm-field"><label for="cbzNModo">EL MONTO ES</label><select id="cbzNModo"><option value="subtotal">Subtotal, sin IVA (se suma 16 %)</option><option value="total">Total a cobrar (ya con IVA y retenciones)</option></select></div>' +
-        campoNum('cbzNMonto', 'MONTO', '') + '</div>' +
-        '<div class="cbz-grid">' + campoNum('cbzNRetIsr', 'RETENCIÓN DE ISR (OPCIONAL)', '') + campoNum('cbzNRetIva', 'RETENCIÓN DE IVA (OPCIONAL)', '') + '</div>' +
-        '<p class="radm-hint" style="margin:-4px 0 12px;">Las retenciones aplican cuando el monto es subtotal: el total a cobrar es subtotal + IVA − retenciones. Si capturas el total, ya debe venir neto.</p>' +
+        campoNum('cbzNMonto', 'SUBTOTAL (SIN IVA)', '') +
+        '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" id="cbzNAjusteBtn" title="Solo para centavos o casos raros: abre las retenciones">Ajustar retenciones a mano</button></div></div>' +
+        '<div class="cbz-grid" id="cbzNAjuste" hidden>' + campoNum('cbzNRetIsr', 'RETENCIÓN DE ISR', '') + campoNum('cbzNRetIva', 'RETENCIÓN DE IVA', '') + '</div>' +
+        '<div class="cbz-desglose" id="cbzNDesglose"></div>' +
+        '<p class="radm-hint" style="margin:-4px 0 12px;">Solo capturas el subtotal: el IVA y las retenciones salen del tipo de factura y el desglose se actualiza al momento.</p>' +
         '<div class="cbz-grid">' + campoTxt('cbzNFolio', 'FOLIO DE LA FACTURA (SI YA EXISTE)', '', ' maxlength="40"') + campoTxt('cbzNUuid', 'UUID DE LA FACTURA', '', ' maxlength="40"') +
         campoFecha('cbzNEmision', 'FECHA DE EMISIÓN', '') + campoTxt('cbzNOC', 'ORDEN DE COMPRA', '', ' maxlength="60"') +
         campoFecha('cbzNInicio', 'INICIO DEL PLAZO', '') + campoNum('cbzNPlazo', 'PLAZO (DÍAS)', 30, ' step="1" max="365"') + '</div>' +
         '<p class="cbz-error" id="cbzNError" hidden></p>' +
         '<div class="cbz-acciones"><button type="button" class="radm-btn" id="cbzNGuardar">Crear cuenta</button><button type="button" class="radm-btn radm-btn-ghost" id="cbzNCancelar">Cancelar</button></div>';
+      // desglose en vivo del alta: subtotal + tipo → IVA y retenciones (o las que se ajusten a mano)
+      const ndesg = () => {
+        const sub = Number(valor('cbzNMonto')) || 0, r = retencionesDe(sub, valor('cbzNTipo'));
+        if($('cbzNAjuste').hidden) return { subtotal: sub, iva: r.iva, isr: r.isr, riva: r.riva };
+        return { subtotal: sub, iva: r.iva, isr: Number(valor('cbzNRetIsr')) || 0, riva: Number(valor('cbzNRetIva')) || 0 };
+      };
+      const pintarNDesglose = () => { $('cbzNDesglose').innerHTML = desgloseHtml(ndesg(), null); };
+      $('cbzNuevaCuerpo').oninput = (e) => {
+        if(e.target.id === 'cbzNMonto' || e.target.id === 'cbzNTipo'){
+          if(!$('cbzNAjuste').hidden){ const r = retencionesDe(Number(valor('cbzNMonto')) || 0, valor('cbzNTipo')); $('cbzNRetIsr').value = r.isr; $('cbzNRetIva').value = r.riva; }
+          pintarNDesglose();
+        } else if(e.target.id === 'cbzNRetIsr' || e.target.id === 'cbzNRetIva') pintarNDesglose();
+      };
+      $('cbzNuevaCuerpo').onchange = (e) => { if(e.target.id === 'cbzNTipo') $('cbzNuevaCuerpo').oninput(e); };
+      $('cbzNAjusteBtn').addEventListener('click', () => {
+        const aj = $('cbzNAjuste'); aj.hidden = !aj.hidden;
+        if(!aj.hidden){ const d = ndesg(); $('cbzNRetIsr').value = d.isr; $('cbzNRetIva').value = d.riva; }
+        $('cbzNAjusteBtn').textContent = aj.hidden ? 'Ajustar retenciones a mano' : 'Ocultar ajuste manual';
+        pintarNDesglose();
+      });
+      pintarNDesglose();
       // al elegir cliente se ofrecen sus grupos, para ligar la cuenta a uno que ya existe
       $('cbzNCliente').addEventListener('change', async () => {
         const g = $('cbzNGrupo'), id = valor('cbzNCliente');
@@ -6700,6 +6772,7 @@
         const opt = $('cbzNCliente').selectedOptions[0], tercero = !!opt && opt.dataset.tipo === 'Tercero';
         $('cbzNTipo').value = tercero ? 'Otro' : ($('cbzNTipo').value === 'Otro' ? '' : $('cbzNTipo').value);
         $('cbzNTipo').disabled = tercero;
+        pintarNDesglose();
         // lo de terceros no es ingreso de Alfredo: no tiene estrategia
         const est = $('cbzNEstrategia'); est.disabled = tercero;
         if(tercero){ if(!est.querySelector('option[value=""]')) est.insertAdjacentHTML('afterbegin', '<option value="">Sin estrategia</option>'); est.value = ''; }
@@ -6723,8 +6796,8 @@
           inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'), grupo_id: valor('cbzNGrupo') || null,
           tipo_factura: valor('cbzNTipo'), razon_social: valor('cbzNRazon'), rfc_receptor: valor('cbzNRfc'),
         };
-        datos[valor('cbzNModo')] = monto;
-        if(valor('cbzNModo') === 'subtotal'){ datos.retencion_isr = valor('cbzNRetIsr'); datos.retencion_iva = valor('cbzNRetIva'); }
+        const d = ndesg();
+        datos.subtotal = monto; datos.retencion_isr = d.isr; datos.retencion_iva = d.riva;
         errorEn('cbzNError', '');
         try {
           await apiPostJson('/api/crearCuentaCobrar', datos);
@@ -6776,14 +6849,14 @@
       const fila = (clave, texto, ico, dice) => '<div class="cli-info-semaforo-row"><span class="cbz-sem ' + clave + '">' + ico + '<span class="cbz-sem-txt">' + texto + '</span></span><span>' + dice + '</span></div>';
       pop.innerHTML = '<div class="cli-info-pop-title">Semáforo de Cobranza</div>' +
         '<ol class="cli-info-steps">' +
-        '<li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Mira el vencimiento, no solo la fecha de factura</strong><span class="cli-info-step-sub">Vencimiento = inicio del plazo (en Gobierno, el contra-recibo) + días de plazo. Debajo de cada estado se ve cuántos días lleva emitida.</span></div></li>' +
+        '<li class="cli-info-step"><span class="cli-info-step-num">1</span><div class="cli-info-step-body"><strong>Mira el vencimiento, no solo la fecha de factura</strong><span class="cli-info-step-sub">Vencimiento = inicio del plazo (en Gobierno, el contra-recibo) + días de plazo. El Estatus va en su propia columna; el Semáforo cuenta los días: cuánto llevas sin facturar, cuánto falta para vencer, cuánto lleva vencida o en cuántos días se cobró.</span></div></li>' +
         '<li class="cli-info-step cli-info-step--danger"><span class="cli-info-step-num">!</span><div class="cli-info-step-body"><strong>Rojo y ámbar llegan a Alertas</strong><span class="cli-info-step-sub">También una cuenta "Por facturar" que lleva varios días sin factura. Las facturas de terceros no cuentan.</span></div></li>' +
         '</ol><div class="cli-info-pop-foot"><div class="cli-info-pop-foot-title">Semáforo — los días se editan en Configuración → Alertas</div><div class="cli-info-semaforo-legend">' +
-        fila('pagada', 'Pagada', ICO.al_corriente, 'ya se cobró completa') +
-        fila('en_plazo', 'En plazo', ICO.por_vencer, 'no está pagada y faltan más de ' + u + ' días') +
-        fila('por_vencer', 'Por vencer', ICO.por_vencer, 'no está pagada y faltan ' + u + ' días o menos') +
-        fila('vencida', 'Vencida', ICO.vencida, 'ya pasó el vencimiento y no está pagada') +
-        fila('sin_plazo', 'Sin plazo', ICO.sin_plazo, 'falta el inicio del plazo (contra-recibo) o aún no se factura') +
+        fila('pagada', 'Cobrada en N d', ICO.al_corriente, 'ya se cobró completa; cuenta los días de la emisión al pago') +
+        fila('en_plazo', 'Faltan N d', ICO.por_vencer, 'no está pagada y faltan más de ' + u + ' días') +
+        fila('por_vencer', 'Vence en N d', ICO.por_vencer, 'no está pagada y faltan ' + u + ' días o menos') +
+        fila('vencida', 'Vencida hace N d', ICO.vencida, 'ya pasó el vencimiento y no está pagada') +
+        fila('sin_plazo', 'N d sin facturar · Sin plazo', ICO.sin_plazo, 'aún no se factura (cuenta los días desde que se creó) o falta el inicio del plazo (contra-recibo)') +
         '</div></div>';
     }
     (function(){

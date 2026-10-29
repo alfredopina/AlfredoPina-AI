@@ -287,6 +287,74 @@
   .dkpi-value{ font-family:var(--display); font-weight:700; font-size:34px; color:var(--text); line-height:1; }
   .dkpi-label{ font-family:var(--body); font-size:12.5px; color:var(--text-dim); }
 
+  /* ── Dashboard → Resumen: 25 tarjetas de los 5 Trackings, filtros fijos arriba ── */
+  .rs-filtros{ border:1px solid var(--line); border-radius:12px; background-color:var(--panel); padding:14px 16px; margin-bottom:6px; position:sticky; top:0; z-index:5; }
+  .rs-frow{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+  .rs-fl{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .rs-fl label{ font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--text-faint); }
+  .rs-sel{
+    height:34px; min-width:168px; padding:0 10px; border:1px solid var(--line); border-radius:8px; background-color:var(--panel-2);
+    color:var(--text); font-family:var(--body); font-size:12.5px; font-weight:500; cursor:pointer;
+  }
+  .rs-sel.act{ border-color:var(--blue-bright); background-color:var(--blue-soft); color:var(--blue-bright); }
+  .rs-sp{ flex:1; }
+  .rs-btn{
+    height:34px; display:inline-flex; align-items:center; gap:7px; padding:0 12px; border:1px solid var(--line); border-radius:8px;
+    background-color:transparent; color:var(--text-dim); font-family:var(--body); font-size:12.5px; cursor:pointer;
+  }
+  .rs-btn:hover{ color:var(--text); border-color:var(--blue-bright); }
+  .rs-btn svg{ width:14px; height:14px; flex:none; }
+  .rs-nota{ margin:10px 0 0; font-size:11.5px; color:var(--text-faint); display:flex; align-items:flex-start; gap:7px; line-height:1.5; }
+  .rs-nota svg{ width:14px; height:14px; flex:none; margin-top:2px; }
+  .rs-nota b{ color:var(--text-dim); font-weight:600; }
+  .rs-aviso{ display:flex; align-items:center; gap:8px; margin-top:14px; padding:10px 14px; border:1px solid var(--warn); border-radius:10px; font-size:12.5px; color:var(--text); }
+  .rs-aviso[hidden]{ display:none; }
+  .rs-aviso svg{ width:16px; height:16px; flex:none; color:var(--warn); }
+  .rs-aviso button{ margin-left:auto; }
+  .rs-cargando{ opacity:.55; transition:opacity .15s; }
+  .rs-sec{ margin-top:22px; }
+  .rs-sh{ display:flex; align-items:center; gap:10px; margin-bottom:9px; flex-wrap:wrap; }
+  .rs-ic{ width:28px; height:28px; border-radius:8px; background-color:var(--blue-soft); color:var(--blue-bright); display:flex; align-items:center; justify-content:center; flex:none; }
+  .rs-ic svg{ width:15px; height:15px; }
+  .rs-sh h2{ font-family:var(--display); font-size:15.5px; font-weight:600; margin:0; }
+  .rs-sh small{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .rs-chip{ font-family:var(--mono); font-size:10.5px; padding:2px 9px; border-radius:999px; border:1px solid var(--line); color:var(--text-dim); display:inline-flex; gap:5px; align-items:center; }
+  .rs-chip svg{ width:12px; height:12px; flex:none; }
+  .rs-ver{ margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--blue-bright); background-color:transparent; border:none; cursor:pointer; padding:2px 0; }
+  .rs-ver:hover{ text-decoration:underline; }
+  .rs-kg{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
+  @media (max-width:1100px){ .rs-kg{ grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width:600px){ .rs-kg{ grid-template-columns:1fr; } }
+  .rs-k{ border:1px solid var(--line); border-radius:11px; background-color:var(--panel); padding:12px 13px 11px; position:relative; min-width:0; }
+  .rs-k.urg{ border-color:var(--bad); }
+  .rs-k.nf{ border:1.5px dashed var(--text-faint); background-color:transparent; }
+  .rs-nftag{
+    display:inline-flex; align-items:center; gap:5px; position:absolute; right:9px; top:9px; font-family:var(--mono); font-size:9px; letter-spacing:.04em;
+    color:var(--text-faint); border:1px solid var(--line); border-radius:5px; padding:1px 6px; background-color:var(--panel);
+  }
+  .rs-nftag svg{ width:10px; height:10px; }
+  .rs-lb{ font-size:11.5px; color:var(--text-dim); font-weight:500; line-height:1.3; min-height:30px; padding-right:2px; }
+  .rs-k.nf .rs-lb{ padding-right:74px; }
+  .rs-v{ font-family:var(--display); font-size:29px; font-weight:700; letter-spacing:-.01em; margin-top:2px; white-space:nowrap; }
+  .rs-u{ font-size:13px; font-weight:500; color:var(--text-faint); }
+  .rs-v-nulo{ color:var(--text-faint); }
+  .rs-spw{ position:relative; height:20px; margin:7px 0 6px; opacity:.75; color:var(--blue-bright); }
+  .rs-spw.bien{ color:var(--good); } .rs-spw.mal{ color:var(--warn); } .rs-spw.urg{ color:var(--bad); } .rs-spw.hoy, .rs-spw.na{ color:var(--text-faint); }
+  .rs-spw svg{ display:block; width:100%; height:100%; }
+  .rs-dot{ position:absolute; width:5px; height:5px; margin:-2.5px 0 0 -2.5px; border-radius:50%; background-color:currentColor; }
+  .rs-d{
+    display:inline-flex; align-items:center; gap:4px; font-family:var(--mono); font-size:10.5px; padding:2px 8px; border-radius:999px;
+    border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; max-width:100%;
+  }
+  .rs-d svg{ width:10px; height:10px; flex:none; }
+  .rs-d.bien{ color:var(--good); border-color:var(--good); }
+  .rs-d.mal{ color:var(--text); border-color:var(--warn); background-color:rgba(223,179,90,.12); }
+  .rs-d.mal svg{ color:var(--warn); }
+  .rs-d.urg{ color:var(--text); border-color:var(--bad); background-color:rgba(220,38,38,.18); }
+  .rs-d.igual, .rs-d.normal{ color:var(--blue-bright); }
+  .rs-d.hoy, .rs-d.acum{ color:var(--text-faint); border-style:dashed; }
+  .rs-d.na{ color:var(--text-faint); border-style:dotted; }
+
   .dbar-title{
     font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.5px;
     text-transform:uppercase; margin-bottom:16px;
@@ -3211,34 +3279,31 @@
 
       <div class="admin-panel" id="panel-dashboard">
         <div class="dash-etabs" id="dashTabs">
-          <button type="button" class="dash-etab active" data-dashtab="comercial">Comercial</button>
-          <button type="button" class="dash-etab" data-dashtab="operacion">Operación</button>
-          <button type="button" class="dash-etab" data-dashtab="cierre">Cierre</button>
+          <button type="button" class="dash-etab active" data-dashtab="resumen">Resumen</button>
           <button type="button" class="dash-etab" data-dashtab="productos">Productos</button>
         </div>
 
-        <div class="dash-tabpanel active" id="dashTab-comercial">
-          <div class="admin-empty">
-            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-            <div class="admin-empty-title">Comercial — próximamente</div>
-            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Solicitudes, Cotizaciones, Diagnósticos) entra en construcción a partir de la Fase 1.</div>
+        <div class="dash-tabpanel active" id="dashTab-resumen">
+          <div class="rs-filtros" id="rsFiltros">
+            <div class="rs-frow">
+              <div class="rs-fl"><label for="rsMes">MES</label><select id="rsMes" class="rs-sel"><option value="">Mes en curso</option></select></div>
+              <div class="rs-fl"><label for="rsEstrategia">ESTRATEGIA</label>
+                <select id="rsEstrategia" class="rs-sel"><option value="">Todas</option><option value="empresas">Cursos In Company</option><option value="abiertos">Cursos Abiertos</option></select></div>
+              <div class="rs-fl"><label for="rsTipo">TIPO DE CLIENTE</label>
+                <select id="rsTipo" class="rs-sel"><option value="">Todos</option><option value="Directo">Directo</option><option value="Intermediario">Intermediario</option><option value="Indirecto">Indirecto</option><option value="Prospecto">Prospecto</option></select></div>
+              <div class="rs-fl"><label for="rsHerramienta">HERRAMIENTA</label><select id="rsHerramienta" class="rs-sel"><option value="">Todas</option></select></div>
+              <div class="rs-sp"></div>
+              <button type="button" class="rs-btn" id="rsLimpiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M7 12h10M10 17h4" stroke-linecap="round"/></svg>Limpiar filtros</button>
+              <button type="button" class="rs-btn" id="rsActualizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="rsActualizarTxt">Actualizar</span></button>
+            </div>
+            <p class="rs-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/></svg><span id="rsNota">Cargando…</span></p>
           </div>
-        </div>
-
-        <div class="dash-tabpanel" id="dashTab-operacion">
-          <div class="admin-empty">
-            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-            <div class="admin-empty-title">Operación — próximamente</div>
-            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Clientes, Tracking) entra en construcción en la Fase 2.</div>
+          <div class="rs-aviso" id="rsAviso" role="status" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="rsAvisoTxt"></span>
+            <button type="button" class="rs-btn" id="rsReintentar">Reintentar</button>
           </div>
-        </div>
-
-        <div class="dash-tabpanel" id="dashTab-cierre">
-          <div class="admin-empty">
-            <div class="admin-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg></div>
-            <div class="admin-empty-title">Cierre — próximamente</div>
-            <div class="admin-empty-text">Sin métricas todavía. Este pilar (Encuestas, Diplomas) entra en construcción en la Fase 3.</div>
-          </div>
+          <div id="rsSecciones" aria-live="polite"><div class="radm-empty-row">Cargando el resumen…</div></div>
         </div>
 
         <div class="dash-tabpanel" id="dashTab-productos">
@@ -6009,6 +6074,7 @@
     if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
     if(key === 'tracking-comercial' && typeof window.alEntrarACotizaciones === 'function') window.alEntrarACotizaciones();
     if(key === 'cobranza' && typeof window.alEntrarACobranza === 'function') window.alEntrarACobranza();
+    if(key === 'dashboard' && typeof window.alEntrarADashboard === 'function') window.alEntrarADashboard();
     if(key === 'alertas' && typeof window.alEntrarAAlertas === 'function') window.alEntrarAAlertas();
     if(key === 'presentaciones' && typeof window.alEntrarAPresentaciones === 'function') window.alEntrarAPresentaciones();
   }
@@ -8005,7 +8071,7 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PANEL DASHBOARD — pestañas estilo Excel: Comercial/Operación/Cierre/Productos.
+  // PANEL DASHBOARD — pestañas estilo Excel: Resumen (las 25 tarjetas de los Trackings) y Productos.
   // Productos trae los 4 KPI reales (getCatalogoCursosAdmin, módulo Cursos) y el
   // gráfico de barras por herramienta, con carga perezosa: los datos y la
   // animación de entrada solo corren la primera vez que se abre la pestaña.
@@ -8276,12 +8342,195 @@
       const btn = e.target.closest('.dash-etab');
       if(!btn) return;
       const key = btn.dataset.dashtab;
-      document.querySelectorAll('.dash-etab').forEach(b => b.classList.toggle('active', b === btn));
-      document.querySelectorAll('.dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
+      document.querySelectorAll('#dashTabs .dash-etab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#panel-dashboard > .dash-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'dashTab-' + key));
       if(key === 'productos') renderProductos();
+      if(key === 'resumen' && typeof window.alEntrarAResumenDashboard === 'function') window.alEntrarAResumenDashboard();
     });
-    const dashNav = document.getElementById('btnDashboard'); // el Dashboard ya no está en el menú: es una vista de la barra superior
-    if(dashNav) dashNav.addEventListener('click', () => { if(document.getElementById('dashTab-productos').classList.contains('active')) renderProductos(); });
+    // Entrar a Dashboard desde el menú (o desde "Ver detalle" de otro lado) refresca la pestaña abierta: ver activarPanel()
+    window.alEntrarADashboard = () => {
+      if(document.getElementById('dashTab-productos').classList.contains('active')) renderProductos();
+      else if(typeof window.alEntrarAResumenDashboard === 'function') window.alEntrarAResumenDashboard();
+    };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // DASHBOARD → RESUMEN — las 25 tarjetas de los 5 Trackings (valor del periodo, línea de 12 meses, comparación contra el mes anterior).
+  // Todo el cálculo vive en el servidor (getDashboardResumenAdmin → api/src/dashboard-resumen.js); aquí solo se pinta. Toca la base SQL:
+  // lleva el reintento con pausas crecientes (se autopausa; la primera consulta puede tardar). La comparación NUNCA va solo en color:
+  // siempre ícono + texto + posición (deuteranomalía). Ver docs/dashboard.md.
+  // ═══════════════════════════════════════════════════════════════
+  (function(){
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    async function apiGet(url){
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok){ const e = new Error(body.error || 'Error de red'); e.status = res.status; throw e; }
+      return body;
+    }
+    async function apiGetConReintento(url, alReintentar){
+      for(let intento = 0; ; intento++){
+        try { return await apiGet(url); }
+        catch(e){
+          if((e.status && e.status < 500) || intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(alReintentar) alReintentar(intento + 1);
+          await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+
+    const S = (d, w) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.8) + '" aria-hidden="true">' + d + '</svg>';
+    const ICO_CMP = {
+      sube: S('<path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/>', 2.6),
+      baja: S('<path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/>', 2.6),
+      igual: S('<path d="M5 12h14" stroke-linecap="round"/>', 2.6),
+      reloj: S('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/>', 2.2),
+    };
+    const ICO_INFO = S('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/>', 2);
+    const ICO_EMBUDO = S('<path d="M3 5h18l-7 8v6l-4-2v-4zM3 3l18 18" stroke-linecap="round" stroke-linejoin="round"/>', 2.4);
+    const ICO_SECCION = {
+      cobranza: '<path d="M12 3v18M17 7.5a4 4 0 0 0-5-2c-2.5 0-4 1.5-4 3s1.5 2.4 4 3 4 1.5 4 3-1.5 3-4 3a4.5 4.5 0 0 1-5-2" stroke-linecap="round"/>',
+      cotizaciones: '<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6" stroke-linecap="round" stroke-linejoin="round"/>',
+      solicitudes: '<path d="M4 4h16v12H8l-4 4z" stroke-linejoin="round"/>',
+      grupos: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/>',
+      clientes: '<path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/>',
+    };
+
+    const estado = { mes: '', estrategia: '', tipoCliente: '', herramienta: '' };
+    let corrida = 0, cargadoUnaVez = false, ultimo = null;
+
+    // ── formato ──
+    function dinero(v){
+      v = Number(v) || 0;
+      if(Math.abs(v) >= 1e6) return '$' + (Math.round(v / 1e5) / 10).toLocaleString('es-MX') + 'M';
+      return v.toLocaleString('es-MX', { style:'currency', currency:'MXN', maximumFractionDigits:0 });
+    }
+    function valorHtml(t){
+      const v = t.valor;
+      if(v == null) return '<span class="rs-v-nulo">—</span>';
+      const n = Number(v).toLocaleString('es-MX', { maximumFractionDigits: 1 });
+      if(t.fmt === 'dinero') return esc(dinero(v));
+      if(t.fmt === 'pct') return n + '<span class="rs-u"> %</span>';
+      if(t.fmt === 'dias') return n + '<span class="rs-u"> ' + (Number(v) === 1 ? 'día' : 'días') + '</span>';
+      if(t.fmt === 'horas') return n + '<span class="rs-u"> h</span>';
+      return n;
+    }
+
+    // ── línea de 12 meses: SVG a mano, trazo fino y discreta; el último punto es el valor actual ──
+    function lineaHtml(t){
+      const W = 200, H = 26, k = t.cmp.k;
+      const vals = t.serie.map(p => p.v);
+      const n = vals.length, ok = vals.filter(v => v != null);
+      if(k === 'hoy' || ok.length < 2){
+        // sin historia: línea punteada plana con el punto de hoy
+        return '<div class="rs-spw hoy"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><line x1="3" y1="20" x2="' + (W - 3) + '" y2="20" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>' +
+          (t.valor != null ? '<i class="rs-dot" style="left:' + ((W - 3) / W * 100) + '%;top:' + (20 / H * 100) + '%"></i>' : '') + '</div>';
+      }
+      const mn = Math.min(...ok), mx = Math.max(...ok), rg = (mx - mn) || 1;
+      const pt = (v, i) => [(n === 1 ? W / 2 : i / (n - 1) * (W - 6) + 3), (mx === mn ? H / 2 : H - 3 - ((v - mn) / rg) * (H - 6))];
+      const tramos = []; let actual = [];
+      vals.forEach((v, i) => { if(v == null){ if(actual.length) tramos.push(actual); actual = []; } else actual.push(pt(v, i)); });
+      if(actual.length) tramos.push(actual);
+      const lineas = tramos.filter(tr => tr.length > 1).map(tr => '<polyline points="' + tr.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>').join('');
+      const ultimoPt = vals[n - 1] != null ? pt(vals[n - 1], n - 1) : null;
+      return '<div class="rs-spw ' + esc(k) + '"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' + lineas + '</svg>' +
+        (ultimoPt ? '<i class="rs-dot" style="left:' + (ultimoPt[0] / W * 100).toFixed(1) + '%;top:' + (ultimoPt[1] / H * 100).toFixed(1) + '%"></i>' : '') + '</div>';
+    }
+
+    function tarjetaHtml(t, sinFiltrar){
+      const c = t.cmp;
+      const titulo = t.fmt === 'dinero' && t.valor != null ? ' title="' + esc(Number(t.valor).toLocaleString('es-MX', { style:'currency', currency:'MXN' })) + '"' : '';
+      return '<div class="rs-k' + (t.urgente ? ' urg' : '') + (sinFiltrar ? ' nf' : '') + '">' +
+        (sinFiltrar ? '<span class="rs-nftag">' + ICO_EMBUDO + 'SIN FILTRAR</span>' : '') +
+        '<div class="rs-lb">' + esc(t.label) + '</div>' +
+        '<div class="rs-v"' + titulo + '>' + valorHtml(t) + '</div>' +
+        lineaHtml(t) +
+        '<span class="rs-d ' + esc(c.k) + '">' + (ICO_CMP[c.ic] || '') + esc(c.texto) + '</span></div>';
+    }
+    function seccionHtml(s){
+      return '<section class="rs-sec" data-sec="' + esc(s.id) + '"><div class="rs-sh"><span class="rs-ic">' + S(ICO_SECCION[s.id] || '', 1.8) + '</span>' +
+        '<h2>' + esc(s.titulo) + '</h2><small>' + esc(s.sub) + '</small>' +
+        (s.nota ? '<span class="rs-chip">' + ICO_INFO + esc(s.nota) + '</span>' : '') +
+        '<button type="button" class="rs-ver" data-panel="' + esc(s.panel) + '">Ver detalle →</button></div>' +
+        '<div class="rs-kg">' + s.tarjetas.map(t => tarjetaHtml(t, s.sinFiltrar)).join('') + '</div></section>';
+    }
+
+    function pintarFiltros(meta){
+      const selMes = $('rsMes');
+      const opciones = meta.meses.map((m, i) => '<option value="' + esc(m.valor) + '">' + esc(m.etiqueta) + (i === 0 ? ' · en curso' : '') + '</option>').concat('<option value="todo">Todo el historial</option>');
+      selMes.innerHTML = opciones.join('');
+      selMes.value = estado.mes === 'todo' ? 'todo' : (estado.mes && meta.meses.some(m => m.valor === estado.mes) ? estado.mes : meta.meses[0].valor);
+      resaltar();
+    }
+    function resaltar(){
+      const mesActual = $('rsMes').options.length ? $('rsMes').options[0].value : '';
+      $('rsMes').classList.toggle('act', !!$('rsMes').value && $('rsMes').value !== mesActual);
+      ['rsEstrategia', 'rsTipo', 'rsHerramienta'].forEach(id => $(id).classList.toggle('act', !!$(id).value));
+    }
+    function pintarNota(meta){
+      let t;
+      if(meta.todo) t = '<b>Todo el historial:</b> cifras acumuladas, como en cada Tracking (sin «contar desde»). No hay comparación contra el mes anterior.';
+      else if(meta.esActual) t = 'El mes en curso se compara contra el <b>mismo corte del mes anterior (hasta el día ' + meta.corteDia + ')</b>, para que sea justo. Las líneas muestran los últimos 12 meses (los que haya).';
+      else t = 'Mes completo contra el mes anterior completo. Las líneas muestran los 12 meses que terminan en ' + esc(meta.etiquetaMes) + ' (los que haya).';
+      t += ' Este selector es independiente de «contar desde» de Configuración. Una tarjeta con <b>borde punteado y la etiqueta SIN FILTRAR</b> es una cuya cifra no depende de los filtros activos.';
+      $('rsNota').innerHTML = t;
+    }
+    function hora(iso){ return new Date(iso).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', hour12:false }); }
+
+    async function cargar(){
+      const yo = ++corrida;
+      const cont = $('rsSecciones');
+      $('rsAviso').hidden = true;
+      cont.classList.add('rs-cargando');
+      $('rsActualizarTxt').textContent = 'Actualizando…';
+      const qs = Object.entries(estado).filter(([, v]) => v).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+      try {
+        const r = await apiGetConReintento('/api/getDashboardResumenAdmin' + (qs ? '?' + qs : ''), () => { if(yo === corrida) $('rsActualizarTxt').textContent = 'La base tardó, reintentando…'; });
+        if(yo !== corrida) return; // llegó una respuesta más nueva
+        ultimo = r;
+        cargadoUnaVez = true;
+        pintarFiltros(r.meta);
+        pintarNota(r.meta);
+        cont.innerHTML = r.secciones.map(seccionHtml).join('');
+        $('rsActualizarTxt').textContent = 'Actualizar · hoy ' + hora(r.meta.generado);
+      } catch(e){
+        if(yo !== corrida) return;
+        $('rsActualizarTxt').textContent = 'Actualizar';
+        $('rsAvisoTxt').textContent = 'No se pudo cargar el resumen: ' + e.message;
+        $('rsAviso').hidden = false;
+        if(!cargadoUnaVez) cont.innerHTML = '';
+      } finally {
+        if(yo === corrida) cont.classList.remove('rs-cargando');
+      }
+    }
+
+    function alCambiarFiltro(){
+      const selMes = $('rsMes'); // el primer mes de la lista es el mes en curso: se pide sin «mes» para que el servidor lo resuelva siempre
+      estado.mes = selMes.selectedIndex === 0 ? '' : selMes.value; estado.estrategia = $('rsEstrategia').value; estado.tipoCliente = $('rsTipo').value; estado.herramienta = $('rsHerramienta').value;
+      resaltar();
+      cargar();
+    }
+    const TOOL = window.HERRAMIENTAS_UI || {};
+    $('rsHerramienta').innerHTML = '<option value="">Todas</option>' + ['excel', 'powerbi', 'powerapps', 'powerautomate', 'ia', 'ofimatica'].filter(id => TOOL[id]).map(id => '<option value="' + id + '">' + esc(TOOL[id].nombre) + '</option>').join('');
+    ['rsMes', 'rsEstrategia', 'rsTipo', 'rsHerramienta'].forEach(id => $(id).addEventListener('change', alCambiarFiltro));
+    $('rsLimpiar').addEventListener('click', () => {
+      ['rsEstrategia', 'rsTipo', 'rsHerramienta'].forEach(id => { $(id).value = ''; });
+      if($('rsMes').options.length) $('rsMes').value = $('rsMes').options[0].value;
+      estado.mes = '';
+      alCambiarFiltro();
+    });
+    $('rsActualizar').addEventListener('click', cargar);
+    $('rsReintentar').addEventListener('click', cargar);
+    $('rsSecciones').addEventListener('click', e => {
+      const b = e.target.closest('.rs-ver');
+      if(!b) return;
+      const nav = document.querySelector('.admin-nav-item[data-panel="' + b.dataset.panel + '"]');
+      if(nav) nav.click(); // el mismo camino que el menú: activarPanel() refresca el Tracking al entrar
+    });
+    window.alEntrarAResumenDashboard = cargar;
+    window.__resumenDashboardEstado = () => ({ estado, ultimo }); // solo para las pruebas de jsdom
   })();
 
   // ═══════════════════════════════════════════════════════════════

@@ -2028,6 +2028,47 @@
   .trkv-al-count.cero{ background-color:var(--panel-2); color:var(--text-faint); }
   .trkv-al-row:hover .trkv-al-cli{ color:var(--blue-bright); }
   .trkv-dot-soon{ width:7px; height:7px; border-radius:2px; background:var(--text-faint); flex:none; }
+  /* Tarjeta ancha de Cobranza (2 columnas de ancho): a la izquierda tarjetas y alertas; a la derecha el cobro más próximo y una Línea de cobros en miniatura
+     donde el elemento vivo (con latido) es la próxima factura por cobrar */
+  .trkv-ancha{ grid-column:1 / -1; }
+  .trkv-cobr{ display:grid; grid-template-columns:1fr 1fr; }
+  .trkv-cobr-izq{ display:flex; flex-direction:column; gap:20px; padding-right:28px; border-right:1px dashed var(--line); }
+  .trkv-cobr-der{ padding-left:28px; display:flex; flex-direction:column; gap:10px; min-width:0; }
+  @media (max-width:900px){ .trkv-cobr{ grid-template-columns:1fr; gap:22px; } .trkv-cobr-izq{ padding-right:0; border-right:0; } .trkv-cobr-der{ padding-left:0; } }
+  .cot-semaforo.info{ color:#6b9fff; background-color:color-mix(in srgb, #6b9fff 14%, var(--panel-2)); }
+  .cot-semaforo.info .cot-semaforo-dot{ background:#6b9fff; }
+  .trkv-prox{ display:flex; align-items:center; gap:12px; min-height:44px; border-radius:8px; }
+  .trkv-prox[data-id]{ cursor:pointer; }
+  .trkv-prox[data-id]:hover .trkv-prox-cli{ color:var(--blue-bright); }
+  .trkv-prox small{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:.4px; color:var(--text-faint); text-transform:uppercase; }
+  .trkv-prox-cli{ display:block; font-family:var(--display); font-size:15px; font-weight:600; }
+  .trkv-prox-con{ display:block; font-size:11.5px; color:var(--text-dim); max-width:26ch; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .trkv-prox-m{ margin-left:auto; text-align:right; }
+  .trkv-prox-m b{ display:block; font-family:var(--display); font-size:22px; font-weight:700; color:#14b8a6; font-variant-numeric:tabular-nums; }
+  .trkv-prox-m span{ font-size:11.5px; color:var(--text-dim); }
+  .trkv-pulso{ width:12px; height:12px; border-radius:50%; background:#14b8a6; position:relative; flex:none; }
+  .trkv-pulso::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2px solid #14b8a6; animation:trkvPulso 1.8s ease-out infinite; }
+  @keyframes trkvPulso{ from{ transform:scale(.6); opacity:.9; } to{ transform:scale(1.7); opacity:0; } }
+  @media (prefers-reduced-motion:reduce){ .trkv-pulso::after{ animation:none; } }
+  .trkv-mini{ position:relative; height:112px; }
+  .trkv-mini-venc{ position:absolute; left:0; width:14%; top:0; bottom:22px; border:1px solid rgba(220,38,38,.3); border-radius:7px; background:repeating-linear-gradient(135deg, rgba(220,38,38,.08) 0 6px, transparent 6px 12px); pointer-events:none; }
+  .trkv-mini-eje{ position:absolute; left:15%; right:0; bottom:22px; border-top:2px solid #394557; pointer-events:none; }
+  .trkv-mini-hoy{ position:absolute; left:15%; bottom:22px; top:0; border-left:2px solid var(--blue-bright); pointer-events:none; }
+  .trkv-mini-et{ position:absolute; bottom:3px; white-space:nowrap; font-family:var(--mono); font-size:10px; color:var(--text-faint); pointer-events:none; }
+  .trkv-mini-et.hoy{ color:var(--blue-bright); } .trkv-mini-et.venc{ color:#f05252; }
+  .trkv-mini-vacio{ position:absolute; left:15%; right:0; top:0; bottom:22px; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-faint); pointer-events:none; }
+  .trkv-st{ position:absolute; bottom:22px; width:14px; margin-left:-7px; padding:0; border:0; background:none; cursor:pointer; color:var(--k); }
+  .trkv-st::before{ content:""; position:absolute; left:50%; margin-left:-1.5px; top:0; bottom:0; border-left:3px solid var(--k); }
+  .trkv-st i{ position:absolute; top:-3px; left:1px; width:12px; height:12px; display:block; background:var(--panel); border-radius:50%; }
+  .trkv-st svg{ width:12px; height:12px; display:block; }
+  .trkv-st.l{ --k:#14b8a6; } .trkv-st.p{ --k:#dfb35a; } .trkv-st.v{ --k:#f05252; } .trkv-st.ter{ --k:#8a95a6; }
+  .trkv-st.ter::before{ border-left-style:dashed; }
+  .trkv-st:hover::before, .trkv-st:focus-visible::before{ border-left-width:5px; margin-left:-2.5px; }
+  .trkv-st:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:2px; border-radius:4px; }
+  .trkv-st.sig::before{ border-left-width:4px; margin-left:-2px; }
+  .trkv-st.sig i{ width:16px; height:16px; left:-1px; top:-6px; box-shadow:0 0 0 4px rgba(20,184,166,.25); }
+  .trkv-st.sig i svg{ width:16px; height:16px; }
+  .trkv-mini-pie{ font-size:11.5px; color:var(--text-dim); min-height:14px; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
      por una línea que se rellena hasta la fase actual, mismo lenguaje visual
@@ -3067,6 +3108,35 @@
             </div>
             <div class="trkv-mid"><div id="trkvGruStepper" class="trkv-stepper-grande"></div></div>
             <div class="trkv-signal" id="trkvGruSignal"></div>
+          </article>
+
+          <article class="trkv-card trkv-ancha" tabindex="0" data-goto="cobranza">
+            <div class="trkv-card-head">
+              <span class="admin-nav-live-dot"></span>
+              <h3>Cobranza</h3>
+              <span class="trkv-bell" id="trkvCbzBell" hidden title="Cuentas vencidas, por vencer o sin facturar que ya dispararon una alerta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="trkv-bell-count">0</span>
+              </span>
+              <span class="trkv-go" title="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="trkv-cobr">
+              <div class="trkv-cobr-izq">
+                <div class="trkv-kpis">
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Por cobrar</span><span class="trkv-kpi-value" id="trkvCbzPorCobrar">—</span></div>
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Vencido</span><span class="trkv-kpi-value" id="trkvCbzVencido">—</span></div>
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Por facturar</span><span class="trkv-kpi-value" id="trkvCbzPorFacturar">—</span></div>
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Cobrado</span><span class="trkv-kpi-value" id="trkvCbzCobrado">—</span></div>
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cobro</span><span class="trkv-kpi-value" id="trkvCbzDias">—</span></div>
+                </div>
+                <div class="trkv-signal" id="trkvCbzSignal"></div>
+              </div>
+              <div class="trkv-cobr-der">
+                <div class="trkv-prox" id="trkvCbzProx"></div>
+                <div class="trkv-mini" id="trkvCbzMini"></div>
+                <div class="trkv-mini-pie" id="trkvCbzPie"></div>
+              </div>
+            </div>
           </article>
         </div>
       </div>
@@ -7321,6 +7391,102 @@
       }
     }
 
+    // ── Cobranza: tarjetas, alertas y una Línea de cobros en miniatura. El elemento vivo es la próxima factura por cobrar (la facturada con el vencimiento
+    // futuro más cercano, sin contar terceros): latido en su línea y su monto en grande. Todo sale de las mismas dos Functions de Cobranza (lista y resumen). ──
+    const MES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const hoyYmdC = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Monterrey' });
+    const ymdMs = (ymd) => { const [a, m, d] = String(ymd).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
+    const fechaCorta = (ymd) => { const [, m, d] = String(ymd).slice(0, 10).split('-').map(Number); return d + ' ' + MES_C[m - 1]; };
+    const ICO_ST = {
+      v: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>',
+      p: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2" stroke-linecap="round"/></svg>',
+      l: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>',
+      ter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg>',
+    };
+    const escC = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const DIAS_MINI = 60;
+    let listaCbz = null;
+    function pintarMiniCobranza(){
+      const cont = document.getElementById('trkvCbzMini'), prox = document.getElementById('trkvCbzProx'), pie = document.getElementById('trkvCbzPie');
+      if(!cont || !listaCbz) return;
+      const W = cont.clientWidth || 520, ALTO = 112, BASE = 22, SEP = 11;
+      const hoy = ymdMs(hoyYmdC()), fin = hoy + DIAS_MINI * 86400000;
+      const esTer = (c) => c.tipo_factura === 'Otro';
+      const vivas = listaCbz.filter((c) => (c.estatus === 'Facturada' || c.estatus === 'Parcial') && c.saldo > 0 && c.vencimiento && c.semaforo);
+      const venc = vivas.filter((c) => c.semaforo.clave === 'vencida').sort((a, b) => b.semaforo.dias - a.semaforo.dias);
+      const fut = vivas.filter((c) => c.semaforo.clave !== 'vencida' && ymdMs(c.vencimiento) >= hoy).sort((a, b) => String(a.vencimiento).localeCompare(String(b.vencimiento)));
+      const proxima = fut.find((c) => !esTer(c)) || null;
+      // próximo cobro (encabezado de la mitad derecha)
+      if(proxima){
+        const dias = Math.round((ymdMs(proxima.vencimiento) - hoy) / 86400000);
+        prox.dataset.id = proxima.id;
+        prox.title = 'Abrir esta cuenta';
+        prox.innerHTML = '<span class="trkv-pulso" aria-hidden="true"></span><div><small>Próximo cobro</small><span class="trkv-prox-cli">' + escC(proxima.cliente) + '</span><span class="trkv-prox-con" title="' + escC(proxima.concepto) + '">' + escC(proxima.concepto) + '</span></div>' +
+          '<div class="trkv-prox-m"><b>' + fmtMoney(proxima.saldo) + '</b><span>' + (dias === 0 ? 'vence hoy' : dias === 1 ? 'vence mañana' : 'vence en ' + dias + ' días') + ' · ' + fechaCorta(proxima.vencimiento) + '</span></div>';
+      } else {
+        delete prox.dataset.id; prox.removeAttribute('title');
+        prox.innerHTML = '<div><small>Próximo cobro</small><span class="trkv-prox-cli" style="color:var(--text-dim);font-weight:500;">Nada por cobrar pronto</span></div>';
+      }
+      // línea de cobros en miniatura: vencido ← | HOY → próximos 60 días
+      const xFut = (t) => 15 + 85 * (t - hoy) / (fin - hoy);
+      const montos = [...venc, ...fut].map((c) => c.saldo).sort((a, b) => a - b);
+      const tope = Math.max(20000, montos.length ? montos[Math.max(0, Math.floor(montos.length * 0.9) - 1)] : 0);
+      const altoDe = (m) => 24 + (ALTO - BASE - 34) * Math.min(m || 0, tope) / tope;
+      const st = [];
+      venc.forEach((c, i) => st.push({ c, k: esTer(c) ? 'ter' : 'v', x: 1.5 + (venc.length === 1 ? 5 : (i / (venc.length - 1)) * 11) }));
+      const despues = [];
+      fut.forEach((c) => { const t = ymdMs(c.vencimiento); if(t >= fin){ despues.push(c); return; } st.push({ c, k: esTer(c) ? 'ter' : (c.semaforo.clave === 'por_vencer' ? 'p' : 'l'), x: xFut(t), futura: true }); });
+      // separación mínima entre líneas vecinas (las del mismo día quedan pegadas pero separadas)
+      let previo = -1e9;
+      st.filter((e) => e.futura).sort((a, b) => a.x - b.x).forEach((e) => { const px = Math.max(e.x / 100 * W, previo + SEP); e.x = px / W * 100; previo = px; });
+      let html = '<div class="trkv-mini-venc"></div><div class="trkv-mini-eje"></div><div class="trkv-mini-hoy"></div>';
+      html += '<span class="trkv-mini-et venc" style="left:1%" title="' + venc.length + (venc.length === 1 ? ' cuenta vencida' : ' cuentas vencidas') + '">▲ ' + venc.length + '</span>';
+      html += '<span class="trkv-mini-et hoy" style="left:calc(15% + 4px)">HOY ' + fechaCorta(hoyYmdC()) + '</span>';
+      let ultimoFin = 0.15 * W + 100;
+      for(let m = 1; m <= 3; m++){
+        const d0 = new Date(hoy); const d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + m, 1)); const t = d.getTime();
+        if(t <= hoy || t >= fin) continue;
+        const xp = xFut(t) / 100 * W; if(xp + 5 < ultimoFin) continue;
+        ultimoFin = xp + 40;
+        html += '<span class="trkv-mini-et" style="left:' + (xFut(t)).toFixed(2) + '%;margin-left:4px">' + MES_C[d.getUTCMonth()] + '</span>';
+      }
+      st.forEach((e, i) => {
+        const esSig = proxima && e.c.id === proxima.id;
+        const aviso = e.c.cliente + ' · ' + e.c.concepto + ' — ' + fmtMoney(e.c.saldo) + ' · vence ' + fechaCorta(e.c.vencimiento) + (e.k === 'v' ? ' · vencida' : '') + (e.k === 'ter' ? ' · tercero' : '') + (esSig ? ' · próximo cobro' : '');
+        html += '<button type="button" class="trkv-st ' + e.k + (esSig ? ' sig' : '') + '" data-id="' + e.c.id + '" style="left:' + e.x.toFixed(2) + '%;height:' + altoDe(e.c.saldo).toFixed(0) + 'px" title="' + escC(aviso) + '" aria-label="' + escC(aviso) + '"><i>' + ICO_ST[e.k] + '</i></button>';
+      });
+      if(!st.length) html += '<div class="trkv-mini-vacio">Sin cobros en los próximos ' + DIAS_MINI + ' días</div>';
+      cont.innerHTML = html;
+      const suma = despues.reduce((a, c) => a + c.saldo, 0);
+      pie.textContent = despues.length ? 'Después de ' + DIAS_MINI + ' días: ' + despues.length + (despues.length === 1 ? ' cobro' : ' cobros') + ' por ' + fmtMoney(suma) : '';
+    }
+    async function cargarCobranza(){
+      const ids = ['trkvCbzPorCobrar', 'trkvCbzVencido', 'trkvCbzPorFacturar', 'trkvCbzCobrado', 'trkvCbzDias'];
+      try {
+        const [r, lista] = await Promise.all([apiGetConReintento('/api/getResumenCobranzaAdmin'), apiGetConReintento('/api/listCobranzaAdmin')]);
+        const t = (id, v, titulo) => { const el = document.getElementById(id); el.textContent = v; el.title = titulo || ''; };
+        t('trkvCbzPorCobrar', fmtMoneyCorto(r.por_cobrar), fmtMoney(r.por_cobrar) + ' · ' + r.por_cobrar_n + ' cuentas (incluye lo vencido)');
+        t('trkvCbzVencido', fmtMoneyCorto(r.vencido), fmtMoney(r.vencido) + ' · ' + r.vencido_n + ' cuentas');
+        t('trkvCbzPorFacturar', fmtMoneyCorto(r.por_facturar), fmtMoney(r.por_facturar) + ' · ' + r.por_facturar_n + ' cuentas');
+        t('trkvCbzCobrado', fmtMoneyCorto(r.cobrado), fmtMoney(r.cobrado) + ' · ' + r.cobrado_n + (r.cobrado_n === 1 ? ' pago' : ' pagos'));
+        t('trkvCbzDias', r.dias_promedio == null ? '—' : r.dias_promedio + ' d', 'Días promedio entre la emisión y el cobro');
+        document.getElementById('trkvCbzSignal').innerHTML = `
+          <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>▲ Vencidas · ${r.vencido_n || 0}</span>
+          <span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>◷ Por vencer · ${r.por_vencer_n || 0}</span>
+          <span class="cot-semaforo info"><span class="cot-semaforo-dot"></span>▭ Sin facturar · ${r.por_facturar_n || 0}</span>
+        `;
+        listaCbz = Array.isArray(lista) ? lista : [];
+        pintarMiniCobranza();
+      } catch(e){
+        ids.forEach(id => { document.getElementById(id).textContent = '—'; });
+      }
+    }
+    // clic en una línea o en el próximo cobro: abre esa cuenta en Cobranza (sin disparar el clic de la tarjeta)
+    document.getElementById('trkvCbzMini').addEventListener('click', e => { const b = e.target.closest('.trkv-st'); if(!b) return; e.stopPropagation(); activarPanel('cobranza'); if(typeof window.cbzAbrirCuenta === 'function') window.cbzAbrirCuenta(b.dataset.id); });
+    document.getElementById('trkvCbzProx').addEventListener('click', e => { const id = e.currentTarget.dataset.id; if(!id) return; e.stopPropagation(); activarPanel('cobranza'); if(typeof window.cbzAbrirCuenta === 'function') window.cbzAbrirCuenta(id); });
+    let temporizadorMiniCbz = null;
+    window.addEventListener('resize', () => { clearTimeout(temporizadorMiniCbz); temporizadorMiniCbz = setTimeout(pintarMiniCobranza, 150); });
+
     // Campanitas de las tarjetas — reusa tal cual getNotificacionesActivas
     // (la misma Function que ya alimenta la campana del topbar), solo cuenta
     // cuántos ítems trae cada grupo. Es una llamada aparte de la que ya hace
@@ -7330,7 +7496,7 @@
       try {
         const r = await apiGetConReintento('/api/getNotificacionesActivas');
         const grupos = r.grupos || {};
-        const mapa = { trkvSolBell: grupos.solicitudes, trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos };
+        const mapa = { trkvSolBell: grupos.solicitudes, trkvComBell: grupos.cotizaciones, trkvCliBell: grupos.clientes, trkvGruBell: grupos.grupos, trkvCbzBell: grupos.cobranza };
         Object.entries(mapa).forEach(([id, items]) => {
           const el = document.getElementById(id);
           const n = (items || []).length;
@@ -7345,6 +7511,7 @@
       cargarComercial();
       cargarClientes();
       cargarGrupos();
+      cargarCobranza();
       cargarBellsTrackingView();
     }
 
@@ -7355,7 +7522,7 @@
     });
 
     // las campanitas de cada tarjeta son atajos a su sección de la página de Alertas
-    [['trkvSolBell', 'solicitudes'], ['trkvCliBell', 'clientes'], ['trkvComBell', 'cotizaciones'], ['trkvGruBell', 'grupos']].forEach(([id, k]) => {
+    [['trkvSolBell', 'solicitudes'], ['trkvCliBell', 'clientes'], ['trkvComBell', 'cotizaciones'], ['trkvGruBell', 'grupos'], ['trkvCbzBell', 'cobranza']].forEach(([id, k]) => {
       const el = document.getElementById(id);
       el.style.cursor = 'pointer';
       el.addEventListener('click', e => { e.stopPropagation(); window.__alrScroll = k; activarPanel('alertas'); });

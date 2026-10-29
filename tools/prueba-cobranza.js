@@ -358,6 +358,21 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const alta3 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
   check('alta de un Tercero: cliente Tercero, tipo Otro, nombre fiscal y RFC', alta3 && alta3.cuerpo.cliente_id === 9 && alta3.cuerpo.tipo_factura === 'Otro' && alta3.cuerpo.razon_social === 'Taller Ejemplo SA' && alta3.cuerpo.rfc_receptor === 'XAXX010101000' && alta3.cuerpo.retencion_isr === 1000, JSON.stringify(alta3 && alta3.cuerpo));
 
+  console.log('Tarjeta de Cobranza en Tracking View');
+  const tarj = q('#panel-tracking-view .trkv-card[data-goto="cobranza"]');
+  check('la tarjeta de Cobranza está en el Tracking View, con el ancho de dos tarjetas', !!tarj && tarj.classList.contains('trkv-ancha') && q('#panel-tracking-view .trkv-grid').lastElementChild === tarj);
+  check('a la izquierda: los 5 números y los 3 semáforos con ícono y texto', /\$30k/.test(txt('#trkvCbzPorCobrar')) && /\$12k/.test(txt('#trkvCbzVencido')) && txt('#trkvCbzDias') === '19 d' && qa('#trkvCbzSignal .cot-semaforo').length === 3 && /▲ Vencidas · 1/.test(txt('#trkvCbzSignal')) && /▭ Sin facturar · 1/.test(txt('#trkvCbzSignal')), txt('#trkvCbzSignal') + ' | ' + txt('#trkvCbzPorCobrar'));
+  check('el próximo cobro es la facturada con el vencimiento futuro más cercano (Beta SA, en 3 días)', /Beta SA/.test(txt('#trkvCbzProx')) && /vence en 3 días/.test(txt('#trkvCbzProx')) && !!q('#trkvCbzProx .trkv-pulso'), txt('#trkvCbzProx'));
+  check('la línea en miniatura trae sus líneas y la próxima factura es la viva (una sola, con latido)', qa('#trkvCbzMini .trkv-st').length >= 3 && qa('#trkvCbzMini .trkv-st.sig').length === 1 && /Beta SA/.test(q('#trkvCbzMini .trkv-st.sig').getAttribute('aria-label')) && /HOY/.test(txt('#trkvCbzMini')) && qa('#trkvCbzMini .trkv-st.v').length === 1 && qa('#trkvCbzMini .trkv-st.ter').length === 1, qa('#trkvCbzMini .trkv-st').length + ' líneas');
+  check('cada línea trae símbolo (no solo color) y aviso con cliente y monto', qa('#trkvCbzMini .trkv-st').every((b) => !!b.querySelector('svg') && /\$/.test(b.getAttribute('aria-label'))));
+  llamadas.length = 0;
+  await clic(q('#trkvCbzProx')); await pausa(300);
+  check('clic en el próximo cobro abre Cobranza con esa cuenta', q('#panel-cobranza').classList.contains('active') && !q('#cbzDetalle').hidden && /^Beta SA/.test(txt('#cbzDetTitulo')), txt('#cbzDetTitulo'));
+  await clic(q('#cbzDetCerrar'));
+  await clic(q('#btnInicio')); await pausa(100);
+  check('al volver a Inicio se refresca la tarjeta (pide lista y resumen)', llamadas.some((l) => l.u.includes('listCobranzaAdmin')) && llamadas.some((l) => l.u.includes('getResumenCobranzaAdmin')));
+
+
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);
   const secCbz = q('.alr-sec[data-sec="cobranza"]');

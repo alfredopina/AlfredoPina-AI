@@ -225,7 +225,8 @@
     margin-top:64px; padding-top:36px; border-top:1px solid var(--line);
   }
 
-.explora-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-top:20px; }
+.explora-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:20px; } /* 3 + 3, como las demás vistas de las 6 herramientas */
+@media (max-width:480px){ .explora-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 
 .explora-card{
     display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:8px;

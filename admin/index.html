@@ -2755,7 +2755,8 @@
   .mk-sw-hex button svg{ width:12px; height:12px; display:block; }
   .mk-sw-use{ font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.4; }
 
-  .mk-tool-row{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .mk-tool-row{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; } /* las 6 herramientas en 3 + 3 */
+  @media (max-width:560px){ .mk-tool-row{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
   .mk-tool-sw{ background-color:var(--panel); border:1px solid var(--line); border-radius:9px; padding:14px 12px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; }
   .mk-tool-sw img{ width:34px; height:34px; }
   .mk-tool-sw .n{ font-size:12px; font-weight:600; }

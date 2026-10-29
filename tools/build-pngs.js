@@ -27,6 +27,8 @@ const JOBS = [
   ["logo-literal-claro.svg", 1400],
   ["logo-literal-oscuro.svg", 1400],
   ["logo-diploma-claro.svg", 1000],
+  ["logo-cuadrado-claro.svg", 200, { opaco: true }], // sin canal alfa: los sistemas de facturación vuelven negro lo transparente
+  ["logo-cuadrado-by-lifezen-claro.svg", 200, { opaco: true }],
   ["icono-claro.svg", 600],
   ["icono-oscuro.svg", 600],
   ["icono-app.svg", 1024],
@@ -54,17 +56,16 @@ function svgIntrinsicWidth(file) {
 
 async function run() {
   let n = 0;
-  for (const [rel, targetW] of JOBS) {
+  for (const [rel, targetW, opciones = {}] of JOBS) {
     const svgPath = path.join(BRAND, rel);
     const pngPath = svgPath.replace(/\.svg$/, ".png");
     const nativeW = svgIntrinsicWidth(svgPath);
     // Densidad alta para que librsvg rasterice fino y luego se reduzca (nunca se
     // amplía un raster borroso) al tamaño final exacto.
     const density = Math.max(72, Math.ceil((72 * targetW) / nativeW) * 2);
-    await sharp(svgPath, { density })
-      .resize({ width: targetW })
-      .png({ compressionLevel: 9 })
-      .toFile(pngPath);
+    let img = sharp(svgPath, { density }).resize({ width: targetW });
+    if (opciones.opaco) img = img.flatten({ background: "#fbfcff" });
+    await img.png({ compressionLevel: 9 }).toFile(pngPath);
     n++;
   }
   console.log(`${n} PNG generados junto a sus SVG en ${path.relative(process.cwd(), BRAND)}`);

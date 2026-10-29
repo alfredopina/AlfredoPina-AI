@@ -239,6 +239,30 @@ function iconoApp(t) {
   return { cuerpo, w: 512, h: 512 };
 }
 
+// versión CUADRADA (200×200) para donde piden una imagen cuadrada (sistema de facturación, perfiles):
+// la celda del ícono arriba y el nombre abajo. Lleva fondo SÓLIDO a propósito: muchos sistemas de
+// facturación convierten lo transparente en negro. Sin descriptor: a 200 px no se lee.
+// `by: true` agrega "by LifeZenTraining" debajo del nombre — marca de TRANSICIÓN (como en el diploma):
+// se usa unos meses en las facturas y luego se pasa a la versión sin "by".
+function logoCuadrado(t, { by = false } = {}) {
+  const k = 0.9; // la celda mide 100×100
+  const S = 27;
+  const n1 = medir(SG, "alfredopina", S, TR);
+  const n2 = medir(SG, ".ai", S, TR);
+  const x = (200 - n1 - n2) / 2;
+  const yCelda = by ? 22 : 30;
+  const base = by ? 149 : 164;
+  let c = `<rect width="200" height="200" fill="${t.bg}"/>`;
+  c += `<g transform="translate(${f2((200 - 100 * k) / 2)} ${yCelda}) scale(${k})">${cuerpoCelda(t, t.azul)}</g>`;
+  c += relleno(trazo(SG, "alfredopina", S, x, base, { tracking: TR }), t.tinta);
+  c += relleno(trazo(SG, ".ai", S, x + n1, base, { tracking: TR }), t.azul);
+  if (by) {
+    const tam = 12.5, tr = 0.1, txt = "by LifeZenTraining";
+    c += relleno(trazo(MONO, txt, tam, (200 - medir(MONO, txt, tam, tr)) / 2, 175, { tracking: tr }), t.gris);
+  }
+  return { cuerpo: c, w: 200, h: 200 };
+}
+
 // ── escritura ──
 const salidas = [];
 function escribir(archivo, titulo, pieza) {
@@ -262,6 +286,8 @@ for (const [nombreTema, t] of Object.entries(TEMAS)) {
   }
 }
 escribir("logo-diploma-claro.svg", "alfredopina.ai", logoDiploma(TEMAS.claro));
+escribir("logo-cuadrado-claro.svg", "alfredopina.ai", logoCuadrado(TEMAS.claro));
+escribir("logo-cuadrado-by-lifezen-claro.svg", "alfredopina.ai by LifeZenTraining", logoCuadrado(TEMAS.claro, { by: true }));
 escribir("icono-app.svg", "fx", iconoApp());
 escribir("favicon.svg", "fx", iconoApp());
 

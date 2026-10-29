@@ -1869,8 +1869,29 @@
   .cbz-tabla .cbz-acc-texto svg{ width:14px; height:14px; flex:none; }
   #cbzVistas .radm-tab-count.cbz-urgente{ background-color:var(--bad); border-color:var(--bad); color:#fff; }
   #cbzVistas .radm-tab-count.cbz-atencion{ background-color:#dfb35a; border-color:#dfb35a; color:#17120a; }
-  #cbzAlerta.cbz-clic{ cursor:pointer; }
-  #cbzAlerta.cbz-clic:hover{ filter:brightness(1.12); }
+  /* banner de alertas: UNA sola fila que resume las tres (vencidas, por vencer y sin facturar), cada una con su ícono y su texto y clicable a su vista */
+  #cbzAlerta{ align-items:center; flex-wrap:wrap; gap:8px 12px; }
+  #cbzAlerta.solo-aviso{ border-color:#dfb35a; background-color:color-mix(in srgb, #dfb35a 10%, var(--panel)); }
+  #cbzAlerta.solo-aviso > svg{ color:#dfb35a; }
+  .cbz-chip{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:20px; padding:5px 12px; background-color:var(--panel); font-family:var(--mono); font-size:11.5px; color:var(--text); cursor:pointer; }
+  .cbz-chip:hover, .cbz-chip:focus-visible{ border-color:var(--blue-bright); outline:none; }
+  .cbz-chip.v{ color:#f05252; border-color:rgba(220,38,38,.45); } .cbz-chip.p{ color:#dfb35a; border-color:rgba(223,179,90,.45); } .cbz-chip.sf{ color:#6b9fff; border-color:rgba(107,159,255,.45); }
+  .cbz-chip b{ font-weight:600; }
+  #cbzAlertaHint{ color:var(--text-faint); font-size:11.5px; }
+  /* ventanas de seguimiento (las ven Alfredo y Viri): botón Seguimiento y la ventana única de vencidas */
+  #cbzSegBtn svg{ width:14px; height:14px; }
+  #cbzSegBtn.con-pendientes{ border-color:#dfb35a; color:#dfb35a; }
+  #cbzPopCaja.cbz-pop-ancha{ width:min(720px, calc(100vw - 40px)); max-width:none; }
+  #cbzPopPregunta{ margin-top:12px; }
+  .cbz-pop-total{ margin:0 0 10px; font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .cbz-pop-lista{ max-height:min(46vh, 380px); overflow:auto; border:1px solid var(--line); border-radius:10px; }
+  .cbz-pop-fila{ display:grid; grid-template-columns:minmax(0, 1fr) auto auto auto; align-items:center; gap:12px; padding:9px 12px; border-bottom:1px solid var(--line); }
+  .cbz-pop-fila:last-child{ border-bottom:0; }
+  .cbz-pop-cli b{ display:block; font-family:var(--display); font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cbz-pop-cli small{ display:block; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cbz-pop-monto{ font-variant-numeric:tabular-nums; font-weight:600; text-align:right; min-width:92px; }
+  .cbz-pop-fila .admin-dialog-btn{ padding:7px 12px; font-size:12px; white-space:nowrap; }
+  @media (max-width:640px){ .cbz-pop-fila{ grid-template-columns:1fr auto; } .cbz-pop-fila .cbz-sem{ display:none; } }
   #cbzKpiPorCobrarSub{ order:3; font-size:10.5px; color:var(--text-faint); }
   /* ── Línea de cobros (Cobranza): vencido ← | escala de meses | → sin fecha; cada cobro es una línea en su vencimiento y su altura es el monto ── */
   .cbz-linea{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px 12px; margin-bottom:16px; }
@@ -4294,9 +4315,10 @@
           <p class="radm-hint" id="cbzDesde" hidden style="margin:8px 2px 0;"></p>
         </div>
 
-        <div class="cot-alert cbz-clic" id="cbzAlerta" hidden role="button" tabindex="0" title="Ver las cuentas vencidas">
+        <div class="cot-alert" id="cbzAlerta" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span id="cbzAlertaTexto"></span>
+          <span id="cbzAlertaChips" style="display:contents;"></span>
+          <span id="cbzAlertaHint">Clic en cada una para verlas.</span>
         </div>
 
         <div class="cbz-linea" id="cbzLinea">
@@ -4385,6 +4407,9 @@
             </div>
             <span class="trk-result" id="cbzResultado"></span>
             <div class="trk-acc-der">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cbzSegBtn" style="white-space:nowrap;" title="Cobros que piden seguimiento: las vencidas (en una sola ventana), las que vencen hoy y las que llevan días sin facturarse">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" stroke-linecap="round" stroke-linejoin="round"/></svg>Seguimiento (<span id="cbzSegCnt">0</span>)
+              </button>
               <button type="button" class="radm-btn radm-btn-ghost" id="cbzExportarBtn" style="white-space:nowrap;" title="Reporte para el contador: próximamente">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportar reporte
               </button>
@@ -4413,6 +4438,19 @@
             </tbody>
             <tfoot id="cbzPie"></tfoot>
           </table>
+        </div>
+
+        <div class="admin-dialog-overlay" id="cbzPop" hidden>
+          <div class="admin-dialog" id="cbzPopCaja" role="alertdialog" aria-modal="true" aria-labelledby="cbzPopTitulo">
+            <div class="admin-dialog-ico" id="cbzPopIco"></div>
+            <div class="admin-dialog-cuerpo">
+              <h3 class="admin-dialog-titulo" id="cbzPopTitulo"></h3>
+              <p class="admin-dialog-mensaje" id="cbzPopPaso" hidden></p>
+              <div id="cbzPopCuerpo"></div>
+              <p class="admin-dialog-mensaje" id="cbzPopPregunta"></p>
+              <div class="admin-dialog-acciones" id="cbzPopAcciones"></div>
+            </div>
+          </div>
         </div>
 
         <div class="gro-notas-popover" id="cbzNotasPopover" hidden>
@@ -6467,11 +6505,21 @@
         d.textContent = 'Cobrado y Días promedio cuentan solo el rango definido en Configuración → Métricas de los Tracking.';
         d.hidden = false;
       } else d.hidden = true;
-      const al = $('cbzAlerta');
-      if(r.vencido_n){
-        $('cbzAlertaTexto').textContent = r.vencido_n + (r.vencido_n === 1 ? ' cuenta vencida' : ' cuentas vencidas') + ' por ' + dinero(r.vencido) + '. Clic para verlas.';
-        al.hidden = false;
-      } else al.hidden = true;
+      pintarAlerta();
+    }
+    // Banner: UNA sola fila con las tres alertas de Cobranza (las mismas de la campana): vencidas, por vencer y sin facturar. Cada una es clicable y lleva a su vista.
+    function pintarAlerta(){
+      const al = $('cbzAlerta'), r = resumen; if(!al) return;
+      const umb = (window.UMBRALES_NOTIF && window.UMBRALES_NOTIF.cobranzaPorFacturarDias) || 3;
+      const sinFacturar = cuentas.filter((c) => !esTercero(c) && c.estatus === 'Por facturar' && (diasDesde(String(c.fecha_creacion || '').slice(0, 10)) || 0) >= umb).length;
+      const venc = r ? r.vencido_n || 0 : 0, porVencer = r ? r.por_vencer_n || 0 : 0;
+      const chips = [];
+      if(venc) chips.push('<button type="button" class="cbz-chip v" data-vista="vencidas">▲ <b>' + venc + '</b> ' + (venc === 1 ? 'vencida' : 'vencidas') + ' · ' + dinero(r.vencido) + '</button>');
+      if(porVencer) chips.push('<button type="button" class="cbz-chip p" data-vista="cobrar">◷ <b>' + porVencer + '</b> por vencer</button>');
+      if(sinFacturar) chips.push('<button type="button" class="cbz-chip sf" data-vista="facturar">▭ <b>' + sinFacturar + '</b> sin facturar (' + umb + ' d o más)</button>');
+      $('cbzAlertaChips').innerHTML = chips.join('');
+      al.classList.toggle('solo-aviso', !venc);
+      al.hidden = !chips.length;
     }
 
     // ── lista ──
@@ -6743,10 +6791,11 @@
         pintarKpis();
         pintarLista();
         pintarLinea();
+        pintarAlerta(); actualizarBotonSeg();
         if(abiertaId != null && !$('cbzDetalle').hidden) pintarDetalle();
       }
     }
-    window.alEntrarACobranza = cargar;
+    window.alEntrarACobranza = async () => { await cargar(); revisarCobranza(); };
 
     // ── detalle de una cuenta ──
     function campoTxt(id, etiqueta, valor, extra){
@@ -7001,6 +7050,134 @@
     });
     $('cbzDetCerrar').addEventListener('click', cerrarDetalle);
 
+    // ── Ventanas de seguimiento (las ven Alfredo y Viri). Al entrar a Cobranza, 1 vez cada 12 h por navegador: PRIMERO una sola ventana con todas las
+    // vencidas (cada una con su botón "Ya se pagó"; abajo solo Cancelar) y DESPUÉS, de una en una, las que vencen hoy ("¿ya se pagó?") y las que llevan
+    // días sin facturarse ("¿ya la facturaste?"). Lo único que cambia es la fase de pago: "Ya se pagó" abre la cuenta para registrar el pago. El botón
+    // Seguimiento las abre cuando quieras, sin esperar las 12 h. ──
+    const POP_REPOSO_MS = 12 * 60 * 60 * 1000, POP_CLAVE = 'admin-cbz-pop-ultima';
+    let popRevisando = false;
+    const ICO_POP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    function pendientesCbz(){
+      const umb = (window.UMBRALES_NOTIF && window.UMBRALES_NOTIF.cobranzaPorFacturarDias) || 3;
+      const propias = cuentas.filter((c) => !esTercero(c));
+      const cobrables = propias.filter((c) => (c.estatus === 'Facturada' || c.estatus === 'Parcial') && c.saldo > 0);
+      const diasSin = (c) => diasDesde(String(c.fecha_creacion || '').slice(0, 10)) || 0;
+      const vencidas = cobrables.filter((c) => c.semaforo.clave === 'vencida').sort((a, b) => b.semaforo.dias - a.semaforo.dias);
+      const hoy = cobrables.filter((c) => c.semaforo.clave === 'por_vencer' && c.semaforo.dias === 0);
+      const facturar = propias.filter((c) => c.estatus === 'Por facturar' && diasSin(c) >= umb).sort((a, b) => diasSin(b) - diasSin(a));
+      return { vencidas, hoy, facturar, n: vencidas.length + hoy.length + facturar.length };
+    }
+    function actualizarBotonSeg(){
+      const n = pendientesCbz().n, el = $('cbzSegCnt'), b = $('cbzSegBtn');
+      if(el) el.textContent = n;
+      if(b) b.classList.toggle('con-pendientes', n > 0);
+    }
+    // Una ventana: cfg = { variante, ico, titulo, paso, cuerpo (html), pregunta, ancha, botones:[{k, t, primario}] }. Resuelve con la clave del botón, 'cerrar' (Esc o clic fuera) o { id } (botón "Ya se pagó" de una fila).
+    function abrirPop(cfg){
+      return new Promise((resolve) => {
+        const m = $('cbzPop'), cont = $('cbzPopAcciones');
+        $('cbzPopCaja').className = 'admin-dialog admin-dialog-' + cfg.variante + (cfg.ancha ? ' cbz-pop-ancha' : '');
+        $('cbzPopIco').innerHTML = cfg.ico;
+        $('cbzPopTitulo').textContent = cfg.titulo;
+        $('cbzPopPaso').textContent = cfg.paso || ''; $('cbzPopPaso').hidden = !cfg.paso;
+        $('cbzPopCuerpo').innerHTML = cfg.cuerpo || '';
+        $('cbzPopPregunta').textContent = cfg.pregunta || ''; $('cbzPopPregunta').hidden = !cfg.pregunta;
+        cont.innerHTML = '';
+        const cerrar = (v) => { m.hidden = true; document.body.classList.remove('admin-dialog-abierto'); document.removeEventListener('keydown', onKey); m.onmousedown = null; $('cbzPopCuerpo').onclick = null; resolve(v); };
+        const onKey = (ev) => { if(ev.key === 'Escape') cerrar('cerrar'); };
+        document.addEventListener('keydown', onKey);
+        m.onmousedown = (ev) => { if(ev.target === m) cerrar('cerrar'); };
+        $('cbzPopCuerpo').onclick = (ev) => { const b = ev.target.closest('[data-pagar]'); if(b) cerrar({ id: Number(b.dataset.pagar) }); };
+        let principal = null;
+        cfg.botones.forEach((b) => {
+          const el = document.createElement('button');
+          el.type = 'button';
+          el.className = 'admin-dialog-btn' + (b.primario ? ' admin-dialog-confirmar admin-dialog-btn-advertencia' : '');
+          el.textContent = b.t;
+          el.addEventListener('click', () => cerrar(b.k));
+          cont.appendChild(el);
+          if(b.primario) principal = el;
+        });
+        m.hidden = false;
+        document.body.classList.add('admin-dialog-abierto');
+        (principal || cont.lastElementChild).focus();
+      });
+    }
+    function esperarCierreDetalle(){
+      return new Promise((resolve) => {
+        const el = $('cbzDetalle'); if(el.hidden) return resolve();
+        const mo = new MutationObserver(() => { if(el.hidden){ mo.disconnect(); resolve(); } });
+        mo.observe(el, { attributes: true, attributeFilter: ['hidden'] });
+      });
+    }
+    const filaPop = (k, v) => '<dt>' + k + '</dt><dd>' + v + '</dd>';
+    function configVencidas(lista){
+      const total = lista.reduce((a, c) => a + c.saldo, 0);
+      return {
+        variante: 'advertencia', ico: ICO.vencida, ancha: true, titulo: 'Cobros vencidos',
+        cuerpo: '<p class="cbz-pop-total">' + lista.length + (lista.length === 1 ? ' cuenta' : ' cuentas') + ' · ' + dinero(total) + ' por cobrar</p><div class="cbz-pop-lista">' +
+          lista.map((c) => '<div class="cbz-pop-fila" data-id="' + c.id + '"><div class="cbz-pop-cli"><b>' + esc(c.cliente) + '</b><small>' + esc(c.concepto) + (c.folio_factura ? ' · factura ' + esc(c.folio_factura) : '') + '</small></div>' +
+            '<span class="cbz-sem vencida">' + ICO.vencida + '<span class="cbz-sem-txt">Vencida hace ' + c.semaforo.dias + ' d</span></span><span class="cbz-pop-monto">' + dinero(c.saldo) + '</span>' +
+            '<button type="button" class="admin-dialog-btn admin-dialog-confirmar admin-dialog-btn-advertencia" data-pagar="' + c.id + '" title="Abre la cuenta para registrar su pago">Ya se pagó</button></div>').join('') + '</div>',
+        pregunta: 'Toca "Ya se pagó" en las que ya te pagaron; las demás se quedan como están.',
+        botones: [{ k: 'cancelar', t: 'Cancelar' }],
+      };
+    }
+    function configUna(c, t, n, total){
+      const paso = total > 1 ? n + ' de ' + total + ' · puedes cerrar con Esc' : '';
+      if(t === 'hoy') return {
+        variante: 'advertencia', ico: ICO.por_vencer, titulo: 'Vence hoy: ¿ya se pagó?', paso,
+        cuerpo: '<dl class="cot-seg-resumen">' + filaPop('Cliente', esc(c.cliente)) + filaPop('Factura', c.folio_factura ? esc(c.folio_factura) : '—') + filaPop('Concepto', esc(c.concepto)) + filaPop('Saldo', dinero(c.saldo)) + filaPop('Vence', 'hoy · ' + fmtFecha(c.vencimiento)) + '</dl>',
+        pregunta: 'Hoy llega la fecha de vencimiento de esta factura. ¿Ya te pagaron?',
+        botones: [{ k: 'no', t: 'Todavía no' }, { k: 'si', t: 'Sí, ya se pagó', primario: true }],
+      };
+      const d = diasDesde(String(c.fecha_creacion || '').slice(0, 10)) || 0;
+      return {
+        variante: 'advertencia', ico: ICO_POP, titulo: 'Por facturar: ¿ya la facturaste?', paso,
+        cuerpo: '<dl class="cot-seg-resumen">' + filaPop('Cliente', esc(c.cliente)) + filaPop('Concepto', esc(c.concepto)) + filaPop('Subtotal', c.subtotal ? dinero(c.subtotal) : 'Por definir') + filaPop('Creada', 'hace ' + d + ' d') + '</dl>',
+        pregunta: 'Lleva ' + d + ' días sin factura. ¿Ya la facturaste?',
+        botones: [{ k: 'no', t: 'Todavía no' }, { k: 'si', t: 'Sí, ya la facturé', primario: true }],
+      };
+    }
+    async function correrColaCbz(p){
+      // 1) todas las vencidas en UNA ventana; "Ya se pagó" abre la cuenta y, al cerrarla, la ventana vuelve con las que faltan
+      let lista = p.vencidas;
+      while(lista.length){
+        const r = await abrirPop(configVencidas(lista));
+        if(!r || !r.id) break; // Cancelar, Esc o clic fuera: se sigue con las demás
+        abrirDetalle(r.id); await esperarCierreDetalle(); await cargar();
+        lista = pendientesCbz().vencidas;
+      }
+      // 2) las demás, de una en una (Esc detiene la cola)
+      const resto = [...p.hoy.map((c) => ({ id: c.id, t: 'hoy' })), ...p.facturar.map((c) => ({ id: c.id, t: 'facturar' }))];
+      for(let i = 0; i < resto.length; i++){
+        const c = cuentas.find((x) => x.id === resto[i].id), t = resto[i].t;
+        if(!c || (t === 'hoy' && !(c.saldo > 0 && c.semaforo.clave === 'por_vencer')) || (t === 'facturar' && c.estatus !== 'Por facturar')) continue; // ya se movió
+        const r = await abrirPop(configUna(c, t, i + 1, resto.length));
+        if(r === 'cerrar') break;
+        if(r === 'si'){ abrirDetalle(c.id); await esperarCierreDetalle(); await cargar(); }
+      }
+      actualizarBotonSeg();
+    }
+    // automática: al entrar a Cobranza, 1 vez cada 12 h por navegador (no si venías a abrir una cuenta en concreto, p. ej. desde el Tracking View)
+    async function revisarCobranza(){
+      if(popRevisando || Date.now() - (window.__cbzAbriendoCuenta || 0) < 10000) return;
+      const p = pendientesCbz(); if(!p.n) return;
+      let ult = 0; try { ult = Number(localStorage.getItem(POP_CLAVE)) || 0; } catch(e){ /* sin almacenamiento */ }
+      if(ult && Date.now() - ult < POP_REPOSO_MS) return;
+      try { localStorage.setItem(POP_CLAVE, String(Date.now())); } catch(e){ /* sin almacenamiento */ }
+      popRevisando = true;
+      try { await correrColaCbz(p); } finally { popRevisando = false; }
+    }
+    async function abrirSeguimientoCbz(){
+      if(popRevisando) return;
+      const p = pendientesCbz();
+      if(!p.n){ toast('Nada pendiente de seguimiento.', true); return; }
+      popRevisando = true;
+      try { await correrColaCbz(p); } finally { popRevisando = false; }
+    }
+    $('cbzSegBtn').addEventListener('click', abrirSeguimientoCbz);
+
     // ── alta manual ──
     async function abrirNueva(){
       $('cbzNuevaCuerpo').innerHTML = '<p class="cbz-aviso">Cargando clientes…</p>';
@@ -7125,9 +7302,8 @@
       document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x === b));
       pintarLista();
     });
-    const verVencidas = () => { vista = 'vencidas'; orden = null; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === 'vencidas')); pintarLista(); };
-    $('cbzAlerta').addEventListener('click', verVencidas);
-    $('cbzAlerta').addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); verVencidas(); } });
+    const irAVista = (v) => { vista = v; orden = null; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === v)); pintarLista(); };
+    $('cbzAlerta').addEventListener('click', (e) => { const b = e.target.closest('[data-vista]'); if(b) irAVista(b.dataset.vista); });
     $('cbzFCliente').addEventListener('input', pintarLista);
     $('cbzFFolio').addEventListener('input', pintarLista);
     $('cbzFEstrategia').addEventListener('change', pintarLista);
@@ -7229,7 +7405,7 @@
       abrirDetalle(id);
     });
     // una alerta de Cobranza abre la cuenta directo
-    window.cbzAbrirCuenta = (id) => { vista = 'todo'; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === 'todo')); cargar().then(() => abrirDetalle(Number(id))); };
+    window.cbzAbrirCuenta = (id) => { window.__cbzAbriendoCuenta = Date.now(); vista = 'todo'; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === 'todo')); cargar().then(() => abrirDetalle(Number(id))); };
   })();
 
   // quién inició sesión — solo funciona una vez desplegado en Azure (no en local)

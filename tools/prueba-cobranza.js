@@ -87,6 +87,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   console.log('Sidebar y entrada');
   const nav = q('.admin-nav-item[data-panel="cobranza"]');
   check('Cobranza está en el grupo TRACKING, después de Grupos', !!nav && nav.previousElementSibling.dataset.panel === 'tracking-operacion');
+  w.localStorage.setItem('admin-cbz-pop-ultima', String(Date.now()));
   await clic(nav);
   check('abre su panel y el título de la barra dice Cobranza', q('#panel-cobranza').classList.contains('active') && txt('#topbarTitle') === 'Cobranza');
   check('al navegar desde el sidebar refresca (pide lista y resumen)', llamadas.some((l) => l.u.includes('listCobranzaAdmin')) && llamadas.some((l) => l.u.includes('getResumenCobranzaAdmin')));
@@ -94,7 +95,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   console.log('Tarjetas');
   check('Por cobrar con su monto y conteo', /30,000\.50/.test(txt('#cbzKpiPorCobrar')) && /3/.test(txt('#cbzKpiPorCobrarN')), txt('#cbzKpiPorCobrar'));
   check('Vencido, Por facturar, Cobrado y Días promedio', /11,600/.test(txt('#cbzKpiVencido')) && /11,600/.test(txt('#cbzKpiPorFacturar')) && /15,600/.test(txt('#cbzKpiCobrado')) && txt('#cbzKpiDias') === '19');
-  check('banner de vencidas con ícono y texto', !q('#cbzAlerta').hidden && /1 cuenta vencida/.test(txt('#cbzAlertaTexto')), txt('#cbzAlertaTexto'));
+  check('el banner es UNA fila que resume las tres alertas (vencidas, por vencer y sin facturar), cada una con ícono y texto', !q('#cbzAlerta').hidden && qa('#cbzAlerta .cbz-chip').length === 3 && /▲ 1 vencida/.test(txt('#cbzAlerta .cbz-chip.v')) && /◷ 1 por vencer/.test(txt('#cbzAlerta .cbz-chip.p')) && /▭ 1 sin facturar/.test(txt('#cbzAlerta .cbz-chip.sf')), txt('#cbzAlerta'));
 
   console.log('Tabla: vistas, columnas, semáforo y filtros');
   const encabezados = qa('.cbz-tabla thead th').map((th) => th.textContent.replace(/[▲▼]/g, '').trim());
@@ -148,7 +149,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('Por cobrar dice cuánto de lo que incluye ya está vencido', /incluye \$11,600\.00 vencido/.test(txt('#cbzKpiPorCobrarSub')), txt('#cbzKpiPorCobrarSub'));
   check('las pestañas de trabajo llevan su número resaltado: Vencidas en rojo, Por facturar en ámbar', q('#cbzN-vencidas').classList.contains('cbz-urgente') && q('#cbzN-facturar').classList.contains('cbz-atencion') && !q('#cbzN-pagadas').classList.contains('cbz-urgente'));
   await clic(q('#cbzVistas [data-vista="cobrar"]'));
-  await clic(q('#cbzAlerta'));
+  await clic(q('#cbzAlerta .cbz-chip.v'));
   check('el banner rojo es clicable y lleva a la pestaña Vencidas', q('#cbzVistas .radm-tab.active').dataset.vista === 'vencidas' && qa('#cbzListaBody tr[data-id]').length === 1);
   const cobrarBtn = q('#cbzListaBody tr[data-id="1"] .cbz-acc-pago');
   check('la acción principal de una factura dice "Cobrar" (con palabras)', !!cobrarBtn && /Cobrar/.test(cobrarBtn.textContent));
@@ -372,6 +373,37 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#btnInicio')); await pausa(100);
   check('al volver a Inicio se refresca la tarjeta (pide lista y resumen)', llamadas.some((l) => l.u.includes('listCobranzaAdmin')) && llamadas.some((l) => l.u.includes('getResumenCobranzaAdmin')));
 
+
+  console.log('Ventanas de seguimiento');
+  const pop = () => !q('#cbzPop').hidden;
+  const titulo = () => txt('#cbzPopTitulo');
+  const botonesPop = () => qa('#cbzPopAcciones button').map((b) => b.textContent.trim());
+  check('el botón Seguimiento cuenta lo pendiente (vencidas, vencen hoy y sin facturar)', Number(txt('#cbzSegCnt')) >= 2 && q('#cbzSegBtn').classList.contains('con-pendientes'), txt('#cbzSegCnt'));
+  await clic(q('#cbzSegBtn')); await pausa(80);
+  check('las vencidas salen en UNA sola ventana con su lista (sin terceros) y un botón de acción por fila', pop() && titulo() === 'Cobros vencidos' && qa('#cbzPopCuerpo .cbz-pop-fila').length === 1 && !!q('#cbzPopCuerpo [data-pagar]') && /Zeta/.test(txt('#cbzPopCuerpo')), titulo() + ' | ' + qa('#cbzPopCuerpo .cbz-pop-fila').length);
+  check('abajo solo hay "Cancelar" (nada masivo)', botonesPop().join('|') === 'Cancelar', botonesPop().join('|'));
+  await clic(q('#cbzPopCuerpo [data-pagar]')); await pausa(80);
+  check('"Ya se pagó" abre esa cuenta para registrar el pago', !q('#cbzDetalle').hidden && /^Zeta/.test(txt('#cbzDetTitulo')) && !pop(), txt('#cbzDetTitulo'));
+  await clic(q('#cbzDetCerrar')); await pausa(400);
+  check('al cerrar la cuenta la ventana de vencidas vuelve con las que faltan', pop() && titulo() === 'Cobros vencidos');
+  await clic(q('#cbzPopAcciones button')); await pausa(80);
+  check('después de las vencidas siguen las demás, de una en una: "¿ya la facturaste?"', pop() && /ya la facturaste/.test(titulo()) && botonesPop().join('|') === 'Todavía no|Sí, ya la facturé', titulo() + ' | ' + botonesPop().join('|'));
+  await clic(qa('#cbzPopAcciones button')[0]); await pausa(80);
+  check('"Todavía no" cierra y se acaba la cola', !pop());
+  // regla de 12 h: al entrar a Cobranza sale sola la primera vez y no vuelve hasta pasadas 12 h
+  w.localStorage.removeItem('admin-cbz-pop-ultima'); w.__cbzAbriendoCuenta = 0;
+  await clic(q('#btnInicio')); await clic(nav);
+  check('al entrar a Cobranza (sin aviso en 12 h) sale sola la ventana de vencidas y se marca la hora', pop() && titulo() === 'Cobros vencidos' && Date.now() - Number(w.localStorage.getItem('admin-cbz-pop-ultima')) < 5000, titulo());
+  await clic(q('#cbzPopAcciones button')); await pausa(80);
+  await clic(qa('#cbzPopAcciones button')[0]); await pausa(80);
+  await clic(q('#btnInicio')); await clic(nav); await pausa(500);
+  check('al volver a entrar dentro de las 12 h no sale otra vez', !pop());
+  w.localStorage.setItem('admin-cbz-pop-ultima', String(Date.now() - 13 * 3600 * 1000)); w.__cbzAbriendoCuenta = 0;
+  await clic(q('#btnInicio')); await clic(nav); await pausa(500);
+  check('pasadas las 12 h vuelve a salir', pop() && titulo() === 'Cobros vencidos');
+  await clic(q('#cbzPopAcciones button')); await pausa(80);
+  q('#cbzPop').onmousedown = null; await clic(qa('#cbzPopAcciones button')[0]); await pausa(80);
+  check('Esc o Cancelar nunca dejan la ventana abierta', !pop());
 
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);

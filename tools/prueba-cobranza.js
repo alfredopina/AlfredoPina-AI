@@ -224,7 +224,9 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const expo = q('#cbzExportarBtn');
   check('el botón Exportar reporte está junto a Nueva cuenta', !!expo && expo.parentElement === q('#cbzCrearBtn').parentElement && expo.nextElementSibling === q('#cbzCrearBtn'));
   await clic(expo);
-  check('Exportar reporte avisa que está pendiente', /pendiente/.test(txt('#cbzToast')), txt('#cbzToast'));
+  check('Exportar reporte abre la ventana del reporte con el mes en curso', !q('#cbzRep').hidden && valorDe('cbzRepDesde') === w.cbzReporte.periodoMes(0).desde && valorDe('cbzRepHasta') === w.cbzReporte.periodoMes(0).hasta, valorDe('cbzRepDesde') + ' a ' + valorDe('cbzRepHasta'));
+  await clic(q('#cbzRepCancelar'));
+  check('Cancelar cierra la ventana del reporte', q('#cbzRep').hidden);
   llamadas.length = 0;
   await clic(q('#cbzListaBody tr[data-id="1"] .cbz-acc-notas'));
   check('Notas abre su popover', !q('#cbzNotasPopover').hidden);
@@ -410,6 +412,59 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzPopAcciones button')); await pausa(80);
   q('#cbzPop').onmousedown = null; await clic(qa('#cbzPopAcciones button')[0]); await pausa(80);
   check('Esc o Cancelar nunca dejan la ventana abierta', !pop());
+
+  console.log('Reporte para el contador');
+  const baseRep = (id, extra) => Object.assign({}, cuentas[1], { id, cliente: 'Cliente ' + id, razon_social: 'RAZON ' + id, rfc_receptor: 'RFC' + id, folio_factura: String(300 + id), uuid_factura: 'uuid-' + id, tipo_factura: 'Empresa', estatus: 'Facturada', subtotal: 1000, iva: 160, retencion_isr: 0, retencion_iva: 0, total: 1160, saldo: 1160, pagado: 0, pagos: [], fecha_emision: '2026-10-05', vencimiento: '2026-11-04', fecha_estatus: '2026-10-05T18:00:00Z', orden_compra: null }, extra || {});
+  const lista = [
+    baseRep(101),
+    baseRep(102, { estatus: 'Pagada', fecha_emision: '2026-09-10', vencimiento: '2026-10-10', saldo: 0, pagos: [{ id: 1, fecha: '2026-10-15', monto: 1160, anulado: false, metodo: 'Transferencia', uuid_complemento: 'compl-102', folio_complemento: '55' }] }),
+    baseRep(103, { fecha_emision: '2026-08-01', vencimiento: '2026-09-01', total: 2320, subtotal: 2000, iva: 320 }),
+    baseRep(104, { estatus: 'Cancelada', fecha_emision: '2026-10-02', fecha_estatus: '2026-10-20T18:00:00Z' }),
+    baseRep(105, { fecha_emision: '2026-09-01', vencimiento: '2026-10-01', pagos: [{ id: 2, fecha: '2026-11-05', monto: 1160, anulado: false }] }),
+    baseRep(106, { estatus: 'Por facturar', folio_factura: null, fecha_emision: null }),
+    baseRep(107, { tipo_factura: 'Otro', fecha_emision: '2026-10-12' }),
+    baseRep(108, { fecha_emision: null, vencimiento: null }),
+  ];
+  const rep = w.cbzReporte.armar('2026-10-01', '2026-10-31', lista);
+  const idsRep = rep.filas.map((f) => f.folio).join(',');
+  check('entran: emitidas en el periodo, cobradas en el periodo (aunque se emitieran antes), canceladas en el periodo y vencidas al cierre; no las Por facturar', idsRep === '403,405,402,404,401,407', idsRep);
+  const f = (id) => rep.filas.find((x) => x.folio === String(300 + id));
+  check('cada fila dice por qué entró (Emitida, Cobrada, Cancelada, Vencida al cierre)', f(101).movimiento === 'Emitida' && f(102).movimiento === 'Cobrada' && f(103).movimiento === 'Vencida al cierre' && f(104).movimiento === 'Emitida · Cancelada' && f(105).movimiento === 'Vencida al cierre', rep.filas.map((x) => x.movimiento).join(' | '));
+  check('la vencida al cierre calcula sus días y una cobrada DESPUÉS del cierre sigue vencida', f(103).dias === 60 && f(105).dias === 30 && f(105).saldo === 1160, f(103).dias + ' / ' + f(105).dias);
+  check('el estatus usa las palabras del formato original (Pagado, Vigente No Pagado, Cancelada) y el complemento sale de los pagos', f(102).estatus === 'Pagado' && f(101).estatus === 'Vigente No Pagado' && f(104).estatus === 'Cancelada' && f(102).complemento === 'compl-102' && f(102).folioCompl === '55' && f(101).uso === 'Gastos en General');
+  check('el resumen cuenta facturado (sin canceladas), cobrado, canceladas y vencidas; los terceros entran y se cuentan aparte', rep.resumen.emitidas.n === 2 && rep.resumen.emitidas.total === 2320 && rep.resumen.emitidas.terceros === 1 && rep.resumen.cobrado.n === 1 && rep.resumen.cobrado.monto === 1160 && rep.resumen.canceladas.n === 1 && rep.resumen.vencidas.n === 2 && rep.resumen.vencidas.saldo === 3480, JSON.stringify(rep.resumen));
+  check('una factura sin fecha de emisión no entra y se avisa', rep.sinFechaEmision === 1);
+  check('una cobrada fuera del periodo no entra en Cobros del periodo (solo el pago de octubre)', rep.cobros.length === 1 && rep.cobros[0].folio === '402' && rep.cobros[0].monto === 1160);
+  // la ventana: cuenta y descarga con ExcelJS simulado
+  const hojas = [], descargas = [];
+  const mk = (nombre) => new Proxy(function () {}, {
+    get(t, k) { if (k === 'then') return undefined; if (k === Symbol.toPrimitive) return () => 'x'; if (k === 'writeBuffer') return async () => new w.Uint8Array(4); if (k === 'addWorksheet') return (n) => { hojas.push(n); return mk('ws'); }; return mk(nombre + '.' + String(k)); },
+    set() { return true; }, apply() { return mk(nombre + '()'); }, construct() { return mk('new'); },
+  });
+  w.ExcelJS = { Workbook: mk('Workbook') };
+  w.URL.createObjectURL = () => 'blob:prueba'; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () { descargas.push(this.download); };
+  datosLista = lista; await clic(q('#cbzActualizar')); await pausa(150);
+  await clic(q('#cbzExportarBtn'));
+  poner('cbzRepDesde', '2026-10-01'); poner('cbzRepHasta', '2026-10-31'); d.getElementById('cbzRepHasta').dispatchEvent(new w.Event('change', { bubbles: true }));
+  check('la ventana muestra cuántas entran antes de descargar', /Emitidas/.test(txt('#cbzRepResumen')) && /Filasdelreporte6/.test(txt('#cbzRepResumen').replace(/\s+/g, '')) && /sin fecha de emisión/.test(txt('#cbzRepResumen')), txt('#cbzRepResumen'));
+  poner('cbzRepDesde', '2026-11-30'); d.getElementById('cbzRepDesde').dispatchEvent(new w.Event('change', { bubbles: true }));
+  check('si "Desde" es posterior a "Hasta" lo avisa y no arma nada', !q('#cbzRepError').hidden && /posterior/.test(txt('#cbzRepError')));
+  poner('cbzRepDesde', '2026-10-01'); d.getElementById('cbzRepDesde').dispatchEvent(new w.Event('change', { bubbles: true }));
+  await clic(q('#cbzRepDescargar')); await pausa(300);
+  check('Descargar arma el Excel con 3 hojas (Factura Emitidas, Cobros del periodo y Resumen) y lo baja con el periodo en el nombre', hojas.join('|') === 'Factura Emitidas|Cobros del periodo|Resumen' && descargas[0] === 'Reporte_Cobranza_2026-10-01_a_2026-10-31.xlsx' && q('#cbzRep').hidden, hojas.join('|') + ' / ' + descargas.join(','));
+  datosLista = cuentas; await clic(q('#cbzActualizar')); await pausa(150);
+
+  console.log('Cobranza recuerda su vista');
+  await clic(q('#cbzVistas [data-vista="cobrar"]'));
+  check('la vista se guarda en el navegador', w.localStorage.getItem('admin-vista-cbz') === 'cobrar');
+  d.getElementById('cbzFEstrategia').value = 'empresas'; d.getElementById('cbzFEstrategia').dispatchEvent(new w.Event('change', { bubbles: true }));
+  await clic(q('.cbz-tabla th[data-sort="total"]'));
+  check('también se guardan la estrategia y el orden', w.localStorage.getItem('admin-cbz-estrategia') === 'empresas' && /"k":"total"/.test(w.localStorage.getItem('admin-orden-cbz') || ''), w.localStorage.getItem('admin-orden-cbz'));
+  await clic(q('#cbzLimpiar'));
+  check('Limpiar filtros borra lo guardado de estrategia y orden (la vista se queda)', w.localStorage.getItem('admin-cbz-estrategia') === '' && w.localStorage.getItem('admin-orden-cbz') === '' && w.localStorage.getItem('admin-vista-cbz') === 'cobrar');
+  check('al abrir, Cobranza lee su vista guardada (con las vistas válidas)', HTML.includes("localStorage.getItem('admin-vista-cbz')") && HTML.includes("VISTAS_CBZ.includes(v)"));
+  await clic(q('#cbzVistas [data-vista="facturar"]'));
 
   console.log('Alertas y Configuración');
   q('#btnNotificaciones').click(); await pausa(300);

@@ -1883,6 +1883,7 @@
   #cbzSegBtn.con-pendientes{ border-color:#dfb35a; color:#dfb35a; }
   #cbzPopCaja.cbz-pop-ancha{ width:min(720px, calc(100vw - 40px)); max-width:none; }
   #cbzPopPregunta{ margin-top:12px; }
+  .cbz-rep-pre{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px; } .cbz-rep-pre .radm-btn{ min-width:auto; padding:6px 12px; }
   .cbz-pop-total{ margin:0 0 10px; font-family:var(--mono); font-size:12px; color:var(--text-dim); }
   .cbz-pop-lista{ max-height:min(46vh, 380px); overflow:auto; border:1px solid var(--line); border-radius:10px; }
   .cbz-pop-fila{ display:grid; grid-template-columns:minmax(0, 1fr) auto auto auto; align-items:center; gap:12px; padding:9px 12px; border-bottom:1px solid var(--line); }
@@ -4423,7 +4424,7 @@
               <button type="button" class="radm-btn radm-btn-ghost" id="cbzSegBtn" style="white-space:nowrap;" title="Cobros que piden seguimiento: las vencidas (en una sola ventana), las que vencen hoy y las que llevan días sin facturarse">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" stroke-linecap="round" stroke-linejoin="round"/></svg>Seguimiento (<span id="cbzSegCnt">0</span>)
               </button>
-              <button type="button" class="radm-btn radm-btn-ghost" id="cbzExportarBtn" style="white-space:nowrap;" title="Reporte para el contador: próximamente">
+              <button type="button" class="radm-btn radm-btn-ghost" id="cbzExportarBtn" style="white-space:nowrap;" title="Reporte en Excel para el contador: elige el periodo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportar reporte
               </button>
               <button type="button" class="radm-btn-add" id="cbzCrearBtn" style="white-space:nowrap;">+ Nueva cuenta</button>
@@ -4451,6 +4452,24 @@
             </tbody>
             <tfoot id="cbzPie"></tfoot>
           </table>
+        </div>
+
+        <div class="admin-dialog-overlay" id="cbzRep" hidden>
+          <div class="admin-dialog admin-dialog-neutral" id="cbzRepCaja" role="dialog" aria-modal="true" aria-labelledby="cbzRepTitulo" style="width:min(580px, calc(100vw - 40px)); max-width:none;">
+            <div class="admin-dialog-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="admin-dialog-cuerpo">
+              <h3 class="admin-dialog-titulo" id="cbzRepTitulo">Reporte para el contador</h3>
+              <p class="admin-dialog-mensaje">Entran las facturas emitidas, cobradas y canceladas en el periodo, y las que siguen vencidas al cierre.</p>
+              <div class="cbz-grid" style="margin-top:14px; margin-bottom:8px;">
+                <div class="radm-field"><label for="cbzRepDesde">DESDE</label><input type="date" id="cbzRepDesde"></div>
+                <div class="radm-field"><label for="cbzRepHasta">HASTA</label><input type="date" id="cbzRepHasta"></div>
+              </div>
+              <div class="cbz-rep-pre"><button type="button" class="radm-btn radm-btn-ghost" data-rep-mes="0">Mes en curso</button><button type="button" class="radm-btn radm-btn-ghost" data-rep-mes="-1">Mes anterior</button></div>
+              <dl class="cot-seg-resumen" id="cbzRepResumen"></dl>
+              <p class="cbz-error" id="cbzRepError" hidden></p>
+              <div class="admin-dialog-acciones"><button type="button" class="admin-dialog-btn" id="cbzRepCancelar">Cancelar</button><button type="button" class="admin-dialog-btn admin-dialog-confirmar admin-dialog-btn-neutral" id="cbzRepDescargar">Descargar Excel</button></div>
+            </div>
+          </div>
         </div>
 
         <div class="admin-dialog-overlay" id="cbzPop" hidden>
@@ -6448,8 +6467,17 @@
 
     let cuentas = [];
     let resumen = null;
-    let vista = 'facturar';
-    let orden = null; // { k, dir } — null = el orden del servidor: lo más urgente primero
+    // Cobranza recuerda cómo la dejaste en este navegador (vista, estrategia y orden); lo que se teclea en Cliente y Folio no se recuerda a propósito
+    const VISTAS_CBZ = ['facturar', 'vencidas', 'cobrar', 'pagadas', 'canceladas', 'terceros', 'todo'];
+    let vista = (() => { try { const v = localStorage.getItem('admin-vista-cbz'); return VISTAS_CBZ.includes(v) ? v : 'facturar'; } catch(e){ return 'facturar'; } })();
+    let orden = (() => { try { const o = JSON.parse(localStorage.getItem('admin-orden-cbz') || 'null'); return o && typeof o.k === 'string' && (o.dir === 1 || o.dir === -1) ? { k: o.k, dir: o.dir } : null; } catch(e){ return null; } })(); // { k, dir } — null = el orden del servidor: lo más urgente primero
+    function guardarEstadoCbz(){
+      try {
+        localStorage.setItem('admin-vista-cbz', vista);
+        localStorage.setItem('admin-cbz-estrategia', $('cbzFEstrategia').value || '');
+        localStorage.setItem('admin-orden-cbz', orden ? JSON.stringify(orden) : '');
+      } catch(e){ /* sin almacenamiento: no es crítico */ }
+    }
     let abiertaId = null;
     let cargando = false;
 
@@ -7195,6 +7223,191 @@
     }
     $('cbzSegBtn').addEventListener('click', abrirSeguimientoCbz);
 
+    // ── Reporte para el contador ──
+    // Viri elige el periodo (normalmente el mes en curso) y baja un Excel con el formato de siempre (hoja "Factura Emitidas": fecha emitida, UUID, folio, RFC,
+    // razón social, uso CFDI, total, estatus, complemento de pago y su folio) más los datos que ahora sí tenemos. Entran: las facturadas en el periodo, las
+    // cobradas en el periodo (aunque se hayan emitido antes), las canceladas en el periodo y las que siguen vencidas al cierre. Los terceros (tipo Otro)
+    // entran y van marcados. Se arma en el navegador con ExcelJS (cdnjs) a partir de la misma lista de la tabla: sin Function ni SQL nuevos.
+    const USO_CFDI = 'Gastos en General'; // el único uso que traía el formato original en todas sus filas
+    const ESTATUS_CONTADOR = { Pagada: 'Pagado', Facturada: 'Vigente No Pagado', Parcial: 'Pago parcial', Cancelada: 'Cancelada' }; // las 3 palabras del formato original + Pago parcial
+    const dosDec = (x) => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
+    const ymdMonterrey = (iso) => iso ? new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Monterrey' }) : null;
+    function periodoMes(offset){
+      const [a, m] = hoyYmd().split('-').map(Number);
+      const ini = new Date(Date.UTC(a, m - 1 + offset, 1)), fin = new Date(Date.UTC(a, m + offset, 0));
+      return { desde: ini.toISOString().slice(0, 10), hasta: fin.toISOString().slice(0, 10) };
+    }
+    function armarReporte(desde, hasta, lista){
+      lista = lista || cuentas;
+      const filas = [], cobros = [];
+      let sinFechaEmision = 0;
+      for(const c of lista){
+        if(c.estatus === 'Por facturar') continue; // todavía no hay factura
+        const pagos = (c.pagos || []).filter((p) => !p.anulado);
+        const enRango = (f) => !!f && f >= desde && f <= hasta;
+        const motivos = [];
+        if(enRango(c.fecha_emision)) motivos.push('Emitida'); else if(!c.fecha_emision && c.estatus !== 'Cancelada') sinFechaEmision++;
+        const pagosPeriodo = pagos.filter((p) => enRango(p.fecha));
+        if(pagosPeriodo.length) motivos.push('Cobrada');
+        const fCancel = c.estatus === 'Cancelada' ? ymdMonterrey(c.fecha_estatus) : null;
+        if(enRango(fCancel)) motivos.push('Cancelada');
+        const pagosAlCierre = pagos.filter((p) => !p.fecha || p.fecha <= hasta);
+        const pagado = dosDec(pagosAlCierre.reduce((a, p) => a + Number(p.monto || 0), 0));
+        let saldoCierre = dosDec(Number(c.total) - pagado); if(Math.abs(saldoCierre) <= 0.05) saldoCierre = 0;
+        const canceladaAntes = !!fCancel && fCancel <= hasta;
+        const vencida = !canceladaAntes && (!c.fecha_emision || c.fecha_emision <= hasta) && !!c.vencimiento && c.vencimiento < hasta && saldoCierre > 0;
+        if(vencida) motivos.push('Vencida al cierre');
+        pagosPeriodo.forEach((p) => cobros.push({ fecha: p.fecha, folio: c.folio_factura, cliente: c.cliente, razon: c.razon_social || c.cliente, rfc: c.rfc_receptor, monto: Number(p.monto), metodo: p.metodo, uuid: p.uuid_complemento, folioCompl: p.folio_complemento, nota: p.notas }));
+        if(!motivos.length) continue;
+        const compl = [...new Set(pagosAlCierre.map((p) => p.uuid_complemento || (/PUE/i.test(p.notas || '') ? 'PUE' : '')).filter(Boolean))].join(' / ');
+        const fechasPago = pagosAlCierre.map((p) => p.fecha).filter(Boolean).sort();
+        filas.push({
+          fecha: c.fecha_emision, uuid: c.uuid_factura, folio: c.folio_factura, rfc: c.rfc_receptor, razon: c.razon_social || c.cliente, uso: USO_CFDI, total: Number(c.total), estatus: ESTATUS_CONTADOR[c.estatus] || c.estatus,
+          complemento: compl, folioCompl: [...new Set(pagosAlCierre.map((p) => p.folio_complemento).filter(Boolean))].join(' / '),
+          cliente: c.cliente, tipo: c.tipo_factura === 'Otro' ? 'Otro (tercero)' : (c.tipo_factura || ''), subtotal: Number(c.subtotal), iva: Number(c.iva), isr: Number(c.retencion_isr || 0), riva: Number(c.retencion_iva || 0),
+          saldo: c.estatus === 'Cancelada' ? 0 : saldoCierre, fechaPago: fechasPago.length ? fechasPago[fechasPago.length - 1] : null, vencimiento: c.vencimiento, dias: vencida ? Math.round((ymdAms(hasta) - ymdAms(c.vencimiento)) / DIA_MS) : null,
+          oc: c.orden_compra, movimiento: motivos.join(' · '), esTercero: c.tipo_factura === 'Otro', emitida: motivos.includes('Emitida'), cobrada: motivos.includes('Cobrada'), cancelada: motivos.includes('Cancelada'), vencida,
+        });
+      }
+      const num = (a) => Number(a) || 0;
+      filas.sort((a, b) => String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || (Number(a.folio) - Number(b.folio)) || String(a.folio).localeCompare(String(b.folio)));
+      cobros.sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)) || (Number(a.folio) - Number(b.folio)));
+      const suma = (arr, k) => dosDec(arr.reduce((a, x) => a + num(x[k]), 0));
+      const emitidas = filas.filter((f) => f.emitida && !f.cancelada), canceladas = filas.filter((f) => f.cancelada), vencidas = filas.filter((f) => f.vencida);
+      return {
+        filas, cobros, sinFechaEmision,
+        resumen: {
+          emitidas: { n: emitidas.length, subtotal: suma(emitidas, 'subtotal'), iva: suma(emitidas, 'iva'), isr: suma(emitidas, 'isr'), riva: suma(emitidas, 'riva'), total: suma(emitidas, 'total'), terceros: emitidas.filter((f) => f.esTercero).length, totalTerceros: suma(emitidas.filter((f) => f.esTercero), 'total') },
+          cobrado: { n: cobros.length, monto: suma(cobros, 'monto') },
+          canceladas: { n: canceladas.length, total: suma(canceladas, 'total') },
+          vencidas: { n: vencidas.length, saldo: suma(vencidas, 'saldo') },
+        },
+      };
+    }
+    window.cbzReporte = { armar: armarReporte, periodoMes };
+    const fmtDMA = (ymd) => ymd ? ymd.split('-').reverse().join('/') : '';
+    function pintarResumenReporte(){
+      const desde = $('cbzRepDesde').value, hasta = $('cbzRepHasta').value;
+      const dl = $('cbzRepResumen'), err = $('cbzRepError');
+      if(!desde || !hasta){ dl.innerHTML = ''; err.textContent = 'Elige las dos fechas.'; err.hidden = false; return null; }
+      if(desde > hasta){ dl.innerHTML = ''; err.textContent = 'La fecha "Desde" no puede ser posterior a "Hasta".'; err.hidden = false; return null; }
+      err.hidden = true;
+      const r = armarReporte(desde, hasta), x = r.resumen, fila = (k, v) => '<dt>' + k + '</dt><dd>' + v + '</dd>';
+      dl.innerHTML = fila('Emitidas', x.emitidas.n + ' · ' + dinero(x.emitidas.total)) + fila('Cobradas', x.cobrado.n + (x.cobrado.n === 1 ? ' pago' : ' pagos') + ' · ' + dinero(x.cobrado.monto)) +
+        fila('Canceladas', x.canceladas.n + ' · ' + dinero(x.canceladas.total)) + fila('Vencidas al cierre', x.vencidas.n + ' · ' + dinero(x.vencidas.saldo)) + fila('Filas del reporte', String(r.filas.length)) +
+        (r.sinFechaEmision ? fila('Aviso', r.sinFechaEmision + (r.sinFechaEmision === 1 ? ' factura sin fecha de emisión no entra' : ' facturas sin fecha de emisión no entran') + ' (captura la fecha en la cuenta)') : '');
+      return r;
+    }
+    function abrirReporte(){
+      const p = periodoMes(0);
+      $('cbzRepDesde').value = p.desde; $('cbzRepHasta').value = p.hasta;
+      $('cbzRep').hidden = false; document.body.classList.add('admin-dialog-abierto');
+      pintarResumenReporte();
+    }
+    function cerrarReporte(){ $('cbzRep').hidden = true; document.body.classList.remove('admin-dialog-abierto'); }
+    function cargarExcelJS(){
+      if(window.ExcelJS) return Promise.resolve(window.ExcelJS);
+      return new Promise((resolve, reject) => {
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+        sc.onload = () => resolve(window.ExcelJS);
+        sc.onerror = () => reject(new Error('No se pudo cargar la librería de Excel (revisa tu conexión).'));
+        document.head.appendChild(sc);
+      });
+    }
+    const fechaXl = (ymd) => ymd ? new Date(ymd + 'T00:00:00Z') : null;
+    async function descargarReporte(){
+      const desde = $('cbzRepDesde').value, hasta = $('cbzRepHasta').value;
+      const r = pintarResumenReporte(); if(!r) return;
+      const btn = $('cbzRepDescargar'); btn.disabled = true; btn.textContent = 'Armando…';
+      try {
+        const X = await cargarExcelJS();
+        const wb = new X.Workbook(); wb.creator = 'alfredopina.ai'; wb.created = new Date();
+        const AZUL = 'FF1F5FE0', TINTA = 'FF0D1424', GRIS = 'FFE6EAF2', BORDE = { style: 'thin', color: { argb: 'FFD0D6E2' } };
+        const bordes = { top: BORDE, left: BORDE, bottom: BORDE, right: BORDE };
+        const MONEDA = '"$"#,##0.00', FECHA = 'dd/mm/yyyy';
+        const periodo = 'Periodo: ' + fmtDMA(desde) + ' al ' + fmtDMA(hasta) + ' · generado el ' + fmtDMA(hoyYmd());
+        const encabezado = (ws, fila, nCol, texto, color) => { ws.mergeCells(fila, 1, fila, nCol); const c = ws.getCell(fila, 1); c.value = texto; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } }; c.alignment = { vertical: 'middle' }; };
+        // ── hoja 1: el formato de siempre, con los datos nuevos a la derecha ──
+        const ws = wb.addWorksheet('Factura Emitidas', { views: [{ state: 'frozen', ySplit: 5 }] });
+        const COLS = [
+          ['Fecha Emitida', 'fecha', 13, 'f'], ['UUID', 'uuid', 38], ['Folio', 'folio', 8], ['RFC', 'rfc', 15], ['Razón Social', 'razon', 38], ['USO CFDI', 'uso', 18], ['Total', 'total', 15, 'm'], ['Estatus', 'estatus', 19], ['Complemento de Pago', 'complemento', 38], ['Folio ', 'folioCompl', 10],
+          ['Cliente', 'cliente', 26], ['Tipo de factura', 'tipo', 15], ['Subtotal', 'subtotal', 15, 'm'], ['IVA', 'iva', 14, 'm'], ['Ret. ISR', 'isr', 14, 'm'], ['Ret. IVA', 'riva', 14, 'm'], ['Saldo al cierre', 'saldo', 15, 'm'], ['Fecha de pago', 'fechaPago', 13, 'f'], ['Vencimiento', 'vencimiento', 13, 'f'], ['Días vencida al cierre', 'dias', 12], ['Orden de compra', 'oc', 16], ['Movimiento en el periodo', 'movimiento', 30],
+        ];
+        COLS.forEach((c, i) => { ws.getColumn(i + 1).width = c[2]; });
+        ws.mergeCells(1, 1, 1, COLS.length); ws.getCell(1, 1).value = 'Facturación'; ws.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
+        ws.mergeCells(2, 1, 2, COLS.length); ws.getCell(2, 1).value = periodo; ws.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
+        encabezado(ws, 4, 10, 'FORMATO ORIGINAL', TINTA);
+        ws.mergeCells(4, 11, 4, COLS.length); { const c = ws.getCell(4, 11); c.value = 'DATOS ADICIONALES'; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: AZUL } }; }
+        COLS.forEach((c, i) => { const cell = ws.getCell(5, i + 1); cell.value = c[0]; cell.font = { bold: true, color: { argb: TINTA } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRIS } }; cell.border = bordes; cell.alignment = { vertical: 'middle', horizontal: c[3] === 'm' ? 'right' : 'left', wrapText: true }; });
+        ws.getRow(5).height = 32;
+        const colorEstatus = { 'Pagado': 'FFD5F2EE', 'Vigente No Pagado': 'FFFBEFD0', 'Pago parcial': 'FFFBEFD0', 'Cancelada': 'FFE3E5EA' };
+        r.filas.forEach((f, idx) => {
+          const fila = 6 + idx;
+          COLS.forEach((c, i) => {
+            const cell = ws.getCell(fila, i + 1); let v = f[c[1]];
+            if(c[3] === 'f') v = fechaXl(v); else if(v === undefined || v === '' || v === null) v = null;
+            cell.value = v; cell.border = bordes; cell.alignment = { vertical: 'top', horizontal: c[3] === 'm' ? 'right' : 'left' };
+            if(c[3] === 'm') cell.numFmt = MONEDA; if(c[3] === 'f') cell.numFmt = FECHA;
+          });
+          const est = ws.getCell(fila, 8); est.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorEstatus[f.estatus] || 'FFFFFFFF' } }; est.font = { bold: true, strike: f.estatus === 'Cancelada' };
+          if(f.dias > 0){ const d = ws.getCell(fila, 20); d.font = { bold: true, color: { argb: 'FFB91C1C' } }; }
+          if(f.esTercero) ws.getRow(fila).font = { italic: true, color: { argb: 'FF5B6577' } };
+        });
+        const ultima = 5 + r.filas.length, filaTot = ultima + 1;
+        if(r.filas.length){
+          ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: ultima, column: COLS.length } };
+          const tot = ws.getCell(filaTot, 5); tot.value = 'TOTALES (respeta los filtros)'; tot.font = { bold: true }; tot.alignment = { horizontal: 'right' };
+          [7, 13, 14, 15, 16, 17].forEach((col) => { const letra = ws.getColumn(col).letter, c = ws.getCell(filaTot, col); c.value = { formula: 'SUBTOTAL(109,' + letra + '6:' + letra + ultima + ')' }; c.numFmt = MONEDA; c.font = { bold: true }; c.border = { top: { style: 'medium', color: { argb: TINTA } } }; });
+        }
+        ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+        // ── hoja 2: cobros del periodo ──
+        const wc = wb.addWorksheet('Cobros del periodo', { views: [{ state: 'frozen', ySplit: 4 }] });
+        const CC = [['Fecha de pago', 'fecha', 13, 'f'], ['Folio factura', 'folio', 12], ['Cliente', 'cliente', 28], ['Razón Social', 'razon', 38], ['RFC', 'rfc', 15], ['Monto cobrado', 'monto', 16, 'm'], ['Método', 'metodo', 14], ['Complemento de pago (UUID)', 'uuid', 38], ['Folio complemento', 'folioCompl', 14], ['Nota', 'nota', 40]];
+        CC.forEach((c, i) => { wc.getColumn(i + 1).width = c[2]; });
+        wc.mergeCells(1, 1, 1, CC.length); wc.getCell(1, 1).value = 'Cobros del periodo'; wc.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
+        wc.mergeCells(2, 1, 2, CC.length); wc.getCell(2, 1).value = periodo; wc.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
+        CC.forEach((c, i) => { const cell = wc.getCell(4, i + 1); cell.value = c[0]; cell.font = { bold: true, color: { argb: TINTA } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRIS } }; cell.border = bordes; cell.alignment = { horizontal: c[3] === 'm' ? 'right' : 'left', wrapText: true }; });
+        r.cobros.forEach((f, idx) => { CC.forEach((c, i) => { const cell = wc.getCell(5 + idx, i + 1); let v = f[c[1]]; if(c[3] === 'f') v = fechaXl(v); cell.value = v === undefined || v === '' ? null : v; cell.border = bordes; if(c[3] === 'm') cell.numFmt = MONEDA; if(c[3] === 'f') cell.numFmt = FECHA; }); });
+        if(r.cobros.length){ const fin = 4 + r.cobros.length; const t = wc.getCell(fin + 1, 5); t.value = 'TOTAL'; t.font = { bold: true }; t.alignment = { horizontal: 'right' }; const m = wc.getCell(fin + 1, 6); m.value = { formula: 'SUM(F5:F' + fin + ')' }; m.numFmt = MONEDA; m.font = { bold: true }; m.border = { top: { style: 'medium', color: { argb: TINTA } } }; }
+        // ── hoja 3: resumen ──
+        const wr = wb.addWorksheet('Resumen');
+        wr.getColumn(1).width = 34; [2, 3, 4, 5, 6].forEach((i) => { wr.getColumn(i).width = 17; });
+        wr.mergeCells(1, 1, 1, 6); wr.getCell(1, 1).value = 'Resumen de cobranza'; wr.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
+        wr.mergeCells(2, 1, 2, 6); wr.getCell(2, 1).value = periodo; wr.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
+        const x = r.resumen;
+        const bloque = (fila, titulo, cab, vals, fmts) => {
+          wr.getCell(fila, 1).value = titulo; wr.getCell(fila, 1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; wr.getCell(fila, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TINTA } };
+          cab.forEach((t, i) => { const c = wr.getCell(fila, i + 2); c.value = t; c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TINTA } }; c.alignment = { horizontal: 'right' }; });
+          vals.forEach((v, i) => { const c = wr.getCell(fila + 1, i + 2); c.value = v; c.border = bordes; c.alignment = { horizontal: 'right' }; if(fmts[i] === 'm') c.numFmt = MONEDA; });
+          wr.getCell(fila + 1, 1).border = bordes;
+        };
+        bloque(4, 'Facturado', ['Facturas', 'Subtotal', 'IVA', 'Ret. ISR', 'Ret. IVA'], [x.emitidas.n, x.emitidas.subtotal, x.emitidas.iva, x.emitidas.isr, x.emitidas.riva], ['n', 'm', 'm', 'm', 'm']);
+        wr.getCell(5, 1).value = 'Facturas emitidas en el periodo (sin canceladas)'; wr.getCell(6, 1).value = 'Total facturado (cobrable)'; wr.getCell(6, 2).value = x.emitidas.total; wr.getCell(6, 2).numFmt = MONEDA; wr.getCell(6, 2).font = { bold: true };
+        wr.getCell(7, 1).value = 'De ellas, de terceros (tipo Otro)'; wr.getCell(7, 2).value = x.emitidas.terceros; wr.getCell(7, 3).value = x.emitidas.totalTerceros; wr.getCell(7, 3).numFmt = MONEDA;
+        bloque(9, 'Cobrado', ['Pagos', 'Monto'], [x.cobrado.n, x.cobrado.monto], ['n', 'm']); wr.getCell(10, 1).value = 'Pagos registrados con fecha en el periodo';
+        bloque(12, 'Canceladas', ['Facturas', 'Total'], [x.canceladas.n, x.canceladas.total], ['n', 'm']); wr.getCell(13, 1).value = 'Canceladas en el periodo';
+        bloque(15, 'Vencidas al cierre', ['Facturas', 'Saldo'], [x.vencidas.n, x.vencidas.saldo], ['n', 'm']); wr.getCell(16, 1).value = 'Con saldo y vencimiento anterior al ' + fmtDMA(hasta);
+        wr.getCell(18, 1).value = 'Las facturas de terceros (tipo Otro) se incluyen en las hojas y se marcan en cursiva; no son ingreso propio.'; wr.getCell(18, 1).font = { italic: true, color: { argb: 'FF5B6577' } };
+        const buf = await wb.xlsx.writeBuffer();
+        const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = 'Reporte_Cobranza_' + desde + '_a_' + hasta + '.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){ /* nada */ } }, 4000);
+        toast('Reporte descargado: ' + r.filas.length + (r.filas.length === 1 ? ' factura' : ' facturas') + ' y ' + r.cobros.length + (r.cobros.length === 1 ? ' cobro.' : ' cobros.'), true);
+        cerrarReporte();
+      } catch(e){
+        const err = $('cbzRepError'); err.textContent = e.message || 'No se pudo armar el reporte.'; err.hidden = false;
+      } finally { btn.disabled = false; btn.textContent = 'Descargar Excel'; }
+    }
+    $('cbzRepCancelar').addEventListener('click', cerrarReporte);
+    $('cbzRepDescargar').addEventListener('click', descargarReporte);
+    $('cbzRep').addEventListener('mousedown', (e) => { if(e.target === $('cbzRep')) cerrarReporte(); });
+    $('cbzRepDesde').addEventListener('change', pintarResumenReporte);
+    $('cbzRepHasta').addEventListener('change', pintarResumenReporte);
+    $('cbzRep').addEventListener('click', (e) => { const b = e.target.closest('[data-rep-mes]'); if(!b) return; const p = periodoMes(Number(b.dataset.repMes)); $('cbzRepDesde').value = p.desde; $('cbzRepHasta').value = p.hasta; pintarResumenReporte(); });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !$('cbzRep').hidden) cerrarReporte(); });
+
     // ── alta manual ──
     async function abrirNueva(){
       $('cbzNuevaCuerpo').innerHTML = '<p class="cbz-aviso">Cargando clientes…</p>';
@@ -7317,21 +7530,27 @@
       vista = b.dataset.vista;
       orden = null;
       document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x === b));
+      guardarEstadoCbz();
       pintarLista();
     });
-    const irAVista = (v) => { vista = v; orden = null; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === v)); pintarLista(); };
+    const irAVista = (v) => { vista = v; orden = null; document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === v)); guardarEstadoCbz(); pintarLista(); };
     $('cbzAlerta').addEventListener('click', (e) => { const b = e.target.closest('[data-vista]'); if(b) irAVista(b.dataset.vista); });
     $('cbzFCliente').addEventListener('input', pintarLista);
     $('cbzFFolio').addEventListener('input', pintarLista);
-    $('cbzFEstrategia').addEventListener('change', pintarLista);
-    $('cbzLimpiar').addEventListener('click', () => { $('cbzFCliente').value = ''; $('cbzFFolio').value = ''; $('cbzFEstrategia').value = ''; orden = null; pintarLista(); });
+    $('cbzFEstrategia').addEventListener('change', () => { guardarEstadoCbz(); pintarLista(); });
+    $('cbzLimpiar').addEventListener('click', () => { $('cbzFCliente').value = ''; $('cbzFFolio').value = ''; $('cbzFEstrategia').value = ''; orden = null; guardarEstadoCbz(); pintarLista(); });
+    // al abrir: la vista, la estrategia y el orden que dejaste
+    document.querySelectorAll('#cbzVistas .radm-tab').forEach((x) => x.classList.toggle('active', x.dataset.vista === vista));
+    try { const e = localStorage.getItem('admin-cbz-estrategia'); if(e === 'empresas' || e === 'abiertos') $('cbzFEstrategia').value = e; } catch(err){ /* sin preferencia guardada */ }
+    if(orden && !CLAVES_ORDEN[orden.k]) orden = null;
     $('cbzActualizar').addEventListener('click', cargar);
-    $('cbzExportarBtn').addEventListener('click', () => toast('El reporte para el contador está pendiente: se construye después.', true));
+    $('cbzExportarBtn').addEventListener('click', abrirReporte);
     document.querySelector('.cbz-tabla thead').addEventListener('click', (e) => {
       const th = e.target.closest('th[data-sort]');
       if(!th) return;
       const k = th.dataset.sort;
       orden = orden && orden.k === k ? (orden.dir === 1 ? { k, dir: -1 } : null) : { k, dir: 1 };
+      guardarEstadoCbz();
       pintarLista();
     });
 

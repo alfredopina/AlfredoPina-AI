@@ -3,6 +3,7 @@
 // existente. No se borran clientes — ver CLAUDE.md.
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { leerFiscal } = require("../src/cliente-fiscal");
 
 const TIPOS_VALIDOS = ["Directo", "Intermediario", "Indirecto", "Prospecto", "Tercero"];
 
@@ -29,6 +30,11 @@ module.exports = async function (context, req) {
   const tipoCliente = TIPOS_VALIDOS.includes(body.tipo_cliente) ? body.tipo_cliente : "Directo";
   const mostrarLogo = body.mostrar_logo === false ? 0 : 1;
 
+  const fiscal = leerFiscal(body, tipoCliente);
+  if (fiscal.error) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: fiscal.error } };
+    return;
+  }
   if (!id || !nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el id, nombre o código del cliente." } };
     return;
@@ -44,8 +50,10 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
-    const result = await pool
-      .request()
+    const extra = Object.keys(fiscal.campos); // solo se tocan los datos fiscales que vienen en el cuerpo (a un Prospecto o Indirecto no se le borran al cambiarle el tipo)
+    const req = pool.request();
+    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : sql.NVarChar, fiscal.campos[k]);
+    const result = await req
       .input("id", sql.Int, id)
       .input("nombre", sql.NVarChar, nombre)
       .input("codigo", sql.NVarChar, codigo)
@@ -54,7 +62,7 @@ module.exports = async function (context, req) {
       .input("tipoCliente", sql.NVarChar, tipoCliente)
       .input("mostrarLogo", sql.Bit, mostrarLogo)
       .query(
-        "UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde, tipo_cliente=@tipoCliente, mostrar_logo=@mostrarLogo WHERE id=@id"
+        `UPDATE Cliente SET nombre=@nombre, codigo=@codigo, notas=@notas, cliente_desde=@clienteDesde, tipo_cliente=@tipoCliente, mostrar_logo=@mostrarLogo${extra.map((k) => ", " + k + "=@" + k).join("")} WHERE id=@id`
       );
     if (!result.rowsAffected[0]) {
       context.res = { status: 404, headers: JSON_HEADERS, body: { error: "Ese cliente ya no existe." } };

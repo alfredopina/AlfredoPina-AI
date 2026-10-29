@@ -1833,18 +1833,29 @@
   .cbz-grid[hidden]{ display:none; }
   /* panel Desglose: lo CALCULADO (no se edita) va aparte del formulario, con otro fondo y borde punteado */
   .cbz-desglose{ background-color:rgba(61,127,255,.06); border:1px dashed rgba(107,159,255,.5); border-radius:12px; padding:12px 16px 10px; margin-bottom:18px; }
-  .cbz-desg-cab{ display:flex; justify-content:space-between; align-items:baseline; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
-  .cbz-desg-cab i{ font-style:normal; letter-spacing:.02em; text-transform:none; }
-  .cbz-desg-fila{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:6px 12px; }
-  .cbz-desg-pie{ margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); gap:6px 28px; }
+  .cbz-desg-cab{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
+  .cbz-desg-fila{ display:flex; flex-wrap:nowrap; align-items:flex-end; gap:6px 9px; }
+  @media (max-width:760px){ .cbz-desg-fila{ flex-wrap:wrap; } .cbz-d-sep{ display:none; } }
   .cbz-d small{ display:block; font-size:10px; letter-spacing:.06em; color:var(--text-faint); margin-bottom:2px; }
-  .cbz-d b{ font-family:var(--display); font-size:15px; font-variant-numeric:tabular-nums; font-weight:600; }
-  .cbz-d.sub b{ font-size:20px; color:var(--blue-bright); }
-  .cbz-d.tot b{ font-size:20px; }
+  .cbz-d{ white-space:nowrap; }
+  .cbz-d b{ font-family:var(--display); font-size:14px; font-variant-numeric:tabular-nums; font-weight:600; }
+  .cbz-d.sub b{ font-size:18px; color:var(--blue-bright); }
+  .cbz-d.tot b{ font-size:18px; }
   .cbz-d.cero b{ color:var(--text-faint); font-weight:500; }
-  .cbz-d.saldo b{ font-size:17px; }
+  .cbz-d.saldo b{ font-size:16px; }
   .cbz-d-op{ font-family:var(--mono); font-size:15px; color:var(--text-faint); padding-bottom:2px; }
   .cbz-ajuste-wrap .radm-btn{ margin-top:18px; width:100%; }
+  .cbz-ajuste-wrap .radm-btn[hidden]{ display:none; }
+  .cbz-grid input:disabled, .cbz-grid select:disabled{ opacity:.55; cursor:not-allowed; }
+  .cbz-cod{ display:inline-block; vertical-align:middle; margin-left:8px; font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.06em; color:var(--text-dim); border:1px solid var(--line); border-radius:6px; padding:2px 8px; }
+  .cbz-fiscal{ border:1px solid var(--line); border-radius:10px; padding:0 14px; margin:0 0 14px; }
+  .cbz-fiscal summary{ cursor:pointer; padding:10px 0; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--text-faint); list-style:none; }
+  .cbz-fiscal summary::-webkit-details-marker{ display:none; }
+  .cbz-fiscal summary b{ color:var(--text-dim); font-weight:500; letter-spacing:0; }
+  .cbz-fiscal[open] summary{ border-bottom:1px solid var(--line); margin-bottom:12px; }
+  .cbz-d-sep{ align-self:stretch; border-left:1px dashed var(--line); margin:0 2px; }
+  .cbz-desg-sin{ align-self:center; font-size:12.5px; color:var(--text-dim); }
+  .clf-fiscal[hidden], .clf-tf[hidden]{ display:none; }
   .cbz-tabla .sol-acciones{ flex-wrap:nowrap; }
   .cbz-tabla tfoot td{ border-top:1px solid var(--line); padding-top:12px; font-size:12.5px; }
   .cbz-pie-txt{ color:var(--text-faint); font-family:var(--mono); font-size:11px!important; }
@@ -6679,27 +6690,61 @@
 
     const r2c = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
     // Lo calculado (subtotal + IVA − retenciones = total) va en un panel aparte y de otro color: no es editable. pagado === null = sin renglón de pagos (alta manual).
-    function desgloseHtml(d, pagado, saldoFijo){
+    function desgloseHtml(d, pagado, saldoFijo, sinTipo){
       const tot = r2c(d.subtotal + d.iva - d.isr - d.riva);
       const saldo = saldoFijo != null ? saldoFijo : Math.max(0, r2c(tot - (pagado || 0)));
       const it = (et, v, cls) => '<div class="cbz-d ' + (cls || '') + '"><small>' + et + '</small><b>' + dinero(v) + '</b></div>';
       const op = (t) => '<span class="cbz-d-op" aria-hidden="true">' + t + '</span>';
-      return '<div class="cbz-desg-cab"><span>DESGLOSE</span><i>se calcula solo · no se edita aquí</i></div>' +
-        '<div class="cbz-desg-fila">' + it('SUBTOTAL', d.subtotal, 'sub') + op('+') + it('IVA', d.iva) + op('−') + it('RET. ISR', d.isr, d.isr ? '' : 'cero') + op('−') + it('RET. IVA', d.riva, d.riva ? '' : 'cero') + op('=') + it('TOTAL A COBRAR', tot, 'tot') + '</div>' +
-        (pagado == null ? '' : '<div class="cbz-desg-fila cbz-desg-pie">' + it('PAGADO', pagado) + it('SALDO', saldo, 'saldo') + '</div>');
+      // sin tipo de factura no se sabe qué retiene el cliente: solo se muestra el subtotal (y se pide el tipo) para no enseñar un total engañoso
+      if(sinTipo) return '<div class="cbz-desg-cab">DESGLOSE</div><div class="cbz-desg-fila">' + it('SUBTOTAL', d.subtotal, 'sub') + '<span class="cbz-desg-sin">Elige el tipo de factura para ver el IVA, las retenciones y el total a cobrar.</span></div>';
+      return '<div class="cbz-desg-cab">DESGLOSE</div>' +
+        '<div class="cbz-desg-fila">' + it('SUBTOTAL', d.subtotal, 'sub') + op('+') + it('IVA', d.iva) + op('−') + it('RET. ISR', d.isr, d.isr ? '' : 'cero') + op('−') + it('RET. IVA', d.riva, d.riva ? '' : 'cero') + op('=') + it('TOTAL A COBRAR', tot, 'tot') +
+        (pagado == null ? '' : '<span class="cbz-d-sep"></span>' + it('PAGADO', pagado) + it('SALDO', saldo, 'saldo')) + '</div>';
     }
     let desg = null; // desglose en pantalla de la cuenta abierta: se recalcula al teclear el subtotal o cambiar el tipo
     function pintarDesglose(){
       const c = cuentas.find((x) => x.id === abiertaId), el = $('cbzDesglose');
       if(!c || !el || !desg) return;
-      el.innerHTML = desgloseHtml(desg, c.pagado, c.pagado > 0 || c.estatus === 'Cancelada' ? (c.estatus === 'Cancelada' ? 0 : c.saldo) : null);
+      const tipoActual = $('cbzDTipo') ? $('cbzDTipo').value : c.tipo_factura;
+      el.innerHTML = desgloseHtml(desg, c.pagado, c.pagado > 0 || c.estatus === 'Cancelada' ? (c.estatus === 'Cancelada' ? 0 : c.saldo) : null, !tipoActual && !(c.pagado > 0));
+    }
+    // Plazo o fecha de vencimiento (hay clientes que pagan un día fijo del mes y no a N días): lo que Viri escriba primero manda y el otro campo se calcula
+    // solo y se bloquea. VMODO[prefijo]: 'plazo' (lo normal: manda el plazo y la fecha se calcula) o 'fecha' (manda la fecha y el plazo se calcula); un botón cambia de uno a otro.
+    const VMODO = {};
+    const sumaDiasYmd = (ymd, n) => new Date(ymdAms(ymd) + n * DIA_MS).toISOString().slice(0, 10);
+    function plazoHtml(p, v){
+      return '<div class="cbz-grid">' + campoFecha(p + 'Inicio', 'INICIO DEL PLAZO', v.inicio) + campoNum(p + 'Plazo', 'PLAZO (DÍAS)', v.plazo, ' step="1" min="0" max="365"') + campoFecha(p + 'Vence', 'VENCIMIENTO', v.vence) +
+        '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" id="' + p + 'VenceCambiar" data-venc-cambiar="' + p + '" title="Cambia cuál de los dos se escribe y cuál se calcula">Escribir la fecha</button></div></div>' +
+        '<p class="radm-hint" style="margin:-4px 0 12px;">Se escribe el plazo en días y la fecha de vencimiento se calcula sola (o al revés, con el botón). Si el cliente paga un día fijo del mes (p. ej. los 20), escribe la fecha. En gobierno el plazo empieza con el contra-recibo.</p>';
+    }
+    function aplicarPlazo(p){
+      const pl = $(p + 'Plazo'), ve = $(p + 'Vence'); if(!pl || !ve) return;
+      const modo = VMODO[p] || 'plazo', ini = valor(p + 'Inicio');
+      pl.disabled = modo === 'fecha'; ve.disabled = modo !== 'fecha';
+      if(modo === 'fecha'){ const d = ini && ve.value ? Math.round((ymdAms(ve.value) - ymdAms(ini)) / DIA_MS) : null; pl.value = d != null && d >= 0 && d <= 365 ? d : ''; }
+      else ve.value = ini && pl.value !== '' && Number(pl.value) >= 0 ? sumaDiasYmd(ini, Number(pl.value)) : '';
+      const cambiar = $(p + 'VenceCambiar'); if(cambiar) cambiar.textContent = modo === 'fecha' ? 'Escribir el plazo' : 'Escribir la fecha';
+    }
+    // lo que se manda al guardar: con fecha manual solo la fecha (el servidor calcula el plazo); si no, el plazo y se limpia la fecha manual
+    function datosPlazo(p){
+      return VMODO[p] === 'fecha' && valor(p + 'Vence') ? { vencimiento_manual: valor(p + 'Vence') } : { plazo_dias: valor(p + 'Plazo'), vencimiento_manual: '' };
+    }
+    function alEditarPlazo(p, e){
+      if(e.target.id !== p + 'Plazo' && e.target.id !== p + 'Vence' && e.target.id !== p + 'Inicio') return;
+      aplicarPlazo(p);
+    }
+    function cambiarModoPlazo(p){ VMODO[p] = VMODO[p] === 'fecha' ? 'plazo' : 'fecha'; aplicarPlazo(p); }
+    function fiscalHtml(p, razon, rfc){
+      const falta = !razon || !rfc;
+      return '<details class="cbz-fiscal"' + (falta ? ' open' : '') + '><summary>DATOS FISCALES · <b>' + esc(razon || 'sin nombre fiscal') + ' · ' + esc(rfc || 'sin RFC') + '</b></summary>' +
+        '<div class="cbz-grid">' + campoTxt(p + 'Razon', 'NOMBRE FISCAL (RAZÓN SOCIAL)', razon, ' maxlength="200"') + campoTxt(p + 'Rfc', 'RFC', rfc, ' maxlength="15"') + '</div></details>';
     }
     function pintarDetalle(){
       const c = cuentas.find((x) => x.id === abiertaId);
       if(!c){ $('cbzDetalle').hidden = true; return; }
       const conPagos = c.pagado > 0;
       const cancelada = c.estatus === 'Cancelada';
-      $('cbzDetTitulo').textContent = c.cliente;
+      $('cbzDetTitulo').innerHTML = esc(c.cliente) + (c.cliente_codigo ? '<span class="cbz-cod">' + esc(c.cliente_codigo) + '</span>' : '');
       $('cbzDetSub').innerHTML = '<span class="cbz-estatus">' + esc(c.estatus) + '</span>' + semaforoHtml(c) +
         '<span>' + esc(c.estrategia ? ESTRATEGIA[c.estrategia] : 'Sin estrategia (tercero)') + '</span>' + (c.cotizacion_folio ? '<span>Cotización ' + esc(c.cotizacion_folio) + '</span>' : '<span>Alta manual</span>');
       const pagosHtml = c.pagos.length
@@ -6713,26 +6758,26 @@
       desg = { subtotal: Number(c.subtotal) || 0, iva: Number(c.iva) || 0, isr: Number(c.retencion_isr) || 0, riva: Number(c.retencion_iva) || 0 };
       $('cbzDetCuerpo').innerHTML =
         '<div class="cbz-desglose" id="cbzDesglose"></div>' +
-        '<div class="cbz-seccion">FACTURA Y PLAZO</div>' +
+        '<div class="cbz-seccion">LO ESENCIAL</div>' +
         '<div class="cbz-grid">' +
         '<div class="radm-field"><label for="cbzDTipo">TIPO DE FACTURA</label><select id="cbzDTipo"' + (esTercero(c) ? ' disabled title="Es de un cliente Tercero: siempre tipo Otro"' : '') + '><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro' || esTercero(c)).map((t) => '<option' + (c.tipo_factura === t ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
-        campoTxt('cbzDRazon', 'NOMBRE FISCAL (RAZÓN SOCIAL)', c.razon_social, ' maxlength="200"') +
-        campoTxt('cbzDRfc', 'RFC', c.rfc_receptor, ' maxlength="15"') +
-        campoTxt('cbzDConcepto', 'CONCEPTO', c.concepto, ' maxlength="300"') +
+        (conPagos ? '' : campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal)) +
+        '<div class="radm-field"><label for="cbzDEstrategia">ESTRATEGIA</label><select id="cbzDEstrategia"' + (esTercero(c) ? ' disabled title="Las facturas de terceros no pertenecen a ninguna estrategia"' : '') + '>' + (esTercero(c) ? '<option value="" selected>Sin estrategia</option>' : '') + '<option value="empresas"' + (c.estrategia === 'empresas' ? ' selected' : '') + '>Cursos In company</option><option value="abiertos"' + (c.estrategia === 'abiertos' ? ' selected' : '') + '>Cursos Abiertos</option></select></div>' +
+        (conPagos ? '' : '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" data-det="ajuste" title="Solo para centavos o casos raros: abre el IVA y las retenciones">Ajustar impuestos</button></div>') +
+        '</div>' +
+        (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
+          : '<div class="cbz-grid" id="cbzAjuste" hidden>' + campoNum('cbzDIva', 'IVA', c.iva) + campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>') +
+        '<div class="cbz-grid"><div class="radm-field" style="grid-column:1/-1;"><label for="cbzDConcepto">CONCEPTO</label><input type="text" id="cbzDConcepto" maxlength="300" value="' + esc(c.concepto) + '"></div></div>' +
+        '<div class="cbz-seccion">FACTURA</div>' +
+        '<div class="cbz-grid">' +
         campoTxt('cbzDFolio', 'FOLIO DE LA FACTURA', c.folio_factura, ' maxlength="40"') +
         campoTxt('cbzDUuid', 'UUID DE LA FACTURA', c.uuid_factura, ' maxlength="40"') +
         campoFecha('cbzDEmision', 'FECHA DE EMISIÓN', c.fecha_emision) +
         campoTxt('cbzDOC', 'ORDEN DE COMPRA', c.orden_compra, ' maxlength="60"') +
-        campoFecha('cbzDInicio', 'INICIO DEL PLAZO', c.inicio_plazo) +
-        campoNum('cbzDPlazo', 'PLAZO (DÍAS)', c.plazo_dias, ' step="1" max="365"') +
-        '<div class="radm-field"><label for="cbzDEstrategia">ESTRATEGIA</label><select id="cbzDEstrategia"' + (esTercero(c) ? ' disabled title="Las facturas de terceros no pertenecen a ninguna estrategia"' : '') + '>' + (esTercero(c) ? '<option value="" selected>Sin estrategia</option>' : '') + '<option value="empresas"' + (c.estrategia === 'empresas' ? ' selected' : '') + '>Cursos In company</option><option value="abiertos"' + (c.estrategia === 'abiertos' ? ' selected' : '') + '>Cursos Abiertos</option></select></div>' +
-        '<div class="radm-field"><label>VENCIMIENTO</label><input type="text" readonly value="' + (c.vencimiento ? fmtFecha(c.vencimiento) : 'Sin plazo (falta el inicio)') + '"></div>' +
-        '</div><p class="radm-hint" style="margin:-4px 0 12px;">El vencimiento es el inicio del plazo más los días de plazo. En gobierno el plazo empieza con el contra-recibo, no con la fecha de la factura.</p>' +
-        (conPagos ? '<p class="cbz-aviso">Ya hay pagos: el monto ya no se edita. Si hubo un error, anula los pagos primero.</p>'
-          : '<div class="cbz-grid">' + campoNum('cbzDSubtotal', 'SUBTOTAL (SIN IVA)', c.subtotal) +
-            '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" data-det="ajuste" title="Solo para centavos o casos raros: abre el IVA y las retenciones">Ajustar impuestos a mano</button></div></div>' +
-            '<div class="cbz-grid" id="cbzAjuste" hidden>' + campoNum('cbzDIva', 'IVA', c.iva) + campoNum('cbzDRetIsr', 'RETENCIÓN DE ISR', c.retencion_isr || 0) + campoNum('cbzDRetIva', 'RETENCIÓN DE IVA', c.retencion_iva || 0) + '</div>' +
-            '<p class="radm-hint" style="margin:-4px 0 12px;">Solo capturas el subtotal: el IVA y las retenciones salen del tipo de factura (Empresa, Gobierno, Anterior u Otro) y el desglose de arriba se actualiza al momento.</p>') +
+        '</div>' +
+        '<div class="cbz-seccion">PLAZO Y COBRO</div>' +
+        plazoHtml('cbzD', { inicio: c.inicio_plazo, plazo: c.plazo_dias, vence: c.vencimiento }) +
+        fiscalHtml('cbzD', c.razon_social, c.rfc_receptor) +
         (esTercero(c) ? '<p class="cbz-aviso">Factura por cuenta de terceros: se guarda completa para el contador y no cuenta en las métricas ni en las alertas.</p>' : '') +
         '<div class="radm-field" style="margin-bottom:12px;"><label for="cbzDNotas">NOTAS</label><textarea id="cbzDNotas" rows="2" maxlength="4000">' + esc(c.notas || '') + '</textarea></div>' +
         '<div class="cbz-acciones">' +
@@ -6753,6 +6798,8 @@
             campoTxt('cbzPUuid', 'UUID DEL COMPLEMENTO', '', ' maxlength="40"') +
             '</div><div class="cbz-acciones"><button type="button" class="radm-btn" data-det="pago">Registrar pago</button></div><p class="cbz-error" id="cbzPError" hidden></p>'
           : (c.estatus === 'Por facturar' ? '<p class="cbz-aviso">Para registrar un pago, primero captura el folio de la factura (o márcala como facturada).</p>' : ''));
+      VMODO.cbzD = c.vencimiento_manual ? 'fecha' : 'plazo';
+      aplicarPlazo('cbzD');
       pintarDesglose();
     }
 
@@ -6819,8 +6866,11 @@
     };
     $('cbzDetalle').addEventListener('input', alCambiarMonto);
     $('cbzDetalle').addEventListener('change', alCambiarMonto);
+    $('cbzDetalle').addEventListener('input', (e) => alEditarPlazo('cbzD', e));
+    $('cbzDetalle').addEventListener('change', (e) => alEditarPlazo('cbzD', e));
     $('cbzDetalle').addEventListener('click', async (e) => {
       if(e.target === $('cbzDetalle')){ cerrarDetalle(); return; }
+      if(e.target.closest('[data-venc-cambiar]')){ cambiarModoPlazo('cbzD'); return; }
       const c = cuentas.find((x) => x.id === abiertaId);
       if(!c) return;
       const anular = e.target.closest('[data-anular]');
@@ -6852,14 +6902,15 @@
       if(que === 'ajuste'){
         const aj = $('cbzAjuste'); aj.hidden = !aj.hidden;
         if(!aj.hidden){ $('cbzDIva').value = desg.iva; $('cbzDRetIsr').value = desg.isr; $('cbzDRetIva').value = desg.riva; }
-        acc.textContent = aj.hidden ? 'Ajustar impuestos a mano' : 'Ocultar ajuste manual';
+        acc.textContent = aj.hidden ? 'Ajustar impuestos' : 'Ocultar ajuste';
         return;
       }
       if(que === 'guardar'){
         const datos = {
           id: c.id, tipo_factura: esTercero(c) ? 'Otro' : valor('cbzDTipo'), razon_social: valor('cbzDRazon'), rfc_receptor: valor('cbzDRfc'), concepto: valor('cbzDConcepto'), folio_factura: valor('cbzDFolio'), uuid_factura: valor('cbzDUuid'), fecha_emision: valor('cbzDEmision'),
-          orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), plazo_dias: valor('cbzDPlazo'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
+          orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
         };
+        Object.assign(datos, datosPlazo('cbzD'));
         if($('cbzDSubtotal') && desg){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = desg.iva; datos.retencion_isr = desg.isr; datos.retencion_iva = desg.riva; }
         await guardarYRefrescar('/api/editarCuentaCobrar', datos, 'Cuenta guardada.', 'cbzDError');
       } else if(que === 'facturada'){
@@ -6889,44 +6940,49 @@
       catch(e){ $('cbzNuevaCuerpo').innerHTML = '<p class="cbz-error">No se pudieron cargar los clientes: ' + esc(e.message) + '</p>'; return; }
       $('cbzNuevaCuerpo').innerHTML =
         '<div class="cbz-grid">' +
-        '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '" data-tipo="' + esc(c.tipo_cliente) + '">' + esc(c.nombre) + (c.tipo_cliente === 'Tercero' ? ' (tercero)' : '') + '</option>').join('') + '</select><p class="radm-hint" style="margin:4px 0 0;">¿No está? Se da de alta primero en Clientes.</p></div>' +
+        '<div class="radm-field"><label for="cbzNCliente">CLIENTE</label><select id="cbzNCliente"><option value="">Elige un cliente…</option>' + clientes.map((c) => '<option value="' + c.id + '" data-tipo="' + esc(c.tipo_cliente) + '" data-razon="' + esc(c.razon_social || '') + '" data-rfc="' + esc(c.rfc || '') + '" data-plazo="' + (c.plazo_pago_dias == null ? '' : c.plazo_pago_dias) + '" data-tf="' + esc(c.tipo_factura_default || '') + '">' + esc(c.nombre) + (c.tipo_cliente === 'Tercero' ? ' (tercero)' : '') + '</option>').join('') + '</select><p class="radm-hint" style="margin:4px 0 0;">¿No está? Se da de alta primero en Clientes. Sus datos fiscales y su plazo se cargan solos.</p></div>' +
         '<div class="radm-field"><label for="cbzNEstrategia">ESTRATEGIA</label><select id="cbzNEstrategia"><option value="empresas">Cursos In company</option><option value="abiertos">Cursos Abiertos</option></select></div>' +
         '</div>' +
         '<div class="cbz-grid"><div class="radm-field"><label for="cbzNTipo">TIPO DE FACTURA</label><select id="cbzNTipo"><option value="">Sin clasificar</option>' + TIPOS_FACTURA.filter((t) => t !== 'Otro').map((t) => '<option>' + t + '</option>').join('') + '<option value="Otro" hidden>Otro</option></select></div>' +
-        campoTxt('cbzNRazon', 'NOMBRE FISCAL', '', ' maxlength="200"') + campoTxt('cbzNRfc', 'RFC', '', ' maxlength="15"') + '</div>' +
-        '<div class="cbz-grid"><div class="radm-field"><label for="cbzNGrupo">GRUPO (OPCIONAL)</label><select id="cbzNGrupo" disabled><option value="">Elige primero el cliente</option></select></div></div>' +
-        '<div class="cbz-grid">' + campoTxt('cbzNConcepto', 'CONCEPTO', '', ' maxlength="300" placeholder="Qué se cobra"') +
         campoNum('cbzNMonto', 'SUBTOTAL (SIN IVA)', '') +
-        '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" id="cbzNAjusteBtn" title="Solo para centavos o casos raros: abre las retenciones">Ajustar retenciones a mano</button></div></div>' +
+        '<div class="radm-field cbz-ajuste-wrap"><button type="button" class="radm-btn radm-btn-ghost" id="cbzNAjusteBtn" title="Solo para centavos o casos raros: abre las retenciones">Ajustar retenciones</button></div></div>' +
         '<div class="cbz-grid" id="cbzNAjuste" hidden>' + campoNum('cbzNRetIsr', 'RETENCIÓN DE ISR', '') + campoNum('cbzNRetIva', 'RETENCIÓN DE IVA', '') + '</div>' +
+        '<div class="cbz-grid"><div class="radm-field" style="grid-column:1/-1;"><label for="cbzNConcepto">CONCEPTO</label><input type="text" id="cbzNConcepto" maxlength="300" placeholder="Qué se cobra"></div></div>' +
         '<div class="cbz-desglose" id="cbzNDesglose"></div>' +
-        '<p class="radm-hint" style="margin:-4px 0 12px;">Solo capturas el subtotal: el IVA y las retenciones salen del tipo de factura y el desglose se actualiza al momento.</p>' +
-        '<div class="cbz-grid">' + campoTxt('cbzNFolio', 'FOLIO DE LA FACTURA (SI YA EXISTE)', '', ' maxlength="40"') + campoTxt('cbzNUuid', 'UUID DE LA FACTURA', '', ' maxlength="40"') +
-        campoFecha('cbzNEmision', 'FECHA DE EMISIÓN', '') + campoTxt('cbzNOC', 'ORDEN DE COMPRA', '', ' maxlength="60"') +
-        campoFecha('cbzNInicio', 'INICIO DEL PLAZO', '') + campoNum('cbzNPlazo', 'PLAZO (DÍAS)', 30, ' step="1" max="365"') + '</div>' +
+        '<div class="cbz-seccion">FACTURA (SI YA EXISTE)</div>' +
+        '<div class="cbz-grid">' + campoTxt('cbzNFolio', 'FOLIO DE LA FACTURA', '', ' maxlength="40"') + campoTxt('cbzNUuid', 'UUID DE LA FACTURA', '', ' maxlength="40"') +
+        campoFecha('cbzNEmision', 'FECHA DE EMISIÓN', '') + campoTxt('cbzNOC', 'ORDEN DE COMPRA', '', ' maxlength="60"') + '</div>' +
+        '<div class="cbz-seccion">PLAZO Y COBRO</div>' +
+        plazoHtml('cbzN', { inicio: '', plazo: 30, vence: '' }) +
+        '<div class="cbz-grid"><div class="radm-field"><label for="cbzNGrupo">GRUPO (OPCIONAL)</label><select id="cbzNGrupo" disabled><option value="">Elige primero el cliente</option></select></div></div>' +
+        fiscalHtml('cbzN', '', '') +
         '<p class="cbz-error" id="cbzNError" hidden></p>' +
         '<div class="cbz-acciones"><button type="button" class="radm-btn" id="cbzNGuardar">Crear cuenta</button><button type="button" class="radm-btn radm-btn-ghost" id="cbzNCancelar">Cancelar</button></div>';
+      VMODO.cbzN = 'plazo';
       // desglose en vivo del alta: subtotal + tipo → IVA y retenciones (o las que se ajusten a mano)
       const ndesg = () => {
         const sub = Number(valor('cbzNMonto')) || 0, r = retencionesDe(sub, valor('cbzNTipo'));
         if($('cbzNAjuste').hidden) return { subtotal: sub, iva: r.iva, isr: r.isr, riva: r.riva };
         return { subtotal: sub, iva: r.iva, isr: Number(valor('cbzNRetIsr')) || 0, riva: Number(valor('cbzNRetIva')) || 0 };
       };
-      const pintarNDesglose = () => { $('cbzNDesglose').innerHTML = desgloseHtml(ndesg(), null); };
+      const pintarNDesglose = () => { $('cbzNDesglose').innerHTML = desgloseHtml(ndesg(), null, null, !valor('cbzNTipo')); };
       $('cbzNuevaCuerpo').oninput = (e) => {
         if(e.target.id === 'cbzNMonto' || e.target.id === 'cbzNTipo'){
           if(!$('cbzNAjuste').hidden){ const r = retencionesDe(Number(valor('cbzNMonto')) || 0, valor('cbzNTipo')); $('cbzNRetIsr').value = r.isr; $('cbzNRetIva').value = r.riva; }
           pintarNDesglose();
         } else if(e.target.id === 'cbzNRetIsr' || e.target.id === 'cbzNRetIva') pintarNDesglose();
       };
-      $('cbzNuevaCuerpo').onchange = (e) => { if(e.target.id === 'cbzNTipo') $('cbzNuevaCuerpo').oninput(e); };
+      $('cbzNuevaCuerpo').onchange = (e) => { if(e.target.id === 'cbzNTipo') $('cbzNuevaCuerpo').oninput(e); alEditarPlazo('cbzN', e); };
+      $('cbzNuevaCuerpo').addEventListener('input', (e) => alEditarPlazo('cbzN', e));
+      $('cbzNuevaCuerpo').addEventListener('click', (e) => { if(e.target.closest('[data-venc-cambiar]')) cambiarModoPlazo('cbzN'); });
       $('cbzNAjusteBtn').addEventListener('click', () => {
         const aj = $('cbzNAjuste'); aj.hidden = !aj.hidden;
         if(!aj.hidden){ const d = ndesg(); $('cbzNRetIsr').value = d.isr; $('cbzNRetIva').value = d.riva; }
-        $('cbzNAjusteBtn').textContent = aj.hidden ? 'Ajustar retenciones a mano' : 'Ocultar ajuste manual';
+        $('cbzNAjusteBtn').textContent = aj.hidden ? 'Ajustar retenciones' : 'Ocultar ajuste';
         pintarNDesglose();
       });
       pintarNDesglose();
+      aplicarPlazo('cbzN');
       // al elegir cliente se ofrecen sus grupos, para ligar la cuenta a uno que ya existe
       $('cbzNCliente').addEventListener('change', async () => {
         const g = $('cbzNGrupo'), id = valor('cbzNCliente');
@@ -6934,7 +6990,16 @@
         const opt = $('cbzNCliente').selectedOptions[0], tercero = !!opt && opt.dataset.tipo === 'Tercero';
         $('cbzNTipo').value = tercero ? 'Otro' : ($('cbzNTipo').value === 'Otro' ? '' : $('cbzNTipo').value);
         $('cbzNTipo').disabled = tercero;
-        pintarNDesglose();
+        // la cuenta nace con los datos del cliente: nombre fiscal, RFC, plazo y tipo de factura (Viri corrige lo que haga falta)
+        const dd = opt ? opt.dataset : {};
+        if(opt && opt.value){
+          $('cbzNRazon').value = dd.razon || ''; $('cbzNRfc').value = dd.rfc || '';
+          $('cbzNPlazo').value = dd.plazo !== undefined && dd.plazo !== '' ? dd.plazo : 30;
+          if(!tercero && dd.tf) $('cbzNTipo').value = dd.tf;
+          const det = document.querySelector('#cbzNuevaCuerpo .cbz-fiscal'); if(det) det.querySelector('summary b').textContent = (dd.razon || 'sin nombre fiscal') + ' · ' + (dd.rfc || 'sin RFC');
+          if(det) det.open = !dd.razon || !dd.rfc;
+        }
+        pintarNDesglose(); aplicarPlazo('cbzN');
         // lo de terceros no es ingreso de Alfredo: no tiene estrategia
         const est = $('cbzNEstrategia'); est.disabled = tercero;
         if(tercero){ if(!est.querySelector('option[value=""]')) est.insertAdjacentHTML('afterbegin', '<option value="">Sin estrategia</option>'); est.value = ''; }
@@ -6955,11 +7020,12 @@
         const datos = {
           cliente_id: Number(valor('cbzNCliente')), estrategia: valor('cbzNEstrategia'), concepto: valor('cbzNConcepto'),
           folio_factura: valor('cbzNFolio'), uuid_factura: valor('cbzNUuid'), fecha_emision: valor('cbzNEmision'), orden_compra: valor('cbzNOC'),
-          inicio_plazo: valor('cbzNInicio'), plazo_dias: valor('cbzNPlazo'), grupo_id: valor('cbzNGrupo') || null,
+          inicio_plazo: valor('cbzNInicio'), grupo_id: valor('cbzNGrupo') || null,
           tipo_factura: valor('cbzNTipo'), razon_social: valor('cbzNRazon'), rfc_receptor: valor('cbzNRfc'),
         };
         const d = ndesg();
         datos.subtotal = monto; datos.retencion_isr = d.isr; datos.retencion_iva = d.riva;
+        Object.assign(datos, datosPlazo('cbzN'));
         errorEn('cbzNError', '');
         try {
           await apiPostJson('/api/crearCuentaCobrar', datos);
@@ -13228,6 +13294,7 @@
       notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
     const TIPOS_CLIENTE = ['Directo', 'Intermediario', 'Indirecto', 'Prospecto', 'Tercero'];
+    const TIPOS_FISCALES = ['Directo', 'Intermediario', 'Tercero']; // los que reciben factura: llevan nombre fiscal, RFC, plazo y tipo de factura
     // completado/dias_inactivo no los ordena el backend (no son columnas
     // reales de listClientesAdmin) — se ordenan en el cliente, mismo criterio
     // que listGruposAdmin/ordenarListaGrupos con fase/herramienta/instructor.
@@ -13781,6 +13848,14 @@
             </div>
             <div class="radm-field"><label>NOTAS</label><textarea class="clf-notas">${item && item.notas ? escapeHtml(item.notas) : ''}</textarea></div>
           </div>
+          <div class="radm-form-row clf-fiscal" ${item && TIPOS_FISCALES.includes(item.tipo_cliente) || !item ? '' : 'hidden'}>
+            <div class="radm-field"><label>NOMBRE FISCAL (RAZÓN SOCIAL)</label><input type="text" class="clf-razon" maxlength="200" value="${item && item.razon_social ? escapeHtml(item.razon_social) : ''}"></div>
+            <div class="radm-field" style="max-width:190px;"><label>RFC</label><input type="text" class="clf-rfc radm-mono" maxlength="15" style="text-transform:uppercase;" value="${item && item.rfc ? escapeHtml(item.rfc) : ''}"></div>
+            <div class="radm-field" style="max-width:150px;"><label>PLAZO DE PAGO (DÍAS)</label><input type="number" class="clf-plazo" min="0" max="365" step="1" placeholder="30" value="${item && item.plazo_pago_dias != null ? item.plazo_pago_dias : ''}"></div>
+            <div class="radm-field clf-tf" style="max-width:200px;" ${item && item.tipo_cliente === 'Tercero' ? 'hidden' : ''}><label>TIPO DE FACTURA</label>
+              <select class="clf-tfact"><option value="">Sin definir</option>${['Empresa', 'Gobierno', 'Anterior'].map(t => `<option ${item && item.tipo_factura_default === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+            </div>
+          </div>
           <div class="radm-actions">
             <span class="radm-hint">
               ${item ? `
@@ -13812,6 +13887,9 @@
       wrap.querySelector('.clf-tipo').addEventListener('change', (e) => {
         const body = document.getElementById('clfLogoBody');
         if(body) body.hidden = e.target.value !== 'Intermediario';
+        // los datos fiscales y de cobro solo aplican a Directo, Intermediario y Tercero; un Tercero siempre factura tipo Otro
+        wrap.querySelector('.clf-fiscal').hidden = !TIPOS_FISCALES.includes(e.target.value);
+        wrap.querySelector('.clf-tf').hidden = e.target.value === 'Tercero';
       });
 
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
@@ -13835,6 +13913,11 @@
         const tipoCliente = wrap.querySelector('.clf-tipo').value;
         if(!nombre || !codigo){ toast('Falta el nombre o el código.', false); return; }
         const payload = { nombre, codigo, notas, cliente_desde: desdeRaw ? Number(desdeRaw) : null, tipo_cliente: tipoCliente };
+        if(TIPOS_FISCALES.includes(tipoCliente)){
+          const plazoRaw = wrap.querySelector('.clf-plazo').value.trim();
+          payload.razon_social = wrap.querySelector('.clf-razon').value.trim(); payload.rfc = wrap.querySelector('.clf-rfc').value.trim(); payload.plazo_pago_dias = plazoRaw === '' ? null : Number(plazoRaw);
+          if(tipoCliente !== 'Tercero') payload.tipo_factura_default = wrap.querySelector('.clf-tfact').value;
+        }
         const clfLogoMostrar = document.getElementById('clfLogoMostrar');
         if(clfLogoMostrar) payload.mostrar_logo = clfLogoMostrar.checked;
         try {
@@ -13846,7 +13929,7 @@
           cargarKpis();
           // Cliente nuevo: se queda en Modificar para agregarle contactos de
           // inmediato, sin tener que volver a buscarlo en la tabla.
-          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente, mostrar_logo: payload.mostrar_logo !== false });
+          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente, mostrar_logo: payload.mostrar_logo !== false, razon_social: payload.razon_social || null, rfc: payload.rfc || null, plazo_pago_dias: payload.plazo_pago_dias == null ? null : payload.plazo_pago_dias, tipo_factura_default: payload.tipo_factura_default || null });
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }

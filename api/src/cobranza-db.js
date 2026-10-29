@@ -34,7 +34,7 @@ function leerCampos(b, parcial) {
   }
   if (!parcial && !out.concepto) throw C.falla("Falta el concepto.");
   if (out.concepto === null && "concepto" in out) throw C.falla("El concepto no puede quedar vacío.");
-  for (const campo of ["fecha_emision", "inicio_plazo"]) {
+  for (const campo of ["fecha_emision", "inicio_plazo", "vencimiento_manual"]) {
     if (parcial && !(campo in b)) continue;
     const v = b[campo];
     if (v == null || v === "") { out[campo] = null; continue; }
@@ -60,9 +60,32 @@ function leerCampos(b, parcial) {
   return out;
 }
 
-const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, vencimiento_manual: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const ES_FECHA = new Set(["fecha_emision", "inicio_plazo", "vencimiento_manual"]);
 const dia = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
 const fechaSql = (v) => (v ? new Date(v + "T00:00:00Z") : null);
+
+// Datos con los que nace una cuenta de este cliente (sql/046): nombre fiscal, RFC, plazo y tipo de factura. Un Tercero siempre es tipo Otro.
+async function defaultsDeCliente(nuevaRequest, clienteId) {
+  const r = await nuevaRequest().input("id", sql.Int, clienteId).query("SELECT tipo_cliente, razon_social, rfc, plazo_pago_dias, tipo_factura_default FROM Cliente WHERE id = @id");
+  if (!r.recordset.length) return {};
+  const c = r.recordset[0], out = {};
+  if (c.razon_social) out.razon_social = c.razon_social;
+  if (c.rfc) out.rfc_receptor = c.rfc;
+  if (c.plazo_pago_dias != null) out.plazo_dias = c.plazo_pago_dias;
+  const tipo = c.tipo_cliente === "Tercero" ? "Otro" : c.tipo_factura_default;
+  if (tipo) out.tipo_factura = tipo;
+  return out;
+}
+
+// Plazo o fecha de vencimiento: con una fecha manual el plazo se calcula solo (días entre el inicio del plazo y esa fecha) y viceversa. Sin inicio del plazo
+// no se puede calcular el plazo y se deja como esté; la fecha manual sigue mandando el vencimiento.
+function plazoDeVencimiento(campos, inicioActual) {
+  if (!campos.vencimiento_manual) return;
+  const inicio = "inicio_plazo" in campos ? campos.inicio_plazo : inicioActual;
+  const d = inicio ? C.diasEntre(inicio, campos.vencimiento_manual) : null;
+  if (d != null && d >= 0 && d <= 365) campos.plazo_dias = d;
+}
 
 async function insertarCuenta(nuevaRequest, datos) {
   // cualquier cuenta de un cliente Tercero (también las que nacen de un grupo o una cotización) queda como tipo Otro y no cuenta en las métricas
@@ -72,7 +95,7 @@ async function insertarCuenta(nuevaRequest, datos) {
   }
   const cols = Object.keys(datos);
   const req = nuevaRequest();
-  for (const c of cols) req.input(c, TIPOS[c] || sql.NVarChar, c === "fecha_emision" || c === "inicio_plazo" ? fechaSql(datos[c]) : datos[c]);
+  for (const c of cols) req.input(c, TIPOS[c] || sql.NVarChar, ES_FECHA.has(c) ? fechaSql(datos[c]) : datos[c]);
   const r = await req.query(`INSERT INTO CuentaPorCobrar (${cols.join(", ")}) OUTPUT INSERTED.id VALUES (${cols.map((c) => "@" + c).join(", ")})`);
   return r.recordset[0].id;
 }
@@ -93,6 +116,12 @@ async function crearCuentaManual(nuevaRequest, b) {
   const campos = leerCampos(b, false);
   const clienteId = Number(b.cliente_id);
   if (!clienteId) throw C.falla("Elige el cliente. Si no está en la lista, hay que darlo de alta primero en Clientes.");
+  const def = await defaultsDeCliente(nuevaRequest, clienteId);
+  if (!campos.razon_social && def.razon_social) campos.razon_social = def.razon_social;
+  if (!campos.rfc_receptor && def.rfc_receptor) campos.rfc_receptor = def.rfc_receptor;
+  if (!campos.tipo_factura && def.tipo_factura) campos.tipo_factura = def.tipo_factura;
+  if ((b.plazo_dias == null || b.plazo_dias === "") && !campos.vencimiento_manual && def.plazo_dias != null) campos.plazo_dias = def.plazo_dias;
+  plazoDeVencimiento(campos, null);
   campos.tipo_factura = await tipoCongruente(nuevaRequest, clienteId, campos.tipo_factura);
   if (campos.tipo_factura === "Otro") campos.estrategia = null; // lo de terceros no es ingreso de Alfredo: no pertenece a ninguna estrategia (sql/045)
   const montos = C.desglosarMonto({ ...b, tipo_factura: campos.tipo_factura });
@@ -119,9 +148,10 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
   );
   if (!r.recordset.length) return { creada: false, id: null };
   const cot = r.recordset[0];
-  const montos = C.desglosarDesdeSubtotal(cot.precio_final);
+  const def = await defaultsDeCliente(nuevaRequest, cot.cliente_id);
+  const montos = C.desglosarMonto({ subtotal: cot.precio_final, tipo_factura: def.tipo_factura });
   const concepto = `Cotización ${cot.folio} — ${cot.herramienta}`.slice(0, 300);
-  const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: "empresas", concepto, ...montos, estatus: "Por facturar" });
+  const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: def.tipo_factura === "Otro" ? null : "empresas", concepto, ...def, ...montos, estatus: "Por facturar" });
   return { creada: true, id };
 }
 
@@ -137,10 +167,11 @@ async function crearCuentaDeGrupo(nuevaRequest, { grupoId, clienteId, concepto, 
   }
   const m = Number(monto);
   if (monto != null && monto !== "" && (!Number.isFinite(m) || m < 0)) throw C.falla("El monto a facturar debe ser un número de cero en adelante.");
-  const montos = m > 0 ? C.desglosarDesdeSubtotal(m) : { subtotal: 0, iva: 0, total: 0 };
+  const def = await defaultsDeCliente(nuevaRequest, clienteId);
+  const montos = m > 0 ? C.desglosarMonto({ subtotal: m, tipo_factura: def.tipo_factura }) : { subtotal: 0, iva: 0, total: 0 };
   const id = await insertarCuenta(nuevaRequest, {
-    cliente_id: clienteId, grupo_id: grupoId, origen: "Automática", estrategia: "empresas",
-    concepto: String(concepto || "Grupo").slice(0, 300), ...montos, estatus: "Por facturar",
+    cliente_id: clienteId, grupo_id: grupoId, origen: "Automática", estrategia: def.tipo_factura === "Otro" ? null : "empresas",
+    concepto: String(concepto || "Grupo").slice(0, 300), ...def, ...montos, estatus: "Por facturar",
   });
   return { creada: true, id };
 }
@@ -150,6 +181,7 @@ async function editarCuenta(nuevaRequest, b) {
   const id = Number(b.id);
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, id);
   const campos = leerCampos(b, true);
+  plazoDeVencimiento(campos, dia(cuenta.inicio_plazo));
   if ("tipo_factura" in campos) campos.tipo_factura = await tipoCongruente(nuevaRequest, cuenta.cliente_id, campos.tipo_factura);
   // tipo Otro ⇒ sin estrategia; si una cuenta deja de ser Otro y no traía estrategia, vuelve a In company
   const tipoFinal = "tipo_factura" in campos ? campos.tipo_factura : cuenta.tipo_factura;
@@ -169,7 +201,7 @@ async function editarCuenta(nuevaRequest, b) {
   const cols = Object.keys(datos);
   if (!cols.length) return { id };
   const req = nuevaRequest().input("id", sql.Int, id);
-  for (const c of cols) req.input(c, TIPOS[c] || sql.NVarChar, c === "fecha_emision" || c === "inicio_plazo" ? fechaSql(datos[c]) : datos[c]);
+  for (const c of cols) req.input(c, TIPOS[c] || sql.NVarChar, ES_FECHA.has(c) ? fechaSql(datos[c]) : datos[c]);
   await req.query(`UPDATE CuentaPorCobrar SET ${cols.map((c) => `${c} = @${c}`).join(", ")} WHERE id = @id`);
   // capturar el folio/UUID de una cuenta "Por facturar" la pasa a Facturada
   const refrescada = await cargarCuenta(nuevaRequest, id);
@@ -241,7 +273,7 @@ async function dividirCuenta(nuevaRequest, id, partes) {
     } else {
       nuevas.push(await insertarCuenta(nuevaRequest, {
         cliente_id: cuenta.cliente_id, cotizacion_id: cuenta.cotizacion_id, grupo_id: cuenta.grupo_id, origen: "Manual", estrategia: cuenta.estrategia,
-        concepto, ...m, plazo_dias: cuenta.plazo_dias, orden_compra: cuenta.orden_compra, rfc_receptor: cuenta.rfc_receptor, estatus: "Por facturar",
+        concepto, ...m, plazo_dias: cuenta.plazo_dias, orden_compra: cuenta.orden_compra, rfc_receptor: cuenta.rfc_receptor, tipo_factura: cuenta.tipo_factura, razon_social: cuenta.razon_social, estatus: "Por facturar",
       }));
     }
   }
@@ -297,7 +329,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   const cuentas = await req.query(`
     SELECT x.id, x.cliente_id, COALESCE(c.nombre, x.razon_social) AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
            x.concepto, x.subtotal, x.iva, x.retencion_isr, x.retencion_iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
-           x.inicio_plazo, x.plazo_dias, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
+           x.inicio_plazo, x.plazo_dias, x.vencimiento_manual, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
     FROM CuentaPorCobrar x
     LEFT JOIN Cliente c ON c.id = x.cliente_id
     LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
@@ -315,7 +347,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
     const venc = dia(x.vencimiento);
     const total = Number(x.total);
     const saldo = C.saldoDe(total, misPagos);
-    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), subtotal: Number(x.subtotal), iva: Number(x.iva), retencion_isr: Number(x.retencion_isr || 0), retencion_iva: Number(x.retencion_iva || 0), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
+    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), vencimiento_manual: dia(x.vencimiento_manual), subtotal: Number(x.subtotal), iva: Number(x.iva), retencion_isr: Number(x.retencion_isr || 0), retencion_iva: Number(x.retencion_iva || 0), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
     fila.semaforo = C.semaforoDe({ estatus: x.estatus, saldo, vencimiento: venc }, hoy, umbralPorVencer);
     return fila;
   });

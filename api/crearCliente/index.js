@@ -5,6 +5,7 @@
 // panel Clientes no tiene un botón "Nuevo Cliente" que también sirva de editor).
 const { getPool, sql } = require("../src/backoffice-db");
 const { JSON_HEADERS } = require("../src/http");
+const { leerFiscal } = require("../src/cliente-fiscal");
 
 const TIPOS_VALIDOS = ["Directo", "Intermediario", "Indirecto", "Prospecto", "Tercero"];
 
@@ -29,6 +30,11 @@ module.exports = async function (context, req) {
   const clienteDesde = anioONull(body.cliente_desde);
   const tipoCliente = TIPOS_VALIDOS.includes(body.tipo_cliente) ? body.tipo_cliente : "Directo";
 
+  const fiscal = leerFiscal(body, tipoCliente);
+  if (fiscal.error) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: fiscal.error } };
+    return;
+  }
   if (!nombre || !codigo) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el nombre o el código del cliente." } };
     return;
@@ -44,15 +50,17 @@ module.exports = async function (context, req) {
 
   try {
     const pool = await getPool();
-    const insert = await pool
-      .request()
+    const extra = Object.keys(fiscal.campos);
+    const req = pool.request();
+    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : sql.NVarChar, fiscal.campos[k]);
+    const insert = await req
       .input("nombre", sql.NVarChar, nombre)
       .input("codigo", sql.NVarChar, codigo)
       .input("notas", sql.NVarChar, notas)
       .input("clienteDesde", sql.Int, clienteDesde)
       .input("tipoCliente", sql.NVarChar, tipoCliente)
       .query(
-        "INSERT INTO Cliente (nombre, codigo, notas, cliente_desde, tipo_cliente, origen_alta) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde, @tipoCliente, 'Clientes')"
+        `INSERT INTO Cliente (nombre, codigo, notas, cliente_desde, tipo_cliente, origen_alta${extra.map((k) => ", " + k).join("")}) OUTPUT INSERTED.id VALUES (@nombre, @codigo, @notas, @clienteDesde, @tipoCliente, 'Clientes'${extra.map((k) => ", @" + k).join("")})`
       );
     context.res = { status: 200, headers: JSON_HEADERS, body: { id: insert.recordset[0].id } };
   } catch (err) {

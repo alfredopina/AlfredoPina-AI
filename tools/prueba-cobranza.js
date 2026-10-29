@@ -38,7 +38,7 @@ function fetchFalso(url, opts) {
   if (u.includes('/api/listCobranzaAdmin')) return respuesta(datosLista);
   if (u.includes('/api/getResumenCobranzaAdmin')) return respuesta(resumen);
   if (u.includes('/api/getNotificacionesActivas')) return respuesta(alertas);
-  if (u.includes('/api/buscarClientesAdmin')) return respuesta([{ id: 3, nombre: 'Acme SA', codigo: 'ACME', tipo_cliente: 'Directo' }, { id: 4, nombre: 'Beta SA', codigo: 'BETA', tipo_cliente: 'Intermediario' }, { id: 9, nombre: 'Taller Ejemplo SA', codigo: 'TAL', tipo_cliente: 'Tercero' }]);
+  if (u.includes('/api/buscarClientesAdmin')) return respuesta([{ id: 3, nombre: 'Acme SA', codigo: 'ACME', tipo_cliente: 'Directo', razon_social: 'Acme SA de CV', rfc: 'ACM010101AB1', plazo_pago_dias: 45, tipo_factura_default: 'Gobierno' }, { id: 4, nombre: 'Beta SA', codigo: 'BETA', tipo_cliente: 'Intermediario' }, { id: 9, nombre: 'Taller Ejemplo SA', codigo: 'TAL', tipo_cliente: 'Tercero' }]);
   if (u.includes('/api/registrarPagoCobranza') && cuerpo.monto > 7600) return respuesta({ error: 'El pago excede el saldo (queda por cobrar 7600.00).' }, 409);
   if (u.includes('/api/eliminarCuentaCobrar') && cuerpo.id === 3) return respuesta({ error: 'Esa cuenta ya tiene pagos registrados: no se borra, se cancela (anula los pagos primero).' }, 409);
   if (/\/api\/(actualizarNotasCuentaCobrar|eliminarCuentaCobrar|registrarPagoCobranza|anularPagoCobranza|editarCuentaCobrar|cambiarEstatusCuentaCobrar|dividirCuentaCobrar|crearCuentaCobrar)/.test(u)) return respuesta({ ok: true });
@@ -178,7 +178,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('la línea NO depende de las vistas: sigue igual al cambiar de pestaña', qa('#cbzLienzo .cbz-stem').length === 5);
   await clic(q('#cbzVistas [data-vista="todo"]'));
   await clic(q('#cbzLienzo .cbz-stem.p')); await pausa(80);
-  check('clic en una línea abre la cuenta (Beta SA)', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA', txt('#cbzDetTitulo'));
+  check('clic en una línea abre la cuenta (Beta SA)', !q('#cbzDetalle').hidden && /^Beta SA/.test(txt('#cbzDetTitulo')), txt('#cbzDetTitulo'));
   await clic(q('#cbzDetCerrar'));
   await clic(q('#cbzLineaNav [data-meses="1"]'));
   check('con "1 mes" lo que vence más allá queda fuera de la ventana y se avisa en el pie', clases('l') === 0 && /Después de esta ventana: 1 cobro/.test(txt('#cbzLineaPie')), txt('#cbzLineaPie'));
@@ -203,7 +203,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('las del mismo día no se encimen: quedan separadas al menos 10 px', Math.abs(izq[1] - izq[0]) / 100 * 900 >= 10, izq.join(' | '));
   check('el aviso de cada línea trae cliente y monto', /Beta SA/.test(qa('#cbzLienzo .cbz-stem').map((b) => b.getAttribute('aria-label')).join('|')) && /7,000/.test(qa('#cbzLienzo .cbz-stem').map((b) => b.getAttribute('aria-label')).join('|')));
   await clic(qa('#cbzLienzo .cbz-stem').find((b) => /Beta SA/.test(b.getAttribute('aria-label')))); await pausa(80);
-  check('cada línea abre su propia factura', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Beta SA');
+  check('cada línea abre su propia factura', !q('#cbzDetalle').hidden && /^Beta SA/.test(txt('#cbzDetTitulo')));
   await clic(q('#cbzDetCerrar'));
   datosLista = [];
   await clic(q('#cbzActualizar')); await pausa(150);
@@ -247,7 +247,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   console.log('Detalle y pagos');
   await clic(q('#cbzVistas [data-vista="cobrar"]'));
   await clic(q('#cbzListaBody tr[data-id="3"]'));
-  check('abre el detalle de la cuenta con sus montos', !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Alfa SA' && /7,600/.test(txt('#cbzDetCuerpo')));
+  check('abre el detalle de la cuenta con sus montos', !q('#cbzDetalle').hidden && /^Alfa SA/.test(txt('#cbzDetTitulo')) && /7,600/.test(txt('#cbzDetCuerpo')));
   check('con pagos ya no se edita el monto', !q('#cbzDSubtotal'));
   poner('cbzPMonto', '9000');
   await clic(q('[data-det="pago"]'));
@@ -273,7 +273,9 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzVistas [data-vista="facturar"]'));
   await clic(q('#cbzListaBody tr[data-id="4"]'));
   check('cuenta sin pagos: monto editable y botón de dividir', !!q('#cbzDSubtotal') && !!q('[data-det="dividir"]'));
-  check('el desglose (subtotal + IVA − retenciones = total) va en un panel aparte y sin campos', !!q('#cbzDesglose') && /SUBTOTAL/.test(txt('#cbzDesglose')) && /TOTAL A COBRAR/.test(txt('#cbzDesglose')) && !q('#cbzDesglose input'));
+  check('sin tipo de factura el desglose solo muestra el subtotal y pide el tipo (sin total engañoso)', !!q('#cbzDesglose') && /SUBTOTAL/.test(txt('#cbzDesglose')) && /Elige el tipo de factura/.test(txt('#cbzDesglose')) && !/TOTAL A COBRAR/.test(txt('#cbzDesglose')) && !q('#cbzDesglose input'));
+  check('el título del detalle lleva el código del cliente', !!q('#cbzDetTitulo .cbz-cod'));
+  check('el formulario va por flujo: Lo esencial, Factura, Plazo y cobro, y los datos fiscales plegados', ['LO ESENCIAL', 'FACTURA', 'PLAZO Y COBRO'].every((t) => qa('#cbzDetCuerpo .cbz-seccion').some((x) => x.textContent.trim() === t)) && !!q('#cbzDetCuerpo details.cbz-fiscal') && qa('#cbzDetCuerpo .cbz-seccion')[0].textContent.trim() === 'LO ESENCIAL' && q('#cbzDTipo').closest('.cbz-grid') === qa('#cbzDetCuerpo .cbz-grid')[0]);
   check('IVA y retenciones quedan ocultos (solo con "Ajustar impuestos a mano")', q('#cbzAjuste').hidden === true);
   const dgDe = (sel) => qa(sel + ' .cbz-d').map((x) => x.querySelector('small').textContent + ' ' + x.querySelector('b').textContent).join(' | ');
   const dg = () => dgDe('#cbzDesglose');
@@ -290,6 +292,19 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('[data-det="guardar"]'));
   const guard = llamadas.find((l) => l.u.includes('editarCuentaCobrar'));
   check('guardar manda tipo, nombre fiscal, RFC, subtotal y retenciones', guard && guard.cuerpo.retencion_isr === 960 && guard.cuerpo.retencion_iva === 1024 && guard.cuerpo.subtotal === '9600' && guard.cuerpo.tipo_factura === 'Empresa' && 'razon_social' in guard.cuerpo && 'rfc_receptor' in guard.cuerpo, JSON.stringify(guard && guard.cuerpo));
+  // plazo ↔ fecha de vencimiento: lo que se escribe primero manda y el otro campo se calcula y se bloquea
+  poner('cbzDInicio', '2026-11-01'); d.getElementById('cbzDInicio').dispatchEvent(new w.Event('input', { bubbles: true }));
+  check('por defecto manda el plazo: la fecha de vencimiento se calcula sola y está bloqueada', d.getElementById('cbzDVence').disabled === true && d.getElementById('cbzDPlazo').disabled === false);
+  poner('cbzDPlazo', '45');
+  check('al escribir el plazo, la fecha se calcula sola (1 nov + 45 d = 16 dic)', valorDe('cbzDVence') === '2026-12-16', valorDe('cbzDVence'));
+  await clic(q('#cbzDVenceCambiar'));
+  check('el botón cambia de modo: ahora se escribe la fecha y el plazo se bloquea', d.getElementById('cbzDVence').disabled === false && d.getElementById('cbzDPlazo').disabled === true && /Escribir el plazo/.test(txt('#cbzDVenceCambiar')));
+  poner('cbzDVence', '2026-11-20');
+  check('al escribir la fecha (día fijo del mes), el plazo se calcula solo (19 d)', valorDe('cbzDPlazo') === '19', valorDe('cbzDPlazo'));
+  llamadas.length = 0; await clic(q('[data-det="guardar"]'));
+  const gF = llamadas.find((l) => l.u.includes('editarCuentaCobrar'));
+  check('con fecha manual se manda solo la fecha (el servidor calcula el plazo)', gF && gF.cuerpo.vencimiento_manual === '2026-11-20' && !('plazo_dias' in gF.cuerpo), JSON.stringify(gF && gF.cuerpo));
+  await clic(q('#cbzDetCerrar')); await clic(q('#cbzListaBody tr[data-id="4"]'));
   await clic(q('[data-det="dividir"]'));
   check('la división propone 2 partes que suman el total', qa('.cbz-parte-total').length === 2 && qa('.cbz-parte-total').reduce((a, i) => a + Number(i.value), 0) === 11600);
   llamadas.length = 0;
@@ -321,6 +336,18 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   const alta2 = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
   check('alta con subtotal manda las retenciones (y no manda total)', alta2 && alta2.cuerpo.subtotal === '9600' && alta2.cuerpo.retencion_isr === 960 && !('total' in alta2.cuerpo), JSON.stringify(alta2 && alta2.cuerpo));
 
+  // la cuenta nace con los datos del cliente (sql/046): nombre fiscal, RFC, plazo y tipo de factura
+  await clic(q('#cbzCrearBtn')); await pausa(100); llamadas.length = 0;
+  d.getElementById('cbzNCliente').value = '3'; d.getElementById('cbzNCliente').dispatchEvent(new w.Event('change', { bubbles: true })); await pausa(80);
+  check('al elegir el cliente, la cuenta nace con su nombre fiscal, RFC, plazo y tipo de factura', valorDe('cbzNRazon') === 'Acme SA de CV' && valorDe('cbzNRfc') === 'ACM010101AB1' && valorDe('cbzNPlazo') === '45' && valorDe('cbzNTipo') === 'Gobierno', [valorDe('cbzNRazon'), valorDe('cbzNRfc'), valorDe('cbzNPlazo'), valorDe('cbzNTipo')].join(' | '));
+  poner('cbzNConcepto', 'Con datos del cliente'); poner('cbzNMonto', '5000'); poner('cbzNInicio', '2026-11-01');
+  check('el desglose ya trae las retenciones del tipo del cliente y el vencimiento sale del plazo (1 nov + 45 d)', /RET\. ISR \$500\.00/.test(dgDe('#cbzNDesglose')) && valorDe('cbzNVence') === '2026-12-16' && d.getElementById('cbzNVence').disabled === true, dgDe('#cbzNDesglose') + ' | ' + valorDe('cbzNVence'));
+  await clic(q('#cbzNGuardar'));
+  const altaC = llamadas.find((l) => l.u.includes('crearCuentaCobrar'));
+  check('al guardar manda el nombre fiscal, el RFC, el plazo y el tipo precargados', altaC && altaC.cuerpo.razon_social === 'Acme SA de CV' && altaC.cuerpo.rfc_receptor === 'ACM010101AB1' && altaC.cuerpo.plazo_dias === '45' && altaC.cuerpo.tipo_factura === 'Gobierno' && altaC.cuerpo.vencimiento_manual === '', JSON.stringify(altaC && altaC.cuerpo));
+  // el formulario de Clientes lleva los datos fiscales solo para Directo, Intermediario y Tercero
+  check('el formulario de Clientes trae nombre fiscal, RFC, plazo y tipo de factura solo para quien recibe factura', HTML.includes('clf-razon') && HTML.includes("TIPOS_FISCALES = ['Directo', 'Intermediario', 'Tercero']") && HTML.includes('clf-tfact'));
+
   check('el formulario de Crear Grupo tiene el monto a facturar (opcional)', HTML.includes('id="gruMonto"') && HTML.includes('MONTO A FACTURAR (SIN IVA, OPCIONAL)') && HTML.includes('id="gruToggleCobro"'));
   await clic(q('#cbzCrearBtn')); await pausa(100); llamadas.length = 0;
   poner('cbzNCliente', '9'); d.getElementById('cbzNCliente').dispatchEvent(new w.Event('change', { bubbles: true })); await pausa(50);
@@ -338,7 +365,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('la alerta lleva su pastilla con texto', /vencido 21 d/.test(secCbz.textContent) && /vence en 3 d/.test(secCbz.textContent));
   llamadas.length = 0;
   secCbz.querySelector('.alr-row').click(); await pausa(300);
-  check('una alerta de Cobranza abre su cuenta', q('#panel-cobranza').classList.contains('active') && !q('#cbzDetalle').hidden && txt('#cbzDetTitulo') === 'Zeta SA', txt('#cbzDetTitulo'));
+  check('una alerta de Cobranza abre su cuenta', q('#panel-cobranza').classList.contains('active') && !q('#cbzDetalle').hidden && /^Zeta SA/.test(txt('#cbzDetTitulo')), txt('#cbzDetTitulo'));
   await clic(q('#cbzDetCerrar'));
 
   console.log('Configuración → Notificaciones: destinatarios por aviso');

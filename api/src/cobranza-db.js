@@ -34,7 +34,7 @@ function leerCampos(b, parcial) {
   }
   if (!parcial && !out.concepto) throw C.falla("Falta el concepto.");
   if (out.concepto === null && "concepto" in out) throw C.falla("El concepto no puede quedar vacío.");
-  for (const campo of ["fecha_emision", "inicio_plazo", "vencimiento_manual"]) {
+  for (const campo of ["fecha_emision", "inicio_plazo", "vencimiento_manual", "fecha_cancelacion"]) {
     if (parcial && !(campo in b)) continue;
     const v = b[campo];
     if (v == null || v === "") { out[campo] = null; continue; }
@@ -60,8 +60,9 @@ function leerCampos(b, parcial) {
   return out;
 }
 
-const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, vencimiento_manual: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
-const ES_FECHA = new Set(["fecha_emision", "inicio_plazo", "vencimiento_manual"]);
+const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, vencimiento_manual: sql.Date, fecha_cancelacion: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const ES_FECHA = new Set(["fecha_emision", "inicio_plazo", "vencimiento_manual", "fecha_cancelacion"]);
+const hoyMonterrey = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Monterrey" });
 const dia = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
 const fechaSql = (v) => (v ? new Date(v + "T00:00:00Z") : null);
 
@@ -182,6 +183,7 @@ async function editarCuenta(nuevaRequest, b) {
   const { cuenta, pagos } = await cargarCuenta(nuevaRequest, id);
   const campos = leerCampos(b, true);
   plazoDeVencimiento(campos, dia(cuenta.inicio_plazo));
+  if (cuenta.estatus !== "Cancelada") delete campos.fecha_cancelacion; // solo las canceladas tienen fecha de cancelación
   if ("tipo_factura" in campos) campos.tipo_factura = await tipoCongruente(nuevaRequest, cuenta.cliente_id, campos.tipo_factura);
   // tipo Otro ⇒ sin estrategia; si una cuenta deja de ser Otro y no traía estrategia, vuelve a In company
   const tipoFinal = "tipo_factura" in campos ? campos.tipo_factura : cuenta.tipo_factura;
@@ -221,9 +223,10 @@ async function cambiarEstatus(nuevaRequest, id, estatus) {
   if (cuenta.estatus === "Cancelada" && estatus === "Facturada") {
     // reabrir: vuelve a Facturada si ya tenía folio/UUID, si no a Por facturar (luego recalcularEstatus lo acomoda según pagos)
     const vuelve = cuenta.folio_factura || cuenta.uuid_factura ? "Facturada" : "Por facturar";
-    await nuevaRequest().input("id", sql.Int, id).input("e", sql.NVarChar, vuelve).query("UPDATE CuentaPorCobrar SET estatus = @e, fecha_estatus = SYSUTCDATETIME() WHERE id = @id");
+    await nuevaRequest().input("id", sql.Int, id).input("e", sql.NVarChar, vuelve).query("UPDATE CuentaPorCobrar SET estatus = @e, fecha_estatus = SYSUTCDATETIME(), fecha_cancelacion = NULL WHERE id = @id");
   } else if (cuenta.estatus !== estatus) {
-    await nuevaRequest().input("id", sql.Int, id).input("e", sql.NVarChar, estatus).query("UPDATE CuentaPorCobrar SET estatus = @e, fecha_estatus = SYSUTCDATETIME() WHERE id = @id");
+    await nuevaRequest().input("id", sql.Int, id).input("e", sql.NVarChar, estatus).input("hoy", sql.Date, fechaSql(hoyMonterrey()))
+      .query("UPDATE CuentaPorCobrar SET estatus = @e, fecha_estatus = SYSUTCDATETIME(), fecha_cancelacion = CASE WHEN @e = 'Cancelada' THEN @hoy ELSE NULL END WHERE id = @id");
   }
   return { estatus: await recalcularEstatus(nuevaRequest, id) };
 }
@@ -329,7 +332,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   const cuentas = await req.query(`
     SELECT x.id, x.cliente_id, COALESCE(c.nombre, x.razon_social) AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
            x.concepto, x.subtotal, x.iva, x.retencion_isr, x.retencion_iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
-           x.inicio_plazo, x.plazo_dias, x.vencimiento_manual, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
+           x.inicio_plazo, x.plazo_dias, x.vencimiento_manual, x.fecha_cancelacion, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
     FROM CuentaPorCobrar x
     LEFT JOIN Cliente c ON c.id = x.cliente_id
     LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
@@ -347,7 +350,7 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
     const venc = dia(x.vencimiento);
     const total = Number(x.total);
     const saldo = C.saldoDe(total, misPagos);
-    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), vencimiento_manual: dia(x.vencimiento_manual), subtotal: Number(x.subtotal), iva: Number(x.iva), retencion_isr: Number(x.retencion_isr || 0), retencion_iva: Number(x.retencion_iva || 0), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
+    const fila = { ...x, fecha_emision: dia(x.fecha_emision), inicio_plazo: dia(x.inicio_plazo), vencimiento_manual: dia(x.vencimiento_manual), fecha_cancelacion: dia(x.fecha_cancelacion), subtotal: Number(x.subtotal), iva: Number(x.iva), retencion_isr: Number(x.retencion_isr || 0), retencion_iva: Number(x.retencion_iva || 0), total, vencimiento: venc, pagos: misPagos, pagado: C.totalPagado(misPagos), saldo };
     fila.semaforo = C.semaforoDe({ estatus: x.estatus, saldo, vencimiento: venc }, hoy, umbralPorVencer);
     return fila;
   });

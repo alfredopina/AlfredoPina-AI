@@ -7052,6 +7052,7 @@
         '</div>' +
         '<div class="cbz-seccion">PLAZO Y COBRO</div>' +
         plazoHtml('cbzD', { inicio: c.inicio_plazo, plazo: c.plazo_dias, vence: c.vencimiento }) +
+        (cancelada ? '<div class="cbz-grid">' + campoFecha('cbzDFechaCanc', 'FECHA DE CANCELACIÓN', c.fecha_cancelacion) + '<p class="radm-hint" style="margin:0 0 14px; align-self:end;">Se llena sola al cancelar. En las canceladas históricas captura la fecha real: sale en el reporte del contador.</p></div>' : '') +
         fiscalHtml('cbzD', c.razon_social, c.rfc_receptor) +
         (esTercero(c) ? '<p class="cbz-aviso">Factura por cuenta de terceros: se guarda completa para el contador y no cuenta en las métricas ni en las alertas.</p>' : '') +
         '<div class="radm-field" style="margin-bottom:12px;"><label for="cbzDNotas">NOTAS</label><textarea id="cbzDNotas" rows="2" maxlength="4000">' + esc(c.notas || '') + '</textarea></div>' +
@@ -7186,6 +7187,7 @@
           orden_compra: valor('cbzDOC'), inicio_plazo: valor('cbzDInicio'), estrategia: valor('cbzDEstrategia'), notas: valor('cbzDNotas'),
         };
         Object.assign(datos, datosPlazo('cbzD'));
+        if(c.estatus === 'Cancelada') datos.fecha_cancelacion = valor('cbzDFechaCanc');
         if($('cbzDSubtotal') && desg){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = desg.iva; datos.retencion_isr = desg.isr; datos.retencion_iva = desg.riva; }
         await guardarYRefrescar('/api/editarCuentaCobrar', datos, 'Cuenta guardada.', 'cbzDError');
       } else if(que === 'facturada'){
@@ -7335,62 +7337,71 @@
 
     // ── Reporte para el contador ──
     // Viri elige el periodo (normalmente el mes en curso) y baja un Excel con el formato de siempre (hoja "Factura Emitidas": fecha emitida, UUID, folio, RFC,
-    // razón social, uso CFDI, total, estatus, complemento de pago y su folio) más los datos que ahora sí tenemos. Entran: las facturadas en el periodo, las
-    // cobradas en el periodo (aunque se hayan emitido antes), las canceladas en el periodo y las que siguen vencidas al cierre. Los terceros (tipo Otro)
-    // entran y van marcados. Se arma en el navegador con ExcelJS (cdnjs) a partir de la misma lista de la tabla: sin Function ni SQL nuevos.
+    // razón social, uso CFDI, total, estatus, complemento de pago y su folio) más los datos que ahora sí tenemos, y una hoja de inicio que explica el formato
+    // (porque el "tipo de factura" es una clasificación nuestra que el contador no conoce). Entran en la hoja principal: las facturadas en el periodo, las cobradas
+    // en el periodo (aunque se hayan emitido antes) y las que siguen vencidas al cierre. Las CANCELADAS van aparte, todas las del año (no dependen del periodo, así
+    // no hace falta saber cuándo se cancelaron). Los terceros (tipo Otro) entran y van marcados. Se arma en el navegador con ExcelJS (cdnjs) a partir de la misma
+    // lista de la tabla: sin Function ni SQL propios del reporte.
     const USO_CFDI = 'Gastos en General'; // el único uso que traía el formato original en todas sus filas
-    const ESTATUS_CONTADOR = { Pagada: 'Pagado', Facturada: 'Vigente No Pagado', Parcial: 'Pago parcial', Cancelada: 'Cancelada' }; // las 3 palabras del formato original + Pago parcial
+    const ESTATUS_CONTADOR = { Pagada: 'Pagado', Facturada: 'Vigente No Pagado', Parcial: 'Pago parcial' }; // las palabras del formato original + Pago parcial
     const dosDec = (x) => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
-    const ymdMonterrey = (iso) => iso ? new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Monterrey' }) : null;
     function periodoMes(offset){
       const [a, m] = hoyYmd().split('-').map(Number);
       const ini = new Date(Date.UTC(a, m - 1 + offset, 1)), fin = new Date(Date.UTC(a, m + offset, 0));
       return { desde: ini.toISOString().slice(0, 10), hasta: fin.toISOString().slice(0, 10) };
     }
+    const ANTIGUEDAD = [['1 a 30 días', 1, 30], ['31 a 60 días', 31, 60], ['61 a 90 días', 61, 90], ['Más de 90 días', 91, 1e6]];
     function armarReporte(desde, hasta, lista){
       lista = lista || cuentas;
-      const filas = [], cobros = [];
-      let sinFechaEmision = 0;
+      const anio = hasta.slice(0, 4);
+      const filas = [], cobros = [], canceladas = [];
+      let sinFechaEmision = 0; const porFacturar = { n: 0, subtotal: 0 };
+      const datosBase = (c) => ({ fecha: c.fecha_emision, uuid: c.uuid_factura, folio: c.folio_factura, rfc: c.rfc_receptor, razon: c.razon_social || c.cliente, uso: USO_CFDI, total: Number(c.total),
+        cliente: c.cliente, tipo: c.tipo_factura === 'Otro' ? 'Otro (tercero)' : (c.tipo_factura || ''), subtotal: Number(c.subtotal), iva: Number(c.iva), isr: Number(c.retencion_isr || 0), riva: Number(c.retencion_iva || 0), oc: c.orden_compra, esTercero: c.tipo_factura === 'Otro' });
       for(const c of lista){
-        if(c.estatus === 'Por facturar') continue; // todavía no hay factura
+        if(c.estatus === 'Por facturar'){ if(!esTercero(c)){ porFacturar.n++; porFacturar.subtotal += Number(c.subtotal) || 0; } continue; } // todavía no hay factura
+        if(c.estatus === 'Cancelada'){
+          // todas las canceladas del año (con factura), por su emisión o por su fecha de cancelación; sin ninguna de las dos fechas también entran para que el contador se entere
+          if(!(c.folio_factura || c.uuid_factura)) continue;
+          const fc = c.fecha_cancelacion || null, delAnio = (c.fecha_emision && c.fecha_emision.slice(0, 4) === anio) || (fc && fc.slice(0, 4) === anio) || (!c.fecha_emision && !fc);
+          if(delAnio) canceladas.push({ ...datosBase(c), fechaCancelacion: fc });
+          continue;
+        }
         const pagos = (c.pagos || []).filter((p) => !p.anulado);
         const enRango = (f) => !!f && f >= desde && f <= hasta;
         const motivos = [];
-        if(enRango(c.fecha_emision)) motivos.push('Emitida'); else if(!c.fecha_emision && c.estatus !== 'Cancelada') sinFechaEmision++;
+        if(enRango(c.fecha_emision)) motivos.push('Emitida'); else if(!c.fecha_emision) sinFechaEmision++;
         const pagosPeriodo = pagos.filter((p) => enRango(p.fecha));
         if(pagosPeriodo.length) motivos.push('Cobrada');
-        const fCancel = c.estatus === 'Cancelada' ? ymdMonterrey(c.fecha_estatus) : null;
-        if(enRango(fCancel)) motivos.push('Cancelada');
         const pagosAlCierre = pagos.filter((p) => !p.fecha || p.fecha <= hasta);
         const pagado = dosDec(pagosAlCierre.reduce((a, p) => a + Number(p.monto || 0), 0));
         let saldoCierre = dosDec(Number(c.total) - pagado); if(Math.abs(saldoCierre) <= 0.05) saldoCierre = 0;
-        const canceladaAntes = !!fCancel && fCancel <= hasta;
-        const vencida = !canceladaAntes && (!c.fecha_emision || c.fecha_emision <= hasta) && !!c.vencimiento && c.vencimiento < hasta && saldoCierre > 0;
+        const vencida = (!c.fecha_emision || c.fecha_emision <= hasta) && !!c.vencimiento && c.vencimiento < hasta && saldoCierre > 0;
         if(vencida) motivos.push('Vencida al cierre');
         pagosPeriodo.forEach((p) => cobros.push({ fecha: p.fecha, folio: c.folio_factura, cliente: c.cliente, razon: c.razon_social || c.cliente, rfc: c.rfc_receptor, monto: Number(p.monto), metodo: p.metodo, uuid: p.uuid_complemento, folioCompl: p.folio_complemento, nota: p.notas }));
         if(!motivos.length) continue;
         const compl = [...new Set(pagosAlCierre.map((p) => p.uuid_complemento || (/PUE/i.test(p.notas || '') ? 'PUE' : '')).filter(Boolean))].join(' / ');
         const fechasPago = pagosAlCierre.map((p) => p.fecha).filter(Boolean).sort();
         filas.push({
-          fecha: c.fecha_emision, uuid: c.uuid_factura, folio: c.folio_factura, rfc: c.rfc_receptor, razon: c.razon_social || c.cliente, uso: USO_CFDI, total: Number(c.total), estatus: ESTATUS_CONTADOR[c.estatus] || c.estatus,
-          complemento: compl, folioCompl: [...new Set(pagosAlCierre.map((p) => p.folio_complemento).filter(Boolean))].join(' / '),
-          cliente: c.cliente, tipo: c.tipo_factura === 'Otro' ? 'Otro (tercero)' : (c.tipo_factura || ''), subtotal: Number(c.subtotal), iva: Number(c.iva), isr: Number(c.retencion_isr || 0), riva: Number(c.retencion_iva || 0),
-          saldo: c.estatus === 'Cancelada' ? 0 : saldoCierre, fechaPago: fechasPago.length ? fechasPago[fechasPago.length - 1] : null, vencimiento: c.vencimiento, dias: vencida ? Math.round((ymdAms(hasta) - ymdAms(c.vencimiento)) / DIA_MS) : null,
-          oc: c.orden_compra, movimiento: motivos.join(' · '), esTercero: c.tipo_factura === 'Otro', emitida: motivos.includes('Emitida'), cobrada: motivos.includes('Cobrada'), cancelada: motivos.includes('Cancelada'), vencida,
+          ...datosBase(c), estatus: ESTATUS_CONTADOR[c.estatus] || c.estatus, complemento: compl, folioCompl: [...new Set(pagosAlCierre.map((p) => p.folio_complemento).filter(Boolean))].join(' / '),
+          saldo: saldoCierre, fechaPago: fechasPago.length ? fechasPago[fechasPago.length - 1] : null, vencimiento: c.vencimiento, dias: vencida ? Math.round((ymdAms(hasta) - ymdAms(c.vencimiento)) / DIA_MS) : null,
+          movimiento: motivos.join(' · '), emitida: motivos.includes('Emitida'), cobrada: motivos.includes('Cobrada'), vencida,
         });
       }
       const num = (a) => Number(a) || 0;
-      filas.sort((a, b) => String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || (Number(a.folio) - Number(b.folio)) || String(a.folio).localeCompare(String(b.folio)));
+      const porFecha = (a, b) => String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || (Number(a.folio) - Number(b.folio)) || String(a.folio).localeCompare(String(b.folio));
+      filas.sort(porFecha); canceladas.sort(porFecha);
       cobros.sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)) || (Number(a.folio) - Number(b.folio)));
       const suma = (arr, k) => dosDec(arr.reduce((a, x) => a + num(x[k]), 0));
-      const emitidas = filas.filter((f) => f.emitida && !f.cancelada), canceladas = filas.filter((f) => f.cancelada), vencidas = filas.filter((f) => f.vencida);
+      const emitidas = filas.filter((f) => f.emitida), vencidas = filas.filter((f) => f.vencida);
       return {
-        filas, cobros, sinFechaEmision,
+        filas, cobros, canceladas, sinFechaEmision, anio,
         resumen: {
           emitidas: { n: emitidas.length, subtotal: suma(emitidas, 'subtotal'), iva: suma(emitidas, 'iva'), isr: suma(emitidas, 'isr'), riva: suma(emitidas, 'riva'), total: suma(emitidas, 'total'), terceros: emitidas.filter((f) => f.esTercero).length, totalTerceros: suma(emitidas.filter((f) => f.esTercero), 'total') },
           cobrado: { n: cobros.length, monto: suma(cobros, 'monto') },
-          canceladas: { n: canceladas.length, total: suma(canceladas, 'total') },
-          vencidas: { n: vencidas.length, saldo: suma(vencidas, 'saldo') },
+          canceladas: { n: canceladas.length, total: suma(canceladas, 'total'), sinFecha: canceladas.filter((x) => !x.fechaCancelacion).length },
+          vencidas: { n: vencidas.length, saldo: suma(vencidas, 'saldo'), antiguedad: ANTIGUEDAD.map(([nombre, a, b]) => { const g = vencidas.filter((f) => f.dias >= a && f.dias <= b); return { nombre, n: g.length, saldo: suma(g, 'saldo') }; }) },
+          porFacturar: { n: porFacturar.n, subtotal: dosDec(porFacturar.subtotal) },
         },
       };
     }
@@ -7404,8 +7415,9 @@
       err.hidden = true;
       const r = armarReporte(desde, hasta), x = r.resumen, fila = (k, v) => '<dt>' + k + '</dt><dd>' + v + '</dd>';
       dl.innerHTML = fila('Emitidas', x.emitidas.n + ' · ' + dinero(x.emitidas.total)) + fila('Cobradas', x.cobrado.n + (x.cobrado.n === 1 ? ' pago' : ' pagos') + ' · ' + dinero(x.cobrado.monto)) +
-        fila('Canceladas', x.canceladas.n + ' · ' + dinero(x.canceladas.total)) + fila('Vencidas al cierre', x.vencidas.n + ' · ' + dinero(x.vencidas.saldo)) + fila('Filas del reporte', String(r.filas.length)) +
-        (r.sinFechaEmision ? fila('Aviso', r.sinFechaEmision + (r.sinFechaEmision === 1 ? ' factura sin fecha de emisión no entra' : ' facturas sin fecha de emisión no entran') + ' (captura la fecha en la cuenta)') : '');
+        fila('Vencidas al cierre', x.vencidas.n + ' · ' + dinero(x.vencidas.saldo)) + fila('Canceladas del año', x.canceladas.n + ' · ' + dinero(x.canceladas.total)) + fila('Filas de la hoja principal', String(r.filas.length)) +
+        (r.sinFechaEmision ? fila('Aviso', r.sinFechaEmision + (r.sinFechaEmision === 1 ? ' factura sin fecha de emisión no entra' : ' facturas sin fecha de emisión no entran') + ' (captura la fecha en la cuenta)') : '') +
+        (x.canceladas.sinFecha ? fila('Aviso', x.canceladas.sinFecha + (x.canceladas.sinFecha === 1 ? ' cancelada sin fecha de cancelación' : ' canceladas sin fecha de cancelación') + ' (se captura en cada cuenta cancelada)') : '');
       return r;
     }
     function abrirReporte(){
@@ -7437,7 +7449,50 @@
         const bordes = { top: BORDE, left: BORDE, bottom: BORDE, right: BORDE };
         const MONEDA = '"$"#,##0.00', FECHA = 'dd/mm/yyyy';
         const periodo = 'Periodo: ' + fmtDMA(desde) + ' al ' + fmtDMA(hasta) + ' · generado el ' + fmtDMA(hoyYmd());
-        const encabezado = (ws, fila, nCol, texto, color) => { ws.mergeCells(fila, 1, fila, nCol); const c = ws.getCell(fila, 1); c.value = texto; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } }; c.alignment = { vertical: 'middle' }; };
+        const relleno = (color) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: color } });
+        const titulo = (ws, nCol, texto, sub) => {
+          ws.mergeCells(1, 1, 1, nCol); ws.getCell(1, 1).value = texto; ws.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
+          ws.mergeCells(2, 1, 2, nCol); ws.getCell(2, 1).value = sub || periodo; ws.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
+        };
+        const cabeceras = (ws, fila, cols) => cols.forEach((c, i) => { const cell = ws.getCell(fila, i + 1); cell.value = c[0]; cell.font = { bold: true, color: { argb: TINTA } }; cell.fill = relleno(GRIS); cell.border = bordes; cell.alignment = { vertical: 'middle', horizontal: c[3] === 'm' ? 'right' : 'left', wrapText: true }; });
+        const llenar = (ws, fila0, cols, datos, extra) => datos.forEach((f, idx) => {
+          const fila = fila0 + idx;
+          cols.forEach((c, i) => {
+            const cell = ws.getCell(fila, i + 1); let v = f[c[1]];
+            if(c[3] === 'f') v = fechaXl(v); else if(v === undefined || v === '' || v === null) v = null;
+            cell.value = v; cell.border = bordes; cell.alignment = { vertical: 'top', horizontal: c[3] === 'm' ? 'right' : 'left' };
+            if(c[3] === 'm') cell.numFmt = MONEDA; if(c[3] === 'f') cell.numFmt = FECHA;
+          });
+          if(extra) extra(ws, fila, f);
+        });
+        // ── hoja 0: Inicio (explica el formato: el contador no conoce el "tipo de factura", que es una clasificación nuestra) ──
+        const wi = wb.addWorksheet('Inicio');
+        wi.getColumn(1).width = 30; wi.getColumn(2).width = 100;
+        titulo(wi, 2, 'Reporte de cobranza', periodo);
+        let fi = 4;
+        const seccion = (texto) => { wi.mergeCells(fi, 1, fi, 2); const c = wi.getCell(fi, 1); c.value = texto; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 }; c.fill = relleno(TINTA); fi++; };
+        const par = (a, b) => { const ca = wi.getCell(fi, 1), cb = wi.getCell(fi, 2); ca.value = a; cb.value = b; ca.font = { bold: true }; ca.alignment = { vertical: 'top', wrapText: true }; cb.alignment = { vertical: 'top', wrapText: true }; ca.border = bordes; cb.border = bordes; wi.getRow(fi).height = Math.max(18, Math.ceil(String(b).length / 95) * 16 + 4); fi++; };
+        const nota = (texto) => { wi.mergeCells(fi, 1, fi, 2); const c = wi.getCell(fi, 1); c.value = texto; c.alignment = { wrapText: true, vertical: 'top' }; c.font = { color: { argb: 'FF5B6577' } }; wi.getRow(fi).height = Math.max(18, Math.ceil(texto.length / 125) * 16 + 4); fi++; };
+        nota('Este archivo lo genera el sistema de cobranza de alfredopina.ai a partir de las facturas y los pagos registrados. Las primeras columnas de "Factura Emitidas" son el formato de siempre; lo demás son datos adicionales para que no falte nada.');
+        fi++; seccion('¿QUÉ ENCUENTRAS EN CADA PESTAÑA?');
+        par('Factura Emitidas', 'Las facturas del periodo: las emitidas en esas fechas, las que recibieron un pago en esas fechas (aunque se hayan emitido antes) y las que siguen vencidas a la fecha final. Las primeras 10 columnas son el formato original (Fecha Emitida, UUID, Folio, RFC, Razón Social, USO CFDI, Total, Estatus, Complemento de Pago y su Folio); a la derecha, bajo "DATOS ADICIONALES", van el desglose (subtotal, IVA, retenciones), el saldo, las fechas y por qué entró cada factura. Al final hay una fila de totales que respeta los filtros.');
+        par('Cobros del periodo', 'Un renglón por cada pago recibido en el periodo: fecha, folio de la factura, cliente, monto, método de pago y complemento de pago. Sirve para conciliar contra el banco.');
+        par('Canceladas del año', 'TODAS las facturas canceladas del año del reporte, no solo las del periodo. Trae la fecha de cancelación cuando ya está capturada; si aparece "Sin capturar", todavía no se ha confirmado la fecha real.');
+        par('Resumen', 'Los totales del periodo: facturado (con IVA y retenciones), cobrado, canceladas del año, lo vencido al cierre por antigüedad y lo que sigue pendiente de facturar.');
+        fi++; seccion('TIPO DE FACTURA (clasificación interna nuestra; no es un campo del CFDI)');
+        nota('Es la forma en que clasificamos cada factura para calcular lo que el cliente nos retiene. En todos los casos: Total = Subtotal + IVA − Retención de ISR − Retención de IVA.');
+        par('Empresa', 'Cliente (persona moral) que nos retiene: ISR del 10 % sobre el subtotal e IVA retenido equivalente a 2/3 del IVA (10.67 % del subtotal).');
+        par('Gobierno', 'Dependencias de gobierno: retienen ISR del 10 % sobre el subtotal; no retienen IVA. Su plazo de pago cuenta desde el contra-recibo.');
+        par('Anterior', 'Facturas de clientes a los que no se les aplican retenciones (así se manejaban antes): Total = Subtotal + IVA.');
+        par('Otro (tercero)', 'Facturas que emitimos por cuenta de un tercero (el tercero paga el impuesto). No son ingreso propio: se marcan en cursiva en las hojas y el Resumen las cuenta aparte. Se calculan igual que Empresa.');
+        fi++; seccion('CÓMO LEER LAS COLUMNAS');
+        par('Estatus', 'Pagado = cobrada por completo · Vigente No Pagado = emitida y sin cobrar · Pago parcial = cobrada en parte (el Saldo al cierre dice cuánto falta). Siempre viene con texto, además del color.');
+        par('Movimiento en el periodo', 'Emitida = se emitió dentro del periodo · Cobrada = recibió un pago dentro del periodo · Vencida al cierre = su vencimiento fue antes de la fecha final y todavía tenía saldo. Una factura puede tener más de un movimiento.');
+        par('Saldo al cierre', 'Lo que faltaba por cobrar a la fecha final del periodo (un pago recibido después de esa fecha no lo descuenta).');
+        par('Días vencida al cierre', 'Días entre la fecha de vencimiento y la fecha final del periodo (solo si la factura sigue vencida).');
+        par('Fecha de pago', 'Fecha del último pago recibido hasta la fecha final del periodo.');
+        par('Complemento de Pago y Folio', 'UUID y folio del complemento de pago. "PUE" significa pago en una sola exhibición: no lleva complemento.');
+        par('USO CFDI', 'Gastos en General en todas las facturas.');
         // ── hoja 1: el formato de siempre, con los datos nuevos a la derecha ──
         const ws = wb.addWorksheet('Factura Emitidas', { views: [{ state: 'frozen', ySplit: 5 }] });
         const COLS = [
@@ -7445,24 +7500,15 @@
           ['Cliente', 'cliente', 26], ['Tipo de factura', 'tipo', 15], ['Subtotal', 'subtotal', 15, 'm'], ['IVA', 'iva', 14, 'm'], ['Ret. ISR', 'isr', 14, 'm'], ['Ret. IVA', 'riva', 14, 'm'], ['Saldo al cierre', 'saldo', 15, 'm'], ['Fecha de pago', 'fechaPago', 13, 'f'], ['Vencimiento', 'vencimiento', 13, 'f'], ['Días vencida al cierre', 'dias', 12], ['Orden de compra', 'oc', 16], ['Movimiento en el periodo', 'movimiento', 30],
         ];
         COLS.forEach((c, i) => { ws.getColumn(i + 1).width = c[2]; });
-        ws.mergeCells(1, 1, 1, COLS.length); ws.getCell(1, 1).value = 'Facturación'; ws.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
-        ws.mergeCells(2, 1, 2, COLS.length); ws.getCell(2, 1).value = periodo; ws.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
-        encabezado(ws, 4, 10, 'FORMATO ORIGINAL', TINTA);
-        ws.mergeCells(4, 11, 4, COLS.length); { const c = ws.getCell(4, 11); c.value = 'DATOS ADICIONALES'; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: AZUL } }; }
-        COLS.forEach((c, i) => { const cell = ws.getCell(5, i + 1); cell.value = c[0]; cell.font = { bold: true, color: { argb: TINTA } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRIS } }; cell.border = bordes; cell.alignment = { vertical: 'middle', horizontal: c[3] === 'm' ? 'right' : 'left', wrapText: true }; });
-        ws.getRow(5).height = 32;
-        const colorEstatus = { 'Pagado': 'FFD5F2EE', 'Vigente No Pagado': 'FFFBEFD0', 'Pago parcial': 'FFFBEFD0', 'Cancelada': 'FFE3E5EA' };
-        r.filas.forEach((f, idx) => {
-          const fila = 6 + idx;
-          COLS.forEach((c, i) => {
-            const cell = ws.getCell(fila, i + 1); let v = f[c[1]];
-            if(c[3] === 'f') v = fechaXl(v); else if(v === undefined || v === '' || v === null) v = null;
-            cell.value = v; cell.border = bordes; cell.alignment = { vertical: 'top', horizontal: c[3] === 'm' ? 'right' : 'left' };
-            if(c[3] === 'm') cell.numFmt = MONEDA; if(c[3] === 'f') cell.numFmt = FECHA;
-          });
-          const est = ws.getCell(fila, 8); est.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorEstatus[f.estatus] || 'FFFFFFFF' } }; est.font = { bold: true, strike: f.estatus === 'Cancelada' };
-          if(f.dias > 0){ const d = ws.getCell(fila, 20); d.font = { bold: true, color: { argb: 'FFB91C1C' } }; }
-          if(f.esTercero) ws.getRow(fila).font = { italic: true, color: { argb: 'FF5B6577' } };
+        titulo(ws, COLS.length, 'Facturación');
+        ws.mergeCells(4, 1, 4, 10); { const c = ws.getCell(4, 1); c.value = 'FORMATO ORIGINAL'; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = relleno(TINTA); }
+        ws.mergeCells(4, 11, 4, COLS.length); { const c = ws.getCell(4, 11); c.value = 'DATOS ADICIONALES'; c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = relleno(AZUL); }
+        cabeceras(ws, 5, COLS); ws.getRow(5).height = 32;
+        const colorEstatus = { 'Pagado': 'FFD5F2EE', 'Vigente No Pagado': 'FFFBEFD0', 'Pago parcial': 'FFFBEFD0' };
+        llenar(ws, 6, COLS, r.filas, (hoja, fila, f) => {
+          const est = hoja.getCell(fila, 8); est.fill = relleno(colorEstatus[f.estatus] || 'FFFFFFFF'); est.font = { bold: true };
+          if(f.dias > 0) hoja.getCell(fila, 20).font = { bold: true, color: { argb: 'FFB91C1C' } };
+          if(f.esTercero) hoja.getRow(fila).font = { italic: true, color: { argb: 'FF5B6577' } };
         });
         const ultima = 5 + r.filas.length, filaTot = ultima + 1;
         if(r.filas.length){
@@ -7475,36 +7521,44 @@
         const wc = wb.addWorksheet('Cobros del periodo', { views: [{ state: 'frozen', ySplit: 4 }] });
         const CC = [['Fecha de pago', 'fecha', 13, 'f'], ['Folio factura', 'folio', 12], ['Cliente', 'cliente', 28], ['Razón Social', 'razon', 38], ['RFC', 'rfc', 15], ['Monto cobrado', 'monto', 16, 'm'], ['Método', 'metodo', 14], ['Complemento de pago (UUID)', 'uuid', 38], ['Folio complemento', 'folioCompl', 14], ['Nota', 'nota', 40]];
         CC.forEach((c, i) => { wc.getColumn(i + 1).width = c[2]; });
-        wc.mergeCells(1, 1, 1, CC.length); wc.getCell(1, 1).value = 'Cobros del periodo'; wc.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
-        wc.mergeCells(2, 1, 2, CC.length); wc.getCell(2, 1).value = periodo; wc.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
-        CC.forEach((c, i) => { const cell = wc.getCell(4, i + 1); cell.value = c[0]; cell.font = { bold: true, color: { argb: TINTA } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRIS } }; cell.border = bordes; cell.alignment = { horizontal: c[3] === 'm' ? 'right' : 'left', wrapText: true }; });
-        r.cobros.forEach((f, idx) => { CC.forEach((c, i) => { const cell = wc.getCell(5 + idx, i + 1); let v = f[c[1]]; if(c[3] === 'f') v = fechaXl(v); cell.value = v === undefined || v === '' ? null : v; cell.border = bordes; if(c[3] === 'm') cell.numFmt = MONEDA; if(c[3] === 'f') cell.numFmt = FECHA; }); });
+        titulo(wc, CC.length, 'Cobros del periodo'); cabeceras(wc, 4, CC); llenar(wc, 5, CC, r.cobros);
         if(r.cobros.length){ const fin = 4 + r.cobros.length; const t = wc.getCell(fin + 1, 5); t.value = 'TOTAL'; t.font = { bold: true }; t.alignment = { horizontal: 'right' }; const m = wc.getCell(fin + 1, 6); m.value = { formula: 'SUM(F5:F' + fin + ')' }; m.numFmt = MONEDA; m.font = { bold: true }; m.border = { top: { style: 'medium', color: { argb: TINTA } } }; }
-        // ── hoja 3: resumen ──
+        // ── hoja 3: canceladas del año (todas, sin depender del periodo) ──
+        const wx = wb.addWorksheet('Canceladas del año', { views: [{ state: 'frozen', ySplit: 4 }] });
+        const XC = [['Fecha Emitida', 'fecha', 13, 'f'], ['UUID', 'uuid', 38], ['Folio', 'folio', 8], ['RFC', 'rfc', 15], ['Razón Social', 'razon', 38], ['USO CFDI', 'uso', 18], ['Total', 'total', 15, 'm'], ['Fecha de cancelación', 'fechaCancelacion', 16, 'f'], ['Cliente', 'cliente', 26], ['Tipo de factura', 'tipo', 15], ['Subtotal', 'subtotal', 15, 'm'], ['IVA', 'iva', 14, 'm'], ['Ret. ISR', 'isr', 14, 'm'], ['Ret. IVA', 'riva', 14, 'm'], ['Orden de compra', 'oc', 16]];
+        XC.forEach((c, i) => { wx.getColumn(i + 1).width = c[2]; });
+        titulo(wx, XC.length, 'Facturas canceladas del año ' + r.anio, 'Todas las canceladas de ' + r.anio + ' (no solo las del periodo) · generado el ' + fmtDMA(hoyYmd()));
+        cabeceras(wx, 4, XC);
+        llenar(wx, 5, XC, r.canceladas, (hoja, fila, f) => {
+          if(!f.fechaCancelacion){ const c = hoja.getCell(fila, 8); c.value = 'Sin capturar'; c.font = { italic: true, color: { argb: 'FF8A6D1D' } }; c.fill = relleno('FFFBEFD0'); }
+          if(f.esTercero) hoja.getRow(fila).font = { italic: true, color: { argb: 'FF5B6577' } };
+        });
+        if(r.canceladas.length){ const fin = 4 + r.canceladas.length; wx.autoFilter = { from: { row: 4, column: 1 }, to: { row: fin, column: XC.length } }; const t = wx.getCell(fin + 1, 5); t.value = 'TOTAL'; t.font = { bold: true }; t.alignment = { horizontal: 'right' }; const m = wx.getCell(fin + 1, 7); m.value = { formula: 'SUBTOTAL(109,G5:G' + fin + ')' }; m.numFmt = MONEDA; m.font = { bold: true }; m.border = { top: { style: 'medium', color: { argb: TINTA } } }; }
+        // ── hoja 4: resumen ──
         const wr = wb.addWorksheet('Resumen');
-        wr.getColumn(1).width = 34; [2, 3, 4, 5, 6].forEach((i) => { wr.getColumn(i).width = 17; });
-        wr.mergeCells(1, 1, 1, 6); wr.getCell(1, 1).value = 'Resumen de cobranza'; wr.getCell(1, 1).font = { bold: true, size: 16, color: { argb: TINTA } };
-        wr.mergeCells(2, 1, 2, 6); wr.getCell(2, 1).value = periodo; wr.getCell(2, 1).font = { size: 11, color: { argb: 'FF5B6577' } };
+        wr.getColumn(1).width = 40; [2, 3, 4, 5, 6].forEach((i) => { wr.getColumn(i).width = 17; });
+        titulo(wr, 6, 'Resumen de cobranza');
         const x = r.resumen;
-        const bloque = (fila, titulo, cab, vals, fmts) => {
-          wr.getCell(fila, 1).value = titulo; wr.getCell(fila, 1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; wr.getCell(fila, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TINTA } };
-          cab.forEach((t, i) => { const c = wr.getCell(fila, i + 2); c.value = t; c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TINTA } }; c.alignment = { horizontal: 'right' }; });
-          vals.forEach((v, i) => { const c = wr.getCell(fila + 1, i + 2); c.value = v; c.border = bordes; c.alignment = { horizontal: 'right' }; if(fmts[i] === 'm') c.numFmt = MONEDA; });
-          wr.getCell(fila + 1, 1).border = bordes;
+        const bloque = (fila, tituloB, cab, filasB) => {
+          wr.getCell(fila, 1).value = tituloB; wr.getCell(fila, 1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; wr.getCell(fila, 1).fill = relleno(TINTA);
+          cab.forEach((t, i) => { const c = wr.getCell(fila, i + 2); c.value = t; c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = relleno(TINTA); c.alignment = { horizontal: 'right' }; });
+          filasB.forEach((fb, j) => { fb.forEach((v, i) => { const c = wr.getCell(fila + 1 + j, i + 1); if(i === 0){ c.value = v; c.border = bordes; return; } const esDinero = typeof v === 'object' && v !== null; c.value = esDinero ? v.m : v; c.border = bordes; c.alignment = { horizontal: 'right' }; if(esDinero) c.numFmt = MONEDA; }); });
+          return fila + 1 + filasB.length;
         };
-        bloque(4, 'Facturado', ['Facturas', 'Subtotal', 'IVA', 'Ret. ISR', 'Ret. IVA'], [x.emitidas.n, x.emitidas.subtotal, x.emitidas.iva, x.emitidas.isr, x.emitidas.riva], ['n', 'm', 'm', 'm', 'm']);
-        wr.getCell(5, 1).value = 'Facturas emitidas en el periodo (sin canceladas)'; wr.getCell(6, 1).value = 'Total facturado (cobrable)'; wr.getCell(6, 2).value = x.emitidas.total; wr.getCell(6, 2).numFmt = MONEDA; wr.getCell(6, 2).font = { bold: true };
-        wr.getCell(7, 1).value = 'De ellas, de terceros (tipo Otro)'; wr.getCell(7, 2).value = x.emitidas.terceros; wr.getCell(7, 3).value = x.emitidas.totalTerceros; wr.getCell(7, 3).numFmt = MONEDA;
-        bloque(9, 'Cobrado', ['Pagos', 'Monto'], [x.cobrado.n, x.cobrado.monto], ['n', 'm']); wr.getCell(10, 1).value = 'Pagos registrados con fecha en el periodo';
-        bloque(12, 'Canceladas', ['Facturas', 'Total'], [x.canceladas.n, x.canceladas.total], ['n', 'm']); wr.getCell(13, 1).value = 'Canceladas en el periodo';
-        bloque(15, 'Vencidas al cierre', ['Facturas', 'Saldo'], [x.vencidas.n, x.vencidas.saldo], ['n', 'm']); wr.getCell(16, 1).value = 'Con saldo y vencimiento anterior al ' + fmtDMA(hasta);
-        wr.getCell(18, 1).value = 'Las facturas de terceros (tipo Otro) se incluyen en las hojas y se marcan en cursiva; no son ingreso propio.'; wr.getCell(18, 1).font = { italic: true, color: { argb: 'FF5B6577' } };
+        const m = (n) => ({ m: n });
+        let fr = 4;
+        fr = bloque(fr, 'Facturado en el periodo', ['Facturas', 'Subtotal', 'IVA', 'Ret. ISR', 'Ret. IVA'], [['Emitidas en el periodo', x.emitidas.n, m(x.emitidas.subtotal), m(x.emitidas.iva), m(x.emitidas.isr), m(x.emitidas.riva)], ['Total facturado (cobrable)', '', m(x.emitidas.total)], ['De ellas, de terceros (tipo Otro)', x.emitidas.terceros, m(x.emitidas.totalTerceros)]]) + 1;
+        fr = bloque(fr, 'Cobrado en el periodo', ['Pagos', 'Monto'], [['Pagos con fecha en el periodo', x.cobrado.n, m(x.cobrado.monto)]]) + 1;
+        fr = bloque(fr, 'Canceladas del año ' + r.anio, ['Facturas', 'Total'], [['Todas las canceladas del año', x.canceladas.n, m(x.canceladas.total)], ['De ellas, sin fecha de cancelación', x.canceladas.sinFecha]]) + 1;
+        fr = bloque(fr, 'Vencidas al cierre (' + fmtDMA(hasta) + ')', ['Facturas', 'Saldo'], [['Total vencido', x.vencidas.n, m(x.vencidas.saldo)], ...x.vencidas.antiguedad.map((a) => ['   ' + a.nombre, a.n, m(a.saldo)])]) + 1;
+        fr = bloque(fr, 'Pendiente de facturar (a hoy)', ['Cuentas', 'Subtotal'], [['Servicios sin factura todavía', x.porFacturar.n, m(x.porFacturar.subtotal)]]) + 1;
+        wr.getCell(fr, 1).value = 'Las facturas de terceros (tipo Otro) se incluyen en las hojas y se marcan en cursiva; no son ingreso propio.'; wr.getCell(fr, 1).font = { italic: true, color: { argb: 'FF5B6577' } };
         const buf = await wb.xlsx.writeBuffer();
         const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob), a = document.createElement('a');
         a.href = url; a.download = 'Reporte_Cobranza_' + desde + '_a_' + hasta + '.xlsx'; document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){ /* nada */ } }, 4000);
-        toast('Reporte descargado: ' + r.filas.length + (r.filas.length === 1 ? ' factura' : ' facturas') + ' y ' + r.cobros.length + (r.cobros.length === 1 ? ' cobro.' : ' cobros.'), true);
+        toast('Reporte descargado: ' + r.filas.length + (r.filas.length === 1 ? ' factura' : ' facturas') + ', ' + r.cobros.length + (r.cobros.length === 1 ? ' cobro' : ' cobros') + ' y ' + r.canceladas.length + (r.canceladas.length === 1 ? ' cancelada del año.' : ' canceladas del año.'), true);
         cerrarReporte();
       } catch(e){
         const err = $('cbzRepError'); err.textContent = e.message || 'No se pudo armar el reporte.'; err.hidden = false;

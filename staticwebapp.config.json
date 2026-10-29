@@ -105,6 +105,9 @@
       "route": "/api/getCatalogoRecursos"
     },
     {
+      "route": "/api/getConfiguracionSitio"
+    },
+    {
       "route": "/api/getRecursos"
     },
     {

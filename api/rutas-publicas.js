@@ -18,6 +18,7 @@ module.exports = [
   // ── lecturas públicas por código o catálogo ──
   { ruta: "getCatalogoCursos", motivo: "Catálogo público de cursos y programas" },
   { ruta: "getCatalogoRecursos", motivo: "Catálogo público de recursos" },
+  { ruta: "getConfiguracionSitio", motivo: "Contacto, LinkedIn de la portada, perfiles y aviso del sitio (lo que se edita en admin → Personalizar; solo Table Storage)" },
   { ruta: "getRecursos", motivo: "Descarga de materiales con código (con freno de intentos)" },
   { ruta: "availability", motivo: "Agenda: disponibilidad desde el calendario de Outlook (Function getAvailability)" },
   { ruta: "getPropuestaPublica", motivo: "Propuesta web por código" },

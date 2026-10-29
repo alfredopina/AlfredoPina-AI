@@ -54,6 +54,7 @@ function head(cfg) {
   }
   cfg.css.forEach((c) => l.push(`<link rel="stylesheet" href="/assets/css/${c}.css">`));
   l.push(`<script src="/assets/js/nav.js" defer></script>`);
+  l.push(`<script src="/assets/js/sitio.js" defer></script>`); // contacto, perfiles y aviso configurados en admin → Sitio web
   return l.join("\n");
 }
 
@@ -144,7 +145,7 @@ function footer(cfg) {
 
     <div class="formula-bar-big" id="formulaBar">
       <span class="formula-fx-big">fx</span>
-      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg">whatsapp</a>&nbsp;&nbsp;)</span></span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg" data-sitio="correo">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg" data-sitio="whatsapp">whatsapp</a>&nbsp;&nbsp;)</span></span>
     </div>
 
     ${meta}

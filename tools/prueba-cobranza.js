@@ -181,6 +181,7 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   await clic(q('#cbzLienzo .cbz-stem.p')); await pausa(80);
   check('clic en una línea abre la cuenta (Beta SA)', !q('#cbzDetalle').hidden && /^Beta SA/.test(txt('#cbzDetTitulo')), txt('#cbzDetTitulo'));
   await clic(q('#cbzDetCerrar'));
+  check('el elemento vivo: el próximo cobro (Beta SA) lleva halo y latido (y va primero para tener etiqueta)', qa('#cbzLienzo .cbz-stem.sig').length === 1 && /Beta SA/.test(q('#cbzLienzo .cbz-stem.sig').getAttribute('aria-label')) && /próximo cobro/.test(q('#cbzLienzo .cbz-stem.sig').getAttribute('aria-label')), qa('#cbzLienzo .cbz-stem.sig').length + '');
   await clic(q('#cbzLineaNav [data-meses="1"]'));
   check('con "1 mes" lo que vence más allá queda fuera de la ventana y se avisa en el pie', clases('l') === 0 && /Después de esta ventana: 1 cobro/.test(txt('#cbzLineaPie')), txt('#cbzLineaPie'));
   await clic(q('#cbzLineaNav [data-meses="6"]'));
@@ -366,6 +367,11 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('el próximo cobro es la facturada con el vencimiento futuro más cercano (Beta SA, en 3 días)', /Beta SA/.test(txt('#trkvCbzProx')) && /vence en 3 días/.test(txt('#trkvCbzProx')) && !!q('#trkvCbzProx .trkv-pulso'), txt('#trkvCbzProx'));
   check('la línea en miniatura trae sus líneas y la próxima factura es la viva (una sola, con latido)', qa('#trkvCbzMini .trkv-st').length >= 3 && qa('#trkvCbzMini .trkv-st.sig').length === 1 && /Beta SA/.test(q('#trkvCbzMini .trkv-st.sig').getAttribute('aria-label')) && /HOY/.test(txt('#trkvCbzMini')) && qa('#trkvCbzMini .trkv-st.v').length === 1 && qa('#trkvCbzMini .trkv-st.ter').length === 1, qa('#trkvCbzMini .trkv-st').length + ' líneas');
   check('cada línea trae símbolo (no solo color) y aviso con cliente y monto', qa('#trkvCbzMini .trkv-st').every((b) => !!b.querySelector('svg') && /\$/.test(b.getAttribute('aria-label'))));
+  check('la miniatura arranca en 1 mes y trae las azules (por facturar) en su zona "sin fecha"', q('#trkvCbzNav [data-meses="1"]').classList.contains('on') && qa('#trkvCbzMini .trkv-st.sf').length >= 1 && !!q('#trkvCbzMini .trkv-mini-sin') && /▭ \d/.test(txt('#trkvCbzMini')), qa('#trkvCbzMini .trkv-st.sf').length + '');
+  const antes1 = qa('#trkvCbzMini .trkv-st:not(.sf):not(.v)').length;
+  await clic(q('#trkvCbzNav [data-meses="6"]'));
+  check('con 6 meses entran más cobros futuros, y la escala se acuerda', qa('#trkvCbzMini .trkv-st:not(.sf):not(.v)').length > antes1 && q('#trkvCbzNav [data-meses="6"]').classList.contains('on') && w.localStorage.getItem('admin-trkv-cbz-meses') === '6');
+  await clic(q('#trkvCbzNav [data-meses="1"]'));
   llamadas.length = 0;
   await clic(q('#trkvCbzProx')); await pausa(300);
   check('clic en el próximo cobro abre Cobranza con esa cuenta', q('#panel-cobranza').classList.contains('active') && !q('#cbzDetalle').hidden && /^Beta SA/.test(txt('#cbzDetTitulo')), txt('#cbzDetTitulo'));

@@ -1930,6 +1930,11 @@
   .cbz-stem:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:2px; border-radius:4px; }
   .cbz-stem-ico{ position:absolute; top:-2px; left:0; width:14px; height:14px; background:var(--panel); border-radius:50%; display:block; }
   .cbz-stem-ico svg{ width:14px; height:14px; display:block; }
+  /* elemento vivo: el próximo cobro (la facturada con el vencimiento futuro más cercano, sin terceros) lleva línea gruesa, halo y latido */
+  .cbz-stem.sig::before{ border-left-width:4px; margin-left:-2px; }
+  .cbz-stem.sig .cbz-stem-ico{ box-shadow:0 0 0 4px color-mix(in srgb, var(--k) 28%, transparent); }
+  .cbz-stem.sig .cbz-stem-ico::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2px solid var(--k); animation:trkvPulso 1.8s ease-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .cbz-stem.sig .cbz-stem-ico::after{ animation:none; } }
   .cbz-stem-et{ position:absolute; left:17px; top:-2px; text-align:left; white-space:nowrap; pointer-events:none; line-height:1.25; }
   .cbz-stem-et b{ display:block; font-family:var(--display); font-weight:600; font-size:12px; color:var(--k); }
   .cbz-stem-et span{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-dim); }
@@ -2073,7 +2078,7 @@
   @media (prefers-reduced-motion:reduce){ .trkv-pulso::after{ animation:none; } }
   .trkv-mini{ position:relative; height:112px; }
   .trkv-mini-venc{ position:absolute; left:0; width:14%; top:0; bottom:22px; border:1px solid rgba(220,38,38,.3); border-radius:7px; background:repeating-linear-gradient(135deg, rgba(220,38,38,.08) 0 6px, transparent 6px 12px); pointer-events:none; }
-  .trkv-mini-eje{ position:absolute; left:15%; right:0; bottom:22px; border-top:2px solid #394557; pointer-events:none; }
+  .trkv-mini-eje{ position:absolute; left:15%; right:16%; bottom:22px; border-top:2px solid #394557; pointer-events:none; }
   .trkv-mini-hoy{ position:absolute; left:15%; bottom:22px; top:0; border-left:2px solid var(--blue-bright); pointer-events:none; }
   .trkv-mini-et{ position:absolute; bottom:3px; white-space:nowrap; font-family:var(--mono); font-size:10px; color:var(--text-faint); pointer-events:none; }
   .trkv-mini-et.hoy{ color:var(--blue-bright); } .trkv-mini-et.venc{ color:#f05252; }
@@ -2089,7 +2094,15 @@
   .trkv-st.sig::before{ border-left-width:4px; margin-left:-2px; }
   .trkv-st.sig i{ width:16px; height:16px; left:-1px; top:-6px; box-shadow:0 0 0 4px rgba(20,184,166,.25); }
   .trkv-st.sig i svg{ width:16px; height:16px; }
-  .trkv-mini-pie{ font-size:11.5px; color:var(--text-dim); min-height:14px; }
+  .trkv-mini-pie{ font-size:11.5px; color:var(--text-dim); min-height:22px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .trkv-mini-nav{ display:inline-flex; gap:5px; flex:none; }
+  .trkv-mini-nav button{ border:1px solid var(--line); border-radius:7px; padding:3px 9px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); background-color:var(--panel-2); cursor:pointer; }
+  .trkv-mini-nav button:hover{ border-color:var(--blue-bright); color:var(--text); }
+  .trkv-mini-nav button.on{ background-color:var(--blue-bright); border-color:var(--blue-bright); color:#0a0d12; font-weight:500; }
+  .trkv-mini-sin{ position:absolute; left:86%; right:0; top:0; bottom:22px; border:1px solid rgba(61,127,255,.3); border-radius:7px; background-color:rgba(61,127,255,.06); pointer-events:none; }
+  .trkv-mini-et.sin{ color:#6b9fff; }
+  .trkv-mini-fin{ transform:translateX(-100%); }
+  .trkv-st.sf{ --k:#6b9fff; }
 
   /* ── Stepper de fase de Grupo (window.FaseStepper) — cuadrados conectados
      por una línea que se rellena hasta la fase actual, mismo lenguaje visual
@@ -3155,7 +3168,7 @@
               <div class="trkv-cobr-der">
                 <div class="trkv-prox" id="trkvCbzProx"></div>
                 <div class="trkv-mini" id="trkvCbzMini"></div>
-                <div class="trkv-mini-pie" id="trkvCbzPie"></div>
+                <div class="trkv-mini-pie"><span id="trkvCbzPie"></span><span class="trkv-mini-nav" id="trkvCbzNav"><button type="button" data-meses="1">1 mes</button><button type="button" data-meses="3">3 meses</button><button type="button" data-meses="6">6 meses</button></span></div>
               </div>
             </div>
           </article>
@@ -6660,7 +6673,9 @@
       const xFut = (t) => 17 + 64 * (t - inicio) / (fin - inicio); // % del ancho: la escala de meses ocupa del 17 % al 81 %
       const antes = [], despues = [], lista = [];
       const SEP = 11; // separación mínima (px) entre dos líneas vecinas: dos facturas del mismo día se ven juntas pero separadas (la fecha exacta va en el aviso)
-      const anota = (it, x) => lista.push({ x, items: [it], clase: it.clase, ter: it.ter, monto: Number(it.monto || 0) });
+      // el elemento vivo: el próximo cobro = la facturada con el vencimiento futuro más cercano (sin terceros)
+      const proximo = items.filter((i) => i.zona === 'fut' && !i.ter).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)))[0];
+      const anota = (it, x) => lista.push({ x, items: [it], clase: it.clase, ter: it.ter, monto: Number(it.monto || 0), sig: !!proximo && it.c.id === proximo.c.id && it.zona === 'fut' });
       // vencido: de más viejo a más reciente, de izquierda a derecha; sin fecha: de mayor a menor monto
       const venc = items.filter((i) => i.zona === 'venc').sort((a, b) => b.dias - a.dias);
       venc.forEach((it, idx) => anota(it, 1.5 + (venc.length === 1 ? 6 : (idx / (venc.length - 1)) * 12.5)));
@@ -6700,23 +6715,24 @@
       const ocupado = [];
       const hay = (r) => ocupado.some((o) => !(r.x1 <= o.x0 || r.x0 >= o.x1 || r.y1 <= o.y0 || r.y0 >= o.y1));
       const conEtiqueta = new Set();
-      lista.slice().sort((a, b) => b.monto - a.monto).forEach((g) => {
+      lista.slice().sort((a, b) => (b.sig ? 1 : 0) - (a.sig ? 1 : 0) || b.monto - a.monto).forEach((g) => {
         const it = g.items[0];
-        const l1 = g.monto > 0 ? dinero(g.monto) : 'Por definir', l2 = corto(it.c.cliente, 17);
-        const w = Math.max(l1.length * 7.4, l2.length * 6.1) + 6, x0 = g.x / 100 * W + 14, top = ALTO - BASE - altoDe(g.monto);
+        const l1 = g.monto > 0 ? dinero(g.monto) : 'Por definir', l2 = g.sig ? 'Próximo · ' + corto(it.c.cliente, 10) : corto(it.c.cliente, 17);
+        const w = Math.max(l1.length * 7.4, l2.length * 6.1) + 6, top = ALTO - BASE - altoDe(g.monto);
+        const x0 = g.x / 100 * W + 14;
         const r = { x0, x1: x0 + w, y0: top - 2, y1: top + 30 };
         // una etiqueta nunca cruza la frontera de su zona (vencido | meses | sin fecha)
         const zona = it.zona, limite = zona === 'venc' ? 0.16 * W - 3 : zona === 'fut' ? 0.81 * W : W - 4;
         const cruza = lista.some((o) => o !== g && o.x / 100 * W + 7 > r.x0 && o.x / 100 * W - 7 < r.x1 && ALTO - BASE - altoDe(o.monto) < r.y1);
-        if(r.x1 > limite || hay(r) || cruza) return;
+        if(r.x1 > limite || hay(r) || cruza) return; // el elemento vivo va primero en el orden de etiquetas; si no cabe, lo marcan su halo y su latido
         ocupado.push(r); conEtiqueta.add(g); g.et = [l1, l2];
       });
       lista.forEach((g, i) => {
         const it = g.items[0];
         const clase = g.ter ? 'ter' : g.clase;
         const aviso = it.c.cliente + ' · ' + it.c.concepto + ' — ' + (g.monto > 0 ? dinero(g.monto) : 'monto por definir') +
-          (it.fecha ? ' · vence ' + fmtFecha(it.fecha) : ' · ' + (it.nota || 'sin fecha')) + (g.clase === 'v' ? ' · vencida' : '') + (g.ter ? ' · tercero (no cuenta en las tarjetas)' : '');
-        html += '<button type="button" class="cbz-stem ' + clase + '" data-g="' + i + '" style="left:' + g.x.toFixed(2) + '%;height:' + altoDe(g.monto).toFixed(0) + 'px" title="' + esc(aviso) + '" aria-label="' + esc(aviso) + '">' +
+          (it.fecha ? ' · vence ' + fmtFecha(it.fecha) : ' · ' + (it.nota || 'sin fecha')) + (g.clase === 'v' ? ' · vencida' : '') + (g.ter ? ' · tercero (no cuenta en las tarjetas)' : '') + (g.sig ? ' · próximo cobro' : '');
+        html += '<button type="button" class="cbz-stem ' + clase + (g.sig ? ' sig' : '') + '" data-g="' + i + '" style="left:' + g.x.toFixed(2) + '%;height:' + altoDe(g.monto).toFixed(0) + 'px" title="' + esc(aviso) + '" aria-label="' + esc(aviso) + '">' +
           '<span class="cbz-stem-ico">' + LIN_ICO[clase] + '</span>' + (g.et ? '<span class="cbz-stem-et"><b>' + esc(g.et[0]) + '</b><span>' + esc(g.et[1]) + '</span></span>' : '') + '</button>';
       });
       if(!lista.length) html += '<div class="cbz-linea-vacio">Nada pendiente por cobrar o por facturar en esta ventana</div>';
@@ -6748,6 +6764,7 @@
         f('n', '<i></i>', 'Línea continua', 'cobro propio') +
         f('ter n', '<i class="d"></i>', 'Línea punteada', 'cobro de un tercero') +
         f('n', '', 'Altura', 'proporcional al monto (una factura muy grande se topa para no aplastar a las demás)') +
+        f('n', '', 'Latido', 'el próximo cobro: la facturada con el vencimiento futuro más cercano (sin contar terceros)') +
         f('n', '', 'Una línea por factura', 'si dos vencen el mismo día se dibujan pegadas; la fecha exacta, el cliente y el monto salen al pasar el mouse') +
         '</div><div class="cli-info-pop-foot"><div class="cli-info-pop-foot-title">Zonas</div>' +
         f('n', '', 'Izquierda: Vencido', 'lo más viejo queda más a la izquierda') +
@@ -7577,20 +7594,27 @@
       v: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>',
       p: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2" stroke-linecap="round"/></svg>',
       l: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>',
+      sf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><rect x="4" y="5" width="16" height="14" rx="2"/></svg>',
       ter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg>',
     };
     const escC = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const DIAS_MINI = 60;
+    // escala de la miniatura: 1 mes por defecto (se acuerda la última que elegiste en este navegador)
+    let mesesMini = 1;
+    try { const g = Number(localStorage.getItem('admin-trkv-cbz-meses')); if([1, 3, 6].includes(g)) mesesMini = g; } catch(e){ /* sin preferencia guardada */ }
     let listaCbz = null;
     function pintarMiniCobranza(){
       const cont = document.getElementById('trkvCbzMini'), prox = document.getElementById('trkvCbzProx'), pie = document.getElementById('trkvCbzPie');
       if(!cont || !listaCbz) return;
+      document.querySelectorAll('#trkvCbzNav [data-meses]').forEach((b) => b.classList.toggle('on', Number(b.dataset.meses) === mesesMini));
       const W = cont.clientWidth || 520, ALTO = 112, BASE = 22, SEP = 11;
-      const hoy = ymdMs(hoyYmdC()), fin = hoy + DIAS_MINI * 86400000;
+      const hoy = ymdMs(hoyYmdC()), h = new Date(hoy), fin = Date.UTC(h.getUTCFullYear(), h.getUTCMonth() + mesesMini, h.getUTCDate());
       const esTer = (c) => c.tipo_factura === 'Otro';
       const vivas = listaCbz.filter((c) => (c.estatus === 'Facturada' || c.estatus === 'Parcial') && c.saldo > 0 && c.vencimiento && c.semaforo);
       const venc = vivas.filter((c) => c.semaforo.clave === 'vencida').sort((a, b) => b.semaforo.dias - a.semaforo.dias);
       const fut = vivas.filter((c) => c.semaforo.clave !== 'vencida' && ymdMs(c.vencimiento) >= hoy).sort((a, b) => String(a.vencimiento).localeCompare(String(b.vencimiento)));
+      // sin fecha (azules): por facturar y facturadas sin contra-recibo, de mayor a menor monto
+      const sinFecha = listaCbz.filter((c) => c.estatus === 'Por facturar' || ((c.estatus === 'Facturada' || c.estatus === 'Parcial') && c.saldo > 0 && !c.vencimiento))
+        .map((c) => ({ c, monto: c.estatus === 'Por facturar' ? c.total : c.saldo })).sort((a, b) => b.monto - a.monto);
       const proxima = fut.find((c) => !esTer(c)) || null;
       // próximo cobro (encabezado de la mitad derecha)
       if(proxima){
@@ -7603,38 +7627,42 @@
         delete prox.dataset.id; prox.removeAttribute('title');
         prox.innerHTML = '<div><small>Próximo cobro</small><span class="trkv-prox-cli" style="color:var(--text-dim);font-weight:500;">Nada por cobrar pronto</span></div>';
       }
-      // línea de cobros en miniatura: vencido ← | HOY → próximos 60 días
-      const xFut = (t) => 15 + 85 * (t - hoy) / (fin - hoy);
-      const montos = [...venc, ...fut].map((c) => c.saldo).sort((a, b) => a - b);
+      // línea de cobros en miniatura: vencido ← | HOY → la escala elegida | → sin fecha (azules)
+      const xFut = (t) => 15 + 69 * (t - hoy) / (fin - hoy);
+      const montos = [...venc, ...fut].map((c) => c.saldo).concat(sinFecha.map((x) => x.monto)).sort((a, b) => a - b);
       const tope = Math.max(20000, montos.length ? montos[Math.max(0, Math.floor(montos.length * 0.9) - 1)] : 0);
       const altoDe = (m) => 24 + (ALTO - BASE - 34) * Math.min(m || 0, tope) / tope;
       const st = [];
-      venc.forEach((c, i) => st.push({ c, k: esTer(c) ? 'ter' : 'v', x: 1.5 + (venc.length === 1 ? 5 : (i / (venc.length - 1)) * 11) }));
+      venc.forEach((c, i) => st.push({ c, k: esTer(c) ? 'ter' : 'v', x: 1.5 + (venc.length === 1 ? 5 : (i / (venc.length - 1)) * 11), monto: c.saldo }));
+      sinFecha.forEach((x, i) => st.push({ c: x.c, k: esTer(x.c) ? 'ter' : 'sf', x: 87.5 + (sinFecha.length === 1 ? 5 : (i / (sinFecha.length - 1)) * 10), monto: x.monto, sinFecha: true }));
       const despues = [];
-      fut.forEach((c) => { const t = ymdMs(c.vencimiento); if(t >= fin){ despues.push(c); return; } st.push({ c, k: esTer(c) ? 'ter' : (c.semaforo.clave === 'por_vencer' ? 'p' : 'l'), x: xFut(t), futura: true }); });
+      fut.forEach((c) => { const t = ymdMs(c.vencimiento); if(t >= fin){ despues.push(c); return; } st.push({ c, k: esTer(c) ? 'ter' : (c.semaforo.clave === 'por_vencer' ? 'p' : 'l'), x: xFut(t), futura: true, monto: c.saldo }); });
       // separación mínima entre líneas vecinas (las del mismo día quedan pegadas pero separadas)
       let previo = -1e9;
       st.filter((e) => e.futura).sort((a, b) => a.x - b.x).forEach((e) => { const px = Math.max(e.x / 100 * W, previo + SEP); e.x = px / W * 100; previo = px; });
-      let html = '<div class="trkv-mini-venc"></div><div class="trkv-mini-eje"></div><div class="trkv-mini-hoy"></div>';
+      let html = '<div class="trkv-mini-venc"></div><div class="trkv-mini-sin"></div><div class="trkv-mini-eje"></div><div class="trkv-mini-hoy"></div>';
       html += '<span class="trkv-mini-et venc" style="left:1%" title="' + venc.length + (venc.length === 1 ? ' cuenta vencida' : ' cuentas vencidas') + '">▲ ' + venc.length + '</span>';
+      html += '<span class="trkv-mini-et sin" style="left:87%" title="' + sinFecha.length + ' por facturar o sin fecha">▭ ' + sinFecha.length + '</span>';
       html += '<span class="trkv-mini-et hoy" style="left:calc(15% + 4px)">HOY ' + fechaCorta(hoyYmdC()) + '</span>';
+      html += '<span class="trkv-mini-et trkv-mini-fin" style="left:84%">' + fechaCorta(new Date(fin).toISOString().slice(0, 10)) + '</span>';
       let ultimoFin = 0.15 * W + 100;
-      for(let m = 1; m <= 3; m++){
-        const d0 = new Date(hoy); const d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + m, 1)); const t = d.getTime();
+      for(let m = 1; m <= mesesMini + 1; m++){
+        const d = new Date(Date.UTC(h.getUTCFullYear(), h.getUTCMonth() + m, 1)); const t = d.getTime();
         if(t <= hoy || t >= fin) continue;
-        const xp = xFut(t) / 100 * W; if(xp + 5 < ultimoFin) continue;
+        const xp = xFut(t) / 100 * W; if(xp + 5 < ultimoFin || xp > 0.84 * W - 70) continue;
         ultimoFin = xp + 40;
         html += '<span class="trkv-mini-et" style="left:' + (xFut(t)).toFixed(2) + '%;margin-left:4px">' + MES_C[d.getUTCMonth()] + '</span>';
       }
-      st.forEach((e, i) => {
-        const esSig = proxima && e.c.id === proxima.id;
-        const aviso = e.c.cliente + ' · ' + e.c.concepto + ' — ' + fmtMoney(e.c.saldo) + ' · vence ' + fechaCorta(e.c.vencimiento) + (e.k === 'v' ? ' · vencida' : '') + (e.k === 'ter' ? ' · tercero' : '') + (esSig ? ' · próximo cobro' : '');
-        html += '<button type="button" class="trkv-st ' + e.k + (esSig ? ' sig' : '') + '" data-id="' + e.c.id + '" style="left:' + e.x.toFixed(2) + '%;height:' + altoDe(e.c.saldo).toFixed(0) + 'px" title="' + escC(aviso) + '" aria-label="' + escC(aviso) + '"><i>' + ICO_ST[e.k] + '</i></button>';
+      st.forEach((e) => {
+        const esSig = proxima && e.c.id === proxima.id && e.futura;
+        const cuando = e.sinFecha ? (e.c.estatus === 'Por facturar' ? 'por facturar' : 'sin contra-recibo') : 'vence ' + fechaCorta(e.c.vencimiento);
+        const aviso = e.c.cliente + ' · ' + e.c.concepto + ' — ' + (e.monto > 0 ? fmtMoney(e.monto) : 'monto por definir') + ' · ' + cuando + (e.k === 'v' ? ' · vencida' : '') + (e.k === 'ter' ? ' · tercero' : '') + (esSig ? ' · próximo cobro' : '');
+        html += '<button type="button" class="trkv-st ' + e.k + (esSig ? ' sig' : '') + '" data-id="' + e.c.id + '" style="left:' + e.x.toFixed(2) + '%;height:' + altoDe(e.monto).toFixed(0) + 'px" title="' + escC(aviso) + '" aria-label="' + escC(aviso) + '"><i>' + ICO_ST[e.k] + '</i></button>';
       });
-      if(!st.length) html += '<div class="trkv-mini-vacio">Sin cobros en los próximos ' + DIAS_MINI + ' días</div>';
+      if(!st.length) html += '<div class="trkv-mini-vacio">Sin cobros en ' + (mesesMini === 1 ? 'el próximo mes' : 'los próximos ' + mesesMini + ' meses') + '</div>';
       cont.innerHTML = html;
       const suma = despues.reduce((a, c) => a + c.saldo, 0);
-      pie.textContent = despues.length ? 'Después de ' + DIAS_MINI + ' días: ' + despues.length + (despues.length === 1 ? ' cobro' : ' cobros') + ' por ' + fmtMoney(suma) : '';
+      pie.textContent = despues.length ? 'Después de ' + (mesesMini === 1 ? 'este mes' : mesesMini + ' meses') + ': ' + despues.length + (despues.length === 1 ? ' cobro' : ' cobros') + ' por ' + fmtMoney(suma) : '';
     }
     async function cargarCobranza(){
       const ids = ['trkvCbzPorCobrar', 'trkvCbzVencido', 'trkvCbzPorFacturar', 'trkvCbzCobrado', 'trkvCbzDias'];
@@ -7659,6 +7687,7 @@
     }
     // clic en una línea o en el próximo cobro: abre esa cuenta en Cobranza (sin disparar el clic de la tarjeta)
     document.getElementById('trkvCbzMini').addEventListener('click', e => { const b = e.target.closest('.trkv-st'); if(!b) return; e.stopPropagation(); activarPanel('cobranza'); if(typeof window.cbzAbrirCuenta === 'function') window.cbzAbrirCuenta(b.dataset.id); });
+    document.getElementById('trkvCbzNav').addEventListener('click', e => { const b = e.target.closest('[data-meses]'); if(!b) return; e.stopPropagation(); mesesMini = Number(b.dataset.meses); try { localStorage.setItem('admin-trkv-cbz-meses', String(mesesMini)); } catch(err){ /* sin almacenamiento */ } pintarMiniCobranza(); });
     document.getElementById('trkvCbzProx').addEventListener('click', e => { const id = e.currentTarget.dataset.id; if(!id) return; e.stopPropagation(); activarPanel('cobranza'); if(typeof window.cbzAbrirCuenta === 'function') window.cbzAbrirCuenta(id); });
     let temporizadorMiniCbz = null;
     window.addEventListener('resize', () => { clearTimeout(temporizadorMiniCbz); temporizadorMiniCbz = setTimeout(pintarMiniCobranza, 150); });

@@ -45,6 +45,11 @@ const ADICIONALES = [
   { id: "grabacion", n: "Grabación de sesiones", d: "Acceso a la grabación de cada sesión." },
   { id: "diagnostico", n: "Diagnóstico de nivel", d: "Evaluación previa del nivel de cada participante.", solo: ["excel", "powerbi"] },
 ];
+// Adicionales sin costo de una propuesta de CONSULTORÍA (el cliente los "agrega" igual que en los cursos).
+const ADICIONALES_CONSULTORIA = [
+  { id: "tutorial", n: "Video tutorial de mantenimiento", d: "Video corto que explica cómo mantener y actualizar la solución." },
+  { id: "manual", n: "Manual del proyecto", d: "Documento que describe cómo funciona el proyecto y cómo usarlo." },
+];
 function adicionalesPara(herramienta) {
   return ADICIONALES.filter((a) => !a.solo || a.solo.includes(herramienta)).map(({ id, n, d }) => ({ id, n, d }));
 }
@@ -117,7 +122,7 @@ function armarSnapshot(d) {
     nivelTxt = min === max ? NIVEL_LABEL[min] : `${NIVEL_LABEL[min]} a ${NIVEL_LABEL[max]}`;
   }
 
-  // consultoría: fases con horas + entregables (+ imagen de referencia); no lleva temas, participantes, grupos ni adicionales
+  // consultoría: fases con horas + entregables (+ imagen de referencia); no lleva temas, participantes ni grupos (sus adicionales son otros)
   const consultoria = d.consultoria && Array.isArray(d.consultoria.fases) && d.consultoria.fases.length
     ? {
         fases: d.consultoria.fases.map((f) => ({ n: String(f.nombre || f.n || "").trim(), d: String(f.descripcion || f.d || "").trim(), h: Number(f.horas != null ? f.horas : f.h) || 0 })).filter((f) => f.n),
@@ -159,7 +164,7 @@ function armarSnapshot(d) {
     // servicio: "consultoria" (por horas, con fases) o "capacitacion" (cursos); las propuestas viejas no traen el campo = capacitación
     servicio: consultoria ? "consultoria" : "capacitacion",
     consultoria,
-    adicionales: consultoria ? [] : adicionalesPara(d.herramienta),
+    adicionales: consultoria ? ADICIONALES_CONSULTORIA.map(({ id, n, d: desc }) => ({ id, n, d: desc })) : adicionalesPara(d.herramienta),
     manual: Boolean(d.precioManual),
     tarifaHora: Number(d.tarifaHora) || 0,
     // varios grupos: `sugerido` y `total` son de TODOS los grupos; por grupo = entre N. El descuento solo vale con una OC por el total
@@ -368,6 +373,7 @@ async function listarEstadisticas(table) {
 module.exports = {
   TERMINOS,
   ADICIONALES,
+  ADICIONALES_CONSULTORIA,
   adicionalesPara,
   esPrecioManual,
   getPropuestasTable,

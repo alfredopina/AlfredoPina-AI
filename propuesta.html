@@ -127,6 +127,7 @@
   /* tema a tu medida: borde punteado y etiqueta propia; el resto del bloque es igual a uno del catálogo */
   /* consultoría: cada fase muestra sus horas; los entregables van en una lista con viñeta (check) */
   .horas-pill{display:inline-flex; align-items:center; font-family:var(--mono); font-size:11px; font-weight:700; color:var(--acc); border:1px solid var(--acc); border-radius:20px; padding:2px 10px;}
+  .fig-nota{font-family:var(--mono); font-size:11px; line-height:1.4; color:var(--text-faint); margin-top:8px;}
   .entregables{list-style:none; display:grid; gap:9px; margin-top:6px;} .entregables li{display:flex; gap:10px; align-items:flex-start; font-size:15px;} .entregables svg{width:17px; height:17px; flex:none; margin-top:3px; color:var(--teal);}
   .celda.custom{border-style:dashed; border-color:var(--acc);} .celda.custom .coord{background:transparent; border:1px solid var(--acc);}
   .medida{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; color:var(--acc); border:1px solid var(--acc); border-radius:20px; padding:2px 9px;} .medida svg{width:11px; height:11px;}
@@ -309,6 +310,7 @@
     .mas-iva{font-size:10px; margin-bottom:10px;} .desg{font-size:10.5px; padding-top:8px;} .desg div{padding:3px 0;} .formula-mini{font-size:9.5px; margin-top:6px;}
     .incluye{margin:10px 0 0; gap:6px;} .incluye div{font-size:11px;} .incluye svg{width:14px; height:14px;} .imp-link{display:none;}
     .terminos{break-inside:avoid; margin-top:14px; padding-top:10px; border-top:2px solid var(--acc);} .terminos h3{font-size:10px; margin-bottom:8px; color:var(--acc-ink);} .tgrid{grid-template-columns:1fr 1fr; gap:6px 22px;} .t{font-size:10px; line-height:1.4;} .t i{width:6px; height:6px; margin-top:5px;}
+    .fig-nota{font-size:8.5px; margin-top:4px;}
     .horas-pill{font-size:9.5px; padding:1px 8px;} .entregables li{font-size:11px;} .entregables{gap:5px;}
     .sec-t{font-size:26px;} .eyebrow{color:var(--acc-ink);} section .wrap > .eyebrow{border-bottom:2px solid var(--acc); padding-bottom:6px; display:block;}
     footer .by img{filter:brightness(0) opacity(.75) !important;}
@@ -750,13 +752,17 @@
   const objIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   const proys = D.proyectos || [];
   if(CONS){
-    $('metaCard').querySelector('.eyebrow').innerHTML = '<b>Entregables</b>';
+    // el título y las horas totales van en la columna derecha, junto a la lista (la tarjeta no repite su encabezado ni su pie)
+    $('metaCard').querySelector('.eyebrow').style.display = 'none';
+    $('metaCard').querySelector('.total-linea').style.display = 'none';
+    const cab = '<div class="eyebrow"><b>Entregables</b></div>';
+    const pie = '<div class="total-linea"><b>' + D.horas + ' h</b><span>en ' + D.consultoria.fases.length + (D.consultoria.fases.length === 1 ? ' fase' : ' fases') + '</span></div>';
     const lista = D.consultoria.entregables || [], img = D.consultoria.imagen;
     const okIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ul = lista.length ? '<ul class="entregables">' + lista.map(x => '<li>' + okIco + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' : '<div class="proy-vacio"><b>Los entregables se definen contigo al iniciar.</b></div>';
     $('proys').innerHTML = img
-      ? '<article class="proy-row rv"><figure class="proy-fig"><img src="' + esc(img) + '" alt="Imagen de referencia" loading="lazy"><button type="button" class="proy-exp" data-src="' + esc(img) + '" data-alt="Imagen de referencia" aria-label="Ampliar la imagen de referencia" title="Ampliar">' + expandir + '</button></figure><div class="proy-tx">' + ul + '</div></article>'
-      : ul;
+      ? '<article class="proy-row rv"><div><figure class="proy-fig"><img src="' + esc(img) + '" alt="Imagen de referencia" loading="lazy"><button type="button" class="proy-exp" data-src="' + esc(img) + '" data-alt="Imagen de referencia" aria-label="Ampliar la imagen de referencia" title="Ampliar">' + expandir + '</button></figure><p class="fig-nota">Imagen representativa: ejemplo ilustrativo de lo que se desarrollará.</p></div><div class="proy-tx">' + cab + ul + pie + '</div></article>'
+      : cab + ul + pie;
     $('proys').addEventListener('click', e => {
       const b = e.target.closest('.proy-exp'); if(!b) return;
       $('imgBig').src = b.dataset.src; $('imgBig').alt = b.dataset.alt; $('dlgImg').showModal();
@@ -779,7 +785,7 @@
     $('dlgImg').addEventListener('click', () => $('dlgImg').close());
   }
   $('tTotal').textContent = D.horas + ' h';
-  $('tTotalTxt').textContent = CONS ? `en ${nB} ${nB === 1 ? 'fase' : 'fases'} · =SUMA(F1:F${nB})` : `en ${nB} bloques más el proyecto final · ` + `=SUMA(${[nCat ? 'A1:A' + nCat : '', nCus ? 'M1:M' + nCus : ''].filter(Boolean).join(', ')})`;
+  $('tTotalTxt').textContent = CONS ? `en ${nB} ${nB === 1 ? 'fase' : 'fases'}` : `en ${nB} bloques más el proyecto final · ` + `=SUMA(${[nCat ? 'A1:A' + nCat : '', nCus ? 'M1:M' + nCus : ''].filter(Boolean).join(', ')})`;
 
   // ── inversión ──
   // varios grupos: la cifra grande es el precio POR GRUPO (se compara contra un grupo, no contra la suma); el total va en el desglose

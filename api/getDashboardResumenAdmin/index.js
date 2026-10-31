@@ -1,16 +1,14 @@
 // getDashboardResumenAdmin/index.js
-// Function protegida (rol "admin", cerrada por defecto con el comodín /api/*): Dashboard → Resumen. Devuelve las 25 tarjetas de los 5
-// Trackings con valor del periodo, serie de hasta 12 meses y comparación contra el mes anterior, según mes / estrategia / tipo de cliente /
-// herramienta. El cálculo vive en api/src/dashboard-resumen.js (reutiliza las reglas de cada Tracking). Además, la primera apertura del día
-// guarda la "foto diaria" en Table Storage (dashboard-foto.js) para las tarjetas que no se pueden reconstruir; si eso falla, no pasa nada.
+// Function protegida (rol "admin", cerrada por defecto con el comodín /api/*): Dashboard → Resumen de dinero. Devuelve las 10 cifras de las
+// tres vistas (Flujo de Venta y Cobranza · Por vender y por cobrar · Oportunidades no cerradas), todas SIN IVA, con valor del periodo,
+// comparaciones (mes anterior, promedio de 3 meses, año pasado), serie de 12 meses y meta, según mes / estrategia / tipo de cliente /
+// herramienta. El cálculo vive en api/src/dashboard-dinero.js (reutiliza cobranza.resumir). Solo lee: no guarda nada.
 const { JSON_HEADERS } = require("../src/http");
 const { getUmbrales } = require("../src/notificaciones-config");
 const { cargarDatos } = require("../src/dashboard-resumen-db");
-const { calcular, fotoDelDia, TIPOS_CLIENTE, ESTRATEGIAS } = require("../src/dashboard-resumen");
-const { guardarFotoDelDia, leerFotos } = require("../src/dashboard-foto");
+const { calcularDinero } = require("../src/dashboard-dinero");
+const { TIPOS_CLIENTE, ESTRATEGIAS } = require("../src/dashboard-resumen");
 const { HERRAMIENTAS } = require("../src/herramientas");
-const { getPool } = require("../src/backoffice-db");
-const { drenarConSql } = require("../src/solicitud-publica-cola");
 
 const falla = (status, error) => ({ status, headers: JSON_HEADERS, body: { error } });
 
@@ -24,17 +22,9 @@ module.exports = async function (context, req) {
   if (herramienta && !HERRAMIENTAS.includes(herramienta)) return void (context.res = falla(400, "Herramienta no válida."));
   try {
     const umbrales = await getUmbrales();
-    // pasa a SQL las solicitudes del formulario público que esperaban en la cola (no lanza), igual que el Tracking de Solicitudes
-    await drenarConSql(await getPool(), context);
-    const datos = await cargarDatos(umbrales);
+    const datos = await cargarDatos(umbrales, { omitir: ["sols", "grupos", "clientes"] });
     const ahora = new Date();
-    const hoy = new Date(ahora.getTime() - 6 * 3600 * 1000).toISOString().slice(0, 10);
-    const hace14m = new Date(ahora.getTime() - 14 * 31 * 24 * 3600 * 1000 - 6 * 3600 * 1000).toISOString().slice(0, 10);
-    // foto del día primero (si hoy no existe, se crea con el estado de hoy) y luego se leen las fotos para las líneas
-    const guardada = await guardarFotoDelDia(hoy, fotoDelDia(datos));
-    const fotos = await leerFotos(hace14m);
-    const r = calcular(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, fotos, umbralPorVencer: umbrales.cobranzaPorVencerDias });
-    r.meta.fotoNueva = guardada;
+    const r = calcularDinero(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, umbralPorVencer: umbrales.cobranzaPorVencerDias });
     r.meta.generado = ahora.toISOString();
     context.res = { status: 200, headers: JSON_HEADERS, body: r };
   } catch (err) {

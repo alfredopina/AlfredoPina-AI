@@ -305,4 +305,4 @@ function calcular(datos, filtros, { ahora = new Date(), fotos = [], umbralPorVen
   };
 }
 
-module.exports = { calcular, fotoDelDia, calcFoto, comparar, SECCIONES, IDS_FOTO, TIPOS_CLIENTE, ESTRATEGIAS, claveFoto, filasEn, filasAhora, diaMs, TZ, DIA };
+module.exports = { calcular, fotoDelDia, calcFoto, comparar, SECCIONES, IDS_FOTO, TIPOS_CLIENTE, ESTRATEGIAS, claveFoto, filasEn, filasAhora, diaMs, TZ, DIA, pasa, mesIdx, inicioMes, claveMes, etiquetaMes, fechaMty, enVentana, redondea, MES_CORTO };

@@ -125,6 +125,9 @@
   .celda.on{border-color:var(--acc); background:linear-gradient(135deg, var(--acc-soft), var(--panel) 60%);} .celda.on::after{background:var(--acc); border-color:var(--acc); box-shadow:0 0 0 5px var(--acc-soft);}
   .celda:hover{transform:translateY(-2px);}
   /* tema a tu medida: borde punteado y etiqueta propia; el resto del bloque es igual a uno del catálogo */
+  /* consultoría: cada fase muestra sus horas; los entregables van en una lista con viñeta (check) */
+  .horas-pill{display:inline-flex; align-items:center; font-family:var(--mono); font-size:11px; font-weight:700; color:var(--acc); border:1px solid var(--acc); border-radius:20px; padding:2px 10px;}
+  .entregables{list-style:none; display:grid; gap:9px; margin-top:6px;} .entregables li{display:flex; gap:10px; align-items:flex-start; font-size:15px;} .entregables svg{width:17px; height:17px; flex:none; margin-top:3px; color:var(--teal);}
   .celda.custom{border-style:dashed; border-color:var(--acc);} .celda.custom .coord{background:transparent; border:1px solid var(--acc);}
   .medida{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; color:var(--acc); border:1px solid var(--acc); border-radius:20px; padding:2px 9px;} .medida svg{width:11px; height:11px;}
   .celda .top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
@@ -306,6 +309,7 @@
     .mas-iva{font-size:10px; margin-bottom:10px;} .desg{font-size:10.5px; padding-top:8px;} .desg div{padding:3px 0;} .formula-mini{font-size:9.5px; margin-top:6px;}
     .incluye{margin:10px 0 0; gap:6px;} .incluye div{font-size:11px;} .incluye svg{width:14px; height:14px;} .imp-link{display:none;}
     .terminos{break-inside:avoid; margin-top:14px; padding-top:10px; border-top:2px solid var(--acc);} .terminos h3{font-size:10px; margin-bottom:8px; color:var(--acc-ink);} .tgrid{grid-template-columns:1fr 1fr; gap:6px 22px;} .t{font-size:10px; line-height:1.4;} .t i{width:6px; height:6px; margin-top:5px;}
+    .horas-pill{font-size:9.5px; padding:1px 8px;} .entregables li{font-size:11px;} .entregables{gap:5px;}
     .sec-t{font-size:26px;} .eyebrow{color:var(--acc-ink);} section .wrap > .eyebrow{border-bottom:2px solid var(--acc); padding-bottom:6px; display:block;}
     footer .by img{filter:brightness(0) opacity(.75) !important;}
     footer{padding:18px 0 0;} a{text-decoration:none;} footer .by img{filter:none;}
@@ -362,7 +366,7 @@
   <div class="wrap">
     <div class="hero-top">
       <div class="hero-top-row">
-        <div class="eyebrow rv">Propuesta de capacitación · <b id="fFolio"></b></div>
+        <div class="eyebrow rv"><span id="fTipo">Propuesta de capacitación</span> · <b id="fFolio"></b></div>
       </div>
       <h1 class="rv d1" id="hTitulo"></h1>
     </div>
@@ -396,8 +400,8 @@
 <!-- 2 · TEMARIO -->
 <section id="temario">
   <div class="wrap">
-    <div class="eyebrow rv">02 · <b>Temario</b></div>
-    <h2 class="sec-t rv d1">Tu ruta de aprendizaje</h2>
+    <div class="eyebrow rv" id="tEyebrow">02 · <b>Temario</b></div>
+    <h2 class="sec-t rv d1" id="tTitulo">Tu ruta de aprendizaje</h2>
     <p class="sec-sub rv d2" id="tSub"></p>
     <div class="ruta-wrap">
       <div class="formula-sticky"><div class="formula" id="fWrap"><span class="fx">fx</span><span class="tipo" id="fBar"></span><span class="res" id="fRes"></span><span class="cursor"></span></div></div>
@@ -448,7 +452,7 @@
 <!-- 4 · INVERSIÓN -->
 <section id="inversion">
   <div class="wrap">
-    <div class="eyebrow rv">04 · <b>Inversión</b></div>
+    <div class="eyebrow rv" id="iEyebrow">04 · <b>Inversión</b></div>
     <h2 class="sec-t rv d1">Tu propuesta</h2>
     <div class="inv">
       <div class="inv-l"><div class="resumen rv" id="resumen"></div><div class="adic rv d1" id="adicWrap" hidden><div class="adic-h">Adicionales · sin costo</div><div id="adic"></div></div></div>
@@ -582,6 +586,17 @@
     color:HERR[S.herramienta] ? HERR[S.herramienta].color : '#6b9fff', tinta:HERR[S.herramienta] ? HERR[S.herramienta].tinta : '#1f5fe0',
     emitida, vigencia,
   });
+  // consultoría (servicio por horas): "Fases del proyecto" en lugar de la ruta de aprendizaje, entregables en lugar de resultados
+  const CONS = D.servicio === 'consultoria' && D.consultoria && D.consultoria.fases && D.consultoria.fases.length;
+  if(CONS){
+    $('fTipo').textContent = 'Propuesta de consultoría';
+    $('tEyebrow').innerHTML = '02 · <b>Fases del proyecto</b>';
+    $('tTitulo').textContent = 'Fases del proyecto';
+    $('iEyebrow').innerHTML = '03 · <b>Inversión</b>';
+    $('resultados').hidden = true; $('resultados').style.display = 'none'; // los resultados del curso (proyecto, reporte, diploma) no aplican
+    document.querySelectorAll('[data-s="resultados"]').forEach(a => a.remove());
+    document.querySelectorAll('[data-s="temario"]').forEach(a => { a.lastChild.textContent = 'Fases'; });
+  }
   const diasVig = Math.max(1, Math.round((vigencia - new Date(emitida.getFullYear(), emitida.getMonth(), emitida.getDate())) / DIA));
 
   // color de la herramienta: va en un <style> propio (no inline) para que la versión de impresión pueda usar la TINTA
@@ -656,7 +671,7 @@
   else if(dias <= 7) vigTxt = `Vence pronto · <b>${dias} días</b> · hasta ${fecha(D.vigencia)}`;
   else vigTxt = `Vigente hasta <b>${fecha(D.vigencia)}</b> · ${dias} días`;
   $('hChips').innerHTML =
-    `<span class="chip">${ico.clock}<b>${D.horas} horas</b></span>${D.modalidad ? `<span class="chip">${ico.mode}${esc(D.modalidad)}</span>` : ''}` +
+    `<span class="chip">${ico.clock}<b>${D.horas} horas${CONS ? ' estimadas' : ''}</b></span>${D.modalidad ? `<span class="chip">${ico.mode}${esc(D.modalidad)}</span>` : ''}` +
     `${D.participantes ? `<span class="chip">${ico.users}${esc(D.participantes)} participantes${D.grupos > 1 ? ' por grupo' : ''}</span>` : ''}${D.grupos > 1 ? `<span class="chip">${ico.users}<b>${D.grupos} grupos</b></span>` : ''}${D.nivelTxt ? `<span class="chip">${ico.lvl}${esc(D.nivelTxt)}</span>` : ''}` +
     `<span class="chip vig ${vigEstado}">${vigEstado === 'ok' ? ico.calOk : ico.alerta}${vigTxt}</span>`;
   $('hObj').textContent = D.objetivo || ''; $('hDir').textContent = D.dirigido || '';
@@ -665,12 +680,14 @@
   // ── temario: ruta con celdas A1, A2… (sin horas por tema: se trabaja por bloques) ──
   const barras = n => `<svg viewBox="0 0 15 12"><rect class="${n>=1?'f':'v'}" x="0" y="7" width="4" height="5" rx="1"/><rect class="${n>=2?'f':'v'}" x="5.500" y="3.500" width="4" height="8.500" rx="1"/><rect class="${n>=3?'f':'v'}" x="11" y="0" width="4" height="12" rx="1"/></svg>`;
   // bloques del catálogo (A1, A2…) y, después, los temas a tu medida (M1, M2…)
-  const nCat = D.temas.length, nCus = (D.temasCustom || []).length;
-  const bloques = D.temas.concat((D.temasCustom || []).map(t => ({ n:t.n, d:t.o, custom:true })));
-  const coordDe = i => i < nCat ? 'A' + (i + 1) : 'M' + (i - nCat + 1);
+  const nCat = CONS ? D.consultoria.fases.length : D.temas.length, nCus = CONS ? 0 : (D.temasCustom || []).length;
+  const bloques = CONS ? D.consultoria.fases.map(f => ({ n:f.n, d:f.d, h:f.h })) : D.temas.concat((D.temasCustom || []).map(t => ({ n:t.n, d:t.o, custom:true })));
+  const coordDe = i => CONS ? 'F' + (i + 1) : i < nCat ? 'A' + (i + 1) : 'M' + (i - nCat + 1);
   const estrella = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.6 5.600 6.100.7-4.500 4.200 1.200 6.100L12 16.600 6.600 19.600l1.200-6.100L3.300 9.300l6.100-.7L12 3Z" stroke-linejoin="round"/></svg>';
   const nB = bloques.length;
-  $('tSub').textContent = `En ${nB} ${nB === 1 ? 'bloque' : 'bloques'} de trabajo y ${D.horas} horas de capacitación en total, lograrás los siguientes objetivos.`;
+  $('tSub').textContent = CONS
+    ? `El proyecto se trabaja en ${nB} ${nB === 1 ? 'fase' : 'fases'}, con ${D.horas} horas estimadas en total.`
+    : `En ${nB} ${nB === 1 ? 'bloque' : 'bloques'} de trabajo y ${D.horas} horas de capacitación en total, lograrás los siguientes objetivos.`;
   // Misma regla que la página de Cursos: si el texto trae saltos de línea, cada línea es una viñeta; si es un párrafo,
   // la primera oración queda a la vista y el resto va en "Ver detalle".
   const chevron = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -689,7 +706,7 @@
   }
   $('ruta').insertAdjacentHTML('beforeend', bloques.map((t, i) => `
     <article class="celda rv${t.custom ? ' custom' : ''}" data-i="${i}" tabindex="0">
-      <div class="top"><span class="coord">${coordDe(i)}</span>${t.custom ? `<span class="medida">${estrella}A tu medida</span>` : `<span class="nivel">${t.nivel ? barras(t.nivel) + NIVEL[t.nivel] : ''}</span>`}</div>
+      <div class="top"><span class="coord">${coordDe(i)}</span>${CONS ? `<span class="horas-pill">${t.h} h</span>` : t.custom ? `<span class="medida">${estrella}A tu medida</span>` : `<span class="nivel">${t.nivel ? barras(t.nivel) + NIVEL[t.nivel] : ''}</span>`}</div>
       <h3>${esc(t.n)}</h3>${descHtml(t.d)}
     </article>`).join(''));
   $('ruta').addEventListener('click', e => {
@@ -711,7 +728,7 @@
   }
   function formulaDe(i, animar){
     const t = bloques[i];
-    fBar.innerHTML = `<span class="tk-eq">=</span><span class="tk-fn">BLOQUE</span><span class="tk-p">(</span><span class="tk-str">${coordDe(i)}</span><span class="tk-p">)</span>`;
+    fBar.innerHTML = `<span class="tk-eq">=</span><span class="tk-fn">${CONS ? 'FASE' : 'BLOQUE'}</span><span class="tk-p">(</span><span class="tk-str">${coordDe(i)}</span><span class="tk-p">)</span>`;
     if(animar){ escribeRes('→ ' + t.n); fWrap.classList.remove('pulso'); void fWrap.offsetWidth; fWrap.classList.add('pulso'); }
     else fRes.textContent = '→ ' + t.n;
   }
@@ -732,7 +749,20 @@
   const expandir = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const objIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   const proys = D.proyectos || [];
-  if(!proys.length){
+  if(CONS){
+    $('metaCard').querySelector('.eyebrow').innerHTML = '<b>Entregables</b>';
+    const lista = D.consultoria.entregables || [], img = D.consultoria.imagen;
+    const okIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ul = lista.length ? '<ul class="entregables">' + lista.map(x => '<li>' + okIco + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' : '<div class="proy-vacio"><b>Los entregables se definen contigo al iniciar.</b></div>';
+    $('proys').innerHTML = img
+      ? '<article class="proy-row rv"><figure class="proy-fig"><img src="' + esc(img) + '" alt="Imagen de referencia" loading="lazy"><button type="button" class="proy-exp" data-src="' + esc(img) + '" data-alt="Imagen de referencia" aria-label="Ampliar la imagen de referencia" title="Ampliar">' + expandir + '</button></figure><div class="proy-tx">' + ul + '</div></article>'
+      : ul;
+    $('proys').addEventListener('click', e => {
+      const b = e.target.closest('.proy-exp'); if(!b) return;
+      $('imgBig').src = b.dataset.src; $('imgBig').alt = b.dataset.alt; $('dlgImg').showModal();
+    });
+    $('dlgImg').addEventListener('click', () => $('dlgImg').close());
+  } else if(!proys.length){
     $('proys').innerHTML = '<div class="proy-vacio"><b>Aplicas lo aprendido a un caso real de tu operación.</b><span>El proyecto final se define contigo al iniciar el programa.</span></div>';
   } else {
     $('proys').innerHTML = proys.map((p, i) => {
@@ -749,7 +779,7 @@
     $('dlgImg').addEventListener('click', () => $('dlgImg').close());
   }
   $('tTotal').textContent = D.horas + ' h';
-  $('tTotalTxt').textContent = `en ${nB} bloques más el proyecto final · ` + `=SUMA(${[nCat ? 'A1:A' + nCat : '', nCus ? 'M1:M' + nCus : ''].filter(Boolean).join(', ')})`;
+  $('tTotalTxt').textContent = CONS ? `en ${nB} ${nB === 1 ? 'fase' : 'fases'} · =SUMA(F1:F${nB})` : `en ${nB} bloques más el proyecto final · ` + `=SUMA(${[nCat ? 'A1:A' + nCat : '', nCus ? 'M1:M' + nCus : ''].filter(Boolean).join(', ')})`;
 
   // ── inversión ──
   // varios grupos: la cifra grande es el precio POR GRUPO (se compara contra un grupo, no contra la suma); el total va en el desglose
@@ -758,7 +788,7 @@
   $('lblInv').textContent = multi ? 'Inversión por grupo' : 'Inversión total';
   if(multi) $('masIva').textContent = 'Por grupo · antes de impuestos · se agrega IVA';
   $('resumen').innerHTML = [
-    ['PROGRAMA', D.programa], ['DURACIÓN', D.horas + (multi ? ' horas por grupo' : ' horas')], multi ? ['GRUPOS', G + ' · ' + (D.horas * G) + ' h en total'] : null, D.modalidad ? ['MODALIDAD', D.modalidad] : null, D.participantes ? ['PARTICIPANTES', D.participantes + (multi ? ' por grupo' : '')] : null,
+    [CONS ? 'PROYECTO' : 'PROGRAMA', D.programa], [CONS ? 'HORAS ESTIMADAS' : 'DURACIÓN', D.horas + (multi ? ' horas por grupo' : ' horas')], multi ? ['GRUPOS', G + ' · ' + (D.horas * G) + ' h en total'] : null, D.modalidad ? ['MODALIDAD', D.modalidad] : null, D.participantes ? ['PARTICIPANTES', D.participantes + (multi ? ' por grupo' : '')] : null,
     D.ciudad ? ['SEDE', D.ciudad] : null, D.fechaTentativa ? ['FECHA TENTATIVA', D.fechaTentativa] : null, ['EMITIDA', fecha(D.emitida)], ['VIGENCIA', 'Hasta ' + fecha(D.vigencia)],
   ].filter(Boolean).map(([k, v]) => `<div class="rrow"><span>${k}</span><span>${esc(v)}</span></div>`).join('');
   // Desglose solo cuando el precio sale de horas × tarifa (− descuento). Si el precio se ajustó a mano, o quedó por encima
@@ -783,7 +813,9 @@
   }
   const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const mas = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>';
-  const BASE = ['Programa completo y proyecto final aplicado', 'Diploma verificable para cada participante', 'Reporte de resultados del grupo, con boleta individual'];
+  const BASE = CONS
+    ? [`Trabajo organizado en ${D.consultoria.fases.length} ${D.consultoria.fases.length === 1 ? 'fase' : 'fases'}`, 'Entregables definidos en la propuesta', 'Precio cerrado sobre las horas estimadas']
+    : ['Programa completo y proyecto final aplicado', 'Diploma verificable para cada participante', 'Reporte de resultados del grupo, con boleta individual'];
 
   // adicionales sin costo: el cliente los "agrega", aparecen como un check más en la inversión y llegan en su aceptación
   const adic = D.adicionales || [];

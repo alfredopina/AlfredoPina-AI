@@ -147,6 +147,23 @@ async function llamar(body) { const ctx = { log: { error() {} }, res: null }; aw
   r = await llamar({ ...base, precio_final: undefined, contacto_id: 3 });
   check("sin intermediario: el teléfono del contacto no cambia el botón", r.status === 200 && propGuardadas[0].snapshot.contactoWa === null);
 
-  console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
+// ── consultoría (por horas, con fases) ──
+  intermRow = null; process.env.CLI = "2"; consultas.length = 0; propGuardadas.length = 0;
+  const consul = { fases: [{ nombre: "Levantamiento", descripcion: "Entrevistas", horas: 6 }, { nombre: "Tablero", descripcion: "", horas: 10 }], entregables: ["Tablero publicado", "Manual"], imagen: null };
+  r = await llamar({ ...base, temario_tipo: "consultoria", temario_nombre: "Tablero de ventas", temas: [], temas_custom: [], proyectos: [], consultoria: consul, horas_totales: 999, participantes: "Solo yo", num_grupos: 4, precio_final: undefined });
+  const tCons = consultas.find((c) => /TarifaHerramienta/.test(c.sqlText));
+  const iCons = consultas.find((c) => /INSERT INTO Cotizacion/.test(c.sqlText));
+  const snC = propGuardadas[0] && propGuardadas[0].snapshot;
+  check("consultoría: 200, usa la tarifa 'consultoria' y las horas son la suma de las fases (no las escritas)", r.status === 200 && tCons.inputs.herramienta === "consultoria" && iCons.inputs.horas === 16);
+  check("consultoría: 500 × 16 h, sin descuento (ni por grupos ni por participantes) y 1 solo grupo", iCons.inputs.precioSugerido === 8000 && iCons.inputs.descuentoPct === 0 && iCons.inputs.precioFinal === 8000 && iCons.inputs.numGrupos === 1 && iCons.inputs.participantes === null);
+  check("consultoría: la propuesta lleva fases con horas, entregables, título, sin adicionales y con sus términos", snC.servicio === "consultoria" && snC.consultoria.fases.length === 2 && snC.consultoria.fases[1].h === 10 && snC.consultoria.entregables.length === 2 && snC.programa === "Tablero de ventas" && snC.adicionales.length === 0 && snC.terminos.some((t) => /horas estimadas/.test(t)) && snC.grupos === 1);
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, temario_tipo: "consultoria", temas: [], consultoria: { fases: [] }, precio_final: undefined });
+  check("consultoría sin fases: 400", r.status === 400 && propGuardadas.length === 0);
+  consultas.length = 0; propGuardadas.length = 0;
+  r = await llamar({ ...base, precio_final: undefined });
+  check("una cotización normal sigue siendo capacitación (sin consultoría en el snapshot)", r.status === 200 && propGuardadas[0].snapshot.servicio === "capacitacion" && propGuardadas[0].snapshot.consultoria === null);
+
+    console.log(fallos ? `\n${fallos} prueba(s) fallaron.` : "\nTodas las pruebas pasaron.");
   process.exit(fallos ? 1 : 0);
 })();

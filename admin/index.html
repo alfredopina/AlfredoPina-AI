@@ -1619,6 +1619,20 @@
   .sol-card{ border-width:1px; border-style:solid; border-color:var(--line); border-radius:10px; background-color:var(--panel); padding:16px 18px 6px; margin-bottom:18px; }
   .sol-card-title{ font-family:var(--mono); font-size:10.5px; letter-spacing:.5px; color:var(--text-faint); margin-bottom:14px; }
   .sol-subform{ border-left:3px solid var(--blue-bright); padding-left:14px; margin:-2px 0 14px; }
+  .sol-tipo{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .sol-tipo-op{ position:relative; cursor:pointer; }
+  .sol-tipo-op input{ position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .sol-tipo-op span{ display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border:1px solid var(--line); border-radius:20px; background-color:var(--panel); color:var(--text-dim); font-size:12.5px; }
+  .sol-tipo-op span svg{ width:15px; height:15px; flex:none; }
+  .sol-tipo-op .sol-tipo-ok{ display:none; }
+  .sol-tipo-op input:checked + span{ background-color:var(--blue-soft); border-color:var(--blue-bright); color:var(--text); font-weight:700; }
+  .sol-tipo-op input:checked + span .sol-tipo-ok{ display:inline-block; color:var(--blue-bright); }
+  .sol-tipo-op input:focus-visible + span{ outline:2px solid var(--blue-bright); outline-offset:2px; }
+  .sol-fase-fila{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr) 92px auto; gap:8px; align-items:start; margin-bottom:8px; }
+  .sol-fase-fila .radm-field{ margin:0; } .sol-fase-fila textarea{ min-height:42px; }
+  .sol-fase-total{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin:2px 0 10px; } .sol-fase-total b{ color:var(--text); }
+  .sol-img-fila{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; } .sol-img-fila img{ max-height:90px; max-width:160px; border-radius:8px; border:1px solid var(--line); background-color:#fff; }
+  @media (max-width:700px){ .sol-fase-fila{ grid-template-columns:1fr 92px auto; } .sol-fase-fila .radm-field:nth-child(1){ grid-column:1 / 3; } .sol-fase-fila .radm-field:nth-child(2){ grid-column:1 / -1; grid-row:2; } }
   .sol-custom{ margin:4px 0 18px; padding:12px 14px; border:1px dashed var(--line); border-radius:10px; background-color:var(--panel-2); }
   .sol-custom-h{ font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--text-dim); margin-bottom:10px; }
   .sol-custom-h .radm-hint{ display:block; margin-top:3px; letter-spacing:0; text-transform:none; }
@@ -4220,6 +4234,14 @@
                 <option value="powerautomate">Power Automate</option>
                 <option value="ia">IA Aplicada</option>
                 <option value="ofimatica">Microsoft 365</option>
+              </select>
+            </div>
+            <div class="radm-field">
+              <label>SERVICIO</label>
+              <select id="cotFServicio">
+                <option value="">Todos</option>
+                <option value="capacitacion">Capacitación</option>
+                <option value="consultoria">Consultoría</option>
               </select>
             </div>
             <div class="radm-field">
@@ -15696,9 +15718,13 @@
     }
     // clave del programa para filtrar/ordenar: el nombre del estándar, o "Personalizado"
     function programaClave(s){
-      return s.temario_tipo === 'estandar' ? (s.temario_nombre || 'Sin nombre') : 'Personalizado';
+      return s.temario_tipo === 'estandar' ? (s.temario_nombre || 'Sin nombre') : s.temario_tipo === 'consultoria' ? 'Consultoría' : 'Personalizado';
     }
     function temarioResumenCorto(s){
+      if(s.temario_tipo === 'consultoria'){
+        let n = 0; try { n = (JSON.parse(s.consultoria_json || '{}').fases || []).length; } catch(e){}
+        return escapeHtml('Consultoría' + (s.temario_nombre ? ' · ' + s.temario_nombre : '') + (n ? ' · ' + n + (n === 1 ? ' fase' : ' fases') : ''));
+      }
       if(s.temario_tipo === 'estandar' || s.temario_nombre) return escapeHtml(s.temario_nombre || '—');
       const temas = temasDe(s);
       if(!temas.length) return '—';
@@ -15984,6 +16010,9 @@
       const temasGuardados = editando ? temasDe(sol) : [];
       let proyectosGuardados = [];
       if(editando){ try { proyectosGuardados = JSON.parse(sol.proyectos_json || '[]'); } catch(e){ proyectosGuardados = []; } }
+      // consultoría: fases { nombre, descripcion, horas } + entregables (texto, uno por línea) + imagen de referencia (URL)
+      let fasesC = [], imagenC = null;
+      if(editando && sol.consultoria_json){ try { const c = JSON.parse(sol.consultoria_json); fasesC = (c.fases || []).map(f => ({ nombre: f.nombre || '', descripcion: f.descripcion || '', horas: f.horas || '' })); imagenC = c.imagen || null; } catch(e){ fasesC = []; } }
       let temasCustom = [];
       if(editando){ try { const a = JSON.parse(sol.temas_custom_json || '[]'); temasCustom = Array.isArray(a) ? a.map(t => ({ nombre: t.nombre || '', objetivo: t.objetivo || '' })) : []; } catch(e){ temasCustom = []; } }
 
@@ -15999,9 +16028,10 @@
               <label class="radm-switch"><input type="checkbox" id="solEsCliente" checked><span class="radm-switch-track"></span></label>
               <span class="radm-switch-label">¿Es cliente?</span>
             </div>
-            <div class="radm-switch-row">
-              <label class="radm-switch"><input type="checkbox" id="solEsEstandar" checked><span class="radm-switch-track"></span></label>
-              <span class="radm-switch-label">¿Es curso estándar?</span>
+            <div class="sol-tipo" role="radiogroup" aria-label="Tipo de servicio">
+              <label class="sol-tipo-op"><input type="radio" name="solTipo" value="estandar" checked><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z" stroke-linejoin="round"/><path d="M8 7h7" stroke-linecap="round"/></svg>Curso estándar<svg class="sol-tipo-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>
+              <label class="sol-tipo-op"><input type="radio" name="solTipo" value="personalizado"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke-linecap="round"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Curso personalizado<svg class="sol-tipo-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>
+              <label class="sol-tipo-op"><input type="radio" name="solTipo" value="consultoria"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18" stroke-linecap="round"/></svg>Consultoría<svg class="sol-tipo-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>
             </div>
             <span class="radm-hint sol-toggles-hint" id="solTogglesHint"></span>
           </div>
@@ -16070,7 +16100,7 @@
             <div class="sol-card-title">QUÉ</div>
             <div class="radm-form-row">
               <div class="radm-field">
-                <label>HERRAMIENTA <span class="dip-req">*</span></label>
+                <label id="solLblHerr">HERRAMIENTA <span class="dip-req">*</span></label>
                 <select id="solHerramienta">
                   <option value="">Selecciona...</option>
                   ${Object.keys(TOOL_NAMES).map(k => `<option value="${k}">${TOOL_NAMES[k]}</option>`).join('')}
@@ -16083,6 +16113,33 @@
               </div>
             </div>
             <div id="solTemarioBody"></div>
+            <div id="solConsultoriaWrap" hidden>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>NOMBRE DEL PROYECTO</label><input type="text" id="solNombreProyecto" maxlength="200" placeholder="El título que verá el cliente. Ej. Tablero de ventas para dirección"></div>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>OBJETIVO</label><textarea id="solObjetivoC" rows="3" placeholder="Qué problema resuelve el proyecto y qué debe lograr."></textarea></div>
+              </div>
+              <div class="sol-custom">
+                <div class="sol-custom-h">FASES DEL PROYECTO<span class="radm-hint">Divide el trabajo en fases con sus horas estimadas: de ahí sale el precio (horas × tarifa de consultoría).</span></div>
+                <div id="solFasesLista"></div>
+                <div class="sol-fase-total" id="solFasesTotal"></div>
+                <button type="button" class="radm-btn radm-btn-ghost" id="solFaseAdd">+ Agregar fase</button>
+              </div>
+              <div class="radm-form-row">
+                <div class="radm-field"><label>ENTREGABLES</label><textarea id="solEntregables" rows="4" placeholder="Uno por línea. Ej.&#10;Tablero publicado en Power BI Service&#10;Manual de uso (PDF)&#10;Sesión de entrega y capacitación"></textarea></div>
+              </div>
+              <div class="radm-field">
+                <label>IMAGEN DE REFERENCIA (OPCIONAL)</label>
+                <div class="sol-img-fila">
+                  <img id="solImgPrev" alt="Imagen de referencia" hidden>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="solImgElegir">Elegir imagen…</button>
+                  <button type="button" class="radm-btn radm-btn-ghost" id="solImgQuitar" hidden>Quitar</button>
+                  <input type="file" id="solImgFile" accept="image/*" hidden>
+                  <span class="radm-hint" id="solImgEstado">Un boceto, una captura o un ejemplo. Sale en la propuesta junto a los entregables.</span>
+                </div>
+              </div>
+            </div>
             <div id="solPersonalizadoWrap" hidden>
               <div class="radm-form-row">
                 <div class="radm-field"><label>NOMBRE DEL PROGRAMA</label><input type="text" id="solNombrePrograma" maxlength="200" placeholder="El título que verá el cliente en la propuesta. Ej. Excel para finanzas y control de gestión"></div>
@@ -16155,10 +16212,71 @@
       let contactos = [];
       let verifSeq = 0, verifTimer = null, codigoExiste = null;
       const esCliente = () => $('solEsCliente').checked;
-      const esEstandar = () => $('solEsEstandar').checked;
+      let ICO_QUITAR; // se asigna más abajo (lo usan las listas de fases y de temas a tu medida)
+      const tipoSel = () => (document.querySelector('input[name="solTipo"]:checked') || {}).value || 'estandar';
+      const esEstandar = () => tipoSel() === 'estandar';
+      const esConsultoria = () => tipoSel() === 'consultoria';
+
+      // ───── consultoría: fases con horas, entregables e imagen de referencia ─────
+      const horasFases = () => Math.round(fasesC.reduce((a, f) => a + (Number(f.horas) || 0), 0) * 10) / 10;
+      function sincronizarHorasConsultoria(){
+        if(!esConsultoria()) return;
+        $('solHoras').value = horasFases() || '';
+        $('solHorasHint').innerHTML = 'Suma de las fases: <b>' + (horasFases() || 0) + ' hr</b>';
+      }
+      function renderFases(){
+        $('solFasesLista').innerHTML = fasesC.map((f, i) => `
+          <div class="sol-fase-fila">
+            <div class="radm-field"><input type="text" data-i="${i}" data-k="nombre" maxlength="200" placeholder="Fase ${i + 1}: nombre" value="${escapeHtml(f.nombre)}"></div>
+            <div class="radm-field"><textarea rows="1" data-i="${i}" data-k="descripcion" maxlength="800" placeholder="Qué se hace en esta fase">${escapeHtml(f.descripcion)}</textarea></div>
+            <div class="radm-field"><input type="number" data-i="${i}" data-k="horas" min="0.5" step="0.5" placeholder="Horas" value="${escapeHtml(String(f.horas))}"></div>
+            <button type="button" class="sol-custom-x" data-quitar-fase="${i}" aria-label="Quitar esta fase" title="Quitar">${ICO_QUITAR}</button>
+          </div>`).join('');
+        $('solFasesTotal').innerHTML = fasesC.length ? 'Total estimado: <b>' + horasFases() + ' h</b> en ' + fasesC.length + (fasesC.length === 1 ? ' fase' : ' fases') : '';
+        $('solFaseAdd').hidden = fasesC.length >= 12;
+        sincronizarHorasConsultoria();
+      }
+      $('solFasesLista').addEventListener('input', e => {
+        const el = e.target.closest('[data-k]'); if(!el) return;
+        fasesC[Number(el.dataset.i)][el.dataset.k] = el.value;
+        if(el.dataset.k === 'horas'){ $('solFasesTotal').innerHTML = 'Total estimado: <b>' + horasFases() + ' h</b> en ' + fasesC.length + (fasesC.length === 1 ? ' fase' : ' fases'); sincronizarHorasConsultoria(); }
+      });
+      $('solFasesLista').addEventListener('click', e => {
+        const b = e.target.closest('[data-quitar-fase]'); if(!b) return;
+        fasesC.splice(Number(b.dataset.quitarFase), 1); renderFases();
+      });
+      $('solFaseAdd').addEventListener('click', () => {
+        fasesC.push({ nombre: '', descripcion: '', horas: '' }); renderFases();
+        const ult = $('solFasesLista').querySelector('.sol-fase-fila:last-child input'); if(ult) ult.focus();
+      });
+      // imagen de referencia: se comprime en el navegador (JPEG ≈1600 px) y se sube al elegirla; solo se guarda su URL
+      function mostrarImagenC(){
+        $('solImgPrev').hidden = !imagenC; if(imagenC) $('solImgPrev').src = imagenC; else $('solImgPrev').removeAttribute('src');
+        $('solImgQuitar').hidden = !imagenC;
+      }
+      $('solImgElegir').addEventListener('click', () => $('solImgFile').click());
+      $('solImgQuitar').addEventListener('click', () => { imagenC = null; mostrarImagenC(); });
+      $('solImgFile').addEventListener('change', async () => {
+        const file = $('solImgFile').files && $('solImgFile').files[0];
+        if(!file) return;
+        const estado = $('solImgEstado'), previo = estado.textContent;
+        estado.textContent = 'Subiendo imagen…';
+        try {
+          const bmp = await createImageBitmap(file);
+          const esc = Math.min(1, 1600 / bmp.width);
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(bmp.width * esc)); c.height = Math.max(1, Math.round(bmp.height * esc));
+          const ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0, c.width, c.height);
+          const blob = await new Promise((ok, mal) => c.toBlob(b => b ? ok(b) : mal(new Error('No se pudo procesar la imagen.')), 'image/jpeg', 0.86));
+          const b64 = await new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = mal; r.readAsDataURL(blob); });
+          const r = await apiPostJson('/api/subirImagenConsultoria', { base64: b64 });
+          imagenC = r.url; mostrarImagenC(); estado.textContent = previo;
+        } catch(e){ estado.textContent = previo; toast('No se pudo subir la imagen: ' + e.message, false); }
+        $('solImgFile').value = '';
+      });
 
       // ───── temas a tu medida (solo personalizado): lista de { nombre, objetivo } ─────
-      const ICO_QUITAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/></svg>';
+      ICO_QUITAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/></svg>';
       function renderTemasCustom(){
         $('solCustomLista').innerHTML = temasCustom.map((t, i) => `
           <div class="sol-custom-fila">
@@ -16185,6 +16303,7 @@
       // ───── horas sugeridas ─────
       const temarioSel = window.TemarioSelector.crear({ bodyEl: $('solTemarioBody'), onChange: alCambiarSeleccion });
       function actualizarHorasHint(){
+        if(esConsultoria()){ sincronizarHorasConsultoria(); return; }
         const sug = temarioSel.getHorasSugeridas();
         const hint = $('solHorasHint');
         if(!sug){ hint.innerHTML = ''; return; }
@@ -16197,11 +16316,13 @@
         if(usar) usar.addEventListener('click', () => { horasTocadas = false; $('solHoras').value = sug; actualizarHorasHint(); });
       }
       function alCambiarSeleccion(){
+        if(esConsultoria()){ sincronizarHorasConsultoria(); return; }
         const sug = temarioSel.getHorasSugeridas();
         if(!horasTocadas) $('solHoras').value = sug || '';
         actualizarHorasHint();
       }
       $('solHoras').addEventListener('input', () => {
+        if(esConsultoria()) return;
         horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
         actualizarHorasHint();
       });
@@ -16211,9 +16332,15 @@
       function aplicarModo(){
         $('solBloqueCliente').hidden = !esCliente();
         $('solBloqueProspecto').hidden = esCliente();
-        $('solPersonalizadoWrap').hidden = esEstandar();
-        temarioSel.setModo(esEstandar() ? 'estandar' : 'personalizado');
-        $('solTogglesHint').textContent = `${esCliente() ? 'Cliente existente' : 'Prospecto nuevo'} · ${esEstandar() ? 'programa estándar' : 'curso personalizado'}`;
+        const tipo = tipoSel();
+        $('solPersonalizadoWrap').hidden = tipo !== 'personalizado';
+        $('solConsultoriaWrap').hidden = tipo !== 'consultoria';
+        $('solTemarioBody').hidden = tipo === 'consultoria';
+        $('solHoras').readOnly = tipo === 'consultoria';
+        $('solLblHerr').innerHTML = (tipo === 'consultoria' ? 'HERRAMIENTA PRINCIPAL' : 'HERRAMIENTA') + ' <span class="dip-req">*</span>';
+        if(tipo !== 'consultoria') temarioSel.setModo(tipo === 'estandar' ? 'estandar' : 'personalizado');
+        else { renderFases(); sincronizarHorasConsultoria(); }
+        $('solTogglesHint').textContent = `${esCliente() ? 'Cliente existente' : 'Prospecto nuevo'} · ${tipo === 'estandar' ? 'programa estándar' : tipo === 'personalizado' ? 'curso personalizado' : 'consultoría (por horas)'}`;
       }
       // Cambiar el switch NO borra nada: lo capturado pasa al otro modo (el nombre del prospecto busca al cliente y su
       // contacto queda listo como contacto NUEVO del cliente; al revés, el nombre/contacto del cliente pasan al prospecto).
@@ -16242,7 +16369,7 @@
           }
         }
       });
-      $('solEsEstandar').addEventListener('change', () => { horasTocadas = false; aplicarModo(); });
+      document.querySelectorAll('input[name="solTipo"]').forEach(r => r.addEventListener('change', () => { horasTocadas = false; if(!esConsultoria()) $('solHoras').value = ''; aplicarModo(); alCambiarSeleccion(); }));
 
       // ───── cliente existente: combobox + contacto ─────
       function pintarContactoSelect(){
@@ -16354,8 +16481,17 @@
       $('solGuardar').addEventListener('click', async () => {
         const herramienta = $('solHerramienta').value;
         if(!herramienta){ toast('Selecciona una herramienta.', false); return; }
-        let temarioPayload = temarioSel.getPayload();
-        const customOk = esEstandar() ? [] : temasCustom.filter(t => t.nombre.trim()).map(t => ({ nombre: t.nombre.trim(), objetivo: t.objetivo.trim() }));
+        let temarioPayload = esConsultoria() ? null : temarioSel.getPayload();
+        const consultoriaOk = esConsultoria() ? {
+          fases: fasesC.filter(f => f.nombre.trim() && Number(f.horas) > 0).map(f => ({ nombre: f.nombre.trim(), descripcion: String(f.descripcion || '').trim(), horas: Number(f.horas) })),
+          entregables: $('solEntregables').value, imagen: imagenC,
+        } : null;
+        if(esConsultoria()){
+          if(!consultoriaOk.fases.length){ toast('Agrega al menos una fase con nombre y horas.', false); return; }
+          temarioPayload = { temario_tipo: 'consultoria', temario_nombre: null, horas_totales: consultoriaOk.fases.reduce((a, f) => a + f.horas, 0), temas: [] };
+          $('solHoras').value = horasFases();
+        }
+        const customOk = tipoSel() !== 'personalizado' ? [] : temasCustom.filter(t => t.nombre.trim()).map(t => ({ nombre: t.nombre.trim(), objetivo: t.objetivo.trim() }));
         // una personalizada puede ser solo de temas a tu medida (sin temas del catálogo): las horas las escribe Alfredo
         if(!temarioPayload && customOk.length) temarioPayload = { temario_tipo: 'personalizado', temario_nombre: null, horas_totales: Number($('solHoras').value) || 0, temas: [] };
         if(!temarioPayload){ toast(esEstandar() ? 'Selecciona un programa.' : 'Selecciona al menos un tema (o escribe uno a tu medida).', false); return; }
@@ -16368,7 +16504,11 @@
           modalidad: $('solModalidad').value,
           participantes: $('solParticipantes').value === 'otro' ? $('solPartNum').value.trim() : $('solParticipantes').value,
         });
-        if(!esEstandar()){
+        if(esConsultoria()){
+          payload.consultoria = consultoriaOk;
+          payload.objetivo = $('solObjetivoC').value.trim();
+          payload.temario_nombre = $('solNombreProyecto').value.trim() || null;
+        } else if(tipoSel() === 'personalizado'){
           payload.objetivo = $('solObjetivo').value.trim();
           payload.dirigido_a = $('solDirigido').value.trim();
           payload.temas_custom = customOk;
@@ -16438,7 +16578,7 @@
 
       (async () => {
         $('solEsCliente').checked = !origenProspecto;
-        $('solEsEstandar').checked = sol.temario_tipo === 'estandar';
+        const radioTipo = document.querySelector('input[name="solTipo"][value="' + (sol.temario_tipo || 'estandar') + '"]'); if(radioTipo) radioTipo.checked = true;
         aplicarModo();
 
         if(origenProspecto){
@@ -16459,7 +16599,13 @@
         $('solHoras').value = sol.horas_totales != null ? sol.horas_totales : '';
         horasTocadas = Number($('solHoras').value) !== temarioSel.getHorasSugeridas();
         actualizarHorasHint();
-        $('solObjetivo').value = sol.objetivo || '';
+        $('solObjetivo').value = sol.temario_tipo === 'personalizado' ? (sol.objetivo || '') : '';
+        if(sol.temario_tipo === 'consultoria'){
+          $('solNombreProyecto').value = sol.temario_nombre || '';
+          $('solObjetivoC').value = sol.objetivo || '';
+          try { $('solEntregables').value = (JSON.parse(sol.consultoria_json || '{}').entregables || []).join('\n'); } catch(e){}
+          renderFases(); mostrarImagenC(); sincronizarHorasConsultoria();
+        }
         $('solNombrePrograma').value = sol.temario_tipo === 'personalizado' ? (sol.temario_nombre || '') : '';
         $('solDirigido').value = sol.dirigido_a || '';
 
@@ -17113,8 +17259,9 @@
       const cli = cotFClienteAuto.getSeleccionado();
       const her = document.getElementById('cotFHerramienta').value;
       const prog = document.getElementById('cotFPrograma').value;
+      const serv = document.getElementById('cotFServicio').value;
       return cotTodas.filter(c =>
-        (!cli || c.cliente_id === cli.id || c.cliente_final_id === cli.id) && (!her || c.herramienta === her) && (!prog || programaClaveCot(c) === prog));
+        (!cli || c.cliente_id === cli.id || c.cliente_final_id === cli.id) && (!her || c.herramienta === her) && (!prog || programaClaveCot(c) === prog) && (!serv || (serv === 'consultoria') === (c.temario_tipo === 'consultoria')));
     }
     const enTabCot = (c, tab) =>
       tab === 'activas' ? ESTATUS_ACTIVOS.includes(c.estatus) : tab === 'ganadas' ? c.estatus === 'Ganada' : tab === 'perdidas' ? c.estatus === 'Perdida' : true;
@@ -17144,7 +17291,7 @@
           </td>
           <td><span class="sol-tipo ${esProspecto ? 'prospecto' : ''}">${ICO_TIPO_COT[tipo]}${tipo}</span></td>
           <td>${TOOL_NAMES[c.herramienta] || escapeHtml(c.herramienta)}</td>
-          <td>${escapeHtml(programaClaveCot(c))}${(c.num_grupos || 1) > 1 ? `<div class="sol-hora">${c.num_grupos} grupos</div>` : ''}${altMarcaHtml(c) ? `<div class="sol-hora">${altMarcaHtml(c)}</div>` : ''}</td>
+          <td>${escapeHtml(programaClaveCot(c))}${(c.num_grupos || 1) > 1 ? `<div class="sol-hora">${c.num_grupos} grupos</div>` : ''}${altMarcaHtml(c) ? `<div class="sol-hora">${altMarcaHtml(c)}</div>` : ''}${consMarcaHtml(c) ? `<div class="sol-hora">${consMarcaHtml(c)}</div>` : ''}</td>
           <td><div class="radm-mono">${fmtMoney(c.precio_final)}</div>${vigenciaHtml(c)}</td>
           <td>
             <select class="cot-estatus-select" data-id="${c.id}" aria-label="Estatus de ${escapeHtml(c.folio)}">
@@ -17216,11 +17363,12 @@
       try { localStorage.setItem('admin-vista-cot-sub', cotEstatusActivo); } catch(e){}
       renderCotizaciones();
     });
-    ['cotFHerramienta', 'cotFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderCotizaciones));
+    ['cotFHerramienta', 'cotFServicio', 'cotFPrograma'].forEach(id => document.getElementById(id).addEventListener('change', renderCotizaciones));
     document.getElementById('cotLimpiarFiltros').addEventListener('click', () => {
       cotEstatusActivo = 'todas'; // subvista "Todo" de la Tabla
       try { localStorage.setItem('admin-vista-cot-sub', 'todas'); } catch(e){}
       document.getElementById('cotFHerramienta').value = '';
+      document.getElementById('cotFServicio').value = '';
       document.getElementById('cotFPrograma').value = '';
       cotFClienteAuto.reset();
       renderCotizaciones();
@@ -17259,6 +17407,8 @@
     }
     const sumaCot = l => l.reduce((a, c) => a + (cuentaEnPipeline(c) ? montoCot(c) : 0), 0);
     const cantCot = l => l.filter(cuentaEnPipeline).length;
+    const ICO_CONS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18" stroke-linecap="round"/></svg>';
+    const consMarcaHtml = c => c.temario_tipo === 'consultoria' ? `<span class="cot-ex cot-alt" title="Servicio de consultoría (por horas)">${ICO_CONS}Consultoría</span>` : '';
     const ICO_ALT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke-linecap="round"/></svg>';
     function altMarcaHtml(c){
       if(c.alternativa_grupo == null) return '';
@@ -17322,7 +17472,7 @@
           <div class="cot-emp">${escapeHtml(nombreClienteCot(c))}</div>
           <div class="cot-mon">${fmtMoney(c.precio_final)}</div>
           <div class="cot-prog">${escapeHtml(programa)}</div>
-          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${(c.num_grupos || 1) > 1 ? `<span class="cot-ex" title="Cotización de varios grupos: el monto es el total">${c.num_grupos} grupos</span>` : ''}${altMarcaHtml(c)}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
+          <div class="cot-dias">${diasEstatusHtml(c)}${extras}${(c.num_grupos || 1) > 1 ? `<span class="cot-ex" title="Cotización de varios grupos: el monto es el total">${c.num_grupos} grupos</span>` : ''}${consMarcaHtml(c)}${altMarcaHtml(c)}${viaCot(c) ? `<span class="cot-ex cot-via" title="Cotización emitida al intermediario">vía ${escapeHtml(viaCot(c))}</span>` : ''}${segMarcaHtml(c)}${vig ? `<span class="cot-ex ${c.vencida ? 'cot-vencida' : ''}">${escapeHtml(vig)}</span>` : ''}</div>
           <div class="cot-ctl">
             <button type="button" class="cot-cb" data-acc="menu" data-id="${c.id}" title="Acciones" aria-label="Acciones" aria-haspopup="menu" aria-expanded="${cotMenu === c.id}">${ICO_AJUSTES}</button>
             ${cotMenu === c.id ? menuCotHtml(c) : ''}
@@ -17529,10 +17679,10 @@
         document.getElementById('cotCierreTitulo').textContent = 'Cambio de estatus: ' + actual + ' → ' + k;
         document.getElementById('cotCierreSub').textContent =
           '• Cliente: ' + c.cliente + '\n• Programa: ' + (c.temario_nombre || 'Personalizado') + '\n• Monto: ' + fmtMoney(c.precio_final) + '\n• Folio: ' + c.folio + '\n\n' +
-          (perdida ? '¿Confirmas que se perdió? Dinos por qué.' : '¿Confirmas que se ganó? Puedes crear el grupo ahora con los datos de esta cotización.');
+          (perdida ? '¿Confirmas que se perdió? Dinos por qué.' : (c.temario_tipo === 'consultoria' ? '¿Confirmas que se ganó? Nacerá su cuenta por cobrar.' : '¿Confirmas que se ganó? Puedes crear el grupo ahora con los datos de esta cotización.'));
         document.getElementById('cotCierrePerdida').hidden = !perdida;
         document.getElementById('cotCierreSolo').hidden = perdida;
-        document.getElementById('cotCierreGrupo').hidden = perdida;
+        document.getElementById('cotCierreGrupo').hidden = perdida || c.temario_tipo === 'consultoria'; // una consultoría no tiene grupo que crear
         document.getElementById('cotCierrePerder').hidden = !perdida;
         const motivo = document.getElementById('cotMotivo');
         motivo.innerHTML = '<option value="">Selecciona el motivo…</option>' + MOTIVOS_PERDIDA.map(x => `<option value="${x}">${x}</option>`).join('');
@@ -17764,6 +17914,8 @@
       try { return JSON.parse(obj.temas_json || '[]'); } catch(e){ return []; }
     }
     function horasDe(datos){
+      const cons = consultoriaDeSol(datos);
+      if(cons) return Math.round(cons.fases.reduce((a, f) => a + (Number(f.horas) || 0), 0) * 10) / 10;
       const h = datos.horas_totales != null ? datos.horas_totales : datos.horas;
       return Number(h) || 0;
     }
@@ -17786,7 +17938,7 @@
           <tr data-id="${s.id}">
             <td>${escapeHtml(s.cliente)}</td>
             <td>${TOOL_NAMES[s.herramienta] || escapeHtml(s.herramienta)}</td>
-            <td>${escapeHtml(s.temario_nombre || (s.temario_tipo === 'personalizado' ? 'Personalizado' : '—'))}</td>
+            <td>${escapeHtml(s.temario_tipo === 'consultoria' ? 'Consultoría' + (s.temario_nombre ? ' · ' + s.temario_nombre : '') : (s.temario_nombre || (s.temario_tipo === 'personalizado' ? 'Personalizado' : '—')))}</td>
             <td class="radm-mono" style="text-align:right;">${s.horas_totales != null ? s.horas_totales : '—'}</td>
             <td>${fmtFecha(s.fecha_creacion)}</td>
             <td><span class="cot-badge ${s.estatus === 'Cotizada' ? 'sent' : 'draft'}">${escapeHtml(s.estatus)}</span></td>
@@ -17843,6 +17995,12 @@
     let cotActualizaIdActual = null; // Borrador que se edita en el lugar (mismo folio y link)
 
     function renderDetalleResumen(datos){
+      const cons = consultoriaDeSol(datos);
+      const consHtml = cons ? cons.fases.map((f, i) => `
+        <div class="sol-desglose-item">
+          <div class="sol-desglose-nombre">F${i + 1} · ${escapeHtml(f.nombre)}<span class="sol-desglose-horas">${f.horas} hr</span></div>
+          ${f.descripcion ? `<div class="sol-desglose-desc">${escapeHtml(f.descripcion)}</div>` : ''}
+        </div>`).join('') + ((cons.entregables || []).length ? '<div class="sol-desglose-item"><div class="sol-desglose-nombre">Entregables</div><div class="sol-desglose-desc">' + cons.entregables.map(x => '• ' + escapeHtml(x)).join('<br>') + '</div></div>' : '') : '';
       const temas = temasDeCot(datos);
       const temasHtml = temas.length ? temas.map(t => `
         <div class="sol-desglose-item">
@@ -17854,7 +18012,7 @@
           <div class="sol-desglose-nombre">${escapeHtml(t.nombre)}<span class="sol-desglose-horas">A tu medida</span></div>
           ${t.objetivo ? `<div class="sol-desglose-desc">${escapeHtml(t.objetivo)}</div>` : ''}
         </div>`).join('');
-      const temasTodos = temasHtml + customHtml || '<div class="radm-empty-row">Sin desglose disponible.</div>';
+      const temasTodos = consHtml || temasHtml + customHtml || '<div class="radm-empty-row">Sin desglose disponible.</div>';
 
       document.getElementById('cotDetalleResumen').innerHTML = `
         <div class="cot-detalle-head">
@@ -17876,7 +18034,7 @@
           <div><div class="cot-detalle-item-label">Participantes</div><div class="cot-detalle-item-value">${escapeHtml(datos.participantes || '—')}</div></div>
           <div><div class="cot-detalle-item-label">Modalidad</div><div class="cot-detalle-item-value">${escapeHtml(datos.modalidad || '—')}</div></div>
         </div>
-        <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || 'Programa personalizado')}</div>
+        <div class="cot-detalle-temas-title">${escapeHtml(datos.temario_nombre || (cons ? 'Proyecto de consultoría' : 'Programa personalizado'))}</div>
         <div class="sol-desglose">${temasTodos}</div>
       `;
       document.getElementById('cotDetalleEditarBtn').addEventListener('click', () => {
@@ -17892,24 +18050,25 @@
 
     function actualizarPrecioSugerido(){
       if(!cotSolicitudActual) return;
-      const herramienta = cotSolicitudActual.herramienta;
+      const esCons = esConsultoriaCot(cotSolicitudActual);
+      const herramienta = esCons ? 'consultoria' : cotSolicitudActual.herramienta; // la consultoría usa su propia tarifa
       const horas = horasDe(cotSolicitudActual);
       const calcEl = document.getElementById('cotPrecioCalc');
       if(!herramienta || !horas || !tarifasCache[herramienta]){
-        calcEl.textContent = 'No se pudo calcular el precio sugerido (falta la tarifa de esta herramienta en Configuración).';
+        calcEl.textContent = esCons ? 'No se pudo calcular el precio sugerido (falta la tarifa de consultoría o las horas de las fases).' : 'No se pudo calcular el precio sugerido (falta la tarifa de esta herramienta en Configuración).';
         return;
       }
       const precioHora = tarifasCache[herramienta];
-      const grupos = gruposDeForm();
+      const grupos = esCons ? 1 : gruposDeForm();
       const precioSugerido = horas * precioHora * grupos; // lista de TODOS los grupos
-      const descuentoSugerido = Math.max(GRUPOS_CHICOS.includes(cotSolicitudActual.participantes) ? 10 : 0, descuentoPorGruposCot(grupos));
+      const descuentoSugerido = esCons ? 0 : Math.max(GRUPOS_CHICOS.includes(cotSolicitudActual.participantes) ? 10 : 0, descuentoPorGruposCot(grupos));
       const descuentoInput = document.getElementById('cotDescuentoPct');
       if(!descuentoInput.dataset.tocado) descuentoInput.value = descuentoSugerido;
       const descuentoPct = Number(descuentoInput.value) || 0;
       const precioFinal = Math.round(precioSugerido * (1 - descuentoPct / 100) * 100) / 100;
       const precioFinalInput = document.getElementById('cotPrecioFinal');
       if(!precioFinalInput.dataset.tocado) precioFinalInput.value = precioFinal.toFixed(2);
-      calcEl.innerHTML = `${horas} hr × ${fmtMoney(precioHora)}/hr${grupos > 1 ? ' × ' + grupos + ' grupos' : ''} = <b>${fmtMoney(precioSugerido)}</b>` +
+      calcEl.innerHTML = `${horas} hr${esCons ? ' estimadas' : ''} × ${fmtMoney(precioHora)}/hr${esCons ? ' (consultoría)' : ''}${grupos > 1 ? ' × ' + grupos + ' grupos' : ''} = <b>${fmtMoney(precioSugerido)}</b>` +
         (grupos > 1 ? ` · ${fmtMoney(precioFinal / grupos)} por grupo` : '') +
         (descuentoPct ? ` · descuento ${descuentoPct}% → <b>${fmtMoney(precioFinal)}</b>` : '');
       actualizarPrecioFinalFmt();
@@ -17937,10 +18096,14 @@
       cotActualizaIdActual = opts.actualizaId || null;
       renderDetalleResumen(sol);
       document.getElementById('cotFechaVigencia').value = defaultFechaVigencia();
-      document.getElementById('cotNumGrupos').value = opts.numGrupos || 1;
+      document.getElementById('cotNumGrupos').value = sol.temario_tipo === 'consultoria' ? 1 : (opts.numGrupos || 1);
       // programa personalizado: el nombre se puede escribir o corregir aquí (viene de la solicitud o de la cotización que se edita)
-      document.getElementById('cotNombreProgramaRow').hidden = sol.temario_tipo !== 'personalizado';
-      document.getElementById('cotNombrePrograma').value = sol.temario_tipo === 'personalizado' ? (sol.temario_nombre || '') : '';
+      const esCons = esConsultoriaCot(sol);
+      document.getElementById('cotNombreProgramaRow').hidden = sol.temario_tipo === 'estandar';
+      document.querySelector('#cotNombreProgramaRow label').textContent = esCons ? 'NOMBRE DEL PROYECTO' : 'NOMBRE DEL PROGRAMA';
+      document.getElementById('cotNombrePrograma').value = sol.temario_tipo !== 'estandar' ? (sol.temario_nombre || '') : '';
+      // consultoría: un solo "grupo" y sin participantes (style.display: .radm-field fija su propio display y `hidden` perdería)
+      ['cotNumGrupos', 'cotParticipantesNum'].forEach(id => { document.getElementById(id).closest('.radm-field').style.display = esCons ? 'none' : ''; });
       document.getElementById('cotParticipantesNum').value = opts.participantesNum || '';
       const descuentoInput = document.getElementById('cotDescuentoPct');
       const precioInput = document.getElementById('cotPrecioFinal');
@@ -17972,9 +18135,16 @@
     // usa precargarTemarioEdit para el mismo problema con los temas.
     // Los proyectos elegidos de una personalizada viajan como foto {id, nombre, resumen}; los de un estándar los trae el servidor
     // temas a tu medida de una personalizada: viajan tal cual a la propuesta ({nombre, objetivo})
-    // estándar: el nombre de su programa; personalizado: el que se escribe en el formulario (vacío = "Programa personalizado")
+    // consultoría (servicio por horas): su contenido son las fases con horas, los entregables y una imagen de referencia
+    const esConsultoriaCot = s => s && s.temario_tipo === 'consultoria';
+    function consultoriaDeSol(sol){
+      if(!esConsultoriaCot(sol) || !sol.consultoria_json) return null;
+      try { const o = typeof sol.consultoria_json === 'string' ? JSON.parse(sol.consultoria_json) : sol.consultoria_json; return o && Array.isArray(o.fases) ? o : null; }
+      catch(e){ return null; }
+    }
+    // estándar: el nombre de su programa; personalizado / consultoría: el que se escribe en el formulario (vacío = título genérico)
     function nombreProgramaCot(sol){
-      if(sol.temario_tipo !== 'personalizado') return sol.temario_nombre;
+      if(sol.temario_tipo === 'estandar') return sol.temario_nombre;
       return document.getElementById('cotNombrePrograma').value.trim() || null;
     }
     function temasCustomDeSol(sol){
@@ -17990,6 +18160,7 @@
     async function resolverDirigidoObjetivo(sol){
       const vacio = { dirigido_a: null, objetivo: null };
       if(sol.temario_tipo === 'personalizado') return { dirigido_a: sol.dirigido_a || null, objetivo: sol.objetivo || null };
+      if(sol.temario_tipo === 'consultoria') return { dirigido_a: null, objetivo: sol.objetivo || null };
       if(sol.temario_tipo !== 'estandar' || !sol.temario_nombre) return vacio;
       try {
         const data = await window.TemarioSelector.cargarCatalogo(sol.herramienta);
@@ -18017,7 +18188,7 @@
         fecha_vigencia: document.getElementById('cotFechaVigencia').value || null,
         num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         descuento_pct: document.getElementById('cotDescuentoPct').value || null,
-        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol), consultoria: consultoriaDeSol(sol),
       };
       const btn = document.getElementById('cotVistaPrevia');
       btn.disabled = true; btn.textContent = 'Generando...';
@@ -18056,7 +18227,7 @@
         num_grupos: gruposDeForm(), participantes_num: document.getElementById('cotParticipantesNum').value || null,
         fecha_tentativa: sol.fecha_tentativa, ciudad_sede: sol.ciudad_sede,
         participantes: sol.participantes, modalidad: sol.modalidad,
-        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol),
+        dirigido_a, objetivo, proyectos: proyectosDeSol(sol), temas_custom: temasCustomDeSol(sol), consultoria: consultoriaDeSol(sol),
       };
 
       const btn = document.getElementById('cotCrear');
@@ -18099,7 +18270,7 @@
         temas_json: c.temas_json, horas_totales: c.horas,
         fecha_tentativa: c.fecha_tentativa, ciudad_sede: c.ciudad_sede,
         participantes: c.participantes, modalidad: c.modalidad,
-        objetivo: c.sol_objetivo, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json, temas_custom_json: c.sol_temas_custom_json,
+        objetivo: c.sol_objetivo, dirigido_a: c.sol_dirigido_a, proyectos_json: c.sol_proyectos_json, temas_custom_json: c.sol_temas_custom_json, consultoria_json: c.sol_consultoria_json,
       };
       const enElLugar = c.estatus === 'Borrador';
       abrirDetalleCotizar(datosComoSolicitud, {
@@ -18393,7 +18564,7 @@
       cont.innerHTML = tarifas.map(t => `
         <div class="cfg-tarifa-row" style="--tc:${TOOL_COLORS[t.herramienta] || 'var(--blue-bright)'}">
           <span class="cfg-tarifa-icon">${ICO_TAG}</span>
-          <span class="cfg-tarifa-nombre">${TOOL_NAMES[t.herramienta] || t.herramienta}</span>
+          <span class="cfg-tarifa-nombre">${t.herramienta === 'consultoria' ? 'Consultoría (por horas)' : (TOOL_NAMES[t.herramienta] || t.herramienta)}</span>
           <input type="number" min="0" step="50" class="cfg-tarifa-input" data-herramienta="${t.herramienta}" data-original="${t.precio_hora}" value="${t.precio_hora}">
           <button type="button" class="radm-btn radm-btn-ghost cfg-tarifa-btn" style="min-width:auto;" disabled>Actualizar</button>
         </div>

@@ -16,11 +16,12 @@
 //   - Objetivo/dirigido a solo existen en personalizado (el estándar los trae de su programa).
 const { sql } = require("./backoffice-db");
 const { normalizarTemasCustom } = require("./temas-custom");
+const { normalizarConsultoria } = require("./consultoria");
 const { limpiarCodigo } = require("./cliente-resolver");
 const { contarBloqueos } = require("./cliente-dependencias");
 const { HERRAMIENTAS } = require("./herramientas");
 
-const TEMARIO_TIPOS = ["estandar", "personalizado"];
+const TEMARIO_TIPOS = ["estandar", "personalizado", "consultoria"];
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
 
@@ -52,12 +53,15 @@ function normalizar(body) {
   const herramienta = String(body.herramienta || "").trim().toLowerCase();
   if (!HERRAMIENTAS.includes(herramienta)) throw falla(400, "Herramienta inválida.");
   const temarioTipo = String(body.temario_tipo || "").trim();
-  if (!TEMARIO_TIPOS.includes(temarioTipo)) throw falla(400, "El tipo de programa debe ser estándar o personalizado.");
+  if (!TEMARIO_TIPOS.includes(temarioTipo)) throw falla(400, "El tipo debe ser curso estándar, curso personalizado o consultoría.");
   const temarioNombre = String(body.temario_nombre || "").trim() || null;
   if (temarioTipo === "estandar" && !temarioNombre) throw falla(400, "Falta el programa.");
   const temas = Array.isArray(body.temas) ? body.temas : [];
   const temasCustom = temarioTipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [];
-  if (!temas.length && !temasCustom.length) throw falla(400, temarioTipo === "estandar" ? "Falta el desglose de temas." : "Selecciona al menos un tema o escribe uno a tu medida.");
+  // consultoría: no lleva temas; su contenido son las fases (con horas), los entregables y una imagen de referencia opcional
+  const consultoria = temarioTipo === "consultoria" ? normalizarConsultoria(body.consultoria) : null;
+  if (temarioTipo === "consultoria" && !consultoria) throw falla(400, "Agrega al menos una fase con nombre y horas.");
+  if (temarioTipo !== "consultoria" && !temas.length && !temasCustom.length) throw falla(400, temarioTipo === "estandar" ? "Falta el desglose de temas." : "Selecciona al menos un tema o escribe uno a tu medida.");
   const horas = Math.round(Number(body.horas_totales) * 10) / 10;
   if (!Number.isFinite(horas) || horas <= 0 || horas > 9999) throw falla(400, "Las horas no son válidas.");
 
@@ -72,7 +76,8 @@ function normalizar(body) {
   const notas = aplicarNotaParticipantes(String(body.notas || "").trim().slice(0, 4000), part.nota);
 
   const personalizado = temarioTipo === "personalizado";
-  const texto = (v) => (personalizado ? String(v || "").trim().slice(0, 4000) || null : null);
+  const conTexto = personalizado || temarioTipo === "consultoria"; // objetivo (y nombre) también los lleva la consultoría
+  const texto = (v) => (conTexto ? String(v || "").trim().slice(0, 4000) || null : null);
   // proyectos elegidos (solo personalizado; el estándar trae los de su programa): foto de id/nombre/resumen
   const proyectos = personalizado && Array.isArray(body.proyectos)
     ? body.proyectos.filter((p) => p && p.id).slice(0, 12).map((p) => ({ id: String(p.id), nombre: String(p.nombre || "").slice(0, 200), resumen: String(p.resumen || "").slice(0, 600) }))
@@ -112,9 +117,10 @@ function normalizar(body) {
 
   return {
     herramienta, temarioTipo, // el estándar lleva el nombre de su programa; la personalizada, el nombre que Alfredo le da (opcional)
-    temarioNombre: personalizado ? String(body.temario_nombre || "").trim().slice(0, 200) || null : temarioNombre, temas, horas, modalidad,
+    temarioNombre: conTexto ? String(body.temario_nombre || "").trim().slice(0, 200) || null : temarioNombre, temas, horas, modalidad,
     participantes: part.columna, notas, objetivo: texto(body.objetivo), dirigidoA: texto(body.dirigido_a), proyectosJson: proyectos.length ? JSON.stringify(proyectos) : null,
     temasCustomJson: temasCustom.length ? JSON.stringify(temasCustom) : null,
+    consultoriaJson: consultoria ? JSON.stringify(consultoria) : null,
     recibida, esCliente, clienteId, nombre, codigo, contactoId, contactoDatos,
   };
 }
@@ -202,16 +208,17 @@ async function crearSolicitudManual(nuevaRequest, body) {
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("temasCustomJson", sql.NVarChar, d.temasCustomJson)
+    .input("consultoriaJson", sql.NVarChar, d.consultoriaJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `INSERT INTO Solicitud
         (cliente_id, contacto_id, herramienta, temario_tipo, temario_nombre, temas_json, horas_totales, canal_origen, notas,
-         participantes, modalidad, objetivo, dirigido_a, proyectos_json, temas_custom_json, fecha_creacion, fecha_estatus, creo_prospecto)
+         participantes, modalidad, objetivo, dirigido_a, proyectos_json, temas_custom_json, consultoria_json, fecha_creacion, fecha_estatus, creo_prospecto)
        OUTPUT INSERTED.id
        VALUES
         (@clienteId, @contactoId, @herramienta, @temarioTipo, @temarioNombre, @temasJson, @horas, 'Manual', @notas,
-         @participantes, @modalidad, @objetivo, @dirigidoA, @proyectosJson, @temasCustomJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
+         @participantes, @modalidad, @objetivo, @dirigidoA, @proyectosJson, @temasCustomJson, @consultoriaJson, COALESCE(@recibida, SYSUTCDATETIME()), COALESCE(@recibida, SYSUTCDATETIME()), @creoProspecto)`
     );
   return { id: ins.recordset[0].id, cliente: { id: cliente.id, nombre: cliente.nombre, codigo: cliente.codigo } };
 }
@@ -272,13 +279,14 @@ async function editarSolicitudManual(nuevaRequest, id, body) {
     .input("dirigidoA", sql.NVarChar, d.dirigidoA)
     .input("proyectosJson", sql.NVarChar, d.proyectosJson)
     .input("temasCustomJson", sql.NVarChar, d.temasCustomJson)
+    .input("consultoriaJson", sql.NVarChar, d.consultoriaJson)
     .input("recibida", sql.DateTime2, d.recibida)
     .input("creoProspecto", sql.Bit, creoProspecto)
     .query(
       `UPDATE Solicitud SET
          cliente_id = @clienteId, contacto_id = @contactoId, herramienta = @herramienta, temario_tipo = @temarioTipo,
          temario_nombre = @temarioNombre, temas_json = @temasJson, horas_totales = @horas, notas = @notas,
-         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson, temas_custom_json = @temasCustomJson,
+         participantes = @participantes, modalidad = @modalidad, objetivo = @objetivo, dirigido_a = @dirigidoA, proyectos_json = @proyectosJson, temas_custom_json = @temasCustomJson, consultoria_json = @consultoriaJson,
          creo_prospecto = @creoProspecto,
          fecha_estatus = CASE WHEN @recibida IS NOT NULL AND estatus = 'Nueva' THEN @recibida ELSE fecha_estatus END,
          fecha_creacion = COALESCE(@recibida, fecha_creacion)

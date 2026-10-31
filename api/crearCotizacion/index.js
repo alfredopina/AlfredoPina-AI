@@ -18,12 +18,13 @@ const { codigoCortoUnico } = require("../src/codigo-corto");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { normalizarTemasCustom } = require("../src/temas-custom");
 const { parseTelefonoWa } = require("../src/telefono-wa");
+const { normalizarConsultoria, horasDeFases } = require("../src/consultoria");
 const { normalizarGrupos, descuentoSugerido, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { folioNuevo, maxConsecutivo } = require("../src/cotizacion-folio");
 const { HERRAMIENTAS } = require("../src/herramientas");
 const { JSON_HEADERS } = require("../src/http");
 
-const TEMARIO_TIPOS = ["estandar", "personalizado"];
+const TEMARIO_TIPOS = ["estandar", "personalizado", "consultoria"];
 const MODALIDADES = ["Online", "Presencial", "Híbrido"];
 const PARTICIPANTES_OPCIONES = ["Solo yo", "5 a 10", "10 a 15", "Más de 15"];
 
@@ -47,13 +48,15 @@ module.exports = async function (context, req) {
   const temarioTipo = (body.temario_tipo || "").trim();
   const temarioNombre = (body.temario_nombre || "").trim() || null;
   const temas = Array.isArray(body.temas) ? body.temas : [];
-  const horas = Number(body.horas_totales);
+  // consultoría: el contenido son las fases (con horas); las horas de la cotización son SU suma (no se escriben aparte)
+  const consultoria = temarioTipo === "consultoria" ? normalizarConsultoria(body.consultoria) : null;
+  const horas = consultoria ? horasDeFases(consultoria.fases) : Number(body.horas_totales);
   const fechaTentativa = (body.fecha_tentativa || "").trim() || null;
   const ciudadSede = (body.ciudad_sede || "").trim() || null;
-  const participantes = (body.participantes || "").trim() || null;
+  const participantes = temarioTipo === "consultoria" ? null : (body.participantes || "").trim() || null;
   const modalidad = (body.modalidad || "").trim() || null;
-  const numGrupos = normalizarGrupos(body.num_grupos);
-  const participantesNum = normalizarParticipantesNum(body.participantes_num);
+  const numGrupos = temarioTipo === "consultoria" ? 1 : normalizarGrupos(body.num_grupos);
+  const participantesNum = temarioTipo === "consultoria" ? null : normalizarParticipantesNum(body.participantes_num);
   const descuentoPctBody = body.descuento_pct != null && body.descuento_pct !== "" ? Number(body.descuento_pct) : null;
   const precioFinalBody = body.precio_final != null && body.precio_final !== "" ? Number(body.precio_final) : null;
   const fechaVigenciaBody = (body.fecha_vigencia || "").trim();
@@ -69,10 +72,14 @@ module.exports = async function (context, req) {
     return;
   }
   if (!TEMARIO_TIPOS.includes(temarioTipo)) {
-    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El tipo de programa debe ser estándar o personalizado." } };
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "El tipo debe ser curso estándar, curso personalizado o consultoría." } };
     return;
   }
-  if (!temas.length && !temasCustom.length) {
+  if (temarioTipo === "consultoria" && !consultoria) {
+    context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el desglose de fases (cada una con nombre y horas)." } };
+    return;
+  }
+  if (temarioTipo !== "consultoria" && !temas.length && !temasCustom.length) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Falta el desglose de temas." } };
     return;
   }
@@ -121,8 +128,8 @@ module.exports = async function (context, req) {
 
   let precioHora;
   try {
-    const r = await pool.request().input("herramienta", sql.NVarChar, herramienta).query("SELECT precio_hora FROM TarifaHerramienta WHERE herramienta = @herramienta");
-    if (!r.recordset.length) throw new Error("Esa herramienta no tiene tarifa configurada todavía.");
+    const r = await pool.request().input("herramienta", sql.NVarChar, consultoria ? "consultoria" : herramienta).query("SELECT precio_hora FROM TarifaHerramienta WHERE herramienta = @herramienta");
+    if (!r.recordset.length) throw new Error(consultoria ? "La consultoría no tiene tarifa configurada todavía (Configuración → Tarifas)." : "Esa herramienta no tiene tarifa configurada todavía.");
     precioHora = Number(r.recordset[0].precio_hora);
   } catch (err) {
     context.log.error("Error leyendo la tarifa:", err.message);
@@ -169,7 +176,7 @@ module.exports = async function (context, req) {
   let codigoPropuesta;
   const tablaPropuestas = getPropuestasTable();
   try {
-    const proyectos = temarioTipo === "estandar" ? await proyectosParaPropuesta(herramienta, temarioNombre) : await proyectosPorIds(herramienta, proyectosElegidos);
+    const proyectos = consultoria ? [] : temarioTipo === "estandar" ? await proyectosParaPropuesta(herramienta, temarioNombre) : await proyectosPorIds(herramienta, proyectosElegidos);
     // al editar un Borrador se conserva su link; si era una cotización vieja (PDF) se le crea código
     codigoPropuesta = existente ? codigoDePropuesta(existente.blob_path) : null;
     if (!codigoPropuesta) {
@@ -185,8 +192,9 @@ module.exports = async function (context, req) {
       intermediario: interm ? { nombre: interm.nombre, logoUrl: logoOk ? "/api/getLogoIntermediario?cliente=" + interm.id : null } : null,
       contacto: contactoNombre,
       herramienta,
-      programa: temarioNombre || "Programa personalizado",
+      programa: temarioNombre || (consultoria ? "Proyecto de consultoría" : "Programa personalizado"),
       contactoWa,
+      consultoria,
       temas,
       temasCustom,
       horas,

@@ -24,6 +24,15 @@ const TERMINOS = [
   "Cotización realizada como persona física con actividad empresarial: monto antes de impuestos, aplican IVA e ISR y retenciones conforme a la ley.",
 ];
 
+// Consultoría (servicio por horas): precio cerrado sobre las horas estimadas de las fases.
+const TERMINOS_CONSULTORIA = [
+  "El precio se calcula sobre las horas estimadas de cada fase y es cerrado para el alcance descrito en las fases y entregables.",
+  "Si el alcance cambia durante el proyecto, el precio se ajusta de común acuerdo antes de ejecutar el cambio.",
+  "Las sesiones de trabajo y revisión se realizan en línea (Google Meet, Zoom o Teams) o en sitio, según se acuerde.",
+  "El cliente proporciona a tiempo los accesos, datos e información necesarios; los retrasos de su parte pueden mover las fechas.",
+  "Cotización realizada como persona física con actividad empresarial: monto antes de impuestos, aplican IVA e ISR y retenciones conforme a la ley.",
+];
+
 const TOOL_LABELS = {
   excel: "Excel", powerbi: "Power BI", powerapps: "Power Apps",
   powerautomate: "Power Automate", ia: "IA Aplicada", ofimatica: "Microsoft 365",
@@ -108,7 +117,15 @@ function armarSnapshot(d) {
     nivelTxt = min === max ? NIVEL_LABEL[min] : `${NIVEL_LABEL[min]} a ${NIVEL_LABEL[max]}`;
   }
 
-  const grupos = Math.max(1, Math.round(Number(d.grupos)) || 1);
+  // consultoría: fases con horas + entregables (+ imagen de referencia); no lleva temas, participantes, grupos ni adicionales
+  const consultoria = d.consultoria && Array.isArray(d.consultoria.fases) && d.consultoria.fases.length
+    ? {
+        fases: d.consultoria.fases.map((f) => ({ n: String(f.nombre || f.n || "").trim(), d: String(f.descripcion || f.d || "").trim(), h: Number(f.horas != null ? f.horas : f.h) || 0 })).filter((f) => f.n),
+        entregables: (d.consultoria.entregables || []).map((x) => String(x).trim()).filter(Boolean),
+        imagen: d.consultoria.imagen || null,
+      }
+    : null;
+  const grupos = consultoria ? 1 : Math.max(1, Math.round(Number(d.grupos)) || 1);
   const sugerido = redondea2(Number(d.precioSugerido) || 0);
   const total = redondea2(Number(d.precioFinal) || 0);
   // descuento efectivo (el precio final se puede editar a mano sin pasar por el %)
@@ -139,7 +156,10 @@ function armarSnapshot(d) {
     // temas a medida (solo personalizada): se muestran con la etiqueta "A tu medida" después de los del catálogo
     temasCustom: (d.temasCustom || []).map((t) => ({ n: String(t.nombre || t.n || "").trim(), o: String(t.objetivo || t.o || "").trim() })).filter((t) => t.n),
     proyectos: (d.proyectos || []).map((p) => ({ n: p.nombre, r: p.resumen || "", img: p.imagenUrl || null, big: p.imagenGrandeUrl || null, o: p.objetivo || "" })),
-    adicionales: adicionalesPara(d.herramienta),
+    // servicio: "consultoria" (por horas, con fases) o "capacitacion" (cursos); las propuestas viejas no traen el campo = capacitación
+    servicio: consultoria ? "consultoria" : "capacitacion",
+    consultoria,
+    adicionales: consultoria ? [] : adicionalesPara(d.herramienta),
     manual: Boolean(d.precioManual),
     tarifaHora: Number(d.tarifaHora) || 0,
     // varios grupos: `sugerido` y `total` son de TODOS los grupos; por grupo = entre N. El descuento solo vale con una OC por el total
@@ -152,7 +172,9 @@ function armarSnapshot(d) {
     descuentoPct,
     emitida: iso(d.emitida),
     vigencia: iso(d.vigencia).slice(0, 10), // solo la fecha (YYYY-MM-DD): evita que la zona horaria la corra un día
-    terminos: grupos > 1
+    terminos: consultoria
+      ? TERMINOS_CONSULTORIA
+      : grupos > 1
       ? [...TERMINOS,
           ...(descuentoPct > 0 ? [`El descuento de esta propuesta aplica con una orden de compra (OC) por el total de los ${grupos} grupos; si se contratan o imparten menos grupos, el precio se ajusta a la tarifa que corresponda.`] : []),
           `Los ${grupos} grupos deben agendarse dentro de los 6 meses siguientes a la aceptación de la propuesta.`]

@@ -121,6 +121,20 @@ const prospecto = {
   assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.temasCustomJson, null, "el estándar no guarda temas a tu medida");
   await assert.rejects(() => g.crearSolicitudManual(fabrica(() => []).nuevaRequest, { ...base, temario_tipo: "personalizado", temas: [], es_cliente: true, empresa: { clienteId: 20 }, temas_custom: [] }), /al menos un tema/, "personalizada sin ningún tema se rechaza");
 
+  // ── crear: consultoría (fases + entregables; sin temas) ──
+  const fasesC = [{ nombre: "Levantamiento", horas: 6 }, { nombre: "Tablero", descripcion: "x", horas: 10 }];
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 107 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, temario_tipo: "consultoria", temas: [], es_cliente: true, empresa: { clienteId: 20 }, temario_nombre: " Tablero de ventas ", objetivo: " Ver ventas al día ", horas_totales: 16, consultoria: { fases: fasesC, entregables: "- Tablero\n- Manual" } });
+  const pc = f.hubo("INSERT INTO Solicitud")[0].params;
+  assert.deepStrictEqual(JSON.parse(pc.consultoriaJson).fases.map((x) => x.horas), [6, 10]);
+  assert.deepStrictEqual(JSON.parse(pc.consultoriaJson).entregables, ["Tablero", "Manual"]);
+  assert.strictEqual(pc.temarioNombre, "Tablero de ventas", "el nombre del proyecto es el título");
+  assert.strictEqual(pc.objetivo, "Ver ventas al día", "la consultoría también lleva objetivo");
+  f = fabrica((t) => (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente") ? [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }] : t.startsWith("INSERT INTO Solicitud") ? [{ id: 108 }] : []));
+  await g.crearSolicitudManual(f.nuevaRequest, { ...base, es_cliente: true, empresa: { clienteId: 20 }, consultoria: { fases: fasesC } });
+  assert.strictEqual(f.hubo("INSERT INTO Solicitud")[0].params.consultoriaJson, null, "el estándar no guarda consultoría");
+  await assert.rejects(() => g.crearSolicitudManual(fabrica(() => []).nuevaRequest, { ...base, temario_tipo: "consultoria", temas: [], es_cliente: true, empresa: { clienteId: 20 }, horas_totales: 5, consultoria: { fases: [] } }), /al menos una fase/, "consultoría sin fases se rechaza");
+
   // ── crear: contacto de otro cliente se rechaza ──
   f = fabrica((t) => {
     if (t.startsWith("SELECT id, nombre, codigo, tipo_cliente FROM Cliente")) return [{ id: 20, nombre: "Beta", codigo: "BET", tipo_cliente: "Directo" }];

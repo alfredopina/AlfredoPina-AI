@@ -8,6 +8,7 @@ const { armarSnapshot, esPrecioManual } = require("../src/propuestas");
 const { existeLogoIntermediario } = require("../src/intermediarios-storage");
 const { normalizarTemasCustom } = require("../src/temas-custom");
 const { parseTelefonoWa } = require("../src/telefono-wa");
+const { normalizarConsultoria, horasDeFases } = require("../src/consultoria");
 const { normalizarGrupos, normalizarParticipantesNum } = require("../src/cotizacion-grupos");
 const { JSON_HEADERS } = require("../src/http");
 
@@ -16,12 +17,13 @@ module.exports = async function (context, req) {
   const clienteNombre = (body.cliente_nombre || "").trim();
   const herramienta = (body.herramienta || "").trim().toLowerCase();
   const temas = Array.isArray(body.temas) ? body.temas : [];
-  const horas = Number(body.horas_totales);
+  const consultoria = body.temario_tipo === "consultoria" ? normalizarConsultoria(body.consultoria) : null;
+  const horas = consultoria ? horasDeFases(consultoria.fases) : Number(body.horas_totales);
   const precioFinal = Number(body.precio_final);
   const tarifaHora = Number(body.tarifa_hora);
-  const numGrupos = normalizarGrupos(body.num_grupos);
+  const numGrupos = consultoria ? 1 : normalizarGrupos(body.num_grupos);
 
-  if (!clienteNombre || !herramienta || (!temas.length && !(body.temario_tipo === "personalizado" && normalizarTemasCustom(body.temas_custom).length)) || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
+  if (!clienteNombre || !herramienta || (!consultoria && !temas.length && !(body.temario_tipo === "personalizado" && normalizarTemasCustom(body.temas_custom).length)) || !Number.isFinite(horas) || !Number.isFinite(precioFinal)) {
     context.res = { status: 400, headers: JSON_HEADERS, body: { error: "Faltan datos para generar la vista previa." } };
     return;
   }
@@ -35,8 +37,8 @@ module.exports = async function (context, req) {
       const logoOk = body.intermediario_mostrar_logo ? await existeLogoIntermediario(intermId).catch(() => false) : false;
       intermediario = { nombre: clienteNombre, logoUrl: logoOk ? "/api/getLogoIntermediario?cliente=" + intermId : null };
     }
-    const estandar = body.temario_tipo !== "personalizado" && (body.temario_nombre || "").trim();
-    const proyectos = estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : await proyectosPorIds(herramienta, body.proyectos);
+    const estandar = body.temario_tipo === "estandar" && (body.temario_nombre || "").trim();
+    const proyectos = consultoria ? [] : estandar ? await proyectosParaPropuesta(herramienta, body.temario_nombre) : await proyectosPorIds(herramienta, body.proyectos);
     const precioSugerido = Number.isFinite(tarifaHora) && tarifaHora > 0 ? Math.round(horas * tarifaHora * numGrupos * 100) / 100 : precioFinal;
     const snapshot = armarSnapshot({
       folio: "VISTA PREVIA",
@@ -45,8 +47,9 @@ module.exports = async function (context, req) {
       intermediario,
       contacto: (body.contacto_nombre || "").trim() || null,
       herramienta,
-      programa: (body.temario_nombre || "").trim() || "Programa personalizado",
+      programa: (body.temario_nombre || "").trim() || (consultoria ? "Proyecto de consultoría" : "Programa personalizado"),
       contactoWa: intermediario ? (parseTelefonoWa(body.contacto_wa).wa || null) : null,
+      consultoria,
       temas,
       temasCustom: body.temario_tipo === "personalizado" ? normalizarTemasCustom(body.temas_custom) : [],
       horas,

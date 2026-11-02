@@ -138,3 +138,5 @@ El banderín no gustó y hacía el panel más alto. **La meta ahora es el diseñ
 ### Sexta ronda del 2026-11-02 (manda sobre lo anterior)
 
 Se **quitó la etiqueta de meta a la derecha** de la pista (era redundante: el subtítulo de la barra, «▲ prom. 12 m $10,167» / «▼ meta $250,000», ya dice la meta); la muesca blanca se queda. El **subtítulo es más visible** (14 px, texto en tono principal y triángulo de 18 px). El **ícono de Facturado es un banco** (columnas bajo un frontón), distinto al de Cotizado y al de Cobrado.
+
+El chip de variación **«desde cero»** (cuando el periodo contra el que se compara valía cero) va ahora en **azul**, neutral como «sin datos»: no hay un porcentaje que celebrar. Los demás chips no cambian (verde-azulado = va bien, ámbar = va mal, azul = igual o sin base).

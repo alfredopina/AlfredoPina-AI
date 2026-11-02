@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM, VirtualConsole } = require(process.env.JSDOM_DIR ? path.join(process.env.JSDOM_DIR, 'node_modules', 'jsdom') : 'jsdom');
 const { calcularDinero } = require('../api/src/dashboard-dinero');
+const { calcularLecturas } = require('../api/src/dashboard-lecturas');
 const HTML = fs.readFileSync(path.join(__dirname, '..', 'admin', 'index.html'), 'utf8');
 
 const ms = (s) => Date.parse(s + 'T06:00:00Z');
@@ -41,6 +42,8 @@ function fetchFalso(url) {
     if (fallarResumen) return respuesta({ error: 'Error de prueba' }, fallarResumen);
     const p = new URL(u, 'https://x.test').searchParams;
     const r = calcularDinero(DATOS, { mes: p.get('mes') || '', estrategia: p.get('estrategia') || '', tipoCliente: p.get('tipoCliente') || '', herramienta: p.get('herramienta') || '' }, { ahora: AHORA, metas: METAS });
+    const l = calcularLecturas(DATOS, r, { ahora: AHORA, umbrales: { cotizacionesSeguimientoDias: 6, cotizacionesDias: 10, solicitudesSeguimientoHoras: 24, solicitudesHoras: 72, cobranzaPorVencerDias: 7 } });
+    r.lecturas = l.principales; r.lecturasOtras = l.otras;
     r.meta.generado = '2026-10-28T16:42:00.000Z';
     return respuesta(r);
   }
@@ -121,10 +124,10 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   check('Cotizado: 3 de $10,500 etiquetas dentro de la barra (tooltip con el tipo y cuántas cotizaciones)', /Estándar/.test(q('.rs-fila[data-k="cot"] .rs-track .sg').dataset.tip) && /2 cotizaciones/.test(q('.rs-fila[data-k="cot"] .rs-track .sg').dataset.tip), q('.rs-fila[data-k="cot"] .rs-track .sg').dataset.tip);
   check('puntos de la línea con mes y monto para el tooltip', qa('.rs-fila[data-k="cot"] .hit').length >= 3 && qa('.rs-fila[data-k="cot"] .hit').every((h) => /\|/.test(h.dataset.tip)) && /al día 28/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.tip));
   check('la variación trae porcentaje y monto («vs sep»); Solicitudes lo da en cantidad', /vs sep/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /[+−]\$/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /solicitud/.test(txt(q('.rs-fila[data-k="sol"] .rs-dl'))), txt(q('.rs-fila[data-k="sol"] .rs-vc')));
-  check('tres lecturas, una por etapa (Cotizado, Facturado, Cobrado), con ícono + palabra y un botón al Tracking', qa('.rs-in').length === 3 && qa('.rs-in').map((i) => txt(i.querySelector('.tg')).split('·')[1].trim()).join('|') === 'COTIZADO|FACTURADO|COBRADO' && qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')));
-  check('la lectura de Cotizado avisa de la solicitud sin atender', /1 solicitud sin atender/.test(txt(qa('.rs-in')[0])), txt(qa('.rs-in')[0]));
-  check('la lectura de Facturado usa las cifras de las barras: $400 facturado, $6,000 de lo vendido sin factura (100 %) y nada vencido (el vencido de la leyenda es $0)', /Facturado \$400/.test(txt(qa('.rs-in')[1])) && /\$6,000 de lo vendido \(100 %\) sigue sin factura/.test(txt(qa('.rs-in')[1])) && /Nada de lo facturado ha vencido/.test(txt(qa('.rs-in')[1])) && !/toda la cartera/.test(txt(qa('.rs-in')[1])), txt(qa('.rs-in')[1]));
-  check('las cifras de las lecturas coinciden con las de las barras (Facturado, Por facturar y Cobrado)', /\$400/.test(txt(q('.rs-fila[data-k="fac"] .vv'))) && /Por facturar \$6,000/.test(txt(q('.rs-fila[data-k="gan"] .rs-lg'))) && /Cobraste \$1,500/.test(txt(qa('.rs-in')[2])) && /\$1,500/.test(txt(q('.rs-fila[data-k="cob"] .vv'))));
+  check('tres lecturas elegidas por el servidor, cada una con ícono + palabra + la etapa, y un botón al Tracking donde se atiende', qa('.rs-in').length === 3 && qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && /COTIZADO|VENDIDO|FACTURADO|COBRADO|SOLICITUDES/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')), qa('.rs-in .tg').map((e) => txt(e)).join(' | '));
+  check('la primera lectura es la más urgente (ATENCIÓN) y las negritas se pintan como negritas, sin asteriscos visibles', /ATENCIÓN/.test(txt(qa('.rs-in')[0].querySelector('.tg'))) && qa('.rs-in b').length >= 3 && !/\*\*/.test(txt(q('#rsCuerpo'))), txt(qa('.rs-in')[0]));
+  check('las lecturas citan nombres y cifras: lista de clientes bajo la lectura, con su monto', qa('.rs-in ul li').length >= 1 && qa('.rs-in').some((i) => /vencidos/.test(txt(i)) && /\$1,500/.test(txt(i))), qa('.rs-in').map((i) => txt(i).slice(0, 80)).join(' || '));
+  check('lo que dicen las lecturas es lo que eligió el servidor (mismas lecturas y mismo orden que en la respuesta)', JSON.stringify(qa('.rs-in').map((i) => txt(i.querySelector('.tg')).split('·')[1].trim())) === JSON.stringify(w.__resumenDashboardEstado().ultimo.lecturas.map((l) => l.etapa)));
   check('el encabezado de columnas dice contra qué se compara', /VARIACIÓN vs SEP/.test(txt(q('.rs-cab'))), txt(q('.rs-cab')));
   volcar('dashboard-resumen');
 
@@ -133,7 +136,7 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   q('#rsActualizar').click(); await pausa(300);
   check('la meta propia reemplaza al promedio y lo dice («meta $20,000»); Facturado usa la meta de Ganado ($5,000); Cobrado sigue con su promedio', /meta \$20,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /bajo su meta/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /meta \$5,000/.test(txt(q('.rs-fila[data-k="gan"] .rs-est'))) && /meta \$5,000/.test(txt(q('.rs-fila[data-k="fac"] .rs-est'))) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="cob"] .rs-est'))), txt(q('.rs-fila[data-k="fac"] .rs-est')));
   check('la barra y su marca de meta guardan proporción: Solicitudes 3 de 10 (30 %) y Cotizado $10,500 de $20,000 (52 %)', Math.abs(ancho('.rs-fila[data-k="sol"] .rs-track .fill') / parseFloat(q('.rs-fila[data-k="sol"] .rs-track .meta').style.left) - 0.3) < 0.02 && Math.abs(ancho('.rs-fila[data-k="cot"] .rs-track .fill') / parseFloat(q('.rs-fila[data-k="cot"] .rs-track .meta').style.left) - 0.525) < 0.02, ancho('.rs-fila[data-k="sol"] .rs-track .fill') + '/' + q('.rs-fila[data-k="sol"] .rs-track .meta').style.left);
-  check('la meta de Solicitudes es una cantidad («meta 10») y la lectura de Cotizado dice «llegar a tu meta»', /meta 10/.test(txt(q('.rs-fila[data-k="sol"] .rs-est'))) && /para llegar a tu meta/.test(txt(qa('.rs-in')[0])), txt(q('.rs-fila[data-k="sol"] .rs-est')));
+  check('la meta de Solicitudes es una cantidad («meta 10») y las reglas de lecturas usan la meta propia («tu meta de $20,000»)', /meta 10/.test(txt(q('.rs-fila[data-k="sol"] .rs-est'))) && [...w.__resumenDashboardEstado().ultimo.lecturas, ...w.__resumenDashboardEstado().ultimo.lecturasOtras].some((l) => l.id === 'proyeccion-cotizado' && l.texto.includes('tu meta de **$20,000')), txt(q('.rs-fila[data-k="sol"] .rs-est')));
   METAS = {};
   q('#rsActualizar').click(); await pausa(300);
 

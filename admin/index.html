@@ -437,6 +437,8 @@
   .rs-in.info .tg{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .rs-in button{ margin-top:auto; align-self:flex-start; padding:0; border:none; background-color:transparent; font-family:var(--mono); font-size:11px; color:var(--blue-bright); cursor:pointer; }
   .rs-in button:hover{ text-decoration:underline; }
+  .rs-in ul{ margin:2px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:4px; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .rs-in li{ border-left:2px solid var(--line); padding-left:9px; line-height:1.45; }
   .rs-nota{ margin-top:10px; font-size:11.5px; color:var(--text-faint); display:flex; gap:7px; line-height:1.5; }
   .rs-nota svg{ width:14px; height:14px; flex:none; margin-top:2px; }
   .rs-nota[hidden]{ display:none; }
@@ -8785,48 +8787,11 @@
         '<div class="rs-vc"><span class="rs-d ' + c.k + '">' + ICO[c.ic] + esc(c.t) + '</span><span class="rs-dl">' + esc(c.dl) + '</span></div></div>';
     }
 
-    // ── tres lecturas, una por etapa (Cotizado · Facturado · Cobrado): reglas fijas, sin IA, que se recalculan con los filtros ──
+    // ── las lecturas las elige el SERVIDOR (api/src/dashboard-lecturas.js: una biblioteca de reglas que se evalúan todas y deja las 3 de mayor peso, a lo
+    // más 2 por etapa), así cambian con la situación del negocio; aquí solo se pintan: **negritas** como marca, nombres como lista y botón al Tracking ──
+    const negritas = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
     function lecturas(r){
-      const F = r.filas, D = r.desglose, m = r.meta;
-      const L = [];
-      // Cotizado
-      const fc = F.cot, mc = fc.meta, dm = fc.cur - (mc || 0), propia = fc.metaOrigen === 'propia';
-      const contra = propia ? 'tu meta de ' : 'tu promedio de 12 meses de ';
-      let t1, x1;
-      if(m.todo){ t1 = 'info'; x1 = '<b>Cotizado acumulado ' + esc(dinero(fc.cur)) + ':</b> elige un mes para compararlo contra tu meta.'; }
-      else if(mc == null){ t1 = 'info'; x1 = '<b>Cotizado ' + esc(dinero(fc.cur)) + ':</b> aún no hay meta; escríbela en Configuración → Metas o espera 3 meses de historia. Tu foco es aumentarlo.'; }
-      else if(dm >= 0){ t1 = 'bien'; x1 = '<b>Cotizado sobre tu meta:</b> ' + esc(dinero(fc.cur)) + ' contra ' + contra + esc(dinero(mc)) + (mc > 0 ? ' (<b>+' + pc(dm / mc) + ' %</b>)' : '') + '. Vas en la dirección de tu foco.'; }
-      else { t1 = 'alerta'; x1 = '<b>Cotizado bajo tu meta:</b> ' + esc(dinero(fc.cur)) + ', te faltan <b>' + esc(dinero(-dm)) + '</b> para ' + (propia ? 'llegar a tu meta' : 'igualar tu promedio de 12 meses') + '. Sin cotizaciones hoy no hay ventas en 3 a 6 semanas.'; }
-      if(D.sol.sin > 0){
-        if(t1 === 'bien') t1 = 'alerta';
-        x1 += ' Tienes <b>' + num(D.sol.sin) + (D.sol.sin === 1 ? ' solicitud sin atender' : ' solicitudes sin atender') + '</b>: cotízalas primero.';
-      } else if(fc.cur > 0){
-        const tipos = [['estandar', 'de curso estándar', 'de cursos estándar'], ['personalizado', 'de curso personalizado', 'de cursos personalizados'], ['consultoria', 'de consultoría', 'de consultoría']]
-          .filter(([k]) => D.cot[k].n > 0).map(([k, uno, varios]) => D.cot[k].n + ' ' + (D.cot[k].n === 1 ? uno : varios));
-        const n = D.cot.estandar.n + D.cot.personalizado.n + D.cot.consultoria.n;
-        x1 += ' Son <b>' + n + (n === 1 ? ' cotización' : ' cotizaciones') + '</b>: ' + tipos.join(', ') + '.';
-      }
-      L.push({ t: t1, e: 'COTIZADO', x: x1, a: 'Cotizaciones →', panel: 'tracking-comercial' });
-      // Facturado: con las MISMAS cifras de las barras (lo vendido y lo facturado del periodo; no la cartera completa, que ya no se muestra)
-      const ff = F.fac, pf = D.gan.porFacturar, ven = D.fac.vencido, vendido = F.gan.cur, vp = ff.cur > 0 ? ven / ff.cur : 0;
-      const t2 = ven > 0 && vp >= 0.2 ? 'urg' : (pf > 0 || ven > 0 ? 'alerta' : 'bien'), p2 = [];
-      if(ff.meta != null && !m.todo) p2.push('<b>Facturado ' + esc(dinero(ff.cur)) + ':</b> ' + (ff.cur >= ff.meta ? 'sobre' : 'bajo') + ' ' + (ff.metaOrigen === 'propia' ? 'la meta' : 'el promedio de 12 meses') + ' de ' + esc(dinero(ff.meta)) + '.');
-      else p2.push('<b>Facturado ' + esc(dinero(ff.cur)) + '.</b>');
-      if(pf > 0) p2.push('<b>' + esc(dinero(pf)) + '</b> de lo vendido' + (vendido > 0 ? ' (' + pc(pf / vendido) + ' %)' : '') + ' sigue sin factura: es lo más rápido de convertir en efectivo, factúralo primero.');
-      if(ven > 0) p2.push('<b>' + esc(dinero(ven)) + '</b> de lo facturado (' + pc(vp) + ' %) ya venció: es el dinero que más urge perseguir.');
-      else if(ff.cur > 0) p2.push('Nada de lo facturado ha vencido.');
-      if(!(pf > 0) && !(ven > 0) && vendido > 0) p2.push('Todo lo vendido tiene su factura.');
-      L.push({ t: t2, e: 'FACTURADO', x: p2.join(' '), a: 'Cobranza →', panel: 'cobranza' });
-      // Cobrado
-      const fb = F.cob, dif = fb.cur - F.fac.cur;
-      let x3 = '<b>Cobraste ' + esc(dinero(fb.cur)) + '</b>';
-      if(D.cob && fb.cur > 0) x3 += ', ' + Math.round(D.cob.anteriores / fb.cur * 100) + ' % de facturas de meses anteriores';
-      x3 += '. ';
-      const bajoMeta = fb.meta != null && !m.todo && fb.cur < fb.meta;
-      if(fb.meta != null && !m.todo) x3 += (bajoMeta ? 'Bajo' : 'Sobre') + ' tu ' + (fb.metaOrigen === 'propia' ? 'meta' : 'promedio de 12 meses') + ' de ' + esc(dinero(fb.meta)) + '. ';
-      x3 += dif >= 0 ? 'Cobras más de lo que facturas: bajas cartera de meses anteriores.' : 'Facturas más de lo que cobras (' + esc(dinero(-dif)) + ' de diferencia): la cartera crece.';
-      L.push({ t: bajoMeta || dif < 0 ? 'alerta' : 'bien', e: 'COBRADO', x: x3, a: 'Cobranza →', panel: 'cobranza' });
-      return L;
+      return (r.lecturas || []).map((l) => ({ t: l.tipo, e: l.etapa, x: negritas(l.texto), items: l.items || [], a: l.accion, panel: l.panel }));
     }
     const TG = { urg: [ICO.alerta, 'ATENCIÓN'], alerta: [ICO.alerta, 'REVISAR'], info: [ICO.info, 'DATO'], bien: [ICO.ok, 'VA BIEN'] };
 
@@ -8850,7 +8815,7 @@
       let h = '<div class="rs-emb-t"><h2>Embudo ' + (m.todo ? 'de todo el historial' : 'del mes') + '</h2><small>' + esc(m.etiquetaMes) + (m.todo ? '' : m.esActual ? ' · hasta el día ' + m.corteDia : ' · mes completo') + ' · sin IVA</small></div>';
       h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · MARCA BLANCA = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
       h += FILAS.map((d) => filaHtml(d, r, ctx)).join('');
-      h += '<div class="rs-ins3">' + lecturas(r).map((i) => '<div class="rs-in ' + i.t + '"><span class="tg">' + TG[i.t][0] + TG[i.t][1] + ' · ' + i.e + '</span><span>' + i.x + '</span><button type="button" data-panel="' + i.panel + '">' + esc(i.a) + '</button></div>').join('') + '</div>';
+      h += '<div class="rs-ins3">' + lecturas(r).map((i) => '<div class="rs-in ' + i.t + '"><span class="tg">' + TG[i.t][0] + TG[i.t][1] + ' · ' + i.e + '</span><span>' + i.x + '</span>' + (i.items.length ? '<ul>' + i.items.map((it) => '<li>' + esc(it) + '</li>').join('') + '</ul>' : '') + '<button type="button" data-panel="' + i.panel + '">' + esc(i.a) + '</button></div>').join('') + '</div>';
       if(m.notas && m.notas.length) h += '<p class="rs-nota">' + ICO.info + '<span>' + esc(m.notas.join(' · ')) + '</span></p>';
       $('rsCuerpo').innerHTML = h;
     }

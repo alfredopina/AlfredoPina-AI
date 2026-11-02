@@ -246,4 +246,4 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   };
 }
 
-module.exports = { calcularDinero, enSubtotal, cotizado, pipelineEn, facturado, motivosDe, CLAVES };
+module.exports = { calcularDinero, enSubtotal, cotizado, pipelineEn, facturado, motivosDe, filtraCot, cuentaFacturable, ABIERTAS, NO_ENVIADAS, CLAVES };

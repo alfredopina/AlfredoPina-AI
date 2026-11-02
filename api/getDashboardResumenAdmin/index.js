@@ -8,6 +8,7 @@ const { getUmbrales } = require("../src/notificaciones-config");
 const { getMetas } = require("../src/metas");
 const { cargarDatos } = require("../src/dashboard-resumen-db");
 const { calcularDinero } = require("../src/dashboard-dinero");
+const { calcularLecturas } = require("../src/dashboard-lecturas");
 const { TIPOS_CLIENTE, ESTRATEGIAS } = require("../src/dashboard-resumen");
 const { HERRAMIENTAS } = require("../src/herramientas");
 
@@ -26,6 +27,9 @@ module.exports = async function (context, req) {
     const datos = await cargarDatos(umbrales, { omitir: ["grupos", "clientes"] });
     const ahora = new Date();
     const r = calcularDinero(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, umbralPorVencer: umbrales.cobranzaPorVencerDias, metas });
+    // la biblioteca de reglas elige las 3 lecturas más importantes; si fallara, el Resumen sale igual (sin lecturas)
+    try { const l = calcularLecturas(datos, r, { ahora, umbrales }); r.lecturas = l.principales; r.lecturasOtras = l.otras; }
+    catch (e) { context.log.error("Error en las lecturas del resumen:", e.message); r.lecturas = []; r.lecturasOtras = []; }
     r.meta.generado = ahora.toISOString();
     context.res = { status: 200, headers: JSON_HEADERS, body: r };
   } catch (err) {

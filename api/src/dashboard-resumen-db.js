@@ -17,16 +17,16 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
   const vacio = { recordset: [] };
   const si = (nombre, texto) => (omitir.includes(nombre) ? vacio : q(texto));
   const [cuentas, pagos, cots, sols, grupos, clientes] = await Promise.all([
-    q(`SELECT x.id, x.cotizacion_id, x.estrategia, x.tipo_factura, x.estatus, x.total, x.subtotal, x.fecha_emision, x.fecha_creacion, x.vencimiento,
+    q(`SELECT x.id, x.cotizacion_id, x.cliente_id, x.concepto, c.nombre AS cliente_nombre, x.estrategia, x.tipo_factura, x.estatus, x.total, x.subtotal, x.fecha_emision, x.fecha_creacion, x.vencimiento,
               c.tipo_cliente AS tipo, q.herramienta AS cot_herr, g.herramientas AS gru_herr
        FROM CuentaPorCobrar x
        LEFT JOIN Cliente c ON c.id = x.cliente_id
        LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
        LEFT JOIN Grupo g ON g.id = x.grupo_id`),
     q("SELECT cuenta_id, fecha, monto, anulado, fecha_creacion FROM PagoCobranza"),
-    q(`SELECT q.id, q.estatus, q.precio_final, q.alternativa_grupo, q.herramienta, q.fecha_creacion, q.fecha_envio, q.temario_tipo, q.fecha_estatus, q.fecha_cierre, q.motivo_perdida, c.tipo_cliente AS tipo
+    q(`SELECT q.id, q.folio, q.cliente_id, q.descuento_pct, c.nombre AS cliente_nombre, q.estatus, q.precio_final, q.alternativa_grupo, q.herramienta, q.fecha_creacion, q.fecha_envio, q.temario_tipo, q.fecha_estatus, q.fecha_cierre, q.motivo_perdida, c.tipo_cliente AS tipo
        FROM Cotizacion q LEFT JOIN Cliente c ON c.id = q.cliente_id`),
-    si("sols", `SELECT s.herramienta, s.canal_origen, s.estatus, s.creo_prospecto, s.fecha_creacion, p.primera, c.tipo_cliente AS tipo
+    si("sols", `SELECT s.id, s.herramienta, c.nombre AS cliente_nombre, s.canal_origen, s.estatus, s.creo_prospecto, s.fecha_creacion, p.primera, c.tipo_cliente AS tipo
        FROM Solicitud s
        LEFT JOIN (SELECT solicitud_id, MIN(fecha_creacion) AS primera FROM Cotizacion WHERE solicitud_id IS NOT NULL GROUP BY solicitud_id) p ON p.solicitud_id = s.id
        LEFT JOIN Cliente c ON c.id = s.cliente_id`),
@@ -56,17 +56,17 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
   const ahora = new Date();
   return {
     cuentas: cuentas.recordset.map((x) => ({
-      cotId: x.cotizacion_id == null ? null : x.cotizacion_id, estrategia: x.estrategia || null, tipo_factura: x.tipo_factura || null, estatus: x.estatus, total: Number(x.total), subtotal: Number(x.subtotal), emision: diaTxt(x.fecha_emision), creada: inst(x.fecha_creacion),
+      cotId: x.cotizacion_id == null ? null : x.cotizacion_id, cli: x.cliente_nombre || null, concepto: x.concepto || null, estrategia: x.estrategia || null, tipo_factura: x.tipo_factura || null, estatus: x.estatus, total: Number(x.total), subtotal: Number(x.subtotal), emision: diaTxt(x.fecha_emision), creada: inst(x.fecha_creacion),
       vencimiento: diaTxt(x.vencimiento), tipo: x.tipo || null,
       herrs: x.cot_herr ? [String(x.cot_herr).toLowerCase()] : lista(x.gru_herr), pagos: pagosDe.get(x.id) || [],
     })),
     cotizaciones: cots.recordset.map((c) => ({
-      id: c.id, tt: c.temario_tipo || "estandar", estatus: c.estatus, precio: Number(c.precio_final) || 0, alt: c.alternativa_grupo, herr: String(c.herramienta || "").toLowerCase(), creada: inst(c.fecha_creacion),
+      id: c.id, folio: c.folio || null, cliId: c.cliente_id, cli: c.cliente_nombre || null, desc: c.descuento_pct == null ? null : Number(c.descuento_pct), tt: c.temario_tipo || "estandar", estatus: c.estatus, precio: Number(c.precio_final) || 0, alt: c.alternativa_grupo, herr: String(c.herramienta || "").toLowerCase(), creada: inst(c.fecha_creacion),
       enviada: inst(c.fecha_envio != null ? c.fecha_envio : c.fecha_creacion), motivo: c.motivo_perdida || null,
       cierre: c.fecha_cierre != null ? dia(c.fecha_cierre) : inst(c.fecha_estatus), cierreReal: c.fecha_cierre != null ? dia(c.fecha_cierre) : null, tipo: c.tipo || null,
     })),
     solicitudes: sols.recordset.map((s) => ({
-      herr: String(s.herramienta || "").toLowerCase(), canal: s.canal_origen, estatus: s.estatus, prospecto: !!s.creo_prospecto, creada: inst(s.fecha_creacion), primera: inst(s.primera), tipo: s.tipo || null,
+      herr: String(s.herramienta || "").toLowerCase(), cli: s.cliente_nombre || null, canal: s.canal_origen, estatus: s.estatus, prospecto: !!s.creo_prospecto, creada: inst(s.fecha_creacion), primera: inst(s.primera), tipo: s.tipo || null,
     })),
     grupos: grupos.recordset.map((g) => {
       const fechas = [inst(g.fecha_creacion), dia(g.fecha_inicio), dia(g.fecha_fin), dia(g.fecha_cierre)].filter((x) => x != null);

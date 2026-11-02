@@ -95,3 +95,33 @@ Las muestras de las leyendas no significaban nada con la barra simple, así que 
 
 - **Escala de Solicitudes:** su **meta mide lo mismo que la de Cotizado** (8 solicitudes ≈ $250,000), así las dos marcas de meta quedan en el mismo punto horizontal. Solo si falta alguna de las dos metas se usa la regla vieja (lo atendido mide lo mismo que Cotizado, sin pasar de 1.6 veces la barra más larga).
 - **Las lecturas usan exactamente las cifras de las barras.** La de Facturado citaba cifras de toda la cartera (Por facturar y Vencido totales) que ya no aparecen en pantalla desde que se quitó la franja «Hoy»; ahora dice cuánto se facturó contra su meta, cuánto **de lo vendido este mes** sigue sin factura y cuánto **de lo facturado este mes** ya venció (las mismas cifras de las leyendas). El vencido de toda la cartera se atiende en Cobranza y en las alertas.
+
+## Lecturas: biblioteca de reglas (2026-11-02)
+
+Las 3 lecturas de abajo **ya no son fijas**: `api/src/dashboard-lecturas.js` evalúa **todas** sus reglas, cada una dice si aplica hoy, qué tan urgente es (tipo `urg` 90 · `alerta` 60 · `info` 35 · `bien` 20, más un peso de 0 a ~30 según lo grave o lo grande) y cita **nombres** (clientes, folios, días). Se muestran las 3 de mayor peso, **a lo más 2 de una misma etapa**; el resto queda en `lecturasOtras`. Una regla que falle se omite y el Resumen sale igual. La Function devuelve `lecturas` ya elegidas; la pantalla solo las pinta (negritas `**x**`, lista de nombres y botón al Tracking). Las reglas «del día» (pipeline, cartera, proyección) solo corren en el **mes en curso**; en un **mes cerrado** salen los resultados contra metas y en **todo el historial** un acumulado.
+
+| Etapa | Regla (id) | Qué dice |
+|---|---|---|
+| Cotizado | `proyeccion-cotizado` | Al ritmo actual cierras en $X contra tu meta; te faltan $Y ≈ N cotizaciones de tu ticket promedio en D días (o «ya rebasaste tu meta») |
+| Cotizado | `seguimiento-cotizaciones` | N cotizaciones abiertas con más de 6 días (umbral de Alertas), con cliente, monto, días y folio; urgente al pasar el umbral urgente (10) |
+| Cotizado | `cierre-por-tipo` | Qué tipo de servicio cierra más (90 días, ≥3 cerradas por tipo y ≥15 pts de diferencia) |
+| Cotizado | `descuentos-cierre` | El descuento de 15 % o más no mejora el cierre (6 meses, ≥4 cerradas en cada grupo) |
+| Cotizado | `motivo-perdida` | Motivo principal de pérdida (90 días, ≥3 perdidas, ≥40 %) y qué hacer |
+| Cotizado | `clientes-dormidos` | Clientes que ya compraron y llevan 6+ meses sin cotización (con cuánto compraron) |
+| Cotizado | `concentracion-cotizado` | Un cliente concentra 50 % o más de lo cotizado del mes |
+| Solicitudes | `solicitudes-sin-atender` | Solicitudes en «Nueva» con más de 24 h (urgente a las 72 h), con nombre y canal |
+| Vendido | `cobertura-pipeline` | Por vender × tu tasa de cierre de 90 días contra lo que te falta para tu meta de Vendido |
+| Facturado | `por-facturar-edad` | Vendido que lleva 7+ días sin factura, con cliente y días (urgente desde 14) |
+| Facturado | `vendido-sin-factura` | Qué parte de lo vendido del mes sigue sin factura |
+| Cobrado | `vencidos-top` | Vencido total, % de lo por cobrar y los clientes con más atraso (urgente desde 20 %) |
+| Cobrado | `calendario-cobro` | Lo que vence en los próximos 7 días, con nombres |
+| Cobrado | `proyeccion-cobrado` | Cobrado contra meta: lo que vence en el mes + lo vencido; avisa si aun cobrando todo no alcanza |
+| Cobrado | `dias-de-cobro` | Cómo pagan tus clientes (días reales contra plazo, 6 meses) y quién se atrasa siempre |
+| Cobrado | `concentracion-cartera` | Un cliente concentra 50 % o más de lo por cobrar |
+| Cobrado | `cobrado-vs-facturado` | La cartera crece o baja este mes |
+| Cobrado | `cartera-sana` | Sin cartera vencida (solo si no hay vencido) |
+| Meses cerrados | `resultado-cot` · `resultado-gan` · `resultado-cob` | Cómo cerró cada meta |
+| Acumulado | `acumulado` | Totales de todo el historial |
+
+**Para agregar una regla** basta con un objeto más en `REGLAS` (id, etapa, `cuando`, `run(x)`); `x` trae las cifras del Resumen (`x.F`, `x.D`), las cotizaciones y cuentas ya filtradas, las filas de Cobranza de hoy (`x.vivas`) y los umbrales de Alertas. Pruebas: `api/test-dashboard-lecturas.js`.
+**Límite conocido:** las cuentas importadas del histórico tienen como `fecha_creacion` la del import, así que su edad en `por-facturar-edad` se mide desde ahí.

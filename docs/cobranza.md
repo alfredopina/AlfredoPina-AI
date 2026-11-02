@@ -62,7 +62,7 @@ Columnas: Creada · Cliente (nombre fiscal arriba; debajo el comercial + RFC) ·
 
 ## Tarjetas de arriba del panel Cobranza (2026-11-02)
 
-**Mismo pedido que la tarjeta del Tracking View, ahora en el propio panel** (el del Tracking View se queda): la tarjeta **Por cobrar** trae 3 números —el total en grande y, debajo, **En plazo** (lo que todavía no vence) y **Vencido** con su conteo—; por eso la tarjeta **Vencido** separada se fusionó ahí y el espacio se usó para el **Ticket promedio**, a un lado de Cobrado (cobrado ÷ facturas distintas con pago, mismo rango de Configuración → Métricas; el número chico de al lado es cuántas facturas). Quedan 5 tarjetas: Por cobrar · Por facturar · Cobrado · Ticket promedio · Días promedio de cobro. Se quitó la línea "incluye $X vencido" porque ahora el vencido se ve completo.
+**Mismo pedido que la tarjeta del Tracking View, ahora en el propio panel** (el del Tracking View se queda): la tarjeta **Por cobrar** trae 3 números —el total en grande y, en UNA línea debajo, **En plazo** (lo que todavía no vence) y **Vencido**, sin centavos para que quepan; el monto exacto y el conteo de cuentas salen al pasar el mouse— y conserva casi el mismo alto que las demás tarjetas; por eso la tarjeta **Vencido** separada se fusionó ahí y el espacio se usó para el **Ticket promedio**, a un lado de Cobrado (cobrado ÷ facturas distintas con pago, mismo rango de Configuración → Métricas; el número chico de al lado es cuántas facturas). Quedan 5 tarjetas: Por cobrar · Por facturar · Cobrado · Ticket promedio · Días promedio de cobro. Se quitó la línea "incluye $X vencido" porque ahora el vencido se ve completo.
 
 ## Tarjeta de Cobranza en Tracking View (2026-10-29)
 

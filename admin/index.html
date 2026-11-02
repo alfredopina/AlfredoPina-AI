@@ -2091,17 +2091,17 @@
   .cbz-pop-monto{ font-variant-numeric:tabular-nums; font-weight:600; text-align:right; min-width:92px; }
   .cbz-pop-fila .admin-dialog-btn{ padding:7px 12px; font-size:12px; white-space:nowrap; }
   @media (max-width:640px){ .cbz-pop-fila{ grid-template-columns:1fr auto; } .cbz-pop-fila .cbz-sem{ display:none; } }
-  /* Por cobrar: el total en grande y, al lado, cuánto está en plazo y cuánto vencido (menos texto, más número) */
-  #cbzKpis .cbz-kpi-hero{ flex:1.7 1 0; min-width:290px; flex-direction:column; align-items:stretch; gap:10px; }
-  #cbzKpis .cbz-kpi-hero .cbz-kpi-main{ display:flex; flex-direction:column; gap:4px; min-width:0; padding-right:30px; }
-  #cbzKpis .cbz-kpi-hero .dkpi-value{ font-size:34px; line-height:1.05; }
+  /* Por cobrar: casi del mismo alto que las demás; el total en grande y, en UNA línea debajo, cuánto está en plazo y cuánto vencido */
+  #cbzKpis .cbz-kpi-hero{ flex:1.45 1 0; min-width:280px; flex-direction:column; align-items:stretch; justify-content:center; gap:2px; padding-top:10px; padding-bottom:10px; }
+  #cbzKpis .cbz-kpi-hero .cbz-kpi-main{ display:flex; flex-direction:column; gap:2px; min-width:0; padding-right:26px; }
+  #cbzKpis .cbz-kpi-hero .dkpi-value{ font-size:27px; line-height:1.05; }
   #cbzKpis .cbz-kpi-hero .dkpi-label{ margin-left:0; text-align:left; white-space:nowrap; }
-  .cbz-kpi-sub{ display:flex; gap:16px; flex-wrap:wrap; border-top:1px dashed var(--line); padding-top:9px; }
-  .cbz-kpi-sub > div{ display:flex; flex-direction:column; gap:3px; min-width:0; }
-  .cbz-kpi-sub small{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
-  .cbz-kpi-sub small svg{ width:11px; height:11px; flex:none; }
+  .cbz-kpi-sub{ display:flex; gap:14px; flex-wrap:nowrap; }
+  .cbz-kpi-sub > div{ display:flex; align-items:baseline; gap:6px; min-width:0; }
+  .cbz-kpi-sub small{ display:flex; align-items:center; gap:4px; font-family:var(--mono); font-size:9.5px; letter-spacing:.3px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
+  .cbz-kpi-sub small svg{ width:9px; height:9px; flex:none; }
   .cbz-kpi-sub .plazo small{ color:#14b8a6; } .cbz-kpi-sub .venc small{ color:#f05252; }
-  .cbz-kpi-sub b{ font-family:var(--display); font-weight:700; font-size:18px; line-height:1.1; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .cbz-kpi-sub b{ font-family:var(--display); font-weight:700; font-size:13px; line-height:1.1; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
   @media (max-width:1100px){ #cbzKpis .cbz-kpi-hero{ flex-basis:100%; } }
   /* ── Línea de cobros (Cobranza): vencido ← | escala de meses | → sin fecha; cada cobro es una línea en su vencimiento y su altura es el monto ── */
   .cbz-linea{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px 12px; margin-bottom:16px; }
@@ -4608,7 +4608,7 @@
               </div>
               <div class="cbz-kpi-sub">
                 <div class="plazo" title="Parte del saldo que todavía no vence."><small><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>En plazo</small><b id="cbzKpiEnPlazo">—</b></div>
-                <div class="venc" title="Parte del saldo cuyo vencimiento ya pasó (inicio del plazo + plazo en días)."><small><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>Vencido <span class="cbz-kpi-n" id="cbzKpiVencidoN"></span></small><b id="cbzKpiVencido">—</b></div>
+                <div class="venc" title="Parte del saldo cuyo vencimiento ya pasó (inicio del plazo + plazo en días)."><small><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>Vencido</small><b id="cbzKpiVencido">—</b></div>
               </div>
             </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Cuentas que ya nacieron (cotización ganada o alta manual) pero todavía no tienen factura.">
@@ -6862,8 +6862,12 @@
       const t = (id, v) => { const el = $(id); if(el) el.textContent = v; };
       if(!r){ ['cbzKpiPorCobrar', 'cbzKpiEnPlazo', 'cbzKpiVencido', 'cbzKpiPorFacturar', 'cbzKpiCobrado', 'cbzKpiTicket', 'cbzKpiDias'].forEach((id) => t(id, '—')); return; }
       t('cbzKpiPorCobrar', dinero(r.por_cobrar)); t('cbzKpiPorCobrarN', '· ' + r.por_cobrar_n);
-      t('cbzKpiEnPlazo', dinero(Math.max(0, Math.round((r.por_cobrar - r.vencido) * 100) / 100)));
-      t('cbzKpiVencido', dinero(r.vencido)); t('cbzKpiVencidoN', '· ' + r.vencido_n);
+      // en plazo y vencido van sin centavos para caber en una línea (el monto exacto sale al pasar el mouse)
+      const sinCentavos = (n) => dinero(n).replace(/\.\d{2}$/, '');
+      const enPlazo = Math.max(0, Math.round((r.por_cobrar - r.vencido) * 100) / 100);
+      t('cbzKpiEnPlazo', sinCentavos(enPlazo)); t('cbzKpiVencido', sinCentavos(r.vencido));
+      $('cbzKpiEnPlazo').parentElement.title = dinero(enPlazo) + ' · ' + (r.por_cobrar_n - r.vencido_n) + ' cuentas que todavía no vencen';
+      $('cbzKpiVencido').parentElement.title = dinero(r.vencido) + ' · ' + r.vencido_n + (r.vencido_n === 1 ? ' cuenta vencida' : ' cuentas vencidas') + ' (su vencimiento ya pasó)';
       t('cbzKpiPorFacturar', dinero(r.por_facturar)); t('cbzKpiPorFacturarN', '· ' + r.por_facturar_n);
       t('cbzKpiCobrado', dinero(r.cobrado)); t('cbzKpiCobradoN', '· ' + r.cobrado_n + (r.cobrado_n === 1 ? ' pago' : ' pagos'));
       t('cbzKpiTicket', r.ticket_promedio == null ? '—' : dinero(r.ticket_promedio)); t('cbzKpiTicketN', r.ticket_promedio == null ? '' : '· ' + r.facturas_cobradas_n);

@@ -8743,7 +8743,8 @@
       const dl = d + ' vs ' + lb;
       if(Math.abs(rel) < 0.03) return { k: 'igual', ic: 'igual', t: 'igual', dl };
       const sube = delta > 0;
-      return { k: sube ? 'bien' : 'mal', ic: sube ? 'sube' : 'baja', t: rel === Infinity ? 'desde cero' : (sube ? '+' : '−') + pc(rel) + ' %', dl };
+      if(rel === Infinity) return { k: 'normal', ic: 'sube', t: 'desde cero', dl }; // el periodo de comparación valía cero: no hay un porcentaje que celebrar, va en azul (neutral) como «sin datos»
+      return { k: sube ? 'bien' : 'mal', ic: sube ? 'sube' : 'baja', t: (sube ? '+' : '−') + pc(rel) + ' %', dl };
     }
 
     // ── línea de 12 meses: puntos sutiles con tooltip; la punteada es la meta; el punto lleno es el mes que se mira ──

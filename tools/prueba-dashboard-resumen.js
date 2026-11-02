@@ -31,7 +31,8 @@ const DATOS = {
   ],
   solicitudes: [sol({}), sol({ estatus: 'Cotizada', creada: ms('2026-10-04') }), sol({ estatus: 'Cotizada', canal: 'Manual', creada: ms('2026-10-06') }), sol({ estatus: 'Cotizada', creada: ms('2026-09-10') })],
 };
-let METAS = {}; // metas propias de Configuración → Metas (se cambian en la prueba)
+let METAS = {};
+let CERO = false; // fuerza que el mes anterior de Cotizado valga cero (para probar el chip «desde cero») // metas propias de Configuración → Metas (se cambian en la prueba)
 
 const llamadas = [];
 let fallarResumen = null; // status de error a devolver
@@ -44,6 +45,7 @@ function fetchFalso(url) {
     const r = calcularDinero(DATOS, { mes: p.get('mes') || '', estrategia: p.get('estrategia') || '', tipoCliente: p.get('tipoCliente') || '', herramienta: p.get('herramienta') || '' }, { ahora: AHORA, metas: METAS });
     const l = calcularLecturas(DATOS, r, { ahora: AHORA, umbrales: { cotizacionesSeguimientoDias: 6, cotizacionesDias: 10, solicitudesSeguimientoHoras: 24, solicitudesHoras: 72, cobranzaPorVencerDias: 7 } });
     r.lecturas = l.principales; r.lecturasOtras = l.otras;
+    if (CERO) r.filas.cot.ref.mes = 0;
     r.meta.generado = '2026-10-28T16:42:00.000Z';
     return respuesta(r);
   }
@@ -158,6 +160,11 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   check('la meta de Solicitudes es una cantidad («meta 10») y las reglas de lecturas usan la meta propia («tu meta de $20,000»)', /meta 10/.test(txt(q('.rs-fila[data-k="sol"] .rs-est'))) && [...w.__resumenDashboardEstado().ultimo.lecturas, ...w.__resumenDashboardEstado().ultimo.lecturasOtras].some((l) => l.id === 'proyeccion-cotizado' && l.texto.includes('tu meta de **$20,000')), txt(q('.rs-fila[data-k="sol"] .rs-est')));
   METAS = {};
   q('#rsActualizar').click(); await pausa(300);
+
+  console.log('Chip «desde cero»');
+  CERO = true; q('#rsActualizar').click(); await pausa(300);
+  check('si el periodo de comparación valía cero el chip dice «desde cero» y va en AZUL (neutral, como «sin datos»), no en verde', /desde cero/.test(txt(q('.rs-fila[data-k="cot"] .rs-d'))) && q('.rs-fila[data-k="cot"] .rs-d').classList.contains('normal') && !q('.rs-fila[data-k="cot"] .rs-d').classList.contains('bien') && !!q('.rs-fila[data-k="cot"] .rs-d svg'), q('.rs-fila[data-k="cot"] .rs-d').className + ' / ' + txt(q('.rs-fila[data-k="cot"] .rs-d')));
+  CERO = false; q('#rsActualizar').click(); await pausa(300);
 
   console.log('Comparar con');
   const n0 = resumenes().length;

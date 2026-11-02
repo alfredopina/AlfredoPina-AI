@@ -24,7 +24,7 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
        LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
        LEFT JOIN Grupo g ON g.id = x.grupo_id`),
     q("SELECT cuenta_id, fecha, monto, anulado, fecha_creacion FROM PagoCobranza"),
-    q(`SELECT q.id, q.estatus, q.precio_final, q.alternativa_grupo, q.herramienta, q.fecha_creacion, q.fecha_envio, q.fecha_estatus, q.fecha_cierre, q.motivo_perdida, c.tipo_cliente AS tipo
+    q(`SELECT q.id, q.estatus, q.precio_final, q.alternativa_grupo, q.herramienta, q.fecha_creacion, q.fecha_envio, q.temario_tipo, q.fecha_estatus, q.fecha_cierre, q.motivo_perdida, c.tipo_cliente AS tipo
        FROM Cotizacion q LEFT JOIN Cliente c ON c.id = q.cliente_id`),
     si("sols", `SELECT s.herramienta, s.canal_origen, s.estatus, s.creo_prospecto, s.fecha_creacion, p.primera, c.tipo_cliente AS tipo
        FROM Solicitud s
@@ -61,7 +61,7 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
       herrs: x.cot_herr ? [String(x.cot_herr).toLowerCase()] : lista(x.gru_herr), pagos: pagosDe.get(x.id) || [],
     })),
     cotizaciones: cots.recordset.map((c) => ({
-      id: c.id, estatus: c.estatus, precio: Number(c.precio_final) || 0, alt: c.alternativa_grupo, herr: String(c.herramienta || "").toLowerCase(), creada: inst(c.fecha_creacion),
+      id: c.id, tt: c.temario_tipo || "estandar", estatus: c.estatus, precio: Number(c.precio_final) || 0, alt: c.alternativa_grupo, herr: String(c.herramienta || "").toLowerCase(), creada: inst(c.fecha_creacion),
       enviada: inst(c.fecha_envio != null ? c.fecha_envio : c.fecha_creacion), motivo: c.motivo_perdida || null,
       cierre: c.fecha_cierre != null ? dia(c.fecha_cierre) : inst(c.fecha_estatus), cierreReal: c.fecha_cierre != null ? dia(c.fecha_cierre) : null, tipo: c.tipo || null,
     })),

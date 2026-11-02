@@ -82,7 +82,7 @@ const cambia = (sel, valor) => { const s = q(sel); s.value = valor; s.dispatchEv
 const resumenes = () => llamadas.filter((u) => u.includes('getDashboardResumenAdmin'));
 const nombres = () => qa('.rs-fila .nm .a').map((e) => txt(e).replace(/FOCO: AUMENTAR|SIN FILTRAR/g, '').trim()).join('|');
 const ancho = (sel) => parseFloat((q(sel) || { style: { width: '0' } }).style.width);
-const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => txt(e).replace(/\s*[\d.,$]+\s*\d+ %$/, '').trim());
+const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => txt(e).replace(/\s*[\d$].*$/, '').trim());
 
 (async () => {
   await pausa(700);
@@ -105,17 +105,18 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   check('Solicitudes es una cantidad (3 en octubre), no pesos', /^3 solicitudes/.test(txt(q('.rs-fila[data-k="sol"] .vv'))), txt(q('.rs-fila[data-k="sol"] .vv')));
   check('montos sin IVA: cotizado de octubre = $8,000 (abierta) + $2,500 (perdida) = $10,500', txt(q('.rs-fila[data-k="cot"] .vv')) === '$10,500', txt(q('.rs-fila[data-k="cot"] .vv')));
   check('cada fila: barra apilada, línea de 12 meses y variación con ÍCONO + TEXTO', qa('.rs-fila').every((f) => f.querySelector('.rs-stk') && f.querySelector('.rs-sp2') && f.querySelector('.rs-d svg') && txt(f.querySelector('.rs-d')).length > 2));
-  check('Cotizado se reparte en Abierto y Perdido (lo que vale cero no se dibuja ni se lista)', segs('cot').join('|') === 'Abierto (por vender)|Perdido', segs('cot').join('|'));
-  check('la suma de los segmentos es el total de la barra: Cotizado $8,000 + $2,500', /\$8,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))) && /\$2,500/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))));
-  check('Solicitudes: atendidas y SIN ATENDER (ámbar) con ícono de alerta en la leyenda', segs('sol').join('|') === 'Atendidas (ya cotizadas)|Sin atender' && !!q('.rs-fila[data-k="sol"] .rs-lg .mal-i.pend svg') && !!q('.rs-fila[data-k="sol"] .rs-stk .rs-sg.pend'), segs('sol').join('|'));
+  check('Cotizado se reparte por tipo de servicio, con cuántas cotizaciones son y su monto (aquí solo cursos estándar: 2 cotizaciones)', segs('cot').join('|') === 'Cursos estándar' && /2 cotizaciones/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))) && /\$10,500/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))), txt(q('.rs-fila[data-k="cot"] .rs-lg')));
+  check('la etiqueta de cada segmento es su MONTO (no un porcentaje): el de Cotizado dice $10,500; el de Solicitudes, una cantidad', /^\$10,500$/.test(txt(q('.rs-fila[data-k="cot"] .rs-stk .rs-sg'))) && /^\d+$/.test(txt(q('.rs-fila[data-k="sol"] .rs-stk .rs-sg'))) && !/%/.test(txt(q('.rs-fila[data-k="cot"] .rs-stk'))), txt(q('.rs-fila[data-k="cot"] .rs-stk')) + ' / ' + txt(q('.rs-fila[data-k="sol"] .rs-stk')));
+  check('Solicitudes: del sitio, manuales y SIN ATENDER (ámbar) con ícono de alerta en la leyenda', segs('sol').join('|') === 'Del sitio|Manuales|Sin atender' && !!q('.rs-fila[data-k="sol"] .rs-lg .mal-i.pend svg') && !!q('.rs-fila[data-k="sol"] .rs-stk .rs-sg.pend'), segs('sol').join('|'));
   check('Ganado: los $6,000 de la cotización ganada siguen Por facturar (cuenta ligada sin factura), en ámbar con ícono', segs('gan').join('|') === 'Por facturar' && !!q('.rs-fila[data-k="gan"] .mal-i.pend svg'), segs('gan').join('|'));
-  check('Facturado: lo emitido en octubre ($400) está En plazo; no hay vencido, así que no hay rojo', segs('fac').join('|') === 'En plazo' && !q('.rs-fila[data-k="fac"] .rs-sg.venc'), segs('fac').join('|'));
+  check('Facturado: lo emitido en octubre ($400) está Por cobrar en plazo; no hay vencido, así que no hay rojo', segs('fac').join('|') === 'Por cobrar en plazo' && !q('.rs-fila[data-k="fac"] .rs-sg.venc'), segs('fac').join('|'));
   check('Cobrado: $1,500 de facturas de meses anteriores (la de septiembre) y nada de este mes', segs('cob').join('|') === 'De meses anteriores' && txt(q('.rs-fila[data-k="cob"] .vv')) === '$1,500', segs('cob').join('|') + ' ' + txt(q('.rs-fila[data-k="cob"] .vv')));
   check('lo normal va sin color de alerta: Cotizado y Cobrado no traen ámbar ni rojo', !q('.rs-fila[data-k="cot"] .rs-sg.pend, .rs-fila[data-k="cot"] .rs-sg.venc, .rs-fila[data-k="cob"] .rs-sg.pend, .rs-fila[data-k="cob"] .rs-sg.venc'));
-  check('lo atendido de Solicitudes mide lo mismo que la barra de Cotizado (misma escala)', Math.abs(ancho('.rs-fila[data-k="sol"] .rs-stk .rs-sg.azul') - ancho('.rs-fila[data-k="cot"] .rs-stk')) < 0.6, ancho('.rs-fila[data-k="sol"] .rs-stk .rs-sg.azul') + ' vs ' + ancho('.rs-fila[data-k="cot"] .rs-stk'));
+  check('lo atendido de Solicitudes (2 de 3) mide lo mismo que la barra de Cotizado (misma escala)', Math.abs(ancho('.rs-fila[data-k="sol"] .rs-stk') * 2 / 3 - ancho('.rs-fila[data-k="cot"] .rs-stk')) < 0.6, ancho('.rs-fila[data-k="sol"] .rs-stk') + ' vs ' + ancho('.rs-fila[data-k="cot"] .rs-stk'));
+  check('cada segmento mide en proporción a su valor dentro de la barra (Solicitudes: 1, 1 y 1)', qa('.rs-fila[data-k="sol"] .rs-stk .rs-sg').map((s) => s.style.flex.replace(/\s+/g, ' ')).join('|') === '1 1 0px|1 1 0px|1 1 0px' || qa('.rs-fila[data-k="sol"] .rs-stk .rs-sg').every((s) => /^1 /.test(s.style.flex)), qa('.rs-fila[data-k="sol"] .rs-stk .rs-sg').map((s) => s.style.flex).join('|'));
   check('cada barra trae su contorno punteado de meta, con ancho', qa('.rs-fila').every((f) => f.querySelector('.rs-goal')) && qa('.rs-goal').every((g) => parseFloat(g.style.width) > 0));
   check('la meta se explica con texto e ícono («sobre su meta» o «bajo su meta») y dice si es promedio', qa('.rs-fila .rs-est').every((e) => /meta/.test(txt(e)) && e.querySelector('svg')) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))), txt(q('.rs-fila[data-k="cot"] .rs-est')));
-  check('segmento Perdido: el tooltip trae los motivos', qa('.rs-fila[data-k="cot"] .rs-stk .rs-sg').some((s) => /Perdido/.test(s.dataset.tip) && /Motivos: sin respuesta 100 %/.test(s.dataset.tip)));
+  check('el tooltip de un segmento dice nombre, monto y cuántas cotizaciones', qa('.rs-fila[data-k="cot"] .rs-stk .rs-sg').some((s) => /Cursos estándar/.test(s.dataset.tip) && /\$10,500/.test(s.dataset.tip) && /2 cotizaciones/.test(s.dataset.tip)));
   check('puntos de la línea con mes y monto para el tooltip', qa('.rs-fila[data-k="cot"] .hit').length >= 3 && qa('.rs-fila[data-k="cot"] .hit').every((h) => /\|/.test(h.dataset.tip)) && /al día 28/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.tip));
   check('la variación trae porcentaje y monto («vs sep»); Solicitudes lo da en cantidad', /vs sep/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /[+−]\$/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /solicitud/.test(txt(q('.rs-fila[data-k="sol"] .rs-dl'))), txt(q('.rs-fila[data-k="sol"] .rs-vc')));
   check('tres lecturas, una por etapa (Cotizado, Facturado, Cobrado), con ícono + palabra y un botón al Tracking', qa('.rs-in').length === 3 && qa('.rs-in').map((i) => txt(i.querySelector('.tg')).split('·')[1].trim()).join('|') === 'COTIZADO|FACTURADO|COBRADO' && qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')));
@@ -126,9 +127,10 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   volcar('dashboard-resumen');
 
   console.log('Metas propias (Configuración → Metas)');
-  METAS = { sol: 10, cot: 20000 };
+  METAS = { sol: 10, cot: 20000, gan: 5000 };
   q('#rsActualizar').click(); await pausa(300);
-  check('la meta propia reemplaza al promedio y lo dice («meta $20,000»); Ganado sigue con su promedio', /meta \$20,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /bajo su meta/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="gan"] .rs-est'))), txt(q('.rs-fila[data-k="cot"] .rs-est')));
+  check('la meta propia reemplaza al promedio y lo dice («meta $20,000»); Facturado usa la meta de Ganado ($5,000); Cobrado sigue con su promedio', /meta \$20,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /bajo su meta/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /meta \$5,000/.test(txt(q('.rs-fila[data-k="gan"] .rs-est'))) && /meta \$5,000/.test(txt(q('.rs-fila[data-k="fac"] .rs-est'))) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="cob"] .rs-est'))), txt(q('.rs-fila[data-k="fac"] .rs-est')));
+  check('la barra y su contorno de meta guardan proporción: Solicitudes 3 de 10 (30 %) y Cotizado $10,500 de $20,000 (52 %)', Math.abs(ancho('.rs-fila[data-k="sol"] .rs-stk') / ancho('.rs-fila[data-k="sol"] .rs-goal') - 0.3) < 0.02 && Math.abs(ancho('.rs-fila[data-k="cot"] .rs-stk') / ancho('.rs-fila[data-k="cot"] .rs-goal') - 0.525) < 0.02, ancho('.rs-fila[data-k="sol"] .rs-stk') + '/' + ancho('.rs-fila[data-k="sol"] .rs-goal'));
   check('la meta de Solicitudes es una cantidad («meta 10») y la lectura de Cotizado dice «llegar a tu meta»', /meta 10/.test(txt(q('.rs-fila[data-k="sol"] .rs-est'))) && /para llegar a tu meta/.test(txt(qa('.rs-in')[0])), txt(q('.rs-fila[data-k="sol"] .rs-est')));
   METAS = {};
   q('#rsActualizar').click(); await pausa(300);

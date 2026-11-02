@@ -6,13 +6,15 @@ Es **un embudo en una sola pantalla** (rehecho el 2026-11-02; antes eran tres vi
 
 | Barra | Qué mide | Segmentos (suman exactamente el total de la barra) |
 |---|---|---|
-| **Solicitudes** (cantidad) | solicitudes creadas en el mes | Atendidas (ya no están en «Nueva») · **Sin atender** (ámbar). Lo atendido mide lo mismo que Cotizado; la meta también es una cantidad |
-| **Cotizado** (enviado en el mes) | cotizaciones enviadas, una por oportunidad | Abierto (por vender) · Ganado · Perdido (tooltip con motivos) · Otro (descartado/expirado). **Cohorte**: según su estado de hoy |
+| **Solicitudes** (cantidad) | solicitudes creadas en el mes | **Del sitio** · **Manuales** (las atendidas, por canal) · **Sin atender** (ámbar). Atendida = ya no está en «Nueva»; lo atendido mide lo mismo que Cotizado; la meta también es una cantidad |
+| **Cotizado** (enviado en el mes) | cotizaciones enviadas, una por oportunidad | Por **tipo de servicio**: cursos estándar · cursos personalizados · consultoría (`temario_tipo`), con **cuántas cotizaciones** son y su monto. El tipo de una oportunidad con alternativas es el de su cotización de monto más alto |
 | **Ganado** (cerrado en el mes, de cualquier cotización) | cotizaciones Ganadas con fecha de cierre en el mes | Ya facturado · **Por facturar** (ámbar), según la cuenta ligada a su cotización (`cotizacion_id`) |
-| **Facturado** (emitido en el mes) | cuentas con fecha de emisión en el mes | Ya cobrado · En plazo · **Vencido** (rojo), por el saldo y semáforo de hoy (misma regla de Cobranza). **Cohorte** |
+| **Facturado** (emitido en el mes) | cuentas con fecha de emisión en el mes | Cobrado · Por cobrar en plazo · **Por cobrar vencido** (rojo), por el saldo y semáforo de hoy (misma regla de Cobranza). **Cohorte**. **Su meta es la de Ganado** (lo que ganas es lo que debes facturar) |
 | **Cobrado** (pagos del mes) | pagos vigentes con fecha del mes | De facturas de este mes · De meses anteriores |
 
 Cada fila: monto + **barra apilada** con **contorno punteado = meta** (sale del borde izquierdo; la barra lo rebasa o se queda corta) y el texto «sobre/bajo su meta» con ícono + **leyenda** de segmentos (monto y porcentaje) + **línea de 12 meses** (punteada = meta; puntos con tooltip de mes y monto) + **variación** (porcentaje y monto) contra **Mes ant. · 3 meses · Año ant.** Debajo, **3 lecturas** (una por etapa: Cotizado, Facturado, Cobrado; reglas fijas, sin IA, que se recalculan con los filtros; cada una lleva al Tracking donde se atiende) y la franja **«Hoy»** con la foto de TODA la cartera (Por vender · Por facturar · Por cobrar con el vencido destacado; en un mes pasado dice «Al cierre de …»), porque el vencido de un solo mes engañaría. El botón **?** explica barras, colores y variación. La meta general de Alfredo es **aumentar Cotizado** (la fila lo trae marcado).
+
+**Etiquetas (decisión de Alfredo):** dentro de cada segmento va su **monto** (en Solicitudes, la cantidad), no un porcentaje; solo se escribe si cabe, y la leyenda de abajo nombra todos. El ancho de cada segmento es proporcional a su valor (se corrigió un error del primer despliegue en que las barras salían más cortas de lo debido).
 
 **Colores (decisión de Alfredo, sólidos y sin tramas):** lo normal va en azules y grises sin significado; **solo se colorea lo que hay que mirar** — ámbar (sin atender, por facturar) y rojo (vencido). Si un segmento vale cero no se dibuja ni se lista. Los ámbar y rojos llevan además ícono de alerta en la leyenda (nunca solo color, por la deuteranomalía).
 
@@ -74,7 +76,7 @@ Mockup aprobado: `docs/mockups/dashboard-resumen-v5.html` / `.png` (el v4 de tre
 ## Decisiones del embudo (2026-11-02)
 
 - **Solicitudes en cantidad, no pesos** (Alfredo: «si cambio precios, dependiendo el sapo la pedrada»): nada de estimar con tarifas. «Atendida» = estatus distinto de Nueva (la misma regla del Tracking de Solicitudes). Su meta es una cantidad y se captura en Configuración → Metas.
-- **Cotizado y Facturado son cohorte** (estado de hoy de lo enviado/emitido en el mes): el mes en curso se ve casi todo «abierto» y los meses pasados muestran la tasa de cierre real; **Ganado y Cobrado son flujo**. Por eso el segmento Ganado de Cotizado **no coincide** con la barra Ganado (cada fila dice qué mide).
+- **Facturado es cohorte** (estado de hoy de lo emitido en el mes); **Ganado y Cobrado son flujo**; Cotizado se reparte por tipo de servicio (ya no por ganado/perdido: eso lo muestran las demás barras y la franja «Hoy»).
 - **El desglose de Facturado y Ganado usa el estado de hoy**, también al mirar un mes pasado (no hay historial de estatus); «Hoy» sí se reconstruye al cierre del mes elegido.
 - **Cuenta ↔ cotización:** si una cotización ganada no tiene cuenta (o su cuenta está cancelada o aún «Por facturar»), cuenta como Por facturar.
 - La escala de Solicitudes no pasa de 1.6 veces la barra más larga (si hay una sola atendida, la barra no se dispara).

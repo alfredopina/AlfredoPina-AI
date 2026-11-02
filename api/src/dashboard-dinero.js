@@ -50,7 +50,8 @@ const cerradas = (rows, estatus, v) => rows.filter((c) => c.estatus === estatus 
 // ── Solicitudes (cantidad) ── "atendida" = ya no está en Nueva (la misma regla del Tracking de Solicitudes)
 function solicitudesDe(datos, f, v) {
   const rows = (datos.solicitudes || []).filter((s) => pasa(f, { tipo: s.tipo, herr: s.herr }, { tipo: true, herr: true }) && enVentana(s.creada, v));
-  return { total: rows.length, atendidas: rows.filter((s) => s.estatus !== "Nueva").length };
+  const aten = rows.filter((s) => s.estatus !== "Nueva");
+  return { total: rows.length, atendidas: aten.length, sitio: aten.filter((s) => s.canal === "Sitio").length, manual: aten.filter((s) => s.canal === "Manual").length };
 }
 
 // ── Cuentas ──
@@ -94,8 +95,9 @@ function valoresDe(datos, f, cuentasSub, v, ahora, umbral) {
 // ── Desgloses del embudo (barras apiladas) ──
 // Cada barra se reparte en DÓNDE ESTÁ HOY ese dinero (cohorte: lo cotizado/facturado en el mes, según su estado de hoy), así que la suma
 // de los segmentos es exactamente el total de la barra. Ganado y Cobrado son lo ocurrido en el mes.
-// Cotizado: Abierto · Ganado · Perdido · Otro (descartado/expirada). Un grupo de alternativas cuenta UNA vez con su monto más alto
-// (igual que cotizado()) y su estado es el de la oportunidad: ganada si alguna se ganó, abierta si alguna sigue abierta, perdida, otro.
+// Cotizado: por TIPO DE SERVICIO (curso estándar · personalizado · consultoría), con cuántas cotizaciones (oportunidades) son y su monto. Un grupo de
+// alternativas cuenta UNA vez con su monto más alto (igual que cotizado()) y su tipo es el de esa cotización de monto más alto.
+const TIPOS_SERVICIO = ["estandar", "personalizado", "consultoria"];
 function cohorteCotizado(rows, v) {
   const grupos = new Map();
   for (const c of rows.filter((x) => !NO_ENVIADAS.includes(x.estatus) && enVentana(x.enviada, v))) {
@@ -103,19 +105,14 @@ function cohorteCotizado(rows, v) {
     if (!grupos.has(k)) grupos.set(k, []);
     grupos.get(k).push(c);
   }
-  const seg = { abierto: 0, ganado: 0, perdido: 0, otro: 0 };
-  const por = new Map();
+  const seg = Object.fromEntries(TIPOS_SERVICIO.map((t) => [t, { monto: 0, n: 0 }]));
   for (const g of grupos.values()) {
-    const monto = Math.max(...g.map((c) => Number(c.precio) || 0));
-    const perdida = g.find((c) => c.estatus === "Perdida");
-    const st = g.some((c) => c.estatus === "Ganada") ? "ganado" : g.some((c) => ABIERTAS.includes(c.estatus)) ? "abierto" : perdida ? "perdido" : "otro";
-    seg[st] += monto;
-    if (st === "perdido") { const m = perdida.motivo || "Sin motivo"; por.set(m, (por.get(m) || 0) + monto); }
+    const mejor = g.reduce((a, c) => ((Number(c.precio) || 0) > (Number(a.precio) || 0) ? c : a), g[0]);
+    const t = TIPOS_SERVICIO.includes(mejor.tt) ? mejor.tt : "estandar";
+    seg[t].monto += Number(mejor.precio) || 0; seg[t].n++;
   }
-  for (const k of Object.keys(seg)) seg[k] = redondea(seg[k], 2);
-  const totalP = [...por.values()].reduce((a, b) => a + b, 0);
-  const motivos = [...por.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([motivo, monto]) => ({ motivo, monto: redondea(monto, 2), pct: totalP ? Math.round((monto / totalP) * 100) : 0 }));
-  return { seg, motivos };
+  for (const t of TIPOS_SERVICIO) seg[t].monto = redondea(seg[t].monto, 2);
+  return seg;
 }
 // Ganado (cerrado en el mes): lo que ya tiene factura vs lo que sigue Por facturar. La cuenta apunta a su cotización (cotizacion_id);
 // sin cuenta, o con la cuenta cancelada o aún "Por facturar", cuenta como Por facturar.
@@ -200,7 +197,8 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
       const serie = serieVals.map((s) => ({ mes: claveMes(s.k), v: s.vals ? s.vals[k] : null }));
       const conDato = serie.filter((s) => s.v != null);
       const prevMes = serieVals.find((s) => s.k === M - 1);
-      const propia = metas && typeof metas[k] === "number" && isFinite(metas[k]) && metas[k] >= 0 ? metas[k] : null;
+      const kMeta = k === "fac" ? "gan" : k; // Facturado comparte la meta de Ganado (lo que ganas es lo que debes facturar)
+      const propia = metas && typeof metas[kMeta] === "number" && isFinite(metas[kMeta]) && metas[kMeta] >= 0 ? metas[kMeta] : null;
       filas[k] = {
         cur: cur[k],
         ref: {
@@ -223,12 +221,11 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   const cuentasF = cuentasSub.filter((c) => pasa(f, { tipo: c.tipo, herr: c.herrs, estrategia: c.estrategia }, { tipo: true, herr: true, estrategia: true }));
   const sl = solicitudesDe(datos, f, vDes), coh = cohorteCotizado(cotsF, vDes);
   const desglose = {
-    sol: { atendidas: sl.atendidas, sin: sl.total - sl.atendidas },
-    cot: coh.seg,
+    sol: { atendidas: sl.atendidas, sin: sl.total - sl.atendidas, sitio: sl.sitio, manual: sl.manual },
+    cot: coh,
     gan: ganadoFacturado(cotsF, datos.cuentas, vDes),
     fac: desgloseFacturado(cuentasF, vDes, ahoraMs, umbralPorVencer),
     cob: todo ? null : desgloseCobrado(cuentasF, vDes, filas.cob.cur),
-    motivosPerdido: coh.motivos,
   };
   const sinFiltrar = [];
   const notas = [];

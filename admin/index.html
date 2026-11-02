@@ -3460,12 +3460,12 @@
                     <h3>Cómo leer el embudo</h3>
                     <h4>BARRAS</h4>
                     <div class="li"><span class="ej"><svg width="120" height="26" viewBox="0 0 120 26" aria-hidden="true"><rect x="1" y="5" width="80" height="16" rx="6" fill="#3d7fff"/><rect x="1" y="1" width="106" height="24" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA, con la misma escala en todas. El <b>contorno punteado</b> es la meta: si la barra lo rebasa, la cumpliste. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
-                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="56" height="12" rx="3" fill="#3d7fff"/><rect x="58" y="2" width="32" height="12" rx="3" fill="#cfe0ff"/><rect x="92" y="2" width="22" height="12" rx="3" fill="#5b6475"/></svg></span><span>Cada barra se <b>reparte</b> en dónde está hoy ese dinero. Cada segmento lleva su porcentaje y se nombra abajo con su monto.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="56" height="12" rx="3" fill="#3d7fff"/><rect x="58" y="2" width="32" height="12" rx="3" fill="#cfe0ff"/><rect x="92" y="2" width="22" height="12" rx="3" fill="#5b6475"/></svg></span><span>Cada barra se <b>reparte</b> en segmentos del tamaño de su monto (en Solicitudes, de su cantidad); la etiqueta es el monto y abajo se nombra cada uno. Solicitudes: del sitio y manuales; Cotizado: cursos estándar, personalizados y consultoría.</span></div>
                     <h4>COLORES (solo se colorea lo que hay que mirar)</h4>
                     <div class="li"><span class="ej"><span class="rs-sg pend" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Ámbar</b>: pendiente de atender o de facturar. Lleva ícono de alerta en la leyenda.</span></div>
                     <div class="li"><span class="ej"><span class="rs-sg venc" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Rojo</b>: vencido, el dinero que más urge perseguir. Todo lo demás va en azules y grises, sin significado de color.</span></div>
                     <h4>CÓMO SE CUENTA</h4>
-                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b> son cantidad: lo atendido mide lo mismo que Cotizado y lo sin atender va en ámbar. <b>Cotizado</b> y <b>Facturado</b> se reparten por su estado de hoy (lo enviado o emitido este mes y cómo va). <b>Ganado</b> y <b>Cobrado</b> son lo ocurrido en el mes. «Hoy» abajo es toda la cartera, no solo el mes.</span></div>
+                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b> son cantidad: lo atendido mide lo mismo que Cotizado y lo sin atender va en ámbar. <b>Facturado</b> se reparte por su estado de hoy (lo emitido este mes: cobrado, por cobrar en plazo y vencido). <b>Facturado</b> comparte la meta de <b>Ganado</b>. <b>Ganado</b> y <b>Cobrado</b> son lo ocurrido en el mes. «Hoy» abajo es toda la cartera, no solo el mes.</span></div>
                     <h4>GRÁFICA DE 12 MESES Y VARIACIÓN</h4>
                     <div class="li"><span class="ej"><svg width="110" height="26" viewBox="0 0 110 26" aria-hidden="true"><line x1="2" y1="14" x2="108" y2="14" stroke="#79828f" stroke-dasharray="2 4"/><polyline points="2,20 20,16 38,19 56,11 74,13 92,8 108,5" fill="none" stroke="#6b9fff" stroke-width="1.5"/><circle cx="108" cy="5" r="3" fill="#6b9fff"/></svg></span><span>La línea son los últimos 12 meses del total de la barra y la <b>punteada</b> es la meta. Cada punto da mes y monto al pasar el cursor.</span></div>
                     <div class="li"><span class="ej"><span class="rs-d bien"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+12 %</span></span><span>Va <b>bien</b> (verde-azulado, flecha y porcentaje).</span></div>
@@ -3613,7 +3613,7 @@
           </button>
           <div class="cfg-card-body" id="cfgMetasBody" hidden>
             <div class="cfg-note">
-              Cuánto quieres <b>recibir (solicitudes), cotizar, ganar y cobrar cada mes</b>, por el <b>mes completo</b>: Solicitudes en cantidad y lo demás en pesos <b>sin IVA</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado y lo que está abierto hoy siguen con su promedio. Cambiar una meta no toca ningún dato.
+              Cuánto quieres <b>recibir (solicitudes), cotizar, ganar y cobrar cada mes</b>, por el <b>mes completo</b>: Solicitudes en cantidad y lo demás en pesos <b>sin IVA</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado usa la misma meta que Ganado (lo que ganas es lo que debes facturar); lo que está abierto hoy sigue con su promedio. Cambiar una meta no toca ningún dato.
             </div>
             <div class="cfg-metas-lista" id="cfgMetasLista">
               <div class="radm-empty-row">Cargando…</div>
@@ -8692,8 +8692,8 @@
     // El embudo: cinco barras alineadas a la izquierda (el embudo se imagina de la mitad a la derecha), misma escala en pesos; Solicitudes es cantidad y
     // toma como escala "lo atendido mide lo mismo que Cotizado". Cada barra se reparte en dónde está HOY ese dinero (ver api/src/dashboard-dinero.js).
     const FILAS = [
-      { k: 'sol', nombre: 'Solicitudes', ico: ICO.sol, nota: 'recibidas en el mes · cantidad', cant: true },
-      { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza, nota: 'enviado en el mes · cómo va hoy', foco: true },
+      { k: 'sol', nombre: 'Solicitudes', ico: ICO.sol, nota: 'recibidas en el mes · cantidad, por canal', cant: true },
+      { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza, nota: 'enviado en el mes · por tipo de servicio', foco: true },
       { k: 'gan', nombre: 'Ganado', ico: ICO.gana, nota: 'cerrado en el mes · de cualquier cotización' },
       { k: 'fac', nombre: 'Facturado', ico: ICO.factura, nota: 'emitido en el mes · cómo va hoy' },
       { k: 'cob', nombre: 'Cobrado', ico: ICO.pagos, nota: 'pagos recibidos en el mes' },
@@ -8747,13 +8747,13 @@
 
     // ── los segmentos de cada barra: dónde está hoy ese dinero (solo los que tienen algo; lo normal en azules y grises, lo pendiente en ámbar y lo vencido en rojo) ──
     function segmentos(k, D, f){
-      if(k === 'sol') return [{ c: 'azul', n: 'Atendidas (ya cotizadas)', v: D.sol.atendidas }, { c: 'pend', n: 'Sin atender', v: D.sol.sin, mal: true }];
+      if(k === 'sol') return [{ c: 'azul', n: 'Del sitio', v: D.sol.sitio }, { c: 'azul2', n: 'Manuales', v: D.sol.manual }, { c: 'pend', n: 'Sin atender', v: D.sol.sin, mal: true }];
       if(k === 'cot'){
-        const mo = (D.motivosPerdido || []).map((x) => x.motivo.toLowerCase() + ' ' + x.pct + ' %').join(' · ');
-        return [{ c: 'azul', n: 'Abierto (por vender)', v: D.cot.abierto }, { c: 'claro', n: 'Ganado', v: D.cot.ganado }, { c: 'gris', n: 'Perdido', v: D.cot.perdido, x: mo ? 'Motivos: ' + mo : '' }, { c: 'gris2', n: 'Otro (descartado o expirado)', v: D.cot.otro }];
+        const T = D.cot;
+        return [{ c: 'azul', n: 'Cursos estándar', v: T.estandar.monto, cnt: T.estandar.n }, { c: 'azul2', n: 'Cursos personalizados', v: T.personalizado.monto, cnt: T.personalizado.n }, { c: 'claro', n: 'Consultoría', v: T.consultoria.monto, cnt: T.consultoria.n }];
       }
       if(k === 'gan') return [{ c: 'azul', n: 'Ya facturado', v: D.gan.facturado }, { c: 'pend', n: 'Por facturar', v: D.gan.porFacturar, mal: true }];
-      if(k === 'fac') return [{ c: 'azul', n: 'Ya cobrado', v: D.fac.cobrado }, { c: 'claro', n: 'En plazo', v: D.fac.plazo }, { c: 'venc', n: 'Vencido', v: D.fac.vencido, mal: true }];
+      if(k === 'fac') return [{ c: 'azul', n: 'Cobrado', v: D.fac.cobrado }, { c: 'claro', n: 'Por cobrar en plazo', v: D.fac.plazo }, { c: 'venc', n: 'Por cobrar vencido', v: D.fac.vencido, mal: true }];
       if(k === 'cob') return D.cob ? [{ c: 'azul', n: 'De facturas de este mes', v: D.cob.delMes }, { c: 'azul2', n: 'De meses anteriores', v: D.cob.anteriores }] : [{ c: 'azul', n: 'Cobrado', v: f.cur }];
       return [];
     }
@@ -8769,10 +8769,11 @@
       const est = sinMeta ? '<span class="rs-est">' + ICO.info + 'sin meta aún <i>· faltan meses de historia</i></span>'
         : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(fmt(f.meta)) + '</i></span>';
       const barras = segs.map((s) => {
-        const w = ancho * s.v / tot, p = Math.round(s.v / tot * 100);
-        return '<div class="rs-sg ' + s.c + '" style="width:' + w.toFixed(2) + '%" data-tip="' + esc(s.n + '|' + fmt(s.v) + ' · ' + p + ' %' + (s.x ? '|' + s.x : '')) + '">' + (w >= 12 ? p + ' %' : '') + '</div>';
+        const p = Math.round(s.v / tot * 100), et = fmt(s.v);
+        const cabe = ancho * s.v / tot * 5.2 >= et.length * 7 + 10; // ~5.2 px por punto de ancho: la etiqueta solo se escribe si cabe
+        return '<div class="rs-sg ' + s.c + '" style="flex:' + s.v + ' 1 0" data-tip="' + esc(s.n + '|' + et + ' · ' + p + ' %' + (s.cnt != null ? '|' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') : '')) + '">' + (cabe ? esc(et) : '') + '</div>';
       }).join('');
-      const leyenda = segs.map((s) => '<span><i class="rs-sg ' + s.c + '"></i>' + (s.mal ? '<span class="mal-i ' + s.c + '">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) + ' <b>' + esc(fmt(s.v)) + '</b> <em>' + Math.round(s.v / tot * 100) + ' %</em></span>').join('');
+      const leyenda = segs.map((s) => '<span><i class="rs-sg ' + s.c + '"></i>' + (s.mal ? '<span class="mal-i ' + s.c + '">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) + (s.cnt != null ? ' <b>' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '</b> <em>' + esc(fmt(s.v)) + '</em>' : ' <b>' + esc(fmt(s.v)) + '</b> <em>' + Math.round(s.v / tot * 100) + ' %</em>') + '</span>').join('');
       const meto = sinMeta ? '' : '<div class="rs-goal" style="width:' + Math.min(100, ctx.eq(def.k, f.meta) / ctx.tope * 100).toFixed(2) + '%"></div>';
       return '<div class="rs-fila" data-k="' + def.k + '">' +
         '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (def.foco ? '<span class="rs-foco">' + ICO.objetivo + 'FOCO: AUMENTAR</span>' : '') + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div><div class="b">' + esc(def.nota) + '</div></div>' +
@@ -8797,9 +8798,11 @@
       if(D.sol.sin > 0){
         if(t1 === 'bien') t1 = 'alerta';
         x1 += ' Tienes <b>' + num(D.sol.sin) + (D.sol.sin === 1 ? ' solicitud sin atender' : ' solicitudes sin atender') + '</b>: cotízalas primero.';
-      } else if(fc.cur > 0 && !m.todo){
-        if(m.esActual && D.cot.abierto > 0) x1 += ' ' + esc(dinero(D.cot.abierto)) + ' de lo cotizado sigue abierto (por vender).';
-        else if(!m.esActual) x1 += ' De lo cotizado ganaste el <b>' + pc(D.cot.ganado / fc.cur) + ' %</b> y perdiste el ' + pc(D.cot.perdido / fc.cur) + ' %.';
+      } else if(fc.cur > 0){
+        const tipos = [['estandar', 'de curso estándar', 'de cursos estándar'], ['personalizado', 'de curso personalizado', 'de cursos personalizados'], ['consultoria', 'de consultoría', 'de consultoría']]
+          .filter(([k]) => D.cot[k].n > 0).map(([k, uno, varios]) => D.cot[k].n + ' ' + (D.cot[k].n === 1 ? uno : varios));
+        const n = D.cot.estandar.n + D.cot.personalizado.n + D.cot.consultoria.n;
+        x1 += ' Son <b>' + n + (n === 1 ? ' cotización' : ' cotizaciones') + '</b>: ' + tipos.join(', ') + '.';
       }
       L.push({ t: t1, e: 'COTIZADO', x: x1, a: 'Cotizaciones →', panel: 'tracking-comercial' });
       // Facturado

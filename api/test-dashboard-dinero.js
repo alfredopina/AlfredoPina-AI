@@ -124,26 +124,26 @@ const datosEmb = () => ({
   ],
   cotizaciones: [
     cot({ id: 20, estatus: "Ganada", precio: 1000, enviada: ms("2026-10-01"), cierre: ms("2026-10-05") }),
-    cot({ id: 21, estatus: "Ganada", precio: 2000, enviada: ms("2026-10-01"), cierre: ms("2026-10-06") }),
-    cot({ id: 22, estatus: "Ganada", precio: 700, enviada: ms("2026-10-01"), cierre: ms("2026-10-07") }), // sin cuenta: Por facturar
+    cot({ id: 21, tt: "personalizado", estatus: "Ganada", precio: 2000, enviada: ms("2026-10-01"), cierre: ms("2026-10-06") }),
+    cot({ id: 22, tt: "consultoria", estatus: "Ganada", precio: 700, enviada: ms("2026-10-01"), cierre: ms("2026-10-07") }), // sin cuenta: Por facturar
     cot({ id: 23, estatus: "Enviada", precio: 3000, enviada: ms("2026-10-02") }),
     cot({ id: 24, estatus: "Perdida", precio: 500, enviada: ms("2026-10-03"), cierre: ms("2026-10-09"), motivo: "Precio alto" }),
-    cot({ id: 25, estatus: "Descartada", precio: 4000, alt: 9, enviada: ms("2026-10-04") }), // alternativas: una sola oportunidad, ganada
+    cot({ id: 25, tt: "personalizado", estatus: "Descartada", precio: 4000, alt: 9, enviada: ms("2026-10-04") }), // alternativas: una sola oportunidad, ganada
     cot({ id: 26, estatus: "Ganada", precio: 3500, alt: 9, enviada: ms("2026-10-04"), cierre: ms("2026-10-12") }),
     cot({ id: 27, estatus: "Expirada", precio: 900, enviada: ms("2026-10-05") }),
   ],
   solicitudes: [sol({}), sol({ estatus: "Cotizada" }), sol({ estatus: "Cotizada", canal: "Manual" }), sol({ creada: ms("2026-09-15"), estatus: "Cotizada" })],
 });
 const emb = calcularDinero(datosEmb(), {}, { ahora: AHORA });
-check("solicitudes: cantidad del mes y cuántas están atendidas (ya no son Nueva)", () => {
+check("solicitudes: cantidad del mes, cuántas están atendidas (ya no son Nueva) y de qué canal", () => {
   assert.strictEqual(emb.filas.sol.cur, 3); assert.strictEqual(emb.filas.sol.ref.mes, 1);
-  assert.deepStrictEqual(emb.desglose.sol, { atendidas: 2, sin: 1 });
+  assert.deepStrictEqual(emb.desglose.sol, { atendidas: 2, sin: 1, sitio: 1, manual: 1 });
+  assert.strictEqual(emb.desglose.sol.sitio + emb.desglose.sol.manual, emb.desglose.sol.atendidas);
 });
-check("Cotizado se reparte en abierto / ganado / perdido / otro y la suma es el total (alternativas = una oportunidad)", () => {
-  assert.deepStrictEqual(emb.desglose.cot, { abierto: 3000, ganado: 7700, perdido: 500, otro: 900 });
-  const s = Object.values(emb.desglose.cot).reduce((x, y) => x + y, 0);
+check("Cotizado se reparte por tipo de servicio (estándar · personalizado · consultoría) con cuántas cotizaciones y su monto; suma el total (alternativas = una oportunidad)", () => {
+  assert.deepStrictEqual(emb.desglose.cot, { estandar: { monto: 5400, n: 4 }, personalizado: { monto: 6000, n: 2 }, consultoria: { monto: 700, n: 1 } });
+  const s = Object.values(emb.desglose.cot).reduce((x, y) => x + y.monto, 0);
   assert.strictEqual(s, emb.filas.cot.cur); assert.strictEqual(s, 12100);
-  assert.deepStrictEqual(emb.desglose.motivosPerdido.map((m) => m.motivo), ["Precio alto"]);
 });
 check("Ganado (cerrado en el mes) = ya facturado + por facturar, según la cuenta ligada a su cotización", () => {
   assert.deepStrictEqual(emb.desglose.gan, { facturado: 3000, porFacturar: 4200 });
@@ -156,6 +156,11 @@ check("Facturado se reparte en cobrado / en plazo / vencido y la suma es el tota
 check("Cobrado = de facturas de este mes + de meses anteriores, y suma el cobrado del periodo", () => {
   assert.strictEqual(emb.filas.cob.cur, 1300); assert.deepStrictEqual(emb.desglose.cob, { delMes: 500, anteriores: 800 });
 });
+check("Facturado comparte la meta de Ganado (lo que ganas es lo que debes facturar)", () => {
+  const p = calcularDinero(datosEmb(), {}, { ahora: AHORA, metas: { gan: 5000, cot: 9000 } });
+  assert.strictEqual(p.filas.gan.meta, 5000); assert.strictEqual(p.filas.fac.meta, 5000); assert.strictEqual(p.filas.fac.metaOrigen, "propia");
+  assert.strictEqual(p.filas.cob.metaOrigen, "promedio");
+});
 check("meta propia de Solicitudes (cantidad) y «todo el historial» sin desglose de Cobrado", () => {
   const p = calcularDinero(datosEmb(), {}, { ahora: AHORA, metas: { sol: 15 } });
   assert.strictEqual(p.filas.sol.meta, 15); assert.strictEqual(p.filas.sol.metaOrigen, "propia");
@@ -164,7 +169,7 @@ check("meta propia de Solicitudes (cantidad) y «todo el historial» sin desglos
 });
 check("sin solicitudes cargadas no truena (cantidad 0)", () => {
   const p = calcularDinero({ cuentas: [], cotizaciones: [] }, {}, { ahora: AHORA });
-  assert.strictEqual(p.filas.sol.cur, 0); assert.deepStrictEqual(p.desglose.sol, { atendidas: 0, sin: 0 });
+  assert.strictEqual(p.filas.sol.cur, 0); assert.deepStrictEqual(p.desglose.sol, { atendidas: 0, sin: 0, sitio: 0, manual: 0 });
 });
 (async () => {
   try {

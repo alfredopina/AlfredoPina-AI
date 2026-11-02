@@ -78,7 +78,7 @@ check("tipo de cliente filtra cotizaciones y cuentas", () => {
 check("estrategia: solo filtra Cobranza y avisa qué queda sin filtrar", () => {
   const p = calc({ estrategia: "abiertos" });
   assert.strictEqual(p.filas.cot.cur, 14000); assert.strictEqual(p.filas.fac.cur, 0); assert.strictEqual(p.filas.pxc.cur, 0);
-  assert.deepStrictEqual(p.meta.sinFiltrar.slice().sort(), ["cot", "gan", "per", "pip"]); assert.ok(p.meta.notas.length >= 1);
+  assert.deepStrictEqual(p.meta.sinFiltrar.slice().sort(), ["cot", "gan", "per", "pip", "sol"]); assert.ok(p.meta.notas.length >= 1);
 });
 check("mes pasado (septiembre completo): flujo, comparación y motivos de pérdida", () => {
   const p = calc({ mes: "2026-09" });
@@ -114,13 +114,65 @@ check("meta propia sin 3 meses de historia sí existe; 'todo el historial' no ll
   const t = calcularDinero(datos(), { mes: "todo" }, { ahora: AHORA, metas: { cot: 5000 } });
   assert.strictEqual(t.filas.cot.meta, null);
 });
+// ── desgloses del embudo (barras apiladas): cada barra se reparte en dónde está hoy ese dinero y la suma da el total ──
+const sol = (o) => ({ herr: "excel", canal: "Sitio", estatus: "Nueva", creada: ms("2026-10-02"), tipo: "Directo", ...o });
+const datosEmb = () => ({
+  cuentas: [
+    cuenta({ subtotal: 1000, total: 1160, emision: "2026-10-05", creada: ms("2026-10-05"), vencimiento: "2026-10-20", pagos: [pago("2026-10-10", 580)], cotId: 20 }), // cobró la mitad; el resto ya venció
+    cuenta({ subtotal: 2000, total: 2320, emision: "2026-10-06", creada: ms("2026-10-06"), vencimiento: "2026-11-20", cotId: 21 }), // en plazo
+    cuenta({ subtotal: 800, total: 928, emision: "2026-09-01", creada: ms("2026-09-01"), vencimiento: "2026-09-30", pagos: [pago("2026-10-12", 928)], estatus: "Pagada" }), // factura de septiembre cobrada en octubre
+  ],
+  cotizaciones: [
+    cot({ id: 20, estatus: "Ganada", precio: 1000, enviada: ms("2026-10-01"), cierre: ms("2026-10-05") }),
+    cot({ id: 21, estatus: "Ganada", precio: 2000, enviada: ms("2026-10-01"), cierre: ms("2026-10-06") }),
+    cot({ id: 22, estatus: "Ganada", precio: 700, enviada: ms("2026-10-01"), cierre: ms("2026-10-07") }), // sin cuenta: Por facturar
+    cot({ id: 23, estatus: "Enviada", precio: 3000, enviada: ms("2026-10-02") }),
+    cot({ id: 24, estatus: "Perdida", precio: 500, enviada: ms("2026-10-03"), cierre: ms("2026-10-09"), motivo: "Precio alto" }),
+    cot({ id: 25, estatus: "Descartada", precio: 4000, alt: 9, enviada: ms("2026-10-04") }), // alternativas: una sola oportunidad, ganada
+    cot({ id: 26, estatus: "Ganada", precio: 3500, alt: 9, enviada: ms("2026-10-04"), cierre: ms("2026-10-12") }),
+    cot({ id: 27, estatus: "Expirada", precio: 900, enviada: ms("2026-10-05") }),
+  ],
+  solicitudes: [sol({}), sol({ estatus: "Cotizada" }), sol({ estatus: "Cotizada", canal: "Manual" }), sol({ creada: ms("2026-09-15"), estatus: "Cotizada" })],
+});
+const emb = calcularDinero(datosEmb(), {}, { ahora: AHORA });
+check("solicitudes: cantidad del mes y cuántas están atendidas (ya no son Nueva)", () => {
+  assert.strictEqual(emb.filas.sol.cur, 3); assert.strictEqual(emb.filas.sol.ref.mes, 1);
+  assert.deepStrictEqual(emb.desglose.sol, { atendidas: 2, sin: 1 });
+});
+check("Cotizado se reparte en abierto / ganado / perdido / otro y la suma es el total (alternativas = una oportunidad)", () => {
+  assert.deepStrictEqual(emb.desglose.cot, { abierto: 3000, ganado: 7700, perdido: 500, otro: 900 });
+  const s = Object.values(emb.desglose.cot).reduce((x, y) => x + y, 0);
+  assert.strictEqual(s, emb.filas.cot.cur); assert.strictEqual(s, 12100);
+  assert.deepStrictEqual(emb.desglose.motivosPerdido.map((m) => m.motivo), ["Precio alto"]);
+});
+check("Ganado (cerrado en el mes) = ya facturado + por facturar, según la cuenta ligada a su cotización", () => {
+  assert.deepStrictEqual(emb.desglose.gan, { facturado: 3000, porFacturar: 4200 });
+  assert.strictEqual(emb.desglose.gan.facturado + emb.desglose.gan.porFacturar, emb.filas.gan.cur);
+});
+check("Facturado se reparte en cobrado / en plazo / vencido y la suma es el total (sin IVA)", () => {
+  assert.deepStrictEqual(emb.desglose.fac, { cobrado: 500, plazo: 2000, vencido: 500 });
+  assert.strictEqual(emb.desglose.fac.cobrado + emb.desglose.fac.plazo + emb.desglose.fac.vencido, emb.filas.fac.cur);
+});
+check("Cobrado = de facturas de este mes + de meses anteriores, y suma el cobrado del periodo", () => {
+  assert.strictEqual(emb.filas.cob.cur, 1300); assert.deepStrictEqual(emb.desglose.cob, { delMes: 500, anteriores: 800 });
+});
+check("meta propia de Solicitudes (cantidad) y «todo el historial» sin desglose de Cobrado", () => {
+  const p = calcularDinero(datosEmb(), {}, { ahora: AHORA, metas: { sol: 15 } });
+  assert.strictEqual(p.filas.sol.meta, 15); assert.strictEqual(p.filas.sol.metaOrigen, "propia");
+  const t = calcularDinero(datosEmb(), { mes: "todo" }, { ahora: AHORA });
+  assert.strictEqual(t.desglose.cob, null); assert.strictEqual(t.desglose.sol.atendidas + t.desglose.sol.sin, 4);
+});
+check("sin solicitudes cargadas no truena (cantidad 0)", () => {
+  const p = calcularDinero({ cuentas: [], cotizaciones: [] }, {}, { ahora: AHORA });
+  assert.strictEqual(p.filas.sol.cur, 0); assert.deepStrictEqual(p.desglose.sol, { atendidas: 0, sin: 0 });
+});
 (async () => {
   try {
     const { getMetas, guardarMetas } = require("./src/metas");
     const antes = process.env.RECURSOS_STORAGE_CONNECTION; delete process.env.RECURSOS_STORAGE_CONNECTION;
     try {
-      assert.deepStrictEqual(await getMetas(), { cot: null, gan: null, cob: null });
-      for (const malo of [{ cot: -1 }, { gan: "abc" }, { cob: 1e12 }]) await assert.rejects(() => guardarMetas(malo), /meta/i);
+      assert.deepStrictEqual(await getMetas(), { sol: null, cot: null, gan: null, cob: null });
+      for (const malo of [{ cot: -1 }, { gan: "abc" }, { cob: 1e12 }, { sol: -3 }]) await assert.rejects(() => guardarMetas(malo), /meta/i);
       await assert.rejects(() => guardarMetas({ cot: 100 }), /RECURSOS_STORAGE_CONNECTION/); // valores buenos llegan hasta el Storage
     } finally { if (antes !== undefined) process.env.RECURSOS_STORAGE_CONNECTION = antes; }
     console.log("  OK metas.js: valida montos y sin Storage configurado no truena al leer");

@@ -16,7 +16,7 @@ const { representantes } = require("./cotizacion-alternativas");
 const D = require("./dashboard-resumen");
 const { filasAhora, filasEn, pasa, mesIdx, inicioMes, claveMes, etiquetaMes, fechaMty, enVentana, redondea, MES_CORTO, diaMs, TZ } = D;
 
-const CLAVES = ["cot", "gan", "fac", "cob", "pip", "gpf", "pxc", "plz", "ven", "per"];
+const CLAVES = ["sol", "cot", "gan", "fac", "cob", "pip", "gpf", "pxc", "plz", "ven", "per"]; // sol = cantidad de solicitudes; el resto, pesos sin IVA
 const NO_ENVIADAS = ["Borrador", "Reemplazada"]; // un Borrador nunca salió; una Reemplazada la sustituye otra versión que sí cuenta
 const ABIERTAS = ["Enviada", "En negociación"];
 const suma = (a) => redondea(a.reduce((x, c) => x + (Number(c.precio) || 0), 0), 2);
@@ -47,13 +47,20 @@ function pipelineEn(rows, T) {
 }
 const cerradas = (rows, estatus, v) => rows.filter((c) => c.estatus === estatus && enVentana(c.cierre, v));
 
+// ── Solicitudes (cantidad) ── "atendida" = ya no está en Nueva (la misma regla del Tracking de Solicitudes)
+function solicitudesDe(datos, f, v) {
+  const rows = (datos.solicitudes || []).filter((s) => pasa(f, { tipo: s.tipo, herr: s.herr }, { tipo: true, herr: true }) && enVentana(s.creada, v));
+  return { total: rows.length, atendidas: rows.filter((s) => s.estatus !== "Nueva").length };
+}
+
 // ── Cuentas ──
+const emisionDe = (c) => (c.emision ? diaMs(c.emision) : c.estatus === "Por facturar" ? null : c.creada); // facturada sin fecha: cuenta desde que se creó
+const cuentaFacturable = (c) => c.estatus !== "Cancelada" && C.cuentaEnMetricas({ tipo_factura: c.tipo_factura });
 function facturado(cuentas, v) {
   let t = 0;
   for (const c of cuentas) {
-    if (c.estatus === "Cancelada" || !C.cuentaEnMetricas({ tipo_factura: c.tipo_factura })) continue;
-    const em = c.emision ? diaMs(c.emision) : c.estatus === "Por facturar" ? null : c.creada; // facturada sin fecha: cuenta desde que se creó
-    if (enVentana(em, v)) t += c.total;
+    if (!cuentaFacturable(c)) continue;
+    if (enVentana(emisionDe(c), v)) t += c.total;
   }
   return redondea(t, 2);
 }
@@ -70,6 +77,7 @@ function valoresDe(datos, f, cuentasSub, v, ahora, umbral) {
   const r = calcCuentas(cuentas, v, ahora, umbral);
   const corte = v.hasta == null ? v.ref : v.hasta;
   return {
+    sol: solicitudesDe(datos, f, v).total,
     cot: cotizado(cots, v),
     gan: suma(cerradas(cots, "Ganada", v)),
     fac: facturado(cuentas, v),
@@ -81,6 +89,62 @@ function valoresDe(datos, f, cuentasSub, v, ahora, umbral) {
     ven: r.vencido,
     per: suma(cerradas(cots, "Perdida", v)),
   };
+}
+
+// ── Desgloses del embudo (barras apiladas) ──
+// Cada barra se reparte en DÓNDE ESTÁ HOY ese dinero (cohorte: lo cotizado/facturado en el mes, según su estado de hoy), así que la suma
+// de los segmentos es exactamente el total de la barra. Ganado y Cobrado son lo ocurrido en el mes.
+// Cotizado: Abierto · Ganado · Perdido · Otro (descartado/expirada). Un grupo de alternativas cuenta UNA vez con su monto más alto
+// (igual que cotizado()) y su estado es el de la oportunidad: ganada si alguna se ganó, abierta si alguna sigue abierta, perdida, otro.
+function cohorteCotizado(rows, v) {
+  const grupos = new Map();
+  for (const c of rows.filter((x) => !NO_ENVIADAS.includes(x.estatus) && enVentana(x.enviada, v))) {
+    const k = c.alt != null ? "a" + c.alt : "i" + c.id;
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(c);
+  }
+  const seg = { abierto: 0, ganado: 0, perdido: 0, otro: 0 };
+  const por = new Map();
+  for (const g of grupos.values()) {
+    const monto = Math.max(...g.map((c) => Number(c.precio) || 0));
+    const perdida = g.find((c) => c.estatus === "Perdida");
+    const st = g.some((c) => c.estatus === "Ganada") ? "ganado" : g.some((c) => ABIERTAS.includes(c.estatus)) ? "abierto" : perdida ? "perdido" : "otro";
+    seg[st] += monto;
+    if (st === "perdido") { const m = perdida.motivo || "Sin motivo"; por.set(m, (por.get(m) || 0) + monto); }
+  }
+  for (const k of Object.keys(seg)) seg[k] = redondea(seg[k], 2);
+  const totalP = [...por.values()].reduce((a, b) => a + b, 0);
+  const motivos = [...por.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([motivo, monto]) => ({ motivo, monto: redondea(monto, 2), pct: totalP ? Math.round((monto / totalP) * 100) : 0 }));
+  return { seg, motivos };
+}
+// Ganado (cerrado en el mes): lo que ya tiene factura vs lo que sigue Por facturar. La cuenta apunta a su cotización (cotizacion_id);
+// sin cuenta, o con la cuenta cancelada o aún "Por facturar", cuenta como Por facturar.
+function ganadoFacturado(cots, cuentas, v) {
+  const facturadas = new Set(cuentas.filter((c) => c.cotId != null && c.estatus !== "Cancelada" && (c.emision || c.estatus !== "Por facturar")).map((c) => c.cotId));
+  const ganadas = cerradas(cots, "Ganada", v);
+  return { facturado: suma(ganadas.filter((c) => facturadas.has(c.id))), porFacturar: suma(ganadas.filter((c) => !facturadas.has(c.id))) };
+}
+// Facturado (emitido en el mes): ya cobrado · en plazo · vencido, según el saldo y el semáforo de HOY (misma regla del Tracking)
+function desgloseFacturado(cuentas, v, ahoraMs, umbral) {
+  const o = { cobrado: 0, plazo: 0, vencido: 0 };
+  for (const c of cuentas) {
+    if (!cuentaFacturable(c) || !enVentana(emisionDe(c), v)) continue;
+    const fila = filasAhora([c], ahoraMs, umbral)[0];
+    const saldo = Math.max(0, Math.min(c.total, fila.saldo));
+    o.cobrado += c.total - saldo;
+    if (fila.semaforo.clave === "vencida") o.vencido += saldo; else o.plazo += saldo;
+  }
+  return { cobrado: redondea(o.cobrado, 2), plazo: redondea(o.plazo, 2), vencido: redondea(o.vencido, 2) };
+}
+// Cobrado (pagos del mes): los de facturas emitidas este mismo mes y los de meses anteriores (suman exactamente el cobrado del periodo)
+function desgloseCobrado(cuentas, v, cobrado) {
+  let t = 0;
+  for (const c of cuentas) {
+    if (c.estatus === "Cancelada" || !enVentana(emisionDe(c), v)) continue;
+    for (const p of c.pagos) if (!p.anulado && enVentana(p.fecha ? diaMs(p.fecha) : p.creada, v)) t += Number(p.monto) || 0;
+  }
+  const delMes = Math.min(cobrado, redondea(t, 2));
+  return { delMes: redondea(delMes, 2), anteriores: redondea(cobrado - delMes, 2) };
 }
 
 function motivosDe(datos, f, v) {
@@ -110,6 +174,7 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   const pon = (x) => { if (x != null && isFinite(x)) fechas.push(x); };
   datos.cuentas.forEach((c) => { pon(c.emision ? diaMs(c.emision) : c.creada); c.pagos.forEach((p) => pon(p.fecha ? diaMs(p.fecha) : p.creada)); });
   datos.cotizaciones.forEach((c) => { pon(c.enviada); pon(c.cierre); });
+  (datos.solicitudes || []).forEach((s) => pon(s.creada));
   const kPrimero = fechas.length ? Math.min(...fechas.map(mesIdx)) : M;
 
   // ventana del mes k: completa, salvo el mes en curso (hasta el fin de hoy); los meses que se comparan con él van al mismo corte
@@ -152,9 +217,22 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   }
 
   const motivos = todo ? motivosDe(datos, f, { desde: null, hasta: null }) : motivosDe(datos, f, ventana(M, corte));
+  // desgloses del embudo para el periodo que se mira (ver cohorteCotizado y compañía)
+  const vDes = todo ? { desde: null, hasta: null } : ventana(M, corte);
+  const cotsF = filtraCot(datos, f);
+  const cuentasF = cuentasSub.filter((c) => pasa(f, { tipo: c.tipo, herr: c.herrs, estrategia: c.estrategia }, { tipo: true, herr: true, estrategia: true }));
+  const sl = solicitudesDe(datos, f, vDes), coh = cohorteCotizado(cotsF, vDes);
+  const desglose = {
+    sol: { atendidas: sl.atendidas, sin: sl.total - sl.atendidas },
+    cot: coh.seg,
+    gan: ganadoFacturado(cotsF, datos.cuentas, vDes),
+    fac: desgloseFacturado(cuentasF, vDes, ahoraMs, umbralPorVencer),
+    cob: todo ? null : desgloseCobrado(cuentasF, vDes, filas.cob.cur),
+    motivosPerdido: coh.motivos,
+  };
   const sinFiltrar = [];
   const notas = [];
-  if (f.estrategia) { sinFiltrar.push("cot", "gan", "pip", "per"); notas.push("Estrategia: solo se registra en Cobranza; Cotizado, Ganado, Pipeline y Perdido no se filtran por ella"); }
+  if (f.estrategia) { sinFiltrar.push("sol", "cot", "gan", "pip", "per"); notas.push("Estrategia: solo se registra en Cobranza; Solicitudes, Cotizado, Ganado y Por vender no se filtran por ella"); }
   if (f.herramienta) notas.push("Herramienta: las cuentas manuales sin cotización ni grupo no se incluyen");
 
   const meses = [];
@@ -167,6 +245,7 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
     },
     filas,
     motivos,
+    desglose,
   };
 }
 

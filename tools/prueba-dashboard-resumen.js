@@ -13,12 +13,13 @@ const ms = (s) => Date.parse(s + 'T06:00:00Z');
 const AHORA = new Date('2026-10-28T18:00:00Z');
 const cuenta = (o) => ({ estrategia: 'empresas', tipo_factura: 'Empresa', estatus: 'Facturada', subtotal: 1000, total: 1160, emision: null, creada: ms('2026-01-01'), vencimiento: null, tipo: 'Directo', herrs: ['excel'], pagos: [], ...o });
 const cot = (o) => ({ id: 0, estatus: 'Enviada', precio: 0, alt: null, herr: 'excel', creada: ms('2026-01-01'), enviada: ms('2026-01-01'), cierre: null, cierreReal: null, motivo: null, tipo: 'Directo', ...o });
+const sol = (o) => ({ herr: 'excel', canal: 'Sitio', estatus: 'Nueva', creada: ms('2026-10-03'), tipo: 'Directo', ...o });
 const DATOS = {
   cuentas: [
     cuenta({ emision: '2026-08-20', creada: ms('2026-08-20'), vencimiento: '2026-09-19', pagos: [{ fecha: '2026-09-10', creada: ms('2026-09-10'), monto: 1160, anulado: false }], estatus: 'Pagada' }),
-    cuenta({ subtotal: 3000, total: 3480, emision: '2026-09-10', creada: ms('2026-09-10'), vencimiento: '2026-10-10', herrs: ['powerbi'] }),
+    cuenta({ subtotal: 3000, total: 3480, emision: '2026-09-10', creada: ms('2026-09-10'), vencimiento: '2026-10-10', herrs: ['powerbi'], pagos: [{ fecha: '2026-10-12', creada: ms('2026-10-12'), monto: 1740, anulado: false }] }),
     cuenta({ subtotal: 400, total: 464, emision: '2026-10-01', creada: ms('2026-10-01'), vencimiento: '2026-11-30' }),
-    cuenta({ subtotal: 500, total: 580, estatus: 'Por facturar', creada: ms('2026-10-15') }),
+    cuenta({ subtotal: 500, total: 580, estatus: 'Por facturar', creada: ms('2026-10-15'), cotId: 3, herrs: ['powerbi'] }),
   ],
   cotizaciones: [
     cot({ id: 1, estatus: 'Ganada', precio: 10000, enviada: ms('2026-08-25'), cierre: ms('2026-09-12') }),
@@ -27,7 +28,9 @@ const DATOS = {
     cot({ id: 4, precio: 8000, enviada: ms('2026-10-10') }),
     cot({ id: 5, estatus: 'Perdida', precio: 2500, enviada: ms('2026-10-05'), cierre: ms('2026-10-20'), motivo: 'Sin respuesta' }),
   ],
+  solicitudes: [sol({}), sol({ estatus: 'Cotizada', creada: ms('2026-10-04') }), sol({ estatus: 'Cotizada', canal: 'Manual', creada: ms('2026-10-06') }), sol({ estatus: 'Cotizada', creada: ms('2026-09-10') })],
 };
+let METAS = {}; // metas propias de Configuración → Metas (se cambian en la prueba)
 
 const llamadas = [];
 let fallarResumen = null; // status de error a devolver
@@ -37,7 +40,7 @@ function fetchFalso(url) {
   if (u.includes('/api/getDashboardResumenAdmin')) {
     if (fallarResumen) return respuesta({ error: 'Error de prueba' }, fallarResumen);
     const p = new URL(u, 'https://x.test').searchParams;
-    const r = calcularDinero(DATOS, { mes: p.get('mes') || '', estrategia: p.get('estrategia') || '', tipoCliente: p.get('tipoCliente') || '', herramienta: p.get('herramienta') || '' }, { ahora: AHORA });
+    const r = calcularDinero(DATOS, { mes: p.get('mes') || '', estrategia: p.get('estrategia') || '', tipoCliente: p.get('tipoCliente') || '', herramienta: p.get('herramienta') || '' }, { ahora: AHORA, metas: METAS });
     r.meta.generado = '2026-10-28T16:42:00.000Z';
     return respuesta(r);
   }
@@ -78,7 +81,8 @@ const volcar = (nombre) => { if (!process.env.VOLCAR_HTML) return; const copia =
 const cambia = (sel, valor) => { const s = q(sel); s.value = valor; s.dispatchEvent(new w.Event('change', { bubbles: true })); };
 const resumenes = () => llamadas.filter((u) => u.includes('getDashboardResumenAdmin'));
 const nombres = () => qa('.rs-fila .nm .a').map((e) => txt(e).replace(/FOCO: AUMENTAR|SIN FILTRAR/g, '').trim()).join('|');
-const vista = (id) => q('.rs-vista[data-vista="' + id + '"]').click();
+const ancho = (sel) => parseFloat((q(sel) || { style: { width: '0' } }).style.width);
+const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => txt(e).replace(/\s*[\d.,$]+\s*\d+ %$/, '').trim());
 
 (async () => {
   await pausa(700);
@@ -95,39 +99,46 @@ const vista = (id) => q('.rs-vista[data-vista="' + id + '"]').click();
   console.log('Entrar al Dashboard desde la barra superior');
   q('#btnDashboard').click(); await pausa(400);
   check('pide el Resumen una sola vez', resumenes().length === 1, String(resumenes().length));
-  check('tres vistas, con sus nombres: la primera activa', qa('.rs-vista h2').map((h) => txt(h)).join('|') === 'Flujo de Venta y Cobranza|Por vender y por cobrar|Oportunidades no cerradas' && q('.rs-vista.on').dataset.vista === 'flujo');
-  check('solo la vista activa muestra filas (una sola pantalla)', qa('.rs-vista.on').length === 1 && qa('.rs-fila').length === 4, String(qa('.rs-fila').length));
-  check('Flujo: Cotizado → Ganado → Facturado → Cobrado', nombres() === 'Cotizado|Ganado|Facturado|Cobrado', nombres());
+  check('una sola pantalla: ya no hay selector de vistas', !q('.rs-vista') && !q('#rsVistas'));
+  check('el embudo: Solicitudes → Cotizado → Ganado → Facturado → Cobrado', nombres() === 'Solicitudes|Cotizado|Ganado|Facturado|Cobrado', nombres());
   check('Cotizado lleva la etiqueta de foco', /FOCO: AUMENTAR/.test(txt(q('.rs-fila[data-k="cot"] .nm'))));
+  check('Solicitudes es una cantidad (3 en octubre), no pesos', /^3 solicitudes/.test(txt(q('.rs-fila[data-k="sol"] .vv'))), txt(q('.rs-fila[data-k="sol"] .vv')));
   check('montos sin IVA: cotizado de octubre = $8,000 (abierta) + $2,500 (perdida) = $10,500', txt(q('.rs-fila[data-k="cot"] .vv')) === '$10,500', txt(q('.rs-fila[data-k="cot"] .vv')));
-  check('cada fila: barra con marca de meta, línea de 12 meses y variación con ÍCONO + TEXTO', qa('.rs-fila').every((f) => f.querySelector('.rs-track .fill') && f.querySelector('.rs-sp2') && f.querySelector('.rs-d svg') && txt(f.querySelector('.rs-d')).length > 2));
-  check('la meta se explica con texto e ícono («sobre su meta» o «bajo su meta»), no solo por color', qa('.rs-fila .rs-est').every((e) => /meta/.test(txt(e)) && e.querySelector('svg')));
-  check('barra azul (on) si está en su meta y azul claro (off) si no; la clase coincide con el texto', qa('.rs-fila').every((f) => !f.querySelector('.rs-est.on, .rs-est.off') || (f.querySelector('.fill.on') ? !!f.querySelector('.rs-est.on') : !!f.querySelector('.rs-est.off'))));
-  check('puntos de la línea con mes y monto para el tooltip', qa('.rs-fila[data-k="cot"] .hit').length >= 3 && qa('.rs-fila[data-k="cot"] .hit').every((h) => h.dataset.m && Number(h.dataset.v) >= 0) && /al día 28/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.m));
-  check('la variación trae porcentaje y monto («vs sep»)', /vs sep/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /[+−]\$/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))), txt(q('.rs-fila[data-k="cot"] .rs-vc')));
-  check('tres lecturas, cada una con etiqueta (ícono + palabra) y un botón que lleva a donde se atiende', qa('.rs-in').length === 3 && qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')));
+  check('cada fila: barra apilada, línea de 12 meses y variación con ÍCONO + TEXTO', qa('.rs-fila').every((f) => f.querySelector('.rs-stk') && f.querySelector('.rs-sp2') && f.querySelector('.rs-d svg') && txt(f.querySelector('.rs-d')).length > 2));
+  check('Cotizado se reparte en Abierto y Perdido (lo que vale cero no se dibuja ni se lista)', segs('cot').join('|') === 'Abierto (por vender)|Perdido', segs('cot').join('|'));
+  check('la suma de los segmentos es el total de la barra: Cotizado $8,000 + $2,500', /\$8,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))) && /\$2,500/.test(txt(q('.rs-fila[data-k="cot"] .rs-lg'))));
+  check('Solicitudes: atendidas y SIN ATENDER (ámbar) con ícono de alerta en la leyenda', segs('sol').join('|') === 'Atendidas (ya cotizadas)|Sin atender' && !!q('.rs-fila[data-k="sol"] .rs-lg .mal-i.pend svg') && !!q('.rs-fila[data-k="sol"] .rs-stk .rs-sg.pend'), segs('sol').join('|'));
+  check('Ganado: los $6,000 de la cotización ganada siguen Por facturar (cuenta ligada sin factura), en ámbar con ícono', segs('gan').join('|') === 'Por facturar' && !!q('.rs-fila[data-k="gan"] .mal-i.pend svg'), segs('gan').join('|'));
+  check('Facturado: lo emitido en octubre ($400) está En plazo; no hay vencido, así que no hay rojo', segs('fac').join('|') === 'En plazo' && !q('.rs-fila[data-k="fac"] .rs-sg.venc'), segs('fac').join('|'));
+  check('Cobrado: $1,500 de facturas de meses anteriores (la de septiembre) y nada de este mes', segs('cob').join('|') === 'De meses anteriores' && txt(q('.rs-fila[data-k="cob"] .vv')) === '$1,500', segs('cob').join('|') + ' ' + txt(q('.rs-fila[data-k="cob"] .vv')));
+  check('lo normal va sin color de alerta: Cotizado y Cobrado no traen ámbar ni rojo', !q('.rs-fila[data-k="cot"] .rs-sg.pend, .rs-fila[data-k="cot"] .rs-sg.venc, .rs-fila[data-k="cob"] .rs-sg.pend, .rs-fila[data-k="cob"] .rs-sg.venc'));
+  check('lo atendido de Solicitudes mide lo mismo que la barra de Cotizado (misma escala)', Math.abs(ancho('.rs-fila[data-k="sol"] .rs-stk .rs-sg.azul') - ancho('.rs-fila[data-k="cot"] .rs-stk')) < 0.6, ancho('.rs-fila[data-k="sol"] .rs-stk .rs-sg.azul') + ' vs ' + ancho('.rs-fila[data-k="cot"] .rs-stk'));
+  check('cada barra trae su contorno punteado de meta, con ancho', qa('.rs-fila').every((f) => f.querySelector('.rs-goal')) && qa('.rs-goal').every((g) => parseFloat(g.style.width) > 0));
+  check('la meta se explica con texto e ícono («sobre su meta» o «bajo su meta») y dice si es promedio', qa('.rs-fila .rs-est').every((e) => /meta/.test(txt(e)) && e.querySelector('svg')) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))), txt(q('.rs-fila[data-k="cot"] .rs-est')));
+  check('segmento Perdido: el tooltip trae los motivos', qa('.rs-fila[data-k="cot"] .rs-stk .rs-sg').some((s) => /Perdido/.test(s.dataset.tip) && /Motivos: sin respuesta 100 %/.test(s.dataset.tip)));
+  check('puntos de la línea con mes y monto para el tooltip', qa('.rs-fila[data-k="cot"] .hit').length >= 3 && qa('.rs-fila[data-k="cot"] .hit').every((h) => /\|/.test(h.dataset.tip)) && /al día 28/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.tip));
+  check('la variación trae porcentaje y monto («vs sep»); Solicitudes lo da en cantidad', /vs sep/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /[+−]\$/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && /solicitud/.test(txt(q('.rs-fila[data-k="sol"] .rs-dl'))), txt(q('.rs-fila[data-k="sol"] .rs-vc')));
+  check('tres lecturas, una por etapa (Cotizado, Facturado, Cobrado), con ícono + palabra y un botón al Tracking', qa('.rs-in').length === 3 && qa('.rs-in').map((i) => txt(i.querySelector('.tg')).split('·')[1].trim()).join('|') === 'COTIZADO|FACTURADO|COBRADO' && qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')));
+  check('la lectura de Cotizado avisa de la solicitud sin atender', /1 solicitud sin atender/.test(txt(qa('.rs-in')[0])), txt(qa('.rs-in')[0]));
+  check('la lectura de Facturado habla de lo ganado sin factura y del vencido de toda la cartera', /ganados sin factura/.test(txt(qa('.rs-in')[1])) && /vencidos/.test(txt(qa('.rs-in')[1])), txt(qa('.rs-in')[1]));
+  check('franja «Hoy» con toda la cartera: Por vender $8,000, Por facturar $500, Por cobrar $1,900 con $1,500 vencido (ícono + texto)', /Por vender \$8,000/.test(txt(q('.rs-hoy .hx:nth-child(1)'))) && /\$500/.test(txt(q('.rs-hoy .hx:nth-child(2)'))) && /\$1,900/.test(txt(q('.rs-hoy .hx:nth-child(3)'))) && /\$1,500 vencido/.test(txt(q('.rs-hoy .rs-d.urg'))) && !!q('.rs-hoy .rs-d.urg svg'), txt(q('.rs-hoy')));
   check('el encabezado de columnas dice contra qué se compara', /VARIACIÓN vs SEP/.test(txt(q('.rs-cab'))), txt(q('.rs-cab')));
   volcar('dashboard-resumen');
 
-  console.log('Cambiar de vista (sin volver a pedir datos)');
-  const n0 = resumenes().length;
-  vista('abierto'); await pausa(50);
-  check('Por vender y por cobrar: 5 filas con el desglose en plazo / vencido como hijas', nombres() === 'Por vender|Por facturar|Por cobrar|Facturado en plazo|Facturado vencido' && qa('.rs-fila.hijo').length === 2, nombres());
-  check('cambiar de vista no pide nada al servidor', resumenes().length === n0);
-  check('por cobrar = en plazo + vencido (mismos montos de la pantalla)', (() => { const n = (k) => Number(txt(q('.rs-fila[data-k="' + k + '"] .vv')).replace(/[^\d]/g, '')); return n('pxc') === n('plz') + n('ven'); })());
-  check('Por cobrar de octubre sin IVA: $3,400 (3,000 vencidos + 400 en plazo)', txt(q('.rs-fila[data-k="pxc"] .vv')) === '$3,400', txt(q('.rs-fila[data-k="pxc"] .vv')));
-  check('el vencido en aumento: píldora roja con la palabra «atención»', /atención/.test(txt(q('.rs-fila[data-k="ven"] .rs-d'))) && q('.rs-fila[data-k="ven"] .rs-d.urg'), txt(q('.rs-fila[data-k="ven"] .rs-d')));
-  check('tres lecturas también aquí', qa('.rs-in').length === 3);
-  vista('perdido'); await pausa(50);
-  check('Oportunidades no cerradas: una sola fila y los motivos de pérdida', nombres() === 'Cerradas sin venta' && /Sin respuesta/.test(txt(q('.rs-motivos'))) && qa('.rs-mo').length === 1, nombres());
-  check('tres lecturas también aquí', qa('.rs-in').length === 3);
-  vista('flujo'); await pausa(50);
+  console.log('Metas propias (Configuración → Metas)');
+  METAS = { sol: 10, cot: 20000 };
+  q('#rsActualizar').click(); await pausa(300);
+  check('la meta propia reemplaza al promedio y lo dice («meta $20,000»); Ganado sigue con su promedio', /meta \$20,000/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /bajo su meta/.test(txt(q('.rs-fila[data-k="cot"] .rs-est'))) && /prom\. 12 m/.test(txt(q('.rs-fila[data-k="gan"] .rs-est'))), txt(q('.rs-fila[data-k="cot"] .rs-est')));
+  check('la meta de Solicitudes es una cantidad («meta 10») y la lectura de Cotizado dice «llegar a tu meta»', /meta 10/.test(txt(q('.rs-fila[data-k="sol"] .rs-est'))) && /para llegar a tu meta/.test(txt(qa('.rs-in')[0])), txt(q('.rs-fila[data-k="sol"] .rs-est')));
+  METAS = {};
+  q('#rsActualizar').click(); await pausa(300);
 
   console.log('Comparar con');
+  const n0 = resumenes().length;
   q('#rsModo button[data-m="p3"]').click(); await pausa(50);
   check('promedio de 3 meses: cambia la etiqueta de la columna y de las píldoras, sin pedir datos', /VARIACIÓN vs PROM. 3 M/.test(txt(q('.rs-cab'))) && /vs prom. 3 m/.test(txt(q('.rs-fila[data-k="cot"] .rs-dl'))) && resumenes().length === n0, txt(q('.rs-fila[data-k="cot"] .rs-dl')));
   q('#rsModo button[data-m="anio"]').click(); await pausa(50);
-  check('año pasado sin historia: «sin datos» con ícono (no un número inventado)', qa('.rs-fila .rs-d.na').length === 4 && /sin datos/.test(txt(q('.rs-fila[data-k="cot"] .rs-d'))) && q('.rs-fila[data-k="cot"] .rs-d svg'));
+  check('año pasado sin historia: «sin datos» con ícono (no un número inventado)', qa('.rs-fila .rs-d.na').length === 5 && /sin datos/.test(txt(q('.rs-fila[data-k="cot"] .rs-d'))) && q('.rs-fila[data-k="cot"] .rs-d svg'));
   check('las lecturas siguen funcionando sin referencia del año pasado', qa('.rs-in').length === 3);
   q('#rsModo button[data-m="mes"]').click(); await pausa(50);
   check('mes anterior: el botón queda resaltado', q('#rsModo button[data-m="mes"]').classList.contains('on') && qa('#rsModo button.on').length === 1);
@@ -135,29 +146,27 @@ const vista = (id) => q('.rs-vista[data-vista="' + id + '"]').click();
   console.log('Ayuda');
   check('el panel de ayuda empieza cerrado', q('#rsPop').hidden);
   q('#rsAyuda').click();
-  check('el botón ? abre la explicación de barras, línea y variación', !q('#rsPop').hidden && /BARRAS/.test(txt(q('#rsPop'))) && /GRÁFICA DE 12 MESES/.test(txt(q('#rsPop'))) && /VARIACIÓN/.test(txt(q('#rsPop'))) && q('#rsAyuda').getAttribute('aria-expanded') === 'true');
+  check('el botón ? abre la explicación del embudo, los colores, la línea y la variación', !q('#rsPop').hidden && /BARRAS/.test(txt(q('#rsPop'))) && /COLORES/.test(txt(q('#rsPop'))) && /GRÁFICA DE 12 MESES/.test(txt(q('#rsPop'))) && /VARIACIÓN/.test(txt(q('#rsPop'))) && q('#rsAyuda').getAttribute('aria-expanded') === 'true');
   d.body.click();
   check('un clic fuera la cierra', q('#rsPop').hidden);
 
   console.log('Filtros');
   cambia('#rsHerramienta', 'powerbi'); await pausa(300);
   check('pide con herramienta=powerbi', resumenes().pop().includes('herramienta=powerbi'), resumenes().pop());
-  check('el filtro activo se resalta y la vista sigue donde estaba', q('#rsHerramienta').parentNode.classList.contains('act') && !q('#rsSwMes').classList.contains('act') && q('.rs-vista.on').dataset.vista === 'flujo');
+  check('el filtro activo se resalta y el mes no', q('#rsHerramienta').parentNode.classList.contains('act') && !q('#rsSwMes').classList.contains('act'));
   check('Power BI: cotizado de octubre en $0 y ganado de $6,000 (la cotización que lleva esa herramienta)', txt(q('.rs-fila[data-k="cot"] .vv')) === '$0' && txt(q('.rs-fila[data-k="gan"] .vv')) === '$6,000', txt(q('.rs-fila[data-k="cot"] .vv')) + ' ' + txt(q('.rs-fila[data-k="gan"] .vv')));
   check('avisa que las cuentas manuales sin herramienta no se incluyen', /cuentas manuales/.test(txt(q('.rs-nota'))), txt(q('.rs-nota')));
   cambia('#rsEstrategia', 'abiertos'); await pausa(300);
-  check('Estrategia solo existe en Cobranza: Cotizado y Ganado quedan SIN FILTRAR con ícono y texto', qa('.rs-nf').length === 2 && qa('.rs-nf').every((t) => /SIN FILTRAR/.test(txt(t)) && t.querySelector('svg')), String(qa('.rs-nf').length));
-  vista('abierto'); await pausa(50);
-  check('en Por vender y por cobrar solo Por vender queda sin filtrar', qa('.rs-nf').length === 1 && !!q('.rs-fila[data-k="pip"] .rs-nf'));
+  check('Estrategia solo existe en Cobranza: Solicitudes, Cotizado y Ganado quedan SIN FILTRAR con ícono y texto', qa('.rs-fila .rs-nf').length === 3 && qa('.rs-nf').every((t) => /SIN FILTRAR/.test(txt(t)) && t.querySelector('svg')), String(qa('.rs-fila .rs-nf').length));
+  check('en la franja «Hoy» solo Por vender queda sin filtrar', qa('.rs-hoy .rs-nf').length === 1);
   cambia('#rsMes', 'todo'); await pausa(300);
   check('«Todo el historial» pide mes=todo, resalta el mes y muestra «acumulado» sin meta', resumenes().pop().includes('mes=todo') && q('#rsSwMes').classList.contains('act') && qa('.rs-d.acum').length === 5 && /sin meta aún/.test(txt(q('.rs-fila .rs-est'))));
   q('#rsLimpiar').click(); await pausa(300);
   const ultima = resumenes().pop();
   check('Limpiar filtros regresa todo a su valor inicial y pide sin filtros', !/estrategia|herramienta|mes=/.test(ultima) && !qa('.rs-sw.act').length && qa('.rs-nf').length === 0, ultima);
   check('el mes vuelve al mes en curso', /Octubre 2026/.test(q('#rsMes').selectedOptions[0].textContent));
-  vista('flujo'); await pausa(50);
   cambia('#rsMes', '2026-09'); await pausa(300);
-  check('mes pasado: subtítulo de mes completo, sin «al día» en la línea, y pide mes=2026-09', resumenes().pop().includes('mes=2026-09') && /mes completo/i.test(txt(q('.rs-vista.on small'))) && !/al día/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.m), txt(q('.rs-vista.on small')));
+  check('mes pasado: título de mes completo, sin «al día» en la línea, franja «Al cierre de sep 26» y pide mes=2026-09', resumenes().pop().includes('mes=2026-09') && /mes completo/i.test(txt(q('.rs-emb-t small'))) && !/al día/.test(qa('.rs-fila[data-k="cot"] .hit').pop().dataset.tip) && /AL CIERRE DE SEP 26/.test(txt(q('.rs-hoy-t'))), txt(q('.rs-emb-t small')) + ' / ' + txt(q('.rs-hoy-t')));
   q('#rsLimpiar').click(); await pausa(300);
 
   console.log('Navegación');
@@ -178,7 +187,7 @@ const vista = (id) => q('.rs-vista[data-vista="' + id + '"]').click();
   console.log('Errores');
   fallarResumen = 400;
   q('#rsActualizar').click(); await pausa(300);
-  check('un error del servidor muestra aviso con texto y botón Reintentar (sin perder lo pintado)', !q('#rsAviso').hidden && /No se pudo cargar el resumen: Error de prueba/.test(txt(q('#rsAvisoTxt'))) && qa('.rs-fila').length === 4);
+  check('un error del servidor muestra aviso con texto y botón Reintentar (sin perder lo pintado)', !q('#rsAviso').hidden && /No se pudo cargar el resumen: Error de prueba/.test(txt(q('#rsAvisoTxt'))) && qa('.rs-fila').length === 5);
   fallarResumen = null;
   q('#rsReintentar').click(); await pausa(300);
   check('Reintentar lo vuelve a cargar y oculta el aviso', q('#rsAviso').hidden && /^Actualizar · hoy/.test(q('#rsActualizar').dataset.tt));

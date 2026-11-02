@@ -17,7 +17,7 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
   const vacio = { recordset: [] };
   const si = (nombre, texto) => (omitir.includes(nombre) ? vacio : q(texto));
   const [cuentas, pagos, cots, sols, grupos, clientes] = await Promise.all([
-    q(`SELECT x.id, x.estrategia, x.tipo_factura, x.estatus, x.total, x.subtotal, x.fecha_emision, x.fecha_creacion, x.vencimiento,
+    q(`SELECT x.id, x.cotizacion_id, x.estrategia, x.tipo_factura, x.estatus, x.total, x.subtotal, x.fecha_emision, x.fecha_creacion, x.vencimiento,
               c.tipo_cliente AS tipo, q.herramienta AS cot_herr, g.herramientas AS gru_herr
        FROM CuentaPorCobrar x
        LEFT JOIN Cliente c ON c.id = x.cliente_id
@@ -56,7 +56,7 @@ async function cargarDatos(umbrales, { omitir = [] } = {}) {
   const ahora = new Date();
   return {
     cuentas: cuentas.recordset.map((x) => ({
-      estrategia: x.estrategia || null, tipo_factura: x.tipo_factura || null, estatus: x.estatus, total: Number(x.total), subtotal: Number(x.subtotal), emision: diaTxt(x.fecha_emision), creada: inst(x.fecha_creacion),
+      cotId: x.cotizacion_id == null ? null : x.cotizacion_id, estrategia: x.estrategia || null, tipo_factura: x.tipo_factura || null, estatus: x.estatus, total: Number(x.total), subtotal: Number(x.subtotal), emision: diaTxt(x.fecha_emision), creada: inst(x.fecha_creacion),
       vencimiento: diaTxt(x.vencimiento), tipo: x.tipo || null,
       herrs: x.cot_herr ? [String(x.cot_herr).toLowerCase()] : lista(x.gru_herr), pagos: pagosDe.get(x.id) || [],
     })),

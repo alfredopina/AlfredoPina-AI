@@ -1,5 +1,5 @@
 // api/src/metas.js
-// Metas mensuales de dinero (SIN IVA) del Dashboard → Resumen: Cotizado, Ganado y Cobrado. Alfredo las escribe en Configuración → Metas;
+// Metas mensuales del Dashboard → Resumen: Solicitudes (CANTIDAD), y Cotizado, Ganado y Cobrado (dinero SIN IVA). Alfredo las escribe en Configuración → Metas;
 // mientras una no exista, esa fila del Resumen usa el promedio de sus últimos 12 meses (comportamiento anterior).
 // Table Storage (tabla ConfiguracionNotificaciones, renglón config/metas): no depende de SQL ni la despierta.
 // Un campo vacío = "sin meta propia" (se usa el promedio). Nunca se borra nada de verdad: guardar vacío solo quita la meta.
@@ -8,7 +8,8 @@ const { TableClient } = require("@azure/data-tables");
 const TABLA = "ConfiguracionNotificaciones";
 const PK = "config";
 const RK = "metas";
-const CLAVES = ["cot", "gan", "cob"];
+const CLAVES = ["sol", "cot", "gan", "cob"]; // en el orden del embudo
+const ENTERAS = ["sol"]; // cuentan personas/solicitudes, no pesos: sin decimales
 const MAXIMO = 1e9;
 
 function getTabla() {
@@ -18,7 +19,7 @@ function getTabla() {
 
 const aMonto = (v) => (typeof v === "number" && isFinite(v) && v >= 0 ? v : null);
 
-// nunca lanza: ante cualquier problema no hay metas → { cot:null, gan:null, cob:null }
+// nunca lanza: ante cualquier problema no hay metas → { sol:null, cot:null, gan:null, cob:null }
 async function getMetas() {
   const r = Object.fromEntries(CLAVES.map((k) => [k, null]));
   const tabla = getTabla();
@@ -32,7 +33,7 @@ async function getMetas() {
   }
 }
 
-// valores: { cot, gan, cob }; cada uno es un monto >= 0, o vacío/null para quitar esa meta. Regresa las metas guardadas.
+// valores: { sol, cot, gan, cob }; cada uno es un monto >= 0, o vacío/null para quitar esa meta. Regresa las metas guardadas.
 async function guardarMetas(valores) {
   const v = valores || {};
   const limpio = {};
@@ -42,7 +43,7 @@ async function guardarMetas(valores) {
     const n = Number(crudo);
     if (!isFinite(n) || n < 0) throw new Error("Las metas deben ser montos de cero o más.");
     if (n > MAXIMO) throw new Error("Esa meta es demasiado grande.");
-    limpio[k] = Math.round(n * 100) / 100;
+    limpio[k] = ENTERAS.includes(k) ? Math.round(n) : Math.round(n * 100) / 100;
   }
   const tabla = getTabla();
   if (!tabla) throw new Error("RECURSOS_STORAGE_CONNECTION no está configurada.");

@@ -23,7 +23,7 @@ module.exports = async function (context, req) {
   if (herramienta && !HERRAMIENTAS.includes(herramienta)) return void (context.res = falla(400, "Herramienta no válida."));
   try {
     const [umbrales, metas] = await Promise.all([getUmbrales(), getMetas()]);
-    const datos = await cargarDatos(umbrales, { omitir: ["sols", "grupos", "clientes"] });
+    const datos = await cargarDatos(umbrales, { omitir: ["grupos", "clientes"] });
     const ahora = new Date();
     const r = calcularDinero(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, umbralPorVencer: umbrales.cobranzaPorVencerDias, metas });
     r.meta.generado = ahora.toISOString();

@@ -349,24 +349,44 @@
   .rs-aviso button{ margin-left:auto; height:30px; padding:0 12px; border:1px solid var(--line); border-radius:8px; background-color:var(--panel-2); color:var(--text); font-size:12px; cursor:pointer; }
   .rs-cargando{ opacity:.55; transition:opacity .15s; }
 
-  /* las tres vistas: una sola a la vez; la primera a la izquierda, la del medio al centro y la última a la derecha */
-  .rs-vistas{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); margin-top:14px; border:1px solid var(--line); border-bottom:none; border-radius:14px 14px 0 0; background-color:var(--panel-2); overflow:hidden; }
-  .rs-vista{ display:flex; align-items:center; gap:11px; padding:11px 18px; border:none; border-bottom:2px solid transparent; background-color:transparent; color:var(--text-dim); font-family:var(--body); text-align:left; cursor:pointer; min-width:0; }
-  .rs-vista + .rs-vista{ border-left:1px solid var(--line); }
-  .rs-vista:nth-child(2){ justify-content:center; text-align:center; }
-  .rs-vista:nth-child(3){ flex-direction:row-reverse; text-align:right; }
-  .rs-vista:hover{ color:var(--text); }
-  .rs-vista:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:-2px; }
-  .rs-vista .ic{ width:34px; height:34px; border-radius:10px; background-color:var(--panel); color:var(--text-faint); display:flex; align-items:center; justify-content:center; flex:none; }
-  .rs-vista .ic svg{ width:19px; height:19px; }
-  .rs-vista .tt{ min-width:0; }
-  .rs-vista h2{ font-family:var(--display); font-size:15.5px; font-weight:700; line-height:1.2; }
-  .rs-vista small{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:3px; }
-  .rs-vista.on{ background-color:var(--panel); color:var(--text); border-bottom-color:var(--blue-bright); }
-  .rs-vista.on .ic{ background-color:var(--blue-soft); color:var(--blue-bright); }
-  .rs-vista.on small{ color:var(--text-dim); }
-  @media (max-width:900px){ .rs-vista small{ display:none; } .rs-vista{ padding:10px 10px; } .rs-vista:nth-child(3){ flex-direction:row; text-align:left; } }
-  .rs-cuerpo{ border:1px solid var(--line); border-radius:0 0 14px 14px; background-color:var(--panel); padding:4px 18px 14px; }
+  /* el embudo: barras alineadas a la izquierda, misma escala; cada barra se reparte en segmentos sólidos (azules y grises = normal; ámbar = pendiente; rojo = vencido) */
+  .rs-cuerpo{ margin-top:14px; border:1px solid var(--line); border-radius:14px; background-color:var(--panel); padding:8px 18px 16px; }
+  .rs-emb-t{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; padding:6px 0 2px; }
+  .rs-emb-t h2{ font-family:var(--display); font-size:17px; margin:0; }
+  .rs-emb-t small{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .rs-fila .top2 small{ font-family:var(--body); font-size:13px; font-weight:500; color:var(--text-dim); }
+  .rs-fn{ position:relative; height:34px; }
+  .rs-goal{ position:absolute; left:0; top:-5px; bottom:-5px; border:1.6px dashed var(--text); border-radius:9px; pointer-events:none; z-index:3; opacity:.85; }
+  .rs-stk{ position:absolute; left:0; top:0; bottom:0; display:flex; gap:2px; z-index:2; }
+  .rs-sg{ height:100%; min-width:3px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:600; overflow:hidden; white-space:nowrap; border-radius:3px; cursor:default; box-shadow:inset 0 0 0 1px rgba(127,127,127,.3); }
+  .rs-stk .rs-sg:first-child{ border-radius:9px 3px 3px 9px; } .rs-stk .rs-sg:last-child{ border-radius:3px 9px 9px 3px; } .rs-stk .rs-sg:only-child{ border-radius:9px; }
+  .rs-stk .rs-sg:hover{ filter:brightness(1.12); }
+  .rs-sg.azul{ background-color:#3d7fff; color:#fff; }
+  .rs-sg.azul2{ background-color:#7fb0ff; color:#0a0d12; }
+  .rs-sg.claro{ background-color:#cfe0ff; color:#0a0d12; }
+  .rs-sg.gris{ background-color:#5b6475; color:#fff; }
+  .rs-sg.gris2{ background-color:#8b93a1; color:#0a0d12; }
+  .rs-sg.pend{ background-color:#dfb35a; color:#1f1604; }
+  .rs-sg.venc{ background-color:#dc2626; color:#fff; }
+  .rs-lg{ display:flex; gap:6px 14px; flex-wrap:wrap; margin-top:12px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); }
+  .rs-lg > span{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .rs-lg i{ display:inline-block; width:14px; height:10px; min-width:0; flex:none; }
+  .rs-lg b{ color:var(--text); font-weight:600; }
+  .rs-lg em{ font-style:normal; color:var(--text-faint); }
+  .rs-lg svg{ width:12px; height:12px; flex:none; }
+  .rs-lg .mal-i{ display:inline-flex; align-items:center; gap:4px; }
+  .rs-lg .mal-i.pend svg{ color:#dfb35a; } .rs-lg .mal-i.venc svg{ color:#f26b6b; }
+  .rs-hoy{ margin-top:14px; border:1px solid var(--line); border-radius:12px; background-color:var(--panel-2); padding:11px 16px 13px; }
+  .rs-hoy-t{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:9px; }
+  .rs-hoy-t svg{ width:13px; height:13px; }
+  .rs-hoy-g{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
+  .rs-hoy .hx{ min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .rs-hoy .hx .l{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-dim); flex-wrap:wrap; }
+  .rs-hoy .hx .l svg{ width:15px; height:15px; color:var(--blue-bright); }
+  .rs-hoy .hx .v{ font-family:var(--display); font-size:22px; font-weight:700; }
+  .rs-hoy .hx .s{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .rs-hoy .hx .s svg{ width:12px; height:12px; }
+  .rs-hoy .hx .s .rs-d{ padding:1px 8px; font-size:10.5px; }
   .rs-tag{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
   .rs-tag svg{ width:11px; height:11px; }
   .rs-cab, .rs-fila{ display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(0, 2.1fr) 206px 176px; gap:18px; align-items:center; }
@@ -374,10 +394,6 @@
   .rs-cab .tag{ justify-self:end; }
   .rs-fila{ min-height:64px; padding:5px 0; border-bottom:1px solid var(--line); }
   .rs-fila:last-of-type{ border-bottom:none; }
-  .rs-fila.hijo{ min-height:56px; background-color:rgba(127,127,127,.05); }
-  .rs-fila.hijo .nm{ padding-left:26px; position:relative; }
-  .rs-fila.hijo .nm::before{ content:""; position:absolute; left:8px; top:-14px; bottom:50%; width:12px; border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); border-bottom-left-radius:7px; }
-  .rs-fila.hijo .vv{ font-size:19px; }
   .rs-fila .nm{ min-width:0; }
   .rs-fila .nm .a{ font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .rs-fila .nm .a svg{ width:15px; height:15px; color:var(--blue-bright); flex:none; }
@@ -394,12 +410,6 @@
   .rs-est.on svg{ color:var(--blue-bright); }
   .rs-est.off svg{ color:var(--blue-bright); opacity:.65; }
   .rs-est i{ font-style:normal; color:var(--text-faint); }
-  .rs-track{ position:relative; height:12px; border-radius:7px; background-color:rgba(127,127,127,.14); }
-  .rs-track .fill{ position:absolute; left:0; top:0; bottom:0; border-radius:7px; min-width:4px; }
-  .rs-track .fill.on{ background-color:#3d7fff; background-image:linear-gradient(90deg, #2f6df0, #4f90ff); box-shadow:0 0 12px rgba(61,127,255,.3); }
-  .rs-track .fill.off{ background-color:rgba(107,159,255,.42); }
-  .rs-track .meta{ position:absolute; top:-4px; bottom:-4px; width:2px; margin-left:-1px; border-radius:2px; background-color:var(--text); }
-  .rs-track .meta::after{ content:""; position:absolute; top:-3px; left:-3px; width:8px; height:8px; border-radius:50%; background-color:var(--text); border:2px solid var(--panel); }
   .rs-spc{ min-width:0; }
   .rs-sp2{ display:block; width:100%; height:40px; overflow:visible; }
   .rs-sp2 .pt{ fill:var(--panel); stroke:var(--blue-bright); stroke-width:1.1; }
@@ -417,13 +427,6 @@
   .rs-d.igual, .rs-d.normal{ color:var(--blue-bright); border-color:var(--blue-bright); background-color:var(--blue-soft); }
   .rs-d.na, .rs-d.acum{ color:var(--text-faint); border-style:dotted; }
   .rs-dl{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); padding-left:3px; }
-  .rs-motivos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:6px 16px; padding:9px 0 3px; border-top:1px solid var(--line); }
-  .rs-mo-t{ grid-column:1 / -1; font-family:var(--mono); font-size:10px; letter-spacing:.07em; color:var(--text-faint); display:flex; align-items:center; gap:6px; }
-  .rs-mo-t svg{ width:12px; height:12px; }
-  .rs-mo .l{ font-size:12px; color:var(--text-dim); display:flex; justify-content:space-between; gap:8px; margin-bottom:5px; }
-  .rs-mo .l b{ color:var(--text); font-weight:600; font-family:var(--mono); font-size:11px; white-space:nowrap; }
-  .rs-mo .tr{ height:6px; border-radius:4px; background-color:rgba(127,127,127,.14); }
-  .rs-mo .tr i{ display:block; height:100%; border-radius:4px; background-color:var(--text-faint); }
   .rs-ins3{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:10px; }
   .rs-in{ display:flex; flex-direction:column; gap:7px; padding:10px 13px; border:1px solid var(--line); border-radius:11px; background-color:var(--panel-2); font-size:12.5px; line-height:1.5; color:var(--text-dim); }
   .rs-in b{ color:var(--text); font-weight:600; }
@@ -449,7 +452,6 @@
     .rs-fila{ grid-template-columns:1fr 1fr; row-gap:8px; padding:12px 0; }
     .rs-fila .mc{ grid-column:1 / -1; order:2; } .rs-fila .rs-spc{ order:3; } .rs-fila .rs-vc{ order:4; }
     .rs-ins3{ grid-template-columns:1fr; }
-    .rs-fila.hijo .nm::before{ display:none; }
   }
 
   .dbar-title{
@@ -3444,20 +3446,20 @@
                 </div>
                 <span class="rs-popw"><button type="button" class="rs-ib" id="rsAyuda" data-tt="Cómo leer esto" aria-label="Cómo leer esto" aria-expanded="false" aria-controls="rsPop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.7.4-1.1.9-1.1 1.8M12 17v.01" stroke-linecap="round"/></svg></button>
                   <div class="rs-pop" id="rsPop" hidden>
-                    <h3>Cómo leer el Resumen</h3>
+                    <h3>Cómo leer el embudo</h3>
                     <h4>BARRAS</h4>
-                    <div class="li"><span class="ej"><span class="mini"></span></span><span><b>Azul</b>: el monto está en su meta o por encima.</span></div>
-                    <div class="li"><span class="ej"><span class="mini l"></span></span><span><b>Azul claro</b>: está por debajo de su meta. También dice «sobre su meta» o «bajo su meta» con ícono, para no depender del color.</span></div>
-                    <div class="li"><span class="ej"><svg width="70" height="14" viewBox="0 0 70 14" aria-hidden="true"><rect x="0" y="4" width="70" height="6" rx="3" fill="rgba(127,127,127,.25)"/><rect x="0" y="4" width="42" height="6" rx="3" fill="#3d7fff"/><rect x="50" y="0" width="2" height="14" rx="1" fill="currentColor"/><circle cx="51" cy="1.5" r="3" fill="currentColor"/></svg></span><span>La <b>marca</b> sobre la barra es la meta: por ahora, el <b>promedio de los últimos 12 meses</b> (al mismo corte); después será la que definas tú.</span></div>
-                    <h4>GRÁFICA DE 12 MESES</h4>
-                    <div class="li"><span class="ej"><svg width="110" height="26" viewBox="0 0 110 26" aria-hidden="true"><line x1="2" y1="14" x2="108" y2="14" stroke="#79828f" stroke-dasharray="2 4"/><polyline points="2,20 20,16 38,19 56,11 74,13 92,8 108,5" fill="none" stroke="#6b9fff" stroke-width="1.5"/><circle cx="56" cy="11" r="2.4" fill="none" stroke="#6b9fff"/><circle cx="108" cy="5" r="3" fill="#6b9fff"/></svg></span><span>La línea son los últimos 12 meses y la <b>punteada</b> es la meta. Cada punto muestra mes y monto al pasar el cursor; el punto lleno es el mes que miras.</span></div>
-                    <h4>VARIACIÓN</h4>
+                    <div class="li"><span class="ej"><svg width="120" height="26" viewBox="0 0 120 26" aria-hidden="true"><rect x="1" y="5" width="80" height="16" rx="6" fill="#3d7fff"/><rect x="1" y="1" width="106" height="24" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA, con la misma escala en todas. El <b>contorno punteado</b> es la meta: si la barra lo rebasa, la cumpliste. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="56" height="12" rx="3" fill="#3d7fff"/><rect x="58" y="2" width="32" height="12" rx="3" fill="#cfe0ff"/><rect x="92" y="2" width="22" height="12" rx="3" fill="#5b6475"/></svg></span><span>Cada barra se <b>reparte</b> en dónde está hoy ese dinero. Cada segmento lleva su porcentaje y se nombra abajo con su monto.</span></div>
+                    <h4>COLORES (solo se colorea lo que hay que mirar)</h4>
+                    <div class="li"><span class="ej"><span class="rs-sg pend" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Ámbar</b>: pendiente de atender o de facturar. Lleva ícono de alerta en la leyenda.</span></div>
+                    <div class="li"><span class="ej"><span class="rs-sg venc" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Rojo</b>: vencido, el dinero que más urge perseguir. Todo lo demás va en azules y grises, sin significado de color.</span></div>
+                    <h4>CÓMO SE CUENTA</h4>
+                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b> son cantidad: lo atendido mide lo mismo que Cotizado y lo sin atender va en ámbar. <b>Cotizado</b> y <b>Facturado</b> se reparten por su estado de hoy (lo enviado o emitido este mes y cómo va). <b>Ganado</b> y <b>Cobrado</b> son lo ocurrido en el mes. «Hoy» abajo es toda la cartera, no solo el mes.</span></div>
+                    <h4>GRÁFICA DE 12 MESES Y VARIACIÓN</h4>
+                    <div class="li"><span class="ej"><svg width="110" height="26" viewBox="0 0 110 26" aria-hidden="true"><line x1="2" y1="14" x2="108" y2="14" stroke="#79828f" stroke-dasharray="2 4"/><polyline points="2,20 20,16 38,19 56,11 74,13 92,8 108,5" fill="none" stroke="#6b9fff" stroke-width="1.5"/><circle cx="108" cy="5" r="3" fill="#6b9fff"/></svg></span><span>La línea son los últimos 12 meses del total de la barra y la <b>punteada</b> es la meta. Cada punto da mes y monto al pasar el cursor.</span></div>
                     <div class="li"><span class="ej"><span class="rs-d bien"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+12 %</span></span><span>Va <b>bien</b> (verde-azulado, flecha y porcentaje).</span></div>
-                    <div class="li"><span class="ej"><span class="rs-d mal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>−18 %</span></span><span>Va <b>mal</b> (ámbar): hay que revisar.</span></div>
-                    <div class="li"><span class="ej"><span class="rs-d urg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+40 %</span></span><span><b>Atención</b> (rojo): solo el vencido cuando crece.</span></div>
-                    <div class="li"><span class="ej"><span class="rs-d normal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+6 %</span></span><span><b>Neutral</b> (azul): es un saldo, sin bueno ni malo. «Igual» es un cambio menor a 3 %.</span></div>
-                    <div class="li"><span class="ej"><span class="rs-d na"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12h14" stroke-linecap="round"/></svg>sin datos</span></span><span>No hay historia con qué comparar (por ejemplo el año pasado, hasta 2027).</span></div>
-                    <p class="pie">Todo son montos <b>sin IVA</b>. El mes en curso se compara <b>al mismo corte</b> (hasta el día de hoy) para que sea justo. Este selector es independiente de «contar desde» de Configuración.</p>
+                    <div class="li"><span class="ej"><span class="rs-d mal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>−18 %</span></span><span>Va <b>mal</b> (ámbar): hay que revisar. «Igual» es un cambio menor a 3 %; «sin datos», que no hay historia (el año pasado, hasta 2027).</span></div>
+                    <p class="pie">Todo son montos <b>sin IVA</b> (Solicitudes, cantidad). El mes en curso se compara <b>al mismo corte</b> (hasta el día de hoy) para que sea justo. Este selector es independiente de «contar desde» de Configuración. Las metas se escriben en Configuración → Metas.</p>
                   </div></span>
               </div></div>
             </div>
@@ -3467,7 +3469,6 @@
             <span id="rsAvisoTxt"></span>
             <button type="button" id="rsReintentar">Reintentar</button>
           </div>
-          <div class="rs-vistas" id="rsVistas" role="tablist" aria-label="Vista del resumen"></div>
           <div class="rs-cuerpo" id="rsCuerpo" role="tabpanel" aria-live="polite"><div class="radm-empty-row">Cargando el resumen…</div></div>
           <div id="rsTip" role="tooltip"></div>
         </div>
@@ -3530,7 +3531,7 @@
             </button>
             <button type="button" class="cfgt-tile" data-cfg="metas">
               <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
-              <span class="cfgt-cuerpo"><span class="cfgt-tit">Metas</span><span class="cfgt-desc">Cotizado, Ganado y Cobrado del mes</span><span class="cfgt-linea" data-linea="metas">…</span></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Metas</span><span class="cfgt-desc">Solicitudes, Cotizado, Ganado y Cobrado</span><span class="cfgt-linea" data-linea="metas">…</span></span>
               <span class="cfgt-chip" data-chip="metas" hidden></span>
               <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </button>
@@ -3601,7 +3602,7 @@
           </button>
           <div class="cfg-card-body" id="cfgMetasBody" hidden>
             <div class="cfg-note">
-              Cuánto quieres <b>cotizar, ganar y cobrar cada mes</b>, en pesos <b>sin IVA</b> y por el <b>mes completo</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado, Por vender, Por facturar y Por cobrar siguen con su promedio. Cambiar una meta no toca ningún dato.
+              Cuánto quieres <b>recibir (solicitudes), cotizar, ganar y cobrar cada mes</b>, por el <b>mes completo</b>: Solicitudes en cantidad y lo demás en pesos <b>sin IVA</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado y lo que está abierto hoy siguen con su promedio. Cambiar una meta no toca ningún dato.
             </div>
             <div class="cfg-metas-lista" id="cfgMetasLista">
               <div class="radm-empty-row">Cargando…</div>
@@ -8610,10 +8611,10 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // DASHBOARD → RESUMEN — el dinero del negocio, SIN IVA, en tres vistas de una sola pantalla: Flujo de Venta y Cobranza (cotizado → cobrado) ·
-  // Por vender y por cobrar (pipeline, por facturar, por cobrar) · Oportunidades no cerradas (perdido y sus motivos). Cada fila: barra contra su meta
-  // (por ahora el promedio de 12 meses), línea de 12 meses y variación contra mes anterior / promedio de 3 meses / año pasado; debajo, 3 lecturas
-  // que se recalculan con los filtros. Todo el cálculo vive en el servidor (getDashboardResumenAdmin → api/src/dashboard-dinero.js); aquí solo se
+  // DASHBOARD → RESUMEN — el embudo del dinero, SIN IVA, en una sola pantalla: Solicitudes (cantidad) → Cotizado → Ganado → Facturado → Cobrado,
+  // con barras apiladas alineadas a la izquierda (se reparten en dónde está hoy ese dinero), contorno punteado = meta (propia de Configuración → Metas o
+  // el promedio de 12 meses), línea de 12 meses y variación contra mes anterior / promedio de 3 meses / año pasado; debajo, 3 lecturas (Cotizado,
+  // Facturado, Cobrado) que se recalculan con los filtros y la franja «Hoy» con toda la cartera. Todo el cálculo vive en el servidor (getDashboardResumenAdmin → api/src/dashboard-dinero.js); aquí solo se
   // pinta y se redactan las lecturas. Toca la base SQL: lleva el reintento con pausas crecientes (se autopausa). Nada va solo en color
   // (deuteranomalía): siempre ícono + texto + posición. Ver docs/dashboard.md.
   // ═══════════════════════════════════════════════════════════════
@@ -8662,59 +8663,48 @@
       gana: S('<path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/>', 2),
       pagos: S('<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v.01M17.5 14.5v.01" stroke-linecap="round"/>', 1.8),
       nocierra: S('<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/>', 1.8),
+      sol: S('<path d="M4 5h16v11H8l-4 4z" stroke-linejoin="round"/><path d="M8 9h8M8 12.5h5" stroke-linecap="round"/>', 1.8),
+      foto: S('<rect x="3" y="6" width="18" height="14" rx="2.5"/><circle cx="12" cy="13" r="3.4"/><path d="M8.5 6l1.4-2h4.2l1.4 2" stroke-linejoin="round"/>', 1.8),
     };
     const MES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-    // dir: sb sube=bien · sm sube=mal · bb baja=bien · n neutral. Las filas de cada vista (hijo = desglose de la de arriba).
-    const VISTAS = [
-      { id: 'flujo', titulo: 'Flujo de Venta y Cobranza', ico: ICO.cartera, sub: (m) => m.esActual ? 'Flujo del mes · hasta el día ' + m.corteDia : 'Flujo del mes completo', filas: [
-        { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza, nota: 'ofrecido en el mes', dir: 'sb', foco: true },
-        { k: 'gan', nombre: 'Ganado', ico: ICO.gana, nota: 'cerrado como Ganada', dir: 'sb' },
-        { k: 'fac', nombre: 'Facturado', ico: ICO.factura, nota: 'facturas emitidas', dir: 'sb' },
-        { k: 'cob', nombre: 'Cobrado', ico: ICO.pagos, nota: 'pagos recibidos', dir: 'sb' },
-      ] },
-      { id: 'abierto', titulo: 'Por vender y por cobrar', ico: ICO.billeteMov, sub: (m) => m.todo ? 'Foto de hoy' : m.esActual ? 'Foto al corte · hoy' : 'Foto al cierre del mes', filas: [
-        { k: 'pip', nombre: 'Por vender', ico: ICO.pipe, nota: 'pipeline: enviado o en negociación', dir: 'sb' },
-        { k: 'gpf', nombre: 'Por facturar', ico: ICO.factura, nota: 'ganado sin factura', dir: 'sm' },
-        { k: 'pxc', nombre: 'Por cobrar', ico: ICO.cobrar, nota: 'facturado y sin pagar', dir: 'n' },
-        { k: 'plz', nombre: 'Facturado en plazo', ico: ICO.plazo, nota: 'aún no vence', dir: 'n', hijo: true },
-        { k: 'ven', nombre: 'Facturado vencido', ico: ICO.venc, nota: 'pasó su fecha de pago', dir: 'sm', urg: true, hijo: true },
-      ] },
-      { id: 'perdido', titulo: 'Oportunidades no cerradas', ico: ICO.billeteRoto, sub: (m) => m.esActual ? 'Flujo del mes · hasta el día ' + m.corteDia : 'Flujo del mes completo', filas: [
-        { k: 'per', nombre: 'Cerradas sin venta', ico: ICO.nocierra, nota: null, dir: 'bb' },
-      ] },
+    // El embudo: cinco barras alineadas a la izquierda (el embudo se imagina de la mitad a la derecha), misma escala en pesos; Solicitudes es cantidad y
+    // toma como escala "lo atendido mide lo mismo que Cotizado". Cada barra se reparte en dónde está HOY ese dinero (ver api/src/dashboard-dinero.js).
+    const FILAS = [
+      { k: 'sol', nombre: 'Solicitudes', ico: ICO.sol, nota: 'recibidas en el mes · cantidad', cant: true },
+      { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza, nota: 'enviado en el mes · cómo va hoy', foco: true },
+      { k: 'gan', nombre: 'Ganado', ico: ICO.gana, nota: 'cerrado en el mes · de cualquier cotización' },
+      { k: 'fac', nombre: 'Facturado', ico: ICO.factura, nota: 'emitido en el mes · cómo va hoy' },
+      { k: 'cob', nombre: 'Cobrado', ico: ICO.pagos, nota: 'pagos recibidos en el mes' },
     ];
-    const NAV = { cot: 'tracking-comercial', gan: 'tracking-comercial', pip: 'tracking-comercial', per: 'tracking-comercial', fac: 'cobranza', cob: 'cobranza', gpf: 'cobranza', pxc: 'cobranza', plz: 'cobranza', ven: 'cobranza' };
 
     const estado = { mes: '', estrategia: '', tipoCliente: '', herramienta: '' };
-    let corrida = 0, cargadoUnaVez = false, ultimo = null, modo = 'mes', vista = 'flujo';
+    let corrida = 0, cargadoUnaVez = false, ultimo = null, modo = 'mes';
 
     const dinero = (v) => (Number(v) || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+    const num = (v) => (Number(v) || 0).toLocaleString('es-MX', { maximumFractionDigits: 1 });
     const signo = (n) => (n >= 0 ? '+' : '−') + dinero(Math.abs(n));
     const pc = (x) => Math.round(Math.abs(x) * 100);
     const etiquetaMes = (clave) => { const m = /^(\d{4})-(\d{2})$/.exec(clave); return m ? MES_CORTO[+m[2] - 1] + ' ' + m[1].slice(2) : clave; };
+    const fmtDe = (cant) => (cant ? num : dinero);
 
-    // ── variación contra la referencia elegida: porcentaje + monto ──
-    function variacion(f, dir, urg, meta){
+    // ── variación contra la referencia elegida: porcentaje + monto (en el embudo siempre "sube = bien") ──
+    function variacion(f, cant, meta){
       const lb = meta.refs[modo];
       if(meta.todo) return { k: 'acum', ic: 'igual', t: 'acumulado', dl: 'todo el historial' };
       const ref = f.ref[modo];
       if(ref == null) return { k: 'na', ic: 'igual', t: 'sin datos', dl: modo === 'anio' ? (lb || 'año pasado') + ' aún no cargado' : 'sin ' + (modo === 'p3' ? 'meses previos' : 'mes anterior') };
       const delta = f.cur - ref, rel = ref !== 0 ? delta / ref : (f.cur === 0 ? 0 : Infinity);
-      const dl = signo(delta) + ' vs ' + lb;
+      const d = cant ? (delta >= 0 ? '+' : '−') + num(Math.abs(delta)) + (Math.abs(delta) === 1 ? ' solicitud' : ' solicitudes') : signo(delta);
+      const dl = d + ' vs ' + lb;
       if(Math.abs(rel) < 0.03) return { k: 'igual', ic: 'igual', t: 'igual', dl };
       const sube = delta > 0;
-      let k = 'normal';
-      if(dir === 'sb') k = sube ? 'bien' : 'mal';
-      else if(dir === 'bb') k = sube ? 'mal' : 'bien';
-      else if(dir === 'sm') k = sube ? (urg ? 'urg' : 'mal') : 'bien';
-      const pct = rel === Infinity ? 'desde cero' : (sube ? '+' : '−') + pc(rel) + ' %';
-      return { k, ic: sube ? 'sube' : 'baja', t: pct + (k === 'urg' ? ' · atención' : ''), dl };
+      return { k: sube ? 'bien' : 'mal', ic: sube ? 'sube' : 'baja', t: rel === Infinity ? 'desde cero' : (sube ? '+' : '−') + pc(rel) + ' %', dl };
     }
 
     // ── línea de 12 meses: puntos sutiles con tooltip; la punteada es la meta; el punto lleno es el mes que se mira ──
     const SW = 190, SH = 40;
-    function lineaHtml(f, meta){
+    function lineaHtml(f, meta, cant){
       const pts = f.serie.map((p, i) => ({ i, v: p.v, mes: p.mes })).filter((p) => p.v != null);
       if(pts.length < 2){
         return '<svg class="rs-sp2" viewBox="0 0 ' + SW + ' ' + SH + '" aria-hidden="true"><line class="vacio" x1="4" y1="' + (SH / 2) + '" x2="' + (SW - 4) + '" y2="' + (SH / 2) + '"/>' +
@@ -8729,92 +8719,117 @@
       pts.forEach((p) => {
         const ult = p.i === n - 1, x = X(p.i).toFixed(1), y = Y(p.v).toFixed(1);
         const nombre = etiquetaMes(p.mes) + (ult && meta.esActual ? ' · al día ' + meta.corteDia : '');
-        s += '<circle class="hit" cx="' + x + '" cy="' + y + '" r="8" data-m="' + esc(nombre) + '" data-v="' + Math.round(p.v) + '"/><circle class="pt' + (ult ? ' ult' : '') + '" cx="' + x + '" cy="' + y + '" r="' + (ult ? 3.2 : 2) + '" pointer-events="none"/>';
+        s += '<circle class="hit" cx="' + x + '" cy="' + y + '" r="8" data-tip="' + esc(nombre + '|' + fmtDe(cant)(Math.round(p.v * 10) / 10)) + '"/><circle class="pt' + (ult ? ' ult' : '') + '" cx="' + x + '" cy="' + y + '" r="' + (ult ? 3.2 : 2) + '" pointer-events="none"/>';
       });
       return s + '</svg>';
     }
 
-    // ── una fila: concepto | monto + barra con marca de meta | línea de 12 meses | variación ──
-    function filaHtml(def, F, meta, tope){
-      const f = F[def.k], c = variacion(f, def.dir, def.urg, meta);
+    // ── los segmentos de cada barra: dónde está hoy ese dinero (solo los que tienen algo; lo normal en azules y grises, lo pendiente en ámbar y lo vencido en rojo) ──
+    function segmentos(k, D, f){
+      if(k === 'sol') return [{ c: 'azul', n: 'Atendidas (ya cotizadas)', v: D.sol.atendidas }, { c: 'pend', n: 'Sin atender', v: D.sol.sin, mal: true }];
+      if(k === 'cot'){
+        const mo = (D.motivosPerdido || []).map((x) => x.motivo.toLowerCase() + ' ' + x.pct + ' %').join(' · ');
+        return [{ c: 'azul', n: 'Abierto (por vender)', v: D.cot.abierto }, { c: 'claro', n: 'Ganado', v: D.cot.ganado }, { c: 'gris', n: 'Perdido', v: D.cot.perdido, x: mo ? 'Motivos: ' + mo : '' }, { c: 'gris2', n: 'Otro (descartado o expirado)', v: D.cot.otro }];
+      }
+      if(k === 'gan') return [{ c: 'azul', n: 'Ya facturado', v: D.gan.facturado }, { c: 'pend', n: 'Por facturar', v: D.gan.porFacturar, mal: true }];
+      if(k === 'fac') return [{ c: 'azul', n: 'Ya cobrado', v: D.fac.cobrado }, { c: 'claro', n: 'En plazo', v: D.fac.plazo }, { c: 'venc', n: 'Vencido', v: D.fac.vencido, mal: true }];
+      if(k === 'cob') return D.cob ? [{ c: 'azul', n: 'De facturas de este mes', v: D.cob.delMes }, { c: 'azul2', n: 'De meses anteriores', v: D.cob.anteriores }] : [{ c: 'azul', n: 'Cobrado', v: f.cur }];
+      return [];
+    }
+
+    // ── una fila del embudo: concepto | monto + barra (contorno punteado = meta) y leyenda | línea de 12 meses | variación ──
+    function filaHtml(def, r, ctx){
+      const F = r.filas, meta = r.meta, f = F[def.k], c = variacion(f, def.cant, meta), fmt = fmtDe(def.cant);
       const sinMeta = f.meta == null, sobre = !sinMeta && f.cur >= f.meta;
-      const pct = (v) => Math.max(0, Math.min(100, v / tope * 100));
       const nf = (meta.sinFiltrar || []).includes(def.k);
-      const nota = def.k === 'per' ? (F.cot.cur > 0 ? Math.round(f.cur / F.cot.cur * 100) + ' % de lo cotizado' : 'sin cotizado en el periodo') : def.nota;
+      const segs = segmentos(def.k, r.desglose, f).filter((s) => s.v > 0);
+      const tot = segs.reduce((a, s) => a + s.v, 0);
+      const ancho = ctx.eq(def.k, f.cur) / ctx.tope * 100;
       const est = sinMeta ? '<span class="rs-est">' + ICO.info + 'sin meta aún <i>· faltan meses de historia</i></span>'
-        : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(dinero(f.meta)) + '</i></span>';
-      return '<div class="rs-fila' + (def.hijo ? ' hijo' : '') + '" data-k="' + def.k + '">' +
-        '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (def.foco ? '<span class="rs-foco">' + ICO.objetivo + 'FOCO: AUMENTAR</span>' : '') + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div>' + (nota ? '<div class="b">' + esc(nota) + '</div>' : '') + '</div>' +
-        '<div class="mc"><div class="top2"><span class="vv">' + esc(dinero(f.cur)) + '</span>' + est + '</div>' +
-        '<div class="rs-track"><div class="fill ' + (sinMeta || sobre ? 'on' : 'off') + '" style="width:' + pct(f.cur).toFixed(1) + '%"></div>' + (sinMeta ? '' : '<i class="meta" style="left:' + pct(f.meta).toFixed(1) + '%" title="Meta: ' + esc(dinero(f.meta)) + '"></i>') + '</div></div>' +
-        '<div class="rs-spc">' + lineaHtml(f, meta) + '</div>' +
+        : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(fmt(f.meta)) + '</i></span>';
+      const barras = segs.map((s) => {
+        const w = ancho * s.v / tot, p = Math.round(s.v / tot * 100);
+        return '<div class="rs-sg ' + s.c + '" style="width:' + w.toFixed(2) + '%" data-tip="' + esc(s.n + '|' + fmt(s.v) + ' · ' + p + ' %' + (s.x ? '|' + s.x : '')) + '">' + (w >= 12 ? p + ' %' : '') + '</div>';
+      }).join('');
+      const leyenda = segs.map((s) => '<span><i class="rs-sg ' + s.c + '"></i>' + (s.mal ? '<span class="mal-i ' + s.c + '">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) + ' <b>' + esc(fmt(s.v)) + '</b> <em>' + Math.round(s.v / tot * 100) + ' %</em></span>').join('');
+      const meto = sinMeta ? '' : '<div class="rs-goal" style="width:' + Math.min(100, ctx.eq(def.k, f.meta) / ctx.tope * 100).toFixed(2) + '%"></div>';
+      return '<div class="rs-fila" data-k="' + def.k + '">' +
+        '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (def.foco ? '<span class="rs-foco">' + ICO.objetivo + 'FOCO: AUMENTAR</span>' : '') + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div><div class="b">' + esc(def.nota) + '</div></div>' +
+        '<div class="mc"><div class="top2"><span class="vv">' + esc(fmt(f.cur)) + (def.cant ? ' <small>' + (f.cur === 1 ? 'solicitud' : 'solicitudes') + '</small>' : '') + '</span>' + est + '</div>' +
+        '<div class="rs-fn">' + meto + '<div class="rs-stk" style="width:' + ancho.toFixed(2) + '%">' + barras + '</div></div><div class="rs-lg">' + leyenda + '</div></div>' +
+        '<div class="rs-spc">' + lineaHtml(f, meta, def.cant) + '</div>' +
         '<div class="rs-vc"><span class="rs-d ' + c.k + '">' + ICO[c.ic] + esc(c.t) + '</span><span class="rs-dl">' + esc(c.dl) + '</span></div></div>';
     }
 
-    // ── tres lecturas por vista: reglas fijas (sin IA) sobre las mismas cifras y filtros; las más urgentes primero ──
-    const TIP_MOTIVO = { 'Precio alto': 'Revisa tarifas y ofrece alternativas.', 'Sin respuesta': 'Más seguimiento en los primeros 7 días.', 'Otro proveedor': 'Revisa qué ofreció la competencia.', 'Sin presupuesto': 'Ofrece una versión más corta o por etapas.', 'Cambio de prioridad': 'Agenda un seguimiento para retomarlo.', 'Más adelante': 'Agenda un seguimiento para retomarlo.', 'Curso interno': 'Ofrece apoyo a su equipo interno.' };
-    function lecturas(r, v){
-      const F = r.filas, m = r.meta;
-      const efe = F.cot.ref[modo] != null || m.todo ? modo : 'mes'; // sin referencia (p. ej. año pasado) las lecturas usan el mes anterior
-      const txtRef = { mes: 'el mes anterior', p3: 'el promedio de 3 meses', anio: 'el año pasado' }[efe];
-      const ref = (k) => F[k].ref[efe];
+    // ── tres lecturas, una por etapa (Cotizado · Facturado · Cobrado): reglas fijas, sin IA, que se recalculan con los filtros ──
+    function lecturas(r){
+      const F = r.filas, D = r.desglose, m = r.meta;
       const L = [];
-      const ln = (t, x, a) => L.push({ t, x, a });
-      if(v === 'flujo'){
-        const mc = F.cot.meta, dm = F.cot.cur - (mc || 0), propia = F.cot.metaOrigen === 'propia';
-        const contra = propia ? 'tu meta de ' : 'un promedio de 12 meses de ', paraIgualar = propia ? 'llegar a tu meta' : 'igualar tu promedio de 12 meses';
-        if(mc == null) ln('info', '<b>Cotizado ' + esc(dinero(F.cot.cur)) + ':</b> aún no hay 3 meses de historia para fijar una meta (el promedio de 12 meses); también puedes escribirla en Configuración → Metas. Tu foco es aumentarlo.', 'Cotizaciones →');
-        else if(dm >= 0) ln('bien', '<b>Cotizado sobre tu meta:</b> ' + esc(dinero(F.cot.cur)) + ' contra ' + contra + esc(dinero(mc)) + (mc > 0 ? ' (<b>+' + pc(dm / mc) + ' %</b>)' : '') + '. Vas en la dirección de tu foco.', 'Cotizaciones →');
-        else ln('alerta', '<b>Cotizado bajo tu meta:</b> ' + esc(dinero(F.cot.cur)) + ', te faltan <b>' + esc(dinero(-dm)) + '</b> para ' + paraIgualar + '. Sin cotizaciones hoy no hay ventas en 3 a 6 semanas.', 'Cotizaciones →');
-        if(F.cot.cur > 0){
-          const r1 = F.gan.cur / F.cot.cur, r0 = ref('cot') > 0 && ref('gan') != null ? ref('gan') / ref('cot') : null, dp = r0 == null ? null : Math.round((r1 - r0) * 100);
-          ln(dp == null || Math.abs(dp) < 3 ? 'info' : dp > 0 ? 'bien' : 'alerta', '<b>De cada $100 cotizados, ganaste $' + Math.round(r1 * 100) + '</b>' + (dp == null ? '' : ' (' + (Math.abs(dp) < 3 ? 'igual que' : dp > 0 ? '+' + dp + ' pts sobre' : dp + ' pts bajo') + ' ' + txtRef + ')') + '. La conversión pesa tanto como el volumen.', 'Cotizaciones →');
-        } else ln('info', '<b>Sin cotizaciones enviadas</b> en este periodo: no hay conversión que medir.', 'Cotizaciones →');
-        const dif = F.cob.cur - F.fac.cur;
-        ln(dif >= 0 ? 'bien' : 'alerta', dif >= 0 ? '<b>Cobraste más de lo que facturaste</b> (' + esc(signo(dif)) + '): estás bajando cartera de meses anteriores. Va bien mientras el vencido no crezca.' : '<b>Facturaste más de lo que cobraste</b> (' + esc(dinero(-dif)) + ' de diferencia): la cartera crece. Revisa cuánto de ella vence pronto.', 'Cobranza →');
-      } else if(v === 'abierto'){
-        const cerrado = F.gan.cur + F.per.cur, cierre = cerrado > 0 ? F.gan.cur / cerrado : null;
-        if(cierre != null && F.gan.cur > 0) ln('info', '<b>Por vender ' + esc(dinero(F.pip.cur)) + ':</b> si cierra al ritmo de este periodo (' + Math.round(cierre * 100) + ' %), traería cerca de <b>' + esc(dinero(F.pip.cur * cierre)) + '</b>, ' + (F.pip.cur * cierre / F.gan.cur).toFixed(1) + ' veces lo ganado.', 'Cotizaciones →');
-        else ln('info', '<b>Por vender ' + esc(dinero(F.pip.cur)) + ':</b> aún no hay cierres en este periodo para estimar cuánto traería.', 'Cotizaciones →');
-        const gp = F.gan.cur > 0 ? F.gpf.cur / F.gan.cur : null;
-        if(gp != null && gp >= 0.35) ln('alerta', '<b>Por facturar ' + esc(dinero(F.gpf.cur)) + '</b>, ' + Math.round(gp * 100) + ' % de lo ganado en el periodo. Es lo más rápido de convertir en efectivo: factúralo.', 'Cobranza →');
-        else if(F.gpf.cur > 0) ln('info', '<b>Por facturar ' + esc(dinero(F.gpf.cur)) + '</b>' + (gp != null ? ', ' + Math.round(gp * 100) + ' % de lo ganado en el periodo' : '') + ': facturas con buen ritmo.', 'Cobranza →');
-        else ln('bien', '<b>Nada por facturar:</b> todo lo ganado ya tiene su factura.', 'Cobranza →');
-        const vp = F.pxc.cur > 0 ? F.ven.cur / F.pxc.cur : 0, rv = ref('ven') > 0 ? (F.ven.cur - ref('ven')) / ref('ven') : null;
-        if(F.ven.cur <= 0) ln('bien', '<b>Sin cartera vencida:</b> todo lo por cobrar está en plazo.', 'Cobranza →');
-        else if(vp >= 0.2) ln('urg', '<b>Vencido ' + esc(dinero(F.ven.cur)) + '</b>, ' + Math.round(vp * 100) + ' % de lo por cobrar' + (rv != null && rv > 0.03 ? ' y <b>+' + pc(rv) + ' %</b> contra ' + txtRef : '') + '. Es el dinero que más urge perseguir.', 'Cobranza →');
-        else ln(rv != null && rv > 0.4 ? 'alerta' : 'bien', '<b>Vencido ' + esc(dinero(F.ven.cur)) + '</b>, ' + Math.round(vp * 100) + ' % de lo por cobrar' + (rv != null && rv > 0.4 ? ', pero creció <b>' + pc(rv) + ' %</b> contra ' + txtRef : ': cartera sana') + '.', 'Cobranza →');
-      } else {
-        const top = r.motivos[0];
-        if(top) ln('info', '<b>Motivo principal: ' + esc(top.motivo.toLowerCase()) + '</b> (' + top.pct + ' %, cerca de ' + esc(dinero(top.monto)) + ').' + (TIP_MOTIVO[top.motivo] ? ' ' + TIP_MOTIVO[top.motivo] : ''), 'Cotizaciones →');
-        else ln('bien', '<b>Sin pérdidas</b> registradas en este periodo.', 'Cotizaciones →');
-        if(F.cot.cur > 0){
-          const pf = F.per.cur / F.cot.cur, pr = ref('cot') > 0 && ref('per') != null ? ref('per') / ref('cot') : null, pd = pr == null ? null : Math.round((pf - pr) * 100);
-          ln(pd == null || Math.abs(pd) < 2 ? 'info' : pd < 0 ? 'bien' : 'alerta', '<b>Perdiste ' + Math.round(pf * 100) + ' % de lo cotizado</b>' + (pd == null ? '' : ' (' + (Math.abs(pd) < 2 ? 'igual que' : pd < 0 ? pd + ' pts bajo' : '+' + pd + ' pts sobre') + ' ' + txtRef + ')') + '.', 'Cotizaciones →');
-        } else ln('info', '<b>Sin cotizaciones enviadas</b> en este periodo: no hay porcentaje de pérdida.', 'Cotizaciones →');
-        const mp = F.per.meta;
-        if(mp != null) ln(F.per.cur <= mp ? 'bien' : 'alerta', '<b>' + (F.per.cur <= mp ? 'Por debajo' : 'Por encima') + ' de tu promedio:</b> ' + esc(dinero(F.per.cur)) + ' contra ' + esc(dinero(mp)) + ' de promedio en 12 meses.' + (F.per.cur > 0 ? ' Por cada $1 que no cerró, ganaste $' + (F.gan.cur / F.per.cur).toFixed(1) + '.' : ''), 'Cotizaciones →');
-        else ln('info', '<b>Aún no hay 3 meses de historia</b> para comparar lo perdido contra tu promedio.', 'Cotizaciones →');
+      // Cotizado
+      const fc = F.cot, mc = fc.meta, dm = fc.cur - (mc || 0), propia = fc.metaOrigen === 'propia';
+      const contra = propia ? 'tu meta de ' : 'tu promedio de 12 meses de ';
+      let t1, x1;
+      if(m.todo){ t1 = 'info'; x1 = '<b>Cotizado acumulado ' + esc(dinero(fc.cur)) + ':</b> elige un mes para compararlo contra tu meta.'; }
+      else if(mc == null){ t1 = 'info'; x1 = '<b>Cotizado ' + esc(dinero(fc.cur)) + ':</b> aún no hay meta; escríbela en Configuración → Metas o espera 3 meses de historia. Tu foco es aumentarlo.'; }
+      else if(dm >= 0){ t1 = 'bien'; x1 = '<b>Cotizado sobre tu meta:</b> ' + esc(dinero(fc.cur)) + ' contra ' + contra + esc(dinero(mc)) + (mc > 0 ? ' (<b>+' + pc(dm / mc) + ' %</b>)' : '') + '. Vas en la dirección de tu foco.'; }
+      else { t1 = 'alerta'; x1 = '<b>Cotizado bajo tu meta:</b> ' + esc(dinero(fc.cur)) + ', te faltan <b>' + esc(dinero(-dm)) + '</b> para ' + (propia ? 'llegar a tu meta' : 'igualar tu promedio de 12 meses') + '. Sin cotizaciones hoy no hay ventas en 3 a 6 semanas.'; }
+      if(D.sol.sin > 0){
+        if(t1 === 'bien') t1 = 'alerta';
+        x1 += ' Tienes <b>' + num(D.sol.sin) + (D.sol.sin === 1 ? ' solicitud sin atender' : ' solicitudes sin atender') + '</b>: cotízalas primero.';
+      } else if(fc.cur > 0 && !m.todo){
+        if(m.esActual && D.cot.abierto > 0) x1 += ' ' + esc(dinero(D.cot.abierto)) + ' de lo cotizado sigue abierto (por vender).';
+        else if(!m.esActual) x1 += ' De lo cotizado ganaste el <b>' + pc(D.cot.ganado / fc.cur) + ' %</b> y perdiste el ' + pc(D.cot.perdido / fc.cur) + ' %.';
       }
-      const ord = { urg: 0, alerta: 1, info: 2, bien: 3 };
-      return L.sort((a, b) => ord[a.t] - ord[b.t]).slice(0, 3);
+      L.push({ t: t1, e: 'COTIZADO', x: x1, a: 'Cotizaciones →', panel: 'tracking-comercial' });
+      // Facturado
+      const gpf = F.gpf.cur, ven = F.ven.cur, pxc = F.pxc.cur, vp = pxc > 0 ? ven / pxc : 0;
+      const t2 = vp >= 0.2 ? 'urg' : (gpf > 0 || ven > 0 ? 'alerta' : 'bien'), p2 = [];
+      if(gpf > 0) p2.push('<b>' + esc(dinero(gpf)) + ' ganados sin factura</b> (Por facturar): es lo más rápido de convertir en efectivo, factúralo primero.');
+      if(ven > 0) p2.push('<b>' + esc(dinero(ven)) + ' vencidos</b> en toda la cartera (' + Math.round(vp * 100) + ' % de lo por cobrar): es el dinero que más urge perseguir.');
+      if(!p2.length) p2.push('<b>Nada por facturar ni vencido:</b> todo lo ganado tiene su factura y la cartera va en plazo.');
+      L.push({ t: t2, e: 'FACTURADO', x: p2.join(' '), a: 'Cobranza →', panel: 'cobranza' });
+      // Cobrado
+      const fb = F.cob, dif = fb.cur - F.fac.cur;
+      let x3 = '<b>Cobraste ' + esc(dinero(fb.cur)) + '</b>';
+      if(D.cob && fb.cur > 0) x3 += ', ' + Math.round(D.cob.anteriores / fb.cur * 100) + ' % de facturas de meses anteriores';
+      x3 += '. ';
+      const bajoMeta = fb.meta != null && !m.todo && fb.cur < fb.meta;
+      if(fb.meta != null && !m.todo) x3 += (bajoMeta ? 'Bajo' : 'Sobre') + ' tu ' + (fb.metaOrigen === 'propia' ? 'meta' : 'promedio de 12 meses') + ' de ' + esc(dinero(fb.meta)) + '. ';
+      x3 += dif >= 0 ? 'Cobras más de lo que facturas: bajas cartera de meses anteriores.' : 'Facturas más de lo que cobras (' + esc(dinero(-dif)) + ' de diferencia): la cartera crece.';
+      L.push({ t: bajoMeta || dif < 0 ? 'alerta' : 'bien', e: 'COBRADO', x: x3, a: 'Cobranza →', panel: 'cobranza' });
+      return L;
     }
     const TG = { urg: [ICO.alerta, 'ATENCIÓN'], alerta: [ICO.alerta, 'REVISAR'], info: [ICO.info, 'DATO'], bien: [ICO.ok, 'VA BIEN'] };
 
+    // ── «Hoy»: la foto de TODA la cartera (el vencido de un solo mes engañaría) ──
+    function hoyHtml(r){
+      const F = r.filas, m = r.meta;
+      const tit = m.todo ? 'HOY · FOTO DE TODA LA CARTERA' : m.esActual ? 'HOY · FOTO DE TODA LA CARTERA (NO SOLO ESTE MES)' : 'AL CIERRE DE ' + etiquetaMes(m.mes).toUpperCase() + ' · FOTO DE TODA LA CARTERA';
+      const nf = (m.sinFiltrar || []).includes('pip') ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '';
+      const venc = F.ven.cur > 0 ? '<span class="rs-d urg">' + ICO.alerta + esc(dinero(F.ven.cur)) + ' vencido</span>' : '<span>' + ICO.ok + 'sin vencido</span>';
+      return '<div class="rs-hoy"><div class="rs-hoy-t">' + ICO.foto + tit + '</div><div class="rs-hoy-g">' +
+        '<div class="hx"><span class="l">' + ICO.pipe + 'Por vender ' + nf + '</span><span class="v">' + esc(dinero(F.pip.cur)) + '</span><span class="s">cotizaciones abiertas, de cualquier mes</span></div>' +
+        '<div class="hx"><span class="l">' + ICO.factura + 'Por facturar</span><span class="v">' + esc(dinero(F.gpf.cur)) + '</span><span class="s">ganado que aún no tiene factura</span></div>' +
+        '<div class="hx"><span class="l">' + ICO.cobrar + 'Por cobrar</span><span class="v">' + esc(dinero(F.pxc.cur)) + '</span><span class="s">' + esc(dinero(F.plz.cur)) + ' en plazo · ' + venc + '</span></div></div></div>';
+    }
+
     function pintar(){
       if(!ultimo) return;
-      const r = ultimo, m = r.meta, def = VISTAS.find((x) => x.id === vista);
-      $('rsVistas').innerHTML = VISTAS.map((x) => '<button type="button" class="rs-vista' + (x.id === vista ? ' on' : '') + '" role="tab" aria-selected="' + (x.id === vista) + '" data-vista="' + x.id + '"><span class="ic">' + x.ico + '</span><span class="tt"><h2>' + esc(x.titulo) + '</h2><small>' + esc(x.sub(m)) + '</small></span></button>').join('');
-      const tope = Math.max(1, ...def.filas.map((d) => Math.max(r.filas[d.k].cur, r.filas[d.k].meta || 0))) * 1.08;
+      const r = ultimo, m = r.meta, F = r.filas, D = r.desglose;
+      // escala común en pesos; Solicitudes (cantidad) usa "lo atendido mide lo mismo que Cotizado" y no pasa de 1.6 veces la barra más larga
+      const base = Math.max(1, ...['cot', 'gan', 'fac', 'cob'].map((k) => Math.max(F[k].cur, F[k].meta || 0)));
+      const topeSol = Math.max(F.sol.cur, F.sol.meta || 0, 1);
+      let unidad = F.cot.cur > 0 && D.sol.atendidas > 0 ? F.cot.cur / D.sol.atendidas : base * 0.6 / topeSol;
+      unidad = Math.min(unidad, base * 1.6 / topeSol);
+      const eq = (k, v) => (k === 'sol' ? v * unidad : v);
+      const tope = Math.max(base, eq('sol', F.sol.cur), eq('sol', F.sol.meta || 0)) * 1.05;
+      const ctx = { eq, tope };
       const lb = m.todo ? 'ACUMULADO' : (modo === 'anio' ? (m.refs.anio || 'AÑO PASADO') : m.refs[modo] || '').toUpperCase();
-      let h = '<div class="rs-cab"><span>CONCEPTO</span><span>MONTO · MARCA = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
-      h += def.filas.map((d) => filaHtml(d, r.filas, m, tope)).join('');
-      if(vista === 'perdido'){
-        h += '<div class="rs-motivos"><div class="rs-mo-t">' + ICO.info + 'MOTIVOS DE PÉRDIDA</div>' + (r.motivos.length
-          ? r.motivos.map((x) => '<div class="rs-mo"><div class="l"><span>' + esc(x.motivo) + '</span><b>' + x.pct + ' % · ' + esc(dinero(x.monto)) + '</b></div><div class="tr"><i style="width:' + x.pct + '%"></i></div></div>').join('')
-          : '<div class="rs-mo"><div class="l"><span>Sin pérdidas en este periodo</span></div></div>') + '</div>';
-      }
-      h += '<div class="rs-ins3">' + lecturas(r, vista).map((i) => '<div class="rs-in ' + i.t + '"><span class="tg">' + TG[i.t][0] + TG[i.t][1] + '</span><span>' + i.x + '</span><button type="button" data-panel="' + (i.a.indexOf('Cobranza') === 0 ? 'cobranza' : 'tracking-comercial') + '">' + esc(i.a) + '</button></div>').join('') + '</div>';
+      let h = '<div class="rs-emb-t"><h2>Embudo ' + (m.todo ? 'de todo el historial' : 'del mes') + '</h2><small>' + esc(m.etiquetaMes) + (m.todo ? '' : m.esActual ? ' · hasta el día ' + m.corteDia : ' · mes completo') + ' · sin IVA</small></div>';
+      h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · CONTORNO PUNTEADO = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
+      h += FILAS.map((d) => filaHtml(d, r, ctx)).join('');
+      h += '<div class="rs-ins3">' + lecturas(r).map((i) => '<div class="rs-in ' + i.t + '"><span class="tg">' + TG[i.t][0] + TG[i.t][1] + ' · ' + i.e + '</span><span>' + i.x + '</span><button type="button" data-panel="' + i.panel + '">' + esc(i.a) + '</button></div>').join('') + '</div>';
+      h += hoyHtml(r);
       if(m.notas && m.notas.length) h += '<p class="rs-nota">' + ICO.info + '<span>' + esc(m.notas.join(' · ')) + '</span></p>';
       $('rsCuerpo').innerHTML = h;
     }
@@ -8880,12 +8895,6 @@
       $('rsModo').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
       pintar(); // la comparación ya viene completa del servidor: no hace falta volver a pedir nada
     });
-    $('rsVistas').addEventListener('click', (e) => {
-      const b = e.target.closest('.rs-vista');
-      if(!b) return;
-      vista = b.dataset.vista;
-      pintar();
-    });
     $('rsCuerpo').addEventListener('click', (e) => {
       const b = e.target.closest('.rs-in button');
       if(!b) return;
@@ -8901,17 +8910,18 @@
     document.addEventListener('keydown', (e) => { if(e.key === 'Escape') $('rsPop').hidden = true; });
     const tip = $('rsTip');
     $('rsCuerpo').addEventListener('mouseover', (e) => {
-      const h = e.target.closest('.hit');
+      const h = e.target.closest('[data-tip]'); // puntos de la línea de 12 meses y segmentos de las barras: «título|valor|extra»
       if(!h){ tip.style.display = 'none'; return; }
-      tip.innerHTML = '<i>' + esc(h.dataset.m) + '</i><b>' + esc(dinero(+h.dataset.v)) + '</b>';
+      const p = h.dataset.tip.split('|');
+      tip.innerHTML = '<i>' + esc(p[0]) + '</i><b>' + esc(p[1]) + '</b>' + (p[2] ? '<i>' + esc(p[2]) + '</i>' : '');
       tip.style.display = 'block';
-      const b = h.getBoundingClientRect();
-      tip.style.left = Math.min(window.innerWidth - 140, Math.max(6, b.left - 30)) + 'px';
-      tip.style.top = (b.top - 54) + 'px';
+      const r = h.getBoundingClientRect();
+      tip.style.left = Math.min(window.innerWidth - 260, Math.max(6, r.left - 30)) + 'px';
+      tip.style.top = (r.top - (p[2] ? 74 : 54)) + 'px';
     });
     $('rsCuerpo').addEventListener('mouseleave', () => { tip.style.display = 'none'; });
     window.alEntrarAResumenDashboard = cargar;
-    window.__resumenDashboardEstado = () => ({ estado, ultimo, modo, vista }); // solo para las pruebas de jsdom
+    window.__resumenDashboardEstado = () => ({ estado, ultimo, modo }); // solo para las pruebas de jsdom
   })();
 
   // ═══════════════════════════════════════════════════════════════
@@ -19433,11 +19443,13 @@
   // reintento con pausas. Un campo vacío = esa fila usa el promedio de 12 meses. Un solo Guardar con confirmación; solo se habilita si algo cambió.
   (function(){
     const METAS = [
+      { k:'sol', nombre:'Solicitudes', desc:'Cuántas solicitudes entran en el mes (del sitio o creadas por ti). Es una cantidad, no pesos.', cant:true },
       { k:'cot', nombre:'Cotizado', desc:'Lo que cotizas (envías) en el mes. Tu foco es aumentarlo.' },
       { k:'gan', nombre:'Ganado', desc:'Cotizaciones cerradas como ganadas en el mes.' },
       { k:'cob', nombre:'Cobrado', desc:'Dinero que entra en el mes: pagos recibidos.' },
     ];
-    let metas = { cot:null, gan:null, cob:null };
+    let metas = { sol:null, cot:null, gan:null, cob:null };
+    const cuanto = (m, n) => m.cant ? Number(n).toLocaleString('es-MX') + (Number(n) === 1 ? ' solicitud' : ' solicitudes') + ' al mes' : dinero(n) + ' al mes';
     const dinero = (n) => '$' + Number(n).toLocaleString('es-MX', { maximumFractionDigits:2 });
     async function apiGet(url){
       const res = await fetch(url, { cache:'no-store' });
@@ -19469,9 +19481,9 @@
           <div class="cfg-metas-txt">
             <div class="cfg-correo-nombre">${m.nombre}</div>
             <div class="cfg-correo-desc">${m.desc}</div>
-            <div class="cfg-correo-desc"><b>${metas[m.k] == null ? 'Sin meta propia: usa el promedio de 12 meses' : 'Meta actual: ' + dinero(metas[m.k]) + ' al mes'}</b></div>
+            <div class="cfg-correo-desc"><b>${metas[m.k] == null ? 'Sin meta propia: usa el promedio de 12 meses' : 'Meta actual: ' + cuanto(m, metas[m.k])}</b></div>
           </div>
-          <label class="cfg-metas-campo">$ <input type="number" min="0" step="1000" inputmode="decimal" placeholder="promedio" data-k="${m.k}" data-original="${val(m.k)}" value="${val(m.k)}" aria-label="Meta mensual de ${m.nombre}"></label>
+          <label class="cfg-metas-campo">${m.cant ? '#' : '$'} <input type="number" min="0" step="${m.cant ? 1 : 1000}" inputmode="${m.cant ? 'numeric' : 'decimal'}" placeholder="promedio" data-k="${m.k}" data-original="${val(m.k)}" value="${val(m.k)}" aria-label="Meta mensual de ${m.nombre}"></label>
         </div>`).join('') + `
         <div class="cfg-metas-acciones">
           <button type="button" class="radm-btn" id="cfgMetasGuardar" style="min-width:auto;" disabled>Guardar metas</button>
@@ -19488,7 +19500,7 @@
       btn.addEventListener('click', async () => {
         const cuerpo = {};
         inputs.forEach(i => { cuerpo[i.dataset.k] = i.value === '' ? null : Number(i.value); });
-        const lineas = METAS.map(m => m.nombre + ': ' + (cuerpo[m.k] == null ? 'promedio de 12 meses' : dinero(cuerpo[m.k]) + ' al mes')).join(' · ');
+        const lineas = METAS.map(m => m.nombre + ': ' + (cuerpo[m.k] == null ? 'promedio de 12 meses' : cuanto(m, cuerpo[m.k]))).join(' · ');
         if(!(await confirmarAccion({ titulo:'Guardar las metas', mensaje:lineas + '. El Dashboard → Resumen las usará desde la próxima vez que lo abras o actualices. No se modifica ningún dato.', variante:'neutral', textoConfirmar:'Sí, guardar' }))) return;
         btn.disabled = true; btn.textContent = 'Guardando...';
         try {
@@ -19923,8 +19935,8 @@
       } else r.met = { ok: null, linea: 'No se pudo leer' };
 
       if(mt){
-        const n = ['cot', 'gan', 'cob'].filter((k) => mt[k] != null).length;
-        r.metas = { ok: null, linea: n ? n + (n === 1 ? ' de 3 metas definida' : ' de 3 metas definidas') : 'Sin metas: se usa el promedio de 12 meses' };
+        const n = ['sol', 'cot', 'gan', 'cob'].filter((k) => mt[k] != null).length;
+        r.metas = { ok: null, linea: n ? n + (n === 1 ? ' de 4 metas definida' : ' de 4 metas definidas') : 'Sin metas: se usa el promedio de 12 meses' };
       } else r.metas = { ok: null, linea: 'No se pudo leer' };
 
       r.tarifas = { ok: null, linea: 'Precio base de cada herramienta' };

@@ -1,6 +1,6 @@
 // getMetasAdmin/index.js
-// Function protegida (rol "admin", cerrada por el comodín /api/*): las metas mensuales de dinero del Dashboard → Resumen
-// ({ cot, gan, cob }; null = sin meta propia, se usa el promedio de 12 meses). Configuración → Metas. Ver api/src/metas.js.
+// Function protegida (rol "admin", cerrada por el comodín /api/*): las metas mensuales (solicitudes en cantidad; lo demás en dinero) del Dashboard → Resumen
+// ({ sol, cot, gan, cob }; null = sin meta propia, se usa el promedio de 12 meses). Configuración → Metas. Ver api/src/metas.js.
 const { getMetas } = require("../src/metas");
 const { JSON_HEADERS } = require("../src/http");
 

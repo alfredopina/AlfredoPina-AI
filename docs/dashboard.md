@@ -125,3 +125,8 @@ Las 3 lecturas de abajo **ya no son fijas**: `api/src/dashboard-lecturas.js` eva
 
 **Para agregar una regla** basta con un objeto más en `REGLAS` (id, etapa, `cuando`, `run(x)`); `x` trae las cifras del Resumen (`x.F`, `x.D`), las cotizaciones y cuentas ya filtradas, las filas de Cobranza de hoy (`x.vivas`) y los umbrales de Alertas. Pruebas: `api/test-dashboard-lecturas.js`.
 **Límite conocido:** las cuentas importadas del histórico tienen como `fecha_creacion` la del import, así que su edad en `por-facturar-edad` se mide desde ahí.
+
+### Cuarta ronda del 2026-11-02 (manda sobre lo anterior)
+
+- **Meta = banderín** (idea 1 de las propuestas): un poste corto y una banderita con el monto corto de la meta (`$250k`, `$1.2M`; en Solicitudes, la cantidad) **arriba** de la barra. Ya no hay línea con bolita cruzando la barra, así que no se encima con las etiquetas de los segmentos; si la meta cae muy a la derecha (>82 %), la banderita se abre hacia la izquierda.
+- **Botón «Siguientes 3»** junto al encabezado «LECTURAS POR PRIORIDAD · 1–3 DE n»: el servidor ya entrega todas las lecturas por prioridad (hasta 12: `lecturas` + `lecturasOtras`) y la pantalla las pagina de 3 en 3; al terminar vuelve a las primeras. Ícono de **chispas** que titilan en desfase y, al pulsar, aceleran y giran medio segundo («calculando») antes de que entren las siguientes con una animación escalonada. Sin animación si el sistema pide reducir movimiento. Al actualizar datos o cambiar filtros vuelve a las 3 más importantes.

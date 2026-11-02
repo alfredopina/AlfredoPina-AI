@@ -129,6 +129,24 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   check('las lecturas citan nombres y cifras: lista de clientes bajo la lectura, con su monto', qa('.rs-in ul li').length >= 1 && qa('.rs-in').some((i) => /vencidos/.test(txt(i)) && /\$1,500/.test(txt(i))), qa('.rs-in').map((i) => txt(i).slice(0, 80)).join(' || '));
   check('lo que dicen las lecturas es lo que eligió el servidor (mismas lecturas y mismo orden que en la respuesta)', JSON.stringify(qa('.rs-in').map((i) => txt(i.querySelector('.tg')).split('·')[1].trim())) === JSON.stringify(w.__resumenDashboardEstado().ultimo.lecturas.map((l) => l.etapa)));
   check('el encabezado de columnas dice contra qué se compara', /VARIACIÓN vs SEP/.test(txt(q('.rs-cab'))), txt(q('.rs-cab')));
+  check('cada meta es un BANDERÍN arriba de la barra (poste corto + banderita con el monto corto), no una línea con bolita dentro de la barra', qa('.rs-track .meta b').length === 5 && /^\$10(\.2)?k$/.test(txt(q('.rs-fila[data-k="cot"] .rs-track .meta b'))) && txt(q('.rs-fila[data-k="sol"] .rs-track .meta b')) === '1.3' && !q('.rs-track .fill .meta'), txt(q('.rs-fila[data-k="cot"] .rs-track .meta b')));
+
+  console.log('Siguientes lecturas');
+  const est0 = w.__resumenDashboardEstado().ultimo, todas0 = est0.lecturas.length + est0.lecturasOtras.length, paginas0 = Math.ceil(todas0 / 3);
+  check('hay más de 3 lecturas por prioridad y el encabezado dice cuáles se ven («1–3 DE n»)', todas0 > 3 && new RegExp('1–3 DE ' + todas0).test(txt(q('.rs-ins-t'))), txt(q('.rs-ins-t')));
+  check('el botón «Siguientes 3» lleva ícono (chispas animadas), nombre accesible y texto', !!q('#rsMas svg path.c1') && qa('#rsMas svg path').length === 3 && /Siguientes 3/.test(txt(q('#rsMas'))) && !!q('#rsMas').getAttribute('aria-label'));
+  const primera0 = txt(qa('.rs-in')[0]);
+  q('#rsMas').click(); await pausa(60);
+  check('al pulsar, el ícono entra en modo «pensando» un instante', q('#rsMas') && q('#rsMas').classList.contains('pensando'));
+  await pausa(800);
+  const hasta = Math.min(6, todas0);
+  check('muestra las siguientes 3 por prioridad (distintas a las primeras) y el encabezado avanza', qa('.rs-in').length === Math.min(3, todas0 - 3) && txt(qa('.rs-in')[0]) !== primera0 && new RegExp('4–' + hasta + ' DE ' + todas0).test(txt(q('.rs-ins-t'))) && q('.rs-ins3').classList.contains('cambia'), txt(q('.rs-ins-t')));
+  check('las siguientes lecturas traen el mismo formato (ícono + palabra + etapa y botón al Tracking)', qa('.rs-in').every((i) => i.querySelector('.tg svg') && /ATENCIÓN|REVISAR|DATO|VA BIEN/.test(txt(i.querySelector('.tg'))) && i.querySelector('button[data-panel]')));
+  for (let k = 1; k < paginas0; k++) { q('#rsMas').click(); await pausa(800); }
+  check('al terminar las páginas vuelve a las primeras 3 (más importantes)', new RegExp('1–3 DE ' + todas0).test(txt(q('.rs-ins-t'))) && txt(qa('.rs-in')[0]) === primera0, txt(q('.rs-ins-t')));
+  q('#rsMas').click(); await pausa(800);
+  q('#rsActualizar').click(); await pausa(400);
+  check('al actualizar los datos las lecturas regresan a las 3 más importantes', new RegExp('1–3 DE').test(txt(q('.rs-ins-t'))) && txt(qa('.rs-in')[0]) === primera0, txt(q('.rs-ins-t')));
   volcar('dashboard-resumen');
 
   console.log('Metas propias (Configuración → Metas)');

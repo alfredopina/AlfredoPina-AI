@@ -256,7 +256,7 @@ function elegir(lecs, max = 3) {
     if (out.length === max) break;
   }
   for (const l of orden) { if (out.length >= max) break; if (!out.includes(l)) out.push(l); }
-  return { principales: out, otras: orden.filter((l) => !out.includes(l)).slice(0, 5) };
+  return { principales: out, otras: orden.filter((l) => !out.includes(l)).slice(0, 9) };
 }
 
 function calcularLecturas(datos, r, { ahora = new Date(), umbrales = {} } = {}) {

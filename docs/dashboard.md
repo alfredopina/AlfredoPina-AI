@@ -80,3 +80,9 @@ Mockup aprobado: `docs/mockups/dashboard-resumen-v5.html` / `.png` (el v4 de tre
 - **El desglose de Facturado y Ganado usa el estado de hoy**, también al mirar un mes pasado (no hay historial de estatus); «Hoy» sí se reconstruye al cierre del mes elegido.
 - **Cuenta ↔ cotización:** si una cotización ganada no tiene cuenta (o su cuenta está cancelada o aún «Por facturar»), cuenta como Por facturar.
 - La escala de Solicitudes no pasa de 1.6 veces la barra más larga (si hay una sola atendida, la barra no se dispara).
+
+## Ajustes del 2026-11-02 (tarde) — manda esto sobre lo anterior si hay contradicción
+
+Alfredo vio el embudo desplegado y pidió: **barras simples del v4** (una sola barra con su marca blanca de meta, más alta, con el monto escrito dentro o a su lado) en lugar de la barra apilada; **leyendas siempre visibles**, aunque valgan cero (atenuadas), **en una línea** y con **muestras en tonos de azul**; el ícono de alerta (sin color propio) marca solo lo pendiente o vencido con valor; se **quitó la franja «Hoy / Al cierre de…»** y la etiqueta **FOCO** de Cotizado; se **quitaron los subtítulos** de cada fila y los nombres son más grandes; **«Ganado» se llama «Vendido»** en pantalla (la llave interna sigue siendo `gan`); y se arregló el **color de la lista del filtro de Mes** (las opciones heredaban el fondo translúcido del filtro activo).
+- Leyendas: Solicitudes (del sitio · manuales · sin atender) · Cotizado (estándar · personalizados · consultoría, con cuántas cotizaciones entre paréntesis y el monto) · Vendido (facturado · por facturar) · Facturado (cobrado · por cobrar en plazo · vencido) · Cobrado (de este mes · de meses anteriores). Facturado usa la meta de Vendido.
+- El desglose sigue calculándose en el servidor (`desglose` de `calcularDinero`); el Vencido y Por facturar de toda la cartera ya no se muestran en una franja aparte: los trae la lectura de Facturado.

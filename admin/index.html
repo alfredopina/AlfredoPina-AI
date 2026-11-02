@@ -308,6 +308,7 @@
     appearance:none; -webkit-appearance:none; height:36px; min-width:112px; padding:0 26px 0 30px; border:1px solid var(--line); border-radius:9px;
     background-color:var(--panel-2); color:var(--text); font-family:var(--body); font-size:13px; font-weight:500; cursor:pointer;
   }
+  .rs-sel option{ background-color:var(--panel); color:var(--text); }
   .rs-sel:hover{ border-color:var(--text-faint); }
   .rs-sel:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:1px; }
   #rsMes{ min-width:186px; }
@@ -355,38 +356,25 @@
   .rs-emb-t h2{ font-family:var(--display); font-size:17px; margin:0; }
   .rs-emb-t small{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
   .rs-fila .top2 small{ font-family:var(--body); font-size:13px; font-weight:500; color:var(--text-dim); }
-  .rs-fn{ position:relative; height:34px; }
-  .rs-goal{ position:absolute; left:0; top:-5px; bottom:-5px; border:1.6px dashed var(--text); border-radius:9px; pointer-events:none; z-index:3; opacity:.85; }
-  .rs-stk{ position:absolute; left:0; top:0; bottom:0; display:flex; gap:2px; z-index:2; }
-  .rs-sg{ height:100%; min-width:3px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:600; overflow:hidden; white-space:nowrap; border-radius:3px; cursor:default; box-shadow:inset 0 0 0 1px rgba(127,127,127,.3); }
-  .rs-stk .rs-sg:first-child{ border-radius:9px 3px 3px 9px; } .rs-stk .rs-sg:last-child{ border-radius:3px 9px 9px 3px; } .rs-stk .rs-sg:only-child{ border-radius:9px; }
-  .rs-stk .rs-sg:hover{ filter:brightness(1.12); }
-  .rs-sg.azul{ background-color:#3d7fff; color:#fff; }
-  .rs-sg.azul2{ background-color:#7fb0ff; color:#0a0d12; }
-  .rs-sg.claro{ background-color:#cfe0ff; color:#0a0d12; }
-  .rs-sg.gris{ background-color:#5b6475; color:#fff; }
-  .rs-sg.gris2{ background-color:#8b93a1; color:#0a0d12; }
-  .rs-sg.pend{ background-color:#dfb35a; color:#1f1604; }
-  .rs-sg.venc{ background-color:#dc2626; color:#fff; }
-  .rs-lg{ display:flex; gap:6px 14px; flex-wrap:wrap; margin-top:12px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); }
+  /* barra simple (la del v4) con su marca de meta, más alta para que se lea la etiqueta */
+  .rs-track{ position:relative; height:24px; border-radius:12px; background-color:rgba(127,127,127,.14); margin-top:2px; }
+  .rs-track .fill{ position:absolute; left:0; top:0; bottom:0; border-radius:12px; min-width:6px; }
+  .rs-track .fill.on{ background-color:#3d7fff; background-image:linear-gradient(90deg, #2f6df0, #4f90ff); box-shadow:0 0 12px rgba(61,127,255,.3); }
+  .rs-track .fill.off{ background-color:rgba(107,159,255,.42); }
+  .rs-track .et{ position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12.5px; font-weight:600; white-space:nowrap; }
+  .rs-track .fill .et{ left:11px; color:#fff; }
+  .rs-track .fill.off .et{ color:var(--text); }
+  .rs-track .et.fuera{ color:var(--text-dim); }
+  .rs-track .meta{ position:absolute; top:-5px; bottom:-5px; width:2px; margin-left:-1px; border-radius:2px; background-color:var(--text); z-index:2; }
+  .rs-track .meta::after{ content:""; position:absolute; top:-3px; left:-3px; width:8px; height:8px; border-radius:50%; background-color:var(--text); border:2px solid var(--panel); }
+  .rs-lg{ display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:11px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
   .rs-lg > span{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-  .rs-lg i{ display:inline-block; width:14px; height:10px; min-width:0; flex:none; }
+  .rs-lg > span.cero{ opacity:.6; }
+  .rs-lg i{ display:inline-block; width:12px; height:12px; border-radius:3px; flex:none; }
   .rs-lg b{ color:var(--text); font-weight:600; }
   .rs-lg em{ font-style:normal; color:var(--text-faint); }
   .rs-lg svg{ width:12px; height:12px; flex:none; }
-  .rs-lg .mal-i{ display:inline-flex; align-items:center; gap:4px; }
-  .rs-lg .mal-i.pend svg{ color:#dfb35a; } .rs-lg .mal-i.venc svg{ color:#f26b6b; }
-  .rs-hoy{ margin-top:14px; border:1px solid var(--line); border-radius:12px; background-color:var(--panel-2); padding:11px 16px 13px; }
-  .rs-hoy-t{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:9px; }
-  .rs-hoy-t svg{ width:13px; height:13px; }
-  .rs-hoy-g{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
-  .rs-hoy .hx{ min-width:0; display:flex; flex-direction:column; gap:3px; }
-  .rs-hoy .hx .l{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-dim); flex-wrap:wrap; }
-  .rs-hoy .hx .l svg{ width:15px; height:15px; color:var(--blue-bright); }
-  .rs-hoy .hx .v{ font-family:var(--display); font-size:22px; font-weight:700; }
-  .rs-hoy .hx .s{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .rs-hoy .hx .s svg{ width:12px; height:12px; }
-  .rs-hoy .hx .s .rs-d{ padding:1px 8px; font-size:10.5px; }
+  .rs-lg .mal-i{ display:inline-flex; align-items:center; gap:4px; color:var(--text); }
   .rs-tag{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
   .rs-tag svg{ width:11px; height:11px; }
   .rs-cab, .rs-fila{ display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(0, 2.1fr) 206px 176px; gap:18px; align-items:center; }
@@ -395,8 +383,8 @@
   .rs-fila{ min-height:64px; padding:5px 0; border-bottom:1px solid var(--line); }
   .rs-fila:last-of-type{ border-bottom:none; }
   .rs-fila .nm{ min-width:0; }
-  .rs-fila .nm .a{ font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .rs-fila .nm .a svg{ width:15px; height:15px; color:var(--blue-bright); flex:none; }
+  .rs-fila .nm .a{ font-size:18px; font-weight:700; font-family:var(--display); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .rs-fila .nm .a svg{ width:20px; height:20px; color:var(--blue-bright); flex:none; }
   .rs-fila .nm .b{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:3px; line-height:1.4; }
   .rs-foco{ font-family:var(--mono); font-size:9px; letter-spacing:.05em; color:var(--blue-bright); border:1px solid var(--blue-bright); border-radius:5px; padding:1px 6px; display:inline-flex; gap:4px; align-items:center; }
   .rs-foco svg{ width:10px !important; height:10px !important; }
@@ -405,8 +393,8 @@
   .rs-fila .mc{ min-width:0; }
   .rs-fila .top2{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
   .rs-fila .vv{ font-family:var(--display); font-size:25px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; }
-  .rs-est{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); }
-  .rs-est svg{ width:12px; height:12px; flex:none; }
+  .rs-est{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .rs-est svg{ width:14px; height:14px; flex:none; }
   .rs-est.on svg{ color:var(--blue-bright); }
   .rs-est.off svg{ color:var(--blue-bright); opacity:.65; }
   .rs-est i{ font-style:normal; color:var(--text-faint); }
@@ -3459,13 +3447,10 @@
                   <div class="rs-pop" id="rsPop" hidden>
                     <h3>Cómo leer el embudo</h3>
                     <h4>BARRAS</h4>
-                    <div class="li"><span class="ej"><svg width="120" height="26" viewBox="0 0 120 26" aria-hidden="true"><rect x="1" y="5" width="80" height="16" rx="6" fill="#3d7fff"/><rect x="1" y="1" width="106" height="24" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA, con la misma escala en todas. El <b>contorno punteado</b> es la meta: si la barra lo rebasa, la cumpliste. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
-                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="56" height="12" rx="3" fill="#3d7fff"/><rect x="58" y="2" width="32" height="12" rx="3" fill="#cfe0ff"/><rect x="92" y="2" width="22" height="12" rx="3" fill="#5b6475"/></svg></span><span>Cada barra se <b>reparte</b> en segmentos del tamaño de su monto (en Solicitudes, de su cantidad); la etiqueta es el monto y abajo se nombra cada uno. Solicitudes: del sitio y manuales; Cotizado: cursos estándar, personalizados y consultoría.</span></div>
-                    <h4>COLORES (solo se colorea lo que hay que mirar)</h4>
-                    <div class="li"><span class="ej"><span class="rs-sg pend" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Ámbar</b>: pendiente de atender o de facturar. Lleva ícono de alerta en la leyenda.</span></div>
-                    <div class="li"><span class="ej"><span class="rs-sg venc" style="width:70px;height:14px;border-radius:3px;display:block"></span></span><span><b>Rojo</b>: vencido, el dinero que más urge perseguir. Todo lo demás va en azules y grises, sin significado de color.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><rect x="0" y="3" width="120" height="16" rx="8" fill="rgba(127,127,127,.25)"/><rect x="0" y="3" width="70" height="16" rx="8" fill="#3d7fff"/><rect x="88" y="0" width="2" height="22" rx="1" fill="currentColor"/><circle cx="89" cy="1.5" r="3" fill="currentColor"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA (en Solicitudes, la cantidad), con la misma escala en todas. La <b>marca blanca</b> es la meta: si la barra la rebasa, la cumpliste. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="26" height="12" rx="3" fill="#3d7fff"/><rect x="42" y="2" width="26" height="12" rx="3" fill="#7fb0ff"/><rect x="84" y="2" width="26" height="12" rx="3" fill="#cfe0ff"/></svg></span><span><b>Azul</b>: la barra está en su meta o por encima; <b>azul claro</b>: va por debajo (además lo dice con ícono y texto). Debajo de cada barra, la <b>leyenda</b> muestra de qué se compone, aunque valga cero: Solicitudes (sitio, manuales, sin atender), Cotizado (estándar, personalizados, consultoría), Vendido (facturado, por facturar), Facturado (cobrado, por cobrar, vencido) y Cobrado (de este mes, de meses anteriores). Un ícono de alerta marca lo pendiente o vencido.</span></div>
                     <h4>CÓMO SE CUENTA</h4>
-                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b> son cantidad: lo atendido mide lo mismo que Cotizado y lo sin atender va en ámbar. <b>Facturado</b> se reparte por su estado de hoy (lo emitido este mes: cobrado, por cobrar en plazo y vencido). <b>Facturado</b> comparte la meta de <b>Ganado</b>. <b>Ganado</b> y <b>Cobrado</b> son lo ocurrido en el mes. «Hoy» abajo es toda la cartera, no solo el mes.</span></div>
+                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b>: lo atendido mide lo mismo que Cotizado. <b>Facturado</b> comparte la meta de <b>Vendido</b>. <b>Vendido</b> y <b>Cobrado</b> son lo ocurrido en el mes; <b>Cotizado</b> y <b>Facturado</b>, lo enviado o emitido en el mes.</span></div>
                     <h4>GRÁFICA DE 12 MESES Y VARIACIÓN</h4>
                     <div class="li"><span class="ej"><svg width="110" height="26" viewBox="0 0 110 26" aria-hidden="true"><line x1="2" y1="14" x2="108" y2="14" stroke="#79828f" stroke-dasharray="2 4"/><polyline points="2,20 20,16 38,19 56,11 74,13 92,8 108,5" fill="none" stroke="#6b9fff" stroke-width="1.5"/><circle cx="108" cy="5" r="3" fill="#6b9fff"/></svg></span><span>La línea son los últimos 12 meses del total de la barra y la <b>punteada</b> es la meta. Cada punto da mes y monto al pasar el cursor.</span></div>
                     <div class="li"><span class="ej"><span class="rs-d bien"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+12 %</span></span><span>Va <b>bien</b> (verde-azulado, flecha y porcentaje).</span></div>
@@ -3542,7 +3527,7 @@
             </button>
             <button type="button" class="cfgt-tile" data-cfg="metas">
               <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
-              <span class="cfgt-cuerpo"><span class="cfgt-tit">Metas</span><span class="cfgt-desc">Solicitudes, Cotizado, Ganado y Cobrado</span><span class="cfgt-linea" data-linea="metas">…</span></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Metas</span><span class="cfgt-desc">Solicitudes, Cotizado, Vendido y Cobrado</span><span class="cfgt-linea" data-linea="metas">…</span></span>
               <span class="cfgt-chip" data-chip="metas" hidden></span>
               <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </button>
@@ -3613,7 +3598,7 @@
           </button>
           <div class="cfg-card-body" id="cfgMetasBody" hidden>
             <div class="cfg-note">
-              Cuánto quieres <b>recibir (solicitudes), cotizar, ganar y cobrar cada mes</b>, por el <b>mes completo</b>: Solicitudes en cantidad y lo demás en pesos <b>sin IVA</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado usa la misma meta que Ganado (lo que ganas es lo que debes facturar); lo que está abierto hoy sigue con su promedio. Cambiar una meta no toca ningún dato.
+              Cuánto quieres <b>recibir (solicitudes), cotizar, ganar y cobrar cada mes</b>, por el <b>mes completo</b>: Solicitudes en cantidad y lo demás en pesos <b>sin IVA</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado usa la misma meta que Vendido (lo que vendes es lo que debes facturar); lo que está abierto hoy sigue con su promedio. Cambiar una meta no toca ningún dato.
             </div>
             <div class="cfg-metas-lista" id="cfgMetasLista">
               <div class="radm-empty-row">Cargando…</div>
@@ -8689,14 +8674,15 @@
     };
     const MES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-    // El embudo: cinco barras alineadas a la izquierda (el embudo se imagina de la mitad a la derecha), misma escala en pesos; Solicitudes es cantidad y
-    // toma como escala "lo atendido mide lo mismo que Cotizado". Cada barra se reparte en dónde está HOY ese dinero (ver api/src/dashboard-dinero.js).
+    // El embudo: cinco barras simples alineadas a la izquierda (el embudo se imagina de la mitad a la derecha), misma escala en pesos; Solicitudes es cantidad y
+    // toma como escala "lo atendido mide lo mismo que Cotizado". Debajo de cada una, una leyenda en una línea con las partes que la componen (siempre,
+    // aunque valgan cero, para ver contra qué se podría comparar); el desglose lo calcula el servidor (api/src/dashboard-dinero.js).
     const FILAS = [
-      { k: 'sol', nombre: 'Solicitudes', ico: ICO.sol, nota: 'recibidas en el mes · cantidad, por canal', cant: true },
-      { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza, nota: 'enviado en el mes · por tipo de servicio', foco: true },
-      { k: 'gan', nombre: 'Ganado', ico: ICO.gana, nota: 'cerrado en el mes · de cualquier cotización' },
-      { k: 'fac', nombre: 'Facturado', ico: ICO.factura, nota: 'emitido en el mes · cómo va hoy' },
-      { k: 'cob', nombre: 'Cobrado', ico: ICO.pagos, nota: 'pagos recibidos en el mes' },
+      { k: 'sol', nombre: 'Solicitudes', ico: ICO.sol, cant: true },
+      { k: 'cot', nombre: 'Cotizado', ico: ICO.cotiza },
+      { k: 'gan', nombre: 'Vendido', ico: ICO.gana },
+      { k: 'fac', nombre: 'Facturado', ico: ICO.factura },
+      { k: 'cob', nombre: 'Cobrado', ico: ICO.pagos },
     ];
 
     const estado = { mes: '', estrategia: '', tipoCliente: '', herramienta: '' };
@@ -8745,40 +8731,40 @@
       return s + '</svg>';
     }
 
-    // ── los segmentos de cada barra: dónde está hoy ese dinero (solo los que tienen algo; lo normal en azules y grises, lo pendiente en ámbar y lo vencido en rojo) ──
+    // ── la leyenda de cada barra: las partes que la componen (se muestran siempre, aunque valgan cero) ──
     function segmentos(k, D, f){
-      if(k === 'sol') return [{ c: 'azul', n: 'Del sitio', v: D.sol.sitio }, { c: 'azul2', n: 'Manuales', v: D.sol.manual }, { c: 'pend', n: 'Sin atender', v: D.sol.sin, mal: true }];
+      if(k === 'sol') return [{ n: 'Del sitio', v: D.sol.sitio }, { n: 'Manuales', v: D.sol.manual }, { n: 'Sin atender', v: D.sol.sin, mal: true }];
       if(k === 'cot'){
         const T = D.cot;
-        return [{ c: 'azul', n: 'Cursos estándar', v: T.estandar.monto, cnt: T.estandar.n }, { c: 'azul2', n: 'Cursos personalizados', v: T.personalizado.monto, cnt: T.personalizado.n }, { c: 'claro', n: 'Consultoría', v: T.consultoria.monto, cnt: T.consultoria.n }];
+        return [{ n: 'Estándar', v: T.estandar.monto, cnt: T.estandar.n }, { n: 'Personalizados', v: T.personalizado.monto, cnt: T.personalizado.n }, { n: 'Consultoría', v: T.consultoria.monto, cnt: T.consultoria.n }];
       }
-      if(k === 'gan') return [{ c: 'azul', n: 'Ya facturado', v: D.gan.facturado }, { c: 'pend', n: 'Por facturar', v: D.gan.porFacturar, mal: true }];
-      if(k === 'fac') return [{ c: 'azul', n: 'Cobrado', v: D.fac.cobrado }, { c: 'claro', n: 'Por cobrar en plazo', v: D.fac.plazo }, { c: 'venc', n: 'Por cobrar vencido', v: D.fac.vencido, mal: true }];
-      if(k === 'cob') return D.cob ? [{ c: 'azul', n: 'De facturas de este mes', v: D.cob.delMes }, { c: 'azul2', n: 'De meses anteriores', v: D.cob.anteriores }] : [{ c: 'azul', n: 'Cobrado', v: f.cur }];
+      if(k === 'gan') return [{ n: 'Facturado', v: D.gan.facturado }, { n: 'Por facturar', v: D.gan.porFacturar, mal: true }];
+      if(k === 'fac') return [{ n: 'Cobrado', v: D.fac.cobrado }, { n: 'Por cobrar en plazo', v: D.fac.plazo }, { n: 'Vencido', v: D.fac.vencido, mal: true }];
+      if(k === 'cob') return D.cob ? [{ n: 'De este mes', v: D.cob.delMes }, { n: 'De meses anteriores', v: D.cob.anteriores }] : [];
       return [];
     }
+    const TONOS = ['#3d7fff', '#7fb0ff', '#cfe0ff'];
 
-    // ── una fila del embudo: concepto | monto + barra (contorno punteado = meta) y leyenda | línea de 12 meses | variación ──
+    // ── una fila del embudo: concepto | monto + barra simple (marca = meta) y leyenda | línea de 12 meses | variación ──
     function filaHtml(def, r, ctx){
       const F = r.filas, meta = r.meta, f = F[def.k], c = variacion(f, def.cant, meta), fmt = fmtDe(def.cant);
       const sinMeta = f.meta == null, sobre = !sinMeta && f.cur >= f.meta;
       const nf = (meta.sinFiltrar || []).includes(def.k);
-      const segs = segmentos(def.k, r.desglose, f).filter((s) => s.v > 0);
-      const tot = segs.reduce((a, s) => a + s.v, 0);
-      const ancho = ctx.eq(def.k, f.cur) / ctx.tope * 100;
+      const ancho = Math.max(0, Math.min(100, ctx.eq(def.k, f.cur) / ctx.tope * 100));
+      const posMeta = sinMeta ? 0 : Math.max(0, Math.min(100, ctx.eq(def.k, f.meta) / ctx.tope * 100));
       const est = sinMeta ? '<span class="rs-est">' + ICO.info + 'sin meta aún <i>· faltan meses de historia</i></span>'
         : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(fmt(f.meta)) + '</i></span>';
-      const barras = segs.map((s) => {
-        const p = Math.round(s.v / tot * 100), et = fmt(s.v);
-        const cabe = ancho * s.v / tot * 5.2 >= et.length * 7 + 10; // ~5.2 px por punto de ancho: la etiqueta solo se escribe si cabe
-        return '<div class="rs-sg ' + s.c + '" style="flex:' + s.v + ' 1 0" data-tip="' + esc(s.n + '|' + et + ' · ' + p + ' %' + (s.cnt != null ? '|' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') : '')) + '">' + (cabe ? esc(et) : '') + '</div>';
-      }).join('');
-      const leyenda = segs.map((s) => '<span><i class="rs-sg ' + s.c + '"></i>' + (s.mal ? '<span class="mal-i ' + s.c + '">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) + (s.cnt != null ? ' <b>' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '</b> <em>' + esc(fmt(s.v)) + '</em>' : ' <b>' + esc(fmt(s.v)) + '</b> <em>' + Math.round(s.v / tot * 100) + ' %</em>') + '</span>').join('');
-      const meto = sinMeta ? '' : '<div class="rs-goal" style="width:' + Math.min(100, ctx.eq(def.k, f.meta) / ctx.tope * 100).toFixed(2) + '%"></div>';
+      const et = fmt(f.cur), dentro = ancho * 5.2 >= et.length * 7.5 + 22; // la etiqueta va dentro de la barra si cabe y, si no, a su lado
+      const barra = '<div class="rs-track"><div class="fill ' + (sinMeta || sobre ? 'on' : 'off') + '" style="width:' + ancho.toFixed(2) + '%">' + (dentro ? '<span class="et">' + esc(et) + '</span>' : '') + '</div>' +
+        (dentro ? '' : '<span class="et fuera" style="left:calc(' + ancho.toFixed(2) + '% + 10px)">' + esc(et) + '</span>') +
+        (sinMeta ? '' : '<i class="meta" style="left:' + posMeta.toFixed(2) + '%" title="Meta: ' + esc(fmt(f.meta)) + '"></i>') + '</div>';
+      const leyenda = segmentos(def.k, r.desglose, f).map((s, i) => '<span class="' + (s.v > 0 ? '' : 'cero') + '"' + (s.cnt != null ? ' title="' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '"' : '') + '><i style="background-color:' + TONOS[i % TONOS.length] + '"></i>' +
+        (s.mal && s.v > 0 ? '<span class="mal-i">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) +
+        (s.cnt != null ? ' <b>(' + s.cnt + ')</b> <em>' + esc(fmt(s.v)) + '</em>' : ' <b>' + esc(fmt(s.v)) + '</b>') + '</span>').join('');
       return '<div class="rs-fila" data-k="' + def.k + '">' +
-        '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (def.foco ? '<span class="rs-foco">' + ICO.objetivo + 'FOCO: AUMENTAR</span>' : '') + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div><div class="b">' + esc(def.nota) + '</div></div>' +
+        '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div></div>' +
         '<div class="mc"><div class="top2"><span class="vv">' + esc(fmt(f.cur)) + (def.cant ? ' <small>' + (f.cur === 1 ? 'solicitud' : 'solicitudes') + '</small>' : '') + '</span>' + est + '</div>' +
-        '<div class="rs-fn">' + meto + '<div class="rs-stk" style="width:' + ancho.toFixed(2) + '%">' + barras + '</div></div><div class="rs-lg">' + leyenda + '</div></div>' +
+        barra + (leyenda ? '<div class="rs-lg">' + leyenda + '</div>' : '') + '</div>' +
         '<div class="rs-spc">' + lineaHtml(f, meta, def.cant) + '</div>' +
         '<div class="rs-vc"><span class="rs-d ' + c.k + '">' + ICO[c.ic] + esc(c.t) + '</span><span class="rs-dl">' + esc(c.dl) + '</span></div></div>';
     }
@@ -8808,9 +8794,9 @@
       // Facturado
       const gpf = F.gpf.cur, ven = F.ven.cur, pxc = F.pxc.cur, vp = pxc > 0 ? ven / pxc : 0;
       const t2 = vp >= 0.2 ? 'urg' : (gpf > 0 || ven > 0 ? 'alerta' : 'bien'), p2 = [];
-      if(gpf > 0) p2.push('<b>' + esc(dinero(gpf)) + ' ganados sin factura</b> (Por facturar): es lo más rápido de convertir en efectivo, factúralo primero.');
+      if(gpf > 0) p2.push('<b>' + esc(dinero(gpf)) + ' vendidos sin factura</b> (Por facturar): es lo más rápido de convertir en efectivo, factúralo primero.');
       if(ven > 0) p2.push('<b>' + esc(dinero(ven)) + ' vencidos</b> en toda la cartera (' + Math.round(vp * 100) + ' % de lo por cobrar): es el dinero que más urge perseguir.');
-      if(!p2.length) p2.push('<b>Nada por facturar ni vencido:</b> todo lo ganado tiene su factura y la cartera va en plazo.');
+      if(!p2.length) p2.push('<b>Nada por facturar ni vencido:</b> todo lo vendido tiene su factura y la cartera va en plazo.');
       L.push({ t: t2, e: 'FACTURADO', x: p2.join(' '), a: 'Cobranza →', panel: 'cobranza' });
       // Cobrado
       const fb = F.cob, dif = fb.cur - F.fac.cur;
@@ -8825,18 +8811,6 @@
     }
     const TG = { urg: [ICO.alerta, 'ATENCIÓN'], alerta: [ICO.alerta, 'REVISAR'], info: [ICO.info, 'DATO'], bien: [ICO.ok, 'VA BIEN'] };
 
-    // ── «Hoy»: la foto de TODA la cartera (el vencido de un solo mes engañaría) ──
-    function hoyHtml(r){
-      const F = r.filas, m = r.meta;
-      const tit = m.todo ? 'HOY · FOTO DE TODA LA CARTERA' : m.esActual ? 'HOY · FOTO DE TODA LA CARTERA (NO SOLO ESTE MES)' : 'AL CIERRE DE ' + etiquetaMes(m.mes).toUpperCase() + ' · FOTO DE TODA LA CARTERA';
-      const nf = (m.sinFiltrar || []).includes('pip') ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '';
-      const venc = F.ven.cur > 0 ? '<span class="rs-d urg">' + ICO.alerta + esc(dinero(F.ven.cur)) + ' vencido</span>' : '<span>' + ICO.ok + 'sin vencido</span>';
-      return '<div class="rs-hoy"><div class="rs-hoy-t">' + ICO.foto + tit + '</div><div class="rs-hoy-g">' +
-        '<div class="hx"><span class="l">' + ICO.pipe + 'Por vender ' + nf + '</span><span class="v">' + esc(dinero(F.pip.cur)) + '</span><span class="s">cotizaciones abiertas, de cualquier mes</span></div>' +
-        '<div class="hx"><span class="l">' + ICO.factura + 'Por facturar</span><span class="v">' + esc(dinero(F.gpf.cur)) + '</span><span class="s">ganado que aún no tiene factura</span></div>' +
-        '<div class="hx"><span class="l">' + ICO.cobrar + 'Por cobrar</span><span class="v">' + esc(dinero(F.pxc.cur)) + '</span><span class="s">' + esc(dinero(F.plz.cur)) + ' en plazo · ' + venc + '</span></div></div></div>';
-    }
-
     function pintar(){
       if(!ultimo) return;
       const r = ultimo, m = r.meta, F = r.filas, D = r.desglose;
@@ -8850,10 +8824,9 @@
       const ctx = { eq, tope };
       const lb = m.todo ? 'ACUMULADO' : (modo === 'anio' ? (m.refs.anio || 'AÑO PASADO') : m.refs[modo] || '').toUpperCase();
       let h = '<div class="rs-emb-t"><h2>Embudo ' + (m.todo ? 'de todo el historial' : 'del mes') + '</h2><small>' + esc(m.etiquetaMes) + (m.todo ? '' : m.esActual ? ' · hasta el día ' + m.corteDia : ' · mes completo') + ' · sin IVA</small></div>';
-      h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · CONTORNO PUNTEADO = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
+      h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · MARCA BLANCA = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
       h += FILAS.map((d) => filaHtml(d, r, ctx)).join('');
       h += '<div class="rs-ins3">' + lecturas(r).map((i) => '<div class="rs-in ' + i.t + '"><span class="tg">' + TG[i.t][0] + TG[i.t][1] + ' · ' + i.e + '</span><span>' + i.x + '</span><button type="button" data-panel="' + i.panel + '">' + esc(i.a) + '</button></div>').join('') + '</div>';
-      h += hoyHtml(r);
       if(m.notas && m.notas.length) h += '<p class="rs-nota">' + ICO.info + '<span>' + esc(m.notas.join(' · ')) + '</span></p>';
       $('rsCuerpo').innerHTML = h;
     }
@@ -19469,7 +19442,7 @@
     const METAS = [
       { k:'sol', nombre:'Solicitudes', desc:'Cuántas solicitudes entran en el mes (del sitio o creadas por ti). Es una cantidad, no pesos.', cant:true },
       { k:'cot', nombre:'Cotizado', desc:'Lo que cotizas (envías) en el mes. Tu foco es aumentarlo.' },
-      { k:'gan', nombre:'Ganado', desc:'Cotizaciones cerradas como ganadas en el mes.' },
+      { k:'gan', nombre:'Vendido', desc:'Cotizaciones cerradas como ganadas (vendidas) en el mes.' },
       { k:'cob', nombre:'Cobrado', desc:'Dinero que entra en el mes: pagos recibidos.' },
     ];
     let metas = { sol:null, cot:null, gan:null, cob:null };

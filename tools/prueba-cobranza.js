@@ -94,7 +94,8 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
 
   console.log('Tarjetas');
   check('Por cobrar con su monto y conteo', /30,000\.50/.test(txt('#cbzKpiPorCobrar')) && /3/.test(txt('#cbzKpiPorCobrarN')), txt('#cbzKpiPorCobrar'));
-  check('Vencido, Por facturar, Cobrado y Días promedio', /11,600/.test(txt('#cbzKpiVencido')) && /11,600/.test(txt('#cbzKpiPorFacturar')) && /15,600/.test(txt('#cbzKpiCobrado')) && txt('#cbzKpiDias') === '19');
+  check('Por cobrar trae 3 números: el total en grande, lo que está en plazo (30,000.50 − 11,600 = 18,400.50) y lo vencido', /18,400\.50/.test(txt('#cbzKpiEnPlazo')) && /11,600/.test(txt('#cbzKpiVencido')) && /1/.test(txt('#cbzKpiVencidoN')) && !!q('#cbzKpis .cbz-kpi-hero .cbz-kpi-sub'));
+  check('Por facturar, Cobrado, Ticket promedio (a un lado de Cobrado) y Días promedio', /7,800/.test(txt('#cbzKpiTicket')) && /· 2/.test(txt('#cbzKpiTicketN')) && q('#cbzKpiCobrado').closest('.dkpi-card').nextElementSibling === q('#cbzKpiTicket').closest('.dkpi-card') && qa('#cbzKpis .dkpi-card').length === 5 && /11,600/.test(txt('#cbzKpiPorFacturar')) && /15,600/.test(txt('#cbzKpiCobrado')) && txt('#cbzKpiDias') === '19');
   check('el banner es UNA fila que resume las tres alertas (vencidas, por vencer y sin facturar), cada una con ícono y texto', !q('#cbzAlerta').hidden && qa('#cbzAlerta .cbz-chip').length === 3 && /▲ 1 vencida/.test(txt('#cbzAlerta .cbz-chip.v')) && /◷ 1 por vencer/.test(txt('#cbzAlerta .cbz-chip.p')) && /▭ 1 sin facturar/.test(txt('#cbzAlerta .cbz-chip.sf')), txt('#cbzAlerta'));
 
   console.log('Tabla: vistas, columnas, semáforo y filtros');
@@ -146,7 +147,6 @@ const poner = (id, v) => { const el = d.getElementById(id); el.value = v; el.dis
   check('la primera columna es Creada: solo la fecha a la vista y la hora al pasar el mouse', txt('#cbzListaBody tr td:first-child') === '15/09/2026' && /11:33/.test(q('#cbzListaBody tr td:first-child span').title), txt('#cbzListaBody tr td:first-child') + ' | ' + q('#cbzListaBody tr td:first-child span').title);
 
   console.log('Vista simple para Viri');
-  check('Por cobrar dice cuánto de lo que incluye ya está vencido', /incluye \$11,600\.00 vencido/.test(txt('#cbzKpiPorCobrarSub')), txt('#cbzKpiPorCobrarSub'));
   check('las pestañas de trabajo llevan su número resaltado: Vencidas en rojo, Por facturar en ámbar', q('#cbzN-vencidas').classList.contains('cbz-urgente') && q('#cbzN-facturar').classList.contains('cbz-atencion') && !q('#cbzN-pagadas').classList.contains('cbz-urgente'));
   await clic(q('#cbzVistas [data-vista="cobrar"]'));
   await clic(q('#cbzAlerta .cbz-chip.v'));

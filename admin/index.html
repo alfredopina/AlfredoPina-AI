@@ -2091,7 +2091,18 @@
   .cbz-pop-monto{ font-variant-numeric:tabular-nums; font-weight:600; text-align:right; min-width:92px; }
   .cbz-pop-fila .admin-dialog-btn{ padding:7px 12px; font-size:12px; white-space:nowrap; }
   @media (max-width:640px){ .cbz-pop-fila{ grid-template-columns:1fr auto; } .cbz-pop-fila .cbz-sem{ display:none; } }
-  #cbzKpiPorCobrarSub{ order:3; font-size:10.5px; color:var(--text-faint); }
+  /* Por cobrar: el total en grande y, al lado, cuánto está en plazo y cuánto vencido (menos texto, más número) */
+  #cbzKpis .cbz-kpi-hero{ flex:1.7 1 0; min-width:290px; flex-direction:column; align-items:stretch; gap:10px; }
+  #cbzKpis .cbz-kpi-hero .cbz-kpi-main{ display:flex; flex-direction:column; gap:4px; min-width:0; padding-right:30px; }
+  #cbzKpis .cbz-kpi-hero .dkpi-value{ font-size:34px; line-height:1.05; }
+  #cbzKpis .cbz-kpi-hero .dkpi-label{ margin-left:0; text-align:left; white-space:nowrap; }
+  .cbz-kpi-sub{ display:flex; gap:16px; flex-wrap:wrap; border-top:1px dashed var(--line); padding-top:9px; }
+  .cbz-kpi-sub > div{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .cbz-kpi-sub small{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); white-space:nowrap; }
+  .cbz-kpi-sub small svg{ width:11px; height:11px; flex:none; }
+  .cbz-kpi-sub .plazo small{ color:#14b8a6; } .cbz-kpi-sub .venc small{ color:#f05252; }
+  .cbz-kpi-sub b{ font-family:var(--display); font-weight:700; font-size:18px; line-height:1.1; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  @media (max-width:1100px){ #cbzKpis .cbz-kpi-hero{ flex-basis:100%; } }
   /* ── Línea de cobros (Cobranza): vencido ← | escala de meses | → sin fecha; cada cobro es una línea en su vencimiento y su altura es el monto ── */
   .cbz-linea{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px 12px; margin-bottom:16px; }
   .cbz-linea-cab{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -4589,16 +4600,16 @@
 
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="cbzKpis">
-            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Saldo de las facturas emitidas que aún no se cobran por completo (Facturada y Parcial). Estado actual, no se reinicia.">
+            <div class="dkpi-card cbz-kpi-hero" style="--c:var(--blue-bright)" title="Saldo de las facturas emitidas que aún no se cobran por completo (Facturada y Parcial) = lo que está en plazo + lo ya vencido. Estado actual, no se reinicia.">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v.01M17.5 14.5v.01" stroke-linecap="round"/></svg></div>
-              <div class="dkpi-value" id="cbzKpiPorCobrar">—</div>
-              <div class="dkpi-label">Por cobrar <span class="cbz-kpi-n" id="cbzKpiPorCobrarN"></span></div>
-              <div class="dkpi-label" id="cbzKpiPorCobrarSub"></div>
-            </div>
-            <div class="dkpi-card" style="--c:var(--bad)" title="Parte del saldo por cobrar cuyo vencimiento ya pasó (inicio del plazo + plazo en días).">
-              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-              <div class="dkpi-value" id="cbzKpiVencido">—</div>
-              <div class="dkpi-label">Vencido <span class="cbz-kpi-n" id="cbzKpiVencidoN"></span></div>
+              <div class="cbz-kpi-main">
+                <div class="dkpi-value" id="cbzKpiPorCobrar">—</div>
+                <div class="dkpi-label">Por cobrar <span class="cbz-kpi-n" id="cbzKpiPorCobrarN"></span></div>
+              </div>
+              <div class="cbz-kpi-sub">
+                <div class="plazo" title="Parte del saldo que todavía no vence."><small><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>En plazo</small><b id="cbzKpiEnPlazo">—</b></div>
+                <div class="venc" title="Parte del saldo cuyo vencimiento ya pasó (inicio del plazo + plazo en días)."><small><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>Vencido <span class="cbz-kpi-n" id="cbzKpiVencidoN"></span></small><b id="cbzKpiVencido">—</b></div>
+              </div>
             </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Cuentas que ya nacieron (cotización ganada o alta manual) pero todavía no tienen factura.">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h8l4 4v14H7z" stroke-linejoin="round"/><path d="M15 3v4h4M10 12h6M10 16h6" stroke-linecap="round"/></svg></div>
@@ -4609,6 +4620,11 @@
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div class="dkpi-value" id="cbzKpiCobrado">—</div>
               <div class="dkpi-label">Cobrado <span class="cbz-kpi-n" id="cbzKpiCobradoN"></span></div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--good)" title="Cuánto cobras por factura en promedio: lo cobrado entre las facturas que recibieron algún pago (el número de al lado) en el mismo rango de Configuración → Métricas que Cobrado.">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="cbzKpiTicket">—</div>
+              <div class="dkpi-label">Ticket promedio <span class="cbz-kpi-n" id="cbzKpiTicketN"></span></div>
             </div>
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Promedio de días entre la fecha de emisión de la factura y su último pago, solo de cuentas ya Pagadas con fecha de pago.">
               <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -6844,12 +6860,13 @@
     function pintarKpis(){
       const r = resumen;
       const t = (id, v) => { const el = $(id); if(el) el.textContent = v; };
-      if(!r){ ['cbzKpiPorCobrar', 'cbzKpiVencido', 'cbzKpiPorFacturar', 'cbzKpiCobrado', 'cbzKpiDias'].forEach((id) => t(id, '—')); return; }
+      if(!r){ ['cbzKpiPorCobrar', 'cbzKpiEnPlazo', 'cbzKpiVencido', 'cbzKpiPorFacturar', 'cbzKpiCobrado', 'cbzKpiTicket', 'cbzKpiDias'].forEach((id) => t(id, '—')); return; }
       t('cbzKpiPorCobrar', dinero(r.por_cobrar)); t('cbzKpiPorCobrarN', '· ' + r.por_cobrar_n);
-      t('cbzKpiPorCobrarSub', r.vencido_n ? 'incluye ' + dinero(r.vencido) + ' vencido' : 'nada vencido');
+      t('cbzKpiEnPlazo', dinero(Math.max(0, Math.round((r.por_cobrar - r.vencido) * 100) / 100)));
       t('cbzKpiVencido', dinero(r.vencido)); t('cbzKpiVencidoN', '· ' + r.vencido_n);
       t('cbzKpiPorFacturar', dinero(r.por_facturar)); t('cbzKpiPorFacturarN', '· ' + r.por_facturar_n);
       t('cbzKpiCobrado', dinero(r.cobrado)); t('cbzKpiCobradoN', '· ' + r.cobrado_n + (r.cobrado_n === 1 ? ' pago' : ' pagos'));
+      t('cbzKpiTicket', r.ticket_promedio == null ? '—' : dinero(r.ticket_promedio)); t('cbzKpiTicketN', r.ticket_promedio == null ? '' : '· ' + r.facturas_cobradas_n);
       t('cbzKpiDias', r.dias_promedio == null ? '—' : String(r.dias_promedio));
       const d = $('cbzDesde');
       if(r.contando_desde || r.contando_hasta){

@@ -24,6 +24,7 @@ const PAGES = {
   "index.html": { css: ["base", "cards", "home"], nav: { conoceme: "#" }, footer: "full", social: true },
   "cursos.html": { css: ["base", "cursos"], nav: { active: "cursos" }, footer: "full", social: true },
   "recursos.html": { css: ["base", "cards", "recursos"], nav: { active: "recursos" }, footer: "full", social: true },
+  "cursos-abiertos.html": { css: ["base"], nav: { tag: "Cursos Abiertos" }, footer: "full", social: true }, // OCULTA hasta el lanzamiento: al salir, nav.active y la pestaña en el menú
   "agenda.html": { css: ["base", "agenda"], nav: { tag: "Agenda" }, footer: "full" },
   "diagnostico.html": { css: ["base", "diagnostico"], nav: { tag: "Diagnóstico" }, footer: "min" },
   "encuesta.html": { css: ["base", "encuesta"], nav: { tag: "Encuesta" }, footer: "min" },

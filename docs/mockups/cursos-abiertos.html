@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursos Abiertos — Alfredo Piña (mockup)</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" type="image/svg+xml" href="../../assets/img/brand/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/brand/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0d12">
+<meta property="og:image" content="https://www.alfredopina.ai/assets/img/brand/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="alfredopina.ai — Tu productividad tiene fórmula.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../assets/css/base.css">
+<link rel="stylesheet" href="../../assets/css/cursos.css">
+<script src="../../assets/js/nav.js" defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/cards.css">
+<link rel="stylesheet" href="../../assets/css/home.css">
+<link rel="stylesheet" href="../../assets/css/cursos.css">
+<script src="../../assets/js/herramientas.js"></script>
+<style>
+/* ===== Cursos Abiertos (mockup) — todo con prefijo ca- ===== */
+:root{ --ok:#14b8a6; --warn:#dfb35a; --danger:#dc2626; --danger-text:#ff8787; --info:#6b9fff; }
+.ico{ width:16px; height:16px; flex:none; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }
+.ca-form :is(input,select,textarea):focus-visible{ outline:2px solid var(--blue-bright); outline-offset:1px; }
+
+.ca-banner{ background-color:var(--panel-2); border-bottom:1px solid var(--line); font:500 12px/1.4 var(--mono); color:var(--text-dim); padding:9px 0; position:relative; z-index:1; }
+.ca-banner .wrap{ display:flex; gap:10px; align-items:center; }
+.ca-ej{ display:inline-flex; align-items:center; font:600 10.5px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim); border:1px dashed var(--text-faint); border-radius:4px; padding:3px 7px; white-space:nowrap; }
+
+.ca-sec{ padding:72px 0; --c:var(--blue); --c-bright:color-mix(in srgb, var(--c) 82%, white); }
+.ca-sec + .ca-sec{ border-top:1px solid var(--line-soft); }
+.ca-sec h2.section-title{ max-width:none; }
+.ca-sec-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+@media (max-width:600px){ .ca-sec{ padding:52px 0; } }
+
+/* hero */
+.ca-hero{ padding:72px 0 60px; position:relative; z-index:1; }
+.ca-hero h1{ font:600 clamp(32px,6.2vw,56px)/1.08 var(--display); letter-spacing:-.02em; max-width:780px; }
+.ca-hero h1 .accent{ color:var(--blue-bright); }
+.ca-hero-sub{ margin-top:18px; font-size:17px; line-height:1.6; color:var(--text-dim); max-width:520px; }
+.ca-hero-actions{ display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+.ca-hero-hechos{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:28px; font:500 12.5px var(--mono); color:var(--text-dim); }
+.ca-hero-hechos span{ display:inline-flex; align-items:center; gap:8px; }
+.ca-hero-hechos .ico{ color:var(--blue-bright); }
+.btn.ca-b{ min-height:48px; justify-content:center; text-align:center; }
+.btn.ca-sec-btn{ background-color:transparent; border-color:var(--line); color:var(--text); }
+.btn.ca-sec-btn:hover{ border-color:var(--blue-bright); transform:translateY(-1px); }
+.btn:disabled{ opacity:.6; cursor:progress; }
+@media (max-width:520px){ .ca-hero{ padding-top:44px; } .ca-hero-actions .btn{ width:100%; } }
+
+/* filtros */
+.ca-filtros{ display:grid; gap:16px; margin:26px 0 6px; }
+.ca-filtros fieldset{ border:0; min-width:0; }
+.ca-filtros legend{ font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:9px; padding:0; }
+.ca-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.ca-chip{
+  --bc:var(--line);
+  display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 15px; border-radius:999px; cursor:pointer;
+  border-width:1px; border-style:solid; border-top-color:var(--bc); border-right-color:var(--bc); border-bottom-color:var(--bc); border-left-color:var(--bc);
+  background-color:var(--panel); color:var(--text-dim); font:500 14px var(--body); transition:color .15s, background-color .15s;
+}
+.ca-chip:hover{ color:var(--text); }
+.ca-chip .ico{ color:var(--chip-c, var(--text-faint)); }
+.ca-chip .ck{ display:none; }
+.ca-chip .tl{ display:inline-flex; width:18px; height:18px; flex:none; }
+.ca-chip .tl svg{ width:100%; height:100%; }
+.ca-chip .n{ font:500 11px var(--mono); color:var(--text-faint); }
+.ca-chip[aria-pressed="true"]{
+  --bc:var(--chip-c, var(--blue-bright)); color:var(--text); font-weight:600;
+  background-color:color-mix(in srgb, var(--chip-c, var(--blue)) 16%, transparent);
+}
+.ca-chip[aria-pressed="true"] .ck{ display:inline-block; color:var(--chip-c, var(--blue-bright)); }
+.ca-conteo{ margin-top:14px; font:500 12.5px var(--mono); color:var(--text-dim); }
+
+/* tarjetas de grupo */
+.ca-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:20px; margin-top:18px; }
+@media (max-width:860px){ .ca-grid{ grid-template-columns:1fr; } }
+.ca-card{
+  position:relative; display:flex; flex-direction:column; background-color:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:22px 20px 20px; overflow:hidden; scroll-margin-top:88px; --c-bright:color-mix(in srgb, var(--c) 82%, white);
+}
+.ca-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background-color:var(--c); }
+.ca-card.is-target{ outline:2px solid var(--blue-bright); outline-offset:3px; }
+.ca-card[hidden]{ display:none; }
+.ca-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ca-tool{ display:inline-flex; align-items:center; gap:8px; font:500 11.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--c-bright); }
+.ca-tool svg{ width:20px; height:20px; }
+.ca-card h3{ font:600 21px/1.25 var(--display); margin-top:12px; }
+.ca-nivel{ display:inline-flex; align-items:center; gap:6px; margin-top:8px; font:500 12.5px var(--mono); color:var(--text-dim); }
+.ca-pills{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.ca-pill{
+  --pb:color-mix(in srgb, var(--p) 50%, transparent);
+  display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border-radius:999px; font:600 12.5px/1.2 var(--body); color:var(--p);
+  border-width:1px; border-style:solid; border-top-color:var(--pb); border-right-color:var(--pb); border-bottom-color:var(--pb); border-left-color:var(--pb);
+  background-color:color-mix(in srgb, var(--p) 12%, transparent);
+}
+.ca-pill.suave{ font-weight:500; --p:var(--text-dim); }
+.ca-facts{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line-soft); }
+.ca-fact{ display:flex; gap:10px; min-width:0; }
+.ca-fact.full{ grid-column:1 / -1; }
+.ca-fact .ico{ margin-top:2px; color:var(--c-bright); }
+.ca-fact dt{ font:500 10.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); }
+.ca-fact dd{ font-size:14.5px; line-height:1.45; color:var(--text); margin-top:2px; }
+.ca-fact dd small{ font:400 11.5px var(--mono); color:var(--text-faint); }
+.ca-precio{ margin-top:18px; display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; }
+.ca-precio .monto{ font:600 30px/1 var(--display); letter-spacing:-.01em; }
+.ca-precio .unidad{ font:500 12px var(--mono); color:var(--text-dim); }
+.ca-precio s{ font:500 14px var(--mono); color:var(--text-faint); }
+.ca-preventa{ margin-top:10px; }
+.ca-cupo{ margin-top:16px; }
+.ca-cupo-txt{ display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--text-dim); }
+.ca-cupo-txt b{ color:var(--text); }
+.ca-bar{ height:6px; border-radius:3px; background-color:var(--line); margin-top:8px; overflow:hidden; }
+.ca-bar span{ display:block; height:100%; background-color:var(--p, var(--ok)); border-radius:3px; }
+.ca-temario{ list-style:none; margin-top:16px; display:grid; gap:6px; font-size:13px; color:var(--text-dim); line-height:1.5; }
+.ca-temario li{ display:flex; gap:8px; }
+.ca-temario .ico{ width:14px; height:14px; margin-top:3px; color:var(--text-faint); }
+.ca-actions{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:auto; padding-top:20px; }
+@media (min-width:520px){ .ca-actions{ grid-template-columns:1.4fr 1fr; } }
+
+.ca-vacio{ margin-top:18px; border:1px dashed var(--text-faint); border-radius:12px; padding:28px 22px; background-color:var(--panel); }
+.ca-vacio[hidden]{ display:none; }
+.ca-vacio h3{ font:600 20px var(--display); display:flex; align-items:center; gap:10px; }
+.ca-vacio p{ color:var(--text-dim); margin:8px 0 18px; font-size:14.5px; }
+.ca-error-carga{ margin-top:18px; }
+
+/* temas */
+.ca-sec .courses-grid{ margin-top:30px; }
+.ca-sec .course-card{ opacity:1; transform:none; }
+.ca-sec .course-card:hover{ transform:translateY(-3px); }
+.course-text .ico{ vertical-align:-3px; margin-right:6px; }
+
+/* pasos / por qué */
+.ca-sec .pasos{ margin:34px 0 0; max-width:none; text-align:center; }
+.ca-sec .incl-grid{ margin:30px 0 0; max-width:none; }
+.ca-stats{ margin-top:46px; }
+.ca-stats .stats-grid{ grid-template-columns:repeat(3,1fr); }
+.ca-stats .cell:nth-child(2){ border-right:1px solid var(--line); }
+.ca-stats .cell{ border-bottom:none; }
+.ca-stats .cell:last-child{ border-right:none; }
+@media (max-width:520px){ .ca-stats .cell{ padding:12px 10px; } .ca-stats .cell-num{ font-size:18px; } .ca-stats .cell-label{ font-size:10px; } }
+.ca-clientes{ margin-top:34px; }
+.ca-clientes .clients-marquee{ margin-top:0; }
+
+/* empresas */
+.ca-emp{ display:grid; grid-template-columns:1.3fr 1fr; gap:28px; margin-top:28px; align-items:start; }
+@media (max-width:860px){ .ca-emp{ grid-template-columns:1fr; } }
+.ca-lista{ list-style:none; display:grid; gap:14px; }
+.ca-lista li{ display:flex; gap:12px; font-size:15.5px; line-height:1.5; }
+.ca-lista .ico{ width:20px; height:20px; color:var(--ok); margin-top:2px; }
+.ca-panel{ background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 20px; }
+.ca-panel h3{ font:600 18px var(--display); display:flex; align-items:center; gap:10px; }
+.ca-panel p{ color:var(--text-dim); font-size:14.5px; line-height:1.6; margin-top:10px; }
+.ca-panel .ca-actions{ grid-template-columns:1fr; padding-top:18px; }
+
+/* testimonios */
+.ca-testi{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; margin-top:28px; }
+@media (max-width:860px){ .ca-testi{ grid-template-columns:1fr; } }
+.ca-testi figure{ background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 20px; display:flex; flex-direction:column; gap:16px; }
+.ca-testi blockquote{ font-size:15.5px; line-height:1.65; }
+.ca-testi figcaption{ margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; font:500 12.5px var(--mono); color:var(--text-dim); }
+.ca-testi .ico{ width:22px; height:22px; color:var(--blue-bright); }
+
+/* faq */
+.ca-faq{ margin-top:26px; border-top:1px solid var(--line); }
+.ca-faq h3{ font:inherit; }
+.ca-faq-q{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:14px 2px; text-align:left;
+  background:none; border:0; border-bottom:1px solid var(--line); color:var(--text); font:600 16.5px/1.35 var(--display); cursor:pointer;
+}
+.ca-faq-q .ico{ width:20px; height:20px; transition:transform .2s; color:var(--blue-bright); }
+.ca-faq-q[aria-expanded="true"] .ico{ transform:rotate(180deg); }
+.ca-faq-a{ padding:16px 2px 20px; border-bottom:1px solid var(--line); color:var(--text-dim); font-size:15px; line-height:1.7; max-width:760px; }
+.ca-faq-a[hidden]{ display:none; }
+.ca-faq-a .ca-ej{ margin-left:8px; }
+
+/* formularios */
+.ca-form{ display:grid; gap:16px; }
+.ca-form label, .ca-form legend{ display:block; font:500 12px var(--mono); color:var(--text-dim); margin-bottom:7px; letter-spacing:.3px; padding:0; }
+.ca-form fieldset{ border:0; min-width:0; }
+.ca-form input:not([type="checkbox"]):not([type="radio"]), .ca-form select, .ca-form textarea{
+  width:100%; min-height:48px; background-color:var(--panel-2); border:1px solid var(--line); border-radius:7px; color:var(--text);
+  font:400 16px var(--body); padding:12px 14px;
+}
+.ca-form [aria-invalid="true"]{ border-color:var(--danger) !important; }
+.ca-opt{ color:var(--text-faint); }
+.ca-radios{ display:flex; flex-wrap:wrap; gap:10px; }
+.ca-form .ca-radio, .ca-form .ca-check{ display:flex; align-items:center; gap:10px; min-height:48px; padding:0 14px; border:1px solid var(--line); border-radius:7px; background-color:var(--panel-2); cursor:pointer; font:400 15px var(--body); color:var(--text); margin:0; }
+.ca-form .ca-check{ border:0; background:none; padding:6px 0; min-height:44px; align-items:flex-start; }
+.ca-form .ca-radio input, .ca-form .ca-check input, .lead-dialog .ca-radio input, .lead-dialog .ca-check input{ width:22px; height:22px; min-height:0; padding:0; flex:none; accent-color:#3d7fff; margin:0; }
+.ca-form .ca-check span{ font:400 14.5px/1.5 var(--body); color:var(--text-dim); }
+.ca-form .ca-check a{ color:var(--blue-bright); text-decoration:underline; }
+.ca-persona{ display:grid; gap:12px; padding:14px; border:1px solid var(--line); border-radius:9px; background-color:var(--panel); }
+.ca-persona[hidden], .ca-rfc[hidden], .ca-hp[hidden], .ca-resumen[hidden], .ca-nota[hidden]{ display:none; }
+.ca-persona h4{ font:600 13px var(--mono); color:var(--text-dim); letter-spacing:.06em; text-transform:uppercase; }
+.ca-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:560px){ .ca-grid2{ grid-template-columns:1fr; } }
+.ca-resumen{ border:1px solid var(--line); border-radius:9px; padding:14px; background-color:var(--panel-2); font-size:14px; line-height:1.7; }
+.ca-resumen .tot{ display:flex; justify-content:space-between; gap:10px; font:600 18px var(--display); margin-top:6px; padding-top:8px; border-top:1px solid var(--line); }
+.ca-nota{ display:flex; gap:10px; font-size:13px; line-height:1.5; color:var(--text-dim); }
+.ca-nota .ico{ color:var(--info); margin-top:2px; }
+.ca-hp{ position:absolute; left:-9999px; width:1px; height:1px; opacity:0; overflow:hidden; }
+.ca-error{ display:flex; gap:10px; font-size:13.5px; color:var(--danger-text); background-color:rgba(220,38,38,.12); border:1px solid rgba(220,38,38,.4); border-radius:7px; padding:11px 14px; line-height:1.5; }
+.ca-error[hidden]{ display:none; }
+.ca-form .btn{ width:100%; min-height:52px; justify-content:center; font-size:15px; }
+.ca-ok h3{ font:600 20px var(--display); display:flex; align-items:center; gap:10px; color:var(--ok); }
+.ca-ok h3 .ico{ width:24px; height:24px; }
+.ca-ok p{ margin-top:12px; font-size:14.5px; line-height:1.65; color:var(--text-dim); }
+.ca-ok dl{ margin-top:16px; border:1px solid var(--line); border-radius:9px; padding:6px 14px; background-color:var(--panel-2); }
+.ca-ok dl div{ display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:14px; }
+.ca-ok dl div:last-child{ border-bottom:0; }
+.ca-ok dt{ color:var(--text-dim); } .ca-ok dd{ font-family:var(--mono); text-align:right; word-break:break-all; }
+.ca-cierre{ background-color:var(--panel); border:1px solid var(--line); border-radius:14px; padding:30px 24px; max-width:640px; }
+.lead-dialog .btn{ border-radius:7px; }
+
+/* aviso de enlaces de ejemplo */
+.ca-toast{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:3000; max-width:min(520px, calc(100vw - 32px)); background-color:var(--panel-2); border:1px solid var(--blue-bright); border-radius:9px; padding:12px 16px; font-size:14px; display:flex; gap:10px; align-items:center; box-shadow:0 12px 40px rgba(0,0,0,.5); }
+.ca-toast[hidden]{ display:none; }
+
+/* depuración */
+.ca-debug{ border-top:1px dashed var(--text-faint); padding:28px 0 60px; position:relative; z-index:1; font:12px/1.55 var(--mono); }
+.ca-debug[hidden]{ display:none; }
+.ca-debug h2{ font:600 14px var(--mono); margin-bottom:12px; }
+.ca-debug pre{ background-color:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto; max-height:320px; white-space:pre-wrap; word-break:break-word; color:var(--text-dim); margin-bottom:14px; }
+.ca-debug table{ border-collapse:collapse; width:100%; margin-bottom:14px; display:block; overflow:auto; }
+.ca-debug td, .ca-debug th{ border:1px solid var(--line); padding:6px 9px; text-align:left; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+
+<div class="grid-bg"></div>
+
+
+<nav aria-label="Principal">
+  <div class="wrap">
+    <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="../../assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
+    <div class="nav-links" id="navLinks">
+      <div class="nav-dd">
+      <a href="/" class="nav-dd-trigger" aria-haspopup="true">Conóceme <svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="nav-dd-menu">
+        <a href="/#experiencia" style="--c:#3d7fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>Experiencia</a>
+        <a href="/#certificaciones" style="--c:#2dd4bf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>Certificaciones</a>
+        <a href="/#clientes" style="--c:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/></svg>Clientes</a>
+        <a href="/#herramientas" style="--c:#818cf8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Herramientas</a>
+        <a href="/#metodologia" style="--c:#f472b6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>Metodología</a>
+      </div>
+    </div>
+      <div class="nav-dd">
+      <a href="/in-company" class="nav-dd-trigger" aria-haspopup="true">Cursos In Company <svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="nav-dd-menu">
+        <a href="/in-company#excel" data-cat="excel" style="--c:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg>Excel</a>
+        <a href="/in-company#powerbi" data-cat="powerbi" style="--c:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><g fill-opacity=".36"><rect x="9.5" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><rect x="16" y="9.5" width="5" height="5"/></g><rect x="3" y="16" width="5" height="5"/><rect x="9.5" y="9.5" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/></g></svg>Power BI</a>
+        <a href="/in-company#powerapps" data-cat="powerapps" style="--c:#c026d3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/></svg>Power Apps</a>
+        <a href="/in-company#powerautomate" data-cat="powerautomate" style="--c:#06b6d4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/></svg>Power Automate</a>
+        <a href="/in-company#ia" data-cat="ia" style="--c:#a78bfa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/></svg>IA Aplicada</a>
+        <a href="/in-company#ofimatica" data-cat="ofimatica" style="--c:#f97316"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><rect x="2" y="2" width="9.5" height="9.5"/><g fill-opacity=".55"><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/></g></g><rect x="13.375" y="13.375" width="7.75" height="7.75"/><rect x="15.75" y="15.75" width="3" height="3" fill="currentColor" stroke="none"/></svg>Microsoft 365</a>
+      </div>
+    </div>
+      <a href="cursos-abiertos.html" aria-current="page">Cursos Abiertos</a>
+      <a href="/recursos">Recursos</a>
+    </div>
+    <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> =CONTACTAR()</a>
+    <button type="button" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</nav>
+
+
+<div class="ca-banner"><div class="wrap"><span class="ca-ej">Ejemplo</span><span>Mockup navegable: datos ficticios, no se envía nada.</span></div></div>
+
+<main id="contenido">
+
+<!-- 1. HERO -->
+<header class="ca-hero">
+  <div class="wrap">
+    <div class="eyebrow">CURSOS ABIERTOS</div>
+    <h1>Aprende IA y datos con <span class="accent">fecha fija</span> y grupos reducidos.</h1>
+    <p class="ca-hero-sub">Cursos en línea y presenciales para profesionistas y equipos de trabajo.</p>
+    <div class="ca-hero-actions">
+      <a class="btn btn-primary ca-b" href="#fechas">Ver próximas fechas <i data-ico="arrow"></i></a>
+      <button type="button" class="btn ca-sec-btn ca-b" data-act="equipo"><i data-ico="building"></i> Inscribir a mi equipo</button>
+    </div>
+    <div class="ca-hero-hechos">
+      <span><i data-ico="calendar"></i> Fechas fijas</span>
+      <span><i data-ico="users"></i> Grupos reducidos</span>
+      <span><i data-ico="qr"></i> Diploma verificable</span>
+    </div>
+  </div>
+</header>
+
+<!-- 2. PRÓXIMAS FECHAS -->
+<section class="ca-sec" id="fechas" aria-labelledby="tFechas">
+  <div class="wrap">
+    <div class="eyebrow">CALENDARIO</div>
+    <h2 class="section-title" id="tFechas">Próximas fechas</h2>
+    <div class="ca-filtros" id="caFiltros" hidden>
+      <fieldset><legend>Herramienta</legend><div class="ca-chips" id="chipsHerr"></div></fieldset>
+      <fieldset><legend>Mes</legend><div class="ca-chips" id="chipsMes"></div></fieldset>
+    </div>
+    <p class="ca-conteo" id="caConteo" role="status" aria-live="polite"></p>
+    <div class="ca-grid" id="caLista"></div>
+    <div class="ca-vacio" id="caVacio" hidden>
+      <h3><i data-ico="calendar"></i> No hay fechas con ese filtro.</h3>
+      <p>Déjanos tus datos y te avisamos cuando abramos una.</p>
+      <button type="button" class="btn ca-sec-btn ca-b" id="caQuitarFiltros" style="margin-bottom:20px">Quitar filtros</button>
+      <div id="caVacioForm"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. TEMAS PRINCIPALES -->
+<section class="ca-sec" aria-labelledby="tTemas">
+  <div class="wrap">
+    <div class="eyebrow">TEMAS</div>
+    <h2 class="section-title" id="tTemas">Temas principales</h2>
+    <div class="courses-grid" id="caTemas"></div>
+  </div>
+</section>
+
+<!-- 4. CÓMO FUNCIONA -->
+<section class="ca-sec" aria-labelledby="tComo">
+  <div class="wrap">
+    <div class="eyebrow">PROCESO</div>
+    <h2 class="section-title" id="tComo">Cómo funciona</h2>
+    <ol class="pasos">
+      <li class="paso"><div class="paso-ico"><i data-ico="search" data-big></i><span class="paso-num">1</span></div><div class="paso-t">Eliges tu curso</div><div class="paso-d">Revisa las fechas y escoge el grupo que te acomoda.</div></li>
+      <li class="paso"><div class="paso-ico"><i data-ico="userplus" data-big></i><span class="paso-num">2</span></div><div class="paso-t">Te inscribes</div><div class="paso-d">Apartas tu lugar en un par de minutos, sin crear cuenta.</div></li>
+      <li class="paso"><div class="paso-ico"><i data-ico="receipt" data-big></i><span class="paso-num">3</span></div><div class="paso-t">Confirmas tu lugar</div><div class="paso-d">Con tu pago o con los datos de facturación de tu empresa.</div></li>
+      <li class="paso"><div class="paso-ico"><i data-ico="award" data-big></i><span class="paso-num">4</span></div><div class="paso-t">Tomas el curso</div><div class="paso-d">Al terminar recibes tu diploma verificable.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 5. POR QUÉ CON ALFREDO -->
+<section class="ca-sec" aria-labelledby="tPorque">
+  <div class="wrap">
+    <div class="eyebrow">POR QUÉ</div>
+    <h2 class="section-title" id="tPorque">Por qué con Alfredo</h2>
+    <div class="incl-grid">
+      <div class="incl-card"><div class="incl-ico"><i data-ico="target" data-big></i></div><div class="incl-t">Proyecto aplicado a tu trabajo</div><div class="incl-d">Terminas con algo que sí usas el lunes.</div></div>
+      <div class="incl-card"><div class="incl-ico"><i data-ico="users" data-big></i></div><div class="incl-t">Grupos reducidos</div><div class="incl-d">Cupo limitado para que te atiendan de cerca.</div></div>
+      <div class="incl-card"><div class="incl-ico"><i data-ico="qr" data-big></i></div><div class="incl-t">Diploma verificable con QR</div><div class="incl-d">Cualquiera puede comprobarlo en <a href="/verificar" style="text-decoration:underline">/verificar</a>.</div></div>
+      <div class="incl-card"><div class="incl-ico"><i data-ico="shield" data-big></i></div><div class="incl-t">Constancia DC-3</div><div class="incl-d">Registrado ante la STPS para expedir constancias DC-3.</div></div>
+    </div>
+    <div class="stats ca-stats">
+      <div class="stats-grid">
+        <div class="cell"><div class="cell-ref">A1</div><div class="cell-num">15<span class="u">+</span></div><div class="cell-label">años de experiencia</div></div>
+        <div class="cell"><div class="cell-ref">B1</div><div class="cell-num">150<span class="u">+</span></div><div class="cell-label">empresas capacitadas</div></div>
+        <div class="cell"><div class="cell-ref">C1</div><div class="cell-num">10,000<span class="u">+</span></div><div class="cell-label">profesionistas formados</div></div>
+      </div>
+    </div>
+    <div class="ca-clientes">
+<div class="clients-marquee">
+    <div class="clients-track">
+      <div class="client-tile"><img src="../../assets/img/logos/nl.png" alt="Gobierno del Estado de Nuevo León" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/caintra.png" alt="CAINTRA Nuevo León" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/yageo.png" alt="YAGEO KEMET" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/fedex.png" alt="FedEx" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/whirlpool.png" alt="Whirlpool" loading="lazy"></div>      <div class="client-tile"><img src="../../assets/img/logos/hersheys.png" alt="Hershey's" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/clarios.png" alt="Clarios" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/polaris.png" alt="Polaris" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/linde.png" alt="Linde" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/afirme.png" alt="Afirme" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/oi.png" alt="O-I" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/ragasa.png" alt="Ragasa" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/coflex.png" alt="Coflex" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/key.png" alt="Key Química" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/apodaca.png" alt="Apodaca Group" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/auna.png" alt="AUNA" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/mars.png" alt="Mars" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/xignux.png" alt="Xignux" loading="lazy"></div>
+      <div class="client-tile"><img src="../../assets/img/logos/capacitanet.png" alt="Capacitanet" loading="lazy"></div>
+      <!-- duplicado para loop continuo -->
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/nl.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/caintra.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/yageo.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/fedex.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/whirlpool.png" alt="" loading="lazy"></div>      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/hersheys.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/clarios.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/polaris.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/linde.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/afirme.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/oi.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/ragasa.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/coflex.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/key.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/apodaca.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/auna.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/mars.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/xignux.png" alt="" loading="lazy"></div>
+      <div class="client-tile" aria-hidden="true"><img src="../../assets/img/logos/capacitanet.png" alt="" loading="lazy"></div>
+    </div>
+  </div>
+  <p class="clients-note">+150 clientes, organizaciones y socios comerciales.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. PARA EMPRESAS -->
+<section class="ca-sec" id="empresas" aria-labelledby="tEmp">
+  <div class="wrap">
+    <div class="eyebrow">PARA EMPRESAS</div>
+    <h2 class="section-title" id="tEmp">Inscribe a tu equipo</h2>
+    <div class="ca-emp">
+      <ul class="ca-lista">
+        <li><i data-ico="users"></i><span>De 1 a 3 colaboradores por inscripción.</span></li>
+        <li><i data-ico="receipt"></i><span>Pedimos tus datos de facturación y emitimos factura.</span></li>
+        <li><i data-ico="shield"></i><span>Registrado ante la STPS para expedir constancias DC-3.</span></li>
+        <li><i data-ico="tag"></i><span id="caDescEmp">Descuento por varias personas de la misma empresa.</span></li>
+      </ul>
+      <div class="ca-panel">
+        <h3><i data-ico="building"></i> ¿Grupo completo para tu empresa?</h3>
+        <p>Si quieres capacitar a todo un equipo, mira los cursos a la medida.</p>
+        <div class="ca-actions">
+          <button type="button" class="btn btn-primary ca-b" data-act="equipo"><i data-ico="building"></i> Inscribir a mi equipo</button>
+          <a class="btn ca-sec-btn ca-b" href="/in-company">Cursos In Company <i data-ico="arrow"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. TESTIMONIOS -->
+<section class="ca-sec" aria-labelledby="tTesti">
+  <div class="wrap">
+    <div class="eyebrow">TESTIMONIOS</div>
+    <h2 class="section-title" id="tTesti">Lo que dicen los participantes</h2>
+    <div class="ca-testi">
+      <figure><i data-ico="quote"></i><blockquote>Texto de ejemplo: salí con un reporte que sí uso en mi trabajo.</blockquote><figcaption><span>Participante de ejemplo</span><span class="ca-ej">Ejemplo</span></figcaption></figure>
+      <figure><i data-ico="quote"></i><blockquote>Texto de ejemplo: el grupo fue pequeño y pude preguntar todo.</blockquote><figcaption><span>Participante de ejemplo</span><span class="ca-ej">Ejemplo</span></figcaption></figure>
+      <figure><i data-ico="quote"></i><blockquote>Texto de ejemplo: mi empresa pidió factura y todo fue claro.</blockquote><figcaption><span>Responsable de RH de ejemplo</span><span class="ca-ej">Ejemplo</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- 8. FAQ -->
+<section class="ca-sec" aria-labelledby="tFaq">
+  <div class="wrap">
+    <div class="eyebrow">PREGUNTAS</div>
+    <h2 class="section-title" id="tFaq">Preguntas frecuentes</h2>
+    <div class="ca-faq" id="caFaq">
+      <h3><button type="button" class="ca-faq-q" id="q1" aria-expanded="false" aria-controls="a1">¿Qué pasa si el grupo no se abre?<i data-ico="chev"></i></button></h3>
+      <div class="ca-faq-a" id="a1" role="region" aria-labelledby="q1" hidden>Si no se alcanza el mínimo, te proponemos otra fecha o te devolvemos tu pago. <span class="ca-ej">Borrador</span></div>
+      <h3><button type="button" class="ca-faq-q" id="q2" aria-expanded="false" aria-controls="a2">¿Puede pagar mi empresa?<i data-ico="chev"></i></button></h3>
+      <div class="ca-faq-a" id="a2" role="region" aria-labelledby="q2" hidden>Sí. Al inscribirte elige "Mi empresa" y captura los datos de facturación. <span class="ca-ej">Borrador</span></div>
+      <h3><button type="button" class="ca-faq-q" id="q3" aria-expanded="false" aria-controls="a3">¿Necesito Excel instalado?<i data-ico="chev"></i></button></h3>
+      <div class="ca-faq-a" id="a3" role="region" aria-labelledby="q3" hidden>Depende del curso. Te confirmamos los requisitos antes de la primera sesión. <span class="ca-ej">Borrador</span></div>
+      <h3><button type="button" class="ca-faq-q" id="q4" aria-expanded="false" aria-controls="a4">¿Hay constancia?<i data-ico="chev"></i></button></h3>
+      <div class="ca-faq-a" id="a4" role="region" aria-labelledby="q4" hidden>Registrado ante la STPS para expedir constancias DC-3. Si tu empresa la requiere, avísanos antes de inscribirte. Además recibes un diploma verificable con QR. <span class="ca-ej">Borrador</span></div>
+      <h3><button type="button" class="ca-faq-q" id="q5" aria-expanded="false" aria-controls="a5">¿Qué pasa si falto a una sesión?<i data-ico="chev"></i></button></h3>
+      <div class="ca-faq-a" id="a5" role="region" aria-labelledby="q5" hidden>Avísanos y te decimos cómo ponerte al día. <span class="ca-ej">Borrador</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. CIERRE -->
+<section class="ca-sec" id="lista-espera" aria-labelledby="tCierre">
+  <div class="wrap">
+    <div class="ca-cierre">
+      <div class="eyebrow">LISTA DE ESPERA</div>
+      <h2 class="section-title" id="tCierre">¿No encontraste tu fecha?</h2>
+      <div id="caCierreForm" style="margin-top:22px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- depuración (?debug=1) -->
+<section class="ca-debug" id="caDebug" hidden>
+  <div class="wrap">
+    <h2>Panel de depuración (solo mockup)</h2>
+    <div id="caDebugBody"></div>
+  </div>
+</section>
+
+</main>
+
+
+<footer id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">CONTACTAR</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+
+    <div class="formula-bar-big" id="formulaBar">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg" data-sitio="correo">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg" data-sitio="whatsapp">whatsapp</a>&nbsp;&nbsp;)</span></span>
+    </div>
+
+    <div class="contact-meta">
+      <a href="/aviso-privacidad">Aviso de Privacidad</a>
+      <a href="/terminos-uso">Términos de Uso</a>
+      <a href="/verificar">Verificar diploma</a>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+    <div class="footer-brand">
+      <div class="footer-id">
+        <img src="../../assets/img/brand/logo-compacto-oscuro.svg" alt="alfredopina.ai" loading="lazy">
+        <span>Productividad con Datos · Automatización · IA</span>
+      </div>
+      <div class="footer-created"><span>Created by</span><img src="../../assets/img/firma-ap.png" alt="Firma de Alfredo Piña" loading="lazy"></div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- Modales -->
+<dialog class="lead-dialog" id="dlgIns" aria-labelledby="insTitle">
+  <div class="lead-dlg-head">
+    <span class="lead-dlg-ico" id="insIco"></span>
+    <div class="lead-dlg-titles">
+      <div class="lead-dlg-kicker">Inscripción · Ejemplo</div>
+      <div class="lead-dlg-title" id="insTitle">Reservar mi lugar</div>
+      <div class="lead-dlg-meta" id="insMeta"></div>
+    </div>
+    <button type="button" class="lead-dlg-close" data-cerrar aria-label="Cerrar"><i data-ico="x"></i></button>
+  </div>
+  <div class="lead-dlg-body" id="insBody"></div>
+</dialog>
+
+<dialog class="lead-dialog" id="dlgAv" aria-labelledby="avTitle">
+  <div class="lead-dlg-head">
+    <span class="lead-dlg-ico" id="avIco"></span>
+    <div class="lead-dlg-titles">
+      <div class="lead-dlg-kicker">Lista de espera · Ejemplo</div>
+      <div class="lead-dlg-title" id="avTitle">Avísame</div>
+      <div class="lead-dlg-meta" id="avMeta"></div>
+    </div>
+    <button type="button" class="lead-dlg-close" data-cerrar aria-label="Cerrar"><i data-ico="x"></i></button>
+  </div>
+  <div class="lead-dlg-body" id="avBody"></div>
+</dialog>
+
+<div class="ca-toast" id="caToast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA_URL = '../../assets/data/cursos-abiertos-ejemplo.json';
+  const qs = new URLSearchParams(location.search);
+  const DEBUG = qs.get('debug') === '1';
+  const UI = window.HERRAMIENTAS_UI || {};
+  let DATA = null, TZ = 'America/Monterrey', AJ = {}, GRUPOS = [];
+
+  // "hoy" se puede forzar (?hoy=2027-01-05) para probar fechas pasadas
+  const HOY = /^\d{4}-\d{2}-\d{2}$/.test(qs.get('hoy') || '') ? new Date(qs.get('hoy') + 'T12:00:00-06:00') : new Date();
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- íconos de línea ---------- */
+  const P = {
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    hourglass: '<path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/>',
+    check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    ck: '<path d="m5 12 5 5 9-10"/>',
+    alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+    ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+    shield: '<path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+    userplus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    tag: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8Z"/><circle cx="7" cy="7" r="1.2"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    qr: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/>',
+    award: '<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/>',
+    building: '<path d="M3 21h18M6 21V4h12v17M10 8h1M13 8h1M10 12h1M13 12h1M10 16h1M13 16h1"/>',
+    receipt: '<path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2V3ZM9 8h6M9 12h6"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+    chev: '<path d="m6 9 6 6 6-6"/>',
+    quote: '<path d="M3 21c3 0 7-1 7-8V5H3v8h4M14 21c3 0 7-1 7-8V5h-7v8h4"/>',
+    bars: '<path d="M5 20v-4M12 20v-9M19 20V5"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4 20-7Z"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
+    all: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'
+  };
+  const ico = (n, size) => '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"' + (size ? ' style="width:' + size + 'px;height:' + size + 'px"' : '') + '>' + (P[n] || '') + '</svg>';
+  function pintarIconos(root) {
+    $$('i[data-ico]', root || document).forEach(el => { el.outerHTML = ico(el.dataset.ico, el.hasAttribute('data-big') ? 30 : null); });
+  }
+
+  /* ---------- herramientas (catálogo único) ---------- */
+  const tool = id => UI[id] || { nombre: id, color: '#3d7fff', icon: '' };
+  const TOOL_ORDEN = ['ia', 'excel', 'powerbi', 'powerapps', 'powerautomate', 'ofimatica'];
+
+  /* ---------- fechas y dinero (todo en la zona del curso) ---------- */
+  function partes(d, o) { const r = {}; new Intl.DateTimeFormat('es-MX', { timeZone: TZ, ...o }).formatToParts(d).forEach(p => { r[p.type] = p.value; }); return r; }
+  const mesClave = d => { const p = partes(d, { year: 'numeric', month: '2-digit' }); return p.year + '-' + p.month; };
+  const mesCorto = d => partes(d, { month: 'short' }).month.replace('.', '');
+  const hhmm = d => { const p = partes(d, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); return p.hour + ':' + p.minute; };
+  const unir = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  function mesNombre(clave) { const [y, m] = clave.split('-').map(Number); return cap(new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(new Date(Date.UTC(y, m - 1, 15)))); }
+  function fmtFechas(ses) {
+    const bloques = [];
+    ses.forEach(s => {
+      const k = mesClave(s.i), dia = partes(s.i, { day: 'numeric' }).day;
+      let b = bloques[bloques.length - 1];
+      if (!b || b.k !== k) { b = { k, mes: mesCorto(s.i), y: partes(s.i, { year: 'numeric' }).year, dias: [] }; bloques.push(b); }
+      b.dias.push(dia);
+    });
+    return bloques.map((b, i) => unir(b.dias) + ' ' + b.mes + ((i === bloques.length - 1 || bloques[i + 1].y !== b.y) ? ' ' + b.y : '')).join(' · ');
+  }
+  function fmtHorario(ses) {
+    const rangos = Array.from(new Set(ses.map(s => hhmm(s.i) + '–' + hhmm(s.f))));
+    return rangos.length === 1 ? rangos[0] + ' h' : rangos[0] + ' h (varía por sesión)';
+  }
+  const dinero = n => new Intl.NumberFormat('es-MX', { style: 'currency', currency: AJ.moneda || 'MXN', maximumFractionDigits: 0 }).format(n);
+  const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+
+  /* ---------- derivación de estados (nada de esto se guarda) ---------- */
+  function derivar(g) {
+    const ses = (g.sesiones || []).map(s => ({ i: new Date(s.inicio), f: new Date(s.fin) })).sort((a, b) => a.i - b.i);
+    const libres = Math.max(0, g.cupo_total - g.inscritos_confirmados - g.apartados_sin_pago);
+    let estado;
+    if (!ses.length) estado = 'proximamente';
+    else if (libres <= 0) estado = 'lleno';
+    else if (libres <= (AJ.umbral_ultimos_lugares || 3)) estado = 'ultimos';
+    else estado = 'abierto';
+    const preFin = g.preventa_hasta ? new Date(g.preventa_hasta + 'T23:59:59-06:00') : null;
+    const preventa = g.precio_preventa != null && preFin && preFin >= HOY;
+    return {
+      g, ses, libres, estado,
+      reservable: estado === 'abierto' || estado === 'ultimos',
+      confirmado: g.inscritos_confirmados >= g.minimo_para_abrir,
+      faltan: Math.max(0, g.minimo_para_abrir - g.inscritos_confirmados),
+      mes: ses.length ? mesClave(ses[0].i) : (g.mes_estimado || ''),
+      iniciaEn: ses.length ? ses[0].i : null,
+      preventa, preDias: preventa ? Math.ceil((preFin - HOY) / 86400000) : 0,
+      precio: preventa ? g.precio_preventa : g.precio_persona
+    };
+  }
+  const visible = d => d.g.publicacion === 'publicado' && (!d.iniciaEn || d.iniciaEn > HOY);
+
+  const ESTADOS = {
+    abierto: { txt: 'Inscripciones abiertas', ico: 'check', color: '#14b8a6' },
+    ultimos: { txt: 'Últimos lugares', ico: 'alert', color: '#dfb35a' },
+    lleno: { txt: 'Lleno', ico: 'ban', color: '#a4acb9' },
+    proximamente: { txt: 'Próximamente', ico: 'hourglass', color: '#6b9fff' }
+  };
+  const pill = (txt, icono, color, extra) => '<span class="ca-pill ' + (extra || '') + '" style="--p:' + color + '">' + ico(icono) + esc(txt) + '</span>';
+
+  /* ---------- origen de la visita (UTM) ---------- */
+  const SK = 'apc_origen_v1';
+  function leerOrigen() {
+    let guardado = {};
+    try { guardado = JSON.parse(sessionStorage.getItem(SK) || '{}') || {}; } catch (e) { guardado = {}; }
+    const limpio = v => String(v || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
+    const url = {};
+    ['utm_source', 'utm_medium', 'utm_campaign'].forEach(k => { if (qs.get(k)) url[k] = limpio(qs.get(k)); });
+    const o = { utm_source: '', utm_medium: '', utm_campaign: '', ...guardado, ...url };
+    if (Object.keys(url).length) { try { sessionStorage.setItem(SK, JSON.stringify(o)); } catch (e) { /* bloqueado: queda en memoria */ } }
+    return o;
+  }
+  const ORIGEN = leerOrigen();
+
+  /* ---------- envío simulado (misma forma que el real de cursos.html) ---------- */
+  const REINTENTO_PAUSAS_MS = DEBUG && qs.get('falla') === '1' ? [600, 600] : [4000, 8000, 15000];
+  const COLA = [];
+  const fallos = {};
+  const nuevaClave = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  async function apiPostSimulado(payload) {
+    await new Promise(r => setTimeout(r, 650));
+    if (DEBUG && qs.get('falla') === '1' && (fallos[payload.idempotency_key] = (fallos[payload.idempotency_key] || 0) + 1) <= 1) { const e = new Error('Servidor dormido (simulado)'); e.status = 503; throw e; }
+    return { ok: true, referencia: 'EJ-' + payload.idempotency_key.replace(/[^a-z0-9]/gi, '').slice(-6).toUpperCase() };
+  }
+  const esErrorDefinitivo = e => e && e.status >= 400 && e.status < 500;
+  async function enviarCola(payload, onReintento) {
+    COLA.push(payload); pintarDebug();
+    for (let i = 0; i <= REINTENTO_PAUSAS_MS.length; i++) {
+      try { return await apiPostSimulado(payload); }
+      catch (err) {
+        if (esErrorDefinitivo(err) || i === REINTENTO_PAUSAS_MS.length) throw err;
+        if (onReintento) onReintento();
+        await new Promise(r => setTimeout(r, REINTENTO_PAUSAS_MS[i]));
+      }
+    }
+  }
+  const origenPayload = () => ({ utm_source: ORIGEN.utm_source, utm_medium: ORIGEN.utm_medium, utm_campaign: ORIGEN.utm_campaign });
+
+  /* ---------- diálogos ---------- */
+  function prepararDialogo(dlg) {
+    dlg.addEventListener('close', () => { document.documentElement.style.overflow = ''; const o = dlg._opener; if (o && o.isConnected) o.focus(); });
+    dlg.addEventListener('mousedown', e => { dlg._down = e.target === dlg; });
+    dlg.addEventListener('click', e => { if (dlg._down && e.target === dlg) dlg.close(); dlg._down = false; });
+    $$('[data-cerrar]', dlg).forEach(b => b.addEventListener('click', () => dlg.close()));
+  }
+  function abrir(dlg, opener) { dlg._opener = opener || document.activeElement; document.documentElement.style.overflow = 'hidden'; dlg.showModal(); }
+
+  let toastT;
+  function aviso(txt) { const t = $('#caToast'); t.innerHTML = ico('info') + '<span>' + esc(txt) + '</span>'; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200); }
+
+  /* ---------- formulario de lista de espera (un solo componente) ---------- */
+  function interesOpciones(sel) {
+    return '<option value="">Selecciona…</option>' + TOOL_ORDEN.filter(id => UI[id]).map(id => '<option value="' + id + '"' + (id === sel ? ' selected' : '') + '>' + esc(tool(id).nombre) + '</option>').join('') + '<option value="otro">Otro / no estoy seguro</option>';
+  }
+  function crearListaEspera(host, { prefijo, contexto, grupo, interes, alExito }) {
+    const p = prefijo, abiertoEn = Date.now(), clave = nuevaClave();
+    host.innerHTML =
+      '<form class="ca-form" novalidate id="' + p + 'Form">' +
+        '<div><label for="' + p + 'Nom">Nombre</label><input id="' + p + 'Nom" name="nombre" autocomplete="name" required></div>' +
+        '<div><label for="' + p + 'Mail">Correo</label><input id="' + p + 'Mail" name="correo" type="email" inputmode="email" autocomplete="email" required></div>' +
+        '<div><label for="' + p + 'Int">Curso de interés</label><select id="' + p + 'Int" name="interes" required>' + interesOpciones(interes) + '</select></div>' +
+        '<fieldset><legend>¿Quién paga?</legend><div class="ca-radios">' +
+          '<label class="ca-radio"><input type="radio" name="paga" value="yo" checked> Yo</label>' +
+          '<label class="ca-radio"><input type="radio" name="paga" value="empresa"> Mi empresa</label></div></fieldset>' +
+        '<label class="ca-check"><input type="checkbox" name="aviso" id="' + p + 'Av"><span>Acepto el <a href="/aviso-privacidad" target="_blank" rel="noopener">Aviso de Privacidad</a>.</span></label>' +
+        '<input type="text" name="web" class="ca-hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+        '<div class="ca-error" role="alert" hidden></div>' +
+        '<button type="submit" class="btn btn-primary">' + ico('bell') + 'Avísame</button>' +
+      '</form>';
+    const form = host.firstElementChild, err = $('.ca-error', form), btn = $('button[type=submit]', form);
+    const falla = (msg, campo) => { err.innerHTML = ico('alert') + '<span>' + esc(msg) + '</span>'; err.hidden = false; $$('[aria-invalid]', form).forEach(x => x.removeAttribute('aria-invalid')); if (campo) { campo.setAttribute('aria-invalid', 'true'); campo.focus(); } };
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (btn.disabled) return;
+      err.hidden = true;
+      const f = form.elements;
+      const nombre = f.nombre.value.trim(), correo = f.correo.value.trim();
+      if (!nombre) return falla('Escribe tu nombre.', f.nombre);
+      if (!correo) return falla('Escribe tu correo para poder avisarte.', f.correo);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return falla('El correo no parece válido.', f.correo);
+      if (!f.interes.value) return falla('Elige el curso que te interesa.', f.interes);
+      if (!f.aviso.checked) return falla('Acepta el Aviso de Privacidad para continuar.', f.aviso);
+      const payload = {
+        tipo: 'lista_espera', idempotency_key: clave, contexto, grupo_referencia: grupo || null,
+        nombre, correo, interes: f.interes.value, paga: form.querySelector('input[name=paga]:checked').value,
+        acepta_aviso_privacidad: true, origen: origenPayload(), web: f.web.value, tf: Date.now() - abiertoEn
+      };
+      btn.disabled = true; btn.textContent = 'Enviando…';
+      try {
+        await enviarCola(payload, () => { btn.textContent = 'Seguimos intentando…'; });
+        host.innerHTML = '<div class="ca-ok" role="status"><h3>' + ico('check') + 'Listo, ' + esc(nombre) + '.</h3><p>Te avisaremos por correo cuando haya una fecha. <span class="ca-ej">Ejemplo: no se envió nada</span></p></div>';
+        if (alExito) alExito();
+      } catch (er) {
+        btn.disabled = false; btn.innerHTML = ico('bell') + 'Avísame';
+        falla(er && er.status >= 400 && er.status < 500 && er.message ? er.message : 'No pudimos enviar tu registro. Inténtalo de nuevo en unos minutos.');
+      }
+    });
+  }
+
+  /* ---------- tarjetas de grupo ---------- */
+  function tarjeta(d) {
+    const g = d.g, t = tool(g.herramienta), e = ESTADOS[d.estado];
+    const sede = g.modalidad === 'presencial';
+    const ocupados = g.inscritos_confirmados + g.apartados_sin_pago;
+    let pills = pill(e.txt, e.ico, e.color);
+    if (d.estado !== 'proximamente') {
+      pills += d.confirmado ? pill('Grupo confirmado', 'shield', '#14b8a6') : pill('Faltan ' + plural(d.faltan, 'inscrito', 'inscritos') + ' para abrir', 'users', '#a4acb9', 'suave');
+    }
+    const fechas = d.ses.length ? fmtFechas(d.ses) : (d.mes ? 'Fecha por definir · ' + mesNombre(d.mes) : 'Por definir');
+    const horario = d.ses.length ? fmtHorario(d.ses) + ' <small>hora de Monterrey</small>' : 'Por definir';
+    let cupo;
+    if (d.estado === 'proximamente') cupo = '<div class="ca-cupo-txt">' + ico('hourglass') + '<span>Sin fecha todavía: avísame y te escribimos primero.</span></div>';
+    else {
+      const pc = d.estado === 'lleno' ? '#a4acb9' : d.estado === 'ultimos' ? '#dfb35a' : '#14b8a6';
+      cupo = '<div class="ca-cupo-txt">' + ico('users') + '<span>' + (d.libres ? 'Quedan <b>' + d.libres + '</b> de ' + g.cupo_total + ' lugares' : '<b>Sin lugares</b> (' + g.cupo_total + ' de ' + g.cupo_total + ')') + '</span></div>' +
+        '<div class="ca-bar" style="--p:' + pc + '" aria-hidden="true"><span style="width:' + Math.min(100, Math.round(ocupados / g.cupo_total * 100)) + '%"></span></div>';
+    }
+    let pre = '';
+    if (d.preventa) {
+      const fin = new Date(g.preventa_hasta + 'T12:00:00-06:00'), urgente = d.preDias <= 7;
+      pre = '<div class="ca-preventa">' + pill('Preventa hasta el ' + partes(fin, { day: 'numeric' }).day + ' ' + mesCorto(fin) + (urgente ? ' · quedan ' + plural(d.preDias, 'día', 'días') : ''), urgente ? 'alert' : 'tag', urgente ? '#dfb35a' : '#6b9fff') + '</div>';
+    }
+    const reservar = d.reservable
+      ? '<button type="button" class="btn btn-primary ca-b" data-act="reservar" data-g="' + esc(g.codigo) + '">' + ico('calendar') + 'Reservar mi lugar</button>'
+      : '<button type="button" class="btn btn-primary ca-b" data-act="avisame" data-g="' + esc(g.codigo) + '">' + ico('bell') + (d.estado === 'lleno' ? 'Avísame del próximo' : 'Avísame') + '</button>';
+    const landing = (AJ.landing_por_herramienta || {})[g.herramienta] || g.landing_url || '#';
+    return '<article class="ca-card" id="g-' + esc(g.codigo) + '" data-estado="' + d.estado + '" style="--c:' + t.color + '" aria-labelledby="gt-' + esc(g.codigo) + '">' +
+      '<div class="ca-top"><span class="ca-tool">' + t.icon + esc(t.nombre) + '</span><span class="ca-ej">Ejemplo</span></div>' +
+      '<h3 id="gt-' + esc(g.codigo) + '">' + esc(g.programa_nombre) + '</h3>' +
+      '<div class="ca-nivel">' + ico('bars') + 'Nivel ' + esc(g.nivel.toLowerCase()) + '</div>' +
+      '<div class="ca-pills">' + pills + '</div>' +
+      '<dl class="ca-facts">' +
+        '<div class="ca-fact full">' + ico('calendar') + '<div><dt>Fechas</dt><dd>' + esc(fechas) + '</dd></div></div>' +
+        '<div class="ca-fact full">' + ico('clock') + '<div><dt>Horario</dt><dd>' + horario + '</dd></div></div>' +
+        '<div class="ca-fact">' + ico(sede ? 'pin' : 'monitor') + '<div><dt>Modalidad</dt><dd>' + (sede ? 'Presencial' : 'En línea') + (sede && g.sede ? '<br><small>' + esc(g.sede) + '</small>' : '') + '</dd></div></div>' +
+        '<div class="ca-fact">' + ico('hourglass') + '<div><dt>Duración</dt><dd>' + g.horas_totales + ' horas</dd></div></div>' +
+      '</dl>' +
+      '<div class="ca-precio"><span class="monto">' + dinero(d.precio) + '</span><span class="unidad">' + (AJ.moneda || 'MXN') + ' por persona</span>' + (d.preventa ? '<s>' + dinero(g.precio_persona) + '</s>' : '') + '</div>' + pre +
+      '<div class="ca-cupo">' + cupo + '</div>' +
+      '<ul class="ca-temario">' + (g.temario_corto || []).map(x => '<li>' + ico('ck') + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' +
+      '<div class="ca-actions">' + reservar +
+        '<a class="btn ca-sec-btn ca-b" href="' + esc(landing) + '" data-ejemplo="' + esc(t.nombre) + '">Ver curso<span class="sr-only"> de ' + esc(t.nombre) + '</span></a></div>' +
+    '</article>';
+  }
+
+  /* ---------- filtros (reflejados en la URL) ---------- */
+  const filtro = { herramienta: qs.get('herramienta') || '', mes: qs.get('mes') || '' };
+  let VIS = [];
+  function actualizarURL() {
+    try {
+      const u = new URL(location.href);
+      ['herramienta', 'mes'].forEach(k => { if (filtro[k]) u.searchParams.set(k, filtro[k]); else u.searchParams.delete(k); });
+      history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch (e) { /* file:// u otro bloqueo */ }
+  }
+  function chip(valor, grupoNom, texto, icono, color, n) {
+    const on = (filtro[grupoNom] || '') === valor;
+    return '<button type="button" class="ca-chip" data-f="' + grupoNom + '" data-v="' + esc(valor) + '" aria-pressed="' + on + '"' + (color ? ' style="--chip-c:' + color + '"' : '') + '>' + ico('ck') .replace('class="ico"', 'class="ico ck"') + (icono || '') + '<span>' + esc(texto) + '</span><span class="n">' + n + '</span></button>';
+  }
+  function pintarFiltros() {
+    const herrs = TOOL_ORDEN.filter(id => VIS.some(d => d.g.herramienta === id));
+    const meses = Array.from(new Set(VIS.map(d => d.mes).filter(Boolean))).sort();
+    if (filtro.herramienta && !herrs.includes(filtro.herramienta)) filtro.herramienta = '';
+    if (filtro.mes && !meses.includes(filtro.mes)) filtro.mes = '';
+    $('#chipsHerr').innerHTML = chip('', 'herramienta', 'Todas', '', '', VIS.length) +
+      herrs.map(id => chip(id, 'herramienta', tool(id).nombre, '<span class="tl" style="color:' + tool(id).color + '">' + tool(id).icon + '</span>', tool(id).color, VIS.filter(d => d.g.herramienta === id).length)).join('');
+    $('#chipsMes').innerHTML = chip('', 'mes', 'Todos', '', '', VIS.length) + meses.map(m => chip(m, 'mes', mesNombre(m), '', '', VIS.filter(d => d.mes === m).length)).join('');
+    $('#caFiltros').hidden = !VIS.length;
+  }
+  function pintarLista() {
+    const lista = VIS.filter(d => (!filtro.herramienta || d.g.herramienta === filtro.herramienta) && (!filtro.mes || d.mes === filtro.mes));
+    lista.sort((a, b) => (a.iniciaEn ? a.iniciaEn.getTime() : Infinity) - (b.iniciaEn ? b.iniciaEn.getTime() : Infinity));
+    $('#caLista').innerHTML = lista.map(tarjeta).join('');
+    $('#caConteo').textContent = lista.length ? plural(lista.length, 'grupo', 'grupos') + (filtro.herramienta || filtro.mes ? ' con este filtro' : ' publicados') : '';
+    const vacio = $('#caVacio'), estabaVacio = !vacio.hidden;
+    vacio.hidden = lista.length > 0;
+    if (!lista.length && !estabaVacio) {
+      crearListaEspera($('#caVacioForm'), { prefijo: 'we', contexto: 'sin_resultados', interes: filtro.herramienta });
+    }
+    pintarDebug();
+  }
+  function pintarTodo() { pintarFiltros(); pintarLista(); actualizarURL(); }
+
+  /* ---------- temas principales (salen de los datos) ---------- */
+  function pintarTemas() {
+    const ids = (AJ.temas_destacados && AJ.temas_destacados.length ? AJ.temas_destacados : Array.from(new Set(VIS.map(d => d.g.herramienta)))).filter(id => UI[id]);
+    $('#caTemas').innerHTML = ids.map(id => {
+      const t = tool(id), fechas = VIS.filter(d => d.g.herramienta === id && d.iniciaEn).sort((a, b) => a.iniciaEn - b.iniciaEn);
+      const prox = fechas.find(d => d.reservable) || fechas[0];
+      let txt, tag;
+      if (!prox) { txt = ico('hourglass') + 'Próximamente'; tag = 'Avísame'; }
+      else if (!prox.reservable) { txt = ico('ban') + 'Próximo grupo: ' + esc(fmtFechas(prox.ses.slice(0, 1))) + ' · lleno'; tag = plural(fechas.length, 'fecha', 'fechas'); }
+      else { txt = ico('calendar') + 'Próxima fecha: ' + esc(fmtFechas(prox.ses.slice(0, 1))); tag = plural(fechas.length, 'fecha', 'fechas'); }
+      return '<a class="course-card in-view" href="' + esc((AJ.landing_por_herramienta || {})[id] || '#') + '" data-ejemplo="' + esc(t.nombre) + '" style="--c:' + t.color + '">' +
+        '<div class="course-icon">' + t.icon + '</div><div class="course-title">' + esc(t.nombre) + '</div>' +
+        '<div class="course-text">' + txt + '</div><span class="course-tag">' + esc(tag) + '</span></a>';
+    }).join('');
+  }
+
+  /* ---------- modal de inscripción ---------- */
+  function totales(d, n, paga) {
+    const dsc = AJ.descuento_equipo || {}, pct = (paga === 'empresa' && n >= (dsc.desde_personas || 99)) ? dsc.porcentaje : 0;
+    const bruto = d.precio * n, desc = Math.round(bruto * pct / 100);
+    return { n, pu: d.precio, pct, desc, total: bruto - desc };
+  }
+  function abrirInscripcion(codigo, personas, opener) {
+    const dlg = $('#dlgIns'), body = $('#insBody'), max = AJ.max_personas_por_inscripcion || 3;
+    const reservables = GRUPOS.filter(d => visible(d) && d.reservable).sort((a, b) => a.iniciaEn - b.iniciaEn);
+    const abiertoEn = Date.now(), clave = nuevaClave();
+    const sel0 = codigo && reservables.some(d => d.g.codigo === codigo) ? codigo : '';
+    $('#insTitle').textContent = personas > 1 ? 'Inscribir a mi equipo' : 'Reservar mi lugar';
+    if (!reservables.length) {
+      body.innerHTML = '<div class="ca-ok"><p>Por ahora no hay grupos con lugares. Déjanos tus datos y te avisamos del próximo.</p></div><div id="insVacio" style="margin-top:14px"></div>';
+      $('#insMeta').textContent = '';
+      crearListaEspera($('#insVacio'), { prefijo: 'wi', contexto: 'inscripcion_sin_grupos' });
+      return abrir(dlg, opener);
+    }
+    const persona = i => '<div class="ca-persona" data-p="' + i + '"' + (i >= personas ? ' hidden' : '') + '><h4>Persona ' + (i + 1) + '</h4>' +
+      '<div><label for="ip' + i + 'n">Nombre completo</label><input id="ip' + i + 'n" name="nombre' + i + '" autocomplete="' + (i ? 'off' : 'name') + '"></div>' +
+      '<div class="ca-grid2"><div><label for="ip' + i + 'c">Correo</label><input id="ip' + i + 'c" name="correo' + i + '" type="email" inputmode="email" autocomplete="' + (i ? 'off' : 'email') + '"></div>' +
+      '<div><label for="ip' + i + 'w">WhatsApp' + (i ? ' <span class="ca-opt">(opcional)</span>' : '') + '</label><input id="ip' + i + 'w" name="wa' + i + '" type="tel" inputmode="tel" autocomplete="' + (i ? 'off' : 'tel') + '" placeholder="Con lada"></div></div></div>';
+    body.innerHTML =
+      '<form class="ca-form" novalidate id="insForm">' +
+        '<div class="ca-grid2"><div><label for="insGrupo">Grupo</label><select id="insGrupo" name="grupo"><option value="">Elige un grupo…</option>' +
+          reservables.map(d => '<option value="' + esc(d.g.codigo) + '"' + (d.g.codigo === sel0 ? ' selected' : '') + '>' + esc(d.g.programa_nombre + ' · ' + fmtFechas(d.ses.slice(0, 1))) + '</option>').join('') + '</select></div>' +
+        '<div><label for="insN">Personas</label><select id="insN" name="n">' + Array.from({ length: max }, (_, k) => '<option value="' + (k + 1) + '"' + (k + 1 === personas ? ' selected' : '') + '>' + (k + 1) + '</option>').join('') + '</select></div></div>' +
+        Array.from({ length: max }, (_, i) => persona(i)).join('') +
+        '<fieldset><legend>¿Quién paga?</legend><div class="ca-radios"><label class="ca-radio"><input type="radio" name="paga" value="yo"' + (personas > 1 ? '' : ' checked') + '> Yo</label><label class="ca-radio"><input type="radio" name="paga" value="empresa"' + (personas > 1 ? ' checked' : '') + '> Mi empresa</label></div></fieldset>' +
+        '<div><label class="ca-check"><input type="checkbox" name="factura" id="insFac"' + (personas > 1 ? ' checked' : '') + '><span>Requiero factura</span></label>' +
+          '<div class="ca-rfc ca-grid2" id="insRfc" hidden style="margin-top:8px"><div><label for="insRfcV">RFC</label><input id="insRfcV" name="rfc" autocapitalize="characters" maxlength="13"></div><div><label for="insRaz">Razón social</label><input id="insRaz" name="razon" autocomplete="organization"></div></div></div>' +
+        '<div class="ca-resumen" id="insRes" aria-live="polite"></div>' +
+        '<label class="ca-check"><input type="checkbox" name="aviso"><span>Acepto el <a href="/aviso-privacidad" target="_blank" rel="noopener">Aviso de Privacidad</a>.</span></label>' +
+        '<input type="text" name="web" class="ca-hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+        '<div class="ca-error" id="insErr" role="alert" hidden></div>' +
+        '<button type="submit" class="btn btn-primary">' + ico('calendar') + 'Apartar mi lugar</button>' +
+      '</form>';
+    const form = $('#insForm'), f = form.elements, err = $('#insErr'), btn = $('button[type=submit]', form);
+    const grupoSel = () => reservables.find(d => d.g.codigo === f.grupo.value);
+    const pagaVal = () => form.querySelector('input[name=paga]:checked').value;
+    function refrescar() {
+      const d = grupoSel(), n = Number(f.n.value);
+      $$('.ca-persona', form).forEach((p, i) => { p.hidden = i >= n; });
+      $('#insRfc').hidden = !f.factura.checked;
+      const r = $('#insRes');
+      if (!d) { r.hidden = true; $('#insMeta').textContent = ''; $('#insIco').innerHTML = ico('calendar', 26); dlg.style.setProperty('--c', '#3d7fff'); return; }
+      const t = tool(d.g.herramienta), x = totales(d, n, pagaVal()), dsc = AJ.descuento_equipo || {};
+      dlg.style.setProperty('--c', t.color); $('#insIco').innerHTML = t.icon;
+      $('#insMeta').textContent = (fmtFechas(d.ses) + ' · ' + (d.g.modalidad === 'presencial' ? 'presencial' : 'en línea')).toUpperCase();
+      r.hidden = false;
+      r.innerHTML = '<div>' + ico('tag') + ' ' + n + ' × ' + dinero(x.pu) + (d.preventa ? ' (preventa)' : '') + '</div>' +
+        (x.pct ? '<div>' + ico('check') + ' Descuento de equipo ' + x.pct + '%: −' + dinero(x.desc) + '</div>' : (n >= (dsc.desde_personas || 99) ? '<div>' + ico('info') + ' Con "Mi empresa" aplica descuento de equipo del ' + dsc.porcentaje + '%.</div>' : '')) +
+        '<div class="tot"><span>Total estimado</span><span>' + dinero(x.total) + ' ' + (AJ.moneda || 'MXN') + '</span></div>';
+    }
+    form.addEventListener('change', e => {
+      if (e.target.name === 'paga' && pagaVal() === 'empresa') f.factura.checked = true;
+      refrescar();
+    });
+    refrescar();
+    const falla = (msg, campo) => { err.innerHTML = ico('alert') + '<span>' + esc(msg) + '</span>'; err.hidden = false; $$('[aria-invalid]', form).forEach(x => x.removeAttribute('aria-invalid')); if (campo) { campo.setAttribute('aria-invalid', 'true'); campo.focus(); } };
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (btn.disabled) return;
+      err.hidden = true;
+      const d = grupoSel(), n = Number(f.n.value);
+      if (!d) return falla('Elige el grupo al que te quieres inscribir.', f.grupo);
+      if (n > d.libres) return falla('Solo quedan ' + plural(d.libres, 'lugar', 'lugares') + ' en este grupo.', f.n);
+      const personasOk = [];
+      for (let i = 0; i < n; i++) {
+        const nom = f['nombre' + i].value.trim(), cor = f['correo' + i].value.trim(), wa = f['wa' + i].value.trim();
+        if (!nom) return falla('Escribe el nombre de la persona ' + (i + 1) + '.', f['nombre' + i]);
+        if (!cor) return falla('Escribe el correo de la persona ' + (i + 1) + '.', f['correo' + i]);
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cor)) return falla('El correo de la persona ' + (i + 1) + ' no parece válido.', f['correo' + i]);
+        if (i === 0 && !wa) return falla('Déjanos un WhatsApp de contacto (con lada).', f.wa0);
+        if (wa && wa.replace(/\D/g, '').length < 8) return falla('El WhatsApp de la persona ' + (i + 1) + ' no parece válido (incluye la lada).', f['wa' + i]);
+        personasOk.push({ nombre: nom, correo: cor, whatsapp: wa });
+      }
+      let factura = { requiere: f.factura.checked, rfc: '', razon_social: '' };
+      if (factura.requiere) {
+        factura.rfc = f.rfc.value.trim().toUpperCase(); factura.razon_social = f.razon.value.trim();
+        if (!/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test(factura.rfc)) return falla('El RFC no parece válido (12 o 13 caracteres).', f.rfc);
+        if (!factura.razon_social) return falla('Escribe la razón social para la factura.', f.razon);
+      }
+      if (!f.aviso.checked) return falla('Acepta el Aviso de Privacidad para continuar.', f.aviso);
+      const x = totales(d, n, pagaVal());
+      const payload = {
+        tipo: 'inscripcion_abierta', idempotency_key: clave, grupo: d.g.codigo, programa_id: d.g.programa_id,
+        personas: personasOk, num_personas: n, paga: pagaVal(), factura,
+        monto_estimado: { precio_unitario: x.pu, descuento_pct: x.pct, total: x.total, moneda: AJ.moneda || 'MXN' },
+        estado_pago: 'pendiente', acepta_aviso_privacidad: true,
+        origen: origenPayload(), web: f.web.value, tf: Date.now() - abiertoEn
+      };
+      btn.disabled = true; btn.textContent = 'Enviando…';
+      try {
+        const r = await enviarCola(payload, () => { btn.textContent = 'Seguimos intentando…'; });
+        const horas = AJ.horas_vigencia_apartado || 48;
+        body.innerHTML = '<div class="ca-ok" role="status"><h3>' + ico('check') + 'Lugar apartado</h3>' +
+          '<p>Gracias, ' + esc(personasOk[0].nombre) + '. Apartamos ' + plural(n, 'lugar', 'lugares') + ' en <b>' + esc(d.g.programa_nombre) + '</b> y te escribimos a ' + esc(personasOk[0].correo) + '. <span class="ca-ej">Ejemplo: no se envió nada</span></p>' +
+          '<dl><div><dt>Referencia</dt><dd>' + esc(r.referencia) + '</dd></div><div><dt>Monto</dt><dd>' + dinero(x.total) + ' ' + (AJ.moneda || 'MXN') + '</dd></div>' +
+          '<div><dt>Transferencia a</dt><dd>Banco de ejemplo</dd></div><div><dt>CLABE</dt><dd>000000000000000000</dd></div><div><dt>Concepto</dt><dd>' + esc(r.referencia) + '</dd></div>' +
+          '<div><dt>Estado del pago</dt><dd>Pendiente</dd></div></dl>' +
+          '<p class="ca-nota" style="margin-top:14px">' + ico('clock') + '<span>Tu lugar queda apartado ' + horas + ' horas (plazo de ejemplo). Si no recibimos tu pago o los datos de facturación de tu empresa en ese tiempo, el lugar se libera.</span></p></div>' +
+          '<div class="ca-form" style="margin-top:18px"><button type="button" class="btn btn-primary" data-cerrar>Cerrar</button></div>';
+        $('[data-cerrar]', body).addEventListener('click', () => dlg.close());
+        $('#insTitle').textContent = 'Inscripción enviada';
+        $('#insTitle').focus && $('#insTitle').setAttribute('tabindex', '-1'); $('#insTitle').focus();
+      } catch (er) {
+        btn.disabled = false; btn.innerHTML = ico('calendar') + 'Apartar mi lugar';
+        falla(er && er.status >= 400 && er.status < 500 && er.message ? er.message : 'No pudimos enviar tu inscripción. Inténtalo de nuevo en unos minutos.');
+      }
+    });
+    abrir(dlg, opener);
+    (sel0 ? f.nombre0 : f.grupo).focus();
+  }
+
+  /* ---------- modal "Avísame" ---------- */
+  function abrirAvisame(codigo, opener) {
+    const dlg = $('#dlgAv'), d = GRUPOS.find(x => x.g.codigo === codigo), t = d ? tool(d.g.herramienta) : null;
+    dlg.style.setProperty('--c', t ? t.color : '#3d7fff');
+    $('#avIco').innerHTML = t ? t.icon : ico('bell', 26);
+    $('#avTitle').textContent = d && d.estado === 'lleno' ? 'Avísame del próximo' : 'Avísame';
+    $('#avMeta').textContent = d ? (d.g.programa_nombre + (d.estado === 'lleno' ? ' · lleno' : '')).toUpperCase() : '';
+    crearListaEspera($('#avBody'), { prefijo: 'wm', contexto: 'modal_avisame', grupo: codigo, interes: d ? d.g.herramienta : '' });
+    abrir(dlg, opener);
+    $('#wmNom').focus();
+  }
+
+  /* ---------- acordeón ---------- */
+  function iniciarFaq() {
+    const botones = $$('.ca-faq-q');
+    botones.forEach((b, i) => {
+      b.addEventListener('click', () => { const abierto = b.getAttribute('aria-expanded') === 'true'; b.setAttribute('aria-expanded', String(!abierto)); $('#' + b.getAttribute('aria-controls')).hidden = abierto; });
+      b.addEventListener('keydown', e => {
+        const k = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: botones.length - 1 }[e.key];
+        if (k === undefined) return;
+        e.preventDefault(); botones[(k + botones.length) % botones.length].focus();
+      });
+    });
+  }
+
+  /* ---------- depuración ---------- */
+  let ultimo = null;
+  function pintarDebug() {
+    if (!DEBUG) return;
+    ultimo = COLA[COLA.length - 1] || null;
+    const filas = GRUPOS.map(d => '<tr><td>' + esc(d.g.codigo) + '</td><td>' + d.estado + '</td><td>' + d.libres + '</td><td>' + (d.confirmado ? 'sí' : 'no (faltan ' + d.faltan + ')') + '</td><td>' + esc(d.mes) + '</td><td>' + (visible(d) ? 'sí' : 'no') + '</td></tr>').join('');
+    $('#caDebugBody').innerHTML =
+      '<p>Hoy usado: ' + esc(HOY.toISOString()) + ' · datos v' + esc(DATA && DATA.version) + ' · cola simulada: ' + COLA.length + ' envío(s)</p>' +
+      '<table><tr><th>código</th><th>estado derivado</th><th>libres</th><th>confirmado</th><th>mes</th><th>visible</th></tr>' + filas + '</table>' +
+      '<p>Origen de la visita (sessionStorage):</p><pre>' + esc(JSON.stringify(ORIGEN, null, 2)) + '</pre>' +
+      '<p>Filtro actual:</p><pre>' + esc(JSON.stringify(filtro)) + '</pre>' +
+      '<p>Último envío simulado:</p><pre>' + esc(ultimo ? JSON.stringify(ultimo, null, 2) : '(ninguno todavía)') + '</pre>';
+  }
+
+  /* ---------- arranque ---------- */
+  function mostrarObjetivoHash() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (!/^g-/.test(id)) return;
+    let el = document.getElementById(id);
+    if (!el && VIS.some(d => 'g-' + d.g.codigo === id)) { filtro.herramienta = ''; filtro.mes = ''; pintarTodo(); el = document.getElementById(id); }
+    if (!el) return;
+    el.classList.add('is-target'); el.setAttribute('tabindex', '-1');
+    el.scrollIntoView({ block: 'start' });
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-act]');
+    if (a) {
+      const act = a.dataset.act;
+      if (act === 'reservar') abrirInscripcion(a.dataset.g, 1, a);
+      else if (act === 'equipo') abrirInscripcion(null, 2, a);
+      else if (act === 'avisame') abrirAvisame(a.dataset.g, a);
+      return;
+    }
+    const c = e.target.closest('.ca-chip');
+    if (c) { filtro[c.dataset.f] = c.dataset.v; pintarTodo(); const k = $('.ca-chip[data-f="' + c.dataset.f + '"][data-v="' + c.dataset.v + '"]'); if (k) k.focus(); return; }
+    const l = e.target.closest('a[data-ejemplo]');
+    if (l) { e.preventDefault(); aviso('Enlace de ejemplo: aquí irá la página de ' + l.dataset.ejemplo + '.'); }
+  });
+  $('#caQuitarFiltros').addEventListener('click', () => { filtro.herramienta = ''; filtro.mes = ''; pintarTodo(); });
+
+  async function iniciar() {
+    pintarIconos();
+    [$('#dlgIns'), $('#dlgAv')].forEach(prepararDialogo);
+    iniciarFaq();
+    $('#caDebug').hidden = !DEBUG;
+    try {
+      const r = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      DATA = await r.json();
+    } catch (e) {
+      $('#caLista').innerHTML = '<div class="ca-vacio ca-error-carga"><h3>' + ico('alert') + 'No se pudieron leer los datos de ejemplo.</h3><p>Abre el mockup desde un servidor local (no con file://).</p></div>';
+      console.warn('Cursos abiertos: no se leyó', DATA_URL, e);
+      return;
+    }
+    AJ = DATA.ajustes || {}; TZ = AJ.zona_horaria || TZ;
+    GRUPOS = (DATA.grupos || []).map(derivar);
+    VIS = GRUPOS.filter(visible);
+    const dsc = AJ.descuento_equipo;
+    if (dsc) $('#caDescEmp').textContent = 'Descuento de ' + dsc.porcentaje + '% desde ' + dsc.desde_personas + ' personas de la misma empresa (dato de ejemplo).';
+    pintarTodo();
+    pintarTemas();
+    crearListaEspera($('#caCierreForm'), { prefijo: 'wc', contexto: 'cierre_pagina' });
+    mostrarObjetivoHash();
+    window.addEventListener('hashchange', mostrarObjetivoHash);
+    window.__cursosAbiertos = { get cola() { return COLA; }, get grupos() { return GRUPOS; }, origen: ORIGEN };
+  }
+  iniciar();
+})();
+</script>
+</body>
+</html>

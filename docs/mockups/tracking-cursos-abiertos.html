@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mockup — Admin · Tracking Cursos Abiertos</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="../../assets/js/herramientas.js"></script>
+<style>
+:root{--bg:#0a0d12;--panel:#10141b;--panel-2:#151a23;--line:#1f2733;--line-2:#2a3444;--text:#e8edf5;--text-dim:#9aa7b8;--text-faint:#6b7788;--blue:#3d7fff;--blue-bright:#6b9fff;--blue-soft:rgba(61,127,255,.13);--ok:#14b8a6;--warn:#dfb35a;--bad:#dc2626;--bad-text:#ff8787;--display:'Space Grotesk',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px}
+button{font-family:inherit;cursor:pointer;color:inherit}
+svg{flex:none}
+:is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--blue-bright);outline-offset:2px}
+[hidden]{display:none!important}
+.mk{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 18px;background:#05070a;border-bottom:1px dashed #394456;font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.mk b{color:var(--text)}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+.app>div{min-width:0}.sp{flex:1}
+.side{border-right:1px solid var(--line);padding:18px 0}
+.side .who{padding:0 18px 14px;border-bottom:1px solid var(--line);margin-bottom:10px;font-family:var(--display);font-weight:700;font-size:15px}
+.side .who small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text-faint);margin-top:4px}
+.grp{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text-faint);padding:12px 18px 5px}
+.it{padding:7px 18px;color:var(--text-dim);font-size:13px;display:flex;align-items:center;gap:8px}
+.it.on{background-color:var(--blue-soft);color:var(--blue-bright);font-weight:600}
+.it .dot{width:8px;height:8px;border-radius:50%;margin-left:auto}
+.it .dot.warn{background-color:var(--warn)}
+.top{display:flex;align-items:center;gap:12px;padding:13px 26px;border-bottom:1px solid var(--line)}
+.top h1{font-family:var(--display);font-size:19px;margin:0}
+.tb{display:inline-flex;align-items:center;height:32px;padding:0 11px;border:1px solid var(--line);border-radius:8px;color:var(--text-dim);font-size:12px}
+.av{width:32px;height:32px;border-radius:50%;background-color:var(--blue-bright);color:#0a0d12;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:12px}
+.content{padding:18px 26px 60px;max-width:1380px}
+.i{width:15px;height:15px}
+
+/* pestañas */
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs .t{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:var(--text-dim);font-size:13.5px;white-space:nowrap}
+.tabs .t:hover{color:var(--text)}
+.tabs .t.on{color:var(--text);font-weight:600;border-bottom-color:var(--blue-bright)}
+.tabs .t small{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+
+/* tarjetas */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.card{border:1px solid var(--line);border-radius:12px;background-color:var(--panel);padding:13px 15px}
+.card .k{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--text-faint);display:flex;gap:7px;align-items:center}
+.card .k svg{width:13px;height:13px;color:var(--blue-bright)}
+.card .v{font-family:var(--display);font-size:25px;font-weight:700;margin-top:6px}
+.card .s{font-size:12px;color:var(--text-dim);margin-top:3px;line-height:1.4}
+
+/* banners */
+.pub{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;background-color:var(--panel);padding:10px 14px;margin-bottom:10px}
+.pub .tx{font-size:13px;color:var(--text-dim);display:flex;gap:8px;align-items:center}
+.pub .tx b{color:var(--text)}
+.alerta{border:1px solid var(--line-2);border-radius:12px;background-color:var(--panel);margin-bottom:10px;overflow:hidden}
+.alerta .al{display:flex;gap:10px;align-items:center;padding:9px 14px;font-size:13px;color:var(--text);border-bottom:1px solid var(--line)}
+.alerta .al:last-child{border-bottom:none}
+.alerta .al.rojo{border-left:3px solid var(--bad)}
+.alerta .al.ambar{border-left:3px solid var(--warn)}
+.alerta .al.info{border-left:3px solid var(--blue-bright)}
+.alerta .al b{font-weight:600}
+.alerta .al .sp{flex:1}
+
+/* botones */
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:9px;border:1px solid var(--line-2);background-color:var(--panel-2);color:var(--text);font-size:12.5px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:#3a475b}
+.btn.pri{background-color:#1f5fe0;border-color:#1f5fe0;color:#fff;font-weight:600}
+.btn.pri:hover{background-color:#2a6cf0}
+.btn.sm{height:28px;padding:0 9px;font-size:11.5px;border-radius:7px}
+.btn.dang{border-color:rgba(220,38,38,.55);color:var(--bad-text)}
+.btn svg{width:14px;height:14px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* vistas */
+.vistas{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;background-color:var(--panel);padding:8px 12px;margin-bottom:10px}
+.vistas .lb{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-faint);display:flex;gap:6px;align-items:center}
+.seg{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line-2);border-radius:10px;background-color:var(--panel-2);flex-wrap:wrap}
+.seg button{border:none;background-color:transparent;color:var(--text-dim);font-size:12px;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.seg button:hover{color:var(--text)}
+.seg button.on{background-color:var(--blue-soft);color:var(--blue-bright);font-weight:600;box-shadow:inset 0 0 0 1px var(--blue-bright)}
+.seg button small{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+.seg button.on small{color:var(--blue-bright)}
+.info{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border:1px dashed var(--blue-bright);border-radius:9px;background-color:transparent;color:var(--blue-bright);font-size:12px}
+.info svg{width:13px;height:13px}
+.pop-w{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:min(460px,86vw);background-color:#0d1117;border:1px solid var(--line-2);border-radius:12px;padding:14px 16px;z-index:50;box-shadow:0 18px 40px rgba(0,0,0,.55);font-size:12.5px;color:var(--text-dim);line-height:1.55}
+.pop h3{font-family:var(--display);font-size:13.5px;margin:0 0 8px;color:var(--text)}
+.pop .li{display:flex;gap:9px;align-items:flex-start;margin:7px 0}
+.pop .li b{color:var(--text)}
+
+/* filtros */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;border:1px solid var(--line);border-radius:12px;background-color:var(--panel);padding:11px 14px 13px;margin-bottom:12px}
+.fl{display:flex;flex-direction:column;gap:5px}
+.fl>label{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--text-faint)}
+select.sel,input.inp,select.inp{height:34px;min-width:120px;padding:0 10px;border:1px solid var(--line-2);border-radius:9px;background-color:var(--panel-2);color:var(--text);font-family:var(--body);font-size:13px}
+select option{background-color:#151a23}
+.ib{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-radius:9px;background-color:var(--panel-2);color:var(--text-dim)}
+.ib:hover{color:var(--text)}
+.ib svg{width:15px;height:15px}
+.res{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);padding-bottom:9px}
+
+/* tabla */
+.tw{border:1px solid var(--line);border-radius:12px;background-color:var(--panel);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--text-faint);text-align:left;font-weight:500;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:13px}
+tr:last-child td{border-bottom:none}
+td:nth-child(2){min-width:210px}
+tbody tr:hover{background-color:rgba(255,255,255,.02)}
+.cod{font-family:var(--mono);font-size:12px;font-weight:500}
+.nm{font-weight:600;display:flex;align-items:center;gap:8px}
+.nm svg{width:16px;height:16px}
+.sub{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);margin-top:3px;line-height:1.4}
+.bar{height:6px;border-radius:3px;background-color:var(--line);width:110px;overflow:hidden;margin-top:6px}
+.bar span{display:block;height:100%;background-color:var(--ok)}
+.bar span.w{background-color:var(--warn)}
+.bar span.g{background-color:var(--text-dim)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);color:var(--text-dim);white-space:nowrap}
+.pill svg{width:12px;height:12px}
+.pill.ok{color:var(--ok);border-color:rgba(20,184,166,.6);background-color:rgba(20,184,166,.1)}
+.pill.ambar{color:var(--text);border-color:var(--warn);background-color:rgba(223,179,90,.13)}
+.pill.ambar svg{color:var(--warn)}
+.pill.rojo{color:#fff;border-color:var(--bad);background-color:rgba(220,38,38,.25)}
+.pill.azul{color:var(--blue-bright);border-color:rgba(107,159,255,.55);background-color:var(--blue-soft)}
+.pill.gris{color:var(--text-dim)}
+.acc{display:flex;gap:6px;flex-wrap:wrap}
+.tag-ej{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);border:1px dashed var(--text-faint);border-radius:4px;padding:2px 6px}
+
+/* diálogos */
+dialog{border:1px solid var(--line-2);border-radius:14px;background-color:var(--panel);color:var(--text);padding:0;max-width:calc(100vw - 32px)}
+dialog::backdrop{background-color:rgba(4,6,10,.75)}
+.dh{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dh h2{font-family:var(--display);font-size:18px;margin:0}
+.db{padding:18px 20px}
+.df{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line)}
+#dlgForm{width:min(1120px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+#dlgConf{width:min(520px,calc(100vw - 32px))}
+.formgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px}
+.toggles{display:flex;flex-wrap:wrap;gap:18px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background-color:var(--panel-2);margin-bottom:16px}
+.swr{display:flex;align-items:center;gap:9px;font-size:13px}
+.swr.off{opacity:.45}
+.switch{position:relative;display:inline-block;width:38px;height:22px}
+.switch input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.switch .tr{position:absolute;inset:0;border-radius:11px;background-color:var(--line-2);transition:background-color .15s;pointer-events:none}
+.switch .tr::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background-color:var(--text);transition:transform .15s}
+.switch input:checked+.tr{background-color:var(--blue)}
+.switch input:checked+.tr::after{transform:translateX(16px)}
+.switch input:focus-visible+.tr{outline:2px solid var(--blue-bright);outline-offset:2px}
+.sw-open{padding:3px 8px;border-radius:7px;border:1px solid var(--blue-bright);background-color:var(--blue-soft)}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+.fld{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
+.fld label,.fld .lg{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--text-faint)}
+.fld .inp{width:100%;min-width:0}
+.req{color:var(--warn)}
+.auto{display:flex;gap:9px;align-items:center;border:1px dashed var(--line-2);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--text-dim);margin-bottom:13px}
+.auto b{color:var(--text)}
+.ses{display:grid;grid-template-columns:1fr 100px 100px 34px;gap:8px;margin-bottom:8px;align-items:center}
+.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;margin-top:6px}
+.chk.ok{color:var(--ok)}.chk.ambar{color:var(--text)}.chk.ambar svg{color:var(--warn)}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opts label{display:flex;gap:7px;align-items:center;border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;font-size:13px;font-family:var(--body);letter-spacing:0;color:var(--text);cursor:pointer}
+.opts label:has(input:checked){border-color:var(--blue-bright);background-color:var(--blue-soft)}
+.prev{border:1px solid var(--line);border-radius:12px;background-color:var(--panel-2);padding:14px;position:sticky;top:0}
+.prev h4{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-faint);margin:0 0 10px;font-weight:500;display:flex;gap:7px;align-items:center}
+.pc{position:relative;border:1px solid var(--line);border-radius:10px;background-color:var(--panel);padding:16px 14px 14px;overflow:hidden}
+.pc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background-color:var(--c,var(--blue))}
+.pc .tl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--blue-bright));display:flex;gap:7px;align-items:center}
+.pc .tl svg{width:18px;height:18px}
+.pc h5{font-family:var(--display);font-size:17px;margin:9px 0 6px}
+.pc .ln{font-size:12.5px;color:var(--text-dim);margin-top:6px;display:flex;gap:7px;align-items:flex-start}
+.pc .ln svg{width:14px;height:14px;margin-top:1px;color:var(--c,var(--blue-bright))}
+.pc .pr{font-family:var(--display);font-size:24px;font-weight:700;margin-top:10px}
+.pc .pr small{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--text-dim)}
+.pc .pr s{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--text-faint);margin-left:6px}
+.pc .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:200;background-color:var(--panel-2);border:1px solid var(--blue-bright);border-radius:9px;padding:11px 16px;font-size:13px;display:flex;gap:9px;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:calc(100vw - 32px)}
+.vacio{border:1px dashed var(--line-2);border-radius:14px;padding:28px 24px;color:var(--text-dim);line-height:1.7;font-size:13.5px}
+@media (max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.cards{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="mk"><b>Mockup · Tracking Cursos Abiertos</b> · datos de ejemplo, hoy = <b>2 nov 2026</b> · Prueba: las pestañas, las Vistas, los botones <b>Info</b>, <b>Publicar calendario</b> y <b>Nuevo grupo abierto</b> (el formulario es el de Grupos con el interruptor «¿Curso abierto?»)</div>
+<div class="app">
+<aside class="side">
+  <div class="who">Alfredo Piña<small>PANEL ADMIN</small></div>
+  <div class="grp">TRACKING</div>
+  <div class="it">Solicitudes</div><div class="it">Cotizaciones</div><div class="it">Clientes</div><div class="it">Grupos</div><div class="it">Cobranza</div>
+  <div class="it on" aria-current="page">Abiertos<span class="dot warn" title="Hay pendientes (ámbar)"></span></div>
+  <div class="grp">FORMATOS</div><div class="it">Diagnósticos</div><div class="it">Calificaciones</div><div class="it">Diplomas</div><div class="it">Encuestas</div>
+  <div class="grp">PRODUCTOS</div><div class="it">Programas</div><div class="it">Materiales</div><div class="it">Presentaciones</div>
+  <div class="grp">SITIO</div><div class="it">Personalizar</div><div class="it">Marca</div><div class="it">Modelo</div>
+</aside>
+<div>
+  <div class="top"><h1>Cursos Abiertos</h1><div class="sp"></div><span class="tb">Inicio</span><span class="tb">Alertas</span><span class="tb">Pendientes</span><span class="tb">Despierta · 41 %</span><div class="av">AP</div></div>
+  <div class="content">
+    <nav class="tabs" id="tabs" aria-label="Secciones de Cursos Abiertos"></nav>
+    <div id="vista"></div>
+  </div>
+</div>
+</div>
+
+<!-- Formulario: Grupos → Nuevo Grupo con «¿Curso abierto?» -->
+<dialog id="dlgForm" aria-labelledby="tForm">
+  <div class="dh"><h2 id="tForm">Nuevo Grupo</h2><span class="tag-ej">Ejemplo</span><div class="sp"></div><button class="ib" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="db">
+    <div class="toggles" id="toggles">
+      <div class="swr off" id="swCF"><label class="switch"><input type="checkbox" disabled aria-label="¿Hay Cliente final?"><span class="tr"></span></label><span>¿Hay Cliente final?</span></div>
+      <div class="swr off" id="swMG"><label class="switch"><input type="checkbox" disabled aria-label="¿Más de 1 Grupo?"><span class="tr"></span></label><span>¿Más de 1 Grupo?</span></div>
+      <div class="swr off" id="swCT"><label class="switch"><input type="checkbox" disabled aria-label="¿Tiene Cotización?"><span class="tr"></span></label><span>¿Tiene Cotización?</span></div>
+      <div class="swr"><label class="switch"><input type="checkbox" id="swHist" aria-label="¿Curso histórico?"><span class="tr"></span></label><span>¿Curso histórico?</span></div>
+      <div class="swr sw-open"><label class="switch"><input type="checkbox" id="swAb" checked aria-label="¿Curso abierto?"><span class="tr"></span></label><span><b>¿Curso abierto?</b></span></div>
+    </div>
+    <div class="formgrid">
+      <div id="fCol">
+        <div class="auto" id="autoCli"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Cliente: <b>Cursos Abiertos (público)</b> · automático. Las inscripciones se registran por persona; si paga una empresa, queda ligada a ella.</span></div>
+        <div class="row">
+          <div class="fld" style="flex:2"><label for="fProg">PROGRAMA ESTÁNDAR <span class="req">*</span></label><select class="inp" id="fProg"></select></div>
+          <div class="fld"><label for="fCod">CÓDIGO (sugerido)</label><input class="inp" id="fCod" autocomplete="off"></div>
+        </div>
+        <div class="row" id="progInfo"></div>
+        <div class="fld" style="margin-bottom:6px"><span class="lg">SESIONES <span class="req">*</span></span></div>
+        <div id="sesiones"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><button class="btn sm" id="addSes" type="button">+ Agregar sesión</button><div id="sumaHoras" class="chk" role="status"></div></div>
+        <div class="row">
+          <div class="fld"><span class="lg">MODALIDAD</span><div class="opts"><label><input type="radio" name="mod" value="en_linea" checked> En línea</label><label><input type="radio" name="mod" value="presencial"> Presencial</label></div></div>
+          <div class="fld" id="sedeF" hidden><label for="fSede">SEDE</label><input class="inp" id="fSede" placeholder="Ciudad y lugar"></div>
+          <div class="fld"><label for="fInst">INSTRUCTOR</label><select class="inp" id="fInst"><option>Alfredo Piña</option></select></div>
+        </div>
+        <div class="row">
+          <div class="fld"><label for="fCupo">CUPO TOTAL <span class="req">*</span></label><input class="inp" id="fCupo" type="number" min="1" value="14"></div>
+          <div class="fld"><label for="fMin">MÍNIMO PARA ABRIR <span class="req">*</span></label><input class="inp" id="fMin" type="number" min="1" value="6"></div>
+          <div class="fld"><label for="fPrecio">PRECIO POR PERSONA (MXN) <span class="req">*</span></label><input class="inp" id="fPrecio" type="number" min="0" value="3000"></div>
+        </div>
+        <div class="row">
+          <div class="fld"><label for="fPre">PRECIO DE PREVENTA (opcional)</label><input class="inp" id="fPre" type="number" min="0" placeholder="Sin preventa"></div>
+          <div class="fld"><label for="fPreF">PREVENTA HASTA</label><input class="inp" id="fPreF" type="date"></div>
+        </div>
+        <div class="fld" style="margin-bottom:13px"><label for="fTem">TEMARIO CORTO (viene del Programa; una línea por punto)</label><textarea class="inp" id="fTem" rows="3" style="height:auto;padding:9px 10px"></textarea></div>
+        <div class="fld"><span class="lg">PUBLICACIÓN</span><div class="opts"><label><input type="radio" name="pub" value="borrador" checked> Borrador (no sale al sitio)</label><label><input type="radio" name="pub" value="publicado"> Publicar al guardar</label></div></div>
+      </div>
+      <div>
+        <div class="prev"><h4><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>CÓMO SE VERÍA EN EL SITIO</h4><div id="prevCard"></div>
+          <p style="font-size:11.5px;color:var(--text-faint);line-height:1.5;margin:10px 0 0">Los estados (abierto, últimos lugares, lleno, próximamente) y «Grupo confirmado» se calculan solos con el cupo, los apartados y el mínimo; no se capturan.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="df"><button class="btn" data-cerrar type="button">Cancelar</button><button class="btn" id="gBorr" type="button">Guardar borrador</button><button class="btn pri" id="gPub" type="button">Guardar y publicar</button></div>
+</dialog>
+
+<dialog id="dlgConf" aria-labelledby="tConf">
+  <div class="dh"><h2 id="tConf">Publicar calendario</h2></div>
+  <div class="db" id="confBody"></div>
+  <div class="df"><button class="btn" data-cerrar type="button">Cancelar</button><button class="btn pri" id="confOk" type="button">Publicar ahora</button></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+  'use strict';
+  const UI = window.HERRAMIENTAS_UI || {};
+  const HOY = new Date('2026-11-02T10:42:00-06:00');
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const tool = id => UI[id] || { nombre: id, color: '#3d7fff', icon: '' };
+  const dinero = n => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+  const fd = (iso, o) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Monterrey', ...o }).format(new Date(iso));
+  const dias = iso => Math.ceil((new Date(iso) - HOY) / 86400000);
+  const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+  const SV = (p, c) => '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' + (c ? ' style="color:' + c + '"' : '') + '>' + p + '</svg>';
+  const IC = {
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    rojo: '<path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z"/><path d="M12 8v5M12 16h.01"/>',
+    ambar: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+    gris: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+    cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+    shield: '<path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/>',
+    up: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>',
+    inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    edit: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>',
+    filter: '<path d="M3 5h14l-5.5 7v6l-3 1.5V12z"/><path d="M17 15l4 4M21 15l-4 4"/>',
+    trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>'
+  };
+
+  /* ---------- datos de ejemplo (en el admin real: tablas Grupo, GrupoSesion, Inscripcion, ListaEspera) ---------- */
+  const S = (d, h1, h2) => ({ inicio: d + 'T' + h1 + ':00-06:00', fin: d + 'T' + h2 + ':00-06:00' });
+  const GRUPOS = [
+    { codigo: 'XL-1112', herr: 'excel', prog: 'Excel básico para tu trabajo', nivel: 'Básico', mod: 'en_linea', h: 12, ses: [S('2026-11-12', '18:00', '21:00'), S('2026-11-14', '09:00', '12:00'), S('2026-11-19', '18:00', '21:00'), S('2026-11-21', '09:00', '12:00')], precio: 1500, pre: null, preF: null, cupo: 12, conf: 3, apt: 1, aptV: 0, min: 6, pub: 'publicado', fase: 'Por iniciar', espera: 0, sinPub: false },
+    { codigo: 'IA-1207', herr: 'ia', prog: 'IA aplicada a tu trabajo diario', nivel: 'Básico', mod: 'en_linea', h: 12, ses: [S('2026-12-07', '18:00', '21:00'), S('2026-12-09', '18:00', '21:00'), S('2026-12-11', '18:00', '21:00'), S('2026-12-14', '18:00', '21:00')], precio: 3000, pre: 2500, preF: '2026-11-27', cupo: 14, conf: 7, apt: 2, aptV: 1, min: 6, pub: 'publicado', fase: 'Por iniciar', espera: 2, sinPub: false },
+    { codigo: 'BI-0112', herr: 'powerbi', prog: 'Power BI: tu primer tablero', nivel: 'Básico', mod: 'en_linea', h: 12, ses: [S('2027-01-12', '18:00', '21:00'), S('2027-01-14', '18:00', '21:00'), S('2027-01-19', '18:00', '21:00'), S('2027-01-21', '18:00', '21:00')], precio: 3000, pre: null, preF: null, cupo: 10, conf: 9, apt: 1, aptV: 0, min: 6, pub: 'publicado', fase: 'Por iniciar', espera: 3, sinPub: false },
+    { codigo: 'XL-0116', herr: 'excel', prog: 'Excel para analizar y reportar', nivel: 'Intermedio', mod: 'presencial', sede: 'Monterrey, N.L. (sede de ejemplo)', h: 16, ses: [S('2027-01-16', '09:00', '17:00'), S('2027-01-23', '09:00', '17:00')], precio: 2000, pre: 1800, preF: '2026-12-18', cupo: 12, conf: 8, apt: 1, aptV: 0, min: 6, pub: 'publicado', fase: 'Por iniciar', espera: 0, sinPub: true },
+    { codigo: 'IA-FEB27', herr: 'ia', prog: 'IA aplicada: automatiza tus procesos', nivel: 'Avanzado', mod: 'en_linea', h: 12, ses: [], mes: 'Febrero 2027', precio: 3500, pre: null, preF: null, cupo: 14, conf: 0, apt: 0, aptV: 0, min: 6, pub: 'publicado', fase: 'Por iniciar', espera: 5, sinPub: false },
+    { codigo: 'BI-0302', herr: 'powerbi', prog: 'Power BI intermedio: medidas y modelo', nivel: 'Intermedio', mod: 'en_linea', h: 12, ses: [S('2027-03-02', '18:00', '21:00'), S('2027-03-04', '18:00', '21:00'), S('2027-03-09', '18:00', '21:00'), S('2027-03-11', '18:00', '21:00')], precio: 3000, pre: null, preF: null, cupo: 10, conf: 0, apt: 0, aptV: 0, min: 6, pub: 'borrador', fase: 'Por iniciar', espera: 0, sinPub: false },
+    { codigo: 'XL-1019', herr: 'excel', prog: 'Excel básico para tu trabajo', nivel: 'Básico', mod: 'en_linea', h: 12, ses: [S('2026-10-05', '18:00', '21:00'), S('2026-10-07', '18:00', '21:00'), S('2026-10-12', '18:00', '21:00'), S('2026-10-14', '18:00', '21:00')], precio: 1500, pre: null, preF: null, cupo: 12, conf: 10, apt: 0, aptV: 0, min: 6, pub: 'publicado', fase: 'Calificaciones', espera: 0, sinPub: false, pasado: true }
+  ];
+  const INSCR = [
+    { n: 'Ana Ejemplo', c: 'ana@ejemplo.test', g: 'IA-1207', paga: 'yo', est: 'confirmada', pago: 'pagado', fac: false, src: 'linkedin · post · ia-dic', cxc: 'CxC-EJ-014' },
+    { n: 'Beto Ejemplo', c: 'beto@ejemplo.test', g: 'IA-1207', paga: 'empresa', emp: 'Empresa Ejemplo SA', est: 'confirmada', pago: 'pagado', fac: true, src: 'correo · rh · ia-dic', cxc: 'CxC-EJ-015' },
+    { n: 'Carla Ejemplo', c: 'carla@ejemplo.test', g: 'IA-1207', paga: 'empresa', emp: 'Industrias Ejemplo', est: 'apartada', pago: 'pendiente', fac: true, hasta: '2026-11-03T18:00:00-06:00', src: 'correo · rh · ia-dic', cxc: 'CxC-EJ-016' },
+    { n: 'Diego Ejemplo', c: 'diego@ejemplo.test', g: 'IA-1207', paga: 'empresa', emp: 'Industrias Ejemplo', est: 'apartada', pago: 'pendiente', fac: true, hasta: '2026-11-03T18:00:00-06:00', src: 'correo · rh · ia-dic', cxc: 'CxC-EJ-016' },
+    { n: 'Elena Ejemplo', c: 'elena@ejemplo.test', g: 'IA-1207', paga: 'yo', est: 'apartada', pago: 'pendiente', fac: false, hasta: '2026-11-02T05:00:00-06:00', src: 'linkedin · post · ia-dic', cxc: 'CxC-EJ-017' },
+    { n: 'Fabio Ejemplo', c: 'fabio@ejemplo.test', g: 'XL-0116', paga: 'empresa', emp: 'Empresa Ejemplo SA', est: 'apartada', pago: 'pendiente', fac: true, hasta: '2026-11-03T17:00:00-06:00', src: 'directo', cxc: 'CxC-EJ-018' },
+    { n: 'Gina Ejemplo', c: 'gina@ejemplo.test', g: 'XL-1112', paga: 'yo', est: 'confirmada', pago: 'pagado', fac: false, src: 'linkedin · post · xl-nov', cxc: 'CxC-EJ-012' },
+    { n: 'Hugo Ejemplo', c: 'hugo@ejemplo.test', g: 'BI-0112', paga: 'yo', est: 'confirmada', pago: 'pagado', fac: false, src: 'correo · lista · bi-ene', cxc: 'CxC-EJ-013' },
+    { n: 'Iris Ejemplo', c: 'iris@ejemplo.test', g: 'BI-0112', paga: 'empresa', emp: 'Industrias Ejemplo', est: 'cancelada', pago: 'reembolsado', fac: true, src: 'correo · rh · bi-ene', cxc: 'CxC-EJ-011' }
+  ];
+  const ESPERA = [
+    { n: 'Jaime Ejemplo', c: 'jaime@ejemplo.test', herr: 'ia', paga: 'yo', ref: 'IA-FEB27', f: '2026-11-01', src: 'linkedin · post · ia-dic', est: 'nueva' },
+    { n: 'Karla Ejemplo', c: 'karla@ejemplo.test', herr: 'ia', paga: 'empresa', ref: null, f: '2026-10-31', src: 'correo · rh · ia-dic', est: 'nueva' },
+    { n: 'Luis Ejemplo', c: 'luis@ejemplo.test', herr: 'powerbi', paga: 'yo', ref: 'BI-0112', f: '2026-10-30', src: 'directo', est: 'nueva' },
+    { n: 'Marta Ejemplo', c: 'marta@ejemplo.test', herr: 'powerbi', paga: 'yo', ref: 'BI-0112', f: '2026-10-29', src: 'directo', est: 'nueva' },
+    { n: 'Nora Ejemplo', c: 'nora@ejemplo.test', herr: 'excel', paga: 'empresa', ref: null, f: '2026-10-22', src: 'correo · rh · xl-nov', est: 'avisada' },
+    { n: 'Oscar Ejemplo', c: 'oscar@ejemplo.test', herr: 'ia', paga: 'yo', ref: 'IA-FEB27', f: '2026-10-18', src: 'linkedin · post · ia-dic', est: 'descartada' }
+  ];
+
+  /* ---------- derivación (la misma lógica que el sitio público) ---------- */
+  function der(g) {
+    const libres = Math.max(0, g.cupo - g.conf - g.apt);
+    const inicia = g.ses.length ? g.ses[0].inicio : null;
+    const di = inicia ? dias(inicia) : null;
+    const confirmado = g.conf >= g.min, faltan = Math.max(0, g.min - g.conf);
+    let estado = !g.ses.length ? 'proximamente' : libres <= 0 ? 'lleno' : libres <= 3 ? 'ultimos' : 'abierto';
+    const preDias = g.pre != null && g.preF ? Math.ceil((new Date(g.preF + 'T23:59:59-06:00') - HOY) / 86400000) : null;
+    // semáforo del grupo (ícono + texto, nunca solo color)
+    let sem;
+    if (g.pub === 'borrador') sem = { n: 'gris', t: 'Borrador' };
+    else if (g.pasado) sem = { n: 'gris', t: 'Impartido' };
+    else if (!g.ses.length) sem = { n: 'gris', t: 'Sin fecha' };
+    else if (!confirmado && di <= 14) sem = { n: 'rojo', t: 'Sin mínimo · inicia en ' + plural(di, 'día', 'días') };
+    else if (g.aptV > 0) sem = { n: 'ambar', t: plural(g.aptV, 'apartado vencido', 'apartados vencidos') };
+    else if (preDias != null && preDias >= 0 && preDias <= 7) sem = { n: 'ambar', t: 'Preventa vence en ' + plural(preDias, 'día', 'días') };
+    else if (!confirmado && di <= 30) sem = { n: 'ambar', t: 'Faltan ' + faltan + ' para el mínimo' };
+    else sem = { n: 'ok', t: 'En orden' };
+    return { g, libres, estado, confirmado, faltan, di, preDias, sem };
+  }
+  const D = GRUPOS.map(der);
+  const ESTADO_TXT = { abierto: 'Inscripciones abiertas', ultimos: 'Últimos lugares', lleno: 'Lleno', proximamente: 'Próximamente' };
+  const semPill = s => '<span class="pill ' + s.n + '">' + SV(IC[s.n]) + esc(s.t) + '</span>';
+
+  /* ---------- estado de la UI ---------- */
+  let tab = 'cal', vista = 'activos', publicado = { hace: 'hace 2 h', cambios: ['XL-0116 (cupo)'] };
+  const F = { herr: '', mes: '', mod: '', grupo: '', paga: '' };
+  let pendientesCola = 3;
+  function toast(t) { const e = $('#toast'); e.innerHTML = SV(IC.info) + '<span>' + esc(t) + '</span>'; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, 3800); }
+
+  /* ---------- pestañas ---------- */
+  function pintarTabs() {
+    const n = { cal: D.filter(d => d.g.pub !== 'cancelado' && !d.g.pasado).length, ins: INSCR.length, esp: ESPERA.filter(e => e.est === 'nueva').length };
+    $('#tabs').innerHTML = [['cal', 'Calendario'], ['ins', 'Inscripciones'], ['esp', 'Lista de espera']].map(([k, t]) => '<button class="t' + (tab === k ? ' on' : '') + '" data-tab="' + k + '" ' + (tab === k ? 'aria-current="page"' : '') + '>' + t + ' <small>' + n[k] + '</small></button>').join('');
+  }
+
+  const infoBtn = (id, txt) => '<span class="pop-w"><button class="info" data-pop="' + id + '" aria-expanded="false">' + SV(IC.info) + txt + '</button><div class="pop" id="' + id + '" hidden></div></span>';
+  const POPS = {
+    popSem: '<h3>Info Semáforo</h3><div class="li">' + SV(IC.rojo, 'var(--bad-text)') + '<span><b>Rojo (urgente):</b> el grupo no llega al mínimo y faltan 14 días o menos para iniciar. Hay que decidir: mover o cancelar.</span></div><div class="li">' + SV(IC.ambar, 'var(--warn)') + '<span><b>Ámbar (atención):</b> hay apartados vencidos, la preventa vence en 7 días o menos, o faltan 30 días o menos y aún no llega al mínimo.</span></div><div class="li">' + SV(IC.ok, 'var(--ok)') + '<span><b>Verde-azulado (en orden):</b> sin pendientes.</span></div><div class="li">' + SV(IC.gris, 'var(--text-faint)') + '<span><b>Gris:</b> borrador, sin fecha o ya impartido.</span></div><div class="li">' + SV(IC.info) + '<span>Los umbrales de 14, 30 y 7 días y las 48 h del apartado se leerán de Configuración → Alertas, no se escriben en el HTML.</span></div>',
+    popFases: '<h3>Info Fases</h3><div class="li">' + SV(IC.edit) + '<span><b>Publicación</b> (solo cursos abiertos): Borrador → Publicado → Cancelado. Solo lo publicado sale al sitio, y solo cuando pulsas «Publicar calendario».</span></div><div class="li">' + SV(IC.users) + '<span><b>Fase del grupo</b> (la de siempre): Por iniciar → En curso → Proyecto → Calificaciones → Diplomas → Cerrado. Las calificaciones, diplomas y encuestas usan el mismo flujo que In Company.</span></div><div class="li">' + SV(IC.inbox) + '<span><b>Inscripción:</b> Apartada → Confirmada (al registrar el pago en Cobranza) · Apartada → Vencida · Cancelada.</span></div>'
+  };
+
+  /* ---------- Calendario ---------- */
+  function vistaCal() {
+    const act = D.filter(d => d.g.pub !== 'cancelado' && !d.g.pasado);
+    const libresHoy = act.filter(d => d.g.pub === 'publicado').reduce((a, d) => a + d.libres, 0);
+    const prox = act.filter(d => d.g.pub === 'publicado' && d.g.ses.length).sort((a, b) => a.di - b.di)[0];
+    const porCobrar = INSCR.filter(i => i.est === 'apartada').length;
+    const espNuevas = ESPERA.filter(e => e.est === 'nueva').length;
+    const alertas = [];
+    D.filter(d => d.sem.n === 'rojo').forEach(d => alertas.push('<div class="al rojo">' + SV(IC.rojo, 'var(--bad-text)') + '<span><b>' + d.g.codigo + '</b> · ' + esc(d.sem.t) + ' (' + d.g.conf + ' de ' + d.g.min + ' confirmados)</span><span class="sp"></span><button class="btn sm" data-fake="Abriría el grupo ' + d.g.codigo + '">Ver grupo</button></div>'));
+    const venc = INSCR.filter(i => i.est === 'apartada' && new Date(i.hasta) < HOY);
+    if (venc.length) alertas.push('<div class="al ambar">' + SV(IC.ambar, 'var(--warn)') + '<span><b>' + plural(venc.length, 'apartado vencido', 'apartados vencidos') + '</b> sin pago · tú decides si liberas el lugar</span><span class="sp"></span><button class="btn sm" data-goto="ins">Ver inscripciones</button></div>');
+    D.filter(d => d.preDias != null && d.preDias >= 0 && d.preDias <= 7 && d.g.pub === 'publicado').forEach(d => alertas.push('<div class="al ambar">' + SV(IC.ambar, 'var(--warn)') + '<span>La preventa de <b>' + d.g.codigo + '</b> vence en ' + plural(d.preDias, 'día', 'días') + '</span></div>'));
+    const grupo = (v) => D.filter(d => {
+      if (v === 'activos') return d.g.pub !== 'cancelado' && !d.g.pasado;
+      if (v === 'borr') return d.g.pub === 'borrador';
+      if (v === 'pub') return d.g.pub === 'publicado' && !d.g.pasado;
+      if (v === 'cerr') return d.g.pasado;
+      if (v === 'canc') return d.g.pub === 'cancelado';
+      return true;
+    });
+    const filas = grupo(vista).filter(d => (!F.herr || d.g.herr === F.herr) && (!F.mod || d.g.mod === F.mod) && (!F.mes || (d.g.ses.length ? fd(d.g.ses[0].inicio, { month: 'long', year: 'numeric' }) : d.g.mes || '').toLowerCase() === F.mes.toLowerCase()))
+      .sort((a, b) => (a.g.ses.length ? new Date(a.g.ses[0].inicio) : 9e15) - (b.g.ses.length ? new Date(b.g.ses[0].inicio) : 9e15));
+    const meses = Array.from(new Set(D.map(d => (d.g.ses.length ? fd(d.g.ses[0].inicio, { month: 'long', year: 'numeric' }) : d.g.mes || '')).filter(Boolean)));
+    const cnt = v => grupo(v).length;
+    const tabla = filas.map(d => {
+      const g = d.g, t = tool(g.herr), ocup = g.conf + g.apt, pc = Math.min(100, Math.round(ocup / g.cupo * 100));
+      const fechas = g.ses.length ? fd(g.ses[0].inicio, { day: 'numeric', month: 'short' }) + (g.ses.length > 1 ? ' – ' + fd(g.ses[g.ses.length - 1].inicio, { day: 'numeric', month: 'short', year: 'numeric' }) : ' ' + fd(g.ses[0].inicio, { year: 'numeric' })) : (g.mes || 'Por definir');
+      const pubPill = g.pub === 'publicado' ? '<span class="pill ok">' + SV(IC.ok) + 'Publicado</span>' : g.pub === 'borrador' ? '<span class="pill gris">' + SV(IC.edit) + 'Borrador</span>' : '<span class="pill gris">' + SV(IC.ban) + 'Cancelado</span>';
+      const sinPub = g.sinPub ? '<div class="sub">' + SV(IC.up, 'var(--blue-bright)') + ' cambios sin publicar</div>' : '';
+      const mini = g.pub === 'borrador' ? '—' : d.confirmado ? '<span class="pill ok">' + SV(IC.shield) + 'Confirmado</span>' : g.ses.length ? '<span class="pill gris">' + SV(IC.users) + 'Faltan ' + d.faltan + '</span>' : '—';
+      return '<tr><td><span class="cod">' + esc(g.codigo) + '</span></td>' +
+        '<td><div class="nm"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(g.prog) + '</div><div class="sub">' + esc(t.nombre) + ' · ' + esc(g.nivel) + ' · ' + g.h + ' h</div></td>' +
+        '<td>' + esc(fechas) + '<div class="sub">' + (g.mod === 'presencial' ? SV(IC.pin) + ' Presencial' : SV(IC.monitor) + ' En línea') + '</div></td>' +
+        '<td>' + (g.pub === 'borrador' ? '<span class="sub">0 de ' + g.cupo + '</span>' : '<b>' + g.conf + '</b> conf. · ' + g.apt + ' apart.' + (g.aptV ? ' <span class="pill ambar" style="padding:1px 7px">' + SV(IC.ambar) + g.aptV + ' vencido</span>' : '') + '<div class="sub">' + (d.libres ? 'Quedan ' + d.libres + ' de ' + g.cupo : 'Lleno · ' + g.cupo) + (g.espera ? ' · ' + g.espera + ' en espera' : '') + '</div><div class="bar" aria-hidden="true"><span class="' + (d.estado === 'lleno' ? 'g' : d.estado === 'ultimos' ? 'w' : '') + '" style="width:' + pc + '%"></span></div>') + '</td>' +
+        '<td>' + mini + '</td>' +
+        '<td>' + dinero(g.precio) + (g.pre != null ? '<div class="sub">Preventa ' + dinero(g.pre) + ' hasta ' + fd(g.preF + 'T12:00:00-06:00', { day: 'numeric', month: 'short' }) + '</div>' : '') + '</td>' +
+        '<td>' + pubPill + sinPub + (g.pub === 'publicado' && !g.pasado ? '<div class="sub">Sitio: ' + esc(ESTADO_TXT[d.estado]) + '</div>' : '') + '</td>' +
+        '<td><span class="pill azul">' + esc(g.fase) + '</span></td>' +
+        '<td>' + semPill(d.sem) + '</td>' +
+        '<td><div class="acc"><button class="btn sm" data-fake="Abriría el grupo ' + g.codigo + ' con sus inscritos">' + SV(IC.eye) + 'Ver</button><button class="btn sm" data-fake="Editaría ' + g.codigo + ' (formulario de Grupos)">' + SV(IC.edit) + 'Editar</button>' + (g.pub === 'borrador' ? '<button class="btn sm" data-fake="Publicaría ' + g.codigo + ' en el próximo «Publicar calendario»">' + SV(IC.up) + 'Publicar</button>' : '') + '</div></td></tr>';
+    }).join('');
+    return '<div class="cards">' +
+      '<div class="card"><div class="k">' + SV(IC.cal) + 'PRÓXIMO INICIO</div><div class="v">' + (prox ? 'En ' + prox.di + ' días' : '—') + '</div><div class="s">' + (prox ? esc(prox.g.codigo) + ' · ' + esc(tool(prox.g.herr).nombre) : 'Sin fechas') + '</div></div>' +
+      '<div class="card"><div class="k">' + SV(IC.users) + 'LUGARES LIBRES HOY</div><div class="v">' + libresHoy + '</div><div class="s">En los grupos publicados</div></div>' +
+      '<div class="card"><div class="k">' + SV(IC.cash) + 'APARTADOS SIN PAGO</div><div class="v">' + porCobrar + '</div><div class="s">' + venc.length + ' vencido' + (venc.length === 1 ? '' : 's') + ' · pasan a Cobranza</div></div>' +
+      '<div class="card"><div class="k">' + SV(IC.bell) + 'LISTA DE ESPERA</div><div class="v">' + espNuevas + '</div><div class="s">Nuevas · IA aplicada es la que más piden</div></div></div>' +
+      '<div class="pub"><span class="tx">' + SV(IC.up, 'var(--blue-bright)') + 'Calendario publicado en el sitio <b>' + publicado.hace + '</b>.</span>' +
+      (publicado.cambios.length ? '<span class="pill ambar">' + SV(IC.ambar) + plural(publicado.cambios.length, 'cambio sin publicar', 'cambios sin publicar') + ': ' + esc(publicado.cambios.join(', ')) + '</span>' : '<span class="pill ok">' + SV(IC.ok) + 'Todo publicado</span>') +
+      '<span class="sp" style="flex:1"></span><button class="btn" data-fake="Abriría la página real /cursos-abiertos">' + SV(IC.link) + 'Ver en el sitio</button><button class="btn pri" id="btnPub">' + SV(IC.up) + 'Publicar calendario</button></div>' +
+      (alertas.length ? '<div class="alerta" role="region" aria-label="Alertas de Cursos Abiertos">' + alertas.join('') + '</div>' : '') +
+      '<div class="vistas"><span class="lb">' + SV(IC.cal) + 'VISTAS</span><div class="seg" role="group" aria-label="Vistas del calendario">' +
+        [['activos', 'Activos'], ['pub', 'Publicados'], ['borr', 'Borradores'], ['cerr', 'Impartidos'], ['canc', 'Cancelados'], ['todos', 'Todos']].map(([k, t]) => '<button data-v="' + k + '" class="' + (vista === k ? 'on' : '') + '" aria-pressed="' + (vista === k) + '">' + t + ' <small>' + cnt(k) + '</small></button>').join('') + '</div><span class="sp" style="flex:1"></span>' + infoBtn('popSem', 'Info Semáforo') + infoBtn('popFases', 'Info Fases') + '</div>' +
+      '<div class="filtros"><div class="fl"><label for="fHerr">HERRAMIENTA</label><select class="sel" id="fHerr" data-f="herr"><option value="">Todas</option>' + ['ia', 'excel', 'powerbi'].map(k => '<option value="' + k + '"' + (F.herr === k ? ' selected' : '') + '>' + esc(tool(k).nombre) + '</option>').join('') + '</select></div>' +
+      '<div class="fl"><label for="fMes">MES DE INICIO</label><select class="sel" id="fMes" data-f="mes"><option value="">Todos</option>' + meses.map(m => '<option value="' + esc(m) + '"' + (F.mes === m ? ' selected' : '') + '>' + esc(m.charAt(0).toUpperCase() + m.slice(1)) + '</option>').join('') + '</select></div>' +
+      '<div class="fl"><label for="fMod">MODALIDAD</label><select class="sel" id="fMod" data-f="mod"><option value="">Todas</option><option value="en_linea"' + (F.mod === 'en_linea' ? ' selected' : '') + '>En línea</option><option value="presencial"' + (F.mod === 'presencial' ? ' selected' : '') + '>Presencial</option></select></div>' +
+      '<div class="fl"><label>&nbsp;</label><div style="display:flex;gap:8px"><button class="ib" id="fLimp" aria-label="Limpiar filtros" title="Limpiar filtros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + IC.filter + '</svg></button><button class="ib" data-fake="Actualizado (hoy 10:42)" aria-label="Actualizar" title="Actualizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + IC.refresh + '</svg></button></div></div>' +
+      '<span class="sp" style="flex:1"></span><div class="fl"><label>&nbsp;</label><button class="btn pri" id="btnNuevo">' + SV(IC.plus) + 'Nuevo grupo abierto</button></div></div>' +
+      '<div class="res" role="status" aria-live="polite">' + plural(filas.length, 'resultado', 'resultados') + '</div>' +
+      (filas.length ? '<div class="tw"><table><thead><tr><th>CÓDIGO</th><th>CURSO</th><th>FECHAS</th><th>CUPO</th><th>MÍNIMO</th><th>PRECIO</th><th>PUBLICACIÓN</th><th>FASE</th><th>SEMÁFORO</th><th>ACCIONES</th></tr></thead><tbody>' + tabla + '</tbody></table></div>' : '<div class="vacio"><b>Sin grupos con estos filtros.</b><br>Crea uno con «Nuevo grupo abierto» o limpia los filtros.</div>');
+  }
+
+  /* ---------- Inscripciones ---------- */
+  let vIns = 'todas';
+  function vistaIns() {
+    const venc = i => i.est === 'apartada' && new Date(i.hasta) < HOY;
+    const match = (i, v) => v === 'todas' || (v === 'apartadas' && i.est === 'apartada' && !venc(i)) || (v === 'vencidas' && venc(i)) || (v === 'confirmadas' && i.est === 'confirmada') || (v === 'canceladas' && i.est === 'cancelada');
+    const filas = INSCR.filter(i => match(i, vIns) && (!F.grupo || i.g === F.grupo) && (!F.paga || i.paga === F.paga));
+    const cnt = v => INSCR.filter(i => match(i, v)).length;
+    const estPill = i => venc(i) ? '<span class="pill ambar">' + SV(IC.ambar) + 'Apartada · vencida</span>' : i.est === 'apartada' ? '<span class="pill azul">' + SV(IC.clock) + 'Apartada</span>' : i.est === 'confirmada' ? '<span class="pill ok">' + SV(IC.ok) + 'Confirmada</span>' : '<span class="pill gris">' + SV(IC.ban) + 'Cancelada</span>';
+    const pagoPill = i => i.pago === 'pagado' ? '<span class="pill ok">' + SV(IC.cash) + 'Pagado</span>' : i.pago === 'reembolsado' ? '<span class="pill gris">' + SV(IC.refresh) + 'Reembolsado</span>' : '<span class="pill ambar">' + SV(IC.clock) + 'Pendiente</span>';
+    const hasta = i => { if (i.est !== 'apartada') return '—'; const h = Math.round((new Date(i.hasta) - HOY) / 3600000); return h < 0 ? 'Venció hace ' + plural(-h, 'hora', 'horas') : 'En ' + plural(h, 'hora', 'horas'); };
+    const tabla = filas.map(i => '<tr><td><div class="nm">' + esc(i.n) + '</div><div class="sub">' + esc(i.c) + '</div></td><td><span class="cod">' + esc(i.g) + '</span></td>' +
+      '<td>' + (i.paga === 'yo' ? 'Él/ella mismo(a)' : esc(i.emp)) + '<div class="sub">' + (i.fac ? 'Con factura' : 'Sin factura') + '</div></td><td>' + estPill(i) + '</td><td>' + pagoPill(i) + '</td><td>' + hasta(i) + '</td><td><span class="sub" style="margin:0">' + esc(i.src) + '</span></td>' +
+      '<td><button class="btn sm" data-fake="Abriría ' + i.cxc + ' en Cobranza">' + SV(IC.link) + i.cxc + '</button></td>' +
+      '<td><div class="acc">' + (i.est === 'apartada' ? '<button class="btn sm" data-fake="Registrarías el pago en Cobranza; la inscripción pasaría a Confirmada">' + SV(IC.cash) + 'Registrar pago</button><button class="btn sm dang" data-fake="Liberarías el lugar (confirmarAccion)">Liberar</button>' : i.est === 'confirmada' ? '<button class="btn sm dang" data-fake="Cancelar inscripción (confirmarAccion)">Cancelar</button>' : '—') + '</div></td></tr>').join('');
+    return '<div class="alerta"><div class="al info">' + SV(IC.inbox, 'var(--blue-bright)') + '<span><b>' + plural(pendientesCola, 'envío pendiente', 'envíos pendientes') + '</b> en la cola del sitio (2 inscripciones, 1 lista de espera)</span><span class="sp"></span><button class="btn sm pri" id="btnImp">Importar ahora</button></div></div>' +
+      '<div class="vistas"><span class="lb">' + SV(IC.users) + 'VISTAS</span><div class="seg" role="group" aria-label="Vistas de inscripciones">' +
+      [['todas', 'Todas'], ['apartadas', 'Apartadas'], ['vencidas', 'Vencidas'], ['confirmadas', 'Confirmadas'], ['canceladas', 'Canceladas']].map(([k, t]) => '<button data-vi="' + k + '" class="' + (vIns === k ? 'on' : '') + '" aria-pressed="' + (vIns === k) + '">' + t + ' <small>' + cnt(k) + '</small></button>').join('') + '</div></div>' +
+      '<div class="filtros"><div class="fl"><label for="fGr">GRUPO</label><select class="sel" id="fGr" data-f="grupo"><option value="">Todos</option>' + D.filter(d => d.g.pub !== 'borrador').map(d => '<option value="' + d.g.codigo + '"' + (F.grupo === d.g.codigo ? ' selected' : '') + '>' + d.g.codigo + '</option>').join('') + '</select></div>' +
+      '<div class="fl"><label for="fPg">QUIÉN PAGA</label><select class="sel" id="fPg" data-f="paga"><option value="">Todos</option><option value="yo"' + (F.paga === 'yo' ? ' selected' : '') + '>La persona</option><option value="empresa"' + (F.paga === 'empresa' ? ' selected' : '') + '>Su empresa</option></select></div>' +
+      '<div class="fl"><label>&nbsp;</label><button class="ib" id="fLimp" aria-label="Limpiar filtros" title="Limpiar filtros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + IC.filter + '</svg></button></div>' +
+      '<span class="sp" style="flex:1"></span><div class="fl"><label>&nbsp;</label><button class="btn" data-fake="Alta manual de una inscripción (por WhatsApp, por ejemplo)">' + SV(IC.plus) + 'Alta manual</button></div></div>' +
+      '<div class="res" role="status" aria-live="polite">' + plural(filas.length, 'resultado', 'resultados') + '</div>' +
+      '<div class="tw"><table><thead><tr><th>PERSONA</th><th>GRUPO</th><th>QUIÉN PAGA</th><th>ESTADO</th><th>PAGO</th><th>APARTADO</th><th>ORIGEN (UTM)</th><th>COBRANZA</th><th>ACCIONES</th></tr></thead><tbody>' + (tabla || '<tr><td colspan="9">Sin resultados.</td></tr>') + '</tbody></table></div>';
+  }
+
+  /* ---------- Lista de espera ---------- */
+  let vEsp = 'nueva';
+  function vistaEsp() {
+    const filas = ESPERA.filter(e => (vEsp === 'todas' || e.est === vEsp));
+    const cnt = v => ESPERA.filter(e => v === 'todas' || e.est === v).length;
+    const porHerr = ['ia', 'powerbi', 'excel'].map(k => ({ k, n: ESPERA.filter(e => e.herr === k && e.est === 'nueva').length })).filter(x => x.n);
+    const estPill = e => e.est === 'nueva' ? '<span class="pill azul">' + SV(IC.bell) + 'Nueva</span>' : e.est === 'avisada' ? '<span class="pill ok">' + SV(IC.mail) + 'Avisada</span>' : '<span class="pill gris">' + SV(IC.ban) + 'Descartada</span>';
+    return '<div class="alerta"><div class="al info">' + SV(IC.bell, 'var(--blue-bright)') + '<span><b>Demanda sin grupo:</b> ' + porHerr.map(x => esc(tool(x.k).nombre) + ' ' + x.n).join(' · ') + ' en espera. Con 6 o más de una herramienta ya conviene abrir fecha.</span></div></div>' +
+      '<div class="vistas"><span class="lb">' + SV(IC.bell) + 'VISTAS</span><div class="seg" role="group" aria-label="Vistas de la lista de espera">' +
+      [['nueva', 'Nuevas'], ['avisada', 'Avisadas'], ['descartada', 'Descartadas'], ['todas', 'Todas']].map(([k, t]) => '<button data-ve="' + k + '" class="' + (vEsp === k ? 'on' : '') + '" aria-pressed="' + (vEsp === k) + '">' + t + ' <small>' + cnt(k) + '</small></button>').join('') + '</div></div>' +
+      '<div class="res" role="status" aria-live="polite">' + plural(filas.length, 'resultado', 'resultados') + '</div>' +
+      '<div class="tw"><table><thead><tr><th>PERSONA</th><th>CURSO DE INTERÉS</th><th>QUIÉN PAGA</th><th>PIDIÓ AVISO DE</th><th>FECHA</th><th>ORIGEN (UTM)</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody>' +
+      filas.map(e => { const t = tool(e.herr); return '<tr><td><div class="nm">' + esc(e.n) + '</div><div class="sub">' + esc(e.c) + '</div></td><td><div class="nm"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(t.nombre) + '</div></td><td>' + (e.paga === 'yo' ? 'La persona' : 'Su empresa') + '</td><td>' + (e.ref ? '<span class="cod">' + e.ref + '</span>' : '<span class="sub" style="margin:0">Cierre de la página</span>') + '</td><td>' + fd(e.f + 'T12:00:00-06:00', { day: 'numeric', month: 'short' }) + '</td><td><span class="sub" style="margin:0">' + esc(e.src) + '</span></td><td>' + estPill(e) + '</td>' +
+        '<td><div class="acc">' + (e.est === 'nueva' ? '<button class="btn sm" data-fake="Abriría un correo para avisar a ' + esc(e.n) + ' (enviarCorreo con tipo registrado)">' + SV(IC.mail) + 'Avisar</button><button class="btn sm" data-fake="Convertiría en inscripción de un grupo con lugares">' + SV(IC.plus) + 'Inscribir</button><button class="btn sm" data-fake="Descartaría (no se borra)">Descartar</button>' : '—') + '</div></td></tr>'; }).join('') + '</tbody></table></div>';
+  }
+
+  function pintar() {
+    pintarTabs();
+    $('#vista').innerHTML = tab === 'cal' ? vistaCal() : tab === 'ins' ? vistaIns() : vistaEsp();
+  }
+
+  /* ---------- formulario de grupo abierto ---------- */
+  const PROGRAMAS = [
+    { id: 'p-ia-b', herr: 'ia', nombre: 'IA aplicada a tu trabajo diario', nivel: 'Básico', h: 12, precio: 3000, tem: ['Cómo pedirle bien las cosas a una IA', 'Resumir y redactar documentos de trabajo', 'Proyecto aplicado a tu propio trabajo'] },
+    { id: 'p-xl-i', herr: 'excel', nombre: 'Excel para analizar y reportar', nivel: 'Intermedio', h: 16, precio: 2000, tem: ['Limpieza y orden de datos', 'Tablas dinámicas y fórmulas clave', 'Proyecto aplicado a tu propio trabajo'] },
+    { id: 'p-xl-b', herr: 'excel', nombre: 'Excel básico para tu trabajo', nivel: 'Básico', h: 12, precio: 1500, tem: ['Capturar y dar formato', 'Fórmulas esenciales', 'Proyecto aplicado a tu propio trabajo'] },
+    { id: 'p-bi-b', herr: 'powerbi', nombre: 'Power BI: tu primer tablero', nivel: 'Básico', h: 12, precio: 3000, tem: ['Conectar y limpiar datos', 'Visuales y medidas básicas', 'Proyecto aplicado a tu propio trabajo'] }
+  ];
+  const sesRows = [];
+  const hrs = (a, b) => { const [h1, m1] = a.split(':').map(Number), [h2, m2] = b.split(':').map(Number); return Math.max(0, (h2 * 60 + m2 - h1 * 60 - m1) / 60); };
+  function prog() { return PROGRAMAS.find(p => p.id === $('#fProg').value); }
+  function pintarSes() {
+    $('#sesiones').innerHTML = sesRows.map((s, i) => '<div class="ses"><input class="inp" type="date" value="' + s.d + '" data-s="' + i + '" data-k="d" aria-label="Fecha de la sesión ' + (i + 1) + '"><input class="inp" type="time" value="' + s.a + '" data-s="' + i + '" data-k="a" aria-label="Inicio de la sesión ' + (i + 1) + '"><input class="inp" type="time" value="' + s.b + '" data-s="' + i + '" data-k="b" aria-label="Fin de la sesión ' + (i + 1) + '"><button class="ib" type="button" data-rs="' + i + '" aria-label="Quitar sesión ' + (i + 1) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + IC.x + '</svg></button></div>').join('');
+    const tot = sesRows.reduce((a, s) => a + (s.d ? hrs(s.a, s.b) : 0), 0), p = prog();
+    const el = $('#sumaHoras');
+    if (!p) { el.innerHTML = ''; return; }
+    const dif = p.h - tot;
+    el.className = 'chk ' + (dif === 0 ? 'ok' : 'ambar');
+    el.innerHTML = dif === 0 ? SV(IC.ok) + 'Suman ' + tot + ' h, las horas del programa.' : SV(IC.ambar) + 'Suman ' + tot + ' h de ' + p.h + ' h del programa (' + (dif > 0 ? 'faltan ' + dif : 'sobran ' + (-dif)) + ' h).';
+    prev();
+  }
+  function prev() {
+    const p = prog(); if (!p) return;
+    const t = tool(p.herr), cupo = +$('#fCupo').value || 0, min = +$('#fMin').value || 0, precio = +$('#fPrecio').value || 0, pre = +$('#fPre').value || 0, preF = $('#fPreF').value;
+    const ses = sesRows.filter(s => s.d).sort((a, b) => a.d.localeCompare(b.d));
+    const pres = $('input[name=mod]:checked').value === 'presencial';
+    const fechas = ses.length ? ses.map(s => +s.d.slice(8)).join(', ') + ' ' + new Intl.DateTimeFormat('es-MX', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(ses[ses.length - 1].d + 'T12:00:00Z')).replace('.', '') : 'Fecha por definir';
+    const hor = ses.length ? ses[0].a + '–' + ses[0].b + ' h' : '';
+    const estado = !ses.length ? 'Próximamente' : 'Inscripciones abiertas';
+    const preOk = pre && preF && new Date(preF + 'T23:59:59-06:00') >= HOY;
+    $('#prevCard').innerHTML = '<div class="pc" style="--c:' + t.color + '"><div class="tl">' + t.icon + esc(t.nombre) + '</div><h5>' + esc(p.nombre) + '</h5>' +
+      '<div class="pills"><span class="pill ' + (ses.length ? 'ok' : 'azul') + '">' + SV(ses.length ? IC.ok : IC.clock) + estado + '</span><span class="pill gris">' + SV(IC.users) + 'Faltan ' + min + ' para abrir</span></div>' +
+      '<div class="ln">' + SV(IC.cal) + esc(fechas) + '</div>' + (hor ? '<div class="ln">' + SV(IC.clock) + esc(hor) + ' · hora de Monterrey</div>' : '') +
+      '<div class="ln">' + SV(pres ? IC.pin : IC.monitor) + (pres ? 'Presencial' + ($('#fSede').value ? ' · ' + esc($('#fSede').value) : '') : 'En línea') + ' · ' + p.h + ' horas</div>' +
+      '<div class="pr">' + dinero(preOk ? pre : precio) + ' <small>MXN por persona</small>' + (preOk ? '<s>' + dinero(precio) + '</s>' : '') + '</div>' +
+      '<div class="ln">' + SV(IC.users) + 'Quedan ' + cupo + ' de ' + cupo + ' lugares</div></div>';
+  }
+  function abrirForm() {
+    const dlg = $('#dlgForm');
+    $('#fProg').innerHTML = '<option value="">Elige un programa…</option>' + PROGRAMAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre + ' · ' + tool(p.herr).nombre + ' · ' + p.nivel) + '</option>').join('');
+    $('#fProg').value = 'p-ia-b'; cargarProg();
+    sesRows.length = 0;
+    [['2027-02-08', '18:00', '21:00'], ['2027-02-10', '18:00', '21:00'], ['2027-02-15', '18:00', '21:00']].forEach(([d, a, b]) => sesRows.push({ d, a, b }));
+    $('#fCupo').value = 14; $('#fMin').value = 6; $('#fPre').value = ''; $('#fPreF').value = '';
+    pintarSes(); cod();
+    dlg._opener = document.activeElement; dlg.showModal();
+  }
+  function cargarProg() {
+    const p = prog(); if (!p) { $('#progInfo').innerHTML = ''; return; }
+    const t = tool(p.herr);
+    $('#progInfo').innerHTML = '<div class="auto" style="margin:0;flex:1"><span style="color:' + t.color + ';display:inline-flex;width:18px;height:18px">' + t.icon + '</span><span><b>' + esc(t.nombre) + '</b> · ' + esc(p.nivel) + ' · ' + p.h + ' h · se toman del Programa</span></div>';
+    $('#fPrecio').value = p.precio; $('#fTem').value = p.tem.join('\n'); pintarSes(); cod();
+  }
+  function cod() { const p = prog(); const s = sesRows.find(r => r.d); if (!p) return; const pf = { ia: 'IA', excel: 'XL', powerbi: 'BI', powerapps: 'PA', powerautomate: 'AU', ofimatica: 'M3' }[p.herr] || 'GR'; $('#fCod').value = pf + '-' + (s ? s.d.slice(5, 7) + s.d.slice(8) : 'XXXX'); }
+
+  /* ---------- eventos ---------- */
+  document.addEventListener('click', e => {
+    const t = e.target.closest('button, a'); if (!t) { cerrarPops(); return; }
+    if (t.dataset.tab) { tab = t.dataset.tab; pintar(); return; }
+    if (t.dataset.goto) { tab = t.dataset.goto; vIns = 'vencidas'; pintar(); return; }
+    if (t.dataset.v) { vista = t.dataset.v; pintar(); return; }
+    if (t.dataset.vi) { vIns = t.dataset.vi; pintar(); return; }
+    if (t.dataset.ve) { vEsp = t.dataset.ve; pintar(); return; }
+    if (t.dataset.pop) {
+      const p = $('#' + t.dataset.pop), abierto = !p.hidden; cerrarPops();
+      if (!abierto) { p.innerHTML = POPS[t.dataset.pop]; p.hidden = false; t.setAttribute('aria-expanded', 'true'); }
+      return;
+    }
+    if (t.id === 'fLimp') { Object.keys(F).forEach(k => { F[k] = ''; }); pintar(); return; }
+    if (t.id === 'btnNuevo') { abrirForm(); return; }
+    if (t.id === 'btnImp') { pendientesCola = 0; toast('Importado: 2 inscripciones y 1 lista de espera; se crearon sus cuentas por cobrar.'); $$('.alerta .al.info').forEach(a => { a.innerHTML = SV(IC.ok, 'var(--ok)') + '<span>Cola vacía. Importado hace un momento.</span>'; }); return; }
+    if (t.id === 'btnPub') {
+      $('#confBody').innerHTML = '<p style="margin:0 0 10px;color:var(--text-dim);line-height:1.6">Se actualiza la foto que lee el sitio público. Solo salen los grupos <b style="color:var(--text)">publicados</b>; no se incluye ningún dato de personas.</p><ul style="margin:0;padding-left:18px;line-height:1.8"><li>' + D.filter(d => d.g.pub === 'publicado' && !d.g.pasado).length + ' grupos publicados irán al sitio.</li><li>Cambios pendientes: ' + esc(publicado.cambios.join(', ') || 'ninguno') + '.</li><li>Los cupos del sitio se concilian con las inscripciones importadas.</li></ul>';
+      $('#dlgConf')._opener = t; $('#dlgConf').showModal(); return;
+    }
+    if (t.id === 'confOk') { publicado = { hace: 'hace un momento', cambios: [] }; D.forEach(d => { d.g.sinPub = false; }); $('#dlgConf').close(); pintar(); toast('Calendario publicado. El sitio ya muestra los cupos al día.'); return; }
+    if (t.dataset.cerrar !== undefined) { t.closest('dialog').close(); return; }
+    if (t.id === 'addSes') { const u = sesRows[sesRows.length - 1] || { d: '2027-02-08', a: '18:00', b: '21:00' }; const dt = new Date(u.d + 'T12:00:00Z'); dt.setUTCDate(dt.getUTCDate() + 7); sesRows.push({ d: dt.toISOString().slice(0, 10), a: u.a, b: u.b }); pintarSes(); return; }
+    if (t.dataset.rs !== undefined) { sesRows.splice(+t.dataset.rs, 1); pintarSes(); return; }
+    if (t.id === 'gBorr') { $('#dlgForm').close(); toast('Guardado como borrador (no sale al sitio). Mockup: no se guardó nada.'); return; }
+    if (t.id === 'gPub') { $('#dlgForm').close(); toast('Guardado y marcado como publicado; saldrá con «Publicar calendario». Mockup: no se guardó nada.'); return; }
+    if (t.dataset.fake) { toast('Mockup: ' + t.dataset.fake + '.'); return; }
+    cerrarPops();
+  });
+  function cerrarPops() { $$('.pop').forEach(p => { p.hidden = true; }); $$('[data-pop]').forEach(b => b.setAttribute('aria-expanded', 'false')); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarPops(); });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.f) { F[t.dataset.f] = t.value; pintar(); return; }
+    if (t.id === 'fProg') { cargarProg(); return; }
+    if (t.name === 'mod') { $('#sedeF').hidden = t.value !== 'presencial'; prev(); return; }
+    if (t.id === 'swAb') { const on = t.checked; ['swCF', 'swMG', 'swCT'].forEach(id => $('#' + id).classList.toggle('off', on)); $('#fCol').style.opacity = on ? 1 : .4; $('#autoCli').hidden = !on; $('#tForm').textContent = on ? 'Nuevo Grupo · Curso abierto' : 'Nuevo Grupo'; if (!on) toast('Sin «Curso abierto», este es el formulario de siempre de Grupos (Cliente, Cotización…).'); return; }
+  });
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (t.dataset.s !== undefined) { sesRows[+t.dataset.s][t.dataset.k] = t.value; pintarSes(); cod(); return; }
+    if (['fCupo', 'fMin', 'fPrecio', 'fPre', 'fPreF', 'fSede'].includes(t.id)) prev();
+  });
+  $$('dialog').forEach(d => d.addEventListener('close', () => { const o = d._opener; if (o && o.isConnected) o.focus(); }));
+  $$('dialog').forEach(d => d.addEventListener('mousedown', e => { d._down = e.target === d; }));
+  $$('dialog').forEach(d => d.addEventListener('click', e => { if (d._down && e.target === d) d.close(); d._down = false; }));
+  pintar();
+})();
+</script>
+</body></html>

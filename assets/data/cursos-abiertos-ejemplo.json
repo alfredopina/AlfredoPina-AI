@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "ejemplo": true,
+  "generado": "2026-11-02T12:00:00-06:00",
+  "ajustes": {
+    "zona_horaria": "America/Monterrey",
+    "moneda": "MXN",
+    "umbral_ultimos_lugares": 3,
+    "max_personas_por_inscripcion": 3,
+    "horas_vigencia_apartado": 48,
+    "descuento_equipo": { "desde_personas": 2, "porcentaje": 10 },
+    "temas_destacados": ["excel", "powerbi", "ia"],
+    "landing_por_herramienta": {
+      "excel": "/cursos-abiertos/excel",
+      "powerbi": "/cursos-abiertos/power-bi",
+      "ia": "/cursos-abiertos/ia"
+    }
+  },
+  "grupos": [
+    {
+      "codigo": "IA-1207",
+      "estrategia": "abiertos",
+      "empresa_id": null,
+      "programa_id": "ejemplo-prog-ia-basico",
+      "programa_nombre": "IA aplicada a tu trabajo diario",
+      "herramienta": "ia",
+      "nivel": "Básico",
+      "modalidad": "en_linea",
+      "sede": null,
+      "horas_totales": 12,
+      "sesiones": [
+        { "inicio": "2026-12-07T18:00:00-06:00", "fin": "2026-12-07T21:00:00-06:00" },
+        { "inicio": "2026-12-09T18:00:00-06:00", "fin": "2026-12-09T21:00:00-06:00" },
+        { "inicio": "2026-12-11T18:00:00-06:00", "fin": "2026-12-11T21:00:00-06:00" },
+        { "inicio": "2026-12-14T18:00:00-06:00", "fin": "2026-12-14T21:00:00-06:00" }
+      ],
+      "mes_estimado": null,
+      "precio_persona": 3000,
+      "precio_preventa": 2500,
+      "preventa_hasta": "2026-11-27",
+      "cupo_total": 14,
+      "inscritos_confirmados": 7,
+      "apartados_sin_pago": 2,
+      "minimo_para_abrir": 6,
+      "publicacion": "publicado",
+      "resumen": "Texto de ejemplo: usa IA para redactar, resumir y analizar información de tu puesto.",
+      "temario_corto": [
+        "Texto de ejemplo: cómo pedirle bien las cosas a una IA",
+        "Texto de ejemplo: resumir y redactar documentos de trabajo",
+        "Texto de ejemplo: proyecto aplicado a tu propio trabajo"
+      ],
+      "landing_url": null
+    },
+    {
+      "codigo": "XL-0116",
+      "estrategia": "abiertos",
+      "empresa_id": null,
+      "programa_id": "ejemplo-prog-excel-intermedio",
+      "programa_nombre": "Excel para analizar y reportar",
+      "herramienta": "excel",
+      "nivel": "Intermedio",
+      "modalidad": "presencial",
+      "sede": "Monterrey, N.L. (sede de ejemplo)",
+      "horas_totales": 16,
+      "sesiones": [
+        { "inicio": "2027-01-16T09:00:00-06:00", "fin": "2027-01-16T17:00:00-06:00" },
+        { "inicio": "2027-01-23T09:00:00-06:00", "fin": "2027-01-23T17:00:00-06:00" }
+      ],
+      "mes_estimado": null,
+      "precio_persona": 2000,
+      "precio_preventa": 1800,
+      "preventa_hasta": "2026-12-18",
+      "cupo_total": 12,
+      "inscritos_confirmados": 8,
+      "apartados_sin_pago": 1,
+      "minimo_para_abrir": 6,
+      "publicacion": "publicado",
+      "resumen": "Texto de ejemplo: de tablas desordenadas a un reporte listo para presentar.",
+      "temario_corto": [
+        "Texto de ejemplo: limpieza y orden de datos",
+        "Texto de ejemplo: tablas dinámicas y fórmulas clave",
+        "Texto de ejemplo: proyecto aplicado a tu propio trabajo"
+      ],
+      "landing_url": null
+    },
+    {
+      "codigo": "BI-0112",
+      "estrategia": "abiertos",
+      "empresa_id": null,
+      "programa_id": "ejemplo-prog-powerbi-basico",
+      "programa_nombre": "Power BI: tu primer tablero",
+      "herramienta": "powerbi",
+      "nivel": "Básico",
+      "modalidad": "en_linea",
+      "sede": null,
+      "horas_totales": 12,
+      "sesiones": [
+        { "inicio": "2027-01-12T18:00:00-06:00", "fin": "2027-01-12T21:00:00-06:00" },
+        { "inicio": "2027-01-14T18:00:00-06:00", "fin": "2027-01-14T21:00:00-06:00" },
+        { "inicio": "2027-01-19T18:00:00-06:00", "fin": "2027-01-19T21:00:00-06:00" },
+        { "inicio": "2027-01-21T18:00:00-06:00", "fin": "2027-01-21T21:00:00-06:00" }
+      ],
+      "mes_estimado": null,
+      "precio_persona": 3000,
+      "precio_preventa": null,
+      "preventa_hasta": null,
+      "cupo_total": 10,
+      "inscritos_confirmados": 9,
+      "apartados_sin_pago": 1,
+      "minimo_para_abrir": 6,
+      "publicacion": "publicado",
+      "resumen": "Texto de ejemplo: conecta tus datos y arma un tablero que se actualiza solo.",
+      "temario_corto": [
+        "Texto de ejemplo: conectar y limpiar datos",
+        "Texto de ejemplo: visuales y medidas básicas",
+        "Texto de ejemplo: proyecto aplicado a tu propio trabajo"
+      ],
+      "landing_url": null
+    },
+    {
+      "codigo": "IA-FEB27",
+      "estrategia": "abiertos",
+      "empresa_id": null,
+      "programa_id": "ejemplo-prog-ia-avanzado",
+      "programa_nombre": "IA aplicada: automatiza tus procesos",
+      "herramienta": "ia",
+      "nivel": "Avanzado",
+      "modalidad": "en_linea",
+      "sede": null,
+      "horas_totales": 12,
+      "sesiones": [],
+      "mes_estimado": "2027-02",
+      "precio_persona": 3500,
+      "precio_preventa": null,
+      "preventa_hasta": null,
+      "cupo_total": 14,
+      "inscritos_confirmados": 0,
+      "apartados_sin_pago": 0,
+      "minimo_para_abrir": 6,
+      "publicacion": "publicado",
+      "resumen": "Texto de ejemplo: del uso personal de la IA a flujos de trabajo repetibles.",
+      "temario_corto": [
+        "Texto de ejemplo: flujos de trabajo con IA",
+        "Texto de ejemplo: control de calidad de resultados",
+        "Texto de ejemplo: proyecto aplicado a tu propio trabajo"
+      ],
+      "landing_url": null
+    }
+  ]
+}

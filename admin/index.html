@@ -357,24 +357,27 @@
   .rs-emb-t small{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
   .rs-fila .top2 small{ font-family:var(--body); font-size:13px; font-weight:500; color:var(--text-dim); }
   /* barra simple (la del v4) con su marca de meta, más alta para que se lea la etiqueta */
-  .rs-track{ position:relative; height:36px; border-radius:18px; background-color:rgba(127,127,127,.14); margin-top:30px; }
-  .rs-track .fill{ position:absolute; left:0; top:0; bottom:0; display:flex; gap:2px; min-width:8px; border-radius:18px; box-shadow:0 0 10px rgba(61,127,255,.25); }
-  .rs-track .sg{ min-width:3px; display:flex; align-items:center; padding:0 11px; font-family:var(--mono); font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; border-radius:4px; cursor:default; }
-  .rs-track .sg:first-child{ border-radius:18px 4px 4px 18px; } .rs-track .sg:last-child{ border-radius:4px 18px 18px 4px; } .rs-track .sg:only-child{ border-radius:18px; }
+  /* barra tipo BULLET CHART: pista de 34 px y barra de valor más delgada (22 px); arranca con corte recto, los segmentos van pegados (sin huecos, cortes rectos)
+     y solo se curva el final. La meta es una muesca blanca que cruza la barra y su etiqueta va a la DERECHA, fuera de la pista: no agrega altura al panel. */
+  .rs-trk{ display:flex; align-items:center; gap:10px; margin-top:2px; }
+  .rs-track{ position:relative; flex:1; min-width:0; height:34px; border-radius:0 17px 17px 0; background-color:rgba(127,127,127,.14); }
+  .rs-track .fill{ position:absolute; left:0; top:6px; bottom:6px; display:flex; gap:0; min-width:6px; border-radius:0 11px 11px 0; box-shadow:0 0 10px rgba(61,127,255,.25); }
+  .rs-track .sg{ min-width:2px; display:flex; align-items:center; padding:0 9px; font-family:var(--mono); font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; border-radius:0; cursor:default; }
+  .rs-track .sg:last-child{ border-radius:0 11px 11px 0; }
   .rs-track .sg.t0{ background-color:#3d7fff; color:#fff; }
   .rs-track .sg.t1{ background-color:#7fb0ff; color:#0a0d12; }
   .rs-track .sg.t2{ background-color:#cfe0ff; color:#0a0d12; }
   .rs-track .sg:hover{ filter:brightness(1.1); }
   /* al rebasar la meta la barra «vive» como los demás elementos vivos del admin (late y su contorno respira), en vez de cambiar de color */
   .rs-track .fill.vibra{ animation:rs-vibra 1.8s ease-in-out infinite; }
-  .rs-track .fill.vibra::after{ content:""; position:absolute; inset:-3px; border:1px solid #3d7fff; border-radius:21px; animation:rs-lat 1.8s ease-in-out infinite; pointer-events:none; }
+  .rs-track .fill.vibra::after{ content:""; position:absolute; inset:-3px; border:1px solid #3d7fff; border-radius:0 14px 14px 0; animation:rs-lat 1.8s ease-in-out infinite; pointer-events:none; }
   @keyframes rs-vibra{ 0%,100%{ opacity:.78; box-shadow:0 0 6px rgba(61,127,255,.3); } 50%{ opacity:1; box-shadow:0 0 22px rgba(61,127,255,.85); } }
   @keyframes rs-lat{ 0%,100%{ opacity:.2; } 50%{ opacity:1; } }
   @media (prefers-reduced-motion:reduce){ .rs-track .fill.vibra{ animation:none; } .rs-track .fill.vibra::after{ animation:none; opacity:.8; } }
-  /* meta = banderín: un poste corto y una banderita con el monto, ARRIBA de la barra; no entra a la barra, así no se encima con las etiquetas */
-  .rs-track .meta{ position:absolute; bottom:100%; width:2px; height:7px; margin-left:-1px; background-color:var(--text); z-index:2; }
-  .rs-track .meta b{ position:absolute; left:0; bottom:100%; height:19px; display:flex; align-items:center; padding:0 8px 0 7px; border-radius:2px 7px 7px 2px; background-color:var(--text); color:var(--panel); font-family:var(--mono); font-size:11px; font-weight:700; white-space:nowrap; }
-  .rs-track .meta.izq b{ left:auto; right:0; padding:0 7px 0 8px; border-radius:7px 2px 2px 7px; }
+  .rs-track .meta{ position:absolute; top:2px; bottom:2px; width:4px; margin-left:-2px; border-radius:2px; background-color:var(--text); z-index:2; }
+  .rs-metal{ flex:none; width:92px; display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text); white-space:nowrap; }
+  .rs-metal i{ width:4px; height:16px; border-radius:2px; background-color:var(--text); flex:none; }
+  .rs-metal small{ font-size:10px; font-weight:500; color:var(--text-faint); }
   .rs-lg{ display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:11px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
   .rs-lg > span{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .rs-lg > span.cero{ opacity:.6; }
@@ -3476,7 +3479,7 @@
                   <div class="rs-pop" id="rsPop" hidden>
                     <h3>Cómo leer el embudo</h3>
                     <h4>BARRAS</h4>
-                    <div class="li"><span class="ej"><svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><rect x="0" y="3" width="120" height="16" rx="8" fill="rgba(127,127,127,.25)"/><rect x="0" y="3" width="70" height="16" rx="8" fill="#3d7fff"/><rect x="88" y="0" width="2" height="22" rx="1" fill="currentColor"/><circle cx="89" cy="1.5" r="3" fill="currentColor"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA (en Solicitudes, la cantidad), con la misma escala en todas. La <b>marca blanca</b> es la meta: si la barra la rebasa, la cumpliste y <b>late</b> como los elementos vivos del admin. Junto al monto, un <b>triángulo verde hacia arriba</b> dice que va sobre su meta y uno <b>rojo hacia abajo</b>, que va por debajo; al lado, la meta. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><rect x="0" y="3" width="120" height="16" rx="8" fill="rgba(127,127,127,.25)"/><rect x="0" y="3" width="70" height="16" rx="8" fill="#3d7fff"/><rect x="88" y="0" width="2" height="22" rx="1" fill="currentColor"/><circle cx="89" cy="1.5" r="3" fill="currentColor"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA (en Solicitudes, la cantidad), con la misma escala en todas. La <b>muesca blanca</b> que cruza la barra es la meta (su monto va a la derecha): si la barra la rebasa, la cumpliste y <b>late</b> como los elementos vivos del admin. Junto al monto, un <b>triángulo verde hacia arriba</b> dice que va sobre su meta y uno <b>rojo hacia abajo</b>, que va por debajo; al lado, la meta. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
                     <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="26" height="12" rx="3" fill="#3d7fff"/><rect x="42" y="2" width="26" height="12" rx="3" fill="#7fb0ff"/><rect x="84" y="2" width="26" height="12" rx="3" fill="#cfe0ff"/></svg></span><span>Cada barra se divide en <b>tonos de azul</b>, uno por parte, con su monto escrito dentro. Debajo, la <b>leyenda</b> nombra cada parte con el mismo tono, aunque valga cero: Solicitudes (sitio, manuales, sin atender), Cotizado (estándar, personalizados, consultoría), Vendido (facturado, por facturar), Facturado (cobrado, por cobrar, vencido) y Cobrado (de este mes, de meses anteriores). Un ícono de alerta marca lo pendiente o vencido.</span></div>
                     <h4>CÓMO SE CUENTA</h4>
                     <div class="li"><span class="ej"></span><span><b>Solicitudes</b>: su meta mide lo mismo que la de Cotizado (por ejemplo, 8 solicitudes ≈ $250,000), así las dos marcas quedan alineadas. <b>Facturado</b> comparte la meta de <b>Vendido</b>. <b>Vendido</b> y <b>Cobrado</b> son lo ocurrido en el mes; <b>Cotizado</b> y <b>Facturado</b>, lo enviado o emitido en el mes.</span></div>
@@ -8798,11 +8801,13 @@
       if(!partes.length && f.cur > 0) partes = [{ n: def.nombre, v: f.cur, t: 0 }];
       const tot = partes.reduce((a, s) => a + s.v, 0);
       const sg = partes.map((s) => {
-        const et = fmt(s.v), cabe = ancho * s.v / tot * 5.2 >= et.length * 8 + 22; // ~5.2 px por punto de ancho: la etiqueta solo se escribe si cabe
+        const et = fmt(s.v), cabe = ancho * s.v / tot * 4.2 >= et.length * 7.5 + 20; // ~4.2 px por punto de ancho: la etiqueta solo se escribe si cabe
         return '<div class="sg t' + s.t + '" style="flex:' + s.v + ' 1 0" data-tip="' + esc(s.n + '|' + et + (s.cnt != null ? '|' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') : '')) + '">' + (cabe ? esc(et) : '') + '</div>';
       }).join('');
-      const barra = '<div class="rs-track"><div class="fill' + (sobre ? ' vibra' : '') + '" style="width:' + ancho.toFixed(2) + '%">' + sg + '</div>' +
-        (sinMeta ? '' : '<i class="meta' + (posMeta > 82 ? ' izq' : '') + '" style="left:' + posMeta.toFixed(2) + '%" title="Meta: ' + esc(fmt(f.meta)) + '"><b>' + esc(compacto(f.meta, def.cant)) + '</b></i>') + '</div>';
+      // la etiqueta de la meta va a la derecha, FUERA de la pista (misma altura de la barra); siempre se reserva su ancho para que todas las barras midan igual
+      const barra = '<div class="rs-trk"><div class="rs-track"><div class="fill' + (sobre ? ' vibra' : '') + '" style="width:' + ancho.toFixed(2) + '%">' + sg + '</div>' +
+        (sinMeta ? '' : '<i class="meta" style="left:' + posMeta.toFixed(2) + '%" title="Meta: ' + esc(fmt(f.meta)) + '"></i>') + '</div>' +
+        '<span class="rs-metal"' + (sinMeta ? '' : ' title="Meta: ' + esc(fmt(f.meta)) + '"') + '>' + (sinMeta ? '' : '<i></i><span><small>meta</small> ' + esc(compacto(f.meta, def.cant)) + '</span>') + '</span></div>';
       const leyenda = todos.map((s) => '<span class="' + (s.v > 0 ? '' : 'cero') + '"' + (s.cnt != null ? ' title="' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '"' : '') + '><i style="background-color:' + TONOS[s.t] + '"></i>' +
         (s.mal && s.v > 0 ? '<span class="mal-i">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) +
         (s.cnt != null ? ' <b>(' + s.cnt + ')</b> <em>' + esc(fmt(s.v)) + '</em>' : ' <b>' + esc(fmt(s.v)) + '</b>') + '</span>').join('');
@@ -8841,7 +8846,7 @@
       const ctx = { eq, tope };
       const lb = m.todo ? 'ACUMULADO' : (modo === 'anio' ? (m.refs.anio || 'AÑO PASADO') : m.refs[modo] || '').toUpperCase();
       let h = '<div class="rs-emb-t"><h2>Embudo ' + (m.todo ? 'de todo el historial' : 'del mes') + '</h2><small>' + esc(m.etiquetaMes) + (m.todo ? '' : m.esActual ? ' · hasta el día ' + m.corteDia : ' · mes completo') + ' · sin IVA</small></div>';
-      h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · BANDERÍN = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
+      h += '<div class="rs-cab"><span>CONCEPTO</span><span>BARRA · MUESCA = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
       h += FILAS.map((d) => filaHtml(d, r, ctx)).join('');
       const todas = lecturas(r), paginas = Math.max(1, Math.ceil(todas.length / 3));
       if(pag >= paginas) pag = 0;

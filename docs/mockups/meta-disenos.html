@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Diseños de meta para las barras del Resumen</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--panel:#10141b;--panel-2:#151a23;--line:#1f2733;--text:#e8edf5;--dim:#9aa7b8;--faint:#6b7788;--blue:#3d7fff;--blue-bright:#6b9fff;--display:'Space Grotesk',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;padding:22px 26px 40px}
+h1{font-family:var(--display);font-size:20px;margin:0 0 4px}
+.sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:1240px}
+.card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px 18px 18px}
+.card h2{font-family:var(--display);font-size:16px;margin:0 0 2px;display:flex;align-items:center;gap:10px}
+.card h2 .n{font-family:var(--mono);font-size:11px;color:var(--blue-bright);border:1px solid var(--blue-bright);border-radius:6px;padding:1px 7px}
+.card p{margin:0 0 6px;font-size:12.5px;color:var(--dim);line-height:1.5}
+.row{margin-top:8px}
+.top{display:flex;align-items:baseline;gap:12px;margin-bottom:0}
+.vv{font-family:var(--display);font-size:24px;font-weight:700}
+.est{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+.tri{width:16px;height:16px}.tri.up{fill:#14b8a6}.tri.down{fill:#dc2626}
+/* pista y barra */
+.track{position:relative;height:36px;border-radius:18px;background:rgba(127,127,127,.14);margin-top:30px}
+.v3 .track,.v6 .track{margin-top:8px}.v2 .track,.v4 .track,.v5 .track{margin-top:10px}
+.fill{position:absolute;left:0;top:0;bottom:0;display:flex;gap:2px;border-radius:18px;box-shadow:0 0 10px rgba(61,127,255,.25)}
+.fill.vibra{animation:vib 1.8s ease-in-out infinite}
+.fill.vibra::after{content:"";position:absolute;inset:-3px;border:1px solid #3d7fff;border-radius:21px;animation:lat 1.8s ease-in-out infinite;pointer-events:none}
+@keyframes vib{0%,100%{opacity:.8;box-shadow:0 0 6px rgba(61,127,255,.3)}50%{opacity:1;box-shadow:0 0 22px rgba(61,127,255,.85)}}
+@keyframes lat{0%,100%{opacity:.2}50%{opacity:1}}
+.sg{min-width:3px;display:flex;align-items:center;padding:0 11px;font-family:var(--mono);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;border-radius:4px}
+.sg:first-child{border-radius:18px 4px 4px 18px}.sg:last-child{border-radius:4px 18px 18px 4px}
+.t0{background:#3d7fff;color:#fff}.t1{background:#7fb0ff;color:#0a0d12}.t2{background:#cfe0ff;color:#0a0d12}
+.lg{display:flex;gap:14px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:12px;height:12px;border-radius:3px}
+/* 1 · banderín (el que no te gustó, de referencia) */
+.v1 .meta{position:absolute;bottom:100%;width:2px;height:7px;margin-left:-1px;background:var(--text);z-index:2}
+.v1 .meta b{position:absolute;left:0;bottom:100%;height:19px;display:flex;align-items:center;padding:0 8px 0 7px;border-radius:2px 7px 7px 2px;background:var(--text);color:var(--panel);font-family:var(--mono);font-size:11px;font-weight:700;white-space:nowrap}
+/* 2 · muesca en la pista */
+.v2 .meta{position:absolute;top:-2px;bottom:-2px;width:5px;margin-left:-2.5px;background:var(--panel);z-index:3;border-radius:2px}
+.v2 .meta b{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11px;font-weight:600;color:var(--dim);white-space:nowrap}
+.v2 .sp{height:22px}
+/* 3 · regla de graduación */
+.v3 .reg{position:relative;height:30px;margin-top:3px}
+.v3 .reg i{position:absolute;top:0;width:1.5px;height:7px;background:var(--faint);margin-left:-.75px}
+.v3 .reg i.m{height:13px;width:2.5px;background:var(--text);margin-left:-1.25px}
+.v3 .reg b{position:absolute;top:16px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--faint);white-space:nowrap}
+.v3 .reg b.m{color:var(--text);font-weight:700;font-size:11.5px}
+/* 4 · zona de meta + lo que rebasa se ilumina */
+.v4 .zona{position:absolute;left:0;top:0;bottom:0;border-radius:18px 0 0 18px;background:rgba(127,127,127,.2);border-right:1px solid rgba(232,237,245,.35)}
+.v4 .exc{position:absolute;top:0;bottom:0;border-radius:0 18px 18px 0;background:rgba(255,255,255,.34);box-shadow:0 0 16px rgba(107,159,255,.9);z-index:2;pointer-events:none;mix-blend-mode:screen}
+.v4 .fill{z-index:1}
+.v4 .zlab{position:absolute;top:calc(100% + 6px);transform:translateX(-50%);font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap}
+.v4 .sp{height:22px}
+/* 5 · bullet chart */
+.v5 .track{height:36px}
+.v5 .fill{top:9px;bottom:9px;border-radius:9px;box-shadow:none}
+.v5 .sg{font-size:10.5px;padding:0 8px}.v5 .sg:first-child{border-radius:9px 3px 3px 9px}.v5 .sg:last-child{border-radius:3px 9px 9px 3px}
+.v5 .meta{position:absolute;top:3px;bottom:3px;width:4px;margin-left:-2px;background:var(--text);border-radius:2px;z-index:2}
+.v5 .meta b{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11px;font-weight:600;color:var(--dim);white-space:nowrap}
+.v5 .sp{height:22px}
+/* 6 · porcentaje al final */
+.v6 .pct{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12.5px;font-weight:700;white-space:nowrap}
+.v6 .pct em{font-style:normal;color:var(--dim);font-weight:500}
+</style></head><body>
+<h1>Diseños de meta para las barras</h1>
+<div class="sub">datos de ejemplo · cada diseño muestra una barra POR DEBAJO de su meta ($186,000 de $250,000) y una que la REBASA ($296,800, vibra) · el #1 es el banderín actual, de referencia</div>
+<div class="grid" id="g"></div>
+<script>
+const MAX=335000, META=250000;
+const k=(n)=>'$'+(n>=1e5?Math.round(n/1e3):(n/1e3).toFixed(1).replace(/\.0$/,''))+'k';
+const din=(n)=>'$'+n.toLocaleString('es-MX');
+const CASOS=[{tit:'Cotizado',cur:186000,seg:[120000,40000,26000]},{tit:'Cotizado',cur:296800,seg:[180000,80000,36800]}];
+const NOM=['Estándar','Personalizados','Consultoría'], TONO=['#3d7fff','#7fb0ff','#cfe0ff'];
+const TRI={up:'<svg class="tri up" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/></svg>',down:'<svg class="tri down" viewBox="0 0 24 24"><path d="M12 20 3 4h18z"/></svg>'};
+function barra(v,c){
+  const w=c.cur/MAX*100, m=META/MAX*100, sobre=c.cur>=META;
+  const sg=c.seg.map((s,i)=>{const px=w*s/c.cur*5.4;return '<div class="sg t'+i+'" style="flex:'+s+' 1 0">'+(px>=70?k(s):'')+'</div>'}).join('');
+  const fill='<div class="fill'+(sobre?' vibra':'')+'" style="width:'+w+'%">'+sg+'</div>';
+  let t='<div class="track">';
+  if(v===4) t+='<div class="zona" style="width:'+m+'%"></div>';
+  t+=fill;
+  if(v===1) t+='<i class="meta" style="left:'+m+'%"><b>'+k(META)+'</b></i>';
+  if(v===2) t+='<i class="meta" style="left:'+m+'%"><b>meta '+k(META)+'</b></i>';
+  if(v===4){ if(sobre) t+='<div class="exc" style="left:'+m+'%;width:'+(w-m)+'%"></div>'; t+='<span class="zlab" style="left:'+m+'%">meta '+k(META)+'</span>'; }
+  if(v===5) t+='<i class="meta" style="left:'+m+'%"><b>meta '+k(META)+'</b></i>';
+  if(v===6){ const p=Math.round(c.cur/META*100); t+='<span class="pct" style="left:calc('+w+'% + 12px)">'+(sobre?TRI.up:TRI.down)+' '+p+' % <em>de la meta'+(w>70?'':' de '+k(META))+'</em></span>'; }
+  t+='</div>';
+  if(v===3){ let r='<div class="reg">'; for(let i=0;i<=4;i++){const x=m*i/4; r+='<i class="'+(i===4?'m':'')+'" style="left:'+x+'%"></i>'; if(i>0) r+='<b class="'+(i===4?'m':'')+'" style="left:'+x+'%">'+(i===4?'meta '+k(META):(i*25)+' %')+'</b>';} r+='</div>'; t+=r; }
+  if(v===2||v===4||v===5) t+='<div class="sp"></div>';
+  const est='<span class="est">'+(sobre?TRI.up:TRI.down)+(v===6?'':' meta '+k(META))+'</span>';
+  const lg='<div class="lg">'+c.seg.map((s,i)=>'<span><i style="background:'+TONO[i]+'"></i>'+NOM[i]+' <b style="color:#e8edf5">'+k(s)+'</b></span>').join('')+'</div>';
+  return '<div class="row"><div class="top"><span class="vv">'+din(c.cur)+'</span>'+(v===6?'':est)+'</div>'+t+lg+'</div>';
+}
+const D=[
+ [1,'Banderín (el actual)','Poste corto y banderita con el monto, arriba de la barra. Es el que no te gustó; va de referencia.'],
+ [2,'Muesca en la pista','Una ranura que parte la pista y la barra en la meta, con la etiqueta debajo. Sin nada encima de la barra.'],
+ [3,'Regla de graduación','Marcas en 25, 50, 75 y 100 % de la meta debajo de la barra. Se lee como un medidor: qué tan lejos vas.'],
+ [4,'Zona de meta + lo que rebasa se ilumina','La pista hasta la meta se ve un poco más clara; si la barra pasa la meta, la parte excedente se ilumina.'],
+ [5,'Bullet chart','Barra delgada de valor sobre la pista y una muesca gruesa de meta que la cruza. El estándar clásico.'],
+ [6,'Porcentaje al final de la barra','Sin marca de meta: al final de la barra dice «75 % de la meta de $250k» (con el triángulo).']
+];
+document.getElementById('g').innerHTML=D.map(([v,t,p])=>'<div class="card v'+v+'"><h2><span class="n">'+v+'</span>'+t+'</h2><p>'+p+'</p>'+CASOS.map(c=>barra(v,c)).join('')+'</div>').join('');
+</script></body></html>

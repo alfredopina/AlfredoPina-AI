@@ -41,7 +41,9 @@ Segunda estrategia de venta (junto a Cursos In Company): **grupos con fecha fija
 - *Alternativa:* hacer `cliente_id` nullable en Grupo y Alumno. Es más "limpio" pero obliga a revisar todo JOIN y reporte; riesgo alto.
 - *A verificar al construir:* que el diploma de un alumno de grupo abierto no muestre "Cursos Abiertos (público)" como empresa.
 
-### Tablas nuevas o cambios (SQL, un script nuevo en `sql/`)
+**Decisión A, resuelta al escribir el SQL (2026-11-02):** el Cliente reservado (`ABIERTOS`, "Cursos Abiertos (público)") es de tipo **Prospecto** a propósito. Ese tipo ya se excluye de las métricas de Clientes, del Dashboard y de los buscadores de Solicitud/Cotización/Grupo, así que no hay que tocar ~10 consultas ni se puede elegir por error en un curso In Company.
+
+### Tablas nuevas o cambios (SQL, `sql/048_cursos_abiertos.sql`, ya escrito)
 
 | Cambio | Para qué |
 |---|---|
@@ -105,6 +107,8 @@ Es Tracking y no solo un filtro de Grupos: tiene fase propia, urgencia que nadie
 - Sin pago en línea por ahora (transferencia con instrucciones); el modelo guarda `estado_pago` y `proveedor_ref` para integrar un proveedor después.
 - Repo público: sin datos de personas ni cifras de ingresos.
 - Estados nunca solo por color (ícono + texto); `.clase[hidden]{display:none}`; `color-mix()` con long-hands.
+
+**Avance 2026-11-02 (rama `feat/cursos-abiertos-modelo`):** SQL 048 escrito y corrido por Alfredo; backend admin hecho y probado (`api/test-grupo-abierto.js`): `crearGrupoAbierto`, `editarGrupoAbierto`, `getGruposAbiertosAdmin`, `publicarCalendarioAbiertos` (arma la foto desde SQL y concilia el contador con SQL + la cola). Nacen cerradas (solo admin). **Falta:** la pantalla (interruptor «¿Curso abierto?» en Grupos → Nuevo Grupo, Tracking Abiertos y botón Publicar), la importación de la cola y Cobranza/correos.
 
 ## Orden de construcción
 

@@ -134,3 +134,7 @@ Las 3 lecturas de abajo **ya no son fijas**: `api/src/dashboard-lecturas.js` eva
 ### Quinta ronda del 2026-11-02 (manda sobre lo anterior)
 
 El banderín no gustó y hacía el panel más alto. **La meta ahora es el diseño 5 (bullet chart)**: pista de 34 px con una barra de valor más delgada (22 px) que **arranca con corte recto**, con segmentos **pegados, sin huecos y con cortes rectos**; **solo se curva el final** de la barra. La meta es una **muesca blanca** que cruza la barra y su **etiqueta («meta $250k») va a la derecha, fuera de la pista** y a la altura de la barra, así que no agrega altura al panel y nunca se encima con la barra, aunque la rebase (la barra además vibra). El espacio de la etiqueta se reserva siempre para que todas las pistas midan lo mismo y la escala común se conserve. Mockup de las opciones: `docs/mockups/meta-disenos.html` / `.png`.
+
+### Sexta ronda del 2026-11-02 (manda sobre lo anterior)
+
+Se **quitó la etiqueta de meta a la derecha** de la pista (era redundante: el subtítulo de la barra, «▲ prom. 12 m $10,167» / «▼ meta $250,000», ya dice la meta); la muesca blanca se queda. El **subtítulo es más visible** (14 px, texto en tono principal y triángulo de 18 px). El **ícono de Facturado es un banco** (columnas bajo un frontón), distinto al de Cotizado y al de Cobrado.

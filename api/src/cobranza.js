@@ -129,7 +129,7 @@ function compararUrgencia(a, b) {
 
 // Tarjetas del Tracking. Estado VIVO (no se filtra por "contar desde/hasta"): por cobrar, vencido, por facturar y conteos.
 // ACUMULADO (respeta el rango): cobrado = pagos vigentes por su fecha de pago; días promedio = emisión → último pago, solo cuentas
-// Pagadas con ambas fechas. Un pago "sin fecha" (histórico) cuenta como cobrado solo cuando NO hay rango, y nunca entra al promedio.
+// Pagadas con ambas fechas; ticket promedio = cobrado ÷ facturas con algún pago en el rango. Un pago "sin fecha" (histórico) cuenta como cobrado solo cuando NO hay rango, y nunca entra al promedio.
 function resumir(filas, { desde = null, hasta = null } = {}) {
   const d = desde ? Date.parse(desde) : null, h = hasta ? Date.parse(hasta) : null;
   const enRango = (fecha) => {
@@ -137,7 +137,7 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
     const t = aFecha(fecha).getTime() + 6 * 3600 * 1000; // el día de la fecha empieza a las 00:00 de Monterrey (UTC-6), como el rango
     return (d == null || t >= d) && (h == null || t < h);
   };
-  const r = { por_cobrar: 0, por_cobrar_n: 0, vencido: 0, vencido_n: 0, por_vencer: 0, por_vencer_n: 0, por_facturar: 0, por_facturar_n: 0, cobrado: 0, cobrado_n: 0, dias_promedio: null };
+  const r = { por_cobrar: 0, por_cobrar_n: 0, vencido: 0, vencido_n: 0, por_vencer: 0, por_vencer_n: 0, por_facturar: 0, por_facturar_n: 0, cobrado: 0, cobrado_n: 0, facturas_cobradas_n: 0, ticket_promedio: null, dias_promedio: null };
   const dias = [];
   for (const f of filas) {
     if (f.estatus === "Cancelada" || !cuentaEnMetricas(f)) continue; // las de terceros (Otro) no cuentan en las métricas internas
@@ -148,7 +148,9 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
       if (f.semaforo.clave === "por_vencer") { r.por_vencer += f.saldo; r.por_vencer_n++; }
     }
     const vigentes = (f.pagos || []).filter((p) => !p.anulado);
-    for (const p of vigentes) if (enRango(p.fecha)) { r.cobrado += Number(p.monto); r.cobrado_n++; }
+    let conPago = false;
+    for (const p of vigentes) if (enRango(p.fecha)) { r.cobrado += Number(p.monto); r.cobrado_n++; conPago = true; }
+    if (conPago) r.facturas_cobradas_n++;
     if (f.estatus === "Pagada" && f.fecha_emision) {
       const fechas = vigentes.map((p) => p.fecha).filter(Boolean).sort();
       const ultimo = fechas.length === vigentes.length ? fechas[fechas.length - 1] : null; // un pago sin fecha impide calcular
@@ -156,6 +158,8 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
     }
   }
   for (const k of ["por_cobrar", "vencido", "por_vencer", "por_facturar", "cobrado"]) r[k] = centavos(r[k]);
+  // ticket promedio = lo cobrado ÷ facturas distintas que recibieron algún pago en el mismo rango de Cobrado (no cuenta pagos, cuenta facturas)
+  if (r.facturas_cobradas_n) r.ticket_promedio = centavos(r.cobrado / r.facturas_cobradas_n);
   if (dias.length) r.dias_promedio = Math.round((dias.reduce((a, b) => a + b, 0) / dias.length) * 10) / 10;
   return r;
 }

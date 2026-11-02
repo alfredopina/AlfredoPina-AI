@@ -134,6 +134,11 @@ check("resumen: por cobrar / vencido son vivos; cobrado y días respetan el rang
   assert.strictEqual(oct.cobrado, 400, "el pago sin fecha no entra con rango");
   assert.strictEqual(oct.por_cobrar, 1600, "lo vivo no se filtra");
   assert.strictEqual(oct.dias_promedio, null);
+  assert.strictEqual(todo.facturas_cobradas_n, 3); assert.strictEqual(todo.ticket_promedio, 800, "2,400 cobrados entre 3 facturas con pago (no entre 3 pagos por casualidad)");
+  assert.strictEqual(oct.facturas_cobradas_n, 1); assert.strictEqual(oct.ticket_promedio, 400);
+  assert.strictEqual(C.resumir([]).ticket_promedio, null, "sin cobros no hay ticket");
+  const dosPagos = C.resumir([{ estatus: "Parcial", total: 1000, saldo: 0, pagos: [{ monto: 300, fecha: "2026-10-01", anulado: false }, { monto: 200, fecha: "2026-10-02", anulado: false }], semaforo: { clave: "cerrada", dias: null }, fecha_emision: "2026-09-01" }]);
+  assert.strictEqual(dosPagos.cobrado_n, 2); assert.strictEqual(dosPagos.facturas_cobradas_n, 1); assert.strictEqual(dosPagos.ticket_promedio, 500, "dos pagos de una misma factura son UNA factura");
 });
 
 // ── escrituras con base falsa ──

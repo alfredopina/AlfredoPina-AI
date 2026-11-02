@@ -2205,6 +2205,18 @@
   .trkv-go svg{ width:18px; height:18px; display:block; transition:transform .15s; }
   .trkv-card:hover .trkv-go svg{ transform:translateX(3px); }
   .trkv-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:12px 14px; }
+  .trkv-cobr-izq .trkv-kpis{ grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  /* Por cobrar: un número grande y, a su lado, cuánto está en plazo y cuánto vencido (menos texto, más número) */
+  .trkv-hero{ display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); gap:18px; align-items:stretch; }
+  .trkv-hero-main{ display:flex; flex-direction:column; justify-content:center; gap:4px; min-width:0; }
+  .trkv-hero-main .trkv-kpi-label{ min-height:0; font-size:11px; }
+  .trkv-hero-num{ font-family:var(--display); font-weight:700; font-size:40px; line-height:1.05; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .trkv-hero-sub{ display:flex; flex-direction:column; justify-content:center; gap:10px; border-left:1px dashed var(--line); padding-left:18px; min-width:0; }
+  .trkv-hero-sub .trkv-sub{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .trkv-hero-sub small{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); }
+  .trkv-hero-sub small svg{ width:12px; height:12px; flex:none; }
+  .trkv-hero-sub .trkv-sub.venc small{ color:#f05252; } .trkv-hero-sub .trkv-sub.plazo small{ color:#14b8a6; }
+  .trkv-hero-sub b{ font-family:var(--display); font-weight:700; font-size:24px; line-height:1.1; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .trkv-kpi{ display:flex; flex-direction:column; gap:5px; min-width:0; }
   .trkv-kpi-label{ font-family:var(--mono); font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-faint); line-height:1.3; min-height:2.6em; }
   .trkv-kpi-value{ font-family:var(--display); font-weight:700; font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -3370,11 +3382,17 @@
             </div>
             <div class="trkv-cobr">
               <div class="trkv-cobr-izq">
+                <div class="trkv-hero">
+                  <div class="trkv-hero-main"><span class="trkv-kpi-label">Por cobrar</span><span class="trkv-hero-num" id="trkvCbzPorCobrar">—</span></div>
+                  <div class="trkv-hero-sub">
+                    <div class="trkv-sub plazo"><small><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>En plazo</small><b id="trkvCbzEnPlazo">—</b></div>
+                    <div class="trkv-sub venc"><small><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 21h20z"/></svg>Vencido</small><b id="trkvCbzVencido">—</b></div>
+                  </div>
+                </div>
                 <div class="trkv-kpis">
-                  <div class="trkv-kpi"><span class="trkv-kpi-label">Por cobrar</span><span class="trkv-kpi-value" id="trkvCbzPorCobrar">—</span></div>
-                  <div class="trkv-kpi"><span class="trkv-kpi-label">Vencido</span><span class="trkv-kpi-value" id="trkvCbzVencido">—</span></div>
                   <div class="trkv-kpi"><span class="trkv-kpi-label">Por facturar</span><span class="trkv-kpi-value" id="trkvCbzPorFacturar">—</span></div>
                   <div class="trkv-kpi"><span class="trkv-kpi-label">Cobrado</span><span class="trkv-kpi-value" id="trkvCbzCobrado">—</span></div>
+                  <div class="trkv-kpi"><span class="trkv-kpi-label">Ticket promedio</span><span class="trkv-kpi-value" id="trkvCbzTicket">—</span></div>
                   <div class="trkv-kpi"><span class="trkv-kpi-label">Días de cobro</span><span class="trkv-kpi-value" id="trkvCbzDias">—</span></div>
                 </div>
                 <div class="trkv-signal" id="trkvCbzSignal"></div>
@@ -8229,14 +8247,16 @@
       pie.textContent = despues.length ? 'Después de ' + (mesesMini === 1 ? 'este mes' : mesesMini + ' meses') + ': ' + despues.length + (despues.length === 1 ? ' cobro' : ' cobros') + ' por ' + fmtMoney(suma) : '';
     }
     async function cargarCobranza(){
-      const ids = ['trkvCbzPorCobrar', 'trkvCbzVencido', 'trkvCbzPorFacturar', 'trkvCbzCobrado', 'trkvCbzDias'];
+      const ids = ['trkvCbzPorCobrar', 'trkvCbzEnPlazo', 'trkvCbzVencido', 'trkvCbzPorFacturar', 'trkvCbzCobrado', 'trkvCbzTicket', 'trkvCbzDias'];
       try {
         const [r, lista] = await Promise.all([apiGetConReintento('/api/getResumenCobranzaAdmin'), apiGetConReintento('/api/listCobranzaAdmin')]);
         const t = (id, v, titulo) => { const el = document.getElementById(id); el.textContent = v; el.title = titulo || ''; };
-        t('trkvCbzPorCobrar', fmtMoneyCorto(r.por_cobrar), fmtMoney(r.por_cobrar) + ' · ' + r.por_cobrar_n + ' cuentas (incluye lo vencido)');
-        t('trkvCbzVencido', fmtMoneyCorto(r.vencido), fmtMoney(r.vencido) + ' · ' + r.vencido_n + ' cuentas');
+        t('trkvCbzPorCobrar', fmtMoney(r.por_cobrar), r.por_cobrar_n + (r.por_cobrar_n === 1 ? ' cuenta' : ' cuentas') + ' por cobrar (en plazo + vencido)');
+        t('trkvCbzEnPlazo', fmtMoney(Math.max(0, r.por_cobrar - r.vencido)), (r.por_cobrar_n - r.vencido_n) + ' cuentas que todavía no vencen');
+        t('trkvCbzVencido', fmtMoney(r.vencido), r.vencido_n + (r.vencido_n === 1 ? ' cuenta vencida' : ' cuentas vencidas'));
         t('trkvCbzPorFacturar', fmtMoneyCorto(r.por_facturar), fmtMoney(r.por_facturar) + ' · ' + r.por_facturar_n + ' cuentas');
         t('trkvCbzCobrado', fmtMoneyCorto(r.cobrado), fmtMoney(r.cobrado) + ' · ' + r.cobrado_n + (r.cobrado_n === 1 ? ' pago' : ' pagos'));
+        t('trkvCbzTicket', r.ticket_promedio == null ? '—' : fmtMoneyCorto(r.ticket_promedio), r.ticket_promedio == null ? 'Aún no hay cobros' : fmtMoney(r.ticket_promedio) + ' por factura cobrada (' + r.facturas_cobradas_n + (r.facturas_cobradas_n === 1 ? ' factura' : ' facturas') + ')');
         t('trkvCbzDias', r.dias_promedio == null ? '—' : r.dias_promedio + ' d', 'Días promedio entre la emisión y el cobro');
         document.getElementById('trkvCbzSignal').innerHTML = `
           <span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>▲ Vencidas · ${r.vencido_n || 0}</span>

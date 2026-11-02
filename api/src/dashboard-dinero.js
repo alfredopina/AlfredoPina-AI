@@ -185,7 +185,7 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   const filas = {};
   if (todo) {
     const vals = valoresDe(datos, f, cuentasSub, { desde: null, hasta: null, ref: finDeHoy }, true, umbralPorVencer);
-    for (const k of CLAVES) filas[k] = { cur: vals[k], ref: { mes: null, p3: null, anio: null }, serie: [], meta: null, metaOrigen: "promedio" };
+    for (const k of CLAVES) filas[k] = { cur: vals[k], ref: { mes: null, p3: null, anio: null }, serie: [], serieFull: [], meta: null, metaFull: null, metaOrigen: "promedio" };
   } else {
     // el mes que se mira: si es el actual, con las filas de hoy (igual que el Tracking); si es pasado, reconstruido a fin de mes
     const cur = valoresDe(datos, f, cuentasSub, ventana(M, corte), esActual, umbralPorVencer);
@@ -193,10 +193,16 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
     for (let k = M - 11; k <= M; k++) serieVals.push({ k, vals: k === M ? cur : punto(k) });
     const ant = [1, 2, 3].map((i) => serieVals.find((s) => s.k === M - i)).filter((s) => s && s.vals);
     const anioVals = punto(M - 12);
+    // línea de 12 meses (sparkline): meses COMPLETOS y, al final, el mes en curso con lo que lleva. Con el mismo corte para todos los meses la línea se
+    // aplasta contra cero en los primeros días del mes; la barra, su meta de promedio y la variación siguen usando el mismo corte (comparación justa).
+    const serieFullVals = esActual ? serieVals.map((s) => (s.k === M ? s : { k: s.k, vals: s.k < kPrimero ? null : valoresDe(datos, f, cuentasSub, ventana(s.k, 0), false, umbralPorVencer) })) : serieVals;
     for (const k of CLAVES) {
       const serie = serieVals.map((s) => ({ mes: claveMes(s.k), v: s.vals ? s.vals[k] : null }));
       const conDato = serie.filter((s) => s.v != null);
       const prevMes = serieVals.find((s) => s.k === M - 1);
+      const serieFull = serieFullVals.map((s) => ({ mes: claveMes(s.k), v: s.vals ? s.vals[k] : null }));
+      const completos = serieFull.slice(0, esActual ? -1 : undefined).filter((s) => s.v != null);
+      const promedioDe = (a) => (a.length >= 3 ? redondea(a.reduce((x, s) => x + s.v, 0) / a.length, 2) : null);
       const kMeta = k === "fac" ? "gan" : k; // Facturado comparte la meta de Ganado (lo que ganas es lo que debes facturar)
       const propia = metas && typeof metas[kMeta] === "number" && isFinite(metas[kMeta]) && metas[kMeta] >= 0 ? metas[kMeta] : null;
       filas[k] = {
@@ -208,8 +214,10 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
         },
         serie,
         // la meta propia (Configuración → Metas) es del mes completo; sin ella, el promedio de los 12 meses (mismo corte)
-        meta: propia != null ? propia : conDato.length >= 3 ? redondea(conDato.reduce((a, s) => a + s.v, 0) / conDato.length, 2) : null,
+        meta: propia != null ? propia : promedioDe(conDato),
         metaOrigen: propia != null ? "propia" : "promedio",
+        // para la línea de 12 meses: la serie de meses completos y su meta (la propia, o el promedio de los meses completos)
+        serieFull, metaFull: propia != null ? propia : promedioDe(completos),
       };
     }
   }

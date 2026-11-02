@@ -171,6 +171,22 @@ check("sin solicitudes cargadas no truena (cantidad 0)", () => {
   const p = calcularDinero({ cuentas: [], cotizaciones: [] }, {}, { ahora: AHORA });
   assert.strictEqual(p.filas.sol.cur, 0); assert.deepStrictEqual(p.desglose.sol, { atendidas: 0, sin: 0, sitio: 0, manual: 0 });
 });
+check("línea de 12 meses: meses COMPLETOS (con el mismo corte se aplastaba contra cero a inicio de mes); la barra y su promedio siguen con el mismo corte", () => {
+  const NOV2 = new Date("2026-11-02T18:00:00Z"); // segundo día del mes
+  const dd = { cuentas: [], cotizaciones: [
+    cot({ id: 1, precio: 10000, enviada: ms("2026-08-20") }), cot({ id: 2, precio: 20000, enviada: ms("2026-09-29") }), cot({ id: 3, precio: 30000, enviada: ms("2026-10-15") }),
+    cot({ id: 4, precio: 5000, enviada: ms("2026-11-01") }),
+  ] };
+  const p = calcularDinero(dd, {}, { ahora: NOV2 });
+  const c = p.filas.cot, completa = Object.fromEntries(c.serieFull.map((s) => [s.mes, s.v])), mismoCorte = Object.fromEntries(c.serie.map((s) => [s.mes, s.v]));
+  assert.strictEqual(completa["2026-09"], 20000); assert.strictEqual(mismoCorte["2026-09"], 0); // el 29 de septiembre cae fuera del corte del día 2
+  assert.strictEqual(completa["2026-10"], 30000); assert.strictEqual(completa["2026-11"], 5000); // el mes en curso, con lo que lleva
+  assert.strictEqual(c.cur, 5000); assert.strictEqual(c.serieFull.length, 12);
+  assert.strictEqual(c.metaFull, 20000); // promedio de los meses completos con dato: ago, sep, oct = (10 + 20 + 30) / 3
+  assert.strictEqual(c.meta, 1250); // el promedio de la barra sigue con el mismo corte (día 2): (0 + 0 + 0 + 5,000) / 4
+  const q = calcularDinero(dd, {}, { ahora: NOV2, metas: { cot: 50000 } });
+  assert.strictEqual(q.filas.cot.metaFull, 50000); assert.strictEqual(q.filas.cot.meta, 50000);
+});
 (async () => {
   try {
     const { getMetas, guardarMetas } = require("./src/metas");

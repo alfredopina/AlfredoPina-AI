@@ -410,7 +410,7 @@
   .rs-est i{ font-style:normal; color:var(--text-dim); }
   .rs-spc{ min-width:0; }
   .rs-sp2{ display:block; width:100%; height:40px; overflow:visible; }
-  .rs-sp2 .pt{ fill:var(--panel); stroke:var(--blue-bright); stroke-width:1.1; }
+  .rs-sp2 .pt{ fill:var(--panel); stroke:var(--blue-bright); stroke-width:1.6; }
   .rs-sp2 .pt.ult{ fill:var(--blue-bright); }
   .rs-sp2 .hit{ fill:transparent; cursor:crosshair; }
   .rs-sp2 .hit:hover + .pt, .rs-sp2 .pt:hover{ fill:var(--blue-bright); }
@@ -8750,21 +8750,26 @@
     // ── línea de 12 meses: puntos sutiles con tooltip; la punteada es la meta; el punto lleno es el mes que se mira ──
     const SW = 190, SH = 40;
     function lineaHtml(f, meta, cant){
-      const pts = f.serie.map((p, i) => ({ i, v: p.v, mes: p.mes })).filter((p) => p.v != null);
+      // meses completos + el mes en curso al final (el servidor manda serieFull y su meta); la escala sigue SOLO a los datos para que la línea no se aplaste:
+      // si la meta queda muy por encima de lo que se ve, la punteada se dibuja pegada al borde de arriba
+      const serie = f.serieFull && f.serieFull.length ? f.serieFull : f.serie, mt = f.serieFull && f.serieFull.length ? f.metaFull : f.meta;
+      const pts = serie.map((p, i) => ({ i, v: p.v, mes: p.mes })).filter((p) => p.v != null);
       if(pts.length < 2){
         return '<svg class="rs-sp2" viewBox="0 0 ' + SW + ' ' + SH + '" aria-hidden="true"><line class="vacio" x1="4" y1="' + (SH / 2) + '" x2="' + (SW - 4) + '" y2="' + (SH / 2) + '"/>' +
-          (pts.length ? '<circle class="pt ult" cx="' + (SW - 6) + '" cy="' + (SH / 2) + '" r="3.2"/>' : '') + '</svg>';
+          (pts.length ? '<circle class="pt ult" cx="' + (SW - 6) + '" cy="' + (SH / 2) + '" r="4.5"/>' : '') + '</svg>';
       }
-      const todos = pts.map((p) => p.v).concat(f.meta != null ? [f.meta] : []);
-      const mn = Math.min(...todos), mx = Math.max(...todos), rg = (mx - mn) || 1, n = f.serie.length;
-      const X = (i) => 6 + i / (n - 1) * (SW - 12), Y = (v) => SH - 6 - ((v - mn) / rg) * (SH - 12);
+      const vals = pts.map((p) => p.v), vmx = Math.max(...vals);
+      const metaDentro = mt != null && mt <= Math.max(vmx * 1.5, 1);
+      const todos = metaDentro ? vals.concat([mt]) : vals;
+      const mn = Math.min(...todos), mx = Math.max(...todos), rg = (mx - mn) || 1, n = serie.length;
+      const X = (i) => 7 + i / (n - 1) * (SW - 14), Y = (v) => SH - 7 - ((v - mn) / rg) * (SH - 14);
       let s = '<svg class="rs-sp2" viewBox="0 0 ' + SW + ' ' + SH + '" role="img" aria-label="Últimos 12 meses">';
-      if(f.meta != null) s += '<line x1="4" y1="' + Y(f.meta).toFixed(1) + '" x2="' + (SW - 4) + '" y2="' + Y(f.meta).toFixed(1) + '" stroke="#79828f" stroke-width="1" stroke-dasharray="2 4"/>';
-      s += '<polyline points="' + pts.map((p) => X(p.i).toFixed(1) + ',' + Y(p.v).toFixed(1)).join(' ') + '" fill="none" stroke="#6b9fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      if(mt != null){ const ym = metaDentro ? Y(mt) : 3; s += '<line x1="4" y1="' + ym.toFixed(1) + '" x2="' + (SW - 4) + '" y2="' + ym.toFixed(1) + '" stroke="#79828f" stroke-width="1" stroke-dasharray="2 4"/>'; }
+      s += '<polyline points="' + pts.map((p) => X(p.i).toFixed(1) + ',' + Y(p.v).toFixed(1)).join(' ') + '" fill="none" stroke="#6b9fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
       pts.forEach((p) => {
         const ult = p.i === n - 1, x = X(p.i).toFixed(1), y = Y(p.v).toFixed(1);
         const nombre = etiquetaMes(p.mes) + (ult && meta.esActual ? ' · al día ' + meta.corteDia : '');
-        s += '<circle class="hit" cx="' + x + '" cy="' + y + '" r="8" data-tip="' + esc(nombre + '|' + fmtDe(cant)(Math.round(p.v * 10) / 10)) + '"/><circle class="pt' + (ult ? ' ult' : '') + '" cx="' + x + '" cy="' + y + '" r="' + (ult ? 3.2 : 2) + '" pointer-events="none"/>';
+        s += '<circle class="hit" cx="' + x + '" cy="' + y + '" r="9" data-tip="' + esc(nombre + '|' + fmtDe(cant)(Math.round(p.v * 10) / 10)) + '"/><circle class="pt' + (ult ? ' ult' : '') + '" cx="' + x + '" cy="' + y + '" r="' + (ult ? 4.5 : 3.2) + '" pointer-events="none"/>';
       });
       return s + '</svg>';
     }

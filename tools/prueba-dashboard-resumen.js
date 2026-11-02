@@ -166,6 +166,17 @@ const segs = (k) => qa('.rs-fila[data-k="' + k + '"] .rs-lg > span').map((e) => 
   check('si el periodo de comparación valía cero el chip dice «desde cero» y va en AZUL (neutral, como «sin datos»), no en verde', /desde cero/.test(txt(q('.rs-fila[data-k="cot"] .rs-d'))) && q('.rs-fila[data-k="cot"] .rs-d').classList.contains('normal') && !q('.rs-fila[data-k="cot"] .rs-d').classList.contains('bien') && !!q('.rs-fila[data-k="cot"] .rs-d svg'), q('.rs-fila[data-k="cot"] .rs-d').className + ' / ' + txt(q('.rs-fila[data-k="cot"] .rs-d')));
   CERO = false; q('#rsActualizar').click(); await pausa(300);
 
+  console.log('Línea de 12 meses');
+  const lin = (k) => q('.rs-fila[data-k="' + k + '"] .rs-sp2');
+  const ys = (k) => lin(k).querySelector('polyline').getAttribute('points').split(' ').map((p) => parseFloat(p.split(',')[1]));
+  check('los puntos son más grandes (el del mes en curso, 4.5) y la línea trae mes y monto en cada uno', lin('cot').querySelector('.pt.ult').getAttribute('r') === '4.5' && qa('.rs-fila[data-k="cot"] .pt').every((p) => parseFloat(p.getAttribute('r')) >= 3) && /|/.test(lin('cot').querySelector('.hit').dataset.tip));
+  METAS = { cot: 9000000 };
+  q('#rsActualizar').click(); await pausa(300);
+  const y = ys('cot'), rango = Math.max(...y) - Math.min(...y), ym = parseFloat(lin('cot').querySelector('line[stroke-dasharray]').getAttribute('y1'));
+  check('si la meta queda muy por encima de los datos la línea NO se aplasta: la escala sigue a los datos y la punteada se pega al borde de arriba', rango > 12 && ym <= 4, 'rango ' + rango + ' · meta y=' + ym);
+  METAS = {};
+  q('#rsActualizar').click(); await pausa(300);
+
   console.log('Comparar con');
   const n0 = resumenes().length;
   q('#rsModo button[data-m="p3"]').click(); await pausa(50);

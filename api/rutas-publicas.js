@@ -14,9 +14,12 @@ module.exports = [
   { ruta: "confirmarVistaPropuesta", motivo: "Aviso de que el cliente abrió la propuesta" },
   { ruta: "responderPropuesta", motivo: "Aceptación de la propuesta en línea" },
   { ruta: "registrarEventoDiploma", motivo: "Clic en Agregar a LinkedIn (verificar.html)" },
+  { ruta: "reservarCursoAbierto", motivo: "Inscripción a un grupo de Cursos Abiertos (reserva lugar en un contador de Table Storage y deja el envío en una cola)" },
+  { ruta: "avisarCursoAbierto", motivo: "Lista de espera / «Avísame» de Cursos Abiertos (cola de Table Storage)" },
 
   // ── lecturas públicas por código o catálogo ──
   { ruta: "getCatalogoCursos", motivo: "Catálogo público de cursos y programas" },
+  { ruta: "calendarioAbiertos", motivo: "Calendario público de Cursos Abiertos (foto publicada desde el admin; solo Table Storage)" },
   { ruta: "getCatalogoRecursos", motivo: "Catálogo público de recursos" },
   { ruta: "getConfiguracionSitio", motivo: "Contacto, LinkedIn de la portada, perfiles y aviso del sitio (lo que se edita en admin → Personalizar; solo Table Storage)" },
   { ruta: "getRecursos", motivo: "Descarga de materiales con código (con freno de intentos)" },

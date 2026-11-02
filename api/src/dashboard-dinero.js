@@ -92,7 +92,8 @@ function motivosDe(datos, f, v) {
 }
 
 // filtros: { mes: "2026-10" | "todo" | "", estrategia, tipoCliente, herramienta }  ·  opciones: { ahora: Date, umbralPorVencer }
-function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = C.POR_VENCER_DEFAULT } = {}) {
+// metas: { cot, gan, cob } = metas mensuales de Configuración → Metas (monto del mes completo, sin IVA); una fila sin meta propia usa el promedio
+function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = C.POR_VENCER_DEFAULT, metas = {} } = {}) {
   const f = { estrategia: filtros.estrategia || "", tipoCliente: filtros.tipoCliente || "", herramienta: filtros.herramienta || "" };
   const ahoraMs = ahora.getTime(), kHoy = mesIdx(ahoraMs);
   const hoy = new Date(ahoraMs - TZ), diaHoy = hoy.getUTCDate();
@@ -122,7 +123,7 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
   const filas = {};
   if (todo) {
     const vals = valoresDe(datos, f, cuentasSub, { desde: null, hasta: null, ref: finDeHoy }, true, umbralPorVencer);
-    for (const k of CLAVES) filas[k] = { cur: vals[k], ref: { mes: null, p3: null, anio: null }, serie: [], meta: null };
+    for (const k of CLAVES) filas[k] = { cur: vals[k], ref: { mes: null, p3: null, anio: null }, serie: [], meta: null, metaOrigen: "promedio" };
   } else {
     // el mes que se mira: si es el actual, con las filas de hoy (igual que el Tracking); si es pasado, reconstruido a fin de mes
     const cur = valoresDe(datos, f, cuentasSub, ventana(M, corte), esActual, umbralPorVencer);
@@ -134,6 +135,7 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
       const serie = serieVals.map((s) => ({ mes: claveMes(s.k), v: s.vals ? s.vals[k] : null }));
       const conDato = serie.filter((s) => s.v != null);
       const prevMes = serieVals.find((s) => s.k === M - 1);
+      const propia = metas && typeof metas[k] === "number" && isFinite(metas[k]) && metas[k] >= 0 ? metas[k] : null;
       filas[k] = {
         cur: cur[k],
         ref: {
@@ -142,7 +144,9 @@ function calcularDinero(datos, filtros, { ahora = new Date(), umbralPorVencer = 
           anio: anioVals ? anioVals[k] : null,
         },
         serie,
-        meta: conDato.length >= 3 ? redondea(conDato.reduce((a, s) => a + s.v, 0) / conDato.length, 2) : null, // por ahora: promedio de los 12 meses
+        // la meta propia (Configuración → Metas) es del mes completo; sin ella, el promedio de los 12 meses (mismo corte)
+        meta: propia != null ? propia : conDato.length >= 3 ? redondea(conDato.reduce((a, s) => a + s.v, 0) / conDato.length, 2) : null,
+        metaOrigen: propia != null ? "propia" : "promedio",
       };
     }
   }

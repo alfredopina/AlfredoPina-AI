@@ -5,6 +5,7 @@
 // herramienta. El cálculo vive en api/src/dashboard-dinero.js (reutiliza cobranza.resumir). Solo lee: no guarda nada.
 const { JSON_HEADERS } = require("../src/http");
 const { getUmbrales } = require("../src/notificaciones-config");
+const { getMetas } = require("../src/metas");
 const { cargarDatos } = require("../src/dashboard-resumen-db");
 const { calcularDinero } = require("../src/dashboard-dinero");
 const { TIPOS_CLIENTE, ESTRATEGIAS } = require("../src/dashboard-resumen");
@@ -21,10 +22,10 @@ module.exports = async function (context, req) {
   if (tipoCliente && !TIPOS_CLIENTE.includes(tipoCliente)) return void (context.res = falla(400, "Tipo de cliente no válido."));
   if (herramienta && !HERRAMIENTAS.includes(herramienta)) return void (context.res = falla(400, "Herramienta no válida."));
   try {
-    const umbrales = await getUmbrales();
+    const [umbrales, metas] = await Promise.all([getUmbrales(), getMetas()]);
     const datos = await cargarDatos(umbrales, { omitir: ["sols", "grupos", "clientes"] });
     const ahora = new Date();
-    const r = calcularDinero(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, umbralPorVencer: umbrales.cobranzaPorVencerDias });
+    const r = calcularDinero(datos, { mes, estrategia, tipoCliente, herramienta }, { ahora, umbralPorVencer: umbrales.cobranzaPorVencerDias, metas });
     r.meta.generado = ahora.toISOString();
     context.res = { status: 200, headers: JSON_HEADERS, body: r };
   } catch (err) {

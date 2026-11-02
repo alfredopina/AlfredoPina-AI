@@ -100,5 +100,31 @@ check("sin datos no truena", () => {
   const p = calcularDinero({ cuentas: [], cotizaciones: [] }, {}, { ahora: AHORA });
   assert.strictEqual(p.filas.cot.cur, 0); assert.strictEqual(p.filas.pxc.cur, 0); assert.deepStrictEqual(p.motivos, []);
 });
-console.log(fallos ? "\n" + fallos + " fallas" : "\nTodo bien.");
-process.exit(fallos ? 1 : 0);
+check("metas propias (Configuración → Metas): reemplazan al promedio solo en Cotizado, Ganado y Cobrado", () => {
+  const p = calcularDinero(datos(), {}, { ahora: AHORA, metas: { cot: 20000, gan: null, cob: 0 } });
+  assert.strictEqual(p.filas.cot.meta, 20000); assert.strictEqual(p.filas.cot.metaOrigen, "propia");
+  assert.strictEqual(p.filas.cob.meta, 0); assert.strictEqual(p.filas.cob.metaOrigen, "propia"); // 0 es una meta válida
+  assert.strictEqual(p.filas.gan.metaOrigen, "promedio"); assert.strictEqual(p.filas.gan.meta, r.filas.gan.meta);
+  assert.strictEqual(p.filas.fac.metaOrigen, "promedio"); assert.strictEqual(p.filas.fac.meta, r.filas.fac.meta);
+  assert.strictEqual(r.filas.cot.metaOrigen, "promedio"); // sin metas todo queda como antes
+});
+check("meta propia sin 3 meses de historia sí existe; 'todo el historial' no lleva meta", () => {
+  const p = calcularDinero({ cuentas: [], cotizaciones: [] }, {}, { ahora: AHORA, metas: { cot: 5000 } });
+  assert.strictEqual(p.filas.cot.meta, 5000);
+  const t = calcularDinero(datos(), { mes: "todo" }, { ahora: AHORA, metas: { cot: 5000 } });
+  assert.strictEqual(t.filas.cot.meta, null);
+});
+(async () => {
+  try {
+    const { getMetas, guardarMetas } = require("./src/metas");
+    const antes = process.env.RECURSOS_STORAGE_CONNECTION; delete process.env.RECURSOS_STORAGE_CONNECTION;
+    try {
+      assert.deepStrictEqual(await getMetas(), { cot: null, gan: null, cob: null });
+      for (const malo of [{ cot: -1 }, { gan: "abc" }, { cob: 1e12 }]) await assert.rejects(() => guardarMetas(malo), /meta/i);
+      await assert.rejects(() => guardarMetas({ cot: 100 }), /RECURSOS_STORAGE_CONNECTION/); // valores buenos llegan hasta el Storage
+    } finally { if (antes !== undefined) process.env.RECURSOS_STORAGE_CONNECTION = antes; }
+    console.log("  OK metas.js: valida montos y sin Storage configurado no truena al leer");
+  } catch (e) { console.log("  FALLA metas.js → " + e.message); fallos++; }
+  console.log(fallos ? "\n" + fallos + " fallas" : "\nTodo bien.");
+  process.exit(fallos ? 1 : 0);
+})();

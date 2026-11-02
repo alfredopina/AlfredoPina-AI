@@ -1422,6 +1422,14 @@
   }
   .cfg-tarifa-row input:focus{ border-color:var(--tc); }
   .cfg-tarifa-row input.cfg-tarifa-dirty{ border-color:var(--tc); }
+  /* Configuración → Metas: tres montos mensuales (Cotizado, Ganado, Cobrado) y un solo Guardar; vacío = promedio de 12 meses */
+  .cfg-metas-lista{ display:grid; gap:10px; margin-top:14px; max-width:620px; }
+  .cfg-metas-fila{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; border:1px solid var(--line); border-radius:9px; padding:12px 14px; background:var(--panel); }
+  .cfg-metas-txt{ flex:1; min-width:180px; }
+  .cfg-metas-campo{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12.5px; color:var(--text-dim); }
+  .cfg-metas-campo input{ width:150px; font-family:var(--mono); font-size:13px; color:var(--text); background-color:var(--panel-2); border:1px solid var(--line); border-radius:5px; padding:7px 9px; outline:none; text-align:right; }
+  .cfg-metas-campo input:focus, .cfg-metas-campo input.cfg-metas-dirty{ border-color:var(--blue-bright); }
+  .cfg-metas-acciones{ display:flex; align-items:center; gap:12px; margin-top:4px; }
 
   /* Configuración → Notificaciones (avisos por correo): una fila por aviso con su interruptor; el estado también va en
      TEXTO ("Activado"/"Desactivado"), nunca solo en el color del interruptor. */
@@ -3502,6 +3510,12 @@
               <span class="cfgt-chip" data-chip="met" hidden></span>
               <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </button>
+            <button type="button" class="cfgt-tile" data-cfg="metas">
+              <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
+              <span class="cfgt-cuerpo"><span class="cfgt-tit">Metas</span><span class="cfgt-desc">Cotizado, Ganado y Cobrado del mes</span><span class="cfgt-linea" data-linea="metas">…</span></span>
+              <span class="cfgt-chip" data-chip="metas" hidden></span>
+              <span class="cfgt-flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
             <button type="button" class="cfgt-tile" data-cfg="tarifas">
               <span class="cfgt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.6 12.6 12 4H4v8l8.6 8.6a2 2 0 0 0 2.8 0l5.2-5.2a2 2 0 0 0 0-2.8Z" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="1.3"/></svg></span>
               <span class="cfgt-cuerpo"><span class="cfgt-tit">Tarifas por hora</span><span class="cfgt-desc">Precio base por herramienta</span><span class="cfgt-linea" data-linea="tarifas">…</span></span>
@@ -3558,6 +3572,20 @@
               Las tarjetas de Solicitudes, Cotizaciones y Grupos son <b>acumuladas</b>: cuentan todo lo que ha pasado y nunca se reinician solas. Aquí decides desde cuándo cuentan: <b>reiniciar ahora</b> (por ejemplo, al arrancar un año) o fijar un <b>rango de fechas</b> «desde – hasta», útil para hacer pruebas. <b>No se borra nada</b>: solo se guarda el rango, y puedes volver a contar todo el historial cuando quieras. Lo que está vivo hoy (semáforos, pipeline, grupos activos) nunca se reinicia.
             </div>
             <div class="cfg-correo-lista" id="cfgMetLista" style="margin-top:14px;">
+              <div class="radm-empty-row">Cargando…</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card" data-cfg="metas">
+          <button type="button" class="cfg-card-head" id="cfgMetasHead">
+            <span class="cfg-card-title">METAS</span>
+            <span class="cfg-toggle-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="cfg-card-body" id="cfgMetasBody" hidden>
+            <div class="cfg-note">
+              Cuánto quieres <b>cotizar, ganar y cobrar cada mes</b>, en pesos <b>sin IVA</b> y por el <b>mes completo</b>. Con estos montos el Dashboard → Resumen pinta la marca de la barra y la línea punteada, y dice si vas sobre o bajo tu meta. Si dejas un campo vacío, esa fila usa el promedio de sus últimos 12 meses. Facturado, Por vender, Por facturar y Por cobrar siguen con su promedio. Cambiar una meta no toca ningún dato.
+            </div>
+            <div class="cfg-metas-lista" id="cfgMetasLista">
               <div class="radm-empty-row">Cargando…</div>
             </div>
           </div>
@@ -8694,7 +8722,7 @@
       const nf = (meta.sinFiltrar || []).includes(def.k);
       const nota = def.k === 'per' ? (F.cot.cur > 0 ? Math.round(f.cur / F.cot.cur * 100) + ' % de lo cotizado' : 'sin cotizado en el periodo') : def.nota;
       const est = sinMeta ? '<span class="rs-est">' + ICO.info + 'sin meta aún <i>· faltan meses de historia</i></span>'
-        : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· meta ' + esc(dinero(f.meta)) + '</i></span>';
+        : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(dinero(f.meta)) + '</i></span>';
       return '<div class="rs-fila' + (def.hijo ? ' hijo' : '') + '" data-k="' + def.k + '">' +
         '<div class="nm"><div class="a">' + def.ico + esc(def.nombre) + (def.foco ? '<span class="rs-foco">' + ICO.objetivo + 'FOCO: AUMENTAR</span>' : '') + (nf ? '<span class="rs-nf" title="Este dato no se filtra por la estrategia elegida">' + ICO.embudo + 'SIN FILTRAR</span>' : '') + '</div>' + (nota ? '<div class="b">' + esc(nota) + '</div>' : '') + '</div>' +
         '<div class="mc"><div class="top2"><span class="vv">' + esc(dinero(f.cur)) + '</span>' + est + '</div>' +
@@ -8713,10 +8741,11 @@
       const L = [];
       const ln = (t, x, a) => L.push({ t, x, a });
       if(v === 'flujo'){
-        const mc = F.cot.meta, dm = F.cot.cur - (mc || 0);
-        if(mc == null) ln('info', '<b>Cotizado ' + esc(dinero(F.cot.cur)) + ':</b> aún no hay 3 meses de historia para fijar tu meta (el promedio de 12 meses). Tu foco es aumentarlo.', 'Cotizaciones →');
-        else if(dm >= 0) ln('bien', '<b>Cotizado sobre tu meta:</b> ' + esc(dinero(F.cot.cur)) + ' contra un promedio de 12 meses de ' + esc(dinero(mc)) + (mc > 0 ? ' (<b>+' + pc(dm / mc) + ' %</b>)' : '') + '. Vas en la dirección de tu foco.', 'Cotizaciones →');
-        else ln('alerta', '<b>Cotizado bajo tu meta:</b> ' + esc(dinero(F.cot.cur)) + ', te faltan <b>' + esc(dinero(-dm)) + '</b> para igualar tu promedio de 12 meses. Sin cotizaciones hoy no hay ventas en 3 a 6 semanas.', 'Cotizaciones →');
+        const mc = F.cot.meta, dm = F.cot.cur - (mc || 0), propia = F.cot.metaOrigen === 'propia';
+        const contra = propia ? 'tu meta de ' : 'un promedio de 12 meses de ', paraIgualar = propia ? 'llegar a tu meta' : 'igualar tu promedio de 12 meses';
+        if(mc == null) ln('info', '<b>Cotizado ' + esc(dinero(F.cot.cur)) + ':</b> aún no hay 3 meses de historia para fijar una meta (el promedio de 12 meses); también puedes escribirla en Configuración → Metas. Tu foco es aumentarlo.', 'Cotizaciones →');
+        else if(dm >= 0) ln('bien', '<b>Cotizado sobre tu meta:</b> ' + esc(dinero(F.cot.cur)) + ' contra ' + contra + esc(dinero(mc)) + (mc > 0 ? ' (<b>+' + pc(dm / mc) + ' %</b>)' : '') + '. Vas en la dirección de tu foco.', 'Cotizaciones →');
+        else ln('alerta', '<b>Cotizado bajo tu meta:</b> ' + esc(dinero(F.cot.cur)) + ', te faltan <b>' + esc(dinero(-dm)) + '</b> para ' + paraIgualar + '. Sin cotizaciones hoy no hay ventas en 3 a 6 semanas.', 'Cotizaciones →');
         if(F.cot.cur > 0){
           const r1 = F.gan.cur / F.cot.cur, r0 = ref('cot') > 0 && ref('gan') != null ? ref('gan') / ref('cot') : null, dp = r0 == null ? null : Math.round((r1 - r0) * 100);
           ln(dp == null || Math.abs(dp) < 3 ? 'info' : dp > 0 ? 'bien' : 'alerta', '<b>De cada $100 cotizados, ganaste $' + Math.round(r1 * 100) + '</b>' + (dp == null ? '' : ' (' + (Math.abs(dp) < 3 ? 'igual que' : dp > 0 ? '+' + dp + ' pts sobre' : dp + ' pts bajo') + ' ' + txtRef + ')') + '. La conversión pesa tanto como el volumen.', 'Cotizaciones →');
@@ -8758,7 +8787,7 @@
       $('rsVistas').innerHTML = VISTAS.map((x) => '<button type="button" class="rs-vista' + (x.id === vista ? ' on' : '') + '" role="tab" aria-selected="' + (x.id === vista) + '" data-vista="' + x.id + '"><span class="ic">' + x.ico + '</span><span class="tt"><h2>' + esc(x.titulo) + '</h2><small>' + esc(x.sub(m)) + '</small></span></button>').join('');
       const tope = Math.max(1, ...def.filas.map((d) => Math.max(r.filas[d.k].cur, r.filas[d.k].meta || 0))) * 1.08;
       const lb = m.todo ? 'ACUMULADO' : (modo === 'anio' ? (m.refs.anio || 'AÑO PASADO') : m.refs[modo] || '').toUpperCase();
-      let h = '<div class="rs-cab"><span>CONCEPTO</span><span>MONTO · MARCA = META (PROM. 12 MESES)</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
+      let h = '<div class="rs-cab"><span>CONCEPTO</span><span>MONTO · MARCA = META</span><span>12 MESES · PUNTEADA = META</span><span>VARIACIÓN vs ' + esc(lb) + '</span></div>';
       h += def.filas.map((d) => filaHtml(d, r.filas, m, tope)).join('');
       if(vista === 'perdido'){
         h += '<div class="rs-motivos"><div class="rs-mo-t">' + ICO.info + 'MOTIVOS DE PÉRDIDA</div>' + (r.motivos.length
@@ -19379,6 +19408,100 @@
     });
   })();
 
+  // Configuración → Metas: los tres montos mensuales (Cotizado, Ganado, Cobrado; SIN IVA, mes completo) que el Dashboard → Resumen usa como
+  // marca de la barra y línea punteada. Table Storage (getMetasAdmin / guardarMetasAdmin, api/src/metas.js): no despierta la base, así que sin
+  // reintento con pausas. Un campo vacío = esa fila usa el promedio de 12 meses. Un solo Guardar con confirmación; solo se habilita si algo cambió.
+  (function(){
+    const METAS = [
+      { k:'cot', nombre:'Cotizado', desc:'Lo que cotizas (envías) en el mes. Tu foco es aumentarlo.' },
+      { k:'gan', nombre:'Ganado', desc:'Cotizaciones cerradas como ganadas en el mes.' },
+      { k:'cob', nombre:'Cobrado', desc:'Dinero que entra en el mes: pagos recibidos.' },
+    ];
+    let metas = { cot:null, gan:null, cob:null };
+    const dinero = (n) => '$' + Number(n).toLocaleString('es-MX', { maximumFractionDigits:2 });
+    async function apiGet(url){
+      const res = await fetch(url, { cache:'no-store' });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(body.error || 'Error de red');
+      return body;
+    }
+    function toast(msg, ok){
+      const el = document.getElementById('bakToast');
+      if(!el) return;
+      el.textContent = msg;
+      el.className = 'radm-toast ' + (ok ? 'ok' : 'err');
+      el.hidden = false;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    function pintar(){
+      const cont = document.getElementById('cfgMetasLista');
+      const val = (k) => metas[k] == null ? '' : String(metas[k]);
+      cont.innerHTML = METAS.map(m => `
+        <div class="cfg-metas-fila">
+          <div class="cfg-metas-txt">
+            <div class="cfg-correo-nombre">${m.nombre}</div>
+            <div class="cfg-correo-desc">${m.desc}</div>
+            <div class="cfg-correo-desc"><b>${metas[m.k] == null ? 'Sin meta propia: usa el promedio de 12 meses' : 'Meta actual: ' + dinero(metas[m.k]) + ' al mes'}</b></div>
+          </div>
+          <label class="cfg-metas-campo">$ <input type="number" min="0" step="1000" inputmode="decimal" placeholder="promedio" data-k="${m.k}" data-original="${val(m.k)}" value="${val(m.k)}" aria-label="Meta mensual de ${m.nombre}"></label>
+        </div>`).join('') + `
+        <div class="cfg-metas-acciones">
+          <button type="button" class="radm-btn" id="cfgMetasGuardar" style="min-width:auto;" disabled>Guardar metas</button>
+          <span class="cfg-correo-desc" id="cfgMetasEstado" role="status">Deja un campo vacío para volver al promedio.</span>
+        </div>`;
+
+      const inputs = [...cont.querySelectorAll('input[data-k]')], btn = document.getElementById('cfgMetasGuardar');
+      const invalido = (i) => i.value !== '' && !(Number(i.value) >= 0);
+      const revisar = () => {
+        inputs.forEach(i => i.classList.toggle('cfg-metas-dirty', i.value !== i.dataset.original));
+        btn.disabled = !inputs.some(i => i.value !== i.dataset.original) || inputs.some(invalido);
+      };
+      inputs.forEach(i => i.addEventListener('input', revisar));
+      btn.addEventListener('click', async () => {
+        const cuerpo = {};
+        inputs.forEach(i => { cuerpo[i.dataset.k] = i.value === '' ? null : Number(i.value); });
+        const lineas = METAS.map(m => m.nombre + ': ' + (cuerpo[m.k] == null ? 'promedio de 12 meses' : dinero(cuerpo[m.k]) + ' al mes')).join(' · ');
+        if(!(await confirmarAccion({ titulo:'Guardar las metas', mensaje:lineas + '. El Dashboard → Resumen las usará desde la próxima vez que lo abras o actualices. No se modifica ningún dato.', variante:'neutral', textoConfirmar:'Sí, guardar' }))) return;
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        try {
+          metas = await apiPostJson('/api/guardarMetasAdmin', cuerpo);
+          toast('Metas guardadas.', true);
+        } catch(e){
+          toast('No se pudo guardar: ' + e.message, false);
+        }
+        pintar();
+      });
+    }
+
+    async function cargar(){
+      const cont = document.getElementById('cfgMetasLista');
+      try {
+        metas = await apiGet('/api/getMetasAdmin');
+        pintar();
+      } catch(e){
+        cont.innerHTML = `<div class="radm-empty-row">No se pudo cargar: ${e.message}</div>`;
+      }
+    }
+
+    let cargado = false;
+    document.getElementById('cfgMetasHead').addEventListener('click', () => {
+      const body = document.getElementById('cfgMetasBody');
+      const head = document.getElementById('cfgMetasHead');
+      const expandir = body.hidden;
+      body.hidden = !expandir;
+      head.querySelector('.cfg-toggle-ico').classList.toggle('expanded', expandir);
+      if(expandir && !cargado){ cargado = true; cargar(); }
+    });
+  })();
+
   // Configuración → Estado del sistema: "¿está todo vivo?" sin entrar a Azure. Lee Table Storage, blobs y el estado/cuota de la base
   // (api/getEstadoSistema; la base se la pregunta a Azure Resource Manager), nunca SQL: abrirlo no despierta la base. Cada fila dice su estado en TEXTO ("En orden" / "Revisar") además del ícono.
   (function(){
@@ -19709,6 +19832,7 @@
       correo: { head: 'cfgCorreoHead', body: 'cfgCorreoBody', titulo: 'Notificaciones' },
       notif: { head: 'cfgNotifHead', body: 'cfgNotifBody', titulo: 'Alertas' },
       met: { head: 'cfgMetHead', body: 'cfgMetBody', titulo: 'Métricas de los Tracking' },
+      metas: { head: 'cfgMetasHead', body: 'cfgMetasBody', titulo: 'Metas' },
       tarifas: { head: 'cfgTarifasHead', body: 'cfgTarifasBody', titulo: 'Tarifas por hora' },
       act: { head: 'cfgActividadHead', body: 'cfgActividadBody', titulo: 'Actividad' },
     };
@@ -19731,7 +19855,7 @@
     }
 
     // Cada sección → { ok: true | false | null (informativa), linea, chip? }. Las reglas de "Revisar" son las mismas de Estado del sistema.
-    function evaluar(e, m, a){
+    function evaluar(e, m, a, mt){
       const r = {};
       if(!e){
         const sin = { ok: false, linea: 'No se pudo revisar', motivo: 'no se pudo revisar' };
@@ -19777,6 +19901,11 @@
         const conRango = ['solicitudes', 'cotizaciones', 'grupos', 'cobranza'].filter((k) => m[k] && (m[k].desde || m[k].hasta)).length;
         r.met = { ok: null, linea: conRango ? 'Rango personalizado en ' + conRango + (conRango === 1 ? ' de 4 Trackings' : ' de 4 Trackings') : 'Contando todo el historial' };
       } else r.met = { ok: null, linea: 'No se pudo leer' };
+
+      if(mt){
+        const n = ['cot', 'gan', 'cob'].filter((k) => mt[k] != null).length;
+        r.metas = { ok: null, linea: n ? n + (n === 1 ? ' de 3 metas definida' : ' de 3 metas definidas') : 'Sin metas: se usa el promedio de 12 meses' };
+      } else r.metas = { ok: null, linea: 'No se pudo leer' };
 
       r.tarifas = { ok: null, linea: 'Precio base de cada herramienta' };
 
@@ -19831,10 +19960,10 @@
         $('cfgSalud').querySelector('.cfgt-salud-tit').textContent = 'Revisando el sistema…';
         $('cfgSalud').querySelector('.cfgt-salud-sub').textContent = '';
       }
-      const [e, m, a] = await Promise.all([pedir('/api/getEstadoSistema'), pedir('/api/getMetricasDesde'), pedir('/api/listActividadAdmin')]);
+      const [e, m, a, mt] = await Promise.all([pedir('/api/getEstadoSistema'), pedir('/api/getMetricasDesde'), pedir('/api/listActividadAdmin'), pedir('/api/getMetasAdmin')]);
       if(mio !== turno) return;
       primera = false;
-      pintar(evaluar(e, m, a));
+      pintar(evaluar(e, m, a, mt));
     }
 
     function mostrarTablero(){

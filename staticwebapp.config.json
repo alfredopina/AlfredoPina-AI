@@ -11,6 +11,10 @@
       "rewrite": "/cursos.html"
     },
     {
+      "route": "/cursos-abiertos",
+      "rewrite": "/cursos-abiertos.html"
+    },
+    {
       "route": "/cursos",
       "redirect": "/in-company",
       "statusCode": 301
@@ -99,7 +103,16 @@
       "route": "/api/registrarEventoDiploma"
     },
     {
+      "route": "/api/reservarCursoAbierto"
+    },
+    {
+      "route": "/api/avisarCursoAbierto"
+    },
+    {
       "route": "/api/getCatalogoCursos"
+    },
+    {
+      "route": "/api/calendarioAbiertos"
     },
     {
       "route": "/api/getCatalogoRecursos"

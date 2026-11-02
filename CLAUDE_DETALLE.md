@@ -20,6 +20,7 @@ Hasta 2026-10-13 todo esto era un solo archivo de ~590 KB. Se partió por tema *
 | `docs/infra-azure-costos.md` | Incidente de vCore-segundos (2026-09-17), factura vencida (2026-09-25), costos, limpieza de Azure, DemoVentas, **ícono de estado de la base y cuota gratis** | "Incidente", "Revisión de costos", "Limpieza de Azure", "Ícono de estado de la base" |
 | `docs/seguridad-auditoria.md` | Auditoría de límites de Static Web Apps, higiene de rutas, `npm audit`, lote de la auditoría 01 | "Auditoría de límites", "Sesión de higiene", "Solo por link + lote chico" |
 | `docs/confianza-dominio-correo.md` | Filtros corporativos y reclasificaciones, DNS del apex, SPF/DKIM/DMARC, plan de correo y suite (Google → Microsoft 365) | "Confianza de Sitio", "Correo y suite" |
+| `docs/cursos-abiertos.md` | Diseño del módulo Cursos Abiertos: modelo (Grupo abierto, Inscripción, Lista de espera), foto pública, contador de cupo, flujo y orden de construcción; mockup v1 en `docs/mockups/cursos-abiertos.html` | "Diseño pendiente: cursos abiertos" |
 | `docs/dc3-stps.md` | Investigación del módulo DC-3 y el registro STPS | "DC-3" |
 | `docs/modelo-negocio.md` | Los 3 pilares (Comercial / Producto / Operación) | "Modelo del negocio" |
 

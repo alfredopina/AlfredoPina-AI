@@ -106,6 +106,8 @@ Mejor estrategia comercial; implica **muchos cambios, hay que hacerlo bien y por
 
 ## Diseño pendiente: cursos abiertos
 
+**Actualización 2026-11-02:** mockup v1 hecho (`docs/mockups/cursos-abiertos.html`) y diseño del módulo en `docs/cursos-abiertos.md` (modelo, flujo, orden de construcción). **Esperan respuesta de Alfredo 4 decisiones (A a D):** Cliente del grupo abierto, contador atómico de cupo, apartados vencidos y cuándo nace la cuenta por cobrar. **Construido el 2026-11-02 (sin lanzar, sin commit):** lado público (página `/cursos-abiertos` oculta, 3 Functions públicas con contador atómico y colas, pruebas y `tools/publicar-calendario.js`). **Falta:** importación de la cola, Tracking Abiertos, botón Publicar, Cobranza y correos (orden en `docs/cursos-abiertos.md`). El listado original de abajo queda como contexto.
+
 Es la segunda línea de negocio y rompe un supuesto del modelo actual: **todo el sistema vende a empresas** (Cliente = empresa; no se modelan alumnos sueltos). Antes de construir hay que decidir, en una sesión de diseño en texto:
 1. **Cobro:** proveedor de pagos (comprar, no construir) y cómo se concilia con la facturación.
 2. **Facturación** de cada inscripción (persona física o empresa que paga por sus empleados).

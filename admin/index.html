@@ -357,15 +357,21 @@
   .rs-emb-t small{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
   .rs-fila .top2 small{ font-family:var(--body); font-size:13px; font-weight:500; color:var(--text-dim); }
   /* barra simple (la del v4) con su marca de meta, más alta para que se lea la etiqueta */
-  .rs-track{ position:relative; height:24px; border-radius:12px; background-color:rgba(127,127,127,.14); margin-top:2px; }
-  .rs-track .fill{ position:absolute; left:0; top:0; bottom:0; border-radius:12px; min-width:6px; }
-  .rs-track .fill.on{ background-color:#3d7fff; background-image:linear-gradient(90deg, #2f6df0, #4f90ff); box-shadow:0 0 12px rgba(61,127,255,.3); }
-  .rs-track .fill.off{ background-color:rgba(107,159,255,.42); }
-  .rs-track .et{ position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12.5px; font-weight:600; white-space:nowrap; }
-  .rs-track .fill .et{ left:11px; color:#fff; }
-  .rs-track .fill.off .et{ color:var(--text); }
-  .rs-track .et.fuera{ color:var(--text-dim); }
-  .rs-track .meta{ position:absolute; top:-5px; bottom:-5px; width:2px; margin-left:-1px; border-radius:2px; background-color:var(--text); z-index:2; }
+  .rs-track{ position:relative; height:36px; border-radius:18px; background-color:rgba(127,127,127,.14); margin-top:2px; }
+  .rs-track .fill{ position:absolute; left:0; top:0; bottom:0; display:flex; gap:2px; min-width:8px; border-radius:18px; box-shadow:0 0 10px rgba(61,127,255,.25); }
+  .rs-track .sg{ min-width:3px; display:flex; align-items:center; padding:0 11px; font-family:var(--mono); font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; border-radius:4px; cursor:default; }
+  .rs-track .sg:first-child{ border-radius:18px 4px 4px 18px; } .rs-track .sg:last-child{ border-radius:4px 18px 18px 4px; } .rs-track .sg:only-child{ border-radius:18px; }
+  .rs-track .sg.t0{ background-color:#3d7fff; color:#fff; }
+  .rs-track .sg.t1{ background-color:#7fb0ff; color:#0a0d12; }
+  .rs-track .sg.t2{ background-color:#cfe0ff; color:#0a0d12; }
+  .rs-track .sg:hover{ filter:brightness(1.1); }
+  /* al rebasar la meta la barra «vive» como los demás elementos vivos del admin (late y su contorno respira), en vez de cambiar de color */
+  .rs-track .fill.vibra{ animation:rs-vibra 1.8s ease-in-out infinite; }
+  .rs-track .fill.vibra::after{ content:""; position:absolute; inset:-3px; border:1px solid #3d7fff; border-radius:21px; animation:rs-lat 1.8s ease-in-out infinite; pointer-events:none; }
+  @keyframes rs-vibra{ 0%,100%{ opacity:.78; box-shadow:0 0 6px rgba(61,127,255,.3); } 50%{ opacity:1; box-shadow:0 0 22px rgba(61,127,255,.85); } }
+  @keyframes rs-lat{ 0%,100%{ opacity:.2; } 50%{ opacity:1; } }
+  @media (prefers-reduced-motion:reduce){ .rs-track .fill.vibra{ animation:none; } .rs-track .fill.vibra::after{ animation:none; opacity:.8; } }
+  .rs-track .meta{ position:absolute; top:-6px; bottom:-6px; width:2px; margin-left:-1px; border-radius:2px; background-color:var(--text); z-index:2; }
   .rs-track .meta::after{ content:""; position:absolute; top:-3px; left:-3px; width:8px; height:8px; border-radius:50%; background-color:var(--text); border:2px solid var(--panel); }
   .rs-lg{ display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:11px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
   .rs-lg > span{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
@@ -377,7 +383,7 @@
   .rs-lg .mal-i{ display:inline-flex; align-items:center; gap:4px; color:var(--text); }
   .rs-tag{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px; color:var(--text-dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
   .rs-tag svg{ width:11px; height:11px; }
-  .rs-cab, .rs-fila{ display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(0, 2.1fr) 206px 176px; gap:18px; align-items:center; }
+  .rs-cab, .rs-fila{ display:grid; grid-template-columns:150px minmax(0, 1fr) 180px 290px; gap:18px; align-items:center; }
   .rs-cab{ padding:10px 0 5px; font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; color:var(--text-faint); border-bottom:1px solid var(--line); }
   .rs-cab .tag{ justify-self:end; }
   .rs-fila{ min-height:64px; padding:5px 0; border-bottom:1px solid var(--line); }
@@ -395,8 +401,10 @@
   .rs-fila .vv{ font-family:var(--display); font-size:25px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; }
   .rs-est{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; color:var(--text-dim); }
   .rs-est svg{ width:14px; height:14px; flex:none; }
-  .rs-est.on svg{ color:var(--blue-bright); }
-  .rs-est.off svg{ color:var(--blue-bright); opacity:.65; }
+  .rs-est .tri{ width:16px; height:16px; flex:none; }
+  .rs-est .tri.up{ fill:var(--good); }
+  .rs-est .tri.down{ fill:var(--bad); }
+  .rs-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .rs-est i{ font-style:normal; color:var(--text-faint); }
   .rs-spc{ min-width:0; }
   .rs-sp2{ display:block; width:100%; height:40px; overflow:visible; }
@@ -405,16 +413,16 @@
   .rs-sp2 .hit{ fill:transparent; cursor:crosshair; }
   .rs-sp2 .hit:hover + .pt, .rs-sp2 .pt:hover{ fill:var(--blue-bright); }
   .rs-sp2 .vacio{ stroke:var(--text-faint); stroke-width:1; stroke-dasharray:2 5; }
-  .rs-vc{ min-width:0; display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
-  .rs-d{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; font-weight:500; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; }
-  .rs-d svg{ width:11px; height:11px; flex:none; }
+  .rs-vc{ min-width:0; display:flex; flex-direction:row; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+  .rs-d{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:15px; font-weight:600; padding:6px 14px; border-radius:999px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; }
+  .rs-d svg{ width:14px; height:14px; flex:none; }
   .rs-d.bien{ color:var(--good); border-color:var(--good); }
   .rs-d.mal{ color:var(--text); border-color:var(--warn); background-color:rgba(223,179,90,.13); }
   .rs-d.mal svg{ color:var(--warn); }
   .rs-d.urg{ color:var(--text); border-color:var(--bad); background-color:rgba(220,38,38,.18); }
   .rs-d.igual, .rs-d.normal{ color:var(--blue-bright); border-color:var(--blue-bright); background-color:var(--blue-soft); }
   .rs-d.na, .rs-d.acum{ color:var(--text-faint); border-style:dotted; }
-  .rs-dl{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); padding-left:3px; }
+  .rs-dl{ font-family:var(--mono); font-size:12.5px; color:var(--text-dim); }
   .rs-ins3{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:10px; }
   .rs-in{ display:flex; flex-direction:column; gap:7px; padding:10px 13px; border:1px solid var(--line); border-radius:11px; background-color:var(--panel-2); font-size:12.5px; line-height:1.5; color:var(--text-dim); }
   .rs-in b{ color:var(--text); font-weight:600; }
@@ -3447,10 +3455,10 @@
                   <div class="rs-pop" id="rsPop" hidden>
                     <h3>Cómo leer el embudo</h3>
                     <h4>BARRAS</h4>
-                    <div class="li"><span class="ej"><svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><rect x="0" y="3" width="120" height="16" rx="8" fill="rgba(127,127,127,.25)"/><rect x="0" y="3" width="70" height="16" rx="8" fill="#3d7fff"/><rect x="88" y="0" width="2" height="22" rx="1" fill="currentColor"/><circle cx="89" cy="1.5" r="3" fill="currentColor"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA (en Solicitudes, la cantidad), con la misma escala en todas. La <b>marca blanca</b> es la meta: si la barra la rebasa, la cumpliste. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
-                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="26" height="12" rx="3" fill="#3d7fff"/><rect x="42" y="2" width="26" height="12" rx="3" fill="#7fb0ff"/><rect x="84" y="2" width="26" height="12" rx="3" fill="#cfe0ff"/></svg></span><span><b>Azul</b>: la barra está en su meta o por encima; <b>azul claro</b>: va por debajo (además lo dice con ícono y texto). Debajo de cada barra, la <b>leyenda</b> muestra de qué se compone, aunque valga cero: Solicitudes (sitio, manuales, sin atender), Cotizado (estándar, personalizados, consultoría), Vendido (facturado, por facturar), Facturado (cobrado, por cobrar, vencido) y Cobrado (de este mes, de meses anteriores). Un ícono de alerta marca lo pendiente o vencido.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><rect x="0" y="3" width="120" height="16" rx="8" fill="rgba(127,127,127,.25)"/><rect x="0" y="3" width="70" height="16" rx="8" fill="#3d7fff"/><rect x="88" y="0" width="2" height="22" rx="1" fill="currentColor"/><circle cx="89" cy="1.5" r="3" fill="currentColor"/></svg></span><span>Las barras salen del borde izquierdo y el <b>ancho</b> es el monto del mes sin IVA (en Solicitudes, la cantidad), con la misma escala en todas. La <b>marca blanca</b> es la meta: si la barra la rebasa, la cumpliste y <b>late</b> como los elementos vivos del admin. Junto al monto, un <b>triángulo verde hacia arriba</b> dice que va sobre su meta y uno <b>rojo hacia abajo</b>, que va por debajo; al lado, la meta. Sin meta propia, la meta es el promedio de 12 meses.</span></div>
+                    <div class="li"><span class="ej"><svg width="120" height="16" viewBox="0 0 120 16" aria-hidden="true"><rect x="0" y="2" width="26" height="12" rx="3" fill="#3d7fff"/><rect x="42" y="2" width="26" height="12" rx="3" fill="#7fb0ff"/><rect x="84" y="2" width="26" height="12" rx="3" fill="#cfe0ff"/></svg></span><span>Cada barra se divide en <b>tonos de azul</b>, uno por parte, con su monto escrito dentro. Debajo, la <b>leyenda</b> nombra cada parte con el mismo tono, aunque valga cero: Solicitudes (sitio, manuales, sin atender), Cotizado (estándar, personalizados, consultoría), Vendido (facturado, por facturar), Facturado (cobrado, por cobrar, vencido) y Cobrado (de este mes, de meses anteriores). Un ícono de alerta marca lo pendiente o vencido.</span></div>
                     <h4>CÓMO SE CUENTA</h4>
-                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b>: lo atendido mide lo mismo que Cotizado. <b>Facturado</b> comparte la meta de <b>Vendido</b>. <b>Vendido</b> y <b>Cobrado</b> son lo ocurrido en el mes; <b>Cotizado</b> y <b>Facturado</b>, lo enviado o emitido en el mes.</span></div>
+                    <div class="li"><span class="ej"></span><span><b>Solicitudes</b>: su meta mide lo mismo que la de Cotizado (por ejemplo, 8 solicitudes ≈ $250,000), así las dos marcas quedan alineadas. <b>Facturado</b> comparte la meta de <b>Vendido</b>. <b>Vendido</b> y <b>Cobrado</b> son lo ocurrido en el mes; <b>Cotizado</b> y <b>Facturado</b>, lo enviado o emitido en el mes.</span></div>
                     <h4>GRÁFICA DE 12 MESES Y VARIACIÓN</h4>
                     <div class="li"><span class="ej"><svg width="110" height="26" viewBox="0 0 110 26" aria-hidden="true"><line x1="2" y1="14" x2="108" y2="14" stroke="#79828f" stroke-dasharray="2 4"/><polyline points="2,20 20,16 38,19 56,11 74,13 92,8 108,5" fill="none" stroke="#6b9fff" stroke-width="1.5"/><circle cx="108" cy="5" r="3" fill="#6b9fff"/></svg></span><span>La línea son los últimos 12 meses del total de la barra y la <b>punteada</b> es la meta. Cada punto da mes y monto al pasar el cursor.</span></div>
                     <div class="li"><span class="ej"><span class="rs-d bien"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>+12 %</span></span><span>Va <b>bien</b> (verde-azulado, flecha y porcentaje).</span></div>
@@ -8661,7 +8669,7 @@
       billeteMov: S('<rect x="8" y="6.5" width="13.5" height="10" rx="1.8"/><circle cx="14.75" cy="11.5" r="2.2"/><path d="M2 9h4M3.5 13h2.5M2 17h4" stroke-linecap="round"/>', 1.8),
       billeteRoto: S('<path d="M3 7h9l-2 3.5 3 2-2 4.5H3z M16 7h5v10h-5.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="6.8" cy="12" r="1.6"/>', 1.8),
       pipe: S('<path d="M3 5h18l-6.5 7.5V19l-5 2v-8.5z" stroke-linejoin="round"/>', 1.8),
-      factura: S('<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6" stroke-linecap="round" stroke-linejoin="round"/>', 1.8),
+      factura: S('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" stroke-linecap="round" stroke-linejoin="round"/>', 1.8),
       cobrar: S('<circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.6 9.3c-.5-.9-1.5-1.4-2.7-1.3-1.5.1-2.4.9-2.4 1.9 0 2.6 5 1.3 5 3.9 0 1.1-1.1 2-2.6 2-1.3 0-2.3-.6-2.7-1.5" stroke-linecap="round"/>', 1.8),
       plazo: S('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>', 1.8),
       venc: S('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/>', 1.8),
@@ -8745,20 +8753,28 @@
     }
     const TONOS = ['#3d7fff', '#7fb0ff', '#cfe0ff'];
 
-    // ── una fila del embudo: concepto | monto + barra simple (marca = meta) y leyenda | línea de 12 meses | variación ──
+    // ── una fila del embudo: concepto | monto + meta (triángulo + meta) + barra segmentada en azules y leyenda | línea de 12 meses | variación ──
+    const TRI = { up: '<svg class="tri up" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"/></svg>', down: '<svg class="tri down" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20 3 4h18z"/></svg>' };
     function filaHtml(def, r, ctx){
       const F = r.filas, meta = r.meta, f = F[def.k], c = variacion(f, def.cant, meta), fmt = fmtDe(def.cant);
       const sinMeta = f.meta == null, sobre = !sinMeta && f.cur >= f.meta;
       const nf = (meta.sinFiltrar || []).includes(def.k);
       const ancho = Math.max(0, Math.min(100, ctx.eq(def.k, f.cur) / ctx.tope * 100));
       const posMeta = sinMeta ? 0 : Math.max(0, Math.min(100, ctx.eq(def.k, f.meta) / ctx.tope * 100));
+      // triángulo verde hacia arriba = sobre su meta; rojo hacia abajo = bajo su meta (la dirección lo dice aunque no se distingan los colores)
       const est = sinMeta ? '<span class="rs-est">' + ICO.info + 'sin meta aún <i>· faltan meses de historia</i></span>'
-        : '<span class="rs-est ' + (sobre ? 'on' : 'off') + '">' + (sobre ? ICO.sobre + 'sobre su meta' : ICO.bajo + 'bajo su meta') + ' <i>· ' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(fmt(f.meta)) + '</i></span>';
-      const et = fmt(f.cur), dentro = ancho * 5.2 >= et.length * 7.5 + 22; // la etiqueta va dentro de la barra si cabe y, si no, a su lado
-      const barra = '<div class="rs-track"><div class="fill ' + (sinMeta || sobre ? 'on' : 'off') + '" style="width:' + ancho.toFixed(2) + '%">' + (dentro ? '<span class="et">' + esc(et) + '</span>' : '') + '</div>' +
-        (dentro ? '' : '<span class="et fuera" style="left:calc(' + ancho.toFixed(2) + '% + 10px)">' + esc(et) + '</span>') +
+        : '<span class="rs-est" title="' + (sobre ? 'Sobre su meta' : 'Bajo su meta') + '">' + (sobre ? TRI.up : TRI.down) + '<span class="rs-sr">' + (sobre ? 'sobre su meta' : 'bajo su meta') + '</span><i>' + (f.metaOrigen === 'propia' ? 'meta ' : 'prom. 12 m ') + esc(fmt(f.meta)) + '</i></span>';
+      const todos = segmentos(def.k, r.desglose, f).map((s, i) => Object.assign({ t: i % TONOS.length }, s));
+      let partes = todos.filter((s) => s.v > 0);
+      if(!partes.length && f.cur > 0) partes = [{ n: def.nombre, v: f.cur, t: 0 }];
+      const tot = partes.reduce((a, s) => a + s.v, 0);
+      const sg = partes.map((s) => {
+        const et = fmt(s.v), cabe = ancho * s.v / tot * 5.2 >= et.length * 8 + 22; // ~5.2 px por punto de ancho: la etiqueta solo se escribe si cabe
+        return '<div class="sg t' + s.t + '" style="flex:' + s.v + ' 1 0" data-tip="' + esc(s.n + '|' + et + (s.cnt != null ? '|' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') : '')) + '">' + (cabe ? esc(et) : '') + '</div>';
+      }).join('');
+      const barra = '<div class="rs-track"><div class="fill' + (sobre ? ' vibra' : '') + '" style="width:' + ancho.toFixed(2) + '%">' + sg + '</div>' +
         (sinMeta ? '' : '<i class="meta" style="left:' + posMeta.toFixed(2) + '%" title="Meta: ' + esc(fmt(f.meta)) + '"></i>') + '</div>';
-      const leyenda = segmentos(def.k, r.desglose, f).map((s, i) => '<span class="' + (s.v > 0 ? '' : 'cero') + '"' + (s.cnt != null ? ' title="' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '"' : '') + '><i style="background-color:' + TONOS[i % TONOS.length] + '"></i>' +
+      const leyenda = todos.map((s) => '<span class="' + (s.v > 0 ? '' : 'cero') + '"' + (s.cnt != null ? ' title="' + s.cnt + (s.cnt === 1 ? ' cotización' : ' cotizaciones') + '"' : '') + '><i style="background-color:' + TONOS[s.t] + '"></i>' +
         (s.mal && s.v > 0 ? '<span class="mal-i">' + ICO.alerta + esc(s.n) + '</span>' : esc(s.n)) +
         (s.cnt != null ? ' <b>(' + s.cnt + ')</b> <em>' + esc(fmt(s.v)) + '</em>' : ' <b>' + esc(fmt(s.v)) + '</b>') + '</span>').join('');
       return '<div class="rs-fila" data-k="' + def.k + '">' +
@@ -8791,12 +8807,15 @@
         x1 += ' Son <b>' + n + (n === 1 ? ' cotización' : ' cotizaciones') + '</b>: ' + tipos.join(', ') + '.';
       }
       L.push({ t: t1, e: 'COTIZADO', x: x1, a: 'Cotizaciones →', panel: 'tracking-comercial' });
-      // Facturado
-      const gpf = F.gpf.cur, ven = F.ven.cur, pxc = F.pxc.cur, vp = pxc > 0 ? ven / pxc : 0;
-      const t2 = vp >= 0.2 ? 'urg' : (gpf > 0 || ven > 0 ? 'alerta' : 'bien'), p2 = [];
-      if(gpf > 0) p2.push('<b>' + esc(dinero(gpf)) + ' vendidos sin factura</b> (Por facturar): es lo más rápido de convertir en efectivo, factúralo primero.');
-      if(ven > 0) p2.push('<b>' + esc(dinero(ven)) + ' vencidos</b> en toda la cartera (' + Math.round(vp * 100) + ' % de lo por cobrar): es el dinero que más urge perseguir.');
-      if(!p2.length) p2.push('<b>Nada por facturar ni vencido:</b> todo lo vendido tiene su factura y la cartera va en plazo.');
+      // Facturado: con las MISMAS cifras de las barras (lo vendido y lo facturado del periodo; no la cartera completa, que ya no se muestra)
+      const ff = F.fac, pf = D.gan.porFacturar, ven = D.fac.vencido, vendido = F.gan.cur, vp = ff.cur > 0 ? ven / ff.cur : 0;
+      const t2 = ven > 0 && vp >= 0.2 ? 'urg' : (pf > 0 || ven > 0 ? 'alerta' : 'bien'), p2 = [];
+      if(ff.meta != null && !m.todo) p2.push('<b>Facturado ' + esc(dinero(ff.cur)) + ':</b> ' + (ff.cur >= ff.meta ? 'sobre' : 'bajo') + ' ' + (ff.metaOrigen === 'propia' ? 'la meta' : 'el promedio de 12 meses') + ' de ' + esc(dinero(ff.meta)) + '.');
+      else p2.push('<b>Facturado ' + esc(dinero(ff.cur)) + '.</b>');
+      if(pf > 0) p2.push('<b>' + esc(dinero(pf)) + '</b> de lo vendido' + (vendido > 0 ? ' (' + pc(pf / vendido) + ' %)' : '') + ' sigue sin factura: es lo más rápido de convertir en efectivo, factúralo primero.');
+      if(ven > 0) p2.push('<b>' + esc(dinero(ven)) + '</b> de lo facturado (' + pc(vp) + ' %) ya venció: es el dinero que más urge perseguir.');
+      else if(ff.cur > 0) p2.push('Nada de lo facturado ha vencido.');
+      if(!(pf > 0) && !(ven > 0) && vendido > 0) p2.push('Todo lo vendido tiene su factura.');
       L.push({ t: t2, e: 'FACTURADO', x: p2.join(' '), a: 'Cobranza →', panel: 'cobranza' });
       // Cobrado
       const fb = F.cob, dif = fb.cur - F.fac.cur;
@@ -8814,11 +8833,16 @@
     function pintar(){
       if(!ultimo) return;
       const r = ultimo, m = r.meta, F = r.filas, D = r.desglose;
-      // escala común en pesos; Solicitudes (cantidad) usa "lo atendido mide lo mismo que Cotizado" y no pasa de 1.6 veces la barra más larga
+      // escala común en pesos. Solicitudes (cantidad) se alinea por su META: la meta de Solicitudes mide lo mismo que la de Cotizado (8 solicitudes ≈ $250,000),
+      // así sus dos marcas quedan en el mismo punto. Sin las dos metas, lo atendido mide lo mismo que Cotizado (sin pasar de 1.6 veces la barra más larga)
       const base = Math.max(1, ...['cot', 'gan', 'fac', 'cob'].map((k) => Math.max(F[k].cur, F[k].meta || 0)));
       const topeSol = Math.max(F.sol.cur, F.sol.meta || 0, 1);
-      let unidad = F.cot.cur > 0 && D.sol.atendidas > 0 ? F.cot.cur / D.sol.atendidas : base * 0.6 / topeSol;
-      unidad = Math.min(unidad, base * 1.6 / topeSol);
+      let unidad;
+      if(F.sol.meta > 0 && F.cot.meta > 0) unidad = F.cot.meta / F.sol.meta;
+      else {
+        unidad = F.cot.cur > 0 && D.sol.atendidas > 0 ? F.cot.cur / D.sol.atendidas : base * 0.6 / topeSol;
+        unidad = Math.min(unidad, base * 1.6 / topeSol);
+      }
       const eq = (k, v) => (k === 'sol' ? v * unidad : v);
       const tope = Math.max(base, eq('sol', F.sol.cur), eq('sol', F.sol.meta || 0)) * 1.05;
       const ctx = { eq, tope };

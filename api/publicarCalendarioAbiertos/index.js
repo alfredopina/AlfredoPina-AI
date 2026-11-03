@@ -52,6 +52,8 @@ module.exports = async function (context, req) {
     const r = await cal.guardarFoto(tabla, cruda, { reconciliar });
     const ids = g.recordset.map((x) => x.id);
     for (const id of ids) await pool.request().input("id", sql.Int, id).query("UPDATE Grupo SET publicado_en = SYSUTCDATETIME() WHERE id = @id");
+    // los que ya no están publicados (borrador/cancelado) salieron de la foto: ya no hay nada pendiente de ellos
+    await pool.request().query("UPDATE Grupo SET publicado_en = NULL WHERE estrategia = 'abiertos' AND publicacion <> 'publicado' AND publicado_en IS NOT NULL");
     return res(context, 200, { ok: true, grupos: r.grupos, publicado_en: r.publicadoEn, ejemplo });
   } catch (err) {
     if (err.safe) return res(context, 400, { error: err.message, errores: err.errores || [] });

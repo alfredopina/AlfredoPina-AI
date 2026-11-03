@@ -126,6 +126,7 @@ const lanza = (body) => { try { ga.validarGrupoAbierto(body); return null; } cat
   reiniciar();
   r = await llamar(editar, { body: cuerpo({ id: 501 }) });
   check("edición válida: 200, UPDATE solo de abiertos y sesiones reemplazadas", r.status === 200 && hubo(/UPDATE Grupo SET modalidad[\s\S]*estrategia = 'abiertos'/) && hubo(/DELETE FROM GrupoSesion/) && log.commits === 1);
+  check("al guardar un grupo publicado vuelve a «cambios sin publicar» (publicado_en = NULL); uno que deja de estar publicado conserva su fecha", hubo(/publicado_en = CASE WHEN @publicacion = .publicado. THEN NULL ELSE publicado_en END/));
   r = await llamar(editar, { body: cuerpo() });
   check("sin id → 400", r.status === 400);
   reiniciar(); modo.noExiste = true;
@@ -161,6 +162,7 @@ const lanza = (body) => { try { ga.validarGrupoAbierto(body); return null; } cat
   const publicada = await cal.leerFoto(cal.getTable());
   check("la foto publicada no lleva datos de personas y refleja ejemplo:false", publicada.foto.ejemplo === false && !/@/.test(JSON.stringify(publicada.foto)) && publicada.foto.grupos[0].reservados === 12);
   check("marca publicado_en del grupo", hubo(/UPDATE Grupo SET publicado_en/));
+  check("los que ya no están publicados (borrador/cancelado) quedan sin nada pendiente", hubo(/SET publicado_en = NULL WHERE estrategia = .abiertos. AND publicacion <> .publicado./));
   const conservaAjustes = await llamar(publicar, { body: { ajustes: { descuento_equipo: { desde_personas: 2, porcentaje: 10 } } } });
   const pub2 = await cal.leerFoto(cal.getTable());
   check("los ajustes enviados se guardan (descuento de equipo) y el contador no se duplica al republicar", conservaAjustes.status === 200 && pub2.foto.ajustes.descuento_equipo.porcentaje === 10 && tablas.CalendarioAbiertos.get("cupo|IA-1207").reservados === 12);

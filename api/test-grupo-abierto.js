@@ -99,6 +99,10 @@ const lanza = (body) => { try { ga.validarGrupoAbierto(body); return null; } cat
   check("presencial con sede: ok y guarda la sede", ga.validarGrupoAbierto(cuerpo({ modalidad: "presencial", sede: "Monterrey" })).sede === "Monterrey");
   check("fecha del grupo = día LOCAL de Monterrey (una sesión a las 23:30 locales no cae en el día siguiente)", ga.diaLocal("2027-01-17T05:30:00Z") === "2027-01-16");
 
+  const dm = ga.validarGrupoAbierto(cuerpo({ niveles: [3, 2, 2] }));
+  check("varios niveles: se ordenan y no se repiten ([3,2,2] → [2,3])", JSON.stringify(dm.niveles) === "[2,3]");
+  check("un nivel suelto (nivel: 1) se sigue aceptando", JSON.stringify(ga.validarGrupoAbierto(cuerpo()).niveles) === "[1]");
+  check("un nivel que no existe → error", !!lanza(cuerpo({ niveles: [2, 7] })) && !!lanza(cuerpo({ niveles: [] , nivel: null })));
   console.log("crearGrupoAbierto");
   reiniciar();
   let r = await llamar(crear, { body: cuerpo({ publicacion: "publicado" }) });
@@ -145,6 +149,8 @@ const lanza = (body) => { try { ga.validarGrupoAbierto(body); return null; } cat
     [{ grupo_id: 1, inicio: ses(42).inicio, fin: ses(42).fin }, { grupo_id: 1, inicio: ses(40).inicio, fin: ses(40).fin }, { grupo_id: 3, inicio: ses(-2).inicio, fin: ses(-2).fin }], null, { ejemplo: true });
   check("deja fuera el grupo que ya empezó y conserva el que no tiene sesiones (próximamente)", f.grupos.map((x) => x.codigo).join() === "IA-1207,XL-1");
   check("traduce nivel y modalidad al formato público y ordena sesiones", f.grupos[0].nivel === "Intermedio" && f.grupos[1].modalidad === "presencial" && f.grupos[0].sesiones[0].inicio < f.grupos[0].sesiones[1].inicio);
+  const fm = ga.armarFoto([fila({ niveles: "[2,3]" })], [{ grupo_id: 1, inicio: ses(42).inicio, fin: ses(42).fin }], null);
+  check("varios niveles salen unidos en la foto («Intermedio · Avanzado») y pasan la lista blanca", fm.grupos[0].nivel === "Intermedio · Avanzado" && cal.limpiarFoto(fm).errores.length === 0);
   check("la foto armada pasa la lista blanca sin errores", cal.limpiarFoto(f).errores.length === 0 && cal.limpiarFoto(f).foto.grupos.length === 2);
   check("lugaresEnCola suma por grupo", JSON.stringify(ga.lugaresEnCola([{ grupo: "A", lugares: 2 }, { grupo: "A", lugares: 1 }, { grupo: "B", lugares: 3 }, {}])) === '{"A":3,"B":3}');
 

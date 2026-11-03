@@ -53,8 +53,10 @@ function limpiarGrupo(g) {
   if (!codigoOk(codigo)) e.push("código inválido");
   const herramienta = String(g && g.herramienta || "");
   if (!HERRAMIENTAS.includes(herramienta)) e.push("herramienta inválida");
-  const nivel = String(g && g.nivel || "");
-  if (!NIVELES.includes(nivel)) e.push("nivel inválido");
+  // uno o varios niveles unidos con « · » (p. ej. «Intermedio · Avanzado»)
+  const partesNivel = String(g && g.nivel || "").split(" · ");
+  const nivel = partesNivel.join(" · ");
+  if (partesNivel.some((p) => !NIVELES.includes(p)) || new Set(partesNivel).size !== partesNivel.length) e.push("nivel inválido");
   const modalidad = String(g && g.modalidad || "");
   if (!MODALIDADES.includes(modalidad)) e.push("modalidad inválida");
   const nombre = txt(g && g.programa_nombre, 160);

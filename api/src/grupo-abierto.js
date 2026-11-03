@@ -35,8 +35,10 @@ function validarGrupoAbierto(body, ahora = new Date()) {
   if (!/^[A-Z0-9][A-Z0-9-]{2,19}$/.test(codigo)) throw falla("El código del grupo debe tener de 3 a 20 letras, números o guiones (ej. IA-1207).");
   const herramienta = txt(b.herramienta, 30);
   if (!HERRAMIENTAS.includes(herramienta)) throw falla("Elige un Programa de una herramienta válida.");
-  const nivel = entero(b.nivel);
-  if (!NIVEL_TEXTO[nivel]) throw falla("El nivel no es válido.");
+  // uno o varios niveles (p. ej. Excel Intermedio y Avanzado = [2, 3]); `nivel` suelto se sigue aceptando
+  const crudos = Array.isArray(b.niveles) ? b.niveles : [b.nivel];
+  const niveles = Array.from(new Set(crudos.map(entero))).sort();
+  if (!niveles.length || niveles.some((n) => !NIVEL_TEXTO[n])) throw falla("Elige al menos un nivel válido.");
   const nombre = txt(b.programa_nombre, 160);
   if (!nombre) throw falla("Falta el programa.");
   const modalidad = txt(b.modalidad, 12);
@@ -75,7 +77,7 @@ function validarGrupoAbierto(body, ahora = new Date()) {
   const temario = (Array.isArray(b.temario_corto) ? b.temario_corto : []).slice(0, 6).map((t) => txt(t, 140)).filter(Boolean);
 
   return {
-    codigo, herramienta, nivel, nombre, modalidad, sede: sede || null, horas, sesiones, mesEstimado: sesiones.length ? null : mesEstimado,
+    codigo, herramienta, niveles, nombre, modalidad, sede: sede || null, horas, sesiones, mesEstimado: sesiones.length ? null : mesEstimado,
     cupo, minimo, precio, preventa, preventaHasta, publicacion, programaId: txt(b.programa_id, 80) || null,
     resumen: txt(b.resumen, 300) || null, temario, instructor: txt(b.instructor, 150) || null, notas: txt(b.notas, 4000) || null,
   };
@@ -108,7 +110,7 @@ function ligarParametros(request, d) {
   return request
     .input("codigo", sql.NVarChar, d.codigo)
     .input("herramientas", sql.NVarChar, JSON.stringify([d.herramienta]))
-    .input("niveles", sql.NVarChar, JSON.stringify([d.nivel]))
+    .input("niveles", sql.NVarChar, JSON.stringify(d.niveles))
     .input("nombre", sql.NVarChar, d.nombre)
     .input("modalidad", sql.NVarChar, MODALIDAD_SQL[d.modalidad])
     .input("sede", sql.NVarChar, d.sede)
@@ -159,9 +161,9 @@ function armarFoto(grupos, sesiones, ajustes, { ejemplo = false, ahora = new Dat
     let temario = [];
     try { temario = JSON.parse(g.temario_corto || "[]"); } catch (_) { temario = []; }
     let herr = ""; try { herr = JSON.parse(g.herramientas || "[]")[0]; } catch (_) { herr = ""; }
-    let niv = 1; try { niv = JSON.parse(g.niveles || "[1]")[0]; } catch (_) { niv = 1; }
+    let niv = [1]; try { niv = JSON.parse(g.niveles || "[1]"); } catch (_) { niv = [1]; }
     salida.push({
-      codigo: g.grupo_codigo, programa_id: g.programa_id || "", programa_nombre: g.nombre_curso, herramienta: herr, nivel: NIVEL_TEXTO[niv] || "Básico",
+      codigo: g.grupo_codigo, programa_id: g.programa_id || "", programa_nombre: g.nombre_curso, herramienta: herr, nivel: niv.map((n) => NIVEL_TEXTO[n]).filter(Boolean).join(" · ") || "Básico",
       modalidad: MODALIDAD_PUBLICA[g.modalidad] || "en_linea", sede: g.sede || null, horas_totales: Number(g.horas), sesiones: ses, mes_estimado: g.mes_estimado || null,
       precio_persona: Number(g.precio_persona), precio_preventa: g.precio_preventa == null ? null : Number(g.precio_preventa), preventa_hasta: g.preventa_hasta || null,
       cupo_total: g.cupo_total, inscritos_confirmados: Number(g.confirmadas) || 0, apartados_sin_pago: Number(g.apartadas) || 0, minimo_para_abrir: g.minimo_para_abrir,

@@ -91,6 +91,8 @@ const ip = (n) => ({ "x-forwarded-for": "10.0.0." + n });
   check("instrucciones de pago: CLABE de 18 dígitos o nada", cal.limpiarFoto({ ajustes: { instrucciones_pago: { clabe: "123" } }, grupos: [] }).foto.ajustes.instrucciones_pago === null
     && cal.limpiarFoto({ ajustes: { instrucciones_pago: { clabe: "012345678901234567", banco: "B", beneficiario: "Y" } }, grupos: [] }).foto.ajustes.instrucciones_pago.clabe === "012345678901234567");
 
+  check("nivel combinado «Intermedio · Avanzado» es válido; uno raro o repetido, no", cal.limpiarFoto(fotoBase([grupo({ nivel: "Intermedio · Avanzado" })])).errores.length === 0
+    && cal.limpiarFoto(fotoBase([grupo({ nivel: "Intermedio · Raro" })])).errores.length === 1 && cal.limpiarFoto(fotoBase([grupo({ nivel: "Básico · Básico" })])).errores.length === 1);
   console.log("publicar y leer");
   const t = cal.getTable();
   let e1;

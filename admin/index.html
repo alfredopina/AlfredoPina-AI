@@ -2081,7 +2081,19 @@
   .abi-fila .radm-field{ flex:1; min-width:140px; }
   .abi-auto{ display:flex; gap:9px; align-items:center; border:1px dashed var(--line-2, var(--line)); border-radius:9px; padding:9px 12px; font-size:12.5px; color:var(--text-dim); margin-bottom:12px; }
   .abi-auto b{ color:var(--text); }
-  .abi-ses{ display:grid; grid-template-columns:1fr 110px 110px 34px; gap:8px; margin-bottom:8px; align-items:center; }
+  .abi-ses{ display:grid; grid-template-columns:minmax(150px,1.5fr) 92px 92px 34px; gap:8px; margin-bottom:8px; align-items:center; }
+  .abi-fecha{ position:relative; display:flex; gap:6px; align-items:center; min-width:0; }
+  .abi-fecha .abi-ft{ flex:1; min-width:0; }
+  .abi-ses input[type=text]{ font-family:var(--body); font-size:13px; color:var(--text); background-color:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:9px 10px; outline:none; width:100%; min-width:0; }
+  .abi-ses input[type=text]:focus{ border-color:var(--blue-bright); }
+  .abi-nat{ position:absolute; left:0; bottom:0; width:1px; height:1px; opacity:0; pointer-events:none; }
+  .abi-ses input.abi-malo{ border-color:#dc2626; background-color:color-mix(in srgb, #dc2626 10%, var(--panel-2)); }
+  .abi-ayuda{ font-size:11.5px; color:var(--text-faint); margin:2px 0 10px; line-height:1.5; }
+  .abi-ayuda b{ color:var(--text-dim); font-weight:600; }
+  @media (max-width:560px){ .abi-ses{ grid-template-columns:1fr 1fr 34px; } .abi-ses .abi-fecha{ grid-column:1 / -1; } }
+  /* los íconos del calendario y el reloj del navegador se pierden en tema oscuro: se les dice que pinten claro */
+  .abi-modal input[type="date"], .abi-modal input[type="month"], .abi-modal input[type="time"]{ color-scheme:dark; }
+  :root[data-theme="light"] .abi-modal input[type="date"], :root[data-theme="light"] .abi-modal input[type="month"], :root[data-theme="light"] .abi-modal input[type="time"]{ color-scheme:light; }
   .abi-chk{ display:flex; gap:8px; align-items:center; font-size:12.5px; margin-top:6px; }
   .abi-chk.ok{ color:var(--good); }
   .abi-chk svg{ width:14px; height:14px; flex:none; }
@@ -3237,7 +3249,7 @@
         Grupos
       </button>
       <button class="admin-nav-item" data-panel="abiertos">
-        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15h3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
         Abiertos
       </button>
       <button class="admin-nav-item" data-panel="cobranza">
@@ -6487,6 +6499,7 @@
   // Encabezado del menú: nombre de la sección o vista activa, su ícono y de qué tipo es ("VISTA GENERAL" = Dashboard y Tracking View; el resto, "SECCIÓN ACTIVA")
   const VISTAS_GENERALES = ['tracking-view', 'dashboard'];
   const ICONOS_SECCION = {
+    abiertos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15h3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     solicitudes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v12H8l-4 4z" stroke-linejoin="round"/></svg>',
     'tracking-comercial': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     clientes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -6626,7 +6639,7 @@
     function der(g){
       const ahora = Date.now();
       let herr = ''; try { herr = (JSON.parse(g.herramientas || '[]') || [])[0] || ''; } catch(e){ herr = ''; }
-      let niv = 1; try { niv = (JSON.parse(g.niveles || '[1]') || [1])[0]; } catch(e){ niv = 1; }
+      let nivs = [1]; try { nivs = JSON.parse(g.niveles || '[1]') || [1]; } catch(e){ nivs = [1]; } const niv = nivs[0]; const nivTxt = nivs.map((n) => NIVELES[n]).filter(Boolean).join(' · ');
       const ses = g.sesiones || [];
       const inicia = ses.length ? ses[0].inicio : null, termina = ses.length ? ses[ses.length - 1].fin : null;
       const ocup = (g.confirmadas || 0) + (g.apartadas || 0);
@@ -6651,7 +6664,7 @@
       const pendiente = (g.publicacion === 'publicado' && !g.publicado_en) || (g.publicacion !== 'publicado' && !!g.publicado_en);
       let temario = []; try { temario = JSON.parse(g.temario_corto || '[]') || []; } catch(e){ temario = []; }
       const mes = ses.length ? mesClave(inicia) : (g.mes_estimado || '');
-      return { g, herr, niv, ses, inicia, di, pasado, libres, confirmado, faltan, estado, preDias, sem, pendiente, temario, mes };
+      return { g, herr, niv, nivTxt, ses, inicia, di, pasado, libres, confirmado, faltan, estado, preDias, sem, pendiente, temario, mes };
     }
     const ESTADO_TXT = { abierto: 'Inscripciones abiertas', ultimos: 'Últimos lugares', lleno: 'Lleno', proximamente: 'Próximamente' };
     const semPill = (s) => '<span class="abi-pill ' + s.n + '">' + S(IC[s.n]) + esc(s.t) + '</span>';
@@ -6716,7 +6729,7 @@
         + '<button type="button" class="cot-icon-btn abi-editar" data-id="' + g.id + '" title="Editar el grupo" aria-label="Editar">' + S(IC.edit) + '</button>'
         + (g.publicacion !== 'cancelado' ? '<button type="button" class="cot-icon-btn abi-cancelar sol-acc-peligro" data-id="' + g.id + '" title="Cancelar el grupo (ya no se podrá reabrir)" aria-label="Cancelar">' + S(IC.ban) + '</button>' : '');
       return '<tr><td><span class="abi-cod">' + esc(g.codigo) + '</span></td>'
-        + '<td><div class="abi-curso"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(g.programa_nombre) + '</div><div class="abi-sub">' + esc(t.nombre) + ' · ' + esc(NIVELES[d.niv] || '') + ' · ' + esc(Number(g.horas)) + ' h</div></td>'
+        + '<td><div class="abi-curso"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(g.programa_nombre) + '</div><div class="abi-sub">' + esc(t.nombre) + ' · ' + esc(d.nivTxt) + ' · ' + esc(Number(g.horas)) + ' h</div></td>'
         + '<td>' + esc(d.ses.length ? rangoFechas(d.ses) : (g.mes_estimado ? mesNombre(g.mes_estimado) : 'Por definir')) + '<div class="abi-sub">' + S(pres ? IC.pin : IC.monitor, ' style="width:12px;height:12px;vertical-align:-2px"') + ' ' + (pres ? 'Presencial' : 'En línea') + (d.ses.length ? ' · ' + esc(hhmm(d.ses[0].inicio) + '–' + hhmm(d.ses[0].fin)) : '') + '</div></td>'
         + '<td><b>' + (g.confirmadas || 0) + '</b> conf. · ' + (g.apartadas || 0) + ' apart.' + (g.vencidas ? ' ' + pill(g.vencidas + ' vencido', 'ambar', 'ambar') : '') + '<div class="abi-sub">' + (d.libres ? 'Quedan ' + d.libres + ' de ' + g.cupo_total : 'Lleno · ' + g.cupo_total) + '</div><div class="abi-bar" aria-hidden="true"><span class="' + (d.estado === 'lleno' ? 'g' : d.estado === 'ultimos' ? 'w' : '') + '" style="width:' + pc + '%"></span></div></td>'
         + '<td>' + mini + '</td>'
@@ -6757,7 +6770,7 @@
       return '<div class="abi-auto">' + S('<path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/>', ' style="width:16px;height:16px;flex:none"') + '<span>Cliente: <b>Cursos Abiertos (público)</b> · automático. Las inscripciones se registran por persona; si paga una empresa, queda ligada a ella.</span></div>'
         + '<div class="abi-fila"><div class="radm-field" style="flex:2"><label for="abiFProg">PROGRAMA ESTÁNDAR <span class="dip-req">*</span></label><select id="abiFProg"></select></div>'
         + '<div class="radm-field"><label for="abiFCod">CÓDIGO <span class="dip-req">*</span></label><input type="text" id="abiFCod" maxlength="20" autocomplete="off" placeholder="IA-1207"></div></div>'
-        + '<div class="abi-fila"><div class="radm-field"><label for="abiFNivel">NIVEL</label><select id="abiFNivel"><option value="1">Básico</option><option value="2">Intermedio</option><option value="3">Avanzado</option></select></div>'
+        + '<div class="abi-fila"><div class="radm-field"><label>NIVEL <span class="dip-req">*</span> <span style="color:var(--text-faint);font-weight:400;letter-spacing:0">(puedes elegir varios)</span></label><div class="abi-opts" id="abiFNiveles"><label><input type="checkbox" name="abiNiv" value="1"> Básico</label><label><input type="checkbox" name="abiNiv" value="2"> Intermedio</label><label><input type="checkbox" name="abiNiv" value="3"> Avanzado</label></div></div>'
         + '<div class="radm-field"><label for="abiFHoras">HORAS DEL PROGRAMA</label><input type="number" id="abiFHoras" min="1" step="0.5"></div>'
         + '<div class="radm-field"><label for="abiFInst">INSTRUCTOR</label><input type="text" id="abiFInst" value="Alfredo Piña" maxlength="150"></div></div>'
         + '<div class="radm-field" style="margin-bottom:6px"><label>SESIONES <span class="dip-req">*</span> <span style="color:var(--text-faint);font-weight:400;letter-spacing:0">(hora de Monterrey; sin sesiones el grupo sale como «Próximamente»)</span></label></div>'
@@ -6773,16 +6786,89 @@
         + '<div class="radm-field"><label for="abiFPreF">PREVENTA HASTA</label><input type="date" id="abiFPreF"></div></div>'
         + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFTem">TEMARIO CORTO (una línea por punto; viene del Programa)</label><textarea id="abiFTem" rows="3" maxlength="1200"></textarea></div>'
         + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFRes">RESUMEN PARA EL SITIO (opcional, máx. 300)</label><input type="text" id="abiFRes" maxlength="300"></div>'
-        + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFNotas">NOTAS INTERNAS (no salen al sitio)</label><textarea id="abiFNotas" rows="2" maxlength="4000"></textarea></div>';
+        + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFNotas">NOTAS INTERNAS (no salen al sitio)</label><textarea id="abiFNotas" rows="2" maxlength="4000"></textarea></div>'
+        + '<datalist id="abiHoras">' + Array.from({ length: 33 }, (_, i) => { const m = 360 + i * 30; return '<option value="' + String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0') + '">'; }).join('') + '</datalist>';
     }
-    function pintarSes(){
-      $('abiSesiones').innerHTML = sesRows.map((s, i) => '<div class="abi-ses"><input type="date" value="' + s.d + '" data-s="' + i + '" data-k="d" aria-label="Fecha de la sesión ' + (i + 1) + '"><input type="time" value="' + s.a + '" data-s="' + i + '" data-k="a" aria-label="Inicio de la sesión ' + (i + 1) + '"><input type="time" value="' + s.b + '" data-s="' + i + '" data-k="b" aria-label="Fin de la sesión ' + (i + 1) + '"><button type="button" class="cot-icon-btn abi-quitar-ses" data-i="' + i + '" aria-label="Quitar la sesión ' + (i + 1) + '" title="Quitar">' + S(IC.x) + '</button></div>').join('');
+    // ── sesiones: fechas y horas que se pueden ESCRIBIR (dd/mm/aaaa, «7 dic», 18, 6pm…) o elegir (calendario y lista de horas) ──
+    // Las filas solo se vuelven a dibujar al agregar o quitar una: al teclear no se pierde el cursor. Cada celda se interpreta al salir de ella (change).
+    const MESES_TXT = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12 };
+    const ymdOk = (y, m, d) => { const t = new Date(Date.UTC(y, m - 1, d)); return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d ? y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0') : null; };
+    const fechaVista = (d) => d ? d.split('-').reverse().join('/') : '';
+    function parseFecha(txt){
+      const s = String(txt || '').trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ');
+      if(!s) return '';
+      const hoy = ymd(new Date()), y0 = Number(hoy.slice(0, 4));
+      let d, m, y;
+      let r = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if(r){ y = +r[1]; m = +r[2]; d = +r[3]; }
+      else if((r = s.match(/^(\d{1,2})[\/\-. ](\d{1,2})(?:[\/\-. ](\d{2,4}))?$/))){ d = +r[1]; m = +r[2]; y = r[3] ? +r[3] : null; }
+      else if((r = s.match(/^(\d{1,2})(?: de)?[ \-\/]([a-záéíóú]+)(?:(?: de)?[ \-\/](\d{2,4}))?$/))){ d = +r[1]; m = MESES_TXT[r[2].normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 3)]; y = r[3] ? +r[3] : null; if(!m) return null; }
+      else return null;
+      if(y != null && y < 100) y += 2000;
+      if(y == null){ y = y0; const c = ymdOk(y, m, d); if(c && c < hoy) y = y0 + 1; } // sin año: la próxima vez que cae esa fecha
+      return ymdOk(y, m, d);
+    }
+    function parseHora(txt){
+      const s = String(txt || '').trim().toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+      if(!s) return '';
+      const r = s.match(/^(\d{1,2})(?::|h)?(\d{2})?(a|p)?m?$/) || s.match(/^(\d{1,2})(\d{2})(a|p)?m?$/);
+      if(!r) return null;
+      let h = +r[1], mi = r[2] ? +r[2] : 0;
+      if(r[3] === 'p' && h < 12) h += 12;
+      if(r[3] === 'a' && h === 12) h = 0;
+      if(h > 23 || mi > 59) return null;
+      return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+    }
+    const ICO_CAL = S(IC.cal, ' style="width:15px;height:15px"');
+    function renderSes(){
+      $('abiSesiones').innerHTML = sesRows.map((s, i) => '<div class="abi-ses" data-row="' + i + '">'
+        + '<div class="abi-fecha"><input type="text" class="abi-ft" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" value="' + esc(fechaVista(s.d)) + '" data-s="' + i + '" data-k="d" aria-label="Fecha de la sesión ' + (i + 1) + ' (se puede escribir)">'
+        + '<button type="button" class="cot-icon-btn abi-cal" data-s="' + i + '" title="Elegir en el calendario" aria-label="Elegir la fecha de la sesión ' + (i + 1) + ' en el calendario">' + ICO_CAL + '</button>'
+        + '<input type="date" class="abi-nat" tabindex="-1" aria-hidden="true" value="' + esc(s.d) + '" data-s="' + i + '" data-nat="1"></div>'
+        + '<input type="text" class="abi-ht" list="abiHoras" inputmode="numeric" autocomplete="off" placeholder="18:00" value="' + esc(s.a) + '" data-s="' + i + '" data-k="a" aria-label="Hora de inicio de la sesión ' + (i + 1) + '">'
+        + '<input type="text" class="abi-ht" list="abiHoras" inputmode="numeric" autocomplete="off" placeholder="21:00" value="' + esc(s.b) + '" data-s="' + i + '" data-k="b" aria-label="Hora de fin de la sesión ' + (i + 1) + '">'
+        + '<button type="button" class="cot-icon-btn abi-quitar-ses" data-i="' + i + '" aria-label="Quitar la sesión ' + (i + 1) + '" title="Quitar">' + S(IC.x) + '</button></div>').join('')
+        + (sesRows.length ? '<p class="abi-ayuda">Escribe la fecha como <b>7/12/2026</b> o <b>7 dic</b> y la hora como <b>18</b>, <b>18:30</b> o <b>6pm</b>; o elígelas con el calendario y la lista.</p>' : '');
+    }
+    function actualizarSes(){
       const p = campoProg(), tot = sesRows.reduce((a, s) => a + (s.d && s.a && s.b ? horasEntre(s.a, s.b) : 0), 0), horas = Number($('abiFHoras').value) || (p ? p.horas : 0);
       const el = $('abiSumaHoras');
       if(!sesRows.length || !horas){ el.className = 'abi-chk'; el.innerHTML = ''; }
       else { const dif = horas - tot; el.className = 'abi-chk ' + (dif === 0 ? 'ok' : 'ambar'); el.innerHTML = dif === 0 ? S(IC.ok) + 'Suman ' + tot + ' h, las horas del programa.' : S(IC.ambar) + 'Suman ' + tot + ' h de ' + horas + ' h del programa (' + (dif > 0 ? 'faltan ' + dif : 'sobran ' + (-dif)) + ' h).'; }
       $('abiMesFila').hidden = sesRows.some((s) => s.d);
+      sugerirCodigo();
       previa();
+    }
+    function pintarSes(){ renderSes(); actualizarSes(); }
+    // al salir de una celda: se interpreta lo escrito; si no se entiende, se marca en rojo y se explica (no se pierde lo que escribiste)
+    function confirmarCelda(inp){
+      const i = Number(inp.dataset.s), k = inp.dataset.k;
+      if(!sesRows[i] || !k) return;
+      const v = k === 'd' ? parseFecha(inp.value) : parseHora(inp.value);
+      const malo = v === null;
+      inp.classList.toggle('abi-malo', malo);
+      inp.title = malo ? (k === 'd' ? 'No entendí la fecha. Prueba 7/12/2026 o 7 dic.' : 'No entendí la hora. Prueba 18, 18:30 o 6pm.') : '';
+      if(malo) return;
+      sesRows[i][k] = v;
+      inp.value = k === 'd' ? fechaVista(v) : v;
+      if(k === 'd'){ const nat = inp.parentElement.querySelector('.abi-nat'); if(nat) nat.value = v; }
+      actualizarSes();
+    }
+    // niveles (se pueden elegir varios: p. ej. Excel Intermedio y Avanzado)
+    const nivelesSel = () => Array.from(document.querySelectorAll('input[name=abiNiv]:checked')).map((c) => Number(c.value)).sort();
+    function setNiveles(arr){ const s = new Set((arr && arr.length ? arr : [1]).map(Number)); document.querySelectorAll('input[name=abiNiv]').forEach((c) => { c.checked = s.has(Number(c.value)); }); }
+    const nivelesDe = (label) => { const r = []; if(/b[aá]sico/i.test(label || '')) r.push(1); if(/intermedio/i.test(label || '')) r.push(2); if(/avanzado/i.test(label || '')) r.push(3); return r.length ? r : [1]; };
+    // código sugerido: MMAA-SIGLAS (mes y año del inicio): 1126-EXIA (Excel Intermedio Avanzado), 1126-POBI (Power BI), 1126-IACO (IA con Copilot). Se puede cambiar a mano.
+    const CODIGO_BASE = { powerbi: 'POBI', powerapps: 'PAPP', powerautomate: 'PAUT', ia: 'IACO', ofimatica: 'M365' };
+    let codTocado = false;
+    function sugerirCodigo(){
+      if(codTocado) return;
+      const p = campoProg(); if(!p) return;
+      const letra = { 1: 'B', 2: 'I', 3: 'A' };
+      const sufijo = p.herr === 'excel' ? 'EX' + nivelesSel().map((n) => letra[n]).join('') : (CODIGO_BASE[p.herr] || String(p.herr).slice(0, 4).toUpperCase());
+      const primera = sesRows.filter((s) => s.d).map((s) => s.d).sort()[0];
+      const ym = primera ? primera.slice(0, 7) : ($('abiFMesEst').value || ymd(new Date()).slice(0, 7));
+      $('abiFCod').value = ym.slice(5, 7) + ym.slice(2, 4) + '-' + sufijo;
     }
     function previa(){
       const p = campoProg(); if(!p){ $('abiPrevCard').innerHTML = ''; return; }
@@ -6800,7 +6886,7 @@
     }
     function aplicarPrograma(conservarTemario){
       const p = campoProg(); if(!p) return;
-      $('abiFNivel').value = String(nivelDe(p.nivelLabel));
+      setNiveles(nivelesDe(p.nivelLabel));
       $('abiFHoras').value = p.horas;
       if(!conservarTemario){ $('abiFTem').value = p.temas.slice(0, 5).join('\n'); $('abiFRes').value = (p.objetivo || '').slice(0, 300); }
       pintarSes();
@@ -6811,6 +6897,7 @@
     async function abrirForm(g){
       const overlay = $('abiForm');
       editandoId = g ? g.id : null;
+      codTocado = !!g; // al editar no se pisa el código; al crear se sugiere solo
       $('abiFormTitulo').textContent = g ? 'Editar grupo abierto · ' + g.codigo : 'Nuevo grupo abierto';
       $('abiFormCampos').innerHTML = '<p class="radm-hint">Cargando los programas…</p>';
       errorForm('');
@@ -6825,7 +6912,7 @@
         const prog = catalogo.find((p) => p.id === g.programa_id) || catalogo.find((p) => p.nombre === g.programa_nombre && p.herr === herr);
         if(prog) $('abiFProg').value = prog.id;
         $('abiFCod').value = g.codigo; $('abiFHoras').value = Number(g.horas); $('abiFInst').value = g.instructor || '';
-        let niv = 1; try { niv = JSON.parse(g.niveles || '[1]')[0]; } catch(e){ /* nivel básico */ } $('abiFNivel').value = String(niv);
+        let nivs = [1]; try { nivs = JSON.parse(g.niveles || '[1]'); } catch(e){ /* nivel básico */ } setNiveles(nivs);
         (g.sesiones || []).forEach((s) => { const a = dtLocal(s.inicio), b = dtLocal(s.fin); sesRows.push({ d: a.d, a: a.a, b: b.a }); });
         $('abiFMesEst').value = g.mes_estimado || '';
         document.querySelector('input[name=abiMod][value=' + (g.modalidad === 'Presencial' ? 'presencial' : 'en_linea') + ']').checked = true;
@@ -6849,11 +6936,13 @@
     function cuerpoForm(publicacion){
       const p = campoProg();
       if(!p) throw new Error('Elige el Programa estándar.');
+      if(!nivelesSel().length) throw new Error('Elige al menos un nivel.');
+      if(document.querySelector('#abiSesiones .abi-malo')) throw new Error('Revisa las fechas u horas marcadas en rojo.');
       const ses = sesRows.filter((s) => s.d || s.a || s.b);
       for(const s of ses){ if(!s.d || !s.a || !s.b) throw new Error('Completa fecha, inicio y fin de cada sesión (o quita la fila).'); }
       const mod = document.querySelector('input[name=abiMod]:checked').value;
       return {
-        id: editandoId || undefined, codigo: $('abiFCod').value, herramienta: p.herr, nivel: Number($('abiFNivel').value), programa_id: p.id, programa_nombre: p.nombre,
+        id: editandoId || undefined, codigo: $('abiFCod').value, herramienta: p.herr, niveles: nivelesSel(), programa_id: p.id, programa_nombre: p.nombre,
         modalidad: mod, sede: mod === 'presencial' ? $('abiFSede').value : '', horas: Number($('abiFHoras').value),
         sesiones: ses.map((s) => ({ inicio: s.d + 'T' + s.a + ':00' + OFFSET, fin: s.d + 'T' + s.b + ':00' + OFFSET })),
         mes_estimado: $('abiFMesEst').value || null, cupo_total: Number($('abiFCupo').value), minimo_para_abrir: Number($('abiFMin').value), precio_persona: Number($('abiFPrecio').value),
@@ -6877,10 +6966,10 @@
     async function cambiarPublicacion(id, publicacion){
       const g = datos.grupos.find((x) => x.id === id); if(!g) return;
       let herr = ''; try { herr = JSON.parse(g.herramientas || '[]')[0]; } catch(e){ /* sin herramienta */ }
-      let niv = 1; try { niv = JSON.parse(g.niveles || '[1]')[0]; } catch(e){ /* básico */ }
+      let nivs = [1]; try { nivs = JSON.parse(g.niveles || '[1]'); } catch(e){ /* básico */ }
       let tem = []; try { tem = JSON.parse(g.temario_corto || '[]'); } catch(e){ /* sin temario */ }
       const cuerpo = {
-        id: g.id, codigo: g.codigo, herramienta: herr, nivel: niv, programa_id: g.programa_id, programa_nombre: g.programa_nombre, modalidad: g.modalidad === 'Presencial' ? 'presencial' : 'en_linea',
+        id: g.id, codigo: g.codigo, herramienta: herr, niveles: nivs, programa_id: g.programa_id, programa_nombre: g.programa_nombre, modalidad: g.modalidad === 'Presencial' ? 'presencial' : 'en_linea',
         sede: g.sede || '', horas: Number(g.horas), sesiones: g.sesiones || [], mes_estimado: g.mes_estimado, cupo_total: g.cupo_total, minimo_para_abrir: g.minimo_para_abrir,
         precio_persona: Number(g.precio_persona), precio_preventa: g.precio_preventa == null ? null : Number(g.precio_preventa), preventa_hasta: g.preventa_hasta, publicacion,
         resumen: g.resumen || '', temario_corto: tem, instructor: g.instructor || '', notas: g.notas || '',
@@ -6940,16 +7029,20 @@
     const formBody = $('abiFormCampos');
     formBody.addEventListener('click', (e) => {
       if(e.target.closest('#abiAddSes')){ const u = sesRows[sesRows.length - 1] || { d: '', a: '18:00', b: '21:00' }; let d = ''; if(u.d){ const dt = new Date(u.d + 'T12:00:00Z'); dt.setUTCDate(dt.getUTCDate() + 7); d = dt.toISOString().slice(0, 10); } sesRows.push({ d, a: u.a, b: u.b }); pintarSes(); return; }
+      const cb = e.target.closest('.abi-cal'); if(cb){ const nat = cb.parentElement.querySelector('.abi-nat'); try { nat.showPicker(); } catch(er){ nat.focus(); nat.click(); } return; }
       const q = e.target.closest('.abi-quitar-ses'); if(q){ sesRows.splice(Number(q.dataset.i), 1); pintarSes(); }
     });
     formBody.addEventListener('change', (e) => {
       if(e.target.id === 'abiFProg'){ aplicarPrograma(false); }
+      else if(e.target.classList.contains('abi-ft') || e.target.classList.contains('abi-ht')){ confirmarCelda(e.target); }
+      else if(e.target.classList.contains('abi-nat')){ const i = Number(e.target.dataset.s); if(sesRows[i]){ sesRows[i].d = e.target.value; const ft = e.target.parentElement.querySelector('.abi-ft'); ft.value = fechaVista(e.target.value); ft.classList.remove('abi-malo'); actualizarSes(); } }
+      else if(e.target.name === 'abiNiv' || e.target.id === 'abiFMesEst'){ sugerirCodigo(); previa(); }
       else if(e.target.name === 'abiMod'){ sedeVisible(); previa(); }
     });
     formBody.addEventListener('input', (e) => {
       const t = e.target;
-      if(t.dataset.s !== undefined){ sesRows[Number(t.dataset.s)][t.dataset.k] = t.value; pintarSes(); return; }
-      if(['abiFCupo', 'abiFMin', 'abiFPrecio', 'abiFPre', 'abiFPreF', 'abiFSede', 'abiFHoras'].includes(t.id)) { if(t.id === 'abiFHoras') pintarSes(); else previa(); }
+      if(t.id === 'abiFCod'){ codTocado = !!t.value.trim(); return; }
+      if(['abiFCupo', 'abiFMin', 'abiFPrecio', 'abiFPre', 'abiFPreF', 'abiFSede', 'abiFHoras'].includes(t.id)) { if(t.id === 'abiFHoras') actualizarSes(); else previa(); }
     });
 
     // ── pestañas Inscripciones y Lista de espera (2026-11-03) ──

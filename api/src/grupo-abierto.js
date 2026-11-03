@@ -141,7 +141,9 @@ const INSERT_GRUPO = `INSERT INTO Grupo
 const UPDATE_GRUPO = `UPDATE Grupo SET modalidad = @modalidad, grupo_codigo = @codigo, herramientas = @herramientas, nombre_curso = @nombre, niveles = @niveles, horas = @horas,
     sesiones = @sesionesTxt, fecha_inicio = @fechaInicio, fecha_fin = @fechaFin, instructor = @instructor, notas = @notas, programa_id = @programaId,
     cupo_total = @cupo, minimo_para_abrir = @minimo, precio_persona = @precio, precio_preventa = @preventa, preventa_hasta = @preventaHasta, sede = @sede,
-    publicacion = @publicacion, mes_estimado = @mesEstimado, resumen_publico = @resumen, temario_corto = @temario
+    publicacion = @publicacion, mes_estimado = @mesEstimado, resumen_publico = @resumen, temario_corto = @temario,
+    -- un grupo publicado al que se le toca algo vuelve a «cambios sin publicar»; uno que deja de estar publicado conserva su fecha (sigue en la foto hasta publicar)
+    publicado_en = CASE WHEN @publicacion = 'publicado' THEN NULL ELSE publicado_en END
   WHERE id = @id AND estrategia = 'abiertos'`;
 
 // ── la FOTO pública a partir de SQL ──

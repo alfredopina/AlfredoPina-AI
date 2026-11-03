@@ -2046,6 +2046,66 @@
   .cbz-est.e-pagada{ color:var(--good); border-color:var(--good); }
   .cbz-est.e-cancelada{ color:var(--text-faint); border-style:dashed; }
   .cbz-grid[hidden]{ display:none; }
+  /* ── Cursos Abiertos (Tracking «Abiertos»): todo con prefijo abi- ── */
+  .abi-pub{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--line); border-radius:12px; background-color:var(--panel); padding:9px 14px; margin-bottom:10px; }
+  .abi-pub-txt{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px; color:var(--text-dim); }
+  .abi-pub-txt b{ color:var(--text); }
+  .abi-sp{ flex:1; }
+  .abi-pill{ --pc:var(--text-dim); display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap; color:var(--pc);
+    border-width:1px; border-style:solid; border-top-color:color-mix(in srgb, var(--pc) 55%, transparent); border-right-color:color-mix(in srgb, var(--pc) 55%, transparent);
+    border-bottom-color:color-mix(in srgb, var(--pc) 55%, transparent); border-left-color:color-mix(in srgb, var(--pc) 55%, transparent);
+    background-color:color-mix(in srgb, var(--pc) 12%, transparent); }
+  .abi-pill svg{ width:12px; height:12px; flex:none; }
+  .abi-pill.ok{ --pc:var(--good); }
+  .abi-pill.ambar{ --pc:#dfb35a; }
+  .abi-pill.rojo{ --pc:#dc2626; }
+  .abi-pill.azul{ --pc:var(--blue-bright); }
+  .abi-pill.gris{ --pc:var(--text-faint); }
+  .abi-tabla td{ vertical-align:middle; }
+  .abi-cod{ font-family:var(--mono); font-size:12px; font-weight:500; }
+  .abi-curso{ font-weight:600; display:flex; align-items:center; gap:8px; }
+  .abi-curso svg{ width:16px; height:16px; flex:none; }
+  .abi-sub{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:3px; line-height:1.4; }
+  .abi-bar{ height:6px; border-radius:3px; background-color:var(--line); width:110px; overflow:hidden; margin-top:6px; }
+  .abi-bar span{ display:block; height:100%; background-color:var(--good); }
+  .abi-bar span.w{ background-color:#dfb35a; }
+  .abi-bar span.g{ background-color:var(--text-faint); }
+  .abi-acc{ display:flex; gap:6px; flex-wrap:wrap; }
+  .abi-modal{ background-color:var(--panel); border:1px solid var(--line); border-radius:14px; width:min(1080px, calc(100vw - 40px)); max-height:calc(100vh - 40px); display:flex; flex-direction:column; box-shadow:0 30px 80px rgba(0,0,0,.5); }
+  .abi-modal-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .abi-modal-body{ padding:16px 20px; overflow:auto; }
+  .abi-modal-pie{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; padding:14px 20px; border-top:1px solid var(--line); }
+  .abi-formgrid{ display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:22px; }
+  @media (max-width:900px){ .abi-formgrid{ grid-template-columns:1fr; } }
+  .abi-fila{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .abi-fila .radm-field{ flex:1; min-width:140px; }
+  .abi-auto{ display:flex; gap:9px; align-items:center; border:1px dashed var(--line-2, var(--line)); border-radius:9px; padding:9px 12px; font-size:12.5px; color:var(--text-dim); margin-bottom:12px; }
+  .abi-auto b{ color:var(--text); }
+  .abi-ses{ display:grid; grid-template-columns:1fr 110px 110px 34px; gap:8px; margin-bottom:8px; align-items:center; }
+  .abi-chk{ display:flex; gap:8px; align-items:center; font-size:12.5px; margin-top:6px; }
+  .abi-chk.ok{ color:var(--good); }
+  .abi-chk svg{ width:14px; height:14px; flex:none; }
+  .abi-chk.ambar svg{ color:#dfb35a; }
+  .abi-opts{ display:flex; gap:8px; flex-wrap:wrap; }
+  .abi-opts label{ display:flex; gap:7px; align-items:center; border:1px solid var(--line); border-radius:9px; padding:7px 12px; font-size:13px; cursor:pointer; text-transform:none; letter-spacing:0; font-family:var(--body); color:var(--text); }
+  .abi-opts label:has(input:checked){ border-color:var(--blue-bright); background-color:var(--blue-soft, rgba(61,127,255,.13)); }
+  .abi-prev{ border:1px solid var(--line); border-radius:12px; background-color:var(--panel-2); padding:14px; align-self:start; position:sticky; top:0; }
+  .abi-prev-cab{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:10px; display:flex; gap:7px; align-items:center; }
+  .abi-prev-cab svg{ width:14px; height:14px; }
+  .abi-prev-nota{ font-size:11.5px; color:var(--text-faint); line-height:1.5; margin:10px 0 0; }
+  .abi-pc{ position:relative; border:1px solid var(--line); border-radius:10px; background-color:var(--panel); padding:16px 14px 14px; overflow:hidden; }
+  .abi-pc::before{ content:""; position:absolute; top:0; left:0; right:0; height:3px; background-color:var(--pcc, var(--blue)); }
+  .abi-pc .tl{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--pcc, var(--blue-bright)); display:flex; gap:7px; align-items:center; }
+  .abi-pc .tl svg{ width:18px; height:18px; }
+  .abi-pc h5{ font-family:var(--display); font-size:17px; margin:9px 0 6px; }
+  .abi-pc .ln{ font-size:12.5px; color:var(--text-dim); margin-top:6px; display:flex; gap:7px; align-items:flex-start; }
+  .abi-pc .ln svg{ width:14px; height:14px; margin-top:1px; flex:none; }
+  .abi-pc .pr{ font-family:var(--display); font-size:24px; font-weight:700; margin-top:10px; }
+  .abi-pc .pr small{ font-family:var(--mono); font-size:10.5px; font-weight:400; color:var(--text-dim); }
+  .abi-pc .pr s{ font-family:var(--mono); font-size:12px; font-weight:400; color:var(--text-faint); margin-left:6px; }
+  .abi-pc .pl{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .abi-alerta{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; border:1px solid var(--line); border-radius:10px; background-color:var(--panel); padding:10px 14px; margin-bottom:10px; font-size:12.5px; }
+  .abi-alerta[hidden]{ display:none; }
   /* panel Desglose: lo CALCULADO (no se edita) va aparte del formulario, con otro fondo y borde punteado */
   .cbz-desglose{ background-color:rgba(61,127,255,.06); border:1px dashed rgba(107,159,255,.5); border-radius:12px; padding:12px 16px 10px; margin-bottom:18px; }
   .cbz-desg-cab{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
@@ -3173,6 +3233,10 @@
       <button class="admin-nav-item" data-panel="tracking-operacion">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
         Grupos
+      </button>
+      <button class="admin-nav-item" data-panel="abiertos">
+        <span class="admin-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15h3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        Abiertos
       </button>
       <button class="admin-nav-item" data-panel="cobranza">
         <span class="admin-nav-icon"><span class="admin-nav-live-dot"></span></span>
@@ -4842,6 +4906,146 @@
         </div>
       </div>
 
+      <div class="admin-panel" id="panel-abiertos" style="--c:var(--blue-bright)">
+        <div id="abiToast" class="radm-toast" hidden></div>
+
+        <div class="cli-scorecard-block">
+          <div class="cli-kpi-row" id="abiKpis">
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Cuántos días faltan para el próximo grupo abierto publicado que todavía no empieza.">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="abiKpiProx">—</div>
+              <div class="dkpi-label">Próximo inicio <span class="cbz-kpi-n" id="abiKpiProxN"></span></div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Lugares que todavía se pueden vender en los grupos publicados (cupo menos confirmados y apartados).">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.7 3.1 2.3 3.5 5.2" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="abiKpiLibres">—</div>
+              <div class="dkpi-label">Lugares libres</div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Personas que apartaron lugar y todavía no pagan, más los envíos del sitio que aún no se importan.">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l4 2" stroke-linecap="round"/></svg></div>
+              <div class="dkpi-value" id="abiKpiApartados">—</div>
+              <div class="dkpi-label">Apartados sin pago <span class="cbz-kpi-n" id="abiKpiApartadosN"></span></div>
+            </div>
+            <div class="dkpi-card" style="--c:var(--blue-bright)" title="Personas que pidieron «avísame» y todavía no tienen aviso.">
+              <div class="dkpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="dkpi-value" id="abiKpiEspera">—</div>
+              <div class="dkpi-label">En lista de espera</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="abi-pub" id="abiPub">
+          <span class="abi-pub-txt" id="abiPubTxt">Cargando…</span>
+          <span class="abi-sp"></span>
+          <a class="radm-btn radm-btn-ghost" id="abiVerSitio" href="/cursos-abiertos" target="_blank" rel="noopener" style="white-space:nowrap;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke-linecap="round" stroke-linejoin="round"/></svg>Ver en el sitio
+          </a>
+          <button type="button" class="radm-btn" id="abiPublicarBtn" style="white-space:nowrap;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M12 16V4M6 10l6-6 6 6M4 20h16" stroke-linecap="round" stroke-linejoin="round"/></svg>Publicar calendario
+          </button>
+        </div>
+
+        <div class="abi-alerta" id="abiAlerta" hidden role="region" aria-label="Alertas de Cursos Abiertos"><span id="abiAlertaChips" style="display:contents;"></span></div>
+
+        <div class="sol-toolbar">
+          <div class="trk-vistas">
+            <div class="trk-vistas-row">
+              <div class="radm-tabs" id="abiVistas" style="margin-bottom:0;">
+                <button type="button" class="radm-tab active" data-vista="activos">Activos<span class="radm-tab-count" id="abiN-activos">0</span></button>
+                <button type="button" class="radm-tab" data-vista="publicados">Publicados<span class="radm-tab-count" id="abiN-publicados">0</span></button>
+                <button type="button" class="radm-tab" data-vista="borradores">Borradores<span class="radm-tab-count" id="abiN-borradores">0</span></button>
+                <button type="button" class="radm-tab" data-vista="impartidos">Impartidos<span class="radm-tab-count" id="abiN-impartidos">0</span></button>
+                <button type="button" class="radm-tab" data-vista="cancelados">Cancelados<span class="radm-tab-count" id="abiN-cancelados">0</span></button>
+                <button type="button" class="radm-tab" data-vista="todos">Todos<span class="radm-tab-count" id="abiN-todos">0</span></button>
+              </div>
+              <div class="trk-vistas-info">
+                <div class="cli-info-wrap">
+                  <button type="button" class="cli-info-btn" id="abiInfoSemBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01" stroke-linecap="round"/></svg>
+                    Info Semáforo
+                  </button>
+                  <div class="cli-info-popover" id="abiInfoSemPopover" hidden></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dip-filters" style="margin-bottom:0;">
+            <div class="radm-field">
+              <label for="abiFHerr">HERRAMIENTA</label>
+              <select id="abiFHerr"><option value="">Todas</option></select>
+            </div>
+            <div class="radm-field">
+              <label for="abiFMes">MES DE INICIO</label>
+              <select id="abiFMes"><option value="">Todos</option></select>
+            </div>
+            <div class="radm-field">
+              <label for="abiFMod">MODALIDAD</label>
+              <select id="abiFMod"><option value="">Todas</option><option value="Online">En línea</option><option value="Presencial">Presencial</option></select>
+            </div>
+            <div class="dip-filter-actions">
+              <button type="button" class="cot-icon-btn" id="abiActualizar" title="Actualizar la lista y los indicadores" aria-label="Actualizar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="cot-icon-btn" id="abiLimpiar" title="Limpiar filtros" aria-label="Limpiar filtros">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16l-6.5 7.5v6L10.5 20v-7.5L4 5Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l18 18" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <span class="trk-result" id="abiResultado"></span>
+            <div class="trk-acc-der">
+              <button type="button" class="radm-btn-add" id="abiNuevoBtn" style="white-space:nowrap;">+ Nuevo grupo abierto</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dip-table-wrap">
+          <table class="dip-table abi-tabla">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Curso</th>
+                <th>Fechas</th>
+                <th title="Confirmados y apartados contra el cupo">Cupo</th>
+                <th title="Si ya se alcanzó el mínimo para abrir el grupo">Mínimo</th>
+                <th>Precio</th>
+                <th title="Borrador, publicado o cancelado; y qué ve el público">Publicación</th>
+                <th title="Cuántos días faltan o qué pide atención: lo más urgente primero">Semáforo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="abiListaBody">
+              <tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-dialog-overlay" id="abiForm" hidden>
+          <div class="abi-modal" role="dialog" aria-modal="true" aria-labelledby="abiFormTitulo">
+            <div class="abi-modal-head">
+              <h3 class="admin-dialog-titulo" id="abiFormTitulo" style="margin-bottom:0;">Nuevo grupo abierto</h3>
+              <button type="button" class="cot-icon-btn" id="abiFormCerrar" title="Cerrar" aria-label="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <div class="abi-modal-body">
+              <div class="abi-formgrid">
+                <div id="abiFormCampos"></div>
+                <div class="abi-prev">
+                  <div class="abi-prev-cab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>CÓMO SE VERÍA EN EL SITIO</div>
+                  <div id="abiPrevCard"></div>
+                  <p class="abi-prev-nota">Los estados (abierto, últimos lugares, lleno, próximamente) y «Grupo confirmado» se calculan solos con el cupo, los apartados y el mínimo; no se capturan.</p>
+                </div>
+              </div>
+              <p class="cbz-error" id="abiFormError" hidden></p>
+            </div>
+            <div class="abi-modal-pie">
+              <button type="button" class="radm-btn radm-btn-ghost" id="abiFormCancelar">Cancelar</button>
+              <button type="button" class="radm-btn radm-btn-ghost" id="abiFormBorrador">Guardar como borrador</button>
+              <button type="button" class="radm-btn" id="abiFormPublicar">Guardar y publicar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-panel" id="panel-tracking-operacion" style="--c:var(--blue-bright)">
         <div id="groToast" class="radm-toast" hidden></div>
 
@@ -6252,7 +6456,7 @@
     'tracking-view': 'Tracking View', alertas: 'Alertas',
     dashboard: 'Dashboard', solicitudes: 'Solicitudes',
     diagnosticos: 'Diagnósticos', calificaciones: 'Calificaciones', cursos: 'Programas', recursos: 'Materiales', presentaciones: 'Presentaciones', clientes: 'Clientes',
-    'tracking-comercial': 'Cotizaciones', 'tracking-operacion': 'Grupos', cobranza: 'Cobranza',
+    'tracking-comercial': 'Cotizaciones', 'tracking-operacion': 'Grupos', abiertos: 'Cursos Abiertos', cobranza: 'Cobranza',
     encuestas: 'Encuestas', diplomas: 'Diplomas', pendientes: 'Pendientes',
     personalizar: 'Personalizar', marca: 'Marca', modelo: 'Modelo', config: 'Configuración',
   };
@@ -6304,6 +6508,7 @@
     if(key === 'solicitudes' && typeof window.alEntrarASolicitudes === 'function') window.alEntrarASolicitudes();
     if(key === 'tracking-comercial' && typeof window.alEntrarACotizaciones === 'function') window.alEntrarACotizaciones();
     if(key === 'cobranza' && typeof window.alEntrarACobranza === 'function') window.alEntrarACobranza();
+    if(key === 'abiertos' && typeof window.alEntrarAAbiertos === 'function') window.alEntrarAAbiertos();
     if(key === 'dashboard' && typeof window.alEntrarADashboard === 'function') window.alEntrarADashboard();
     if(key === 'alertas' && typeof window.alEntrarAAlertas === 'function') window.alEntrarAAlertas();
     if(key === 'presentaciones' && typeof window.alEntrarAPresentaciones === 'function') window.alEntrarAPresentaciones();
@@ -6318,6 +6523,426 @@
   document.getElementById('btnPendientes').addEventListener('click', () => activarPanel('pendientes'));
   document.getElementById('btnConfig').addEventListener('click', () => activarPanel('config'));
   document.getElementById('configBack').addEventListener('click', () => { if(typeof window.cfgVolverDetalle === 'function' && window.cfgVolverDetalle()) return; activarPanel(ultimoPanel); });
+
+
+  // ── Cursos Abiertos — Tracking «Abiertos» (2026-11-02) ──
+  // Calendario de los grupos abiertos (los que se venden en /cursos-abiertos): crear/editar el grupo, ver cupo y semáforo y «Publicar calendario».
+  // Habla con getGruposAbiertosAdmin, crearGrupoAbierto, editarGrupoAbierto y publicarCalendarioAbiertos (api/src/grupo-abierto.js; diseño en
+  // docs/cursos-abiertos.md). Lo que ve el público NO sale de aquí en vivo: sale de la foto que escribe «Publicar calendario».
+  // Los estados visibles (abierto, últimos lugares, lleno, próximamente) y «Grupo confirmado» se CALCULAN (cupo, apartados, mínimo, fechas): no se guardan.
+  // Lecturas con reintento (la base serverless puede estar dormida); las escrituras no se reintentan solas (un error 4xx se muestra tal cual).
+  (function(){
+    const $ = (id) => document.getElementById(id);
+    const REINTENTO_PAUSAS_MS = [4000, 8000, 15000];
+    const TOOL = window.HERRAMIENTAS_UI || {};
+    const tool = (id) => TOOL[id] || { nombre: id, color: '#3d7fff', icon: '' };
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // umbrales del semáforo (pendiente: leerlos de Configuración → Alertas, como los demás Trackings)
+    const ROJO_DIAS = 14, AMBAR_DIAS = 30, PREVENTA_AMBAR_DIAS = 7, DIA_MS = 86400000;
+    const ZONA = 'America/Monterrey', OFFSET = '-06:00'; // México ya no cambia de horario: Monterrey es -06:00 todo el año
+    const IC = {
+      ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>',
+      rojo: '<path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" stroke-linejoin="round"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>',
+      ambar: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/>',
+      gris: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8" stroke-linecap="round"/>',
+      reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/>',
+      escudo: '<path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>',
+      users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5" stroke-linecap="round"/>',
+      cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/>',
+      monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" stroke-linecap="round"/>',
+      pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/>',
+      up: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16" stroke-linecap="round" stroke-linejoin="round"/>',
+      ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8" stroke-linecap="round"/>',
+      edit: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"/>',
+      x: '<path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/>',
+      tag: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8Z" stroke-linejoin="round"/><circle cx="7" cy="7" r="1.2"/>',
+    };
+    const S = (d, extra) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"' + (extra || '') + '>' + d + '</svg>';
+    const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+    const dinero = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+    const NIVELES = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
+
+    function toast(msg, ok){
+      const el = $('abiToast');
+      el.textContent = msg; el.className = 'radm-toast ' + (ok ? 'ok' : 'err'); el.hidden = false;
+      clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 4500);
+    }
+    async function apiGetConReintento(url){
+      for(let intento = 0; ; intento++){
+        try {
+          const res = await fetch(url);
+          const body = await res.json().catch(() => ({}));
+          if(!res.ok) throw new Error(body.error || 'Error de red');
+          return body;
+        } catch(e){
+          if(intento >= REINTENTO_PAUSAS_MS.length) throw e;
+          if(intento === 0) toast('La base tardó en responder, reintentando…', false);
+          await new Promise((r) => setTimeout(r, REINTENTO_PAUSAS_MS[intento]));
+        }
+      }
+    }
+    async function apiPostJson(url, data){
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok){ const e = new Error(body.error || 'Error de red'); e.body = body; throw e; }
+      return body;
+    }
+
+    // ── fechas (siempre en hora de Monterrey) ──
+    function partes(d, o){ const r = {}; new Intl.DateTimeFormat('es-MX', { timeZone: ZONA, ...o }).formatToParts(new Date(d)).forEach((p) => { r[p.type] = p.value; }); return r; }
+    const mesCorto = (d) => partes(d, { month: 'short' }).month.replace('.', '');
+    const hhmm = (d) => { const p = partes(d, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); return p.hour + ':' + p.minute; };
+    const ymd = (d) => { const p = {}; new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(d)).forEach((x) => { p[x.type] = x.value; }); return p.year + '-' + p.month + '-' + p.day; };
+    const mesClave = (d) => ymd(d).slice(0, 7);
+    function mesNombre(clave){ const [y, m] = clave.split('-').map(Number); const t = new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(new Date(Date.UTC(y, m - 1, 15))); return t.charAt(0).toUpperCase() + t.slice(1); }
+    function rangoFechas(ses){
+      if(!ses.length) return '';
+      const a = ses[0].inicio, b = ses[ses.length - 1].inicio;
+      const dia = (d) => partes(d, { day: 'numeric' }).day;
+      if(ses.length === 1) return dia(a) + ' ' + mesCorto(a) + ' ' + partes(a, { year: 'numeric' }).year;
+      return dia(a) + ' ' + mesCorto(a) + ' – ' + dia(b) + ' ' + mesCorto(b) + ' ' + partes(b, { year: 'numeric' }).year;
+    }
+
+    // ── datos y derivaciones ──
+    let datos = { grupos: [], espera_por_interes: [], cola: { inscripciones: 0, espera: 0 } };
+    let vista = 'activos';
+    const F = { herr: '', mes: '', mod: '' };
+    let cargando = false;
+    let catalogo = null; // programas estándar por herramienta (getCatalogoCursos, público; Table Storage)
+
+    function der(g){
+      const ahora = Date.now();
+      let herr = ''; try { herr = (JSON.parse(g.herramientas || '[]') || [])[0] || ''; } catch(e){ herr = ''; }
+      let niv = 1; try { niv = (JSON.parse(g.niveles || '[1]') || [1])[0]; } catch(e){ niv = 1; }
+      const ses = g.sesiones || [];
+      const inicia = ses.length ? ses[0].inicio : null, termina = ses.length ? ses[ses.length - 1].fin : null;
+      const ocup = (g.confirmadas || 0) + (g.apartadas || 0);
+      const libres = Math.max(0, g.cupo_total - ocup);
+      const di = inicia ? Math.ceil((new Date(inicia) - ahora) / DIA_MS) : null;
+      const pasado = !!termina && new Date(termina) < ahora;
+      const confirmado = (g.confirmadas || 0) >= g.minimo_para_abrir;
+      const faltan = Math.max(0, g.minimo_para_abrir - (g.confirmadas || 0));
+      const estado = !ses.length ? 'proximamente' : libres <= 0 ? 'lleno' : libres <= 3 ? 'ultimos' : 'abierto';
+      const preDias = g.precio_preventa != null && g.preventa_hasta ? Math.ceil((new Date(g.preventa_hasta + 'T23:59:59' + OFFSET) - ahora) / DIA_MS) : null;
+      let sem;
+      if(g.publicacion === 'cancelado') sem = { n: 'gris', t: 'Cancelado' };
+      else if(g.publicacion === 'borrador') sem = { n: 'gris', t: 'Borrador' };
+      else if(pasado) sem = { n: 'gris', t: 'Impartido' };
+      else if(!ses.length) sem = { n: 'gris', t: 'Sin fecha' };
+      else if(!confirmado && di <= ROJO_DIAS) sem = { n: 'rojo', t: 'Sin mínimo · inicia en ' + plural(Math.max(di, 0), 'día', 'días'), r: 0 };
+      else if(g.vencidas > 0) sem = { n: 'ambar', t: plural(g.vencidas, 'apartado vencido', 'apartados vencidos'), r: 1 };
+      else if(preDias != null && preDias >= 0 && preDias <= PREVENTA_AMBAR_DIAS) sem = { n: 'ambar', t: 'Preventa vence en ' + plural(preDias, 'día', 'días'), r: 2 };
+      else if(!confirmado && di <= AMBAR_DIAS) sem = { n: 'ambar', t: 'Faltan ' + faltan + ' para el mínimo', r: 3 };
+      else sem = { n: 'ok', t: 'En orden', r: 9 };
+      // «cambio sin publicar»: un publicado al que se le tocó algo (publicado_en vacío), o uno que dejó de estar publicado pero sigue en la foto del sitio
+      const pendiente = (g.publicacion === 'publicado' && !g.publicado_en) || (g.publicacion !== 'publicado' && !!g.publicado_en);
+      let temario = []; try { temario = JSON.parse(g.temario_corto || '[]') || []; } catch(e){ temario = []; }
+      const mes = ses.length ? mesClave(inicia) : (g.mes_estimado || '');
+      return { g, herr, niv, ses, inicia, di, pasado, libres, confirmado, faltan, estado, preDias, sem, pendiente, temario, mes };
+    }
+    const ESTADO_TXT = { abierto: 'Inscripciones abiertas', ultimos: 'Últimos lugares', lleno: 'Lleno', proximamente: 'Próximamente' };
+    const semPill = (s) => '<span class="abi-pill ' + s.n + '">' + S(IC[s.n]) + esc(s.t) + '</span>';
+    const pill = (txt, cls, ic) => '<span class="abi-pill ' + cls + '">' + (ic ? S(IC[ic]) : '') + esc(txt) + '</span>';
+
+    async function cargar(){
+      if(cargando) return;
+      cargando = true;
+      $('abiListaBody').innerHTML = '<tr><td colspan="9" class="radm-empty-row">Cargando...</td></tr>';
+      try { datos = await apiGetConReintento('/api/getGruposAbiertosAdmin'); }
+      catch(e){ $('abiListaBody').innerHTML = '<tr><td colspan="9" class="radm-empty-row">Error: ' + esc(e.message) + '</td></tr>'; cargando = false; return; }
+      cargando = false;
+      pintar();
+    }
+
+    // ── pintar ──
+    const enVista = (d, v) => v === 'todos' || (v === 'activos' && d.g.publicacion !== 'cancelado' && !d.pasado) || (v === 'publicados' && d.g.publicacion === 'publicado' && !d.pasado)
+      || (v === 'borradores' && d.g.publicacion === 'borrador' && !d.pasado) || (v === 'impartidos' && d.pasado) || (v === 'cancelados' && d.g.publicacion === 'cancelado');
+    function pintar(){
+      const D = datos.grupos.map(der);
+      ['activos', 'publicados', 'borradores', 'impartidos', 'cancelados', 'todos'].forEach((v) => { $('abiN-' + v).textContent = D.filter((d) => enVista(d, v)).length; });
+      document.querySelectorAll('#abiVistas .radm-tab').forEach((b) => b.classList.toggle('active', b.dataset.vista === vista));
+      // opciones de los filtros salen de los datos
+      const herrs = Array.from(new Set(D.map((d) => d.herr).filter(Boolean)));
+      const meses = Array.from(new Set(D.map((d) => d.mes).filter(Boolean))).sort();
+      $('abiFHerr').innerHTML = '<option value="">Todas</option>' + herrs.map((h) => '<option value="' + h + '"' + (F.herr === h ? ' selected' : '') + '>' + esc(tool(h).nombre) + '</option>').join('');
+      $('abiFMes').innerHTML = '<option value="">Todos</option>' + meses.map((m) => '<option value="' + m + '"' + (F.mes === m ? ' selected' : '') + '>' + esc(mesNombre(m)) + '</option>').join('');
+      $('abiFMod').value = F.mod;
+      // tarjetas
+      const pub = D.filter((d) => d.g.publicacion === 'publicado' && !d.pasado);
+      const prox = pub.filter((d) => d.di != null && d.di >= 0).sort((a, b) => a.di - b.di)[0];
+      $('abiKpiProx').textContent = prox ? 'En ' + plural(prox.di, 'día', 'días') : '—';
+      $('abiKpiProxN').textContent = prox ? prox.g.codigo : '';
+      $('abiKpiLibres').textContent = pub.reduce((a, d) => a + d.libres, 0);
+      const apart = D.filter((d) => !d.pasado).reduce((a, d) => a + (d.g.apartadas || 0), 0);
+      $('abiKpiApartados').textContent = apart;
+      const cola = datos.cola || {};
+      $('abiKpiApartadosN').textContent = cola.inscripciones ? '+ ' + cola.inscripciones + ' por importar' : '';
+      $('abiKpiEspera').textContent = (datos.espera_por_interes || []).reduce((a, x) => a + x.n, 0) + (cola.espera || 0);
+      // franja de publicación
+      const sinPub = D.filter((d) => d.pendiente);
+      const ultima = D.map((d) => d.g.publicado_en).filter(Boolean).sort().pop();
+      $('abiPubTxt').innerHTML = (ultima ? S(IC.up, ' style="width:15px;height:15px;color:var(--blue-bright)"') + 'Calendario publicado en el sitio el <b>' + esc(partes(ultima, { day: 'numeric', month: 'short' }).day + ' ' + mesCorto(ultima) + ' ' + hhmm(ultima)) + '</b>.' : S(IC.gris, ' style="width:15px;height:15px"') + 'Todavía no has publicado el calendario.')
+        + (sinPub.length ? ' <span class="abi-pill ambar">' + S(IC.ambar) + plural(sinPub.length, 'cambio sin publicar', 'cambios sin publicar') + ': ' + esc(sinPub.map((d) => d.g.codigo).join(', ')) + '</span>'
+          : pub.length ? ' <span class="abi-pill ok">' + S(IC.ok) + 'Todo publicado</span>' : '');
+      // alertas: rojas y ámbar
+      const urg = D.filter((d) => d.sem.n === 'rojo' || d.sem.n === 'ambar').sort((a, b) => (a.sem.r - b.sem.r) || ((a.di || 0) - (b.di || 0)));
+      $('abiAlerta').hidden = !urg.length;
+      $('abiAlertaChips').innerHTML = urg.slice(0, 8).map((d) => '<span class="abi-pill ' + d.sem.n + '">' + S(IC[d.sem.n]) + '<b>' + esc(d.g.codigo) + '</b> · ' + esc(d.sem.t) + '</span>').join('');
+      // tabla
+      const filas = D.filter((d) => enVista(d, vista) && (!F.herr || d.herr === F.herr) && (!F.mes || d.mes === F.mes) && (!F.mod || d.g.modalidad === F.mod))
+        .sort((a, b) => (a.inicia ? new Date(a.inicia).getTime() : 9e15) - (b.inicia ? new Date(b.inicia).getTime() : 9e15));
+      $('abiResultado').textContent = plural(filas.length, 'resultado', 'resultados');
+      $('abiListaBody').innerHTML = filas.length ? filas.map(filaHtml).join('') : '<tr><td colspan="9" class="radm-empty-row">' + (D.length ? 'Sin grupos con estos filtros.' : 'Todavía no hay grupos abiertos. Crea el primero con «+ Nuevo grupo abierto».') + '</td></tr>';
+    }
+    function filaHtml(d){
+      const g = d.g, t = tool(d.herr), pres = g.modalidad === 'Presencial';
+      const ocup = (g.confirmadas || 0) + (g.apartadas || 0), pc = Math.min(100, Math.round(ocup / g.cupo_total * 100));
+      const pubPill = g.publicacion === 'publicado' ? pill('Publicado', 'ok', 'ok') : g.publicacion === 'borrador' ? pill('Borrador', 'gris', 'edit') : pill('Cancelado', 'gris', 'ban');
+      const mini = g.publicacion === 'borrador' || g.publicacion === 'cancelado' ? '—' : d.confirmado ? pill('Confirmado', 'ok', 'escudo') : d.ses.length ? pill('Faltan ' + d.faltan, 'gris', 'users') : '—';
+      const acciones = (g.publicacion === 'borrador' ? '<button type="button" class="cot-icon-btn abi-publicar-uno" data-id="' + g.id + '" title="Marcar como publicado (sale al sitio con «Publicar calendario»)" aria-label="Marcar como publicado">' + S(IC.up) + '</button>' : '')
+        + '<button type="button" class="cot-icon-btn abi-editar" data-id="' + g.id + '" title="Editar el grupo" aria-label="Editar">' + S(IC.edit) + '</button>'
+        + (g.publicacion !== 'cancelado' ? '<button type="button" class="cot-icon-btn abi-cancelar sol-acc-peligro" data-id="' + g.id + '" title="Cancelar el grupo (ya no se podrá reabrir)" aria-label="Cancelar">' + S(IC.ban) + '</button>' : '');
+      return '<tr><td><span class="abi-cod">' + esc(g.codigo) + '</span></td>'
+        + '<td><div class="abi-curso"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(g.programa_nombre) + '</div><div class="abi-sub">' + esc(t.nombre) + ' · ' + esc(NIVELES[d.niv] || '') + ' · ' + esc(Number(g.horas)) + ' h</div></td>'
+        + '<td>' + esc(d.ses.length ? rangoFechas(d.ses) : (g.mes_estimado ? mesNombre(g.mes_estimado) : 'Por definir')) + '<div class="abi-sub">' + S(pres ? IC.pin : IC.monitor, ' style="width:12px;height:12px;vertical-align:-2px"') + ' ' + (pres ? 'Presencial' : 'En línea') + (d.ses.length ? ' · ' + esc(hhmm(d.ses[0].inicio) + '–' + hhmm(d.ses[0].fin)) : '') + '</div></td>'
+        + '<td><b>' + (g.confirmadas || 0) + '</b> conf. · ' + (g.apartadas || 0) + ' apart.' + (g.vencidas ? ' ' + pill(g.vencidas + ' vencido', 'ambar', 'ambar') : '') + '<div class="abi-sub">' + (d.libres ? 'Quedan ' + d.libres + ' de ' + g.cupo_total : 'Lleno · ' + g.cupo_total) + '</div><div class="abi-bar" aria-hidden="true"><span class="' + (d.estado === 'lleno' ? 'g' : d.estado === 'ultimos' ? 'w' : '') + '" style="width:' + pc + '%"></span></div></td>'
+        + '<td>' + mini + '</td>'
+        + '<td>' + dinero(Number(g.precio_persona)) + (g.precio_preventa != null ? '<div class="abi-sub">Preventa ' + dinero(Number(g.precio_preventa)) + ' hasta ' + esc(String(g.preventa_hasta || '').slice(5).split('-').reverse().join('/')) + '</div>' : '') + '</td>'
+        + '<td>' + pubPill + (d.pendiente ? '<div class="abi-sub" style="color:var(--blue-bright)">' + S(IC.up, ' style="width:11px;height:11px;vertical-align:-2px"') + ' cambios sin publicar</div>' : '') + (g.publicacion === 'publicado' && !d.pasado ? '<div class="abi-sub">Sitio: ' + esc(ESTADO_TXT[d.estado]) + '</div>' : '') + '</td>'
+        + '<td>' + semPill(d.sem) + '</td>'
+        + '<td><div class="abi-acc">' + acciones + '</div></td></tr>';
+    }
+
+    // ── Info Semáforo ──
+    function infoSemaforo(){
+      return '<h4 style="margin:0 0 8px;font-family:var(--display)">Info Semáforo</h4>'
+        + '<p style="margin:6px 0;display:flex;gap:8px">' + S(IC.rojo, ' style="width:16px;height:16px;color:#dc2626;flex:none"') + '<span><b>Rojo (urgente):</b> el grupo no llega al mínimo y faltan ' + ROJO_DIAS + ' días o menos para iniciar. Hay que decidir: mover o cancelar.</span></p>'
+        + '<p style="margin:6px 0;display:flex;gap:8px">' + S(IC.ambar, ' style="width:16px;height:16px;color:#dfb35a;flex:none"') + '<span><b>Ámbar (atención):</b> hay apartados vencidos, la preventa vence en ' + PREVENTA_AMBAR_DIAS + ' días o menos, o faltan ' + AMBAR_DIAS + ' días o menos y aún no llega al mínimo.</span></p>'
+        + '<p style="margin:6px 0;display:flex;gap:8px">' + S(IC.ok, ' style="width:16px;height:16px;color:var(--good);flex:none"') + '<span><b>Verde-azulado (en orden):</b> sin pendientes.</span></p>'
+        + '<p style="margin:6px 0;display:flex;gap:8px">' + S(IC.gris, ' style="width:16px;height:16px;color:var(--text-faint);flex:none"') + '<span><b>Gris:</b> borrador, cancelado, sin fecha o ya impartido.</span></p>'
+        + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--text-faint)">Un apartado se vence a las 48 h sin pago: tú decides si liberas el lugar.</p>';
+    }
+
+    // ── formulario del grupo abierto ──
+    let editandoId = null;
+    const sesRows = [];
+    const dtLocal = (iso) => ({ d: ymd(iso), a: hhmm(iso) });
+    const horasEntre = (a, b) => { const [h1, m1] = a.split(':').map(Number), [h2, m2] = b.split(':').map(Number); return Math.max(0, (h2 * 60 + m2 - h1 * 60 - m1) / 60); };
+
+    async function cargarCatalogo(){
+      if(catalogo) return catalogo;
+      const ids = ['ia', 'excel', 'powerbi', 'powerapps', 'powerautomate', 'ofimatica'];
+      const res = await Promise.all(ids.map((h) => fetch('/api/getCatalogoCursos?herramienta=' + h).then((r) => r.ok ? r.json() : { estandar: [] }).catch(() => ({ estandar: [] }))));
+      catalogo = [];
+      res.forEach((r, i) => (r.estandar || []).forEach((p) => catalogo.push({ id: p.id, herr: ids[i], nombre: p.nombre, horas: p.horas, nivelLabel: p.nivelLabel || '', objetivo: p.objetivo || '', temas: (p.temas || []).map((t) => t.nombre) })));
+      return catalogo;
+    }
+    const nivelDe = (label) => /avanzado/i.test(label || '') ? 3 : /intermedio/i.test(label || '') ? 2 : 1;
+    function campoProg(){ return catalogo.find((p) => p.id === $('abiFProg').value); }
+
+    function camposHtml(){
+      return '<div class="abi-auto">' + S('<path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/>', ' style="width:16px;height:16px;flex:none"') + '<span>Cliente: <b>Cursos Abiertos (público)</b> · automático. Las inscripciones se registran por persona; si paga una empresa, queda ligada a ella.</span></div>'
+        + '<div class="abi-fila"><div class="radm-field" style="flex:2"><label for="abiFProg">PROGRAMA ESTÁNDAR <span class="dip-req">*</span></label><select id="abiFProg"></select></div>'
+        + '<div class="radm-field"><label for="abiFCod">CÓDIGO <span class="dip-req">*</span></label><input type="text" id="abiFCod" maxlength="20" autocomplete="off" placeholder="IA-1207"></div></div>'
+        + '<div class="abi-fila"><div class="radm-field"><label for="abiFNivel">NIVEL</label><select id="abiFNivel"><option value="1">Básico</option><option value="2">Intermedio</option><option value="3">Avanzado</option></select></div>'
+        + '<div class="radm-field"><label for="abiFHoras">HORAS DEL PROGRAMA</label><input type="number" id="abiFHoras" min="1" step="0.5"></div>'
+        + '<div class="radm-field"><label for="abiFInst">INSTRUCTOR</label><input type="text" id="abiFInst" value="Alfredo Piña" maxlength="150"></div></div>'
+        + '<div class="radm-field" style="margin-bottom:6px"><label>SESIONES <span class="dip-req">*</span> <span style="color:var(--text-faint);font-weight:400;letter-spacing:0">(hora de Monterrey; sin sesiones el grupo sale como «Próximamente»)</span></label></div>'
+        + '<div id="abiSesiones"></div>'
+        + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><button type="button" class="radm-btn radm-btn-ghost" id="abiAddSes" style="min-width:auto;padding:6px 12px">+ Agregar sesión</button><div id="abiSumaHoras" class="abi-chk" role="status"></div></div>'
+        + '<div class="abi-fila" id="abiMesFila"><div class="radm-field"><label for="abiFMesEst">MES ESTIMADO (si aún no hay sesiones)</label><input type="month" id="abiFMesEst"></div></div>'
+        + '<div class="abi-fila"><div class="radm-field"><label>MODALIDAD</label><div class="abi-opts"><label><input type="radio" name="abiMod" value="en_linea" checked> En línea</label><label><input type="radio" name="abiMod" value="presencial"> Presencial</label></div></div>'
+        + '<div class="radm-field" id="abiSedeF" hidden><label for="abiFSede">SEDE <span class="dip-req">*</span></label><input type="text" id="abiFSede" maxlength="160" placeholder="Ciudad y lugar"></div></div>'
+        + '<div class="abi-fila"><div class="radm-field"><label for="abiFCupo">CUPO TOTAL <span class="dip-req">*</span></label><input type="number" id="abiFCupo" min="1" max="500" value="14"></div>'
+        + '<div class="radm-field"><label for="abiFMin">MÍNIMO PARA ABRIR <span class="dip-req">*</span></label><input type="number" id="abiFMin" min="1" max="500" value="6"></div>'
+        + '<div class="radm-field"><label for="abiFPrecio">PRECIO POR PERSONA (MXN, sin IVA) <span class="dip-req">*</span></label><input type="number" id="abiFPrecio" min="0" step="1"></div></div>'
+        + '<div class="abi-fila"><div class="radm-field"><label for="abiFPre">PRECIO DE PREVENTA (opcional)</label><input type="number" id="abiFPre" min="0" step="1" placeholder="Sin preventa"></div>'
+        + '<div class="radm-field"><label for="abiFPreF">PREVENTA HASTA</label><input type="date" id="abiFPreF"></div></div>'
+        + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFTem">TEMARIO CORTO (una línea por punto; viene del Programa)</label><textarea id="abiFTem" rows="3" maxlength="1200"></textarea></div>'
+        + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFRes">RESUMEN PARA EL SITIO (opcional, máx. 300)</label><input type="text" id="abiFRes" maxlength="300"></div>'
+        + '<div class="radm-field" style="margin-bottom:12px"><label for="abiFNotas">NOTAS INTERNAS (no salen al sitio)</label><textarea id="abiFNotas" rows="2" maxlength="4000"></textarea></div>';
+    }
+    function pintarSes(){
+      $('abiSesiones').innerHTML = sesRows.map((s, i) => '<div class="abi-ses"><input type="date" value="' + s.d + '" data-s="' + i + '" data-k="d" aria-label="Fecha de la sesión ' + (i + 1) + '"><input type="time" value="' + s.a + '" data-s="' + i + '" data-k="a" aria-label="Inicio de la sesión ' + (i + 1) + '"><input type="time" value="' + s.b + '" data-s="' + i + '" data-k="b" aria-label="Fin de la sesión ' + (i + 1) + '"><button type="button" class="cot-icon-btn abi-quitar-ses" data-i="' + i + '" aria-label="Quitar la sesión ' + (i + 1) + '" title="Quitar">' + S(IC.x) + '</button></div>').join('');
+      const p = campoProg(), tot = sesRows.reduce((a, s) => a + (s.d && s.a && s.b ? horasEntre(s.a, s.b) : 0), 0), horas = Number($('abiFHoras').value) || (p ? p.horas : 0);
+      const el = $('abiSumaHoras');
+      if(!sesRows.length || !horas){ el.className = 'abi-chk'; el.innerHTML = ''; }
+      else { const dif = horas - tot; el.className = 'abi-chk ' + (dif === 0 ? 'ok' : 'ambar'); el.innerHTML = dif === 0 ? S(IC.ok) + 'Suman ' + tot + ' h, las horas del programa.' : S(IC.ambar) + 'Suman ' + tot + ' h de ' + horas + ' h del programa (' + (dif > 0 ? 'faltan ' + dif : 'sobran ' + (-dif)) + ' h).'; }
+      $('abiMesFila').hidden = sesRows.some((s) => s.d);
+      previa();
+    }
+    function previa(){
+      const p = campoProg(); if(!p){ $('abiPrevCard').innerHTML = ''; return; }
+      const t = tool(p.herr), cupo = Number($('abiFCupo').value) || 0, min = Number($('abiFMin').value) || 0, precio = Number($('abiFPrecio').value) || 0, pre = Number($('abiFPre').value) || 0, preF = $('abiFPreF').value;
+      const ses = sesRows.filter((s) => s.d && s.a && s.b).sort((a, b) => a.d.localeCompare(b.d));
+      const pres = document.querySelector('input[name=abiMod]:checked').value === 'presencial';
+      const fechas = ses.length ? ses.map((s) => Number(s.d.slice(8))).join(', ') + ' ' + new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', month: 'short', year: 'numeric' }).format(new Date(ses[ses.length - 1].d + 'T12:00:00Z')).replace('.', '') : 'Fecha por definir';
+      const preOk = pre && preF && new Date(preF + 'T23:59:59' + OFFSET) >= new Date();
+      $('abiPrevCard').innerHTML = '<div class="abi-pc" style="--pcc:' + t.color + '"><div class="tl">' + t.icon + esc(t.nombre) + '</div><h5>' + esc(p.nombre) + '</h5>'
+        + '<div class="pl">' + pill(ses.length ? 'Inscripciones abiertas' : 'Próximamente', ses.length ? 'ok' : 'azul', ses.length ? 'ok' : 'reloj') + pill('Faltan ' + min + ' para abrir', 'gris', 'users') + '</div>'
+        + '<div class="ln">' + S(IC.cal) + esc(fechas) + '</div>' + (ses.length ? '<div class="ln">' + S(IC.reloj) + esc(ses[0].a + '–' + ses[0].b) + ' h · hora de Monterrey</div>' : '')
+        + '<div class="ln">' + S(pres ? IC.pin : IC.monitor) + (pres ? 'Presencial' + ($('abiFSede').value ? ' · ' + esc($('abiFSede').value) : '') : 'En línea') + ' · ' + esc(Number($('abiFHoras').value) || p.horas) + ' horas</div>'
+        + '<div class="pr">' + dinero(preOk ? pre : precio) + ' <small>MXN por persona</small>' + (preOk ? '<s>' + dinero(precio) + '</s>' : '') + '</div>'
+        + '<div class="ln">' + S(IC.users) + 'Quedan ' + cupo + ' de ' + cupo + ' lugares</div></div>';
+    }
+    function aplicarPrograma(conservarTemario){
+      const p = campoProg(); if(!p) return;
+      $('abiFNivel').value = String(nivelDe(p.nivelLabel));
+      $('abiFHoras').value = p.horas;
+      if(!conservarTemario){ $('abiFTem').value = p.temas.slice(0, 5).join('\n'); $('abiFRes').value = (p.objetivo || '').slice(0, 300); }
+      pintarSes();
+    }
+    function sedeVisible(){ const pres = document.querySelector('input[name=abiMod]:checked').value === 'presencial'; $('abiSedeF').hidden = !pres; }
+    function errorForm(msg){ const e = $('abiFormError'); e.textContent = msg || ''; e.hidden = !msg; if(msg) e.scrollIntoView({ block: 'nearest' }); }
+
+    async function abrirForm(g){
+      const overlay = $('abiForm');
+      editandoId = g ? g.id : null;
+      $('abiFormTitulo').textContent = g ? 'Editar grupo abierto · ' + g.codigo : 'Nuevo grupo abierto';
+      $('abiFormCampos').innerHTML = '<p class="radm-hint">Cargando los programas…</p>';
+      errorForm('');
+      overlay.hidden = false;
+      document.body.classList.add('admin-dialog-abierto');
+      try { await cargarCatalogo(); } catch(e){ catalogo = []; }
+      $('abiFormCampos').innerHTML = camposHtml();
+      $('abiFProg').innerHTML = '<option value="">Elige un programa…</option>' + catalogo.map((p) => '<option value="' + esc(p.id) + '">' + esc(p.nombre + ' · ' + tool(p.herr).nombre + ' · ' + p.horas + ' h') + '</option>').join('');
+      sesRows.length = 0;
+      if(g){
+        let herr = ''; try { herr = JSON.parse(g.herramientas || '[]')[0]; } catch(e){ /* sin herramienta */ }
+        const prog = catalogo.find((p) => p.id === g.programa_id) || catalogo.find((p) => p.nombre === g.programa_nombre && p.herr === herr);
+        if(prog) $('abiFProg').value = prog.id;
+        $('abiFCod').value = g.codigo; $('abiFHoras').value = Number(g.horas); $('abiFInst').value = g.instructor || '';
+        let niv = 1; try { niv = JSON.parse(g.niveles || '[1]')[0]; } catch(e){ /* nivel básico */ } $('abiFNivel').value = String(niv);
+        (g.sesiones || []).forEach((s) => { const a = dtLocal(s.inicio), b = dtLocal(s.fin); sesRows.push({ d: a.d, a: a.a, b: b.a }); });
+        $('abiFMesEst').value = g.mes_estimado || '';
+        document.querySelector('input[name=abiMod][value=' + (g.modalidad === 'Presencial' ? 'presencial' : 'en_linea') + ']').checked = true;
+        $('abiFSede').value = g.sede || '';
+        $('abiFCupo').value = g.cupo_total; $('abiFMin').value = g.minimo_para_abrir; $('abiFPrecio').value = Number(g.precio_persona);
+        $('abiFPre').value = g.precio_preventa != null ? Number(g.precio_preventa) : ''; $('abiFPreF').value = g.preventa_hasta || '';
+        let tem = []; try { tem = JSON.parse(g.temario_corto || '[]'); } catch(e){ /* sin temario */ } $('abiFTem').value = tem.join('\n');
+        $('abiFRes').value = g.resumen || ''; $('abiFNotas').value = g.notas || '';
+        $('abiFormPublicar').textContent = g.publicacion === 'publicado' ? 'Guardar cambios' : 'Guardar y publicar';
+        $('abiFormBorrador').hidden = g.publicacion === 'publicado';
+      } else {
+        $('abiFormPublicar').textContent = 'Guardar y publicar'; $('abiFormBorrador').hidden = false;
+        $('abiFProg').value = ''; aplicarPrograma(false);
+      }
+      sedeVisible(); pintarSes();
+      $('abiFProg').focus();
+    }
+    function cerrarForm(){ $('abiForm').hidden = true; document.body.classList.remove('admin-dialog-abierto'); }
+
+    // arma el cuerpo que espera crearGrupoAbierto/editarGrupoAbierto
+    function cuerpoForm(publicacion){
+      const p = campoProg();
+      if(!p) throw new Error('Elige el Programa estándar.');
+      const ses = sesRows.filter((s) => s.d || s.a || s.b);
+      for(const s of ses){ if(!s.d || !s.a || !s.b) throw new Error('Completa fecha, inicio y fin de cada sesión (o quita la fila).'); }
+      const mod = document.querySelector('input[name=abiMod]:checked').value;
+      return {
+        id: editandoId || undefined, codigo: $('abiFCod').value, herramienta: p.herr, nivel: Number($('abiFNivel').value), programa_id: p.id, programa_nombre: p.nombre,
+        modalidad: mod, sede: mod === 'presencial' ? $('abiFSede').value : '', horas: Number($('abiFHoras').value),
+        sesiones: ses.map((s) => ({ inicio: s.d + 'T' + s.a + ':00' + OFFSET, fin: s.d + 'T' + s.b + ':00' + OFFSET })),
+        mes_estimado: $('abiFMesEst').value || null, cupo_total: Number($('abiFCupo').value), minimo_para_abrir: Number($('abiFMin').value), precio_persona: Number($('abiFPrecio').value),
+        precio_preventa: $('abiFPre').value === '' ? null : Number($('abiFPre').value), preventa_hasta: $('abiFPreF').value || null, publicacion,
+        resumen: $('abiFRes').value, temario_corto: $('abiFTem').value.split('\n').map((x) => x.trim()).filter(Boolean), instructor: $('abiFInst').value, notas: $('abiFNotas').value,
+      };
+    }
+    async function guardar(publicacion, botones){
+      errorForm('');
+      let cuerpo; try { cuerpo = cuerpoForm(publicacion); } catch(e){ errorForm(e.message); return; }
+      botones.forEach((b) => { b.disabled = true; });
+      try {
+        await apiPostJson(editandoId ? '/api/editarGrupoAbierto' : '/api/crearGrupoAbierto', cuerpo);
+        cerrarForm();
+        toast(editandoId ? 'Grupo actualizado.' : 'Grupo creado.' + (publicacion === 'publicado' ? ' Sale al sitio con «Publicar calendario».' : ''), true);
+        await cargar();
+      } catch(e){ errorForm(e.message); }
+      finally { botones.forEach((b) => { b.disabled = false; }); }
+    }
+    // cambia solo la publicación de un grupo (Publicar / Cancelar desde la tabla) reenviando todo lo demás tal cual
+    async function cambiarPublicacion(id, publicacion){
+      const g = datos.grupos.find((x) => x.id === id); if(!g) return;
+      let herr = ''; try { herr = JSON.parse(g.herramientas || '[]')[0]; } catch(e){ /* sin herramienta */ }
+      let niv = 1; try { niv = JSON.parse(g.niveles || '[1]')[0]; } catch(e){ /* básico */ }
+      let tem = []; try { tem = JSON.parse(g.temario_corto || '[]'); } catch(e){ /* sin temario */ }
+      const cuerpo = {
+        id: g.id, codigo: g.codigo, herramienta: herr, nivel: niv, programa_id: g.programa_id, programa_nombre: g.programa_nombre, modalidad: g.modalidad === 'Presencial' ? 'presencial' : 'en_linea',
+        sede: g.sede || '', horas: Number(g.horas), sesiones: g.sesiones || [], mes_estimado: g.mes_estimado, cupo_total: g.cupo_total, minimo_para_abrir: g.minimo_para_abrir,
+        precio_persona: Number(g.precio_persona), precio_preventa: g.precio_preventa == null ? null : Number(g.precio_preventa), preventa_hasta: g.preventa_hasta, publicacion,
+        resumen: g.resumen || '', temario_corto: tem, instructor: g.instructor || '', notas: g.notas || '',
+      };
+      try { await apiPostJson('/api/editarGrupoAbierto', cuerpo); toast(publicacion === 'cancelado' ? 'Grupo cancelado.' : 'Marcado como publicado. Sale al sitio con «Publicar calendario».', true); await cargar(); }
+      catch(e){ toast(e.message, false); }
+    }
+
+    async function publicarCalendario(){
+      const D = datos.grupos.map(der);
+      const salen = D.filter((d) => d.g.publicacion === 'publicado' && !d.pasado);
+      const ok = await confirmarAccion({
+        titulo: 'Publicar calendario', variante: 'neutral', textoConfirmar: 'Publicar ahora',
+        mensaje: 'Se actualiza lo que ve el público en /cursos-abiertos: ' + plural(salen.length, 'grupo publicado', 'grupos publicados') + '. Los grupos en borrador o cancelados no salen. No se muestra ningún dato de personas.'
+          + (datos.cola && datos.cola.inscripciones ? ' Hay ' + plural(datos.cola.inscripciones, 'inscripción', 'inscripciones') + ' del sitio por importar: sus lugares se respetan.' : ''),
+      });
+      if(!ok) return;
+      const btn = $('abiPublicarBtn'); btn.disabled = true;
+      try {
+        const r = await apiPostJson('/api/publicarCalendarioAbiertos', {});
+        toast('Calendario publicado: ' + plural(r.grupos, 'grupo', 'grupos') + '.', true);
+        await cargar();
+      } catch(e){
+        const extra = e.body && e.body.errores && e.body.errores.length ? ' ' + e.body.errores.join(' · ') : '';
+        toast(e.message + extra, false);
+      } finally { btn.disabled = false; }
+    }
+
+    // ── eventos ──
+    $('abiVistas').addEventListener('click', (e) => { const b = e.target.closest('.radm-tab'); if(!b) return; vista = b.dataset.vista; pintar(); });
+    $('abiFHerr').addEventListener('change', (e) => { F.herr = e.target.value; pintar(); });
+    $('abiFMes').addEventListener('change', (e) => { F.mes = e.target.value; pintar(); });
+    $('abiFMod').addEventListener('change', (e) => { F.mod = e.target.value; pintar(); });
+    $('abiLimpiar').addEventListener('click', () => { F.herr = F.mes = F.mod = ''; pintar(); });
+    $('abiActualizar').addEventListener('click', cargar);
+    $('abiNuevoBtn').addEventListener('click', () => abrirForm(null));
+    $('abiPublicarBtn').addEventListener('click', publicarCalendario);
+    $('abiInfoSemBtn').addEventListener('click', (e) => { e.stopPropagation(); const p = $('abiInfoSemPopover'); p.innerHTML = infoSemaforo(); p.hidden = !p.hidden; });
+    document.addEventListener('click', (e) => { const p = $('abiInfoSemPopover'); if(p && !p.hidden && !e.target.closest('#abiInfoSemPopover')) p.hidden = true; });
+    $('abiListaBody').addEventListener('click', async (e) => {
+      const ed = e.target.closest('.abi-editar'), pu = e.target.closest('.abi-publicar-uno'), ca = e.target.closest('.abi-cancelar');
+      if(ed){ const g = datos.grupos.find((x) => x.id === Number(ed.dataset.id)); if(g) abrirForm(g); }
+      else if(pu){ cambiarPublicacion(Number(pu.dataset.id), 'publicado'); }
+      else if(ca){
+        const g = datos.grupos.find((x) => x.id === Number(ca.dataset.id)); if(!g) return;
+        const ocup = (g.confirmadas || 0) + (g.apartadas || 0);
+        if(await confirmarAccion({ titulo: 'Cancelar el grupo ' + g.codigo, variante: 'destructivo', textoConfirmar: 'Cancelar el grupo', mensaje: 'Un grupo cancelado no se reabre (se crea otro). Deja de salir al sitio con «Publicar calendario».' + (ocup ? ' Ya tiene ' + plural(ocup, 'persona inscrita o apartada', 'personas inscritas o apartadas') + ': avísales y resuelve sus pagos.' : '') })) cambiarPublicacion(g.id, 'cancelado');
+      }
+    });
+    $('abiFormCerrar').addEventListener('click', cerrarForm);
+    $('abiFormCancelar').addEventListener('click', cerrarForm);
+    $('abiForm').addEventListener('mousedown', (e) => { $('abiForm')._down = e.target === $('abiForm'); });
+    $('abiForm').addEventListener('click', (e) => { if($('abiForm')._down && e.target === $('abiForm')) cerrarForm(); $('abiForm')._down = false; });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !$('abiForm').hidden) cerrarForm(); });
+    $('abiFormBorrador').addEventListener('click', (e) => guardar('borrador', [$('abiFormBorrador'), $('abiFormPublicar')]));
+    $('abiFormPublicar').addEventListener('click', () => guardar('publicado', [$('abiFormBorrador'), $('abiFormPublicar')]));
+    const formBody = $('abiFormCampos');
+    formBody.addEventListener('click', (e) => {
+      if(e.target.closest('#abiAddSes')){ const u = sesRows[sesRows.length - 1] || { d: '', a: '18:00', b: '21:00' }; let d = ''; if(u.d){ const dt = new Date(u.d + 'T12:00:00Z'); dt.setUTCDate(dt.getUTCDate() + 7); d = dt.toISOString().slice(0, 10); } sesRows.push({ d, a: u.a, b: u.b }); pintarSes(); return; }
+      const q = e.target.closest('.abi-quitar-ses'); if(q){ sesRows.splice(Number(q.dataset.i), 1); pintarSes(); }
+    });
+    formBody.addEventListener('change', (e) => {
+      if(e.target.id === 'abiFProg'){ aplicarPrograma(false); }
+      else if(e.target.name === 'abiMod'){ sedeVisible(); previa(); }
+    });
+    formBody.addEventListener('input', (e) => {
+      const t = e.target;
+      if(t.dataset.s !== undefined){ sesRows[Number(t.dataset.s)][t.dataset.k] = t.value; pintarSes(); return; }
+      if(['abiFCupo', 'abiFMin', 'abiFPrecio', 'abiFPre', 'abiFPreF', 'abiFSede', 'abiFHoras'].includes(t.id)) { if(t.id === 'abiFHoras') pintarSes(); else previa(); }
+    });
+
+    // Grupos → Nuevo Grupo → «¿Curso abierto?» abre este formulario (ver el interruptor en abrirFormGrupo)
+    window.abrirFormGrupoAbierto = () => { activarPanel('abiertos'); abrirForm(null); };
+    window.alEntrarAAbiertos = () => { cargar(); };
+  })();
 
 
   // Estado de la base — botón "Despertar" del bloque Sistema de la barra superior. Es indicador Y acción: muestra el estado REAL de
@@ -20625,6 +21250,10 @@
               <label class="radm-switch"><input type="checkbox" id="gruToggleHistorico"><span class="radm-switch-track"></span></label>
               <span class="radm-switch-label">¿Curso histórico?</span>
             </div>
+            ${editando ? '' : `<div class="radm-switch-row" title="Un curso con fecha fija al que se inscriben profesionistas (se vende en /cursos-abiertos). Abre su propio formulario.">
+              <label class="radm-switch"><input type="checkbox" id="gruToggleAbierto"><span class="radm-switch-track"></span></label>
+              <span class="radm-switch-label">¿Curso abierto?</span>
+            </div>`}
             ${editando ? `<div class="radm-switch-row" title="Para un grupo que ya existe y todavía no tiene su cuenta en Cobranza">
               <label class="radm-switch"><input type="checkbox" id="gruToggleCobro"><span class="radm-switch-track"></span></label>
               <span class="radm-switch-label">¿Generar su cuenta de cobro?</span>
@@ -20926,6 +21555,14 @@
       document.getElementById('gruToggleHistorico').addEventListener('change', e => {
         document.getElementById('gruFechaCierreField').hidden = !e.target.checked;
         if(!e.target.checked) document.getElementById('gruFechaCierre').value = '';
+      });
+      // Un curso abierto no lleva Cliente, Cotización ni cuenta propia: tiene su formulario (Tracking «Abiertos», window.abrirFormGrupoAbierto)
+      const gruToggleAbierto = document.getElementById('gruToggleAbierto');
+      if(gruToggleAbierto) gruToggleAbierto.addEventListener('change', e => {
+        if(!e.target.checked) return;
+        e.target.checked = false;
+        wrap.innerHTML = '';
+        if(typeof window.abrirFormGrupoAbierto === 'function') window.abrirFormGrupoAbierto();
       });
 
       // Estatus de cierre solo tiene sentido una vez que el curso terminó —

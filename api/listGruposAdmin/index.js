@@ -40,6 +40,9 @@ module.exports = async function (context, req) {
     const condiciones = [];
 
     if (VISTAS[req.query.vista]) condiciones.push(VISTAS[req.query.vista]);
+    // los grupos ABIERTOS (Cursos Abiertos) viven en su Tracking «Abiertos»: aquí no salen salvo que se pidan (?estrategia=abiertos|todas)
+    if (req.query.estrategia === "abiertos") condiciones.push("g.estrategia = 'abiertos'");
+    else if (req.query.estrategia !== "todas") condiciones.push("g.estrategia = 'empresas'");
     if (clienteId) {
       condiciones.push("(g.cliente_id = @clienteId OR g.cliente_final_id = @clienteId)");
       request.input("clienteId", sql.Int, Number(clienteId));

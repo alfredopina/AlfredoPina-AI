@@ -6858,7 +6858,7 @@
     const nivelesSel = () => Array.from(document.querySelectorAll('input[name=abiNiv]:checked')).map((c) => Number(c.value)).sort();
     function setNiveles(arr){ const s = new Set((arr && arr.length ? arr : [1]).map(Number)); document.querySelectorAll('input[name=abiNiv]').forEach((c) => { c.checked = s.has(Number(c.value)); }); }
     const nivelesDe = (label) => { const r = []; if(/b[aá]sico/i.test(label || '')) r.push(1); if(/intermedio/i.test(label || '')) r.push(2); if(/avanzado/i.test(label || '')) r.push(3); return r.length ? r : [1]; };
-    // código sugerido: MMAA-SIGLAS (mes y año del inicio): 1126-EXIA (Excel Intermedio Avanzado), 1126-POBI (Power BI), 1126-IACO (IA con Copilot). Se puede cambiar a mano.
+    // código sugerido: AAMM-SIGLAS (año y mes del inicio): 2611-EXIA (Excel Intermedio Avanzado), 2611-POBI (Power BI), 2611-IACO (IA con Copilot). Se puede cambiar a mano.
     const CODIGO_BASE = { powerbi: 'POBI', powerapps: 'PAPP', powerautomate: 'PAUT', ia: 'IACO', ofimatica: 'M365' };
     let codTocado = false;
     function sugerirCodigo(){
@@ -6868,7 +6868,7 @@
       const sufijo = p.herr === 'excel' ? 'EX' + nivelesSel().map((n) => letra[n]).join('') : (CODIGO_BASE[p.herr] || String(p.herr).slice(0, 4).toUpperCase());
       const primera = sesRows.filter((s) => s.d).map((s) => s.d).sort()[0];
       const ym = primera ? primera.slice(0, 7) : ($('abiFMesEst').value || ymd(new Date()).slice(0, 7));
-      $('abiFCod').value = ym.slice(5, 7) + ym.slice(2, 4) + '-' + sufijo;
+      $('abiFCod').value = ym.slice(2, 4) + ym.slice(5, 7) + '-' + sufijo;
     }
     function previa(){
       const p = campoProg(); if(!p){ $('abiPrevCard').innerHTML = ''; return; }

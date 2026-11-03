@@ -2106,6 +2106,8 @@
   .abi-pc .pl{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
   .abi-alerta{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; border:1px solid var(--line); border-radius:10px; background-color:var(--panel); padding:10px 14px; margin-bottom:10px; font-size:12.5px; }
   .abi-alerta[hidden]{ display:none; }
+  .abi-cola{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px dashed var(--blue-bright); border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:8px; }
+  .abi-cola-err{ display:flex; align-items:center; gap:10px; font-size:12.5px; padding:6px 14px; border-left:3px solid #dfb35a; margin-bottom:6px; color:var(--text-dim); }
   /* panel Desglose: lo CALCULADO (no se edita) va aparte del formulario, con otro fondo y borde punteado */
   .cbz-desglose{ background-color:rgba(61,127,255,.06); border:1px dashed rgba(107,159,255,.5); border-radius:12px; padding:12px 16px 10px; margin-bottom:18px; }
   .cbz-desg-cab{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
@@ -4909,6 +4911,13 @@
       <div class="admin-panel" id="panel-abiertos" style="--c:var(--blue-bright)">
         <div id="abiToast" class="radm-toast" hidden></div>
 
+        <div class="radm-tabs" id="abiTabs" style="margin-bottom:14px;">
+          <button type="button" class="radm-tab active" data-abitab="cal">Calendario</button>
+          <button type="button" class="radm-tab" data-abitab="ins">Inscripciones<span class="radm-tab-count" id="abiTabN-ins">0</span></button>
+          <button type="button" class="radm-tab" data-abitab="esp">Lista de espera<span class="radm-tab-count" id="abiTabN-esp">0</span></button>
+        </div>
+        <div id="abiVistaCal">
+
         <div class="cli-scorecard-block">
           <div class="cli-kpi-row" id="abiKpis">
             <div class="dkpi-card" style="--c:var(--blue-bright)" title="Cuántos días faltan para el próximo grupo abierto publicado que todavía no empieza.">
@@ -5017,6 +5026,10 @@
             </tbody>
           </table>
         </div>
+
+        </div>
+        <div id="abiVistaIns" hidden><div id="abiInscCuerpo"></div></div>
+        <div id="abiVistaEsp" hidden><div id="abiEspCuerpo"></div></div>
 
         <div class="admin-dialog-overlay" id="abiForm" hidden>
           <div class="abi-modal" role="dialog" aria-modal="true" aria-labelledby="abiFormTitulo">
@@ -6939,9 +6952,159 @@
       if(['abiFCupo', 'abiFMin', 'abiFPrecio', 'abiFPre', 'abiFPreF', 'abiFSede', 'abiFHoras'].includes(t.id)) { if(t.id === 'abiFHoras') pintarSes(); else previa(); }
     });
 
+    // ── pestañas Inscripciones y Lista de espera (2026-11-03) ──
+    // Lo que el sitio dejó en las colas se importa a SQL al entrar a «Abiertos» (o con «Importar ahora»): cada envío por separado, y el que falla se queda en la
+    // cola con su motivo, visible aquí, sin bloquear a los demás. Una inscripción pagada en Cobranza se confirma sola; «Confirmar pago» es para un pago que llegó por fuera.
+    let tab = 'cal';
+    let insc = [], esp = [], colaInfo = { inscripciones: 0, espera: 0, errores: [] };
+    let vIns = 'todas', vEsp = 'nueva', fGrupoIns = '';
+    const horasHasta = (iso) => Math.round((new Date(iso) - Date.now()) / 3600000);
+    const fechaCorta = (iso) => partes(iso, { day: 'numeric' }).day + ' ' + mesCorto(iso) + ' ' + hhmm(iso);
+    const origenTxt = (x) => [x.utm_source, x.utm_medium, x.utm_campaign].filter(Boolean).join(' · ') || 'directo';
+
+    function mostrarTab(t){
+      tab = t;
+      [['cal', 'abiVistaCal'], ['ins', 'abiVistaIns'], ['esp', 'abiVistaEsp']].forEach(([k, id]) => { $(id).hidden = k !== t; });
+      document.querySelectorAll('#abiTabs .radm-tab').forEach((b) => b.classList.toggle('active', b.dataset.abitab === t));
+      if(t === 'ins') cargarInscripciones();
+      if(t === 'esp') cargarEspera();
+    }
+    function pintarTabsContadores(){
+      const nIns = insc.filter((i) => i.estado === 'apartada').length, nEsp = esp.filter((e) => e.estado === 'nueva').length;
+      $('abiTabN-ins').textContent = nIns + (colaInfo.inscripciones ? '+' + colaInfo.inscripciones : '');
+      $('abiTabN-esp').textContent = nEsp + (colaInfo.espera ? '+' + colaInfo.espera : '');
+    }
+    function bannerCola(){
+      const pend = (colaInfo.inscripciones || 0) + (colaInfo.espera || 0), errs = colaInfo.errores || [];
+      if(!pend) return '';
+      const filas = errs.map((e) => '<div class="abi-cola-err">' + S(IC.ambar, ' style="width:14px;height:14px;color:#dfb35a;flex:none"') + '<span><b>' + esc(e.nombre || 'Envío') + '</b> ' + (e.tipo === 'inscripcion' ? '· ' + esc(e.grupo) : '· lista de espera') + ' — ' + esc(e.error) + '</span>'
+        + '<button type="button" class="radm-btn radm-btn-ghost abi-descartar" data-tipo="' + e.tipo + '" data-envio="' + esc(e.envioId) + '" style="min-width:auto;padding:4px 10px">Descartar</button></div>').join('');
+      return '<div class="abi-cola">' + S(IC.up, ' style="width:16px;height:16px;color:var(--blue-bright);flex:none"') + '<span><b>' + plural(pend, 'envío del sitio por importar', 'envíos del sitio por importar') + '</b> (' + (colaInfo.inscripciones || 0) + ' inscripciones, ' + (colaInfo.espera || 0) + ' en lista de espera)'
+        + (errs.length ? ' · ' + plural(errs.length, 'con error', 'con error') : '') + '</span><span class="abi-sp"></span><button type="button" class="radm-btn abi-importar">Importar ahora</button></div>' + filas;
+    }
+
+    async function importarPendientes(silencioso){
+      let total = 0;
+      for(let i = 0; i < 6; i++){
+        const r = await apiPostJson('/api/importarCursosAbiertosPendientes', {});
+        const hechas = (r.inscripciones.importadas || 0) + (r.espera.importadas || 0);
+        total += hechas;
+        if(!hechas || !((r.inscripciones.restantes || 0) + (r.espera.restantes || 0))) { if(!silencioso && (r.inscripciones.errores || r.espera.errores)) toast('Algunos envíos no se pudieron importar: míralos abajo con su motivo.', false); break; }
+      }
+      if(!silencioso) toast(total ? 'Importado: ' + plural(total, 'envío', 'envíos') + '.' : 'No había nada que importar.', true);
+      return total;
+    }
+
+    async function cargarInscripciones(){
+      $('abiInscCuerpo').innerHTML = '<p class="radm-hint">Cargando…</p>';
+      try { const r = await apiGetConReintento('/api/getInscripcionesAbiertasAdmin'); insc = r.inscripciones || []; colaInfo = r.cola || colaInfo; }
+      catch(e){ $('abiInscCuerpo').innerHTML = '<p class="radm-hint">Error: ' + esc(e.message) + '</p>'; return; }
+      pintarInscripciones(); pintarTabsContadores();
+    }
+    function pintarInscripciones(){
+      const enV = (i, v) => v === 'todas' || (v === 'apartadas' && i.estado === 'apartada' && !i.vencido) || (v === 'vencidas' && i.estado === 'apartada' && i.vencido) || (v === 'confirmadas' && i.estado === 'confirmada') || (v === 'canceladas' && i.estado === 'cancelada');
+      const cnt = (v) => insc.filter((i) => enV(i, v)).length;
+      const grupos = Array.from(new Set(insc.map((i) => i.grupo))).sort();
+      const filas = insc.filter((i) => enV(i, vIns) && (!fGrupoIns || i.grupo === fGrupoIns));
+      const estPill = (i) => i.estado === 'apartada' ? (i.vencido ? pill('Apartada · vencida', 'ambar', 'ambar') : pill('Apartada', 'azul', 'reloj')) : i.estado === 'confirmada' ? pill('Confirmada', 'ok', 'ok') : pill('Cancelada', 'gris', 'ban');
+      const pagoPill = (i) => i.estado_pago === 'pagado' ? pill('Pagado', 'ok', 'ok') : i.estado_pago === 'reembolsado' ? pill('Reembolsado', 'gris', 'ban') : pill('Pendiente', 'ambar', 'reloj');
+      const hasta = (i) => { if(i.estado !== 'apartada' || !i.apartado_hasta) return '—'; const h = horasHasta(i.apartado_hasta); return h < 0 ? 'Venció hace ' + plural(-h, 'hora', 'horas') : 'En ' + plural(h, 'hora', 'horas'); };
+      const tabla = filas.map((i) => '<tr><td><div class="abi-curso">' + esc(i.nombre) + '</div><div class="abi-sub">' + esc(i.correo || '') + (i.whatsapp ? ' · ' + esc(i.whatsapp) : '') + '</div></td>'
+        + '<td><span class="abi-cod">' + esc(i.grupo) + '</span></td>'
+        + '<td>' + (i.paga === 'yo' ? 'La persona' : esc(i.empresa || 'Su empresa')) + '<div class="abi-sub">' + (i.requiere_factura ? 'Con factura' + (i.rfc ? ' · ' + esc(i.rfc) : '') : 'Sin factura') + '</div></td>'
+        + '<td>' + estPill(i) + '</td><td>' + pagoPill(i) + (i.monto_estimado != null ? '<div class="abi-sub">' + dinero(Number(i.monto_estimado)) + ' + IVA</div>' : '') + '</td>'
+        + '<td>' + esc(hasta(i)) + '</td><td><span class="abi-sub" style="margin:0">' + esc(origenTxt(i)) + '</span></td>'
+        + '<td>' + (i.cuenta_cobrar_id ? '<button type="button" class="radm-btn radm-btn-ghost abi-ver-cuenta" data-cuenta="' + i.cuenta_cobrar_id + '" data-est="' + esc(i.cuenta_estatus || '') + '" style="min-width:auto;padding:4px 10px">' + S('<path d="M12 3v18M17 7.5a4 4 0 0 0-5-2c-2.5 0-4 1.5-4 3s1.5 2.4 4 3 4 1.5 4 3-1.5 3-4 3a4 4 0 0 1-5-2" stroke-linecap="round"/>', ' style="width:13px;height:13px;vertical-align:-2px"') + ' ' + esc(i.cuenta_estatus || 'Cuenta') + '</button>' : '—') + '</td>'
+        + '<td><div class="abi-acc">' + (i.estado === 'apartada' ? '<button type="button" class="cot-icon-btn abi-confirmar" data-id="' + i.id + '" title="Confirmar pago (llegó por fuera de Cobranza)" aria-label="Confirmar pago">' + S(IC.ok) + '</button>' : '')
+        + (i.estado !== 'cancelada' ? '<button type="button" class="cot-icon-btn abi-baja sol-acc-peligro" data-id="' + i.id + '" data-vencido="' + (i.vencido ? 1 : 0) + '" title="' + (i.vencido ? 'Liberar el lugar' : 'Cancelar la inscripción') + '" aria-label="' + (i.vencido ? 'Liberar el lugar' : 'Cancelar') + '">' + S(IC.ban) + '</button>' : '') + '</div></td></tr>').join('');
+      $('abiInscCuerpo').innerHTML = bannerCola()
+        + '<div class="trk-vistas" style="margin:10px 0"><div class="trk-vistas-row"><div class="radm-tabs" id="abiVistasIns" style="margin-bottom:0;">'
+        + [['todas', 'Todas'], ['apartadas', 'Apartadas'], ['vencidas', 'Vencidas'], ['confirmadas', 'Confirmadas'], ['canceladas', 'Canceladas']].map(([k, t]) => '<button type="button" class="radm-tab' + (vIns === k ? ' active' : '') + '" data-vi="' + k + '">' + t + '<span class="radm-tab-count">' + cnt(k) + '</span></button>').join('')
+        + '</div></div></div>'
+        + '<div class="dip-filters" style="margin-bottom:10px"><div class="radm-field"><label for="abiFGrupoIns">GRUPO</label><select id="abiFGrupoIns"><option value="">Todos</option>' + grupos.map((g) => '<option value="' + esc(g) + '"' + (fGrupoIns === g ? ' selected' : '') + '>' + esc(g) + '</option>').join('') + '</select></div><span class="trk-result">' + plural(filas.length, 'resultado', 'resultados') + '</span></div>'
+        + '<div class="dip-table-wrap"><table class="dip-table abi-tabla"><thead><tr><th>Persona</th><th>Grupo</th><th>Quién paga</th><th>Estado</th><th>Pago</th><th>Apartado</th><th>Origen</th><th>Cobranza</th><th>Acciones</th></tr></thead><tbody>'
+        + (tabla || '<tr><td colspan="9" class="radm-empty-row">' + (insc.length ? 'Sin inscripciones con estos filtros.' : 'Todavía no hay inscripciones. Cuando alguien se inscriba en el sitio aparecerá aquí.') + '</td></tr>') + '</tbody></table></div>';
+    }
+
+    async function cargarEspera(){
+      $('abiEspCuerpo').innerHTML = '<p class="radm-hint">Cargando…</p>';
+      try { const r = await apiGetConReintento('/api/getListaEsperaAbiertaAdmin'); esp = r.espera || []; }
+      catch(e){ $('abiEspCuerpo').innerHTML = '<p class="radm-hint">Error: ' + esc(e.message) + '</p>'; return; }
+      pintarEspera(); pintarTabsContadores();
+    }
+    function pintarEspera(){
+      const cnt = (v) => esp.filter((e) => v === 'todas' || e.estado === v).length;
+      const filas = esp.filter((e) => vEsp === 'todas' || e.estado === vEsp);
+      const demanda = {};
+      esp.filter((e) => e.estado === 'nueva').forEach((e) => { demanda[e.interes] = (demanda[e.interes] || 0) + 1; });
+      const dem = Object.keys(demanda).sort((a, b) => demanda[b] - demanda[a]);
+      const estPill = (e) => e.estado === 'nueva' ? pill('Nueva', 'azul', 'users') : e.estado === 'avisada' ? pill('Avisada', 'ok', 'ok') : pill('Descartada', 'gris', 'ban');
+      const tabla = filas.map((e) => { const t = e.interes === 'otro' ? { nombre: 'Otro / no sabe', color: '#9aa7b8', icon: '' } : tool(e.interes); return '<tr><td><div class="abi-curso">' + esc(e.nombre) + '</div><div class="abi-sub">' + esc(e.correo) + '</div></td>'
+        + '<td><div class="abi-curso"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px">' + t.icon + '</span>' + esc(t.nombre) + '</div></td>'
+        + '<td>' + (e.paga === 'yo' ? 'La persona' : 'Su empresa') + '</td><td>' + (e.grupo_referencia ? '<span class="abi-cod">' + esc(e.grupo_referencia) + '</span>' : '<span class="abi-sub" style="margin:0">' + esc(({ cierre_pagina: 'Cierre de la página', sin_resultados: 'Filtro sin fechas', modal_avisame: 'Avísame', inscripcion_sin_grupos: 'Sin grupos' })[e.contexto] || '—') + '</span>') + '</td>'
+        + '<td>' + esc(fechaCorta(e.fecha_creacion)) + '</td><td><span class="abi-sub" style="margin:0">' + esc(origenTxt(e)) + '</span></td><td>' + estPill(e) + '</td>'
+        + '<td><div class="abi-acc">' + (e.estado === 'nueva' ? '<a class="cot-icon-btn abi-avisar" href="mailto:' + esc(e.correo) + '?subject=' + encodeURIComponent('Nueva fecha de cursos abiertos') + '" data-id="' + e.id + '" title="Escribirle por correo (se marca como avisada)" aria-label="Avisar">' + S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/>') + '</a>'
+          + '<button type="button" class="cot-icon-btn abi-esp-desc" data-id="' + e.id + '" title="Descartar (no se borra)" aria-label="Descartar">' + S(IC.ban) + '</button>' : '<button type="button" class="cot-icon-btn abi-esp-nueva" data-id="' + e.id + '" title="Regresar a nuevas" aria-label="Regresar a nuevas">' + S('<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" stroke-linecap="round" stroke-linejoin="round"/>') + '</button>') + '</div></td></tr>'; }).join('');
+      $('abiEspCuerpo').innerHTML = bannerCola()
+        + (dem.length ? '<div class="abi-alerta" style="margin-top:10px">' + S(IC.users, ' style="width:16px;height:16px;color:var(--blue-bright);flex:none"') + '<span><b>Demanda sin grupo:</b> ' + dem.map((k) => esc(k === 'otro' ? 'Otro' : tool(k).nombre) + ' ' + demanda[k]).join(' · ') + '. Con 6 o más de una herramienta ya conviene abrir fecha.</span></div>' : '')
+        + '<div class="trk-vistas" style="margin:10px 0"><div class="trk-vistas-row"><div class="radm-tabs" style="margin-bottom:0;">'
+        + [['nueva', 'Nuevas'], ['avisada', 'Avisadas'], ['descartada', 'Descartadas'], ['todas', 'Todas']].map(([k, t]) => '<button type="button" class="radm-tab' + (vEsp === k ? ' active' : '') + '" data-ve="' + k + '">' + t + '<span class="radm-tab-count">' + cnt(k) + '</span></button>').join('')
+        + '</div></div></div>'
+        + '<div class="dip-table-wrap"><table class="dip-table abi-tabla"><thead><tr><th>Persona</th><th>Curso de interés</th><th>Quién paga</th><th>Pidió aviso de</th><th>Fecha</th><th>Origen</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'
+        + (tabla || '<tr><td colspan="8" class="radm-empty-row">' + (esp.length ? 'Nadie en esta vista.' : 'Todavía nadie ha pedido aviso.') + '</td></tr>') + '</tbody></table></div>';
+    }
+
+    $('abiTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-abitab]'); if(b) mostrarTab(b.dataset.abitab); });
+    async function ejecutarImportar(){
+      try { await importarPendientes(false); } catch(e){ toast(e.message, false); }
+      await cargar(); if(tab === 'ins') await cargarInscripciones(); if(tab === 'esp') await cargarEspera();
+    }
+    $('abiVistaIns').addEventListener('click', async (e) => {
+      if(e.target.closest('.abi-importar')){ ejecutarImportar(); return; }
+      const dsc = e.target.closest('.abi-descartar');
+      if(dsc){ await descartarEnvio(dsc); return; }
+      const vi = e.target.closest('[data-vi]'); if(vi){ vIns = vi.dataset.vi; pintarInscripciones(); return; }
+      const vc = e.target.closest('.abi-ver-cuenta'); if(vc){ toast('Cuenta #' + vc.dataset.cuenta + ' (' + (vc.dataset.est || '—') + '): búscala en Cobranza por el código del grupo.', true); activarPanel('cobranza'); return; }
+      const cf = e.target.closest('.abi-confirmar');
+      if(cf){
+        if(!(await confirmarAccion({ titulo: 'Confirmar pago', variante: 'neutral', textoConfirmar: 'Confirmar', mensaje: 'Marca esta inscripción como confirmada y pagada. Úsalo solo si el pago llegó por fuera de Cobranza: el pago normal se registra en la cuenta y confirma solo.' }))) return;
+        try { await apiPostJson('/api/actualizarInscripcionAbierta', { id: Number(cf.dataset.id), accion: 'confirmar' }); toast('Inscripción confirmada.', true); await cargarInscripciones(); cargar(); } catch(er){ toast(er.message, false); }
+        return;
+      }
+      const bj = e.target.closest('.abi-baja');
+      if(bj){
+        const venc = bj.dataset.vencido === '1';
+        if(!(await confirmarAccion({ titulo: venc ? 'Liberar el lugar' : 'Cancelar la inscripción', variante: 'destructivo', textoConfirmar: venc ? 'Liberar' : 'Cancelar la inscripción', mensaje: 'La inscripción queda cancelada y el lugar vuelve a estar disponible en el sitio. Si la persona ya pagó, el reembolso se resuelve en Cobranza.' }))) return;
+        try { const r = await apiPostJson('/api/actualizarInscripcionAbierta', { id: Number(bj.dataset.id), accion: 'cancelar' }); toast(r.lugar_devuelto ? 'Listo. El lugar volvió al sitio.' : 'Cancelada, pero no se pudo devolver el lugar al sitio: pulsa «Publicar calendario» para conciliarlo.', !!r.lugar_devuelto); await cargarInscripciones(); cargar(); } catch(er){ toast(er.message, false); }
+      }
+    });
+    $('abiVistaIns').addEventListener('change', (e) => { if(e.target.id === 'abiFGrupoIns'){ fGrupoIns = e.target.value; pintarInscripciones(); } });
+    async function descartarEnvio(btn){
+      if(!(await confirmarAccion({ titulo: 'Descartar el envío', variante: 'destructivo', textoConfirmar: 'Descartar', mensaje: 'Se borra de la cola del sitio (no se puede deshacer) y, si era una inscripción, sus lugares vuelven a estar disponibles. Úsalo solo si no se puede importar (por ejemplo, su grupo ya no existe).' }))) return;
+      try { await apiPostJson('/api/descartarCursoAbiertoPendiente', { tipo: btn.dataset.tipo, envioId: btn.dataset.envio }); toast('Envío descartado.', true); await cargarInscripciones(); if(tab === 'esp') await cargarEspera(); cargar(); } catch(er){ toast(er.message, false); }
+    }
+    $('abiVistaEsp').addEventListener('click', async (e) => {
+      if(e.target.closest('.abi-importar')){ ejecutarImportar(); return; }
+      const dsc = e.target.closest('.abi-descartar'); if(dsc){ await descartarEnvio(dsc); return; }
+      const ve = e.target.closest('[data-ve]'); if(ve){ vEsp = ve.dataset.ve; pintarEspera(); return; }
+      const cambiar = async (id, estado) => { try { await apiPostJson('/api/actualizarListaEsperaAbierta', { id: Number(id), estado }); await cargarEspera(); } catch(er){ toast(er.message, false); } };
+      const av = e.target.closest('.abi-avisar'); if(av){ setTimeout(() => cambiar(av.dataset.id, 'avisada'), 400); return; } // el enlace mailto abre el correo; la marca de avisada se guarda aparte
+      const ds = e.target.closest('.abi-esp-desc'); if(ds){ cambiar(ds.dataset.id, 'descartada'); return; }
+      const nv = e.target.closest('.abi-esp-nueva'); if(nv){ cambiar(nv.dataset.id, 'nueva'); }
+    });
+
     // Grupos → Nuevo Grupo → «¿Curso abierto?» abre este formulario (ver el interruptor en abrirFormGrupo)
     window.abrirFormGrupoAbierto = () => { activarPanel('abiertos'); abrirForm(null); };
-    window.alEntrarAAbiertos = () => { cargar(); };
+    // Al entrar: carga el calendario y, si el sitio dejó envíos en la cola, los importa a SQL (la base ya está despierta: acabas de abrir el admin)
+    window.alEntrarAAbiertos = async () => {
+      await cargar();
+      const c = datos.cola || {};
+      if((c.inscripciones || 0) + (c.espera || 0) > 0){
+        try { const hechas = await importarPendientes(true); if(hechas){ await cargar(); toast('Se importaron ' + plural(hechas, 'envío', 'envíos') + ' del sitio.', true); } }
+        catch(e){ /* se queda en la cola; «Importar ahora» lo reintenta */ }
+      }
+      if(tab === 'ins') cargarInscripciones(); else if(tab === 'esp') cargarEspera(); else { cargarInscripciones(); cargarEspera(); } // también para los contadores de las pestañas
+    };
   })();
 
 

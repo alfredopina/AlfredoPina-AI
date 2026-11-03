@@ -23,6 +23,15 @@ async function recalcularEstatus(nuevaRequest, id) {
     await nuevaRequest().input("id", sql.Int, id).input("e", sql.NVarChar, nuevo)
       .query("UPDATE CuentaPorCobrar SET estatus = @e, fecha_estatus = SYSUTCDATETIME() WHERE id = @id");
   }
+  // Cursos Abiertos: una cuenta que se paga confirma a sus inscritos (apartada → confirmada, pago pagado); si el pago se anula y deja de estar Pagada, vuelven a apartada
+  if (nuevo !== cuenta.estatus && (nuevo === "Pagada" || cuenta.estatus === "Pagada")) {
+    const pagada = nuevo === "Pagada";
+    await nuevaRequest().input("id", sql.Int, id).query(
+      pagada
+        ? "UPDATE Inscripcion SET estado = 'confirmada', estado_pago = 'pagado', fecha_estado = SYSUTCDATETIME() WHERE cuenta_cobrar_id = @id AND estado = 'apartada'"
+        : "UPDATE Inscripcion SET estado = 'apartada', estado_pago = 'pendiente', fecha_estado = SYSUTCDATETIME() WHERE cuenta_cobrar_id = @id AND estado = 'confirmada' AND estado_pago = 'pagado'"
+    );
+  }
   return nuevo;
 }
 
@@ -358,4 +367,4 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   return filas;
 }
 
-module.exports = { actualizarNotas, eliminarCuenta, crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };
+module.exports = { insertarCuenta, actualizarNotas, eliminarCuenta, crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };

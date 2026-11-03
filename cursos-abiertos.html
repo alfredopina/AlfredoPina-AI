@@ -56,6 +56,49 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
 .btn.ca-sec-btn:hover{ border-color:var(--blue-bright); transform:translateY(-1px); }
 .btn:disabled{ opacity:.6; cursor:progress; }
 @media (max-width:520px){ .ca-hero{ padding-top:44px; } .ca-hero-actions .btn{ width:100%; } }
+.ca-hero-in{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:44px; align-items:center; }
+@media (max-width:920px){ .ca-hero-in{ grid-template-columns:1fr; gap:34px; } }
+
+/* la «hoja»: una hoja de cálculo viva con las próximas fechas reales (la marca es la barra de fórmula) */
+.ca-hoja{ background-color:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 24px 60px -30px rgba(61,127,255,.35); }
+.ca-fx{ display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background-color:var(--panel-2); font:500 13px var(--mono); min-height:44px; }
+.ca-fx-i{ font-style:italic; font-weight:700; color:var(--blue-bright); padding-right:10px; border-right:1px solid var(--line); }
+.ca-fx-t{ color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ca-fx-t b{ color:var(--blue-bright); font-weight:500; }
+.ca-cursor{ width:2px; height:16px; background-color:var(--blue-bright); animation:ca-blink 1.1s steps(1) infinite; flex:none; }
+@keyframes ca-blink{ 50%{ opacity:0; } }
+.ca-grid-h{ display:grid; grid-template-columns:28px 76px minmax(0,1fr) 78px 104px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font:500 11px var(--mono); color:var(--text-faint); }
+.ca-grid-h span{ padding:6px 10px; border-right:1px solid var(--line); text-align:center; }
+.ca-grid-h span:last-child{ border-right:0; }
+.ca-fila{ display:grid; grid-template-columns:28px 76px minmax(0,1fr) 78px 104px; align-items:stretch; border-bottom:1px solid var(--line-soft); color:var(--text); text-decoration:none; opacity:0; transform:translateY(8px); animation:ca-entra .5s ease forwards; animation-delay:var(--d,0s); }
+.ca-fila:last-child{ border-bottom:0; }
+@keyframes ca-entra{ to{ opacity:1; transform:none; } }
+.ca-fila > span{ padding:11px 10px; border-right:1px solid var(--line-soft); font-size:13px; display:flex; align-items:center; gap:8px; min-width:0; }
+.ca-fila > span:last-child{ border-right:0; }
+.ca-fila .n{ justify-content:center; background-color:var(--panel-2); color:var(--text-faint); font:500 11px var(--mono); padding-left:0; padding-right:0; }
+.ca-fila .cod{ font:500 12px var(--mono); }
+.ca-fila .cur{ font-weight:600; }
+.ca-fila .cur span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ca-fila .cur svg{ width:16px; height:16px; flex:none; }
+.ca-fila .fec{ font:500 12px var(--mono); color:var(--text-dim); white-space:nowrap; }
+.ca-fila .lug{ font:600 12px var(--body); white-space:nowrap; }
+.ca-fila .lug svg{ width:13px; height:13px; flex:none; }
+.ca-fila:hover, .ca-fila:focus-visible{ background-color:var(--blue-soft); }
+.ca-fila.on .cod{ box-shadow:inset 0 0 0 2px var(--blue-bright); position:relative; }
+.ca-fila.on .cod::after{ content:''; position:absolute; right:-3px; bottom:-3px; width:6px; height:6px; background-color:var(--blue-bright); border:1px solid var(--panel); }
+.ca-hoja-pie{ padding:10px 14px; border-top:1px solid var(--line); background-color:var(--panel-2); font:500 11.5px var(--mono); color:var(--text-faint); display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.ca-hoja-pie a{ color:var(--blue-bright); text-decoration:underline; }
+.ca-hoja-vacia{ padding:22px 16px; font-size:14px; color:var(--text-dim); line-height:1.6; }
+.ca-hoja-vacia a{ color:var(--blue-bright); text-decoration:underline; }
+@media (max-width:560px){
+  .ca-grid-h{ display:none; }
+  .ca-fila{ grid-template-columns:26px 1fr auto; grid-template-areas:"n cod lug" "n cur cur" "n fec fec"; }
+  .ca-fila > span{ border-right:0; padding:6px 10px; }
+  .ca-fila .n{ grid-area:n; } .ca-fila .cod{ grid-area:cod; padding-top:10px; } .ca-fila .lug{ grid-area:lug; padding-top:10px; }
+  .ca-fila .cur{ grid-area:cur; } .ca-fila .fec{ grid-area:fec; padding-bottom:10px; }
+}
+@media (prefers-reduced-motion:reduce){ .ca-fila{ opacity:1; transform:none; animation:none; } .ca-cursor{ animation:none; } }
+#caQuitarFiltros[hidden]{ display:none; }
 
 /* filtros */
 .ca-filtros{ display:grid; gap:16px; margin:26px 0 6px; }
@@ -276,7 +319,8 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
 
 <!-- 1. HERO -->
 <header class="ca-hero">
-  <div class="wrap">
+  <div class="wrap ca-hero-in">
+   <div class="ca-hero-txt">
     <div class="eyebrow">CURSOS ABIERTOS</div>
     <h1>Aprende IA y datos con <span class="accent">fecha fija</span> y grupos reducidos.</h1>
     <p class="ca-hero-sub">Cursos en línea y presenciales para profesionistas y equipos de trabajo.</p>
@@ -289,6 +333,13 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
       <span><i data-ico="users"></i> Grupos reducidos</span>
       <span><i data-ico="qr"></i> Diploma verificable</span>
     </div>
+   </div>
+   <div class="ca-hoja" id="caHoja" role="group" aria-label="Próximas fechas">
+    <div class="ca-fx"><span class="ca-fx-i" aria-hidden="true">fx</span><span class="ca-fx-t" id="caFxT" aria-hidden="true">=PRÓXIMAS_FECHAS(<b>"abiertos"</b>)</span><i class="ca-cursor" aria-hidden="true"></i></div>
+    <div class="ca-grid-h" aria-hidden="true"><span></span><span>A</span><span>B</span><span>C</span><span>D</span></div>
+    <div id="caHojaFilas"><div class="ca-hoja-vacia">Cargando fechas…</div></div>
+    <div class="ca-hoja-pie" id="caHojaPie"></div>
+   </div>
   </div>
 </header>
 
@@ -816,11 +867,49 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
     $('#caConteo').textContent = lista.length ? plural(lista.length, 'grupo', 'grupos') + (filtro.herramienta || filtro.mes ? ' con este filtro' : ' publicados') : '';
     const vacio = $('#caVacio'), estabaVacio = !vacio.hidden;
     vacio.hidden = lista.length > 0;
+    const hayFiltro = !!(filtro.herramienta || filtro.mes);
+    $('#caVacio h3').innerHTML = ico('calendar') + (hayFiltro ? ' No hay fechas con ese filtro.' : ' Por ahora no hay fechas abiertas.');
+    $('#caVacio p').textContent = hayFiltro ? 'Déjanos tus datos y te avisamos cuando abramos una.' : 'Déjanos tus datos y te avisamos de la próxima.';
+    $('#caQuitarFiltros').hidden = !hayFiltro;
     if (!lista.length && !estabaVacio) {
       crearListaEspera($('#caVacioForm'), { prefijo: 'we', contexto: 'sin_resultados', interes: filtro.herramienta });
     }
   }
   function pintarTodo() { pintarFiltros(); pintarLista(); actualizarURL(); }
+
+  /* ---------- hoja del hero: las próximas fechas reales, en una hoja de cálculo viva ---------- */
+  let hojaTimer = null;
+  function pintarHoja() {
+    const host = $('#caHojaFilas'), pie = $('#caHojaPie');
+    const prox = VIS.filter(d => d.iniciaEn).sort((a, b) => a.iniciaEn - b.iniciaEn).slice(0, 4);
+    clearInterval(hojaTimer);
+    if (!prox.length) {
+      host.innerHTML = '<div class="ca-hoja-vacia">Por ahora no hay fechas abiertas. <a href="#lista-espera">Avísame de la próxima</a>.</div>';
+      pie.innerHTML = '';
+      return;
+    }
+    host.innerHTML = prox.map((d, i) => {
+      const g = d.g, t = tool(g.herramienta), e = ESTADOS[d.estado];
+      const dia = partes(d.iniciaEn, { day: 'numeric' }).day + ' ' + mesCorto(d.iniciaEn);
+      const lug = d.estado === 'lleno' ? 'Lleno' : d.libres + (d.libres === 1 ? ' lugar' : ' lugares');
+      return '<a class="ca-fila" href="#g-' + esc(g.codigo) + '" style="--d:' + (0.15 + i * 0.14).toFixed(2) + 's" data-cod="' + esc(g.codigo) + '" aria-label="' + esc(g.programa_nombre + ', inicia ' + dia + ', ' + e.txt + ', ' + lug) + '">' +
+        '<span class="n" aria-hidden="true">' + (i + 1) + '</span><span class="cod">' + esc(g.codigo) + '</span>' +
+        '<span class="cur"><span style="color:' + t.color + ';display:inline-flex;width:16px;height:16px;flex:none">' + t.icon + '</span><span>' + esc(g.programa_nombre) + '</span></span>' +
+        '<span class="fec">' + esc(dia) + '</span><span class="lug" style="color:' + e.color + '">' + ico(e.ico) + esc(lug) + '</span></a>';
+    }).join('');
+    pie.innerHTML = '<span>' + plural(VIS.length, 'grupo publicado', 'grupos publicados') + '</span><a href="#fechas">Ver todas →</a>';
+    const filas = $$('.ca-fila', host), fx = $('#caFxT');
+    const reducido = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let k = 0;
+    const seleccionar = () => {
+      filas.forEach((f, i) => f.classList.toggle('on', i === k));
+      fx.innerHTML = '=LUGARES(<b>"' + esc(filas[k].dataset.cod) + '"</b>)';
+      k = (k + 1) % filas.length;
+    };
+    if (reducido || filas.length < 2) { seleccionar(); return; }
+    setTimeout(seleccionar, 900);
+    hojaTimer = setInterval(() => { if (!document.hidden) seleccionar(); }, 2800);
+  }
 
   /* ---------- temas principales (salen de los datos) ---------- */
   function pintarTemas() {
@@ -1024,6 +1113,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
     if (dsc) $('#caDescEmp').textContent = 'Descuento de ' + dsc.porcentaje + '% desde ' + dsc.desde_personas + ' personas de la misma empresa.';
     pintarTodo();
     pintarTemas();
+    pintarHoja();
     crearListaEspera($('#caCierreForm'), { prefijo: 'wc', contexto: 'cierre_pagina' });
     mostrarObjetivoHash();
     window.addEventListener('hashchange', mostrarObjetivoHash);

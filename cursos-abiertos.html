@@ -830,7 +830,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
         '<div class="ca-fact">' + ico(sede ? 'pin' : 'monitor') + '<div><dt>Modalidad</dt><dd>' + (sede ? 'Presencial' : 'En línea') + (sede && g.sede ? '<br><small>' + esc(g.sede) + '</small>' : '') + '</dd></div></div>' +
         '<div class="ca-fact">' + ico('hourglass') + '<div><dt>Duración</dt><dd>' + g.horas_totales + ' horas</dd></div></div>' +
       '</dl>' +
-      '<div class="ca-precio"><span class="monto">' + dinero(d.precio) + '</span><span class="unidad">' + (AJ.moneda || 'MXN') + ' por persona</span>' + (d.preventa ? '<s>' + dinero(g.precio_persona) + '</s>' : '') + '</div>' + pre +
+      '<div class="ca-precio"><span class="monto">' + dinero(d.precio) + '</span><span class="unidad">' + (AJ.moneda || 'MXN') + ' + IVA por persona</span>' + (d.preventa ? '<s>' + dinero(g.precio_persona) + '</s>' : '') + '</div>' + pre +
       '<div class="ca-cupo">' + cupo + '</div>' +
       '<ul class="ca-temario">' + (g.temario_corto || []).map(x => '<li>' + ico('ck') + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' +
       '<div class="ca-actions">' + reservar +
@@ -986,7 +986,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
       r.hidden = false;
       r.innerHTML = '<div>' + ico('tag') + ' ' + n + ' × ' + dinero(x.pu) + (d.preventa ? ' (preventa)' : '') + '</div>' +
         (x.pct ? '<div>' + ico('check') + ' Descuento de equipo ' + x.pct + '%: −' + dinero(x.desc) + '</div>' : (n >= (dsc.desde_personas || 99) ? '<div>' + ico('info') + ' Con "Mi empresa" aplica descuento de equipo del ' + dsc.porcentaje + '%.</div>' : '')) +
-        '<div class="tot"><span>Total estimado</span><span>' + dinero(x.total) + ' ' + (AJ.moneda || 'MXN') + '</span></div>';
+        '<div class="tot"><span>Total estimado (+ IVA)</span><span>' + dinero(x.total) + ' ' + (AJ.moneda || 'MXN') + ' + IVA</span></div>';
     }
     form.addEventListener('change', e => {
       if (e.target.name === 'paga' && pagaVal() === 'empresa') f.factura.checked = true;
@@ -1032,7 +1032,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
         const ip = AJ.instrucciones_pago && AJ.instrucciones_pago.clabe ? AJ.instrucciones_pago : null;
         body.innerHTML = '<div class="ca-ok" role="status"><h3>' + ico('check') + 'Lugar apartado</h3>' +
           '<p>Gracias, ' + esc(personasOk[0].nombre) + '. Apartamos ' + plural(n, 'lugar', 'lugares') + ' en <b>' + esc(d.g.programa_nombre) + '</b> y te escribimos a ' + esc(personasOk[0].correo) + '.</p>' +
-          '<dl><div><dt>Referencia</dt><dd>' + esc(r.referencia) + '</dd></div><div><dt>Monto</dt><dd>' + dinero((r.monto && r.monto.total) != null ? r.monto.total : x.total) + ' ' + (AJ.moneda || 'MXN') + '</dd></div>' +
+          '<dl><div><dt>Referencia</dt><dd>' + esc(r.referencia) + '</dd></div><div><dt>Monto</dt><dd>' + dinero((r.monto && r.monto.total) != null ? r.monto.total : x.total) + ' ' + (AJ.moneda || 'MXN') + ' + IVA</dd></div>' +
           (ip ? '<div><dt>Transferencia a</dt><dd>' + esc(ip.beneficiario || ip.banco) + (ip.banco && ip.beneficiario ? ' · ' + esc(ip.banco) : '') + '</dd></div><div><dt>CLABE</dt><dd>' + esc(ip.clabe) + '</dd></div><div><dt>Concepto</dt><dd>' + esc(r.referencia) + '</dd></div>' : '') +
           '<div><dt>Estado del pago</dt><dd>Pendiente</dd></div></dl>' +
           '<p class="ca-nota" style="margin-top:14px">' + ico('clock') + '<span>Tu lugar queda apartado ' + horas + ' horas.' + (ip ? '' : ' Te enviamos las instrucciones de pago por correo.') + ' Si no recibimos tu pago o los datos de facturación de tu empresa en ese tiempo, el lugar se libera.</span></p></div>' +

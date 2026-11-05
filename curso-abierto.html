@@ -513,11 +513,11 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
       const precio = vigente ? prox.precio_preventa : prox.precio_persona;
       $('#ldProx').innerHTML = '<div class="ld-prox-top"><span class="ld-prox-k">Próximo grupo · ' + esc(prox.codigo) + '</span><span class="ld-pill" style="--p:' + pill[0] + '">' + ico(pill[1]) + pill[2] + '</span></div>'
         + '<div class="ld-prox-fechas">' + esc(rango) + '</div><div class="ld-prox-sub">' + prox.sesiones.length + ' sesiones · ' + esc(dias.join(' y ')) + ' · ' + esc(hrs) + ' h (hora de Monterrey)</div>'
-        + '<div class="ld-prox-pr"><b>' + dinero(precio) + '</b><small>MXN por persona' + (vigente ? ' · preventa hasta el ' + partes(prox.preventa_hasta + 'T12:00:00-06:00', { day: 'numeric' }).day + ' ' + mesC(prox.preventa_hasta + 'T12:00:00-06:00') : '') + ' · ' + (e.lleno ? 'sin lugares' : 'quedan ' + e.libres + ' de ' + prox.cupo_total + ' lugares') + '</small></div>';
+        + '<div class="ld-prox-pr"><b>' + dinero(precio) + '</b><small>MXN + IVA por persona' + (vigente ? ' · preventa hasta el ' + partes(prox.preventa_hasta + 'T12:00:00-06:00', { day: 'numeric' }).day + ' ' + mesC(prox.preventa_hasta + 'T12:00:00-06:00') : '') + ' · ' + (e.lleno ? 'sin lugares' : 'quedan ' + e.libres + ' de ' + prox.cupo_total + ' lugares') + '</small></div>';
       const txt = e.lleno ? 'Avísame del próximo' : 'Reservar mi lugar · ' + dinero(precio);
       ['#ldReservar1', '#ldReservar2'].forEach((s) => { $(s).innerHTML = ico(e.lleno ? 'alert' : 'cal') + esc(txt); $(s).href = enlaceReservar(prox); });
       $('#ldReservar3').href = enlaceReservar(prox); $('#ldReservar3').textContent = e.lleno ? 'Avísame' : 'Reservar';
-      $('#ldFijaT').textContent = prog.nombre; $('#ldFijaS').textContent = rango + ' · ' + dinero(precio);
+      $('#ldFijaT').textContent = prog.nombre; $('#ldFijaS').textContent = rango + ' · ' + dinero(precio) + ' + IVA';
     } else {
       $('#ldProx').innerHTML = '<div class="ld-prox-top"><span class="ld-prox-k">Próximo grupo</span><span class="ld-pill" style="--p:#6b9fff">' + ico('clock') + 'Próximamente</span></div><div class="ld-prox-fechas">Aún sin fecha</div><div class="ld-prox-sub">Déjanos tus datos y te avisamos primero.</div>';
       ['#ldReservar1', '#ldReservar2'].forEach((s) => { $(s).textContent = 'Avísame'; $(s).href = '/cursos-abiertos#lista-espera'; });
@@ -558,7 +558,7 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
       const pc = Math.round((g.cupo_total - e.libres) / g.cupo_total * 100);
       return '<div class="ld-f"><div><h3>' + esc(g.codigo) + ' · ' + esc(titulo) + '</h3><ul class="ld-f-l">'
         + (ses.length ? '<li>' + ico('clock') + esc(hhmm(ses[0].inicio) + '–' + hhmm(ses[0].fin)) + ' h</li>' : '') + '<li>' + ico(g.modalidad === 'presencial' ? 'pin' : 'monitor') + (g.modalidad === 'presencial' ? 'Presencial' : 'En línea') + '</li>'
-        + '<li>' + ico('users') + (e.lleno ? 'Lleno' : 'Quedan ' + e.libres + ' de ' + g.cupo_total) + '</li><li>' + ico('tag') + dinero(g.precio_persona) + ' MXN por persona</li></ul><div class="ld-barra" aria-hidden="true"><span style="width:' + pc + '%"></span></div></div>' + accion + '</div>';
+        + '<li>' + ico('users') + (e.lleno ? 'Lleno' : 'Quedan ' + e.libres + ' de ' + g.cupo_total) + '</li><li>' + ico('tag') + dinero(g.precio_persona) + ' MXN + IVA por persona</li></ul><div class="ld-barra" aria-hidden="true"><span style="width:' + pc + '%"></span></div></div>' + accion + '</div>';
     }).join('') : '<p class="ld-vacio">Por ahora no hay fechas abiertas de este curso. <a href="/cursos-abiertos#lista-espera" style="color:var(--blue-bright);text-decoration:underline">Avísame de la próxima</a>.</p>';
 
     // bio y preguntas
@@ -571,7 +571,7 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
     const ld = { '@context': 'https://schema.org', '@type': 'Course', name: prog.nombre, description: prog.objetivo || desc, url, provider: { '@type': 'Organization', name: 'alfredopina.ai', url: 'https://www.alfredopina.ai' },
       educationalCredentialAwarded: 'Diploma verificable', inLanguage: 'es-MX', timeRequired: 'PT' + Math.round(prog.horas) + 'H',
       hasCourseInstance: grupos.filter((g) => (g.sesiones || []).length).map((g) => ({ '@type': 'CourseInstance', name: g.codigo, courseMode: g.modalidad === 'presencial' ? 'onsite' : 'online', startDate: g.sesiones[0].inicio, endDate: g.sesiones[g.sesiones.length - 1].fin,
-        offers: { '@type': 'Offer', price: g.precio_persona, priceCurrency: 'MXN', availability: estadoDe(g, ahora).lleno ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url } })) };
+        offers: { '@type': 'Offer', price: g.precio_persona, priceCurrency: 'MXN', priceSpecification: { '@type': 'PriceSpecification', price: g.precio_persona, priceCurrency: 'MXN', valueAddedTaxIncluded: false }, availability: estadoDe(g, ahora).lleno ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url } })) };
     const s = document.createElement('script'); s.type = 'application/ld+json'; s.textContent = JSON.stringify(ld).replace(/</g, '\\u003c'); document.head.appendChild(s);
 
     $('#coCargando').hidden = true; $('#coPagina').hidden = false;

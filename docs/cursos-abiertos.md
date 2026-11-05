@@ -116,6 +116,8 @@ Es Tracking y no solo un filtro de Grupos: tiene fase propia, urgencia que nadie
 
 **Landing de cada curso (2026-11-05):** `/cursos-abiertos/<herramienta>-<programa>` (p. ej. `/cursos-abiertos/excel-intermedio-avanzado`), UNA plantilla (`curso-abierto.html`, ruta comodín en `staticwebapp.config.json`) que se arma sola con el Programa del catálogo (temario, objetivo, a quién va, proyectos con sus imágenes) y con el calendario publicado (próximas fechas, lugares, precio); título, descripción, canonical y datos estructurados de «Course» para Google se ponen con el curso. Los textos que NO están en Programas (gancho, requisitos, bio, preguntas) viven en `assets/data/landings-abiertos.json` (un bloque por curso; sin bloque la página funciona con textos base). Una landing existe cuando su clave está en ese archivo: ese mismo archivo enciende el botón «Ver curso» del calendario y el enlace de las tarjetas de Temas. Reservar lleva a `/cursos-abiertos?reservar=CÓDIGO`, que abre la inscripción de ese grupo (o `?avisame=CÓDIGO`); queda pendiente abrir el formulario sin salir de la landing. Mockup: `docs/mockups/landing-curso-excel.html`. Faltan las landings de Power BI e IA (solo su bloque en el JSON).
 
+**Precio sin IVA (decidido 2026-11-05):** el precio que ve el público es SIN IVA y así se dice en todas partes (`+ IVA` en tarjetas, landing, resumen de la inscripción y pantalla final; `valueAddedTaxIncluded: false` en los datos para Google). Cobranza suma el 16 % al crear la cuenta de cada envío.
+
 ## Orden de construcción
 
 1. **Modelo:** script SQL (Grupo, GrupoSesion, Inscripcion, ListaEspera, Alumno.whatsapp, Cliente reservado) + forma de la foto. Probado con `npm test`.

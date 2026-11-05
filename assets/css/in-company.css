@@ -32,25 +32,10 @@
   .course-card:focus-visible .course-tag{ background-color:var(--c); color:#0a0d12; }
 }
 
-/* cierre: una franja para pedir ayuda y, debajo, una línea discreta hacia Cursos Abiertos */
-.ic-cierre{ padding-top:40px; padding-bottom:96px; }
+/* cierre: una línea discreta hacia Cursos Abiertos para quien buscaba otra cosa */
+.ic-cierre{ padding-top:44px; padding-bottom:96px; }
 @media (max-width:640px){ .ic-cierre{ padding-bottom:72px; } }
-.ic-ayuda{
-    display:flex; align-items:center; justify-content:space-between; gap:20px;
-    border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:22px;
-  }
-@media (max-width:640px){ .ic-ayuda{ flex-direction:column; align-items:flex-start; } }
-.ic-ayuda-t{ font-family:var(--display); font-weight:600; font-size:17px; }
-.ic-ayuda p{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:6px 0 0; }
-.ic-btn{
-    display:inline-flex; align-items:center; flex:none; font-family:var(--display); font-weight:600; font-size:14px;
-    padding:11px 20px; border-radius:8px; background:#1f5fe0; color:#fff; border:1px solid #1f5fe0;
-    transition:transform .2s, box-shadow .2s;
-  }
-.ic-btn:hover{ transform:translateY(-1px); box-shadow:0 0 24px -6px var(--blue); }
-.ic-btn:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }
-
-.ic-abiertos{ margin:22px 0 0; text-align:center; font-size:13.5px; color:var(--text-dim); }
+.ic-abiertos{ margin:0; text-align:center; font-size:13.5px; color:var(--text-dim); }
 .ic-abiertos a{ color:var(--blue-bright); text-decoration:underline; text-underline-offset:3px; margin-left:4px; white-space:nowrap; }
 .ic-abiertos a:hover{ color:var(--text); }
 .ic-abiertos a:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; border-radius:3px; }

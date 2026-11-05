@@ -74,7 +74,12 @@ check('la nueva página sigue con el patrón de reintento y la protección del f
 // El enlace viejo, de verdad: se corre el script del centro con un navegador de mentira (location/document mínimos).
 console.log('Enlace viejo (script del centro, ejecutado)');
 const vm = require('vm');
-const script = (hub.match(/<script>([\s\S]*?)<\/script>/) || [])[1];
+// el script propio del centro es el <script> SIN atributos; se busca por texto (sin regex de HTML) y sin importar mayúsculas
+const minusculas = hub.toLowerCase();
+const iniScript = minusculas.indexOf('<script>');
+const finScript = minusculas.indexOf('</script', iniScript);
+const script = iniScript >= 0 && finScript > iniScript ? hub.slice(iniScript + '<script>'.length, finScript) : undefined;
+check('el centro trae su script propio (el que traduce los enlaces viejos)', !!script && /traducir/.test(script));
 const tarjetas = [...hub.matchAll(/<a href="([^"]+)" class="course-card [^"]*" data-id="([^"]+)">/g)].map((m) => ({ href: m[1], id: m[2] }));
 function correr(hash) {
   let fue = null; const clases = [];

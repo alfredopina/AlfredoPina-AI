@@ -74,7 +74,7 @@ async function pagina(config, { fallaApi = false } = {}) {
   check('un aviso apagado no se muestra', !d.querySelector('.aviso-sitio'));
 
   console.log('Páginas con el encabezado compartido');
-  const stamped = ['index.html', 'cursos.html', 'recursos.html', 'agenda.html', 'aviso-privacidad.html', 'terminos-uso.html', 'diagnostico.html', 'encuesta.html'];
+  const stamped = ['index.html', 'in-company.html', 'recursos.html', 'agenda.html', 'aviso-privacidad.html', 'terminos-uso.html', 'diagnostico.html', 'encuesta.html'];
   check('las 8 páginas con el encabezado compartido cargan sitio.js', stamped.every((f) => /\/assets\/js\/sitio\.js/.test(fs.readFileSync(path.join(RAIZ, f), 'utf8'))), stamped.filter((f) => !/\/assets\/js\/sitio\.js/.test(fs.readFileSync(path.join(RAIZ, f), 'utf8'))).join(','));
   const funcionales = ['propuesta.html', 'verificar.html', 'diplomas-grupo.html', 'reporte-diagnostico.html', 'reporte-encuesta.html', 'reporte-resultados.html'];
   check('las páginas funcionales (propuesta, diploma, reportes) NO cargan el aviso', funcionales.every((f) => !/sitio\.js/.test(fs.readFileSync(path.join(RAIZ, f), 'utf8'))));

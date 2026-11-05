@@ -150,7 +150,7 @@
   function heroHtml() {
     const gal = sceneGal().replace(/id="([A-Za-z]\w*)"/g, 'id="h$1"');
     return '<section class="viaje-hero hb-hero ph-hero" id="paHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power Apps</span>' +
-      '<h1 class="viaje-hero-title">Aplicaciones <span class="accent">low-code<span class="selector-box"><span class="selector-label">Button1</span></span></span></h1>' +
+      '<h2 class="viaje-hero-title">Aplicaciones <span class="accent">low-code<span class="selector-box"><span class="selector-label">Button1</span></span></span></h2>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Digitalizadas</span><span class="scope-chip">Automatizadas</span><span class="scope-chip">Interconectadas</span></div>' +
       '<div class="hb-actions"><a href="#sLogin" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame ph-frame"><div class="hb-cv ph-cv" id="phCv"><div class="ph-bz"><div class="ph-scr">' + gal + "</div></div></div></div></div></section>";

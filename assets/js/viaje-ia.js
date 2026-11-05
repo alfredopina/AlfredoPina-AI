@@ -205,7 +205,7 @@
   function heroHtml() {
     const lado = IH.map((p, i) => '<div class="ih-pr" id="hPr' + i + '" data-i="' + i + '" role="button" tabindex="0"><span class="ik">' + I.chispa + "</span><div><b>" + p.lab + "</b><span>" + p.tag + "</span></div></div>").join("");
     return '<section class="viaje-hero hb-hero ih-hero" id="iaHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de IA Aplicada</span>' +
-      '<h1 class="viaje-hero-title">Productividad con <span class="accent">IA<span class="selector-box"><span class="selector-label">Prompt</span></span></span></h1>' +
+      '<h2 class="viaje-hero-title">Productividad con <span class="accent">IA<span class="selector-box"><span class="selector-label">Prompt</span></span></span></h2>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Copilot · Claude</span><span class="scope-chip">Con privacidad de datos</span><span class="scope-chip">Para tu trabajo</span></div>' +
       '<div class="hb-actions"><a href="#iaC" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame ih-frame"><div class="hb-cv ih-cv" id="ihCv"><div class="ih-win ia-win">' +

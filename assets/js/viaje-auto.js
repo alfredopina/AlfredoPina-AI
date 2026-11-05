@@ -150,7 +150,7 @@
       '<li class="ah2-rama"><span class="ah2-lt" style="--nc:#0f6cbd"><span class="ik">' + I.calendario + "</span></span><div><b>Si se aprueba</b><span>Calendario · Crear 7 eventos</span></div></li>" +
       '<li class="ah2-rama"><span class="ah2-lt" style="--nc:#d13438"><span class="ik">' + I.correo + "</span></span><div><b>Si se rechaza</b><span>Outlook · Avisar el rechazo</span></div></li>";
     return '<section class="viaje-hero hb-hero ah-hero" id="auHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power Automate</span>' +
-      '<h1 class="viaje-hero-title">Automatiza <span class="accent">Procesos<span class="selector-box"><span class="selector-label">Trigger</span></span></span></h1>' +
+      '<h2 class="viaje-hero-title">Automatiza <span class="accent">Procesos<span class="selector-box"><span class="selector-label">Trigger</span></span></span></h2>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Flujos en la nube</span><span class="scope-chip">Conectores</span><span class="scope-chip">Aprobaciones</span></div>' +
       '<div class="hb-actions"><a href="#auPick" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame ah-frame"><div class="hb-cv ah-cv" id="ahCv"><div class="ah-win">' +

@@ -228,7 +228,7 @@
     const ini = full.indexOf('<div class="r-dash"');
     const dash = full.slice(ini, full.length - 6).replace(/id="(r[A-Z]\w*|curR|ripR)"/g, 'id="h$1"');
     return '<section class="viaje-hero hb-hero" id="biHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Power BI</span>' +
-      '<h1 class="viaje-hero-title">Dashboards <span class="accent">interactivos<span class="selector-box"><span class="selector-label">Visual</span></span></span></h1>' +
+      '<h2 class="viaje-hero-title">Dashboards <span class="accent">interactivos<span class="selector-box"><span class="selector-label">Visual</span></span></span></h2>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Análisis de datos</span><span class="scope-chip">Modelado y DAX</span><span class="scope-chip">Desktop y Service</span></div>' +
       '<div class="hb-actions"><a href="#biQ" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame"><div class="hb-cv" id="hbCv">' + dash + "</div></div></div></section>";

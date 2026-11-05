@@ -8,7 +8,31 @@
   "routes": [
     {
       "route": "/in-company",
-      "rewrite": "/cursos.html"
+      "rewrite": "/in-company.html"
+    },
+    {
+      "route": "/in-company/excel",
+      "rewrite": "/in-company/excel.html"
+    },
+    {
+      "route": "/in-company/power-bi",
+      "rewrite": "/in-company/power-bi.html"
+    },
+    {
+      "route": "/in-company/power-apps",
+      "rewrite": "/in-company/power-apps.html"
+    },
+    {
+      "route": "/in-company/power-automate",
+      "rewrite": "/in-company/power-automate.html"
+    },
+    {
+      "route": "/in-company/ia-aplicada",
+      "rewrite": "/in-company/ia-aplicada.html"
+    },
+    {
+      "route": "/in-company/microsoft-365",
+      "rewrite": "/in-company/microsoft-365.html"
     },
     {
       "route": "/cursos-abiertos",

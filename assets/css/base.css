@@ -64,7 +64,7 @@ a{color:inherit;text-decoration:none;}
 
 .eyebrow::before{content:'';width:20px;height:1px;background:var(--blue-bright);}
 
-h2.section-title{
+h1.section-title, h2.section-title{
     font-family:var(--display); font-weight:600; font-size:clamp(26px,3.6vw,40px);
     letter-spacing:-.01em; max-width:700px; line-height:1.18;
   }

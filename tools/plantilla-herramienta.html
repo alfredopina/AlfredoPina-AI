@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITULO}}</title>
+<meta name="description" content="{{DESCRIPCION}}">
+<!--layout:head-->
+<!--/layout:head-->
+<meta property="og:type" content="website">
+<link rel="canonical" href="{{URL}}">
+<meta property="og:url" content="{{URL}}">
+<meta property="og:title" content="{{TITULO}}">
+<meta property="og:description" content="{{DESCRIPCION}}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/viaje.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<link rel="stylesheet" href="/assets/css/viaje-xl.css">
+<link rel="stylesheet" href="/assets/css/viaje-bi.css">
+<link rel="stylesheet" href="/assets/css/viaje-ofi.css">
+<link rel="stylesheet" href="/assets/css/viaje-ia.css">
+<link rel="stylesheet" href="/assets/css/viaje-pa.css">
+<link rel="stylesheet" href="/assets/css/viaje-auto.css">
+<script src="/assets/js/viaje.js" defer></script>
+<script src="/assets/js/viaje-xl.js" defer></script>
+<script src="/assets/js/viaje-bi.js" defer></script>
+<script src="/assets/js/viaje-ofi.js" defer></script>
+<script src="/assets/js/viaje-ia.js" defer></script>
+<script src="/assets/js/viaje-pa.js" defer></script>
+<script src="/assets/js/viaje-auto.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Cursos In Company","item":"https://www.alfredopina.ai/in-company"},{"@type":"ListItem","position":2,"name":"{{NOMBRE}}","item":"{{URL}}"}]}</script>
+</head>
+<body data-herramienta="{{ID}}" data-nombre="{{NOMBRE}}">
+
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+
+<div class="grid-bg"></div>
+
+<!--layout:nav-->
+<!--/layout:nav-->
+
+<main id="contenido">
+
+<div class="in-bread" role="navigation" aria-label="Ruta de navegación">
+  <div class="wrap">
+    <a href="/in-company">Cursos In Company</a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span aria-current="page">{{NOMBRE}}</span>
+  </div>
+</div>
+
+<header class="ic-enc">
+  <div class="wrap">
+    <h1 class="section-title" id="catTitle">{{H1}}</h1>
+    <p class="section-sub" id="catSubtitle">{{SUBTITULO}}</p>
+    <div class="scope-chips" id="scopeChips">{{CHIPS}}</div>
+  </div>
+</header>
+
+<section class="wrap" style="padding-top:0;">
+  <div class="curso-panel active" id="cursoPanel"></div>
+</section>
+
+</main>
+
+<!--layout:footer-->
+<!--/layout:footer-->
+
+<script src="/assets/js/in-company-herramienta.js"></script>
+<script src="/assets/js/footer.js"></script>
+</body>
+</html>

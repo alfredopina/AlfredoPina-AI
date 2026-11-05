@@ -142,7 +142,7 @@
       '<div class="w-body"><aside class="w-nav reveal" id="wNav"><div class="w-nav-h">Navegación</div>' + nav + "</aside>" +
       '<div class="w-stage"><div class="w-page reveal" id="wPage">' +
       '<div class="w-hd"><span class="w-logo">GD</span><b>Grupo Demo</b><em>Dirección de Operaciones · Confidencial</em></div>' +
-      '<div class="w-title"><span class="w-eb">Tercer trimestre</span><h1 class="w-t cl" id="wTt">Informe del trimestre</h1><p class="w-sub cl" id="wSub">Preparado para Dirección · Octubre</p></div>' +
+      '<div class="w-title"><span class="w-eb">Tercer trimestre</span><div class="w-t cl" id="wTt">Informe del trimestre</div><p class="w-sub cl" id="wSub">Preparado para Dirección · Octubre</p></div>' +
       '<div class="w-toc reveal" id="wToc"><b>Contenido</b>' + toc + "</div>" +
       sec("wR", "Resumen", TEXTOS.p1) +
       '<div class="w-kpi reveal" id="wKpi">' + kpi("$2.40M", "Ventas") + kpi("▲ 18%", "vs. año anterior") + kpi("34%", "Margen") + "</div>" +
@@ -223,7 +223,7 @@
     const tabs = HERO_APPS.map((p, i) => '<button type="button" class="oh-tab' + (i === 0 ? " on" : "") + '" data-i="' + i + '" style="--app:' + p[2] + '"><span class="ik">' + I[p[0]] + "</span>" + p[1] + "</button>").join("");
     const cuerpo = wins.map((w, i) => '<div class="oh-win' + (i === 0 ? " on" : "") + '" data-i="' + i + '">' + w + "</div>").join("");
     return '<section class="viaje-hero hb-hero oh-hero" id="ofHero"><div class="hb-copy"><span class="viaje-hero-eyebrow">Curso de Microsoft 365</span>' +
-      '<h1 class="viaje-hero-title">Microsoft <span class="accent">365<span class="selector-box"><span class="selector-label">Título 1</span></span></span></h1>' +
+      '<h2 class="viaje-hero-title">Microsoft <span class="accent">365<span class="selector-box"><span class="selector-label">Título 1</span></span></span></h2>' +
       '<div class="viaje-hero-chips"><span class="scope-chip">Outlook</span><span class="scope-chip">Word</span><span class="scope-chip">PowerPoint</span><span class="scope-chip">Teams</span></div>' +
       '<div class="hb-actions"><a href="#ofO" class="viaje-btn solid hb-go" data-viaje-next><span>Conoce el programa</span>' + I.flecha + '<i class="hb-bar"></i></a><a href="#programas" class="hb-ver">Ver programas</a></div></div>' +
       '<div class="hb-stage"><div class="hb-frame oh-frame"><div class="hb-cv oh-cv of-final" id="ohCv"><div class="oh-tabs" role="tablist">' + tabs + '</div><div class="oh-wins">' + cuerpo + "</div></div></div></div></section>";

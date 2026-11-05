@@ -1,0 +1,50 @@
+/* in-company.css — centro de Cursos In Company (/in-company): las 6 herramientas en 3 + 3.
+   Las tarjetas son las de la portada (cards.css); aquí solo lo propio del centro. */
+
+.ic-hero{ padding:56px 0 0; position:relative; z-index:1; }
+.ic-hero .section-sub{ max-width:680px; font-size:16px; color:var(--text-dim); margin-top:16px; line-height:1.7; }
+
+.ic-herramientas{ padding-top:0; padding-bottom:0; }
+.ic-herramientas .courses-grid{ margin-top:36px; }
+
+/* arriba de cada tarjeta: ícono a la izquierda y el enfoque (texto) a la derecha */
+.course-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.course-head .course-icon{ margin-bottom:0; flex:none; }
+.course-fam{
+    font-family:var(--mono); font-size:10px; letter-spacing:.7px; text-transform:uppercase;
+    color:var(--text-faint); text-align:right; line-height:1.5; padding-top:3px;
+  }
+.course-card h2.course-title{ margin:0 0 8px; }
+.course-card:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }
+
+/* movimiento discreto: solo si la persona no pidió reducirlo */
+@media (prefers-reduced-motion:no-preference){
+  .course-icon svg{ transition:transform .25s ease; }
+  .course-card:hover .course-icon svg,
+  .course-card:focus-visible .course-icon svg{ transform:scale(1.14) rotate(-5deg); }
+  .course-tag{ transition:background-color .2s, color .2s; }
+  .course-card:hover .course-tag,
+  .course-card:focus-visible .course-tag{ background-color:var(--c); color:#0a0d12; }
+}
+
+/* dos puertas debajo: pedir ayuda o buscar una fecha abierta */
+.ic-puertas{
+    display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px;
+    padding-top:48px; padding-bottom:96px;
+  }
+@media (max-width:640px){ .ic-puertas{ grid-template-columns:1fr; padding-bottom:72px; } }
+.ic-puerta{
+    border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    padding:24px 22px; display:flex; flex-direction:column; align-items:flex-start; gap:10px;
+  }
+.ic-puerta-t{ font-family:var(--display); font-weight:600; font-size:17px; }
+.ic-puerta p{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0 0 8px; }
+.ic-btn{
+    display:inline-flex; align-items:center; font-family:var(--display); font-weight:600; font-size:14px;
+    padding:11px 20px; border-radius:8px; background:#1f5fe0; color:#fff; border:1px solid #1f5fe0;
+    transition:transform .2s, box-shadow .2s, border-color .2s;
+  }
+.ic-btn:hover{ transform:translateY(-1px); box-shadow:0 0 24px -6px var(--blue); }
+.ic-btn-sec{ background:transparent; color:var(--text); border-color:var(--line); }
+.ic-btn-sec:hover{ border-color:var(--blue); box-shadow:none; }
+.ic-btn:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }

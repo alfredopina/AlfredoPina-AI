@@ -13,6 +13,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { HERRAMIENTAS, iconoHerramienta, rutaHerramienta } = require("./herramientas-datos");
 
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://www.alfredopina.ai";
@@ -22,7 +23,7 @@ const BRAND = "/assets/img/brand/";
 // footer: "full" (invitación a contactar + fórmula) | "min" (solo datos y marca)
 const PAGES = {
   "index.html": { css: ["base", "cards", "home"], nav: { conoceme: "#" }, footer: "full", social: true },
-  "cursos.html": { css: ["base", "cursos"], nav: { active: "cursos" }, footer: "full", social: true },
+  "in-company.html": { css: ["base", "cards", "in-company"], nav: { active: "cursos" }, footer: "full", social: true }, // centro de Cursos In Company (las 6 tarjetas)
   "recursos.html": { css: ["base", "cards", "recursos"], nav: { active: "recursos" }, footer: "full", social: true },
   "cursos-abiertos.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true }, // visible en el menú; sigue con noindex y fuera del sitemap hasta el lanzamiento
   "agenda.html": { css: ["base", "agenda"], nav: { tag: "Agenda" }, footer: "full" },
@@ -31,6 +32,8 @@ const PAGES = {
   "aviso-privacidad.html": { css: ["base", "legal"], nav: {}, footer: "min" },
   "terminos-uso.html": { css: ["base", "legal"], nav: {}, footer: "min" },
 };
+// las 6 páginas por herramienta (/in-company/<slug>) las genera tools/build-in-company.js
+for (const h of HERRAMIENTAS) PAGES["in-company/" + h.slug + ".html"] = { css: ["base", "cursos"], nav: { active: "cursos" }, footer: "full", social: true };
 
 const CAFE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const CAFE_BIG = CAFE.replace('viewBox', 'class="cafe-icon" viewBox').replace(' style="width:13px;height:13px;"', "").replace('stroke-width="1.8"', 'stroke-width="1.7"');
@@ -60,24 +63,12 @@ function head(cfg) {
 }
 
 
-// Menú desplegable de Cursos: una entrada por herramienta, con su ícono de marca (assets/img/brand/iconos).
-// Los íconos usan currentColor, así que el color de cada herramienta viaja en --c.
-const HERRAMIENTAS_NAV = [
-  ["excel", "Excel", "#22c55e"],
-  ["powerbi", "Power BI", "#f2c94c"],
-  ["powerapps", "Power Apps", "#c026d3"],
-  ["powerautomate", "Power Automate", "#06b6d4"],
-  ["ia", "IA Aplicada", "#a78bfa"],
-  ["ofimatica", "Microsoft 365", "#f97316"],
-];
+// Menú desplegable de Cursos: una entrada por herramienta (tools/herramientas-datos.js), con su ícono de marca
+// (assets/img/brand/iconos). Los íconos usan currentColor, así que el color de cada herramienta viaja en --c.
 const CHEVRON = '<svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function iconoHerramienta(id) {
-  const svg = fs.readFileSync(path.join(ROOT, "assets/img/brand/iconos", id + ".svg"), "utf8").trim();
-  return svg.replace(/ xmlns="[^"]*"/, "").replace(/ width="24" height="24"/, "").replace(/ role="img" aria-label="[^"]*"/, "").replace(/<title>[^<]*<\/title>/, "");
-}
 function ddCursos(aria) {
-  const items = HERRAMIENTAS_NAV.map(([id, nombre, color]) =>
-    '<a href="/in-company#' + id + '" data-cat="' + id + '" style="--c:' + color + '">' + iconoHerramienta(id) + nombre + '</a>'
+  const items = HERRAMIENTAS.map((h) =>
+    '<a href="' + rutaHerramienta(h) + '" data-cat="' + h.id + '" style="--c:' + h.color + '">' + iconoHerramienta(h.id) + h.nombre + '</a>'
   ).join("\n        ");
   return '<div class="nav-dd">\n      <a href="/in-company" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos In Company ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
 }

@@ -7,6 +7,11 @@
 .ic-herramientas{ padding-top:0; padding-bottom:0; }
 .ic-herramientas .courses-grid{ margin-top:36px; }
 
+/* las tarjetas de una fila miden lo mismo: el texto crece y "Ver temarios" queda siempre abajo, alineado */
+.course-card{ display:flex; flex-direction:column; }
+.course-card .course-text{ flex:1; }
+.course-card .course-tag{ align-self:flex-start; }
+
 /* arriba de cada tarjeta: ícono a la izquierda y el enfoque (texto) a la derecha */
 .course-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
 .course-head .course-icon{ margin-bottom:0; flex:none; }
@@ -27,24 +32,25 @@
   .course-card:focus-visible .course-tag{ background-color:var(--c); color:#0a0d12; }
 }
 
-/* dos puertas debajo: pedir ayuda o buscar una fecha abierta */
-.ic-puertas{
-    display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px;
-    padding-top:48px; padding-bottom:96px;
+/* cierre: una franja para pedir ayuda y, debajo, una línea discreta hacia Cursos Abiertos */
+.ic-cierre{ padding-top:40px; padding-bottom:96px; }
+@media (max-width:640px){ .ic-cierre{ padding-bottom:72px; } }
+.ic-ayuda{
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:22px;
   }
-@media (max-width:640px){ .ic-puertas{ grid-template-columns:1fr; padding-bottom:72px; } }
-.ic-puerta{
-    border:1px solid var(--line); border-radius:10px; background:var(--panel);
-    padding:24px 22px; display:flex; flex-direction:column; align-items:flex-start; gap:10px;
-  }
-.ic-puerta-t{ font-family:var(--display); font-weight:600; font-size:17px; }
-.ic-puerta p{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0 0 8px; }
+@media (max-width:640px){ .ic-ayuda{ flex-direction:column; align-items:flex-start; } }
+.ic-ayuda-t{ font-family:var(--display); font-weight:600; font-size:17px; }
+.ic-ayuda p{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:6px 0 0; }
 .ic-btn{
-    display:inline-flex; align-items:center; font-family:var(--display); font-weight:600; font-size:14px;
+    display:inline-flex; align-items:center; flex:none; font-family:var(--display); font-weight:600; font-size:14px;
     padding:11px 20px; border-radius:8px; background:#1f5fe0; color:#fff; border:1px solid #1f5fe0;
-    transition:transform .2s, box-shadow .2s, border-color .2s;
+    transition:transform .2s, box-shadow .2s;
   }
 .ic-btn:hover{ transform:translateY(-1px); box-shadow:0 0 24px -6px var(--blue); }
-.ic-btn-sec{ background:transparent; color:var(--text); border-color:var(--line); }
-.ic-btn-sec:hover{ border-color:var(--blue); box-shadow:none; }
 .ic-btn:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }
+
+.ic-abiertos{ margin:22px 0 0; text-align:center; font-size:13.5px; color:var(--text-dim); }
+.ic-abiertos a{ color:var(--blue-bright); text-decoration:underline; text-underline-offset:3px; margin-left:4px; white-space:nowrap; }
+.ic-abiertos a:hover{ color:var(--text); }
+.ic-abiertos a:focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; border-radius:3px; }

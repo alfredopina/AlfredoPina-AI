@@ -48,6 +48,7 @@ check('las 6 tarjetas apuntan a su página (y llevan data-id para traducir el en
 check('cada tarjeta dice su enfoque con TEXTO (no solo color) y "Ver temarios"', HERRAMIENTAS.every((h) => hub.includes('<div class="course-fam">' + h.familia + '</div>')) && (hub.match(/Ver temarios →/g) || []).length === 6);
 check('el texto de cada tarjeta es el mismo de la portada (una sola fuente)', (() => { const idx = leer('index.html'); return HERRAMIENTAS.every((h) => hub.includes(h.resumen) && idx.includes(h.resumen)); })());
 check('hay salida a Cursos Abiertos y al contacto', hub.includes('href="/cursos-abiertos"') && hub.includes('href="#contacto"'));
+check('el h1 dice "IA aplicada" y Cursos Abiertos es una línea discreta (texto + enlace), no una tarjeta', hub.includes('>Cursos In Company de Excel, Power BI, Power Platform e IA aplicada</h1>') && hub.includes('<p class="ic-abiertos">¿Prefieres un curso abierto? <a href="/cursos-abiertos">') && !hub.includes('ic-puerta'));
 check('el enlace viejo con # (/in-company#powerbi) se traduce a la página nueva', /location\.replace\(destino\.getAttribute\('href'\)\)/.test(hub) && /\.course-card\[data-id=/.test(hub));
 
 console.log('Rutas, mapa del sitio y enlaces');

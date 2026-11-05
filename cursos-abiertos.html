@@ -818,7 +818,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
     const reservar = d.reservable
       ? '<button type="button" class="btn btn-primary ca-b" data-act="reservar" data-g="' + esc(g.codigo) + '">' + ico('calendar') + 'Reservar mi lugar</button>'
       : '<button type="button" class="btn btn-primary ca-b" data-act="avisame" data-g="' + esc(g.codigo) + '">' + ico('bell') + (d.estado === 'lleno' ? 'Avísame del próximo' : 'Avísame') + '</button>';
-    const landing = (AJ.landing_por_herramienta || {})[g.herramienta] || '';
+    const landing = landingDe(g);
     return '<article class="ca-card" id="g-' + esc(g.codigo) + '" data-estado="' + d.estado + '" style="--c:' + t.color + '" aria-labelledby="gt-' + esc(g.codigo) + '">' +
       '<div class="ca-top"><span class="ca-tool">' + t.icon + esc(t.nombre) + '</span>' + (DATA.ejemplo ? '<span class="ca-ej">Ejemplo</span>' : '') + '</div>' +
       '<h3 id="gt-' + esc(g.codigo) + '">' + esc(g.programa_nombre) + '</h3>' +
@@ -877,6 +877,10 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
       crearListaEspera($('#caVacioForm'), { prefijo: 'we', contexto: 'sin_resultados', interes: filtro.herramienta });
     }
   }
+  // landings de cada curso (assets/data/landings-abiertos.json: una por «herramienta-programa»); si no hay, no hay botón «Ver curso»
+  let LANDINGS = {};
+  const landingDe = (g) => { const s = g.herramienta + '-' + g.programa_id; return LANDINGS[s] ? '/cursos-abiertos/' + s : ((AJ.landing_por_herramienta || {})[g.herramienta] || ''); };
+  const landingDeHerramienta = (id) => { const d = VIS.map(x => landingDe(x.g)).find((u, i) => u && VIS[i].g.herramienta === id); return d || (AJ.landing_por_herramienta || {})[id] || ''; };
   function pintarTodo() { pintarFiltros(); pintarLista(); actualizarURL(); }
 
   /* ---------- hoja del hero: las próximas fechas reales, en una hoja de cálculo viva ---------- */
@@ -923,7 +927,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
       if (!prox) { txt = ico('hourglass') + 'Próximamente'; tag = 'Avísame'; }
       else if (!prox.reservable) { txt = ico('ban') + 'Próximo grupo: ' + esc(fmtFechas(prox.ses.slice(0, 1))) + ' · lleno'; tag = plural(fechas.length, 'fecha', 'fechas'); }
       else { txt = ico('calendar') + 'Próxima fecha: ' + esc(fmtFechas(prox.ses.slice(0, 1))); tag = plural(fechas.length, 'fecha', 'fechas'); }
-      const lp = (AJ.landing_por_herramienta || {})[id], tag0 = lp ? 'a' : 'div';
+      const lp = landingDeHerramienta(id), tag0 = lp ? 'a' : 'div';
       return '<' + tag0 + ' class="course-card in-view"' + (lp ? ' href="' + esc(lp) + '"' : '') + ' style="--c:' + t.color + '">' +
         '<div class="course-icon">' + t.icon + '</div><div class="course-title">' + esc(t.nombre) + '</div>' +
         '<div class="course-text">' + txt + '</div><span class="course-tag">' + esc(tag) + '</span></' + tag0 + '>';
@@ -1107,6 +1111,7 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
       console.warn('Cursos abiertos: no se leyó', DATA_URL, e);
       return;
     }
+    try { const rl = await fetch('/assets/data/landings-abiertos.json'); if (rl.ok) LANDINGS = (await rl.json()) || {}; } catch (e) { LANDINGS = {}; }
     AJ = DATA.ajustes || {}; TZ = AJ.zona_horaria || TZ;
     if (DATA.ejemplo) { $('#insKicker').textContent = 'Inscripción · Ejemplo'; $('#avKicker').textContent = 'Lista de espera · Ejemplo'; }
     GRUPOS = (DATA.grupos || []).map(derivar);
@@ -1118,6 +1123,10 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
     pintarHoja();
     crearListaEspera($('#caCierreForm'), { prefijo: 'wc', contexto: 'cierre_pagina' });
     mostrarObjetivoHash();
+    // enlaces directos desde la landing de un curso (o desde un post): abren la inscripción o el «avísame» de ese grupo
+    const rc = (qs.get('reservar') || '').toUpperCase(), ac = (qs.get('avisame') || '').toUpperCase();
+    const dd = GRUPOS.find(x => x.g.codigo === (rc || ac));
+    if (dd) { if (rc && dd.reservable) abrirInscripcion(rc, 1, null); else abrirAvisame(dd.g.codigo, null); }
     window.addEventListener('hashchange', mostrarObjetivoHash);
   }
   iniciar();

@@ -39,6 +39,10 @@
       "rewrite": "/cursos-abiertos.html"
     },
     {
+      "route": "/cursos-abiertos/*",
+      "rewrite": "/curso-abierto.html"
+    },
+    {
       "route": "/cursos",
       "redirect": "/in-company",
       "statusCode": 301

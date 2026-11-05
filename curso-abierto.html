@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curso abierto — Alfredo Piña</title>
+<meta name="description" content="Curso abierto con fecha fija, grupos reducidos y diploma verificable.">
+<!--layout:head-->
+<link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0d12">
+<meta property="og:image" content="https://www.alfredopina.ai/assets/img/brand/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="alfredopina.ai — Tu productividad tiene fórmula.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/base.css">
+<script src="/assets/js/nav.js" defer></script>
+<script src="/assets/js/sitio.js" defer></script>
+<!--/layout:head-->
+<link rel="canonical" href="https://www.alfredopina.ai/cursos-abiertos" id="coCanon">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.alfredopina.ai/cursos-abiertos" id="coOgUrl">
+<meta property="og:title" content="Curso abierto — Alfredo Piña" id="coOgTitle">
+<meta property="og:description" content="Curso abierto con fecha fija, grupos reducidos y diploma verificable." id="coOgDesc">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/cards.css">
+<link rel="stylesheet" href="/assets/css/home.css">
+<style>
+
+/* ===== Landing de curso abierto (mockup) — todo con prefijo ld- ===== */
+:root{ --ok:#14b8a6; --warn:#dfb35a; }
+.ld{ --c:#22c55e; --c-bright:color-mix(in srgb, var(--c) 78%, white); }
+.ld section{ padding:0; }
+.ld-sec{ padding:72px 0; position:relative; z-index:1; }
+.ld-sec + .ld-sec{ border-top:1px solid var(--line-soft); }
+@media (max-width:600px){ .ld-sec{ padding:52px 0; } }
+.ld h2.section-title{ max-width:none; }
+.ico{ width:16px; height:16px; flex:none; }
+body :is(a,button,summary):focus-visible{ outline:2px solid var(--blue-bright); outline-offset:3px; }
+[hidden]{ display:none !important; }
+
+
+/* migas */
+.ld-migas{ padding:18px 0 0; font:500 12px var(--mono); color:var(--text-faint); position:relative; z-index:1; }
+.ld-migas a{ color:var(--text-dim); text-decoration:underline; text-underline-offset:3px; }
+.ld-migas span{ margin:0 8px; }
+
+/* HERO */
+.ld-hero{ padding:28px 0 64px; position:relative; z-index:1; }
+.ld-hero-in{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:46px; align-items:center; }
+@media (max-width:940px){ .ld-hero-in{ grid-template-columns:1fr; gap:30px; } }
+.ld-tool{ display:inline-flex; align-items:center; gap:9px; font:500 12px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--c-bright); }
+.ld-tool svg{ width:22px; height:22px; }
+.ld-hero h1{ font:600 clamp(34px,6vw,58px)/1.06 var(--display); letter-spacing:-.02em; margin-top:14px; }
+.ld-hero h1 em{ font-style:normal; color:var(--c-bright); }
+.ld-gancho{ margin-top:16px; font-size:18px; line-height:1.6; color:var(--text-dim); max-width:540px; }
+.ld-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.ld-chip{ display:inline-flex; align-items:center; gap:7px; font:500 12.5px var(--mono); color:var(--text); padding:6px 11px; border-radius:999px; background-color:var(--panel); border:1px solid var(--line); }
+.ld-chip .ico{ color:var(--c-bright); }
+.ld-prox{ margin-top:26px; background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; max-width:540px; position:relative; overflow:hidden; }
+.ld-prox::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background-color:var(--c); }
+.ld-prox-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.ld-prox-k{ font:500 10.5px var(--mono); letter-spacing:.1em; color:var(--text-faint); text-transform:uppercase; }
+.ld-pill{ --p:var(--ok); display:inline-flex; align-items:center; gap:6px; font:600 12px var(--body); padding:4px 10px; border-radius:999px; color:var(--p);
+  border-width:1px; border-style:solid; border-top-color:color-mix(in srgb, var(--p) 55%, transparent); border-right-color:color-mix(in srgb, var(--p) 55%, transparent); border-bottom-color:color-mix(in srgb, var(--p) 55%, transparent); border-left-color:color-mix(in srgb, var(--p) 55%, transparent);
+  background-color:color-mix(in srgb, var(--p) 12%, transparent); }
+.ld-prox-fechas{ font:600 22px/1.25 var(--display); margin-top:10px; }
+.ld-prox-sub{ font-size:13.5px; color:var(--text-dim); margin-top:4px; line-height:1.55; }
+.ld-prox-pr{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.ld-prox-pr b{ font:700 28px/1 var(--display); }
+.ld-prox-pr small{ font:500 12px var(--mono); color:var(--text-dim); }
+.ld-acciones{ display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+.btn.ld-b{ min-height:48px; justify-content:center; text-align:center; }
+.btn.ld-sec-btn{ background-color:transparent; border-color:var(--line); color:var(--text); }
+.btn.ld-sec-btn:hover{ border-color:var(--blue-bright); transform:translateY(-1px); }
+@media (max-width:520px){ .ld-acciones .btn{ width:100%; } }
+
+/* ventana de Excel con el proyecto estrella */
+.ld-win{ position:relative; border:1px solid var(--line); border-radius:14px; background-color:var(--panel); overflow:hidden; box-shadow:0 40px 90px -40px color-mix(in srgb, var(--c) 45%, transparent); transform:perspective(1100px) rotateY(var(--ry,-5deg)) rotateX(var(--rx,2deg)); transition:transform .25s ease-out; will-change:transform; }
+.ld-win-fx{ display:flex; align-items:center; gap:10px; padding:10px 14px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font:500 12.5px var(--mono); }
+.ld-win-fx i{ font-style:italic; font-weight:700; color:var(--c-bright); padding-right:10px; border-right:1px solid var(--line); }
+.ld-win-fx span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ld-win-fx b{ color:var(--c-bright); font-weight:500; }
+.ld-win img{ display:block; width:100%; height:auto; aspect-ratio:16/10; object-fit:cover; object-position:top left; }
+.ld-win-pie{ display:flex; gap:6px; padding:8px 12px; background-color:var(--panel-2); border-top:1px solid var(--line); font:500 11px var(--mono); color:var(--text-faint); }
+.ld-win-pie span{ padding:3px 10px; border-radius:5px; border:1px solid var(--line); }
+.ld-win-pie span.on{ color:var(--c-bright); border-color:color-mix(in srgb, var(--c) 55%, transparent); background-color:color-mix(in srgb, var(--c) 12%, transparent); }
+@media (max-width:940px){ .ld-win{ transform:none; } }
+@keyframes ld-flota{ 0%,100%{ translate:0 0; } 50%{ translate:0 -6px; } }
+.ld-win{ animation:ld-flota 7s ease-in-out infinite; }
+
+/* LO QUE CONSTRUYES */
+.ld-proys{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; margin-top:34px; }
+@media (max-width:760px){ .ld-proys{ grid-template-columns:1fr; } }
+.ld-proy{ background-color:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:border-color .2s, transform .2s; }
+.ld-proy:hover{ border-color:color-mix(in srgb, var(--c) 70%, transparent); transform:translateY(-3px); }
+.ld-proy-img{ position:relative; overflow:hidden; aspect-ratio:16/10; background-color:var(--panel-2); }
+.ld-proy-img img{ width:100%; height:100%; object-fit:cover; object-position:top left; transition:transform .6s ease; display:block; }
+.ld-proy:hover .ld-proy-img img{ transform:scale(1.05); }
+.ld-proy-n{ position:absolute; top:12px; left:12px; font:600 11px var(--mono); letter-spacing:.08em; color:#06180e; background-color:var(--c); border-radius:5px; padding:4px 9px; }
+.ld-proy-b{ padding:18px 20px 22px; }
+.ld-proy-b h3{ font:600 20px/1.25 var(--display); }
+.ld-proy-b p{ margin-top:8px; font-size:14.5px; line-height:1.6; color:var(--text-dim); }
+
+/* TU PLAN: la hoja */
+.ld-hoja{ margin-top:34px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background-color:var(--panel); }
+.ld-hoja-cab{ display:grid; grid-template-columns:48px minmax(0,1fr) 120px 36px; background-color:var(--panel-2); border-bottom:1px solid var(--line); font:500 11px var(--mono); color:var(--text-faint); }
+.ld-hoja-cab span{ padding:8px 12px; border-right:1px solid var(--line); }
+.ld-hoja-cab span:last-child{ border-right:0; }
+.ld-fila{ border-bottom:1px solid var(--line-soft); }
+.ld-fila:last-child{ border-bottom:0; }
+.ld-fila > button{ width:100%; display:grid; grid-template-columns:48px minmax(0,1fr) 120px 36px; align-items:stretch; background:none; border:0; color:var(--text); text-align:left; cursor:pointer; font:inherit; min-height:58px; opacity:0; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease; transition-delay:var(--d,0s); }
+.ld-vis .ld-fila > button{ opacity:1; transform:none; }
+.ld-fila > button:hover{ background-color:var(--blue-soft); }
+.ld-fila > button > span{ padding:12px; display:flex; align-items:center; border-right:1px solid var(--line-soft); }
+.ld-fila > button > span:last-child{ border-right:0; justify-content:center; }
+.ld-fila .n{ justify-content:center; background-color:var(--panel-2); color:var(--text-faint); font:500 12px var(--mono); padding:0 !important; }
+.ld-fila .t{ font:600 16px/1.35 var(--display); }
+.ld-fila .lv{ font:500 11.5px var(--mono); gap:7px; }
+.ld-fila .lv i{ width:10px; height:10px; border-radius:2px; background-color:color-mix(in srgb, var(--c) 35%, transparent); flex:none; }
+.ld-fila .lv.a i{ background-color:var(--c); }
+.ld-fila .ch{ color:var(--text-faint); }
+.ld-fila .ch .ico{ transition:transform .2s; }
+.ld-fila.open .ch .ico{ transform:rotate(180deg); }
+.ld-fila.open > button{ background-color:var(--blue-soft); }
+.ld-det{ padding:4px 20px 20px 60px; font-size:14.5px; line-height:1.7; color:var(--text-dim); max-width:820px; }
+.ld-det[hidden]{ display:none; }
+@media (max-width:640px){
+  .ld-hoja-cab{ display:none; }
+  .ld-fila > button{ grid-template-columns:40px minmax(0,1fr) 32px; }
+  .ld-fila .lv{ display:none; }
+  .ld-det{ padding:0 16px 18px 52px; }
+}
+.ld-mapa{ display:flex; gap:4px; margin-top:20px; }
+.ld-mapa span{ flex:1; height:8px; border-radius:2px; background-color:color-mix(in srgb, var(--c) 35%, transparent); }
+.ld-mapa span.a{ background-color:var(--c); }
+.ld-leyenda{ display:flex; flex-wrap:wrap; gap:6px 22px; margin-top:10px; font:500 12px var(--mono); color:var(--text-dim); }
+.ld-leyenda span{ display:inline-flex; align-items:center; gap:7px; }
+.ld-leyenda i{ width:10px; height:10px; border-radius:2px; background-color:color-mix(in srgb, var(--c) 35%, transparent); }
+.ld-leyenda i.a{ background-color:var(--c); }
+.ld-resumen{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+
+/* PARA QUIÉN */
+.ld-2c{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:30px; margin-top:30px; align-items:start; }
+@media (max-width:860px){ .ld-2c{ grid-template-columns:1fr; } }
+.ld-card{ background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 22px; }
+.ld-card h3{ font:600 18px var(--display); display:flex; align-items:center; gap:10px; }
+.ld-card h3 .ico{ width:20px; height:20px; color:var(--c-bright); }
+.ld-card p{ margin-top:10px; font-size:15px; line-height:1.7; color:var(--text-dim); }
+.ld-lista{ list-style:none; display:grid; gap:12px; margin-top:14px; }
+.ld-lista li{ display:flex; gap:11px; font-size:14.5px; line-height:1.55; }
+.ld-lista .ico{ width:18px; height:18px; color:var(--ok); margin-top:2px; }
+
+/* FECHAS */
+.ld-fechas{ display:grid; gap:16px; margin-top:30px; }
+.ld-f{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:center; background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 22px; position:relative; overflow:hidden; }
+.ld-f::before{ content:''; position:absolute; top:0; left:0; bottom:0; width:3px; background-color:var(--c); }
+@media (max-width:720px){ .ld-f{ grid-template-columns:1fr; } }
+.ld-f h3{ font:600 20px var(--display); }
+.ld-f-l{ list-style:none; display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:12px; font-size:14px; color:var(--text-dim); }
+.ld-f-l li{ display:inline-flex; align-items:center; gap:8px; }
+.ld-f-l .ico{ color:var(--c-bright); }
+.ld-barra{ height:6px; border-radius:3px; background-color:var(--line); margin-top:14px; max-width:340px; overflow:hidden; }
+.ld-barra span{ display:block; height:100%; background-color:var(--ok); border-radius:3px; }
+.ld-vacio{ margin-top:14px; font-size:14px; color:var(--text-dim); }
+
+/* POR QUÉ CONTIGO */
+.ld-por{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:30px; }
+@media (max-width:980px){ .ld-por{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:560px){ .ld-por{ grid-template-columns:1fr; } }
+.ld-por .ld-card{ padding:20px; }
+.ld-por .ic{ width:46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:var(--c-bright); background-color:color-mix(in srgb, var(--c) 16%, transparent); margin-bottom:14px; }
+.ld-por .ic svg{ width:26px; height:26px; }
+.ld-por b{ display:block; font:600 16.5px var(--display); margin-bottom:6px; }
+.ld-por p{ margin:0; font-size:14px; line-height:1.6; color:var(--text-dim); }
+.ld-bio{ display:grid; grid-template-columns:96px minmax(0,1fr); gap:20px; align-items:center; margin-top:26px; background-color:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 22px; }
+.ld-bio img{ width:96px; height:96px; border-radius:50%; object-fit:cover; object-position:top; border:2px solid color-mix(in srgb, var(--c) 60%, transparent); }
+.ld-bio b{ font:600 18px var(--display); }
+.ld-bio p{ margin-top:6px; font-size:14.5px; line-height:1.65; color:var(--text-dim); }
+@media (max-width:520px){ .ld-bio{ grid-template-columns:72px 1fr; } .ld-bio img{ width:72px; height:72px; } }
+.ld-stats .stats-grid{ grid-template-columns:repeat(3,1fr); }
+.ld-stats .cell:nth-child(2){ border-right:1px solid var(--line); }
+.ld-stats .cell:last-child{ border-right:none; }
+.ld-stats .cell{ border-bottom:none; }
+.ld-stats{ margin-top:26px; }
+
+/* FAQ */
+.ld-faq{ margin-top:26px; border-top:1px solid var(--line); max-width:820px; }
+.ld-faq h3{ font:inherit; }
+.ld-faq-q{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:14px 2px; text-align:left; background:none; border:0; border-bottom:1px solid var(--line); color:var(--text); font:600 16.5px/1.35 var(--display); cursor:pointer; }
+.ld-faq-q .ico{ width:20px; height:20px; color:var(--blue-bright); transition:transform .2s; }
+.ld-faq-q[aria-expanded="true"] .ico{ transform:rotate(180deg); }
+.ld-faq-a{ padding:14px 2px 20px; border-bottom:1px solid var(--line); color:var(--text-dim); font-size:15px; line-height:1.7; }
+
+/* CIERRE */
+.ld-cierre{ text-align:center; background-color:var(--panel); border:1px solid var(--line); border-radius:16px; padding:44px 24px; position:relative; overflow:hidden; }
+.ld-cierre::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background-color:var(--c); }
+.ld-cierre h2{ font:600 clamp(26px,4vw,38px)/1.15 var(--display); }
+.ld-cierre p{ margin:12px auto 0; max-width:520px; color:var(--text-dim); font-size:16px; line-height:1.6; }
+.ld-cierre .ld-acciones{ justify-content:center; }
+
+/* barra fija de reservar (celular) */
+.ld-fija{ position:fixed; left:0; right:0; bottom:0; z-index:50; display:none; align-items:center; gap:12px; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background-color:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(8px); border-top:1px solid var(--line); transform:translateY(110%); transition:transform .25s ease; }
+.ld-fija.on{ transform:none; }
+.ld-fija div{ min-width:0; flex:1; }
+.ld-fija b{ display:block; font:600 14px var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ld-fija small{ font:500 11.5px var(--mono); color:var(--text-dim); }
+.ld-fija .btn{ min-height:44px; padding:0 18px; }
+@media (max-width:720px){ .ld-fija{ display:flex; } .ld{ padding-bottom:64px; } }
+
+/* entrada al hacer scroll */
+.ld-rev{ opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease; }
+.ld-rev.vis{ opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce){ .ld-win{ animation:none; transform:none; } .ld-rev, .ld-fila > button{ opacity:1; transform:none; transition:none; } .ld-proy-img img{ transition:none; } }
+
+dialog.ld-dlg{ border:1px solid var(--line); border-radius:14px; background-color:var(--panel); color:var(--text); padding:26px; max-width:min(440px, calc(100vw - 32px)); }
+dialog.ld-dlg::backdrop{ background-color:rgba(4,6,10,.72); }
+dialog.ld-dlg h3{ font:600 20px var(--display); }
+dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-size:14.5px; }
+
+.ld-estado{ padding:90px 0; text-align:center; position:relative; z-index:1; }
+.ld-estado h1{ font:600 clamp(26px,4vw,38px) var(--display); }
+.ld-estado p{ color:var(--text-dim); margin:12px auto 22px; max-width:480px; line-height:1.6; }
+</style>
+</head>
+<body>
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
+<div class="grid-bg"></div>
+
+<!--layout:nav-->
+<nav aria-label="Principal">
+  <div class="wrap">
+    <a href="/" class="nav-logo" aria-label="alfredopina.ai — inicio"><img src="/assets/img/brand/logo-principal-oscuro.svg" alt="alfredopina.ai" width="187" height="30"></a>
+    <div class="nav-links" id="navLinks">
+      <div class="nav-dd">
+      <a href="/" class="nav-dd-trigger" aria-haspopup="true">Conóceme <svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="nav-dd-menu">
+        <a href="/#experiencia" style="--c:#3d7fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18M7 16l4-6 3 3 5-8" stroke-linecap="round" stroke-linejoin="round"/></svg>Experiencia</a>
+        <a href="/#certificaciones" style="--c:#2dd4bf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>Certificaciones</a>
+        <a href="/#clientes" style="--c:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 21v-6h4v6" stroke-linecap="round" stroke-linejoin="round"/></svg>Clientes</a>
+        <a href="/#herramientas" style="--c:#818cf8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Herramientas</a>
+        <a href="/#metodologia" style="--c:#f472b6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>Metodología</a>
+      </div>
+    </div>
+      <div class="nav-dd">
+      <a href="/in-company" class="nav-dd-trigger" aria-haspopup="true">Cursos In Company <svg class="nav-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="nav-dd-menu">
+        <a href="/in-company/excel" data-cat="excel" style="--c:#22c55e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g stroke-width="1.25" opacity=".55"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></g><rect x="9" y="9" width="12" height="12" stroke-width="2" fill="currentColor" fill-opacity=".14"/><rect x="18.5" y="18.5" width="4.5" height="4.5" fill="currentColor" stroke="none"/></svg>Excel</a>
+        <a href="/in-company/power-bi" data-cat="powerbi" style="--c:#f2c94c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><g fill-opacity=".36"><rect x="9.5" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><rect x="16" y="9.5" width="5" height="5"/></g><rect x="3" y="16" width="5" height="5"/><rect x="9.5" y="9.5" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/></g></svg>Power BI</a>
+        <a href="/in-company/power-apps" data-cat="powerapps" style="--c:#c026d3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="2.5" y="6" width="17" height="14"/><path d="M2.5 10h17" stroke-width="1.5"/><rect x="5" y="12.5" width="5" height="5" stroke-width="1.5"/><rect x="12" y="12.5" width="5" height="5" stroke-width="1.5" stroke-dasharray="1.5 1.5"/><rect x="17" y="2" width="5" height="5" fill="currentColor" stroke="none"/></svg>Power Apps</a>
+        <a href="/in-company/power-automate" data-cat="powerautomate" style="--c:#06b6d4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><rect x="3" y="10" width="4" height="4"/><path d="M7 12h4M11 6.75v10.75M11 6.75h4M11 17.5h4"/><rect x="15" y="4.5" width="4.5" height="4.5"/><rect x="15" y="15.25" width="4.5" height="4.5" fill="currentColor"/></svg>Power Automate</a>
+        <a href="/in-company/ia-aplicada" data-cat="ia" style="--c:#a78bfa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><path d="M11 3l2.3 7.2 7.2 2.3-7.2 2.3L11 22l-2.3-7.2L1.5 12.5l7.2-2.3z" fill="currentColor"/><rect x="18" y="3" width="3.5" height="3.5" stroke-width="1.5"/></svg>IA Aplicada</a>
+        <a href="/in-company/microsoft-365" data-cat="ofimatica" style="--c:#f97316"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="miter" stroke-linecap="square"><g fill="currentColor" stroke="none"><rect x="2" y="2" width="9.5" height="9.5"/><g fill-opacity=".55"><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/></g></g><rect x="13.375" y="13.375" width="7.75" height="7.75"/><rect x="15.75" y="15.75" width="3" height="3" fill="currentColor" stroke="none"/></svg>Microsoft 365</a>
+      </div>
+    </div>
+      <a href="/cursos-abiertos" aria-current="page">Cursos Abiertos</a>
+      <a href="/recursos">Recursos</a>
+    </div>
+    <a href="/#contacto" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg> =CONTACTAR()</a>
+    <button type="button" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</nav>
+<!--/layout:nav-->
+
+<main id="contenido" class="ld">
+
+<div id="coCargando" class="ld-estado"><div class="wrap"><p>Cargando el curso…</p></div></div>
+
+<div id="coNo" class="ld-estado" hidden><div class="wrap"><h1>Este curso no está disponible</h1><p>Puede que ya no se imparta o que la dirección esté mal escrita.</p><a class="btn btn-primary" href="/cursos-abiertos">Ver todos los cursos abiertos</a></div></div>
+
+<div id="coPagina" hidden>
+
+<div class="wrap ld-migas"><a href="/cursos-abiertos">Cursos Abiertos</a><span>/</span><b id="coMigaN" style="font-weight:500;color:var(--text-dim)"></b></div>
+
+<!-- 1. HERO -->
+<header class="ld-hero">
+  <div class="wrap ld-hero-in">
+    <div>
+      <div class="ld-tool" id="ldTool"></div>
+      <h1 id="ldH1"></h1>
+      <p class="ld-gancho" id="ldGancho"></p>
+      <div class="ld-chips" id="ldChips"></div>
+      <div class="ld-prox" id="ldProx"></div>
+      <div class="ld-acciones">
+        <a class="btn btn-primary ld-b" id="ldReservar1" href="/cursos-abiertos"></a>
+        <a class="btn ld-sec-btn ld-b" href="#plan"><i data-ico="list"></i> Ver el temario</a>
+      </div>
+    </div>
+    <div class="ld-win" id="ldWin">
+      <div class="ld-win-fx"><i>fx</i><span id="ldFx">=DASHBOARD(<b>"KPIs"</b>)</span></div>
+      <img id="ldHeroImg" alt="" width="1280" height="800">
+      <div class="ld-win-pie"><span class="on">Proyecto</span><span>Datos</span><span>Reporte</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- 2. LO QUE CONSTRUYES -->
+<section class="ld-sec" id="construyes" aria-labelledby="tCon" hidden>
+  <div class="wrap">
+    <div class="eyebrow">PROYECTOS</div>
+    <h2 class="section-title" id="tCon">Lo que construyes</h2>
+    <div class="ld-proys" id="ldProys"></div>
+  </div>
+</section>
+
+<!-- 3. TU PLAN -->
+<section class="ld-sec" id="plan" aria-labelledby="tPlan">
+  <div class="wrap">
+    <div class="eyebrow">TEMARIO</div>
+    <h2 class="section-title" id="tPlan">Tu plan de <span id="ldHorasT"></span></h2>
+    <div class="ld-mapa" id="ldMapa" aria-hidden="true"></div>
+    <div class="ld-leyenda" id="ldLeyenda"></div>
+    <div class="ld-hoja" id="ldHoja">
+      <div class="ld-hoja-cab" aria-hidden="true"><span></span><span>A · Tema</span><span>B · Nivel</span><span></span></div>
+      <div id="ldFilas"></div>
+    </div>
+    <div class="ld-resumen" id="ldResumen"></div>
+  </div>
+</section>
+
+<!-- 4. PARA QUIÉN -->
+<section class="ld-sec" aria-labelledby="tQuien">
+  <div class="wrap">
+    <div class="eyebrow">PERFIL</div>
+    <h2 class="section-title" id="tQuien">Para quién es</h2>
+    <div class="ld-2c" id="ld2c">
+      <div class="ld-card"><h3><i data-ico="users"></i> Es para ti si…</h3><p id="ldDirigido"></p></div>
+      <div class="ld-card" id="ldReqCard" hidden><h3><i data-ico="check"></i> Necesitas</h3><ul class="ld-lista" id="ldReq"></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. FECHAS -->
+<section class="ld-sec" id="fechas" aria-labelledby="tFechas">
+  <div class="wrap">
+    <div class="eyebrow">CALENDARIO</div>
+    <h2 class="section-title" id="tFechas">Próximas fechas</h2>
+    <div class="ld-fechas" id="ldFechas"></div>
+  </div>
+</section>
+
+<!-- 6. POR QUÉ CONTIGO -->
+<section class="ld-sec" aria-labelledby="tPor">
+  <div class="wrap">
+    <div class="eyebrow">CONFIANZA</div>
+    <h2 class="section-title" id="tPor">Por qué con Alfredo</h2>
+    <div class="ld-por">
+      <div class="ld-card"><div class="ic"><i data-ico="target" data-big></i></div><b>Proyecto aplicado a tu trabajo</b><p>Trabajas con tus propios datos, no con ejemplos de libro.</p></div>
+      <div class="ld-card"><div class="ic"><i data-ico="users" data-big></i></div><b>Grupos reducidos</b><p>Cupo limitado: te atienden de cerca en cada sesión.</p></div>
+      <div class="ld-card"><div class="ic"><i data-ico="qr" data-big></i></div><b>Diploma verificable con QR</b><p>Cualquiera lo comprueba en <a href="/verificar" style="text-decoration:underline">/verificar</a>.</p></div>
+      <div class="ld-card"><div class="ic"><i data-ico="shield" data-big></i></div><b>Constancia DC-3</b><p>Registrado ante la STPS para expedir constancias DC-3.</p></div>
+    </div>
+    <div class="ld-bio">
+      <img src="/assets/img/alfredo-headshot.png" alt="Alfredo Piña" width="96" height="96" loading="lazy">
+      <div><b>Alfredo Piña</b><p id="ldBio"></p></div>
+    </div>
+    <div class="stats ld-stats">
+      <div class="stats-grid">
+        <div class="cell"><div class="cell-ref">A1</div><div class="cell-num">15<span class="u">+</span></div><div class="cell-label">años de experiencia</div></div>
+        <div class="cell"><div class="cell-ref">B1</div><div class="cell-num">150<span class="u">+</span></div><div class="cell-label">empresas capacitadas</div></div>
+        <div class="cell"><div class="cell-ref">C1</div><div class="cell-num">10,000<span class="u">+</span></div><div class="cell-label">profesionistas formados</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. FAQ + CIERRE -->
+<section class="ld-sec" aria-labelledby="tFaq">
+  <div class="wrap">
+    <div class="eyebrow">PREGUNTAS</div>
+    <h2 class="section-title" id="tFaq">Antes de reservar</h2>
+    <div class="ld-faq" id="ldFaq"></div>
+  </div>
+</section>
+
+<section class="ld-sec" style="border-top:0">
+  <div class="wrap">
+    <div class="ld-cierre">
+      <h2 id="ldCierreT">Reserva tu lugar en el próximo grupo</h2>
+      <p>Cupo limitado. Si no te acomoda la fecha, déjanos tus datos y te avisamos de la siguiente.</p>
+      <div class="ld-acciones">
+        <a class="btn btn-primary ld-b" id="ldReservar2" href="/cursos-abiertos"></a>
+        <a class="btn ld-sec-btn ld-b" href="/cursos-abiertos#lista-espera">Avísame de la próxima</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ld-fija" id="ldFija" aria-hidden="true">
+  <div><b id="ldFijaT"></b><small id="ldFijaS"></small></div>
+  <a class="btn btn-primary" id="ldReservar3" href="/cursos-abiertos" tabindex="-1">Reservar</a>
+</div>
+</div>
+</main>
+
+<!--layout:footer-->
+<footer id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">CONTACTAR</div>
+    <h2 class="contact-title">Yo invito el café <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+
+    <div class="formula-bar-big" id="formulaBar">
+      <span class="formula-fx-big">fx</span>
+      <span class="formula-reveal"><span class="formula-inner">=CONTACTAR(&nbsp;&nbsp;<a href="mailto:alfredo.pina@lifezen.com.mx" class="formula-arg" data-sitio="correo">correo</a>&nbsp;&nbsp;,&nbsp;&nbsp;<a href="https://wa.me/528117255937" target="_blank" rel="noopener" class="formula-arg" data-sitio="whatsapp">whatsapp</a>&nbsp;&nbsp;)</span></span>
+    </div>
+
+    <div class="contact-meta">
+      <a href="/aviso-privacidad">Aviso de Privacidad</a>
+      <a href="/terminos-uso">Términos de Uso</a>
+      <a href="/verificar">Verificar diploma</a>
+      <span>© 2026 Alfredo Piña</span>
+    </div>
+    <div class="footer-brand">
+      <div class="footer-id">
+        <img src="/assets/img/brand/logo-compacto-oscuro.svg" alt="alfredopina.ai" loading="lazy">
+        <span>Productividad con Datos · Automatización · IA</span>
+      </div>
+      <div class="footer-created"><span>Created by</span><img src="/assets/img/firma-ap.png" alt="Firma de Alfredo Piña" loading="lazy"></div>
+    </div>
+  </div>
+</footer>
+<!--/layout:footer-->
+
+<script src="/assets/js/herramientas.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const UI = window.HERRAMIENTAS_UI || {};
+  const TZ = 'America/Monterrey';
+  const NIV = { 1: 'Básico', 2: 'Intermedio', 3: 'Avanzado' };
+  const P = { list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/>', users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.7 3.1 2.3 3.5 5.2" stroke-linecap="round"/>', check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>', cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/>', monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" stroke-linecap="round"/>', pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/>', qr: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/>', shield: '<path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6l-8-4Z" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>', target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', chev: '<path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>', bars: '<path d="M5 20v-4M12 20v-9M19 20V5" stroke-linecap="round"/>', award: '<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/>', tag: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8Z" stroke-linejoin="round"/><circle cx="7" cy="7" r="1.2"/>', alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/>', ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8" stroke-linecap="round"/>' };
+  const ico = (n, size) => '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"' + (size ? ' style="width:' + size + 'px;height:' + size + 'px"' : '') + '>' + (P[n] || '') + '</svg>';
+  const pintarIconos = () => $$('i[data-ico]').forEach((el) => { el.outerHTML = ico(el.dataset.ico, el.hasAttribute('data-big') ? 26 : null); });
+  const partes = (d, o) => { const r = {}; new Intl.DateTimeFormat('es-MX', { timeZone: TZ, ...o }).formatToParts(new Date(d)).forEach((p) => { r[p.type] = p.value; }); return r; };
+  const mesC = (d) => partes(d, { month: 'short' }).month.replace('.', '');
+  const hhmm = (d) => { const p = partes(d, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); return p.hour + ':' + p.minute; };
+  const dinero = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+  const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+
+  // origen de la visita: si llegan de LinkedIn directo a esta landing, el origen se guarda igual que en el calendario (se usa al inscribirse)
+  (function(){
+    const qs = new URLSearchParams(location.search), SK = 'apc_origen_v1';
+    let g = {}; try { g = JSON.parse(sessionStorage.getItem(SK) || '{}') || {}; } catch(e){ g = {}; }
+    const u = {}; ['utm_source', 'utm_medium', 'utm_campaign'].forEach((k) => { if(qs.get(k)) u[k] = String(qs.get(k)).replace(/[\u0000-\u001f]/g, '').slice(0, 120); });
+    if(Object.keys(u).length){ try { sessionStorage.setItem(SK, JSON.stringify({ utm_source: '', utm_medium: '', utm_campaign: '', ...g, ...u })); } catch(e){ /* sin almacenamiento */ } }
+  })();
+
+  // /cursos-abiertos/<herramienta>-<programa>  →  excel + intermedio-avanzado
+  const slug = decodeURIComponent((location.pathname.replace(/\/+$/, '').split('/').pop() || '')).toLowerCase();
+  const corte = slug.indexOf('-');
+  const herr = corte > 0 ? slug.slice(0, corte) : '', progId = corte > 0 ? slug.slice(corte + 1) : '';
+  const FAQ_BASE = [['¿Qué pasa si el grupo no se abre?', 'Si no se alcanza el mínimo, te proponemos otra fecha o te devolvemos tu pago.'], ['¿Puede pagar mi empresa?', 'Sí. Al inscribirte elige «Mi empresa» y captura los datos de facturación.'], ['¿Qué pasa si falto a una sesión?', 'Avísanos y te decimos cómo ponerte al día.']];
+  const BIO_BASE = 'Ingeniero Industrial. Instructor y consultor de Excel, Power BI, Power Platform e IA desde hace más de 15 años.';
+
+  function resumenFechas(ses){
+    const por = [];
+    ses.forEach((s) => { const k = partes(s.inicio, { year: 'numeric', month: '2-digit' }); const key = k.year + k.month; let b = por[por.length - 1]; if(!b || b.key !== key){ b = { key, mes: mesC(s.inicio), dias: [] }; por.push(b); } b.dias.push(partes(s.inicio, { day: 'numeric' }).day); });
+    return por;
+  }
+  const rangoDe = (ses) => { const a = ses[0].inicio, z = ses[ses.length - 1].inicio; return partes(a, { day: 'numeric' }).day + ' ' + mesC(a) + ' – ' + partes(z, { day: 'numeric' }).day + ' ' + mesC(z) + ' ' + partes(z, { year: 'numeric' }).year; };
+  const estadoDe = (g, ahora) => { const libres = Math.max(0, g.cupo_total - (Number.isInteger(g.reservados) ? g.reservados : g.inscritos_confirmados + g.apartados_sin_pago)); const ses = g.sesiones || []; const futuro = ses.length && new Date(ses[0].inicio) > ahora; return { libres, futuro, lleno: libres <= 0, ultimos: libres > 0 && libres <= 3 }; };
+
+  function noDisponible(){ $('#coCargando').hidden = true; $('#coNo').hidden = false; document.title = 'Curso no disponible — Alfredo Piña'; const m = document.createElement('meta'); m.name = 'robots'; m.content = 'noindex'; document.head.appendChild(m); }
+
+  async function iniciar(){
+    if(!UI[herr] || !progId) return noDisponible();
+    let cat, foto, extras = {};
+    try {
+      const [rc, rf, re] = await Promise.all([fetch('/api/getCatalogoCursos?herramienta=' + encodeURIComponent(herr)), fetch('/api/calendarioAbiertos'), fetch('/assets/data/landings-abiertos.json').catch(() => null)]);
+      if(!rc.ok) throw new Error('catálogo');
+      cat = await rc.json(); foto = rf.ok ? await rf.json() : { grupos: [], ajustes: {} };
+      if(re && re.ok) extras = (await re.json()) || {};
+    } catch(e){ return noDisponible(); }
+    const prog = (cat.estandar || []).find((p) => p.id === progId);
+    if(!prog) return noDisponible();
+    const T = UI[herr], ex = extras[slug] || {};
+    const proyectos = (prog.proyectosDetalle || []).map((d) => { const full = (cat.proyectos || []).find((x) => x.id === d.id) || {}; return { nombre: d.nombre, resumen: d.resumen || full.resumen || '', objetivo: full.objetivo || '', img: d.imagenUrl || '' }; });
+    const ahora = new Date();
+    const grupos = (foto.grupos || []).filter((g) => g.herramienta === herr && g.programa_id === progId).sort((a, b) => ((a.sesiones[0] || {}).inicio || '9').localeCompare((b.sesiones[0] || {}).inicio || '9')).filter((g) => !(g.sesiones || []).length || new Date(g.sesiones[0].inicio) > ahora);
+    const prox = grupos.find((g) => { const e = estadoDe(g, ahora); return e.futuro && !e.lleno; }) || grupos.find((g) => estadoDe(g, ahora).futuro) || grupos[0] || null;
+
+    // meta de la página (para Google y para compartir)
+    const url = 'https://www.alfredopina.ai/cursos-abiertos/' + slug;
+    const desc = (ex.gancho || prog.objetivo || '').slice(0, 200);
+    document.title = prog.nombre + ' — Curso abierto | Alfredo Piña';
+    $('meta[name=description]').content = desc; $('#coCanon').href = url; $('#coOgUrl').content = url;
+    $('#coOgTitle').content = prog.nombre + ' — Curso abierto | Alfredo Piña'; $('#coOgDesc').content = desc;
+    document.documentElement.style.setProperty('--c', T.color); $('.ld').style.setProperty('--c', T.color);
+
+    // hero
+    $('#coMigaN').textContent = prog.nombre;
+    $('#ldTool').innerHTML = T.icon + esc(T.nombre);
+    const partesNombre = prog.nombre.split(' '), ult = partesNombre.length > 2 ? 2 : 1;
+    $('#ldH1').innerHTML = esc(partesNombre.slice(0, partesNombre.length - ult).join(' ')) + ' <em>' + esc(partesNombre.slice(-ult).join(' ')) + '</em>';
+    $('#ldGancho').textContent = ex.gancho || (prog.objetivo || '').split('. ')[0];
+    const modo = prox && prox.modalidad === 'presencial' ? 'Presencial' : 'En línea';
+    $('#ldChips').innerHTML = [['clock', prog.horas + ' horas'], ['bars', prog.nivelLabel], [modo === 'Presencial' ? 'pin' : 'monitor', modo], ['qr', 'Diploma verificable'], ['shield', 'DC-3']].map(([i, t]) => '<span class="ld-chip">' + ico(i) + esc(t) + '</span>').join('');
+    if(proyectos[0] && proyectos[0].img){ $('#ldHeroImg').src = proyectos[0].img; $('#ldHeroImg').alt = 'Proyecto del curso: ' + proyectos[0].nombre; $('#ldFx').innerHTML = '=PROYECTO(<b>"' + esc(proyectos[0].nombre.split(' ').slice(0, 2).join(' ').replace(/ (de|del|la|el|y|&)$/i, '')) + '"</b>)'; }
+    else $('#ldWin').hidden = true;
+
+    const enlaceReservar = (g) => '/cursos-abiertos?' + (g && !estadoDe(g, ahora).lleno && estadoDe(g, ahora).futuro ? 'reservar=' : 'avisame=') + encodeURIComponent(g ? g.codigo : '');
+    if(prox && (prox.sesiones || []).length){
+      const e = estadoDe(prox, ahora), a = prox.sesiones[0], rango = rangoDe(prox.sesiones), hrs = hhmm(a.inicio) + '–' + hhmm(a.fin);
+      const dias = Array.from(new Set(prox.sesiones.map((s) => partes(s.inicio, { weekday: 'long' }).weekday)));
+      const pill = e.lleno ? ['#a4acb9', 'ban', 'Lleno'] : e.ultimos ? ['#dfb35a', 'alert', 'Últimos lugares'] : ['#14b8a6', 'check', 'Inscripciones abiertas'];
+      const vigente = prox.precio_preventa != null && prox.preventa_hasta && new Date(prox.preventa_hasta + 'T23:59:59-06:00') >= ahora;
+      const precio = vigente ? prox.precio_preventa : prox.precio_persona;
+      $('#ldProx').innerHTML = '<div class="ld-prox-top"><span class="ld-prox-k">Próximo grupo · ' + esc(prox.codigo) + '</span><span class="ld-pill" style="--p:' + pill[0] + '">' + ico(pill[1]) + pill[2] + '</span></div>'
+        + '<div class="ld-prox-fechas">' + esc(rango) + '</div><div class="ld-prox-sub">' + prox.sesiones.length + ' sesiones · ' + esc(dias.join(' y ')) + ' · ' + esc(hrs) + ' h (hora de Monterrey)</div>'
+        + '<div class="ld-prox-pr"><b>' + dinero(precio) + '</b><small>MXN por persona' + (vigente ? ' · preventa hasta el ' + partes(prox.preventa_hasta + 'T12:00:00-06:00', { day: 'numeric' }).day + ' ' + mesC(prox.preventa_hasta + 'T12:00:00-06:00') : '') + ' · ' + (e.lleno ? 'sin lugares' : 'quedan ' + e.libres + ' de ' + prox.cupo_total + ' lugares') + '</small></div>';
+      const txt = e.lleno ? 'Avísame del próximo' : 'Reservar mi lugar · ' + dinero(precio);
+      ['#ldReservar1', '#ldReservar2'].forEach((s) => { $(s).innerHTML = ico(e.lleno ? 'alert' : 'cal') + esc(txt); $(s).href = enlaceReservar(prox); });
+      $('#ldReservar3').href = enlaceReservar(prox); $('#ldReservar3').textContent = e.lleno ? 'Avísame' : 'Reservar';
+      $('#ldFijaT').textContent = prog.nombre; $('#ldFijaS').textContent = rango + ' · ' + dinero(precio);
+    } else {
+      $('#ldProx').innerHTML = '<div class="ld-prox-top"><span class="ld-prox-k">Próximo grupo</span><span class="ld-pill" style="--p:#6b9fff">' + ico('clock') + 'Próximamente</span></div><div class="ld-prox-fechas">Aún sin fecha</div><div class="ld-prox-sub">Déjanos tus datos y te avisamos primero.</div>';
+      ['#ldReservar1', '#ldReservar2'].forEach((s) => { $(s).textContent = 'Avísame'; $(s).href = '/cursos-abiertos#lista-espera'; });
+      $('#ldReservar3').href = '/cursos-abiertos#lista-espera'; $('#ldReservar3').textContent = 'Avísame'; $('#ldFijaT').textContent = prog.nombre; $('#ldFijaS').textContent = 'Próximamente';
+    }
+
+    // proyectos
+    if(proyectos.length){
+      $('#construyes').hidden = false;
+      $('#ldProys').innerHTML = proyectos.map((p, i) => '<article class="ld-proy ld-rev"><div class="ld-proy-img">' + (p.img ? '<img src="' + esc(p.img) + '" alt="Proyecto: ' + esc(p.nombre) + '" loading="lazy" width="1280" height="800">' : '') + '<span class="ld-proy-n">PROYECTO ' + (i + 1) + '</span></div>'
+        + '<div class="ld-proy-b"><h3>' + esc(p.nombre) + '</h3><p>' + (p.resumen ? '<b style="color:var(--text)">' + esc(p.resumen) + '.</b> ' : '') + esc((p.objetivo || '').replace(/[.]$/, '')) + (p.objetivo ? '.' : '') + '</p></div></article>').join('');
+      if(proyectos.length === 1) $('#ldProys').style.gridTemplateColumns = '1fr';
+    }
+
+    // plan (sin horas por tema: las del programa mandan)
+    const temas = prog.temas || [];
+    $('#ldHorasT').textContent = prog.horas + ' h';
+    const niveles = Array.from(new Set(temas.map((t) => t.nivel))).sort();
+    $('#ldMapa').innerHTML = temas.map((t) => '<span class="' + (t.nivel >= Math.max.apply(null, niveles) && niveles.length > 1 ? 'a' : '') + '"></span>').join('');
+    $('#ldLeyenda').innerHTML = niveles.length > 1 ? niveles.map((n, i) => '<span><i class="' + (i === niveles.length - 1 ? 'a' : '') + '"></i> ' + esc(NIV[n] || '') + '</span>').join('') : '';
+    $('#ldFilas').innerHTML = temas.map((t, i) => '<div class="ld-fila" id="lf' + i + '"><button type="button" aria-expanded="false" aria-controls="ld' + i + '" style="--d:' + Math.min(i * 0.07, 0.7).toFixed(2) + 's">'
+      + '<span class="n">A' + (i + 1) + '</span><span class="t">' + esc(t.nombre) + '</span><span class="lv ' + (niveles.length > 1 && t.nivel === Math.max.apply(null, niveles) ? 'a' : '') + '"><i></i>' + esc(NIV[t.nivel] || '') + '</span><span class="ch">' + ico('chev') + '</span></button>'
+      + '<div class="ld-det" id="ld' + i + '" hidden>' + esc(t.descripcion || '') + '</div></div>').join('');
+    $('#ldFilas').addEventListener('click', (e) => { const b = e.target.closest('button'); if(!b) return; const fila = b.parentElement, det = fila.querySelector('.ld-det'), ab = b.getAttribute('aria-expanded') === 'true'; b.setAttribute('aria-expanded', String(!ab)); det.hidden = ab; fila.classList.toggle('open', !ab); });
+    const nSes = prox && prox.sesiones ? prox.sesiones.length : 0;
+    $('#ldResumen').innerHTML = [['clock', prog.horas + ' horas en total'], ['cal', nSes ? nSes + ' sesiones' : 'Sesiones por definir'], ['award', 'Diploma verificable al terminar']].map(([i, t]) => '<span class="ld-chip">' + ico(i) + esc(t) + '</span>').join('');
+
+    // para quién
+    $('#ldDirigido').textContent = prog.dirigido || '';
+    if(Array.isArray(ex.requisitos) && ex.requisitos.length){ $('#ldReqCard').hidden = false; $('#ldReq').innerHTML = ex.requisitos.map((r) => '<li>' + ico('check') + '<span>' + esc(r) + '</span></li>').join(''); }
+    else $('#ld2c').style.gridTemplateColumns = '1fr';
+
+    // fechas
+    $('#ldFechas').innerHTML = grupos.length ? grupos.map((g) => {
+      const e = estadoDe(g, ahora), ses = g.sesiones || [];
+      const titulo = ses.length ? resumenFechas(ses).map((b) => b.dias.join(', ') + ' ' + b.mes).join(' · ') : 'Fecha por definir';
+      const accion = e.lleno || !e.futuro ? '<a class="btn ld-sec-btn ld-b" href="' + enlaceReservar(g) + '">' + ico('alert') + (e.lleno ? 'Avísame del próximo' : 'Avísame') + '</a>' : '<a class="btn btn-primary ld-b" href="' + enlaceReservar(g) + '">' + ico('cal') + 'Reservar mi lugar</a>';
+      const pc = Math.round((g.cupo_total - e.libres) / g.cupo_total * 100);
+      return '<div class="ld-f"><div><h3>' + esc(g.codigo) + ' · ' + esc(titulo) + '</h3><ul class="ld-f-l">'
+        + (ses.length ? '<li>' + ico('clock') + esc(hhmm(ses[0].inicio) + '–' + hhmm(ses[0].fin)) + ' h</li>' : '') + '<li>' + ico(g.modalidad === 'presencial' ? 'pin' : 'monitor') + (g.modalidad === 'presencial' ? 'Presencial' : 'En línea') + '</li>'
+        + '<li>' + ico('users') + (e.lleno ? 'Lleno' : 'Quedan ' + e.libres + ' de ' + g.cupo_total) + '</li><li>' + ico('tag') + dinero(g.precio_persona) + ' MXN por persona</li></ul><div class="ld-barra" aria-hidden="true"><span style="width:' + pc + '%"></span></div></div>' + accion + '</div>';
+    }).join('') : '<p class="ld-vacio">Por ahora no hay fechas abiertas de este curso. <a href="/cursos-abiertos#lista-espera" style="color:var(--blue-bright);text-decoration:underline">Avísame de la próxima</a>.</p>';
+
+    // bio y preguntas
+    $('#ldBio').textContent = ex.bio || BIO_BASE;
+    const faq = Array.isArray(ex.faq) && ex.faq.length ? ex.faq : FAQ_BASE;
+    $('#ldFaq').innerHTML = faq.map(([q, a], i) => '<h3><button type="button" class="ld-faq-q" id="lq' + i + '" aria-expanded="false" aria-controls="la' + i + '">' + esc(q) + ico('chev') + '</button></h3><div class="ld-faq-a" id="la' + i + '" role="region" aria-labelledby="lq' + i + '" hidden>' + esc(a) + '</div>').join('');
+    $('#ldFaq').addEventListener('click', (e) => { const b = e.target.closest('.ld-faq-q'); if(!b) return; const a = document.getElementById(b.getAttribute('aria-controls')), ab = b.getAttribute('aria-expanded') === 'true'; b.setAttribute('aria-expanded', String(!ab)); a.hidden = ab; });
+
+    // datos estructurados para Google (Course)
+    const ld = { '@context': 'https://schema.org', '@type': 'Course', name: prog.nombre, description: prog.objetivo || desc, url, provider: { '@type': 'Organization', name: 'alfredopina.ai', url: 'https://www.alfredopina.ai' },
+      educationalCredentialAwarded: 'Diploma verificable', inLanguage: 'es-MX', timeRequired: 'PT' + Math.round(prog.horas) + 'H',
+      hasCourseInstance: grupos.filter((g) => (g.sesiones || []).length).map((g) => ({ '@type': 'CourseInstance', name: g.codigo, courseMode: g.modalidad === 'presencial' ? 'onsite' : 'online', startDate: g.sesiones[0].inicio, endDate: g.sesiones[g.sesiones.length - 1].fin,
+        offers: { '@type': 'Offer', price: g.precio_persona, priceCurrency: 'MXN', availability: estadoDe(g, ahora).lleno ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url } })) };
+    const s = document.createElement('script'); s.type = 'application/ld+json'; s.textContent = JSON.stringify(ld).replace(/</g, '\\u003c'); document.head.appendChild(s);
+
+    $('#coCargando').hidden = true; $('#coPagina').hidden = false;
+    pintarIconos();
+    movimiento();
+  }
+
+  function movimiento(){
+    const reducido = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const win = $('#ldWin');
+    if(!reducido && window.matchMedia('(min-width:941px)').matches && win){
+      $('.ld-hero').addEventListener('pointermove', (e) => { const r = win.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; win.style.setProperty('--ry', (-5 + x * 7).toFixed(2) + 'deg'); win.style.setProperty('--rx', (2 - y * 6).toFixed(2) + 'deg'); });
+    }
+    if('IntersectionObserver' in window){
+      const io = new IntersectionObserver((es) => es.forEach((en) => { if(en.isIntersecting){ en.target.classList.add('vis'); if(en.target.id === 'ldHoja') en.target.classList.add('ld-vis'); io.unobserve(en.target); } }), { threshold: .15 });
+      $$('.ld-rev').forEach((el) => io.observe(el)); io.observe($('#ldHoja'));
+      const fija = $('#ldFija');
+      new IntersectionObserver((es) => { const sale = !es[0].isIntersecting && es[0].boundingClientRect.top < 0; fija.classList.toggle('on', sale); fija.setAttribute('aria-hidden', String(!sale)); $('#ldReservar3').tabIndex = sale ? 0 : -1; }).observe($('#ldReservar1'));
+    } else { $$('.ld-rev').forEach((el) => el.classList.add('vis')); $('#ldHoja').classList.add('ld-vis'); }
+  }
+  iniciar();
+})();
+</script>
+</body>
+</html>

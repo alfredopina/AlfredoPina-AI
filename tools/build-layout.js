@@ -26,6 +26,7 @@ const PAGES = {
   "in-company.html": { css: ["base", "cards", "in-company"], nav: { active: "cursos" }, footer: "full", social: true }, // centro de Cursos In Company (las 6 tarjetas)
   "recursos.html": { css: ["base", "cards", "recursos"], nav: { active: "recursos" }, footer: "full", social: true },
   "cursos-abiertos.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true }, // visible en el menú; sigue con noindex y fuera del sitemap hasta el lanzamiento
+  "curso-abierto.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true },
   "agenda.html": { css: ["base", "agenda"], nav: { tag: "Agenda" }, footer: "full" },
   "diagnostico.html": { css: ["base", "diagnostico"], nav: { tag: "Diagnóstico" }, footer: "min" },
   "encuesta.html": { css: ["base", "encuesta"], nav: { tag: "Encuesta" }, footer: "min" },

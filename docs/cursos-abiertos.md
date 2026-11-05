@@ -114,6 +114,8 @@ Es Tracking y no solo un filtro de Grupos: tiene fase propia, urgencia que nadie
 
 **Historial de cursos impartidos (acordado, falta construir):** franja corta bajo «Próximas fechas» con solo cursos ABIERTOS ya impartidos y personas CONFIRMADAS (pagadas); sin nombres de personas ni empresas; viaja dentro de la foto al «Publicar calendario»; solo aparece con 3 o más cursos impartidos (umbral configurable).
 
+**Landing de cada curso (2026-11-05):** `/cursos-abiertos/<herramienta>-<programa>` (p. ej. `/cursos-abiertos/excel-intermedio-avanzado`), UNA plantilla (`curso-abierto.html`, ruta comodín en `staticwebapp.config.json`) que se arma sola con el Programa del catálogo (temario, objetivo, a quién va, proyectos con sus imágenes) y con el calendario publicado (próximas fechas, lugares, precio); título, descripción, canonical y datos estructurados de «Course» para Google se ponen con el curso. Los textos que NO están en Programas (gancho, requisitos, bio, preguntas) viven en `assets/data/landings-abiertos.json` (un bloque por curso; sin bloque la página funciona con textos base). Una landing existe cuando su clave está en ese archivo: ese mismo archivo enciende el botón «Ver curso» del calendario y el enlace de las tarjetas de Temas. Reservar lleva a `/cursos-abiertos?reservar=CÓDIGO`, que abre la inscripción de ese grupo (o `?avisame=CÓDIGO`); queda pendiente abrir el formulario sin salir de la landing. Mockup: `docs/mockups/landing-curso-excel.html`. Faltan las landings de Power BI e IA (solo su bloque en el JSON).
+
 ## Orden de construcción
 
 1. **Modelo:** script SQL (Grupo, GrupoSesion, Inscripcion, ListaEspera, Alumno.whatsapp, Cliente reservado) + forma de la foto. Probado con `npm test`.

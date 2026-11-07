@@ -113,3 +113,11 @@ La cobranza nace de la **operación**, para que Viri se entere de qué hay que f
 - **Importación única del Excel de Viri** (script en `tools/`, nunca con datos en el repo; dry-run primero y esperar el "dale"): falta la ruta del archivo.
 - **Niveles futuros de Facturama** (no hoy): 2) lectura por API, 3) clientes sincronizados, 4) timbrar desde el sitio con botón explícito de Viri.
 - Tarjeta de Cobranza en Tracking View y Cobranza en la búsqueda global (no se hicieron en la fase 1).
+
+## Comisión del intermediario — Capacitanet 20 % (2026-11-07)
+
+Capacitanet cobra el 20 % por intermediar y **lo descuenta en la factura que Alfredo le emite**. Ejemplo: cotización de $100,000 al cliente final → Alfredo le factura a Capacitanet un **subtotal de $80,000** y los impuestos (IVA y retenciones de persona moral, según el tipo de factura de su ficha) se calculan **sobre esos $80,000**.
+- **Dato:** `Cliente.comision_intermediario_pct` (solo tipo Intermediario; Clientes → editar → "Comisión del intermediario (%)"; vacío = sin comisión). `sql/049` lo deja en **20 para el código CAP** (verificar que Capacitanet lo tenga; si su código es otro, se pone a mano). Los demás intermediarios no llevan comisión: **se respeta el monto que Alfredo cotiza**.
+- **Al pasar a Ganada** (`crearCuentaDeCotizacion`, también cuando nace del Grupo): subtotal = precio × (1 − %), impuestos sobre ese neto; la cuenta guarda `comision_pct`, `comision_base` (lo cotizado) y `comision_revisada`, y una **nota automática** con el cálculo. **Las cuentas ya existentes no se tocan** (ya eran lo que se facturó).
+- **Insignia para Viri:** en Cobranza, la fila dice "Comisión 20 % · revisar" (ámbar) y el detalle muestra el cálculo con el botón **"Marcar como revisada"** (`revisarComisionCuentaCobrar`; no cambia montos). Revisada = "Comisión 20 % · revisada" (verde-azulado).
+- **Cotizaciones y métricas:** la cotización sigue en $100,000 (lo que paga el cliente final); el ingreso real ($80,000) vive en Cobranza. Decisión de Alfredo (2026-11-07): no se netea en Cotizaciones.

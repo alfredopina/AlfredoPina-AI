@@ -55,6 +55,19 @@ function desglosarMonto({ subtotal, iva, total, retencion_isr, retencion_iva, ti
   throw falla("Falta el monto (subtotal o total).");
 }
 
+// Comisión de un intermediario (Capacitanet 20 %): el subtotal que se le factura es el precio cotizado menos su comisión; los impuestos se calculan sobre ese neto.
+function aplicarComision(precio, pct) {
+  const p = Number(precio), c = Number(pct);
+  if (!Number.isFinite(p) || !(c > 0) || !(c < 100)) return null;
+  const comision = centavos(p * c / 100);
+  return { base: centavos(p), pct: c, comision, neto: centavos(p - comision) };
+}
+const dineroTxt = (n) => "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function notaComision(nombre, k) {
+  const pctTxt = String(k.pct).replace(/\.0+$/, "");
+  return `Comisión de intermediario: la cotización fue de ${dineroTxt(k.base)} al cliente final. ${nombre || "El intermediario"} descuenta su comisión del ${pctTxt} % (${dineroTxt(k.comision)}) en la factura, por eso el subtotal a facturar es ${dineroTxt(k.neto)} (los impuestos se calculan sobre ese monto). Viri: revisa que la factura coincida.`;
+}
+
 // "YYYY-MM-DD" o Date → medianoche UTC de ese día (null si no es fecha)
 function aFecha(v) {
   if (v == null || v === "") return null;
@@ -167,6 +180,6 @@ function resumir(filas, { desde = null, hasta = null } = {}) {
 module.exports = {
   resumir,
   IVA_TASA, TIPOS_FACTURA, retencionesDe, cuentaEnMetricas, ESTRATEGIAS, ESTATUS, ESTATUS_MANUALES, METODOS, PLAZO_DEFAULT, POR_VENCER_DEFAULT,
-  falla, centavos, desglosarDesdeSubtotal, desglosarMonto, aFecha, diasEntre, vencimientoDe,
+  falla, centavos, aplicarComision, notaComision, desglosarDesdeSubtotal, desglosarMonto, aFecha, diasEntre, vencimientoDe,
   TOLERANCIA_CENTAVOS, totalPagado, saldoDe, estatusDerivado, validarPago, validarDivision, semaforoDe, compararUrgencia,
 };

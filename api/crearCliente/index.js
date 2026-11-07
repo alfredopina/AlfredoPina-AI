@@ -52,7 +52,7 @@ module.exports = async function (context, req) {
     const pool = await getPool();
     const extra = Object.keys(fiscal.campos);
     const req = pool.request();
-    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : sql.NVarChar, fiscal.campos[k]);
+    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : k === "comision_intermediario_pct" ? sql.Decimal(5, 2) : sql.NVarChar, fiscal.campos[k]);
     const insert = await req
       .input("nombre", sql.NVarChar, nombre)
       .input("codigo", sql.NVarChar, codigo)

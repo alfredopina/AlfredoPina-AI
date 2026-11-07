@@ -60,7 +60,7 @@ function leerCampos(b, parcial) {
   return out;
 }
 
-const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, vencimiento_manual: sql.Date, fecha_cancelacion: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int };
+const TIPOS = { tipo_factura: sql.NVarChar, razon_social: sql.NVarChar, fecha_emision: sql.Date, inicio_plazo: sql.Date, vencimiento_manual: sql.Date, fecha_cancelacion: sql.Date, plazo_dias: sql.Int, subtotal: sql.Decimal(12, 2), iva: sql.Decimal(12, 2), retencion_isr: sql.Decimal(12, 2), retencion_iva: sql.Decimal(12, 2), total: sql.Decimal(12, 2), cliente_id: sql.Int, cotizacion_id: sql.Int, grupo_id: sql.Int, comision_pct: sql.Decimal(5, 2), comision_base: sql.Decimal(12, 2), comision_revisada: sql.Bit };
 const ES_FECHA = new Set(["fecha_emision", "inicio_plazo", "vencimiento_manual", "fecha_cancelacion"]);
 const hoyMonterrey = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Monterrey" });
 const dia = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
@@ -150,9 +150,13 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
   if (!r.recordset.length) return { creada: false, id: null };
   const cot = r.recordset[0];
   const def = await defaultsDeCliente(nuevaRequest, cot.cliente_id);
-  const montos = C.desglosarMonto({ subtotal: cot.precio_final, tipo_factura: def.tipo_factura });
+  // intermediario con comisión (Capacitanet 20 %): la cuenta nace con el subtotal NETO y los impuestos se calculan sobre él
+  const ic = await nuevaRequest().input("id", sql.Int, cot.cliente_id).query("SELECT nombre, comision_intermediario_pct FROM Cliente WHERE id = @id");
+  const com = ic.recordset.length ? C.aplicarComision(cot.precio_final, ic.recordset[0].comision_intermediario_pct) : null;
+  const montos = C.desglosarMonto({ subtotal: com ? com.neto : cot.precio_final, tipo_factura: def.tipo_factura });
+  const extraComision = com ? { comision_pct: com.pct, comision_base: com.base, comision_revisada: false, notas: C.notaComision(ic.recordset[0].nombre, com) } : {};
   const concepto = `Cotización ${cot.folio} — ${cot.herramienta}`.slice(0, 300);
-  const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: def.tipo_factura === "Otro" ? null : "empresas", concepto, ...def, ...montos, estatus: "Por facturar" });
+  const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: def.tipo_factura === "Otro" ? null : "empresas", concepto, ...def, ...montos, ...extraComision, estatus: "Por facturar" });
   return { creada: true, id };
 }
 
@@ -284,6 +288,15 @@ async function dividirCuenta(nuevaRequest, id, partes) {
 }
 
 // Notas de seguimiento de la cuenta (texto libre, hasta 4000 caracteres; vacío = sin nota)
+// Viri confirma que el cálculo de la comisión coincide con la factura: quita la insignia "revisar". Solo aplica a cuentas que llevan comisión.
+async function revisarComision(nuevaRequest, id) {
+  const cuentaId = Number(id);
+  const { cuenta } = await cargarCuenta(nuevaRequest, cuentaId);
+  if (cuenta.comision_pct == null) throw C.falla("Esa cuenta no lleva comisión de intermediario.");
+  await nuevaRequest().input("id", sql.Int, cuentaId).query("UPDATE CuentaPorCobrar SET comision_revisada = 1 WHERE id = @id");
+  return { id: cuentaId };
+}
+
 async function actualizarNotas(nuevaRequest, id, notas) {
   const cuentaId = Number(id);
   await cargarCuenta(nuevaRequest, cuentaId);
@@ -332,7 +345,8 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   const cuentas = await req.query(`
     SELECT x.id, x.cliente_id, COALESCE(c.nombre, x.razon_social) AS cliente, c.codigo AS cliente_codigo, x.cotizacion_id, q.folio AS cotizacion_folio, x.grupo_id, x.origen, x.estrategia,
            x.concepto, x.subtotal, x.iva, x.retencion_isr, x.retencion_iva, x.total, x.folio_factura, x.uuid_factura, x.rfc_receptor, x.fecha_emision, x.orden_compra,
-           x.inicio_plazo, x.plazo_dias, x.vencimiento_manual, x.fecha_cancelacion, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social
+           x.inicio_plazo, x.plazo_dias, x.vencimiento_manual, x.fecha_cancelacion, x.vencimiento, x.estatus, x.fecha_estatus, x.notas, x.fecha_creacion, x.tipo_factura, x.razon_social,
+           x.comision_pct, x.comision_base, x.comision_revisada
     FROM CuentaPorCobrar x
     LEFT JOIN Cliente c ON c.id = x.cliente_id
     LEFT JOIN Cotizacion q ON q.id = x.cotizacion_id
@@ -358,4 +372,4 @@ async function listarCuentas({ hoy = new Date(), umbralPorVencer = C.POR_VENCER_
   return filas;
 }
 
-module.exports = { actualizarNotas, eliminarCuenta, crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };
+module.exports = { revisarComision, actualizarNotas, eliminarCuenta, crearCuentaManual, crearCuentaDeCotizacion, crearCuentaDeGrupo, editarCuenta, cambiarEstatus, registrarPago, anularPago, dividirCuenta, recalcularEstatus, enTransaccion, listarCuentas };

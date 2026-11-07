@@ -179,6 +179,57 @@ function fabrica(handler) {
     assert.strictEqual(ins.params.estatus, "Por facturar");
     assert.strictEqual(ins.params.cotizacion_id, 7);
   });
+  // ── comisión de intermediario (Capacitanet 20 %) ──
+  await checkAsync("cotización a un intermediario CON comisión: la cuenta nace con el subtotal NETO, su porcentaje, el monto cotizado y la nota para Viri", async () => {
+    const f = fabrica((t) => {
+      if (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar")) return [];
+      if (t.includes("comision_intermediario_pct")) return [{ nombre: "Capacitanet", comision_intermediario_pct: 20 }];
+      if (t.includes("FROM Cotizacion")) return [{ id: 7, folio: "AP26-CAP-EXCEL-01", cliente_id: 3, herramienta: "Excel", precio_final: 100000 }];
+      if (t.includes("INSERT INTO CuentaPorCobrar")) return [{ id: 56 }];
+      return [];
+    });
+    await DB.crearCuentaDeCotizacion(f.nuevaRequest, 7);
+    const ins = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
+    assert.strictEqual(ins.subtotal, 80000, "subtotal = 100,000 − 20 %");
+    assert.strictEqual(ins.iva, 12800, "el IVA se calcula sobre el neto");
+    assert.strictEqual(ins.comision_pct, 20);
+    assert.strictEqual(ins.comision_base, 100000);
+    assert.strictEqual(ins.comision_revisada, false);
+    assert.ok(/Capacitanet descuenta su comisión del 20 %/.test(ins.notas) && /\$80,000\.00/.test(ins.notas), "nota con el cálculo");
+  });
+  await checkAsync("intermediario SIN comisión (o cliente normal): se respeta el monto cotizado y no lleva insignia", async () => {
+    const f = fabrica((t) => {
+      if (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar")) return [];
+      if (t.includes("comision_intermediario_pct")) return [{ nombre: "Otro Interm", comision_intermediario_pct: null }];
+      if (t.includes("FROM Cotizacion")) return [{ id: 8, folio: "F", cliente_id: 4, herramienta: "Excel", precio_final: 50000 }];
+      if (t.includes("INSERT INTO CuentaPorCobrar")) return [{ id: 57 }];
+      return [];
+    });
+    await DB.crearCuentaDeCotizacion(f.nuevaRequest, 8);
+    const ins = f.hubo("INSERT INTO CuentaPorCobrar")[0].params;
+    assert.strictEqual(ins.subtotal, 50000);
+    assert.ok(!("comision_pct" in ins) && !("notas" in ins));
+  });
+  await checkAsync("Viri marca la comisión como revisada; una cuenta sin comisión se rechaza", async () => {
+    const f = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 5, comision_pct: 20, estatus: "Por facturar" }] : []));
+    await DB.revisarComision(f.nuevaRequest, 5);
+    assert.strictEqual(f.hubo("SET comision_revisada = 1").length, 1);
+    const g = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 6, comision_pct: null, estatus: "Por facturar" }] : []));
+    await assert.rejects(() => DB.revisarComision(g.nuevaRequest, 6), /no lleva comisión/);
+  });
+  check("aplicarComision: 100,000 al 20 % = 80,000; sin porcentaje no hay comisión", () => {
+    assert.deepStrictEqual(C.aplicarComision(100000, 20), { base: 100000, pct: 20, comision: 20000, neto: 80000 });
+    assert.strictEqual(C.aplicarComision(100000, 0), null);
+    assert.strictEqual(C.aplicarComision(100000, null), null);
+    assert.strictEqual(C.aplicarComision(100000, 100), null);
+  });
+  check("cliente: la comisión solo la lleva un Intermediario y se valida (0 a <100)", () => {
+    const { leerFiscal } = require("./src/cliente-fiscal");
+    assert.strictEqual(leerFiscal({ comision_intermediario_pct: 20 }, "Intermediario").campos.comision_intermediario_pct, 20);
+    assert.strictEqual(leerFiscal({ comision_intermediario_pct: "" }, "Intermediario").campos.comision_intermediario_pct, null);
+    assert.ok(!("comision_intermediario_pct" in leerFiscal({ comision_intermediario_pct: 20 }, "Directo").campos));
+    assert.ok(leerFiscal({ comision_intermediario_pct: 120 }, "Intermediario").error);
+  });
   await checkAsync("registrar un pago que excede el saldo se rechaza sin escribir", async () => {
     const f = fabrica((t) => (t.includes("FROM CuentaPorCobrar WHERE id") ? [{ id: 1, estatus: "Parcial", total: 1000, folio_factura: "F1" }] : t.includes("FROM PagoCobranza") ? [{ id: 1, monto: 700, anulado: false }] : []));
     await rechaza(DB.registrarPago(f.nuevaRequest, { cuenta_id: 1, monto: 400 }), 409, /excede/);

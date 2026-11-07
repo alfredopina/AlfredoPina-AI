@@ -34,6 +34,16 @@ function leerFiscal(body, tipoCliente) {
     if (t && !TIPOS_FACTURA_CLIENTE.includes(t)) return { error: "El tipo de factura debe ser Empresa, Gobierno o Anterior." };
     campos.tipo_factura_default = t;
   }
+  // comisión del intermediario (%): solo un Intermediario la lleva; vacío = sin comisión (se respeta el monto cotizado)
+  if ("comision_intermediario_pct" in b && tipoCliente === "Intermediario") {
+    const v = b.comision_intermediario_pct;
+    if (v === null || v === "" || v === undefined) campos.comision_intermediario_pct = null;
+    else {
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 0 || n >= 100) return { error: "La comisión del intermediario debe ser un porcentaje de 0 a menos de 100." };
+      campos.comision_intermediario_pct = n === 0 ? null : Math.round(n * 100) / 100;
+    }
+  }
   return { campos };
 }
 

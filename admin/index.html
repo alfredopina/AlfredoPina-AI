@@ -2130,7 +2130,13 @@
   .cbz-fiscal[open] summary{ border-bottom:1px solid var(--line); margin-bottom:12px; }
   .cbz-d-sep{ align-self:stretch; border-left:1px dashed var(--line); margin:0 2px; }
   .cbz-desg-sin{ align-self:center; font-size:12.5px; color:var(--text-dim); }
-  .clf-fiscal[hidden], .clf-tf[hidden]{ display:none; }
+  .clf-fiscal[hidden], .clf-tf[hidden], .clf-comf[hidden]{ display:none; }
+  /* comisión de intermediario en Cobranza: ámbar = pide revisión, verde-azulado = ya revisada (siempre con texto e ícono) */
+  .cbz-com{ display:inline-flex; align-items:center; gap:4px; margin-top:3px; font-family:var(--mono); font-size:10.5px; padding:1px 8px; border-radius:10px; border:1px solid #dfb35a; color:#dfb35a; white-space:nowrap; }
+  .cbz-com svg{ width:11px; height:11px; flex:none; } .cbz-com.ok{ border-color:#14b8a6; color:#14b8a6; }
+  .cbz-comision{ border:1px solid #dfb35a; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; line-height:1.5; }
+  .cbz-comision svg{ width:14px; height:14px; vertical-align:-2px; flex:none; }
+  .cbz-comision.ok{ border-color:#14b8a6; } .cbz-comision b{ display:block; margin-bottom:4px; } .cbz-comision p{ margin:0 0 8px; color:var(--text-dim); }
   .cbz-tabla .sol-acciones{ flex-wrap:nowrap; }
   .cbz-tabla tfoot td{ border-top:1px solid var(--line); padding-top:12px; font-size:12.5px; }
   .cbz-pie-txt{ color:var(--text-faint); font-family:var(--mono); font-size:11px!important; }
@@ -7603,7 +7609,7 @@
           '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
           '<td class="cbz-cli">' + clienteHtml(c) + '</td>' +
           '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + '<span class="cbz-tipo" title="' + esc((c.tipo_factura || 'Sin clasificar') + (c.estrategia ? ' · ' + (ESTRATEGIA[c.estrategia] || c.estrategia) : ' · sin estrategia (tercero)')) + '">' + esc((c.tipo_factura || 'Sin tipo') + (c.estrategia === 'abiertos' ? ' · Abiertos' : '')) + '</span></td>' +
-          '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span></td>' +
+          '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span>' + comisionTag(c) + '</td>' +
           '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
           '<td>' + venceHtml(c) + '</td>' +
           '<td>' + estatusHtml(c) + '</td>' +
@@ -7874,6 +7880,22 @@
       return '<details class="cbz-fiscal"' + (falta ? ' open' : '') + '><summary>DATOS FISCALES · <b>' + esc(razon || 'sin nombre fiscal') + ' · ' + esc(rfc || 'sin RFC') + '</b></summary>' +
         '<div class="cbz-grid">' + campoTxt(p + 'Razon', 'NOMBRE FISCAL (RAZÓN SOCIAL)', razon, ' maxlength="200"') + campoTxt(p + 'Rfc', 'RFC', rfc, ' maxlength="15"') + '</div></details>';
     }
+    // Comisión de intermediario (Capacitanet): la cuenta nace con el subtotal neto; Viri la revisa y la marca
+    const ICO_COM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 5 5 19M7 7h.01M17 17h.01" stroke-linecap="round"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg>';
+    const pctTxt = (c) => String(Number(c.comision_pct));
+    function comisionTag(c){
+      if(c.comision_pct == null) return '';
+      return c.comision_revisada
+        ? '<br><span class="cbz-com ok" title="Comisión de intermediario ya revisada">' + ICO_COM + 'Comisión ' + pctTxt(c) + ' % · revisada</span>'
+        : '<br><span class="cbz-com" title="Cotizado en ' + esc(dinero(c.comision_base)) + '; se factura el neto. Ábrela y márcala como revisada.">' + ICO_COM + 'Comisión ' + pctTxt(c) + ' % · revisar</span>';
+    }
+    function comisionBloque(c){
+      if(c.comision_pct == null) return '';
+      const monto = Math.round(Number(c.comision_base) * Number(c.comision_pct)) / 100;
+      return '<div class="cbz-comision' + (c.comision_revisada ? ' ok' : '') + '"><b>' + ICO_COM + ' Comisión de intermediario ' + pctTxt(c) + ' % ' + (c.comision_revisada ? '· revisada' : '· pendiente de revisión') + '</b>' +
+        '<p>Cotizado al cliente final: ' + dinero(c.comision_base) + ' · comisión ' + pctTxt(c) + ' %: −' + dinero(monto) + ' · subtotal a facturar: ' + dinero(c.comision_base - monto) + '. El IVA y las retenciones se calculan sobre ese subtotal.</p>' +
+        (c.comision_revisada ? '' : '<button type="button" class="radm-btn radm-btn-ghost" data-det="comision">Marcar como revisada</button>') + '</div>';
+    }
     function pintarDetalle(){
       const c = cuentas.find((x) => x.id === abiertaId);
       if(!c){ $('cbzDetalle').hidden = true; return; }
@@ -7892,6 +7914,7 @@
       const puedePagar = c.estatus === 'Facturada' || c.estatus === 'Parcial';
       desg = { subtotal: Number(c.subtotal) || 0, iva: Number(c.iva) || 0, isr: Number(c.retencion_isr) || 0, riva: Number(c.retencion_iva) || 0 };
       $('cbzDetCuerpo').innerHTML =
+        comisionBloque(c) +
         '<div class="cbz-desglose" id="cbzDesglose"></div>' +
         '<div class="cbz-seccion">LO ESENCIAL</div>' +
         '<div class="cbz-grid">' +
@@ -8050,6 +8073,8 @@
         if(c.estatus === 'Cancelada') datos.fecha_cancelacion = valor('cbzDFechaCanc');
         if($('cbzDSubtotal') && desg){ datos.subtotal = valor('cbzDSubtotal'); datos.iva = desg.iva; datos.retencion_isr = desg.isr; datos.retencion_iva = desg.riva; }
         await guardarYRefrescar('/api/editarCuentaCobrar', datos, 'Cuenta guardada.', 'cbzDError');
+      } else if(que === 'comision'){
+        await guardarYRefrescar('/api/revisarComisionCuentaCobrar', { id: c.id }, 'Comisión marcada como revisada.', 'cbzDError');
       } else if(que === 'facturada'){
         await guardarYRefrescar('/api/cambiarEstatusCuentaCobrar', { id: c.id, estatus: 'Facturada' }, 'Cuenta marcada como facturada.', 'cbzDError');
       } else if(que === 'reabrir'){
@@ -15787,6 +15812,7 @@
             <div class="radm-field"><label>NOMBRE FISCAL (RAZÓN SOCIAL)</label><input type="text" class="clf-razon" maxlength="200" value="${item && item.razon_social ? escapeHtml(item.razon_social) : ''}"></div>
             <div class="radm-field" style="max-width:190px;"><label>RFC</label><input type="text" class="clf-rfc radm-mono" maxlength="15" style="text-transform:uppercase;" value="${item && item.rfc ? escapeHtml(item.rfc) : ''}"></div>
             <div class="radm-field" style="max-width:150px;"><label>PLAZO DE PAGO (DÍAS)</label><input type="number" class="clf-plazo" min="0" max="365" step="1" placeholder="30" value="${item && item.plazo_pago_dias != null ? item.plazo_pago_dias : ''}"></div>
+            <div class="radm-field clf-comf" style="max-width:210px;" ${item && item.tipo_cliente === 'Intermediario' ? '' : 'hidden'}><label title="Lo que el intermediario descuenta de la factura. Vacío = sin comisión (se respeta el monto cotizado).">COMISIÓN DEL INTERMEDIARIO (%)</label><input type="number" class="clf-com" min="0" max="99.99" step="0.5" placeholder="Ej. 20" value="${item && item.comision_intermediario_pct != null ? item.comision_intermediario_pct : ''}"></div>
             <div class="radm-field clf-tf" style="max-width:200px;" ${item && item.tipo_cliente === 'Tercero' ? 'hidden' : ''}><label>TIPO DE FACTURA</label>
               <select class="clf-tfact"><option value="">Sin definir</option>${['Empresa', 'Gobierno', 'Anterior'].map(t => `<option ${item && item.tipo_factura_default === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
             </div>
@@ -15825,6 +15851,7 @@
         // los datos fiscales y de cobro solo aplican a Directo, Intermediario y Tercero; un Tercero siempre factura tipo Otro
         wrap.querySelector('.clf-fiscal').hidden = !TIPOS_FISCALES.includes(e.target.value);
         wrap.querySelector('.clf-tf').hidden = e.target.value === 'Tercero';
+        wrap.querySelector('.clf-comf').hidden = e.target.value !== 'Intermediario';
       });
 
       wrap.querySelector('.clf-cancelar').addEventListener('click', () => activarTabCliente('consultar'));
@@ -15852,6 +15879,7 @@
           const plazoRaw = wrap.querySelector('.clf-plazo').value.trim();
           payload.razon_social = wrap.querySelector('.clf-razon').value.trim(); payload.rfc = wrap.querySelector('.clf-rfc').value.trim(); payload.plazo_pago_dias = plazoRaw === '' ? null : Number(plazoRaw);
           if(tipoCliente !== 'Tercero') payload.tipo_factura_default = wrap.querySelector('.clf-tfact').value;
+          if(tipoCliente === 'Intermediario'){ const cr = wrap.querySelector('.clf-com').value.trim(); payload.comision_intermediario_pct = cr === '' ? null : Number(cr); }
         }
         const clfLogoMostrar = document.getElementById('clfLogoMostrar');
         if(clfLogoMostrar) payload.mostrar_logo = clfLogoMostrar.checked;
@@ -15864,7 +15892,7 @@
           cargarKpis();
           // Cliente nuevo: se queda en Modificar para agregarle contactos de
           // inmediato, sin tener que volver a buscarlo en la tabla.
-          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente, mostrar_logo: payload.mostrar_logo !== false, razon_social: payload.razon_social || null, rfc: payload.rfc || null, plazo_pago_dias: payload.plazo_pago_dias == null ? null : payload.plazo_pago_dias, tipo_factura_default: payload.tipo_factura_default || null });
+          abrirModificarCliente({ id, nombre, codigo, notas, cliente_desde: payload.cliente_desde, tipo_cliente: tipoCliente, mostrar_logo: payload.mostrar_logo !== false, razon_social: payload.razon_social || null, rfc: payload.rfc || null, plazo_pago_dias: payload.plazo_pago_dias == null ? null : payload.plazo_pago_dias, tipo_factura_default: payload.tipo_factura_default || null, comision_intermediario_pct: payload.comision_intermediario_pct == null ? null : payload.comision_intermediario_pct });
         } catch(e){ toast('No se pudo guardar: ' + e.message, false); }
       });
     }

@@ -52,7 +52,7 @@ module.exports = async function (context, req) {
     const pool = await getPool();
     const extra = Object.keys(fiscal.campos); // solo se tocan los datos fiscales que vienen en el cuerpo (a un Prospecto o Indirecto no se le borran al cambiarle el tipo)
     const req = pool.request();
-    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : sql.NVarChar, fiscal.campos[k]);
+    for (const k of extra) req.input(k, k === "plazo_pago_dias" ? sql.Int : k === "comision_intermediario_pct" ? sql.Decimal(5, 2) : sql.NVarChar, fiscal.campos[k]);
     const result = await req
       .input("id", sql.Int, id)
       .input("nombre", sql.NVarChar, nombre)

@@ -2040,7 +2040,8 @@
   .cbz-tabla .cot-row-actions{ gap:4px; }
   .cbz-tabla .cbz-sem{ padding:3px 8px; gap:5px; }
   .cbz-tabla td.cbz-conc{ width:100%; max-width:0; min-width:110px; white-space:normal; }
-  .cbz-conc span{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:1.3; word-break:break-word; }
+  .cbz-conc .cbz-folio{ white-space:normal; overflow:visible; text-overflow:clip; word-break:break-all; font-family:var(--mono); font-size:10.5px; max-width:none; }
+  .cbz-conc > span:first-child{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:1.3; word-break:break-word; }
   .cbz-est{ display:inline-block; font-family:var(--mono); font-size:11px; border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; color:var(--text-dim); }
   .cbz-est.e-por-facturar{ color:var(--blue-bright); border-color:var(--blue-bright); }
   .cbz-est.e-pagada{ color:var(--good); border-color:var(--good); }
@@ -7865,7 +7866,7 @@
           '<td class="cbz-creada">' + fmtCreada(c.fecha_creacion) + '</td>' +
           '<td class="cbz-cli">' + clienteHtml(c) + '</td>' +
           '<td>' + (c.folio_factura ? '<b>' + esc(c.folio_factura) + '</b>' : '<span style="color:var(--text-faint)">—</span>') + '<span class="cbz-tipo" title="' + esc((c.tipo_factura || 'Sin clasificar') + (c.estrategia ? ' · ' + (ESTRATEGIA[c.estrategia] || c.estrategia) : ' · sin estrategia (tercero)')) + '">' + esc((c.tipo_factura || 'Sin tipo') + (c.estrategia === 'abiertos' ? ' · Abiertos' : '')) + '</span></td>' +
-          '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span>' + comisionTag(c) + '</td>' +
+          '<td class="cbz-conc"><span title="' + esc(c.concepto) + '">' + esc(c.concepto) + '</span>' + (c.cotizacion_folio ? '<span class="cbz-sub cbz-folio" title="Folio de la cotización">' + esc(c.cotizacion_folio) + '</span>' : '') + comisionTag(c) + '</td>' +
           '<td class="cbz-num">' + (porDefinir ? '<span style="color:var(--text-faint)">Por definir</span>' : dinero(c.total)) + (parcial ? '<span class="cbz-sub">Saldo ' + dinero(c.saldo) + '</span>' : '') + '</td>' +
           '<td>' + venceHtml(c) + '</td>' +
           '<td>' + estatusHtml(c) + '</td>' +

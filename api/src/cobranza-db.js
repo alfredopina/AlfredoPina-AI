@@ -154,7 +154,7 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
   const ya = await nuevaRequest().input("id", sql.Int, cotizacionId).query("SELECT TOP 1 id FROM CuentaPorCobrar WHERE cotizacion_id = @id");
   if (ya.recordset.length) return { creada: false, id: ya.recordset[0].id };
   const r = await nuevaRequest().input("id", sql.Int, cotizacionId).query(
-    "SELECT id, folio, cliente_id, herramienta, precio_final FROM Cotizacion WHERE id = @id"
+    "SELECT id, folio, cliente_id, herramienta, precio_final, temario_nombre, temario_tipo FROM Cotizacion WHERE id = @id"
   );
   if (!r.recordset.length) return { creada: false, id: null };
   const cot = r.recordset[0];
@@ -164,7 +164,8 @@ async function crearCuentaDeCotizacion(nuevaRequest, cotizacionId) {
   const com = ic.recordset.length ? C.aplicarComision(cot.precio_final, ic.recordset[0].comision_intermediario_pct) : null;
   const montos = C.desglosarMonto({ subtotal: com ? com.neto : cot.precio_final, tipo_factura: def.tipo_factura });
   const extraComision = com ? { comision_pct: com.pct, comision_base: com.base, comision_revisada: false, notas: C.notaComision(ic.recordset[0].nombre, com) } : {};
-  const concepto = `Cotización ${cot.folio} — ${cot.herramienta}`.slice(0, 300);
+  // el concepto es el NOMBRE del curso o proyecto (se entiende de un vistazo); el folio de la cotización va aparte, como subtítulo (Cobranza lo trae por su liga)
+  const concepto = (String(cot.temario_nombre || "").trim() || (cot.temario_tipo === "consultoria" ? "Proyecto de consultoría" : "Programa personalizado")).slice(0, 300);
   const id = await insertarCuenta(nuevaRequest, { cliente_id: cot.cliente_id, cotizacion_id: cot.id, origen: "Automática", estrategia: def.tipo_factura === "Otro" ? null : "empresas", concepto, ...def, ...montos, ...extraComision, estatus: "Por facturar" });
   return { creada: true, id };
 }

@@ -178,6 +178,25 @@ function fabrica(handler) {
     assert.strictEqual(ins.params.origen, "Automática");
     assert.strictEqual(ins.params.estatus, "Por facturar");
     assert.strictEqual(ins.params.cotizacion_id, 7);
+    assert.strictEqual(ins.params.concepto, "Programa personalizado", "sin nombre de programa: título genérico, no el folio");
+  });
+  await checkAsync("el concepto de la cuenta es el nombre del curso (el folio no va en el concepto)", async () => {
+    const f = fabrica((t) => {
+      if (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar")) return [];
+      if (t.includes("FROM Cotizacion")) return [{ id: 7, folio: "AP26-ACM-EXCEL-01", cliente_id: 3, herramienta: "excel", precio_final: 10000, temario_nombre: "Excel Intermedio Avanzado", temario_tipo: "estandar" }];
+      if (t.includes("INSERT INTO CuentaPorCobrar")) return [{ id: 58 }];
+      return [];
+    });
+    await DB.crearCuentaDeCotizacion(f.nuevaRequest, 7);
+    assert.strictEqual(f.hubo("INSERT INTO CuentaPorCobrar")[0].params.concepto, "Excel Intermedio Avanzado");
+    const g = fabrica((t) => {
+      if (t.includes("SELECT TOP 1 id FROM CuentaPorCobrar")) return [];
+      if (t.includes("FROM Cotizacion")) return [{ id: 9, folio: "F", cliente_id: 3, herramienta: "powerbi", precio_final: 5000, temario_nombre: null, temario_tipo: "consultoria" }];
+      if (t.includes("INSERT INTO CuentaPorCobrar")) return [{ id: 59 }];
+      return [];
+    });
+    await DB.crearCuentaDeCotizacion(g.nuevaRequest, 9);
+    assert.strictEqual(g.hubo("INSERT INTO CuentaPorCobrar")[0].params.concepto, "Proyecto de consultoría");
   });
   // ── comisión de intermediario (Capacitanet 20 %) ──
   await checkAsync("cotización a un intermediario CON comisión: la cuenta nace con el subtotal NETO, su porcentaje, el monto cotizado y la nota para Viri", async () => {

@@ -358,14 +358,14 @@
     $('vEval').innerHTML = `
       <div class="ev aprobado ${aprobado ? 'es' : ''}">${aprobado ? '<span class="ev-tag">Este diploma</span>' : ''}
         <div class="ev-ico">${ICO.star}</div><h4>Aprobado</h4>
-        <p>Demostró dominio del curso: <b>calificación final de 80 o más</b>, combinando su proyecto aplicado y su asistencia.</p></div>
+        <p>Demostró dominio del curso: <b>80 % o más de asistencia</b> y <b>80 o más en su proyecto aplicado</b>.</p></div>
       <div class="ev participo ${!aprobado ? 'es' : ''}">${!aprobado ? '<span class="ev-tag">Este diploma</span>' : ''}
         <div class="ev-ico">${ICO.hand}</div><h4>Participó</h4>
-        <p>Cursó el programa con <b>80 % o más de asistencia</b>, aunque su calificación final no alcanzó el nivel de aprobado.</p></div>
+        <p>Cumplió una parte del programa: <b>80 % o más de asistencia</b> o <b>80 o más en su proyecto aplicado</b>, pero no ambas.</p></div>
       <div class="ev metodo"><div class="ev-ico">${ICO.rule}</div><h4>Método de evaluación</h4>
-        <p>La calificación se forma con un <b>proyecto aplicado</b> a un caso real y la <b>asistencia</b>. Se pueden sumar puntos extra por participación.</p>
-        <div class="barra"><i style="width:80%;background-color:var(--blue)"></i><i style="width:20%;background-color:var(--teal)"></i></div>
-        <div class="barra-leyenda"><span>80 % Proyecto</span><span>20 % Asistencia</span></div></div>`;
+        <p>Se evalúan dos cosas: un <b>proyecto aplicado</b> a un caso real y la <b>asistencia</b>. Se pueden sumar puntos extra por participación al proyecto.</p>
+        <div class="barra"><i style="width:50%;background-color:var(--blue)"></i><i style="width:50%;background-color:var(--teal)"></i></div>
+        <div class="barra-leyenda"><span>Proyecto 80 o más</span><span>Asistencia 80 % o más</span></div></div>`;
 
     // link de verificación: con el QR (código) se comparte el link del código;
     // si se llegó tecleando el folio se comparte el del folio

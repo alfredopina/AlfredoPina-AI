@@ -103,6 +103,7 @@ Mejor estrategia comercial; implica **muchos cambios, hay que hacerlo bien y por
 - **Acceso de Viridiana:** hoy es admin completa; cuando use facturación y cobranza, decidir qué puede ver y hacer (roles) y si hace falta una bitácora de quién cambia qué. Hoy todo depende de Alfredo (riesgo conocido y aceptado; cambiará cuando haya asistentes).
 - **Plan de caja de 60 días** (cuentas por cobrar y cotizaciones abiertas con fecha de seguimiento): prioridad de negocio; las cifras van en una hoja privada.
 - **Vigencias:** mantener `VIGENCIAS.md` al día y llenar sus filas pendientes (dominios, Microsoft 365, Google, Dropbox, certificaciones).
+- **Calificaciones: regla de resultado nueva (2026-11-07, detalle en `docs/diplomas-calificaciones.md`):** Aprobado exige 80 % de asistencia **y** 80 de proyecto (los puntos suman al proyecto); con solo una de las dos es Participó. **Pendiente de Alfredo:** correr `sql/consultas/calificaciones-cambio-de-regla.sql` (solo lectura) para ver qué grupos ya cargados cambiarían y decidir cuáles recargar; los diplomas ya emitidos no cambian solos.
 - **Menores:** borrar el grupo de recursos vacío `LifeZen` en Azure; probar el botón "Agregar a LinkedIn" con un diploma real, portada de la página y sumar a Viridiana.
 
 ## Diseño pendiente: cursos abiertos

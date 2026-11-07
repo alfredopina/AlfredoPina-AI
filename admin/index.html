@@ -5714,7 +5714,7 @@
                       <th title="Sesiones que tuvo el curso — el mismo número para todo el grupo (entero)">Frecuencias <span class="dip-req">*</span></th>
                       <th title="Calificación porcentual del proyecto, de 0 a 100">Proyecto % <span class="dip-req">*</span></th>
                       <th title="Automática: 80% Proyecto + 20% asistencia + Puntos. Se muestra topada a 100; '100+' = la pasó con puntos extra.">Calificación</th>
-                      <th title="Automático: Aprobado con 80 o más de calificación; si no, Participó con 80% o más de asistencia; si no, No Aprobado.">Resultado</th>
+                      <th title="Automático: Aprobado con 80% o más de asistencia y 80 o más de proyecto (los puntos extra suman al proyecto); Participó si cumple solo una de las dos; No Aprobado si ninguna.">Resultado</th>
                       <th title="Se incluye en el reporte del cliente">Notas</th>
                       <th></th>
                     </tr>
@@ -12472,8 +12472,8 @@
   // Reglas (las que manda es api/src/calificaciones-calc.js — esto solo las
   // repite para mostrarlas en vivo; mantener en sincronía a mano):
   //   Calificación = 80% Proyecto + 20% (Asistencias/Frecuencias) + Puntos
-  //   Aprobado si Calificación >= 80; si no, Participó si asistencia >= 80%;
-  //   si no, No Aprobado. La calificación se muestra topada a 100 ("100+" si
+  //   Aprobado si Proyecto+Puntos >= 80 Y asistencia >= 80%; Participó si cumple solo
+  //   una de las dos; No Aprobado si ninguna (regla del 2026-11-07). La calificación se muestra topada a 100 ("100+" si
   //   la pasa con puntos extra). Semáforo de calificación (Resultados, no del
   //   grid de captura): verde >=80 · ámbar <80 · rojo exactamente 0 (pedido
   //   de Alfredo — 0 es "sin evidencia", distinto de "reprobó con esfuerzo").
@@ -12488,7 +12488,7 @@
     // lista (lo que más urge calificar primero)
     const FASES_CALIFICABLES = ['Calificaciones', 'Proyecto', 'En curso', 'Diplomas'];
     const FASES_CIERRE = ['Proyecto', 'Calificaciones', 'Diplomas'];
-    const PESO_PROYECTO = 80, PESO_ASISTENCIA = 20, UMBRAL_APROBADO = 80, UMBRAL_ASISTENCIA = 80;
+    const PESO_PROYECTO = 80, PESO_ASISTENCIA = 20, UMBRAL_APROBADO = 80, UMBRAL_PROYECTO = 80, UMBRAL_ASISTENCIA = 80;
     const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const MAX_NOTAS = 500;
     const MAX_NOTA_GENERAL = 2000;
@@ -12584,7 +12584,7 @@
       const topada = calif > 100 ? 100 : calif;
       const cls = calif === 0 ? 'hot' : topada >= UMBRAL_APROBADO ? 'ok' : 'warn';
       const txt = calif > 100 ? '100+' : (Number.isInteger(calif) ? String(calif) : calif.toFixed(1));
-      const ayuda = cls === 'hot' ? 'Sin evidencia (0)' : cls === 'ok' ? 'Aprobado (80 o más)' : 'Por debajo de 80';
+      const ayuda = cls === 'hot' ? 'Sin evidencia (0)' : cls === 'ok' ? 'Calificación de 80 o más' : 'Calificación por debajo de 80';
       return `<span class="cot-semaforo ${cls}" title="${ayuda}"><span class="cot-semaforo-dot"></span>${txt}</span>`;
     }
 
@@ -12762,8 +12762,11 @@
     function calcular({ proyecto, asistencias, frecuencias, puntos }){
       const asistPct10 = Math.round((1000 * asistencias) / frecuencias);
       const calif10 = Math.round((PESO_PROYECTO * 10 * proyecto) / 100 + (PESO_ASISTENCIA * 10 * asistencias) / frecuencias + 10 * (puntos || 0));
-      const resultado = calif10 >= UMBRAL_APROBADO * 10 ? 'Aprobado' : (asistPct10 >= UMBRAL_ASISTENCIA * 10 ? 'Participó' : 'No Aprobado');
-      return { calificacion: calif10 / 10, asistenciaPct: asistPct10 / 10, resultado, excede100: calif10 > 1000 };
+      // el resultado ya no sale de la calificación: son dos requisitos independientes (los puntos extra suman al proyecto, nunca a la asistencia)
+      const cumpleProyecto = Math.round(10 * ((proyecto || 0) + (puntos || 0))) >= UMBRAL_PROYECTO * 10;
+      const cumpleAsistencia = asistPct10 >= UMBRAL_ASISTENCIA * 10;
+      const resultado = cumpleProyecto && cumpleAsistencia ? 'Aprobado' : (cumpleProyecto || cumpleAsistencia ? 'Participó' : 'No Aprobado');
+      return { calificacion: calif10 / 10, asistenciaPct: asistPct10 / 10, resultado, cumpleProyecto, cumpleAsistencia, excede100: calif10 > 1000 };
     }
     // analiza una fila del grid: errores por columna + valores + cálculo
     function analizarFila(f){
@@ -12826,7 +12829,8 @@
       const c = calculo.calificacion;
       cal.textContent = calculo.excede100 ? '100+' : (Number.isInteger(c) ? String(c) : c.toFixed(1));
       cal.title = calculo.excede100 ? `Calificación real: ${c} (los puntos extra la pasan de 100)` : '';
-      res.innerHTML = `${escapeHtml(calculo.resultado)}<small>asist. ${calculo.asistenciaPct}%</small>`;
+      const falta = calculo.resultado !== 'Participó' ? '' : (calculo.cumpleAsistencia ? ' · falta proyecto' : ' · falta asistencia');
+      res.innerHTML = `${escapeHtml(calculo.resultado)}<small>asist. ${calculo.asistenciaPct}%${falta}</small>`;
     }
     function refrescarFila(tr){
       const f = leerCeldas(tr);
@@ -13236,14 +13240,14 @@
             <span class="cli-info-step-num">2</span>
             <div class="cli-info-step-body">
               <strong>Resultado</strong> se calcula solo, no se captura
-              <span class="cli-info-step-sub">Aprobado con 80 o más de calificación. Si no, Participó con 80% o más de asistencia. Si no, No Aprobado. Se puede aprobar solo con el proyecto, sin asistencia mínima.</span>
+              <span class="cli-info-step-sub">Aprobado con 80% o más de asistencia y 80 o más de proyecto (los puntos extra suman al proyecto, no a la asistencia). Participó si cumple solo una de las dos. No Aprobado si no cumple ninguna.</span>
             </div>
           </li>
         </ol>
         <div class="cli-info-pop-foot">
           <div class="cli-info-pop-foot-title">Semáforo de calificación (Resultados)</div>
           <div class="cli-info-semaforo-legend">
-            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>80+</span><span>Aprobado</span></div>
+            <div class="cli-info-semaforo-row"><span class="cot-semaforo ok"><span class="cot-semaforo-dot"></span>80+</span><span>Calificación de 80 o más</span></div>
             <div class="cli-info-semaforo-row"><span class="cot-semaforo warn"><span class="cot-semaforo-dot"></span>1–79</span><span>Por debajo de 80</span></div>
             <div class="cli-info-semaforo-row"><span class="cot-semaforo hot"><span class="cot-semaforo-dot"></span>0</span><span>Sin evidencia</span></div>
           </div>
@@ -13809,7 +13813,7 @@
       const topada = calif > 100 ? 100 : calif;
       const cls = calif === 0 ? 'hot' : topada >= UMBRAL_APROBADO ? 'ok' : 'warn';
       const txt = calif > 100 ? '100+' : (Number.isInteger(calif) ? String(calif) : calif.toFixed(1));
-      const ayuda = cls === 'hot' ? 'Sin evidencia (0)' : cls === 'ok' ? 'Aprobado (80 o más)' : 'Por debajo de 80';
+      const ayuda = cls === 'hot' ? 'Sin evidencia (0)' : cls === 'ok' ? 'Calificación de 80 o más' : 'Calificación por debajo de 80';
       return `<span class="cot-semaforo ${cls}" title="${ayuda}"><span class="cot-semaforo-dot"></span>${txt}</span>`;
     }
     function herramientasArr(json){ try { return JSON.parse(json || '[]'); } catch(e){ return []; } }

@@ -50,7 +50,7 @@ Panel nuevo en el sidebar, grupo FORMATOS, con el orden **Diagnósticos → Cali
 **Reglas de evaluación (2026-09-21, `sql/023` + `api/src/calificaciones-calc.js`, con pruebas):** Calificaciones dejó de ser solo insumo del diploma — es la base del **reporte de evaluación al cliente**. Columnas del grid (= orden del Excel de Alfredo): Nombre · Correo · Puntos · Asistencias · Frecuencias · Proyecto % · Calificación (auto) · Resultado (auto) · Notas.
 - **Puntos** = extra que se suma a la calificación (decimal, vacío = 0, máx. 100 por sanidad). **Asistencias** y **Frecuencias** = enteros: sesiones a las que asistió / sesiones que tuvo el curso (igual para todo el grupo; `Grupo.sesiones` es texto libre y cambia en el 90% de los casos, por eso NO se precarga de ahí — se valida que todas las filas coincidan y que Asistencias ≤ Frecuencias). **Proyecto** = calificación porcentual 0-100 (una fracción sin "%" como 0.85 se rechaza).
 - **Calificación = 80% Proyecto + 20% (Asistencias/Frecuencias) + Puntos.** Se guarda SIN topar (para poder marcar **"100+"** a quien la pasa con puntos extra); se muestra topada a 100 y los promedios la topan.
-- **Resultado se calcula, ya no se captura:** Aprobado si Calificación ≥ 80; si no, Participó si asistencia ≥ 80%; si no, No Aprobado. Umbrales **inclusivos** (con proyecto 75 y asistencia completa da exactamente 80.0 — caso común, por eso importa). Se compara en décimas ya redondeadas a 1 decimal (mismo criterio que el semáforo de Encuestas). **Se puede aprobar solo con el proyecto** (sin asistencia mínima) — decisión de Alfredo, "no debería suceder mucho pero déjalo así". Sin override manual por ahora.
+- **Resultado se calcula, ya no se captura** *(regla reemplazada el 2026-11-07, ver la sección de abajo; esto era lo vigente del 2026-09-21)*: Aprobado si Calificación ≥ 80; si no, Participó si asistencia ≥ 80%; si no, No Aprobado. Umbrales **inclusivos** (con proyecto 75 y asistencia completa da exactamente 80.0 — caso común, por eso importa). Se compara en décimas ya redondeadas a 1 decimal (mismo criterio que el semáforo de Encuestas). **Se puede aprobar solo con el proyecto** (sin asistencia mínima) — decisión de Alfredo, "no debería suceder mucho pero déjalo así". Sin override manual por ahora.
 - **Se guardan las entradas Y la calificación/resultado calculados al cargar** (foto): un cambio futuro de reglas no reescribe grupos cerrados ni diplomas emitidos. El grid repite el cálculo en el navegador solo para mostrarlo en vivo; el servidor manda (mantener ambos en sincronía a mano).
 - **Pegado desde Excel:** acepta las 9 columnas (las 2 automáticas se ignoran) o solo las 7 de captura.
 - **Correo** opcional, vive en `Alumno.correo` (es de la persona, se actualiza al recargar; nunca se borra si llega vacío). **Notas** (≤500) van en el reporte del cliente. "Faltas" = Frecuencias − Asistencias, no necesita columna.
@@ -103,6 +103,23 @@ Panel nuevo en el sidebar, grupo FORMATOS, con el orden **Diagnósticos → Cali
 - **Sin emojis en el diseño del sitio** — iconografía SVG de línea (stroke, no relleno).
 - **Sin subtítulos largos bajo títulos de sección** — patrón: eyebrow corto + título con gancho, directo al contenido.
 - Estilo general: dark/tech, dinámico y moderno, dashboards animados. Tono de marca (copy): directo, práctico, con humor/sarcasmo ligero, sin caer en genérico motivacional.
+
+## Regla de resultado: asistencia mínima para aprobar (2026-11-07)
+
+**Por qué:** con la regla de septiembre, un alumno con 100 en el proyecto y casi nula asistencia salía **Aprobado** (80 % de la calificación ya es el proyecto). Alfredo lo había decidido a propósito ("no debería suceder mucho pero déjalo así"), pero le pasó con 2 alumnos que faltaron a ~70 % de las clases y se presentaron a la revisión de proyectos: un diploma de "Aprobado" con esa asistencia le resta credibilidad frente a RH.
+
+**Regla vigente** (`api/src/calificaciones-calc.js`, espejo en el grid del admin; la prueba `tools/prueba-calificaciones-espejo.js` compara los dos):
+- **Cumple proyecto** = Proyecto + Puntos ≥ 80. **Cumple asistencia** = Asistencias ÷ Frecuencias ≥ 80 %. Umbrales inclusivos, en décimas ya redondeadas.
+- **Aprobado** = cumple las dos · **Participó** = cumple solo una (asistió sin llegar a 80 en el proyecto, *o* proyecto ≥ 80 sin llegar al 80 % de asistencia) · **No Aprobado** = ninguna.
+- **Puntos extra (opción B):** suman al **proyecto**, nunca a la asistencia. Proyecto 76 + 4 puntos = 80 cumple; 100 + 50 puntos con 30 % de asistencia sigue en Participó. Siguen contando para la calificación mostrada ("100+").
+- **La Calificación (80 % proyecto + 20 % asistencia + puntos) se conserva** como número que se muestra y para promedios y semáforo, pero **ya no decide el resultado**. Por eso un alumno puede tener calificación verde (≥ 80) y resultado Participó; el grid dice en texto por qué ("falta proyecto" / "falta asistencia").
+- **Un solo "Participó"** para los dos casos (no se creó un cuarto estado: habría que cambiar diplomas, reportes y verificación pública). La causa se ve en asistencia y proyecto del alumno y en Notas.
+- **Cambia a propósito:** proyecto 75-79.9 con asistencia completa ya **no** aprueba (antes sumaba 80 de calificación y pasaba); y se acabó aprobar solo con el proyecto.
+- El proyecto es obligatorio en el grid: a quien no entregó se le captura **0**.
+
+**Textos actualizados:** ayudas del grid de Calificaciones (admin), "Cómo se calcula" de `reporte-resultados.html` y las tarjetas Aprobado / Participó de `verificar.html` (la barra de método ya no dice 80/20: muestra los dos requisitos).
+
+**Datos ya guardados:** el resultado es una **foto** que se guarda al cargar las calificaciones del grupo (sql/023), así que **los grupos ya cargados y los diplomas ya emitidos conservan el resultado de la regla vieja** hasta que se recargue el grupo. `sql/consultas/calificaciones-cambio-de-regla.sql` (solo lectura, sin probar contra la base real) lista a quién le cambiaría. Ojo: los reportes de resultados ya generados explican hoy la regla nueva aunque sus cifras se calcularon con la vieja; recargar el grupo los regenera.
 
 ## Intermediarios (logo + Socio Comercial en Reportes) e Instructores reacomodado (2026-09-29)
 

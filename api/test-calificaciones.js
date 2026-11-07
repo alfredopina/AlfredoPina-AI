@@ -22,7 +22,43 @@ const ev = (proyecto, asistencias, frecuencias, puntos = 0) => calcularEvaluacio
 }
 {
   const r = ev(75, 5, 5);
-  check("proyecto 75 + asistencia completa = 80.0 exacto → Aprobado (umbral inclusivo)", r.calificacion === 80 && r.resultado === "Aprobado");
+  check("proyecto 75 + asistencia completa = calificación 80.0, pero el proyecto no llega a 80 → Participó (regla 2026-11-07)", r.calificacion === 80 && r.resultado === "Participó" && !r.cumpleProyecto && r.cumpleAsistencia);
+}
+{
+  const r = ev(80, 4, 5);
+  check("proyecto exactamente 80 y asistencia exactamente 80% → Aprobado (umbrales inclusivos)", r.resultado === "Aprobado" && r.cumpleProyecto && r.cumpleAsistencia);
+}
+{
+  const r = ev(100, 2, 7);
+  check("el caso real: proyecto 100 con ~29% de asistencia (faltó a casi todo) → Participó, no Aprobado", r.calificacion === 85.7 && r.resultado === "Participó" && r.cumpleProyecto && !r.cumpleAsistencia);
+}
+{
+  const r = ev(100, 3, 10);
+  check("proyecto 100 con 30% de asistencia → Participó (el proyecto solo ya no aprueba)", r.resultado === "Participó");
+}
+{
+  const r = ev(76, 5, 5, 4);
+  check("opción B: proyecto 76 + 4 puntos = 80 cumple el proyecto → Aprobado con asistencia completa", r.resultado === "Aprobado" && r.cumpleProyecto);
+}
+{
+  const r = ev(76, 5, 5, 3.9);
+  check("proyecto 76 + 3.9 puntos = 79.9 NO cumple el proyecto → Participó", r.resultado === "Participó" && !r.cumpleProyecto);
+}
+{
+  const r = ev(79.9, 5, 5, 0.1);
+  check("79.9 + 0.1 puntos = 80.0 exacto (sin error de coma flotante) → Aprobado", r.resultado === "Aprobado");
+}
+{
+  const r = ev(100, 3, 10, 50);
+  check("los puntos extra NUNCA compensan la asistencia: 100 + 50 puntos con 30% → Participó", r.resultado === "Participó" && !r.cumpleAsistencia);
+}
+{
+  const r = ev(0, 5, 5);
+  check("asistió todo pero no entregó proyecto (capturado como 0) → Participó", r.resultado === "Participó" && r.cumpleAsistencia && !r.cumpleProyecto);
+}
+{
+  const r = ev(70, 2, 5);
+  check("ni asistencia (40%) ni proyecto (70) → No Aprobado", r.resultado === "No Aprobado");
 }
 {
   const r = ev(74, 5, 5);
@@ -38,7 +74,7 @@ const ev = (proyecto, asistencias, frecuencias, puntos = 0) => calcularEvaluacio
 }
 {
   const r = ev(95, 3, 5);
-  check("puede aprobar solo con el proyecto: 95 con 60% de asistencia = 88 → Aprobado", r.calificacion === 88 && r.resultado === "Aprobado");
+  check("ya NO se aprueba solo con el proyecto: 95 con 60% de asistencia = calificación 88 → Participó", r.calificacion === 88 && r.resultado === "Participó" && !r.cumpleAsistencia);
 }
 {
   const r = ev(100, 5, 5, 5);

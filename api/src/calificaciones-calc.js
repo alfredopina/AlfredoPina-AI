@@ -5,19 +5,24 @@
 // ver admin/index.html → PANEL CALIFICACIONES); esta versión es la que manda.
 //
 //   Calificación = 80% Proyecto + 20% (Asistencias / Frecuencias) + Puntos
-//   Aprobado     : Calificación >= 80
-//   Participó    : no aprobó pero asistencia >= 80%
-//   No Aprobado  : no aprobó y asistencia < 80%
-// Un alumno puede aprobar solo con el proyecto (decisión de Alfredo: no hay
-// asistencia mínima para aprobar). Los umbrales son inclusivos ("80 o más").
+//     (solo se MUESTRA y alimenta promedios y el semáforo; ya no decide el resultado)
+// El RESULTADO depende de dos cosas independientes (regla de Alfredo, 2026-11-07):
+//   cumple proyecto    : Proyecto + Puntos >= 80   (los puntos extra cuentan como bono al proyecto)
+//   cumple asistencia  : Asistencias / Frecuencias >= 80%
+//   Aprobado     : cumple las dos
+//   Participó    : cumple solo una (asistió >= 80% sin proyecto, o proyecto >= 80 sin asistencia)
+//   No Aprobado  : no cumple ninguna
+// Los puntos nunca compensan la asistencia. Umbrales inclusivos ("80 o más").
+// Antes (2026-09-21) bastaba Calificación >= 80 y se podía aprobar solo con el proyecto.
 
 const RESULTADOS_VALIDOS = ["Aprobado", "Participó", "No Aprobado"];
 const FASES_CALIFICABLES = ["En curso", "Proyecto", "Calificaciones", "Diplomas"];
 
 const PESO_PROYECTO = 80; // % de la calificación
 const PESO_ASISTENCIA = 20;
-const UMBRAL_APROBADO = 80; // calificación mínima para Aprobado
-const UMBRAL_ASISTENCIA = 80; // % de asistencia mínimo para Participó
+const UMBRAL_APROBADO = 80; // calificación a partir de la cual el semáforo/reportes la ven "verde" (ya NO decide el resultado)
+const UMBRAL_PROYECTO = 80; // Proyecto + Puntos mínimo para cumplir el proyecto
+const UMBRAL_ASISTENCIA = 80; // % de asistencia mínimo para cumplir la asistencia
 
 // Los nombres de alumnos se guardan SIEMPRE en MAYÚSCULAS (pedido de Alfredo:
 // diplomas y reportes se ven parejos sin importar cómo lo tecleó el cliente
@@ -34,14 +39,16 @@ function calcularEvaluacion({ proyecto, asistencias, frecuencias, puntos }) {
   const calif10 = Math.round(
     (PESO_PROYECTO * 10 * proyecto) / 100 + (PESO_ASISTENCIA * 10 * asistencias) / frecuencias + 10 * (puntos || 0)
   );
-  let resultado;
-  if (calif10 >= UMBRAL_APROBADO * 10) resultado = "Aprobado";
-  else if (asistPct10 >= UMBRAL_ASISTENCIA * 10) resultado = "Participó";
-  else resultado = "No Aprobado";
+  const proyPuntos10 = Math.round(10 * ((proyecto || 0) + (puntos || 0)));
+  const cumpleProyecto = proyPuntos10 >= UMBRAL_PROYECTO * 10;
+  const cumpleAsistencia = asistPct10 >= UMBRAL_ASISTENCIA * 10;
+  const resultado = cumpleProyecto && cumpleAsistencia ? "Aprobado" : cumpleProyecto || cumpleAsistencia ? "Participó" : "No Aprobado";
   return {
     calificacion: calif10 / 10, // sin topar: puede pasar de 100 con puntos extra
     asistenciaPct: asistPct10 / 10,
     resultado,
+    cumpleProyecto,
+    cumpleAsistencia,
     excede100: calif10 > 1000,
   };
 }

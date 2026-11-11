@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Curso abierto — Alfredo Piña</title>
-<meta name="description" content="Curso abierto con fecha fija, grupos reducidos y diploma verificable.">
+<title>Excel Intermedio Avanzado — Curso en línea (20 hr) | Alfredo Piña</title>
+<meta name="description" content="Aprende Power Query, tablas dinámicas, dashboards, funciones 365 y macros con Copilot. Curso abierto de Excel en línea, 20 horas, con diploma verificable.">
 <!--layout:head-->
 <link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/favicon-32.png">
@@ -19,11 +19,11 @@
 <script src="/assets/js/nav.js" defer></script>
 <script src="/assets/js/sitio.js" defer></script>
 <!--/layout:head-->
-<link rel="canonical" href="https://www.alfredopina.ai/cursos-abiertos" id="coCanon">
+<link rel="canonical" href="https://www.alfredopina.ai/cursos-abiertos/excel-intermedio-avanzado">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.alfredopina.ai/cursos-abiertos" id="coOgUrl">
-<meta property="og:title" content="Curso abierto — Alfredo Piña" id="coOgTitle">
-<meta property="og:description" content="Curso abierto con fecha fija, grupos reducidos y diploma verificable." id="coOgDesc">
+<meta property="og:url" content="https://www.alfredopina.ai/cursos-abiertos/excel-intermedio-avanzado">
+<meta property="og:title" content="Excel Intermedio Avanzado — Curso en línea (20 hr) | Alfredo Piña">
+<meta property="og:description" content="Aprende Power Query, tablas dinámicas, dashboards, funciones 365 y macros con Copilot. Curso abierto de Excel en línea, 20 horas, con diploma verificable.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -223,11 +223,11 @@ dialog.ld-dlg h3{ font:600 20px var(--display); }
 dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-size:14.5px; }
 
 .ld-estado{ padding:90px 0; text-align:center; position:relative; z-index:1; }
-.ld-estado h1{ font:600 clamp(26px,4vw,38px) var(--display); }
+.ld-estado .ld-estado-t{ font:600 clamp(26px,4vw,38px) var(--display); }
 .ld-estado p{ color:var(--text-dim); margin:12px auto 22px; max-width:480px; line-height:1.6; }
 </style>
 </head>
-<body>
+<body data-herramienta="excel" data-programa="intermedio-avanzado" data-slug="excel-intermedio-avanzado">
 <a href="#contenido" class="skip-link">Saltar al contenido</a>
 <div class="grid-bg"></div>
 
@@ -268,21 +268,20 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
 
 <main id="contenido" class="ld">
 
-<div id="coCargando" class="ld-estado"><div class="wrap"><p>Cargando el curso…</p></div></div>
 
-<div id="coNo" class="ld-estado" hidden><div class="wrap"><h1>Este curso no está disponible</h1><p>Puede que ya no se imparta o que la dirección esté mal escrita.</p><a class="btn btn-primary" href="/cursos-abiertos">Ver todos los cursos abiertos</a></div></div>
+<div id="coNo" class="ld-estado" hidden><div class="wrap"><p class="ld-estado-t">Este curso no está disponible</p><p>Puede que ya no se imparta o que la dirección esté mal escrita.</p><a class="btn btn-primary" href="/cursos-abiertos">Ver todos los cursos abiertos</a></div></div>
 
-<div id="coPagina" hidden>
+<div id="coPagina">
 
-<div class="wrap ld-migas"><a href="/cursos-abiertos">Cursos Abiertos</a><span>/</span><b id="coMigaN" style="font-weight:500;color:var(--text-dim)"></b></div>
+<div class="wrap ld-migas"><a href="/cursos-abiertos">Cursos Abiertos</a><span>/</span><b id="coMigaN" style="font-weight:500;color:var(--text-dim)">Excel Intermedio Avanzado</b></div>
 
 <!-- 1. HERO -->
 <header class="ld-hero">
   <div class="wrap ld-hero-in">
     <div>
       <div class="ld-tool" id="ldTool"></div>
-      <h1 id="ldH1"></h1>
-      <p class="ld-gancho" id="ldGancho"></p>
+      <h1 id="ldH1">Excel <em>Intermedio Avanzado</em></h1>
+      <p class="ld-gancho" id="ldGancho">De datos regados en cinco archivos a un dashboard que se actualiza solo. Conecta, transforma, analiza y automatiza tus reportes.</p>
       <div class="ld-chips" id="ldChips"></div>
       <div class="ld-prox" id="ldProx"></div>
       <div class="ld-acciones">
@@ -452,9 +451,8 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
   })();
 
   // /cursos-abiertos/<herramienta>-<programa>  →  excel + intermedio-avanzado
-  const slug = decodeURIComponent((location.pathname.replace(/\/+$/, '').split('/').pop() || '')).toLowerCase();
-  const corte = slug.indexOf('-');
-  const herr = corte > 0 ? slug.slice(0, corte) : '', progId = corte > 0 ? slug.slice(corte + 1) : '';
+  const slug = document.body.dataset.slug || '';
+  const herr = document.body.dataset.herramienta || '', progId = document.body.dataset.programa || '';
   const FAQ_BASE = [['¿Qué pasa si el grupo no se abre?', 'Si no se alcanza el mínimo, te proponemos otra fecha o te devolvemos tu pago.'], ['¿Puede pagar mi empresa?', 'Sí. Al inscribirte elige «Mi empresa» y captura los datos de facturación.'], ['¿Qué pasa si falto a una sesión?', 'Avísanos y te decimos cómo ponerte al día.']];
   const BIO_BASE = 'Ingeniero Industrial. Instructor y consultor de Excel, Power BI, Power Platform e IA desde hace más de 15 años.';
 
@@ -466,7 +464,7 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
   const rangoDe = (ses) => { const a = ses[0].inicio, z = ses[ses.length - 1].inicio; return partes(a, { day: 'numeric' }).day + ' ' + mesC(a) + ' – ' + partes(z, { day: 'numeric' }).day + ' ' + mesC(z) + ' ' + partes(z, { year: 'numeric' }).year; };
   const estadoDe = (g, ahora) => { const libres = Math.max(0, g.cupo_total - (Number.isInteger(g.reservados) ? g.reservados : g.inscritos_confirmados + g.apartados_sin_pago)); const ses = g.sesiones || []; const futuro = ses.length && new Date(ses[0].inicio) > ahora; return { libres, futuro, lleno: libres <= 0, ultimos: libres > 0 && libres <= 3 }; };
 
-  function noDisponible(){ $('#coCargando').hidden = true; $('#coNo').hidden = false; document.title = 'Curso no disponible — Alfredo Piña'; const m = document.createElement('meta'); m.name = 'robots'; m.content = 'noindex'; document.head.appendChild(m); }
+  function noDisponible(){ $('#coPagina').hidden = true; $('#coNo').hidden = false; }
 
   async function iniciar(){
     if(!UI[herr] || !progId) return noDisponible();
@@ -488,17 +486,12 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
     // meta de la página (para Google y para compartir)
     const url = 'https://www.alfredopina.ai/cursos-abiertos/' + slug;
     const desc = (ex.gancho || prog.objetivo || '').slice(0, 200);
-    document.title = prog.nombre + ' — Curso abierto | Alfredo Piña';
-    $('meta[name=description]').content = desc; $('#coCanon').href = url; $('#coOgUrl').content = url;
-    $('#coOgTitle').content = prog.nombre + ' — Curso abierto | Alfredo Piña'; $('#coOgDesc').content = desc;
     document.documentElement.style.setProperty('--c', T.color); $('.ld').style.setProperty('--c', T.color);
 
     // hero
     $('#coMigaN').textContent = prog.nombre;
     $('#ldTool').innerHTML = T.icon + esc(T.nombre);
-    const partesNombre = prog.nombre.split(' '), ult = partesNombre.length > 2 ? 2 : 1;
-    $('#ldH1').innerHTML = esc(partesNombre.slice(0, partesNombre.length - ult).join(' ')) + ' <em>' + esc(partesNombre.slice(-ult).join(' ')) + '</em>';
-    $('#ldGancho').textContent = ex.gancho || (prog.objetivo || '').split('. ')[0];
+    if(!$('#ldGancho').textContent.trim()) $('#ldGancho').textContent = (prog.objetivo || '').split('. ')[0];
     const modo = prox && prox.modalidad === 'presencial' ? 'Presencial' : 'En línea';
     $('#ldChips').innerHTML = [['clock', prog.horas + ' horas'], ['bars', prog.nivelLabel], [modo === 'Presencial' ? 'pin' : 'monitor', modo], ['qr', 'Diploma verificable'], ['shield', 'DC-3']].map(([i, t]) => '<span class="ld-chip">' + ico(i) + esc(t) + '</span>').join('');
     if(proyectos[0] && proyectos[0].img){ $('#ldHeroImg').src = proyectos[0].img; $('#ldHeroImg').alt = 'Proyecto del curso: ' + proyectos[0].nombre; $('#ldFx').innerHTML = '=PROYECTO(<b>"' + esc(proyectos[0].nombre.split(' ').slice(0, 2).join(' ').replace(/ (de|del|la|el|y|&)$/i, '')) + '"</b>)'; }
@@ -574,7 +567,6 @@ dialog.ld-dlg p{ margin-top:10px; color:var(--text-dim); line-height:1.6; font-s
         offers: { '@type': 'Offer', price: g.precio_persona, priceCurrency: 'MXN', priceSpecification: { '@type': 'PriceSpecification', price: g.precio_persona, priceCurrency: 'MXN', valueAddedTaxIncluded: false }, availability: estadoDe(g, ahora).lleno ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url } })) };
     const s = document.createElement('script'); s.type = 'application/ld+json'; s.textContent = JSON.stringify(ld).replace(/</g, '\\u003c'); document.head.appendChild(s);
 
-    $('#coCargando').hidden = true; $('#coPagina').hidden = false;
     pintarIconos();
     movimiento();
   }

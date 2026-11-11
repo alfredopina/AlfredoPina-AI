@@ -25,8 +25,7 @@ const PAGES = {
   "index.html": { css: ["base", "cards", "home"], nav: { conoceme: "#" }, footer: "full", social: true },
   "in-company.html": { css: ["base", "cards", "in-company"], nav: { active: "cursos" }, footer: "full", social: true }, // centro de Cursos In Company (las 6 tarjetas)
   "recursos.html": { css: ["base", "cards", "recursos"], nav: { active: "recursos" }, footer: "full", social: true },
-  "cursos-abiertos.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true }, // visible en el menú; sigue con noindex y fuera del sitemap hasta el lanzamiento
-  "curso-abierto.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true },
+  "cursos-abiertos.html": { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true }, // visible en el menú, indexable y en el sitemap
   "agenda.html": { css: ["base", "agenda"], nav: { tag: "Agenda" }, footer: "full" },
   "diagnostico.html": { css: ["base", "diagnostico"], nav: { tag: "Diagnóstico" }, footer: "min" },
   "encuesta.html": { css: ["base", "encuesta"], nav: { tag: "Encuesta" }, footer: "min" },
@@ -35,6 +34,8 @@ const PAGES = {
 };
 // las 6 páginas por herramienta (/in-company/<slug>) las genera tools/build-in-company.js
 for (const h of HERRAMIENTAS) PAGES["in-company/" + h.slug + ".html"] = { css: ["base", "cursos"], nav: { active: "cursos" }, footer: "full", social: true };
+// las landings de cada curso abierto (/cursos-abiertos/<slug>) salen de assets/data/landings-abiertos.json y las genera tools/build-cursos-abiertos.js
+for (const slug of Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, "assets/data/landings-abiertos.json"), "utf8")))) PAGES["cursos-abiertos/" + slug + ".html"] = { css: ["base"], nav: { active: "abiertos" }, footer: "full", social: true };
 
 const CAFE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 2.5c0 1-1 1-1 2s1 1 1 2M12.5 2.5c0 1-1 1-1 2s1 1 1 2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const CAFE_BIG = CAFE.replace('viewBox', 'class="cafe-icon" viewBox').replace(' style="width:13px;height:13px;"', "").replace('stroke-width="1.8"', 'stroke-width="1.7"');

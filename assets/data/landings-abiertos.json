@@ -1,5 +1,13 @@
 {
   "excel-intermedio-avanzado": {
+    "herramienta": "excel",
+    "programa": "intermedio-avanzado",
+    "nombre": "Excel Intermedio Avanzado",
+    "h1": "Excel Intermedio Avanzado",
+    "titulo": "Excel Intermedio Avanzado — Curso en línea (20 hr) | Alfredo Piña",
+    "descripcion": "Aprende Power Query, tablas dinámicas, dashboards, funciones 365 y macros con Copilot. Curso abierto de Excel en línea, 20 horas, con diploma verificable.",
+    "horas": 20,
+    "modalidad": "en línea",
     "gancho": "De datos regados en cinco archivos a un dashboard que se actualiza solo. Conecta, transforma, analiza y automatiza tus reportes.",
     "requisitos": [
       "Excel 365 en tu computadora (no basta el celular ni la versión web).",

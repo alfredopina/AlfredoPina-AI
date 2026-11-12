@@ -39,8 +39,8 @@
       "rewrite": "/cursos-abiertos.html"
     },
     {
-      "route": "/cursos-abiertos/*",
-      "rewrite": "/curso-abierto.html"
+      "route": "/cursos-abiertos/excel-intermedio-avanzado",
+      "rewrite": "/cursos-abiertos/excel-intermedio-avanzado.html"
     },
     {
       "route": "/cursos",

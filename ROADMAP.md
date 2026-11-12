@@ -100,7 +100,6 @@ El negocio sostiene cinco pilares: **Vínculos y familia · Profesional · Espí
 **Estado al 2026-11-11** (el detalle vivo está en `docs/cursos-abiertos.md`; **es el frente de esta semana**). Construidos: el lado público (`/cursos-abiertos` con 3 Functions públicas, contador atómico de cupo y colas, y `tools/publicar-calendario.js`), SQL 048, el backend y la pantalla del admin, y la importación de la cola. **Lanzado en modo visible desde el 2026-11-03:** está en el menú, en el mapa del sitio y sin `noindex`. Hecha la landing del primer curso (Excel Intermedio Avanzado, `/cursos-abiertos/<curso>`). Las 4 decisiones de diseño (A a D: Cliente del grupo abierto, contador atómico de cupo, apartados vencidos y cuándo nace la cuenta por cobrar) estaban esperando respuesta el 2026-11-02; confirmar cuáles siguen abiertas.
 
 **Falta:**
-- **SEO de la landing de un curso abierto:** hoy su `canonical` apunta a `/cursos-abiertos` (la general) y su título es genérico ("Curso abierto — Alfredo Piña"), así que Google la trataría como duplicada. Debe apuntar a sí misma y tener título, descripción y datos para redes propios y escritos en el HTML (LinkedIn y Google no ejecutan JavaScript); mismo patrón que las páginas de `/in-company/<slug>`. Corregir antes de pedirle indexación.
 - Landings de **Power BI** e **IA** (no esta semana).
 - Historial de cursos impartidos en el sitio.
 - Correos de confirmación y recordatorios.

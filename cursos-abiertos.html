@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cursos Abiertos — Alfredo Piña</title>
-<meta name="description" content="Cursos abiertos con fecha fija en Excel, Power BI e IA aplicada para profesionistas y equipos de trabajo. Grupos reducidos, diploma verificable y constancia DC-3.">
+<title>Cursos Abiertos con fecha fija en Excel, Power BI e IA | Alfredo Piña</title>
+<meta name="description" content="Cursos abiertos en línea y presenciales con fecha fija, grupos reducidos y diploma verificable, para profesionistas y equipos de trabajo.">
 <!--layout:head-->
 <link rel="icon" type="image/svg+xml" href="/assets/img/brand/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/favicon-32.png">
@@ -22,8 +22,8 @@
 <link rel="canonical" href="https://www.alfredopina.ai/cursos-abiertos">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.alfredopina.ai/cursos-abiertos">
-<meta property="og:title" content="Cursos Abiertos — Alfredo Piña | Excel, Power BI e IA con fecha fija">
-<meta property="og:description" content="Aprende datos e IA aplicados a tu trabajo con fecha fija y grupos reducidos. Para profesionistas y equipos de trabajo.">
+<meta property="og:title" content="Cursos Abiertos con fecha fija en Excel, Power BI e IA | Alfredo Piña">
+<meta property="og:description" content="Cursos abiertos en línea y presenciales con fecha fija, grupos reducidos y diploma verificable, para profesionistas y equipos de trabajo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -270,6 +270,15 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
 .ca-cierre{ background-color:var(--panel); border:1px solid var(--line); border-radius:14px; padding:30px 24px; max-width:640px; }
 .lead-dialog .btn{ border-radius:7px; }
 
+/* texto estático y enlaces a cada curso (para Google y para quien llega sin JS) */
+.ca-que{ margin-top:14px; max-width:760px; font-size:15.5px; line-height:1.7; color:var(--text-dim); }
+.ca-landings{ margin-top:20px; }
+.ca-landings-k{ font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); }
+.ca-landings ul{ list-style:none; display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.ca-landings a{ display:inline-flex; align-items:center; flex-wrap:wrap; gap:2px 8px; min-height:44px; padding:6px 16px; border:1px solid var(--line); border-radius:999px; background-color:var(--panel); color:var(--text); font:600 14px var(--body); }
+.ca-landings a span{ font:500 12px var(--mono); color:var(--text-dim); white-space:nowrap; }
+.ca-landings a:hover{ border-color:var(--blue-bright); }
+
 /* aviso de enlaces de ejemplo */
 .ca-toast{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:3000; max-width:min(520px, calc(100vw - 32px)); background-color:var(--panel-2); border:1px solid var(--blue-bright); border-radius:9px; padding:12px 16px; font-size:14px; display:flex; gap:10px; align-items:center; box-shadow:0 12px 40px rgba(0,0,0,.5); }
 .ca-toast[hidden]{ display:none; }
@@ -370,6 +379,15 @@ body :is(a,button,summary,[tabindex]):focus-visible{ outline:2px solid var(--blu
   <div class="wrap">
     <div class="eyebrow">TEMAS</div>
     <h2 class="section-title" id="tTemas">Temas principales</h2>
+    <p class="ca-que">Los cursos abiertos son grupos con fecha fija, en línea o presenciales, para profesionistas y equipos de trabajo que quieren aplicar Excel, Power BI e IA en su trabajo. Cupo reducido, un proyecto aplicado a tus propios datos, diploma verificable con QR y constancia DC-3 (registrado ante la STPS para expedir constancias DC-3).</p>
+    <nav class="ca-landings" aria-label="Temario de cada curso">
+      <span class="ca-landings-k">Ver el temario de cada curso</span>
+      <ul>
+        <!--landings:links-->
+        <li><a href="/cursos-abiertos/excel-intermedio-avanzado">Excel Intermedio Avanzado <span>· 20 h · en línea</span></a></li>
+        <!--/landings:links-->
+      </ul>
+    </nav>
     <div class="courses-grid" id="caTemas"></div>
   </div>
 </section>

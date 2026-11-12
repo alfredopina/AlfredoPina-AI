@@ -75,6 +75,17 @@ function ddCursos(aria) {
   return '<div class="nav-dd">\n      <a href="/in-company" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos In Company ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
 }
 
+// Menú desplegable de Cursos Abiertos: una entrada por landing de assets/data/landings-abiertos.json (la misma lista que genera las páginas),
+// con el ícono y color de su herramienta. Al agregar una landing (Power BI, IA…) aparece sola en el menú tras correr este script.
+function ddAbiertos(aria) {
+  const lista = JSON.parse(fs.readFileSync(path.join(ROOT, "assets/data/landings-abiertos.json"), "utf8"));
+  const items = Object.keys(lista).map((slug) => {
+    const l = lista[slug], h = HERRAMIENTAS.find((x) => x.id === l.herramienta) || {};
+    return '<a href="/cursos-abiertos/' + slug + '" data-cat="' + (h.id || "") + '" style="--c:' + (h.color || "#3d7fff") + '">' + (h.id ? iconoHerramienta(h.id) : "") + l.nombre + "</a>";
+  }).join("\n        ");
+  return '<div class="nav-dd">\n      <a href="/cursos-abiertos" class="nav-dd-trigger"' + aria + ' aria-haspopup="true">Cursos Abiertos ' + CHEVRON + '</a>\n      <div class="nav-dd-menu">\n        ' + items + '\n      </div>\n    </div>';
+}
+
 // Menú desplegable de Conóceme: las 5 secciones de la portada (antes una segunda barra bajo el encabezado).
 // Los destinos llevan "/#" para que funcionen también desde Cursos y Recursos.
 const SVG_C = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' + d + '</svg>';
@@ -103,7 +114,7 @@ function nav(cfg) {
     <div class="nav-links" id="navLinks">
       ${ddConoceme(n.conoceme || "/")}
       ${ddCursos(cur("cursos"))}
-      <a href="/cursos-abiertos"${cur("abiertos")}>Cursos Abiertos</a>
+      ${ddAbiertos(cur("abiertos"))}
       <a href="/recursos"${cur("recursos")}>Recursos</a>${tag}
     </div>
     <a href="/#contacto" class="nav-cta">${CAFE} =CONTACTAR()</a>

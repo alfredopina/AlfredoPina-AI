@@ -41,7 +41,8 @@ for (const s of SLUGS) {
   check(s + ': <body> con herramienta, programa y slug (el script pide el catálogo con ellos)', h.includes('<body data-herramienta="' + l.herramienta + '" data-programa="' + l.programa + '" data-slug="' + s + '">'));
   check(s + ': sin marcadores {{ }} sin resolver y sin noindex', !/\{\{[A-Z0-9]+\}\}/.test(h) && !/noindex/i.test(h));
   check(s + ': el script ya no escribe título, canonical ni h1', !/document\.title\s*=/.test(h) && !/#coCanon|#coOg|\$\('#ldH1'\)\.innerHTML/.test(h));
-  check(s + ': menú con «Cursos Abiertos» marcado como página actual', /<a href="\/cursos-abiertos" aria-current="page">Cursos Abiertos<\/a>/.test(h));
+  check(s + ': menú con «Cursos Abiertos» marcado como página actual', /<a href="\/cursos-abiertos" class="nav-dd-trigger" aria-current="page" aria-haspopup="true">Cursos Abiertos /.test(h));
+  check(s + ': el menú «Cursos Abiertos» despliega un enlace a cada landing de la lista', SLUGS.every((x) => h.includes('<div class="nav-dd-menu">') && h.includes('<a href="/cursos-abiertos/' + x + '" data-cat="' + LANDINGS[x].herramienta + '"')));
 }
 check('ya no existe el archivo suelto curso-abierto.html (la plantilla vive en tools/)', !fs.existsSync(path.join(RAIZ, 'curso-abierto.html')) && fs.existsSync(path.join(RAIZ, 'tools/plantilla-curso-abierto.html')));
 const huerfanas = fs.existsSync(path.join(RAIZ, 'cursos-abiertos')) ? fs.readdirSync(path.join(RAIZ, 'cursos-abiertos')).filter((f) => f.endsWith('.html') && !SLUGS.includes(f.slice(0, -5))) : [];
